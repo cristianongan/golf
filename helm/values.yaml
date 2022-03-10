@@ -1,0 +1,26 @@
+projectName: golfCms
+dockerRegistry: harbor.vntaxi.net/golf
+imageName: golf-cms
+imageTag: lastest
+rootUrl: uat-backup.caotech.xyz
+replicaCount: 3
+servicePath: golf-cms
+
+nodeSelector:
+  pool: app
+  # doks.digitalocean.com/node-pool: pool-app
+
+resources:
+  limits:
+    cpu: 0.2
+    memory: 200Mi
+  requests:
+    cpu: 0.2
+    memory: 200Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80

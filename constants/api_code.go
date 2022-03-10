@@ -1,0 +1,3 @@
+package constants
+
+const API_ERR_CODE_INVALID_DISTANCE = "INVALID_DISTANCE"

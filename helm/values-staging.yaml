@@ -1,0 +1,11 @@
+rootUrl: golf-staging-api.caotech.xyz
+
+replicaCount: 3
+
+resources:
+  limits:
+    cpu: 0.5
+    memory: 500Mi
+  requests:
+    cpu: 0.5
+    memory: 500Mi

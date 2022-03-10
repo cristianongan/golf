@@ -1,0 +1,18 @@
+rootUrl: caro-backup-prod.caotech.xyz
+
+replicaCount: 1
+
+resources:
+  limits:
+    cpu: 0.1
+    memory: 200Mi
+  requests:
+    cpu: 0.1
+    memory: 200Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80

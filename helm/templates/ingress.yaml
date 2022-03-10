@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ include "golfCms.fullname" . }}
+spec:
+  # tls:
+  # - hosts:
+  #   - "{{ .Values.rootUrl }}"
+  #   secretName: {{ .Values.rootUrl }}
+  rules:
+  - host: "{{ .Values.rootUrl }}"
+    http:
+      paths:
+      - path: /golf-cms
+        backend:
+          serviceName: {{ include "golfCms.fullname" . }}
+          servicePort: 4000
