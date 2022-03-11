@@ -3,7 +3,7 @@ variables:
   APP_VERSION: "1.0"
 
   # ================= GOLF =========================
-  GOLF_KUBE_CONFIG_FILE: /home/gitlab-runner/.kube/golf-stag-config
+  GOLF_KUBE_CONFIG_FILE: /home/gitlab-runner/.kube/stag-config
 
   GOLF_DOCKER_REGISTRY: harbor.vntaxi.net/golf
   GOLF_IMAGE_NAME: $GOLF_DOCKER_REGISTRY/$PROJECT_NAME
@@ -35,7 +35,7 @@ build_staging:
   variables:
     IMAGE_TAG: b$APP_VERSION.$CI_PIPELINE_ID
   tags:
-  - vntaxi
+  - golf
   only:
   - master
 
@@ -46,7 +46,7 @@ deploy_staging:
   variables:
     IMAGE_TAG: b$APP_VERSION.$CI_PIPELINE_ID
   tags:
-  - vntaxi
+  - golf
   only:
   - master
 
@@ -67,7 +67,7 @@ build_prod:
   variables:
     IMAGE_TAG: b$APP_VERSION.$CI_PIPELINE_ID
   tags:
-  - vntaxi
+  - golf
   only:
   - prod
 
@@ -78,7 +78,7 @@ deploy_prod:
   variables:
     IMAGE_TAG: b$APP_VERSION.$CI_PIPELINE_ID
   tags:
-  - vntaxi
+  - golf
   only:
   - prod
   # when: manual

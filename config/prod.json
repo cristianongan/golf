@@ -2,7 +2,7 @@
     "name": "prod",
     "module_name": "golf-cms",
     "backend_port": ":4000",
-    "url_root": "http://localhost:4000",
+    "url_root": "http://golf-cms:4000",
     "kibana_log": true,
     "system_log_response": true,
     "cron_is_running": false,
