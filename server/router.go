@@ -12,7 +12,7 @@ import (
 	// "github.com/swaggo/gin-swagger/swaggerFiles"
 )
 
-var versionCheck = "v1.3"
+var versionCheck = "v1.1"
 
 func healthcheck(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "success: " + versionCheck})

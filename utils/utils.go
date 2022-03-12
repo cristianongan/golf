@@ -20,10 +20,6 @@ import (
 	"github.com/ttacon/libphonenumber"
 )
 
-func GetPathOrderBillCode(orderBillcode string, pathIndex int) string {
-	return orderBillcode + "-" + strconv.Itoa(pathIndex)
-}
-
 func HashCodeUuid(uid string) string {
 	return NumberToString(uuid.MustParse(uid).ID())
 }
@@ -102,25 +98,6 @@ func convertUtf8ToUnicode(s string) string {
 func TimeStampMilisecond(nanoTimeStamp int64) int64 {
 	return nanoTimeStamp / int64(time.Millisecond)
 }
-
-// func ConvertUidFromPartnerName(partnerName string) string {
-// 	s := convertUtf8ToUnicode(partnerName)
-// 	type StrConvert struct {
-// 		Input   string
-// 		Replace string
-// 	}
-// 	listConverts := []StrConvert{
-// 		StrConvert{"Đ", "D"},
-// 		StrConvert{" ", ""},
-// 	}
-
-// 	strUpperCase := strings.ToUpper(s)
-// 	strRemoveSpace := strUpperCase
-// 	for _, item := range listConverts {
-// 		strRemoveSpace = strings.Replace(strRemoveSpace, item.Input, item.Replace, -1)
-// 	}
-// 	return strRemoveSpace
-// }
 
 // ==================================
 func NumberToString(number interface{}) string {
