@@ -67,7 +67,7 @@ func GetLockerRedisObtainWith(key string, timeSecond time.Duration) bool {
 }
 
 func GetRedisKeyLockerCheckOrderPayment() string {
-	return config.GetEnviromentName() + "_" + "haicv_redis_locker_check_order_payment"
+	return config.GetEnvironmentName() + "_" + "haicv_redis_locker_check_order_payment"
 }
 
 // func GetRedis() *redis.Client {
@@ -162,7 +162,7 @@ func ExpireByKey(key string, ttl int) error {
 
 // ========= Set User Jwt Cache ====================
 func getKeyJwt(userUid string) string {
-	return config.GetEnviromentName() + ":" + constants.PREFIX_RKEY_JWT + ":" + userUid
+	return config.GetEnvironmentName() + ":" + constants.PREFIX_RKEY_JWT + ":" + userUid
 }
 
 func SetCacheJwt(userUid, jwtToken string, ttl int64) {

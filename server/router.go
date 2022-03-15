@@ -73,5 +73,15 @@ func NewRouter() *gin.Engine {
 		// }
 	}
 
+	todoRouter := router.Group(moduleName)
+	{
+		cTodo := new(controllers.CTodo)
+
+		todoRouter.POST("todo/create", cTodo.CreateTodo)
+		todoRouter.GET("todo/list", cTodo.GetTodoList)
+		todoRouter.POST("todo/delete", cTodo.DeleteTodo)
+		todoRouter.POST("todo/update", cTodo.UpdateTodo)
+	}
+
 	return router
 }

@@ -10,14 +10,15 @@ import (
 func MigrateDb() {
 	db := datasources.GetDatabase()
 	if config.GetIsMigrated() {
-		log.Println("migrate db")
+		log.Println("migrating db")
 
 		// ================ For Sub System ======================
 		db.AutoMigrate(&models.CmsUser{})
 		db.AutoMigrate(&models.CmsUserToken{})
 		db.AutoMigrate(&models.Partner{})
 		db.AutoMigrate(&models.Course{})
+		db.AutoMigrate(&models.Todo{})
 
-		log.Println("Migrate db")
+		log.Println("migrated db")
 	}
 }
