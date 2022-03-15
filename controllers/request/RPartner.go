@@ -9,3 +9,8 @@ type CreatePartnerBody struct {
 type GetListPartnerForm struct {
 	PageRequest
 }
+
+type UpdatePartnerBody struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}

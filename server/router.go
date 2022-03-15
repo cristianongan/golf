@@ -23,8 +23,6 @@ func healthcheck(c *gin.Context) {
 func NewRouter() *gin.Engine {
 	router := gin.New()
 
-	// router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
 	moduleName := strings.Replace(config.GetModuleName(), "_", "-", -1)
 	router.Group(moduleName).GET("/", healthcheck)
 
@@ -41,25 +39,24 @@ func NewRouter() *gin.Engine {
 		cHealCheck := new(controllers.HealCheck)
 		//customer.GET("/", cHealCheck.HealCheck)
 		routerApi.GET("/check-ip", cHealCheck.CheckIp)
-		//customer.Any("/metrics", prometheusHandler(promhttp.Handler()))
 
 		// ----------------------------------------------------------
+		// *********************** CMS - Operation ***********************
+		// ----------------------------------------------------------
+
 		/// =================== Auth =====================
 		cCmsUser := new(controllers.CCmsUser)
-		routerApi.POST("/auth/login", cCmsUser.Login)
-
-		//
+		routerApi.POST("/auth/login-cms", cCmsUser.Login)
 
 		// ----------------------------------------------------------
-		// ====================== CMS - Operation =======================
-		// ----------------------------------------------------------
-		// cmsApi := customer.Group("cms")
-		// {
-		// 	/// =============== Helper ===============
-		// 	cHelper := new(controllers.CHelper)
-		// 	cmsApi.POST("/helper/order/force-finish", cHelper.OrderForceFinish)
+		// ================== authorized api ===============================
+		// ================== use Middleware check jwtToken ================
+		cmsApiAuthorized := routerApi.Use(middlewares.UserJWTAuth)
 
-		// }
+		/// =================== Partner =====================
+		cPartner := new(controllers.CPartner)
+		cmsApiAuthorized.POST("/partner", middlewares.AuthorizedCmsUserHandler(cPartner.CreatePartner))
+		cmsApiAuthorized.GET("/partner/list", middlewares.AuthorizedCmsUserHandler(cPartner.GetListPartner))
 
 		// ----------------------------------------------------------
 		// ====================== Application =======================

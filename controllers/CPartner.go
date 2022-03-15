@@ -62,3 +62,12 @@ func (_ *CPartner) GetListPartner(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, res)
 
 }
+
+func (_ *CPartner) UpdatePartner(c *gin.Context, prof models.CmsUser) {
+	body := request.UpdatePartnerBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+}
