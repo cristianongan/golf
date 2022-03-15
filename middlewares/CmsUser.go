@@ -24,7 +24,7 @@ func getUserJWTToken(c *gin.Context) string {
 func UserJWTAuth(c *gin.Context) {
 	token := getUserJWTToken(c)
 
-	user, err := auth.VerifyJwtToken(token, config.GetJwtSecret())
+	user, err := auth.VerifyCmsJwtToken(token, config.GetJwtSecret())
 	if err != nil {
 		log.Println(err)
 		response_message.UnAuthorized(c, err.Error())
@@ -52,23 +52,23 @@ func UserJWTAuth(c *gin.Context) {
 }
 
 // =================================================
-func AuthorizedUserHandler(handler func(*gin.Context, models.User)) gin.HandlerFunc {
+func AuthorizedCmsUserHandler(handler func(*gin.Context, models.CmsUser)) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		value, exists := c.Get(constants.USER_PROFILE_KEY)
+		value, exists := c.Get(constants.CMS_USER_PROFILE_KEY)
 		if !exists {
 			response_message.UnAuthorized(c, "Not found profile")
 			c.Abort()
 			return
 		}
 
-		baseInfo, isUserProfile := value.(models.UserProfile)
+		baseInfo, isUserProfile := value.(models.CmsUserProfile)
 		if !isUserProfile {
 			response_message.UnAuthorized(c, "Map to model error")
 			c.Abort()
 			return
 		}
 
-		user := models.User{
+		user := models.CmsUser{
 			Model: models.Model{
 				Uid: baseInfo.Uid,
 			},

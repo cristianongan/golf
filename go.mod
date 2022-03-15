@@ -20,6 +20,7 @@ require (
 	github.com/spf13/viper v1.8.1
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.2.1
+	golang.org/x/crypto v0.0.0-20201216223049-8b5274cf687f // indirect
 	golang.org/x/text v0.3.6
 	gopkg.in/resty.v1 v1.12.0 // indirect
 	gorm.io/driver/mysql v1.1.0

@@ -13,43 +13,50 @@ import (
 	"github.com/google/uuid"
 )
 
-type User struct {
+type CmsUser struct {
 	Model
 
-	Phone         string `json:"phone" gorm:"index;type:varchar(20)"`
-	Name          string `json:"name" gorm:"type:varchar(100)"`
-	Password      string `json:"-"`
-	FirebaseToken string `json:"firebase_token"`
-	Language      string `json:"language" gorm:"type:varchar(20)"`
+	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"`
+	UserName   string `json:"user_name" gorm:"type:varchar(20);uniqueIndex"`
+
+	FullName string `json:"full_name" gorm:"type:varchar(256)"`
+	Password string `json:"-" gorm:"type:varchar(256)"`
+	LoggedIn bool   `json:"logged_in"`
+
+	Email    string `json:"email" gorm:"type:varchar(100)"`
+	Phone    string `json:"phone" gorm:"type:varchar(20)"`
+	BirthDay int64  `json:"birth_day"`
 }
 
-type UserResponse struct {
+type CmsUserResponse struct {
 	Model
-	Phone string `json:"phone" gorm:"index"`
-	Name  string `json:"name"`
-	OsUid string `json:"os_uid"` // OrderSource Uid
+
+	UserName string `json:"user_name"`
+	Phone    string `json:"phone"`
+	FullName string `json:"full_name"`
 }
 
-func (item *UserResponse) Scan(v interface{}) error {
+func (item *CmsUserResponse) Scan(v interface{}) error {
 	return json.Unmarshal(v.([]byte), item)
 }
 
-func (item UserResponse) Value() (driver.Value, error) {
+func (item CmsUserResponse) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
-type UserBaseInfo struct {
-	Uid    string `json:"uid"`
-	Phone  string `json:"phone" gorm:"index"`
-	OsCode string `json:"os_code"` // OrderSource Uid
+type CmsUserBaseInfo struct {
+	Uid        string `json:"uid"`
+	PartnerUid string `json:"partner_uid"`
+	UserName   string `json:"user_name"`
+	Status     string `json:"status"`
 }
 
-type UserProfile struct {
-	UserBaseInfo
+type CmsUserProfile struct {
+	CmsUserBaseInfo
 	jwt.StandardClaims
 }
 
-func (item *User) Create() error {
+func (item *CmsUser) Create() error {
 	uid := uuid.New()
 	now := time.Now()
 	item.Model.Uid = uid.String()
@@ -61,7 +68,7 @@ func (item *User) Create() error {
 	return db.Create(item).Error
 }
 
-func (item *User) Update() error {
+func (item *CmsUser) Update() error {
 	mydb := datasources.GetDatabase()
 	item.Model.UpdatedAt = time.Now().Unix()
 	errUpdate := mydb.Save(item).Error
@@ -71,22 +78,22 @@ func (item *User) Update() error {
 	return nil
 }
 
-func (item *User) FindFirst() error {
+func (item *CmsUser) FindFirst() error {
 	db := datasources.GetDatabase()
 	return db.Where(item).First(item).Error
 }
 
-func (item *User) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(User{})
+func (item *CmsUser) Count() (int64, error) {
+	db := datasources.GetDatabase().Model(CmsUser{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *User) FindList(page Page) ([]User, int64, error) {
-	db := datasources.GetDatabase().Model(User{})
-	list := []User{}
+func (item *CmsUser) FindList(page Page) ([]CmsUser, int64, error) {
+	db := datasources.GetDatabase().Model(CmsUser{})
+	list := []CmsUser{}
 	total := int64(0)
 	status := item.Model.Status
 	item.Model.Status = ""
@@ -102,7 +109,7 @@ func (item *User) FindList(page Page) ([]User, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *User) Delete() error {
+func (item *CmsUser) Delete() error {
 	if item.Model.Uid == "" {
 		return errors.New("Primary key is undefined!")
 	}

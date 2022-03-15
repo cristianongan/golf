@@ -12,6 +12,7 @@ import (
 	"time"
 	"unicode"
 
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/transform"
 	"golang.org/x/text/unicode/norm"
 
@@ -223,4 +224,14 @@ func FormatMoney(inputMoney float64) string {
 func GenerateUidTimestamp() string {
 	uid := uuid.New()
 	return uid.String() + "-" + NumberToString(time.Now().UnixNano())
+}
+
+// ================================================================================
+func GeneratePassword(plainPassword string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
+	return string(hash), err
+}
+
+func ComparePassword(hashPassword, password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashPassword), []byte(password))
 }

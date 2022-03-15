@@ -1,0 +1,172 @@
+package controllers
+
+import (
+	"errors"
+	"log"
+	"start/auth"
+	"start/config"
+	"start/constants"
+	"start/controllers/request"
+	"start/models"
+	"start/utils"
+	"start/utils/response_message"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
+)
+
+type CCmsUser struct{}
+
+func (_ *CCmsUser) Test1(c *gin.Context) {
+	okResponse(c, gin.H{"message": "success"})
+}
+
+func (_ *CCmsUser) Test(c *gin.Context, prof models.CmsUser) {
+	log.Println("test")
+
+	okResponse(c, gin.H{"message": "success"})
+}
+
+func (_ *CCmsUser) Login(c *gin.Context) {
+	body := request.LoginBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	user := models.CmsUser{
+		UserName: body.UserName,
+	}
+
+	errFind := user.FindFirst()
+	if errFind != nil {
+		response_message.InternalServerError(c, errFind.Error())
+		return
+	}
+
+	if user.Status != constants.STATUS_ENABLE {
+		response_message.BadRequestDynamicKey(c, "USER_BE_LOCKED", errors.New("account be locked").Error())
+		return
+	}
+
+	if user.LoggedIn {
+		errCheck := utils.ComparePassword(user.Password, body.Password)
+		if errCheck != nil {
+			response_message.BadRequest(c, errFind.Error())
+			return
+		}
+	} else {
+		if user.Password != body.Password {
+			response_message.BadRequest(c, errors.New("wrong info").Error())
+			return
+		}
+		hashPass, errHash := utils.GeneratePassword(body.Password)
+		if errHash != nil {
+			response_message.BadRequest(c, errHash.Error())
+			return
+		}
+		user.Password = hashPass
+		user.LoggedIn = true
+		errUpdate := user.Update()
+		if errUpdate != nil {
+			response_message.InternalServerError(c, errUpdate.Error())
+			return
+		}
+	}
+
+	partner := models.Partner{}
+	partner.Uid = user.PartnerUid
+	errFind = partner.FindFirst()
+	if errFind != nil {
+		response_message.InternalServerError(c, errFind.Error())
+		return
+	}
+
+	// // create jwt
+	prof := models.CmsUserProfile{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Second * time.Duration(body.Ttl)).Unix(),
+		},
+	}
+	prof.Uid = user.Uid
+	prof.PartnerUid = user.PartnerUid
+	prof.UserName = user.UserName
+	prof.Status = user.Status
+
+	jwt, errJwt := auth.CreateToken(prof, config.GetJwtSecret())
+	if errJwt != nil {
+		log.Println("cms login errJwt ", errJwt.Error())
+		response_message.InternalServerError(c, errFind.Error())
+		return
+	}
+
+	userToken := models.CmsUserToken{
+		UserUid:    user.Uid,
+		UserName:   user.UserName,
+		PartnerUid: user.PartnerUid,
+		Token:      jwt,
+	}
+	errCreate := userToken.Create()
+	if errCreate != nil {
+		log.Println("cmsUserToken.Create: ", errCreate)
+	}
+
+	// // =============== user permission =================
+	// permissionUid := ""
+	// roleIds := []string{}
+	// uPermission := models.UserPermission{
+	// 	UserUid: user.Uid,
+	// }
+	// errFindPermission := uPermission.FindFirst()
+	// if errFindPermission != nil {
+	// 	log.Println(errFindPermission)
+	// }
+	// permissionUid = uPermission.PermissionUid
+	// if permissionUid != "" {
+	// 	accessControl := models.AccessControl{
+	// 		PermissionUid: permissionUid,
+	// 	}
+	// 	accessControls, _, _ := accessControl.FindList(models.Page{Limit: 1000})
+	// 	for _, item := range accessControls {
+	// 		roleIds = append(roleIds, item.RoleUid)
+	// 	}
+	// }
+
+	userDataRes := map[string]interface{}{
+		"user_name":   user.UserName,
+		"phone":       user.Phone,
+		"partner_uid": user.PartnerUid,
+	}
+
+	okResponse(c, gin.H{"token": jwt, "data": userDataRes})
+}
+
+func (_ *CCmsUser) GetList(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListCmsUserForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	cmsUserR := models.CmsUser{}
+	list, total, err := cmsUserR.FindList(page)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}

@@ -11,12 +11,12 @@ func CreateToken(claims jwt.Claims, secret string) (string, error) {
 	return token.SignedString([]byte(secret))
 }
 
-func VerifyJwtToken(tokenString, secretKey string) (models.UserProfile, error) {
+func VerifyCmsJwtToken(tokenString, secretKey string) (models.CmsUserProfile, error) {
 	keyFn := func(token *jwt.Token) (interface{}, error) {
 		return []byte(secretKey), nil
 	}
 
-	profile := models.UserProfile{}
+	profile := models.CmsUserProfile{}
 
 	token, err := jwt.ParseWithClaims(tokenString, &profile, keyFn)
 

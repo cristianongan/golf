@@ -24,17 +24,4 @@ var ViLanguage = map[string]string{
 	"JWT_TOKEN_INVALID":            "Đăng nhập không thành công",
 	"VALIDATE_SOURCE_INVALID":      "Start point is not available",
 	"VALIDATE_DESTINATION_INVALID": "Destination point is not available",
-
-	// Order
-	"INVALID_SERVICE_HOUR": "Không thể sử dụng dịch vụ trong khung giờ này",
-	"INVALID_BOOKING_TIME": "Thời gian đặt đơn không hợp lệ",
-	"VALIDATE_MIN_PATH":    "Không tìm thấy Điểm giao",
-	"INVALID_DISTANCE":     "Rất tiếc, dịch vụ giao hàng của chúng tôi chưa triển khai tại địa điểm này",
-	"ERROR_ORDER_UPDATE":   "Đơn hàng không thể cập nhật",
-	"ERROR_FINISH_ORDER":   "Không thể kết thúc chuyến đi",
-	"ERROR_CANCEL_ORDER":   "Không thể huỷ đơn hàng",
-	"BOOKING_RATED":        "Cuốc đặt đã được đánh giá",
-
-	//NEW
-	"ERROR_MAX_LIST_SAVED": "Số địa điểm đã lưu đã đạt tối đa, vui lòng xóa để lưu địa điểm mới",
 }

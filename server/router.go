@@ -36,21 +36,19 @@ func NewRouter() *gin.Engine {
 	/*
 	 - Cấu trúc sub-group để custorm Middleware
 	*/
-	customer := router.Group(moduleName)
+	routerApi := router.Group(moduleName)
 	{
 		cHealCheck := new(controllers.HealCheck)
 		//customer.GET("/", cHealCheck.HealCheck)
-		customer.GET("/check-ip", cHealCheck.CheckIp)
+		routerApi.GET("/check-ip", cHealCheck.CheckIp)
 		//customer.Any("/metrics", prometheusHandler(promhttp.Handler()))
 
 		// ----------------------------------------------------------
-		/// =================== Helper =====================
-		// helperApi := customer.Group("helper")
-		// {
-		// 	cHelper := new(controllers.CHelper)
-		// 	//helperApi.POST("/ott/send", cHelper.NotiOttSend)
-		// 	helperApi.POST("/ott/log", cHelper.NotiOttLog)
-		// }
+		/// =================== Auth =====================
+		cCmsUser := new(controllers.CCmsUser)
+		routerApi.POST("/auth/login", cCmsUser.Login)
+
+		//
 
 		// ----------------------------------------------------------
 		// ====================== CMS - Operation =======================

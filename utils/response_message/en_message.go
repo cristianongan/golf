@@ -24,19 +24,4 @@ var EnLanguage = map[string]string{
 	"VALIDATE_SOURCE_INVALID":      "Start point is not available",
 	"VALIDATE_DESTINATION_INVALID": "Destination point is not available",
 	"PHONE_INVALID":                "Invalid phone number",
-
-	// Order
-	"INVALID_SERVICE_HOUR": "The service could not be used during this time",
-	"INVALID_BOOKING_TIME": "Invalid order timing",
-	"VALIDATE_MIN_PATH":    "The drop off point could not be found",
-	"INVALID_DISTANCE":     "Sorry, our service has not been available in your region",
-	"ERROR_ORDER_UPDATE":   "The order could not be updated",
-	"ERROR_FIND_BOOKING":   "Không tìm thấy cuốc đặt",
-	"ERROR_FINISH_BOOKING": "Không thể kết thúc chuyến đi",
-	"ERROR_CANCEL_BOOKING": "Cannot cancel booking",
-	"ERROR_BOOKING_STATUS": "Booking status is not available",
-	"BOOKING_RATED":        "Cuốc đặt đã được đánh giá",
-
-	//NEW
-	"ERROR_MAX_LIST_SAVED": "You have reached the maximum number of saved places",
 }
