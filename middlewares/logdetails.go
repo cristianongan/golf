@@ -61,7 +61,7 @@ func GinBodyLogMiddleware(c *gin.Context) {
 	c.Writer = blw
 	c.Next()
 	end := time.Now().UTC()
-	newlogmessage.Environment = config.GetEnviromentName()
+	newlogmessage.Environment = config.GetEnvironmentName()
 	newlogmessage.Module = config.GetModuleName()
 	newlogmessage.Path = c.Request.URL.Path
 	newlogmessage.Status = c.Writer.Status()

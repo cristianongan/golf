@@ -46,7 +46,7 @@ func GetUrlBackendApi() string {
 	return config.GetString("url_root") + "/" + strings.Replace(config.GetString("module_name"), "_", "-", -1)
 }
 
-func GetEnviromentName() string {
+func GetEnvironmentName() string {
 	return config.GetString("name")
 }
 
