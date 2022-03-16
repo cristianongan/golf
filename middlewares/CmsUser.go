@@ -47,7 +47,7 @@ func CmsUserJWTAuth(c *gin.Context) {
 		return
 	}
 
-	c.Set(constants.USER_PROFILE_KEY, user)
+	c.Set(constants.CMS_USER_PROFILE_KEY, user)
 	c.Next()
 }
 
