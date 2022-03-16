@@ -115,5 +115,5 @@ func udpCourseUid(courseUid, partnerUid string) string {
 	}
 
 	courseUid1 := strings.ReplaceAll(courseUid, " ", "-")
-	return strings.ToLower(partnerUid + "-" + courseUid1)
+	return strings.ToUpper(partnerUid + "-" + courseUid1)
 }
