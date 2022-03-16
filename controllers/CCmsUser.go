@@ -35,6 +35,10 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 		return
 	}
 
+	if body.Ttl <= 0 {
+		body.Ttl = 24 * 60 * 60 * 30
+	}
+
 	user := models.CmsUser{
 		UserName: body.UserName,
 	}
