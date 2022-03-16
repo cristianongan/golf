@@ -18,6 +18,7 @@ func MigrateDb() {
 		db.AutoMigrate(&models.Partner{})
 		db.AutoMigrate(&models.Course{})
 		db.AutoMigrate(&models.Todo{})
+		db.AutoMigrate(&models.Buggy{})
 
 		log.Println("migrated db")
 	}

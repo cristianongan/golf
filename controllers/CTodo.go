@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"log"
+	"github.com/pkg/errors"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -14,9 +14,7 @@ type CTodo struct{}
 
 func (_ *CTodo) CreateTodo(c *gin.Context) {
 	var body request.CreateTodoBody
-	var a = c.BindJSON(&body)
-	if a != nil {
-		log.Println(a)
+	if bindErr := c.BindJSON(&body); bindErr != nil {
 		response_message.BadRequest(c, "")
 		return
 	}
@@ -32,7 +30,6 @@ func (_ *CTodo) CreateTodo(c *gin.Context) {
 
 	err := todo.Create()
 	if err != nil {
-		log.Println(err)
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
@@ -45,8 +42,6 @@ func (_ *CTodo) GetTodoList(c *gin.Context) {
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
-
-	log.Println(form)
 
 	page := models.Page{
 		Limit:   form.PageRequest.Limit,
@@ -73,15 +68,15 @@ func (_ *CTodo) GetTodoList(c *gin.Context) {
 }
 
 func (_ *CTodo) DeleteTodo(c *gin.Context) {
-	var body request.DeleteTodoBody
-	if bindErr := c.BindJSON(&body); bindErr != nil {
-		response_message.BadRequest(c, bindErr.Error())
+	todoUid := c.Param("uid")
+	if todoUid == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
 		return
 	}
 
 	todoRequest := models.Todo{}
-	todoRequest.Uid = body.Uid
-	_, errF := todoRequest.FindFirst()
+	todoRequest.Uid = todoUid
+	errF := todoRequest.FindFirst()
 
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -98,6 +93,12 @@ func (_ *CTodo) DeleteTodo(c *gin.Context) {
 }
 
 func (_ *CTodo) UpdateTodo(c *gin.Context) {
+	todoUid := c.Param("uid")
+	if todoUid == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
 	var body request.UpdateTodoBody
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -105,21 +106,14 @@ func (_ *CTodo) UpdateTodo(c *gin.Context) {
 	}
 
 	todoRequest := models.Todo{}
-	todoRequest.Uid = body.Uid
+	todoRequest.Uid = todoUid
 
-	oldTodo, errF := todoRequest.FindFirst()
+	errF := todoRequest.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	var older = oldTodo[0]
-
-	todoRequest.Uid = body.Uid
-	todoRequest.CreatedAt = older.CreatedAt
-	todoRequest.Uid = older.Uid
-	todoRequest.Content = older.Content
-	todoRequest.Status = older.Status
 	todoRequest.Done = body.Done
 
 	err := todoRequest.Update()

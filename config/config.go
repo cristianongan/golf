@@ -118,7 +118,7 @@ func GetFluentdPass() string {
 
 // ============ Minio ==========================
 func GetMinioEndpoint() string {
-	return config.GetString("minio.enpoint")
+	return config.GetString("minio.endpoint")
 }
 func GetMinioBucket() string {
 	return config.GetString("minio.bucket")

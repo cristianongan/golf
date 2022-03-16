@@ -49,7 +49,7 @@ func checkContain(array []int64, val int64) bool {
 
 // ===================================================================
 type errorResponse struct {
-	Mesage interface{} `json:"message"`
+	Message interface{} `json:"message"`
 }
 
 type errorResponse1 struct {
@@ -74,7 +74,7 @@ func notFoundError(c *gin.Context, cause interface{}) {
 	c.JSON(http.StatusNotFound, errorResponse{cause})
 }
 
-func unauthorizeResponse(c *gin.Context, cause interface{}) {
+func unauthorizedResponse(c *gin.Context, cause interface{}) {
 	c.JSON(http.StatusUnauthorized, errorResponse{cause})
 }
 

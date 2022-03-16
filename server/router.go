@@ -72,6 +72,11 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/course/:uid", middlewares.AuthorizedCmsUserHandler(cCourse.UpdateCourse))
 			cmsApiAuthorized.DELETE("/course/:uid", middlewares.AuthorizedCmsUserHandler(cCourse.DeleteCourse))
 
+			cBuggy := new(controllers.CBuggy)
+			cmsApiAuthorized.POST("/buggy", middlewares.AuthorizedCmsUserHandler(cBuggy.CreateBuggy))
+			cmsApiAuthorized.GET("/buggy/list", middlewares.AuthorizedCmsUserHandler(cBuggy.GetBuggyList))
+			cmsApiAuthorized.PUT("/buggy/:uid", middlewares.AuthorizedCmsUserHandler(cBuggy.UpdateBuggy))
+			cmsApiAuthorized.DELETE("/buggy/:uid", middlewares.AuthorizedCmsUserHandler(cBuggy.DeleteBuggy))
 		}
 
 		// ----------------------------------------------------------
@@ -90,10 +95,10 @@ func NewRouter() *gin.Engine {
 	{
 		cTodo := new(controllers.CTodo)
 
-		todoRouter.POST("todo/create", cTodo.CreateTodo)
+		todoRouter.POST("todo", cTodo.CreateTodo)
 		todoRouter.GET("todo/list", cTodo.GetTodoList)
-		todoRouter.POST("todo/delete", cTodo.DeleteTodo)
-		todoRouter.POST("todo/update", cTodo.UpdateTodo)
+		todoRouter.PUT("todo/:uid", cTodo.UpdateTodo)
+		todoRouter.DELETE("todo/:uid", cTodo.DeleteTodo)
 	}
 
 	return router

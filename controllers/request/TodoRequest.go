@@ -14,6 +14,5 @@ type DeleteTodoBody struct {
 }
 
 type UpdateTodoBody struct {
-	Uid  string `json:"uid" binding:"required"`
-	Done bool   `form:"done" binding:"required"`
+	Done bool `json:"done" binding:"required"`
 }

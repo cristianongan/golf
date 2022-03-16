@@ -50,12 +50,9 @@ func (item *Todo) Update() error {
 	return nil
 }
 
-func (item *Todo) FindFirst() ([]Todo, error) {
-	var single []Todo
-
+func (item *Todo) FindFirst() error {
 	db := datasources.GetDatabase()
-	db.Where(item).First(&single)
-	return single, db.Error
+	return db.Where(item).First(item).Error
 }
 
 func (item *Todo) Count() (int64, error) {
