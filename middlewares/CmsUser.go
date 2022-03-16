@@ -26,7 +26,7 @@ func CmsUserJWTAuth(c *gin.Context) {
 
 	user, err := auth.VerifyCmsJwtToken(token, config.GetJwtSecret())
 	if err != nil {
-		log.Println(err)
+		log.Println("cms user jwtauth err ", err.Error())
 		response_message.UnAuthorized(c, err.Error())
 		c.Abort()
 		return

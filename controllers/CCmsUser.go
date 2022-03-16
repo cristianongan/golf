@@ -7,6 +7,7 @@ import (
 	"start/config"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils"
 	"start/utils/response_message"
@@ -36,7 +37,7 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 	}
 
 	if body.Ttl <= 0 {
-		body.Ttl = 24 * 60 * 60 * 30
+		body.Ttl = 604800 // 1 Tuần
 	}
 
 	user := models.CmsUser{
@@ -105,6 +106,8 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 		response_message.InternalServerError(c, errFind.Error())
 		return
 	}
+
+	datasources.SetCacheJwt(user.Model.Uid, jwt, int64(body.Ttl))
 
 	userToken := models.CmsUserToken{
 		UserUid:    user.Uid,
