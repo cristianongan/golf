@@ -105,8 +105,9 @@ func bindUriId(c *gin.Context) (int64, error) {
 
 func udpPartnerUid(input string) string {
 	result := strings.ReplaceAll(input, " ", "-")
-	result1 := strings.ToUpper(result)
-	return result1
+	result1 := strings.ReplaceAll(result, "_", "-")
+	result2 := strings.ToUpper(result1)
+	return result2
 }
 
 func udpCourseUid(courseUid, partnerUid string) string {
@@ -115,5 +116,6 @@ func udpCourseUid(courseUid, partnerUid string) string {
 	}
 
 	courseUid1 := strings.ReplaceAll(courseUid, " ", "-")
-	return strings.ToUpper(partnerUid + "-" + courseUid1)
+	courseUid2 := strings.ReplaceAll(courseUid1, "_", "-")
+	return strings.ToUpper(partnerUid + "-" + courseUid2)
 }
