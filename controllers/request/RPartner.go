@@ -2,7 +2,7 @@ package request
 
 type CreatePartnerBody struct {
 	Name   string `json:"name" binding:"required"`
-	Code   string `json:"code" binding:"required"`
+	Uid    string `json:"uid" binding:"required"`
 	Status string `json:"status"`
 }
 

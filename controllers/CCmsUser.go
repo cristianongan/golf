@@ -31,7 +31,7 @@ func (_ *CCmsUser) Test(c *gin.Context, prof models.CmsUser) {
 func (_ *CCmsUser) Login(c *gin.Context) {
 	body := request.LoginBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
-		badRequest(c, bindErr.Error())
+		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
@@ -57,7 +57,8 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 			return
 		}
 	} else {
-		if user.Password != body.Password {
+		//TODO: check password
+		if user.Password != "" && user.Password != body.Password {
 			response_message.BadRequest(c, errors.New("wrong info").Error())
 			return
 		}
@@ -169,4 +170,36 @@ func (_ *CCmsUser) GetList(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, res)
+}
+
+func (_ *CCmsUser) CreateCmsUser(c *gin.Context) {
+	body := request.CreateCmsUserBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	partner := models.Partner{}
+	partner.Uid = body.PartnerUid
+	errFind := partner.FindFirst()
+	if errFind != nil {
+		response_message.BadRequest(c, errFind.Error())
+		return
+	}
+
+	cmsUser := models.CmsUser{
+		UserName:   body.UserName,
+		FullName:   body.FullName,
+		Email:      body.Email,
+		Phone:      body.Phone,
+		PartnerUid: body.PartnerUid,
+	}
+
+	errCreate := cmsUser.Create()
+	if errCreate != nil {
+		response_message.InternalServerError(c, errCreate.Error())
+		return
+	}
+
+	okResponse(c, cmsUser)
 }

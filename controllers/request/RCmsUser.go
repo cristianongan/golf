@@ -1,5 +1,13 @@
 package request
 
+type CreateCmsUserBody struct {
+	UserName   string `json:"user_name" binding:"required"`
+	FullName   string `json:"full_name"`
+	Email      string `json:"email"`
+	Phone      string `json:"phone"`
+	PartnerUid string `json:"partner_uid" binding:"required"`
+}
+
 type LoginBody struct {
 	UserName string `json:"user_name" binding:"required"`
 	Password string `json:"password" binding:"required"`

@@ -21,7 +21,7 @@ func getUserJWTToken(c *gin.Context) string {
 	return c.Query("token")
 }
 
-func UserJWTAuth(c *gin.Context) {
+func CmsUserJWTAuth(c *gin.Context) {
 	token := getUserJWTToken(c)
 
 	user, err := auth.VerifyCmsJwtToken(token, config.GetJwtSecret())

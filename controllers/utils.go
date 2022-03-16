@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"start/constants"
 	"start/models"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -100,4 +101,10 @@ func bindUriId(c *gin.Context) (int64, error) {
 	uri := Uri{}
 	err := c.ShouldBindUri(&uri)
 	return uri.Id, err
+}
+
+func udpPartnerUid(input string) string {
+	result := strings.ReplaceAll(input, " ", "-")
+	result1 := strings.ToUpper(result)
+	return result1
 }

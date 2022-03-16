@@ -44,19 +44,27 @@ func NewRouter() *gin.Engine {
 		// *********************** CMS - Operation ***********************
 		// ----------------------------------------------------------
 
-		/// =================== Auth =====================
-		cCmsUser := new(controllers.CCmsUser)
-		routerApi.POST("/auth/login-cms", cCmsUser.Login)
+		// Tạo 1 sub group để xử lý middleware
+		// TODO: Thêm middleware cho group api
+		groupApi := routerApi.Group("api")
+		{
+			/// =================== Auth =====================
+			cCmsUser := new(controllers.CCmsUser)
+			groupApi.POST("/user/login", cCmsUser.Login)
+			groupApi.POST("/user", cCmsUser.CreateCmsUser)
 
-		// ----------------------------------------------------------
-		// ================== authorized api ===============================
-		// ================== use Middleware check jwtToken ================
-		cmsApiAuthorized := routerApi.Use(middlewares.UserJWTAuth)
+			// ----------------------------------------------------------
+			// ================== authorized api ===============================
+			// ================== use Middleware check jwtToken ================
+			cmsApiAuthorized := groupApi.Use(middlewares.CmsUserJWTAuth)
 
-		/// =================== Partner =====================
-		cPartner := new(controllers.CPartner)
-		cmsApiAuthorized.POST("/partner", middlewares.AuthorizedCmsUserHandler(cPartner.CreatePartner))
-		cmsApiAuthorized.GET("/partner/list", middlewares.AuthorizedCmsUserHandler(cPartner.GetListPartner))
+			/// =================== Partner =====================
+			cPartner := new(controllers.CPartner)
+			cmsApiAuthorized.POST("/partner", middlewares.AuthorizedCmsUserHandler(cPartner.CreatePartner))
+			cmsApiAuthorized.GET("/partner/list", middlewares.AuthorizedCmsUserHandler(cPartner.GetListPartner))
+			cmsApiAuthorized.PUT("/partner/:uid", middlewares.AuthorizedCmsUserHandler(cPartner.UpdatePartner))
+			cmsApiAuthorized.DELETE("/partner/:uid", middlewares.AuthorizedCmsUserHandler(cPartner.DeletePartner))
+		}
 
 		// ----------------------------------------------------------
 		// ====================== Application =======================
