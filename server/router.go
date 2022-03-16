@@ -64,6 +64,14 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/partner/list", middlewares.AuthorizedCmsUserHandler(cPartner.GetListPartner))
 			cmsApiAuthorized.PUT("/partner/:uid", middlewares.AuthorizedCmsUserHandler(cPartner.UpdatePartner))
 			cmsApiAuthorized.DELETE("/partner/:uid", middlewares.AuthorizedCmsUserHandler(cPartner.DeletePartner))
+
+			/// =================== Course =====================
+			cCourse := new(controllers.CCourse)
+			cmsApiAuthorized.POST("/course", middlewares.AuthorizedCmsUserHandler(cCourse.CreateCourse))
+			cmsApiAuthorized.GET("/course/list", middlewares.AuthorizedCmsUserHandler(cCourse.GetListCourse))
+			cmsApiAuthorized.PUT("/course/:uid", middlewares.AuthorizedCmsUserHandler(cCourse.UpdateCourse))
+			cmsApiAuthorized.DELETE("/course/:uid", middlewares.AuthorizedCmsUserHandler(cCourse.DeleteCourse))
+
 		}
 
 		// ----------------------------------------------------------

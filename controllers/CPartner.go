@@ -18,10 +18,17 @@ func (_ *CPartner) CreatePartner(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	partner := models.Partner{
-		Name: body.Name,
-	}
+	partner := models.Partner{}
 	partner.Uid = udpPartnerUid(body.Uid)
+
+	//Check Exits
+	errFind := partner.FindFirst()
+	if errFind == nil || partner.Name != "" {
+		response_message.DuplicateRecord(c, errors.New("Duplicate uid").Error())
+		return
+	}
+
+	partner.Name = body.Name
 	partner.Status = body.Status
 
 	errC := partner.Create()

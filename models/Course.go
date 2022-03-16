@@ -6,8 +6,6 @@ import (
 	"start/datasources"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // Sân Golf
@@ -15,14 +13,11 @@ type Course struct {
 	Model
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"`
 	Name       string `json:"name" gorm:"type:varchar(256)"`
-	Code       string `json:"code" gorm:"type:varchar(100);uniqueIndex"`
 }
 
 // ======= CRUD ===========
 func (item *Course) Create() error {
-	uid := uuid.New()
 	now := time.Now()
-	item.Model.Uid = uid.String()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
 	if item.Status == "" {

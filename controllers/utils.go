@@ -108,3 +108,12 @@ func udpPartnerUid(input string) string {
 	result1 := strings.ToUpper(result)
 	return result1
 }
+
+func udpCourseUid(courseUid, partnerUid string) string {
+	if strings.Contains(courseUid, partnerUid) {
+		return strings.ToUpper(courseUid)
+	}
+
+	courseUid1 := strings.ReplaceAll(courseUid, " ", "-")
+	return strings.ToLower(partnerUid + "-" + courseUid1)
+}
