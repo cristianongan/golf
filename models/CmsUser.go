@@ -19,13 +19,17 @@ type CmsUser struct {
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"`
 	UserName   string `json:"user_name" gorm:"type:varchar(20);uniqueIndex"`
 
-	FullName string `json:"full_name" gorm:"type:varchar(256)"`
+	FullName string `json:"full_name" gorm:"type:varchar(256);index"`
 	Password string `json:"-" gorm:"type:varchar(256)"`
 	LoggedIn bool   `json:"logged_in"`
 
-	Email    string `json:"email" gorm:"type:varchar(100)"`
-	Phone    string `json:"phone" gorm:"type:varchar(20)"`
-	BirthDay int64  `json:"birth_day"`
+	Email      string `json:"email" gorm:"type:varchar(100)"`
+	Phone      string `json:"phone" gorm:"type:varchar(20)"`
+	Dob        int64  `json:"dob"`
+	Position   string `json:"position" gorm:"type:varchar(100)"`   // chức vụ
+	Sex        int    `json:"sex"`                                 // gioi tinh
+	Department string `json:"department" gorm:"type:varchar(100)"` // Đơn vị
+	Role       string `json:"role" gorm:"type:varchar(100)"`       // Quyền hạn
 }
 
 type CmsUserResponse struct {
