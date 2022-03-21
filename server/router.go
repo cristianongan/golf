@@ -72,6 +72,20 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/course/:uid", middlewares.AuthorizedCmsUserHandler(cCourse.UpdateCourse))
 			cmsApiAuthorized.DELETE("/course/:uid", middlewares.AuthorizedCmsUserHandler(cCourse.DeleteCourse))
 
+			/// =================== Member Card =====================
+			cMemberCard := new(controllers.CMemberCard)
+			cmsApiAuthorized.POST("/member-card", middlewares.AuthorizedCmsUserHandler(cMemberCard.CreateMemberCard))
+			cmsApiAuthorized.GET("/member-card/list", middlewares.AuthorizedCmsUserHandler(cMemberCard.GetListMemberCard))
+			cmsApiAuthorized.PUT("/member-card/:uid", middlewares.AuthorizedCmsUserHandler(cMemberCard.UpdateMemberCard))
+			cmsApiAuthorized.DELETE("/member-card/:uid", middlewares.AuthorizedCmsUserHandler(cMemberCard.DeleteMemberCard))
+
+			/// =================== Member Card Type =====================
+			cMemberCardType := new(controllers.CMemberCardType)
+			cmsApiAuthorized.POST("/member-card-type", middlewares.AuthorizedCmsUserHandler(cMemberCardType.CreateMemberCardType))
+			cmsApiAuthorized.GET("/member-card-type/list", middlewares.AuthorizedCmsUserHandler(cMemberCardType.GetListMemberCardType))
+			cmsApiAuthorized.PUT("/member-card-type/:id", middlewares.AuthorizedCmsUserHandler(cMemberCardType.UpdateMemberCardType))
+			cmsApiAuthorized.DELETE("/member-card-type/:id", middlewares.AuthorizedCmsUserHandler(cMemberCardType.DeleteMemberCardType))
+
 			cBuggy := new(controllers.CBuggy)
 			cmsApiAuthorized.POST("/buggy", middlewares.AuthorizedCmsUserHandler(cBuggy.CreateBuggy))
 			cmsApiAuthorized.GET("/buggy/list", middlewares.AuthorizedCmsUserHandler(cBuggy.GetBuggyList))
