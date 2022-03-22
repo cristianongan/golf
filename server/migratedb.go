@@ -19,6 +19,7 @@ func MigrateDb() {
 		db.AutoMigrate(&models.Course{})
 		db.AutoMigrate(&models.Todo{})
 		db.AutoMigrate(&models.Buggy{})
+		db.AutoMigrate(&models.BuggyDiary{})
 		db.AutoMigrate(&models.MemberCard{})
 		db.AutoMigrate(&models.MemberCardType{})
 		db.AutoMigrate(&models.CustomerUser{})

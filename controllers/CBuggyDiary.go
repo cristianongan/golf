@@ -10,10 +10,10 @@ import (
 	"strconv"
 )
 
-type CBuggy struct{}
+type CBuggyDiary struct{}
 
-func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
-	var body request.CreateBuggyBody
+func (_ *CBuggyDiary) CreateBuggyDiary(c *gin.Context, prof models.CmsUser) {
+	var body request.CreateBuggyDiaryBody
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		response_message.BadRequest(c, "")
 		return
@@ -28,36 +28,43 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 	}
 
 	buggyRequest := models.Buggy{}
-	buggyRequest.Number = body.Number
+	buggyRequest.Number = body.BuggyNumber
 	buggyRequest.CourseId = body.CourseId
 	errExist := buggyRequest.FindFirst()
 
-	if errExist == nil && buggyRequest.ModelId.Id > 0 {
-		response_message.BadRequest(c, "Buggy number existed in course")
+	if errExist != nil || buggyRequest.ModelId.Id < 1 {
+		response_message.BadRequest(c, "Buggy number did not exist in course")
 		return
 	}
 
 	base := models.ModelId{
 		Status: constants.STATUS_ENABLE,
 	}
-	buggy := models.Buggy{
-		ModelId:  base,
-		Number:   body.Number,
-		Origin:   body.Origin,
-		Note:     body.Note,
-		CourseId: body.CourseId,
+	diary := models.BuggyDiary{
+		ModelId:       base,
+		CourseId:      body.CourseId,
+		BuggyNumber:   body.BuggyNumber,
+		AccessoriesId: body.AccessoriesId,
+		Amount:        body.Amount,
+		Note:          body.Note,
 	}
 
-	err := buggy.Create()
+	if body.InputUser != "" {
+		diary.InputUser = body.InputUser
+	} else {
+		diary.InputUser = prof.UserName
+	}
+
+	err := diary.Create()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
-	c.JSON(200, buggy)
+	c.JSON(200, diary)
 }
 
-func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
-	form := request.GetListBuggyForm{}
+func (_ *CBuggyDiary) GetBuggyDiaryList(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListBuggyDiaryForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
@@ -70,13 +77,16 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	buggyRequest := models.Buggy{}
+	diary := models.BuggyDiary{}
 
 	if form.CourseId != "" {
-		buggyRequest.CourseId = form.CourseId
+		diary.CourseId = form.CourseId
+	}
+	if form.BuggyNumber != nil {
+		diary.BuggyNumber = *form.BuggyNumber
 	}
 
-	list, total, err := buggyRequest.FindList(page)
+	list, total, err := diary.FindList(page, form.From, form.To)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -91,24 +101,24 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 	c.JSON(200, res)
 }
 
-func (_ *CBuggy) DeleteBuggy(c *gin.Context, prof models.CmsUser) {
-	buggyIdStr := c.Param("uid")
-	buggyId, errId := strconv.ParseInt(buggyIdStr, 10, 64)
+func (_ *CBuggyDiary) DeleteBuggyDiary(c *gin.Context, prof models.CmsUser) {
+	diaryIdStr := c.Param("uid")
+	diaryId, errId := strconv.ParseInt(diaryIdStr, 10, 64)
 	if errId != nil {
 		response_message.BadRequest(c, errId.Error())
 		return
 	}
 
-	buggyRequest := models.Buggy{}
-	buggyRequest.Id = buggyId
-	errF := buggyRequest.FindFirst()
+	diary := models.BuggyDiary{}
+	diary.Id = diaryId
+	errF := diary.FindFirst()
 
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
 
-	err := buggyRequest.Delete()
+	err := diary.Delete()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -117,37 +127,40 @@ func (_ *CBuggy) DeleteBuggy(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
-func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
-	buggyIdStr := c.Param("uid")
-	buggyId, errId := strconv.ParseInt(buggyIdStr, 10, 64)
+func (_ *CBuggyDiary) UpdateBuggyDiary(c *gin.Context, prof models.CmsUser) {
+	diaryIdStr := c.Param("uid")
+	diaryId, errId := strconv.ParseInt(diaryIdStr, 10, 64)
 	if errId != nil {
 		response_message.BadRequest(c, errId.Error())
 		return
 	}
 
-	var body request.UpdateBuggyBody
+	var body request.UpdateBuggyDiaryBody
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
-	buggyRequest := models.Buggy{}
-	buggyRequest.Id = buggyId
+	diaryRequest := models.BuggyDiary{}
+	diaryRequest.Id = diaryId
 
-	errF := buggyRequest.FindFirst()
+	errF := diaryRequest.FindFirst()
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
 
-	if body.Origin != nil {
-		buggyRequest.Origin = *body.Origin
+	if body.AccessoriesId != nil {
+		diaryRequest.AccessoriesId = *body.AccessoriesId
+	}
+	if body.Amount != nil {
+		diaryRequest.Amount = *body.Amount
 	}
 	if body.Note != nil {
-		buggyRequest.Note = *body.Note
+		diaryRequest.Note = *body.Note
 	}
 
-	err := buggyRequest.Update()
+	err := diaryRequest.Update()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

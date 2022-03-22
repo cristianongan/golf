@@ -1,10 +1,10 @@
 package request
 
 type CreateBuggyBody struct {
+	CourseId string `json:"course_id" binding:"required"`
 	Number   int    `json:"number" binding:"required"`
 	Origin   string `json:"origin"`
 	Note     string `json:"note"`
-	CourseId string `json:"course_id" binding:"required"`
 }
 
 type GetListBuggyForm struct {
