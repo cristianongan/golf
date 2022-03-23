@@ -58,7 +58,10 @@ func (_ *CMemberCardType) GetListMemberCardType(c *gin.Context, prof models.CmsU
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	memberCardTypeR := models.MemberCardType{}
+	memberCardTypeR := models.MemberCardType{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
 	list, total, err := memberCardTypeR.FindList(page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
