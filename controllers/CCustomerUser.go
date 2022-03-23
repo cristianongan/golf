@@ -18,6 +18,11 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	if body.CourseUid == "" {
+		response_message.BadRequest(c, errors.New("course uid invalid").Error())
+		return
+	}
+
 	customerUser := models.CustomerUser{
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,
