@@ -18,11 +18,10 @@ type MemberCardType struct {
 	GuestStyle         string `json:"guest_style" gorm:"index"`                       // Guest Style ???
 	GuestStyleOffGuest string `json:"guest_style_off_guest" gorm:"type:varchar(100)"` // Guest Style Off guest ???
 	PromotGuestStyle   string `json:"promot_guest_style" gorm:"type:varchar(100)"`    // Promot guest style ???
-	NormalDayTakeGuest int    `json:"normal_day_take_guest"`                          // Normal day take guest ???
-	WeekendTakeGuest   int    `json:"weekend_take_guest"`                             // Weekend take guest ???
+	NormalDayTakeGuest string `json:"normal_day_take_guest" gorm:"type:varchar(100)"` // Normal day take guest ???
+	WeekendTakeGuest   string `json:"weekend_take_guest" gorm:"type:varchar(100)"`    // Weekend take guest ???
 	PlayTimesOnMonth   int    `json:"play_times_on_month"`                            // Số lần chơi trên tháng
 	Type               string `json:"type" gorm:"type:varchar(100);index"`            // Type: Friendly, InsideMember, OutsideMember, Promotion...
-
 }
 
 func (item *MemberCardType) Create() error {
