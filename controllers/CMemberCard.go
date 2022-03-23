@@ -30,6 +30,9 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	memberCard.PartnerUid = body.PartnerUid
+	memberCard.CourseUid = body.CourseUid
+
 	memberCard.OwnerUid = body.OwnerUid
 	memberCard.ValidDate = body.ValidDate
 	memberCard.ExpDate = body.ExpDate

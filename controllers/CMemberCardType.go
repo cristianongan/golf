@@ -23,6 +23,9 @@ func (_ *CMemberCardType) CreateMemberCardType(c *gin.Context, prof models.CmsUs
 		Name: body.Name,
 	}
 
+	memberCardType.PartnerUid = body.PartnerUid
+	memberCardType.CourseUid = body.CourseUid
+
 	memberCardType.GuestStyle = body.GuestStyle
 	memberCardType.GuestStyleOffGuest = body.GuestStyleOffGuest
 	memberCardType.PromotGuestStyle = body.PromotGuestStyle
