@@ -16,6 +16,7 @@ type CustomerUser struct {
 	Model
 	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Type        string `json:"type" gorm:"type:varchar(100);index"`        // Loai khach hang: Member, Guest, Visitor...
 	Name        string `json:"name" gorm:"type:varchar(256);index"`        // Ten KH
 	Dob         int64  `json:"dob"`                                        // Ngay sinh
 	Sex         int    `json:"sex"`                                        // giới tính

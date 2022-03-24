@@ -127,19 +127,38 @@ func (_ *CCustomerUser) DeleteCustomerUser(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
-	member := models.CustomerUser{}
-	member.Uid = customerUserUidStr
-	errF := member.FindFirst()
+	customerUser := models.CustomerUser{}
+	customerUser.Uid = customerUserUidStr
+	errF := customerUser.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := member.Delete()
+	errDel := customerUser.Delete()
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
 	}
 
 	okRes(c)
+}
+
+// Get chi tiết khách hàng
+func (_ *CCustomerUser) GetCustomerUserDetail(c *gin.Context, prof models.CmsUser) {
+	customerUserUidStr := c.Param("uid")
+	if customerUserUidStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
+	customerUser := models.CustomerUser{}
+	customerUser.Uid = customerUserUidStr
+	errF := customerUser.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	c.JSON(200, customerUser)
 }

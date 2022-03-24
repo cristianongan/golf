@@ -12,8 +12,10 @@ import (
 // Đại lý
 type Agent struct {
 	ModelId
+	Code       string `json:"code" gorm:"type:varchar(100);uniqueIndex"`  // Mã code
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Type       string `json:"type" gorm:"type:varchar(50);index"`         // Loại: Đại lý, công ty
 	Name       string `json:"name" gorm:"type:varchar(256)"`              // Ten Dai ly
 }
 

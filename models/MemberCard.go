@@ -26,7 +26,7 @@ type MemberCard struct {
 	Locker          string `json:"locker" gorm:"type:varchar(100)"`            // Mã số tủ gửi đồ
 	AdjustPlayCount int    `json:"adjust_play_count"`                          // Trước đó đã chơi bao nhiêu lần
 
-	PriceCode int64 `json:"price_code"` // Giá
+	PriceCode int64 `json:"price_code"` // Check cái này có thì tính theo giá riêng -> theo cuộc họp suggest nên bỏ
 	GreenFee  int64 `json:"green_fee"`  // Phí sân cỏ
 	CaddieFee int64 `json:"caddie_fee"` // Phí caddie
 	BuggyFee  int64 `json:"buggy_fee"`  // Phí Buggy
