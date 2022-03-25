@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"log"
 	"start/constants"
 	"start/datasources"
 	"time"
@@ -30,6 +31,21 @@ func (item *Todo) Create() error {
 
 	db := datasources.GetDatabase()
 	return db.Create(item).Error
+}
+
+func (item *Todo) CreateBatch(todos []Todo) error {
+	now := time.Now()
+	for i, _ := range todos {
+		t := &todos[i]
+		uid := uuid.New()
+		t.Model.Uid = uid.String()
+		t.Model.CreatedAt = now.Unix()
+		t.Model.UpdatedAt = now.Unix()
+		t.Model.Status = constants.STATUS_ENABLE
+	}
+	log.Println(todos)
+	db := datasources.GetDatabase()
+	return db.CreateInBatches(todos, 100).Error
 }
 
 func (item *Todo) Delete() error {

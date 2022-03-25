@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -34,6 +35,40 @@ func (_ *CTodo) CreateTodo(c *gin.Context) {
 		return
 	}
 	c.JSON(200, todo)
+}
+
+func (_ *CTodo) CreateTodoBatch(c *gin.Context) {
+	var body []request.CreateTodoBody
+	if bindErr := c.BindJSON(&body); bindErr != nil {
+		response_message.BadRequest(c, "")
+		return
+	}
+
+	base := models.Model{
+		Status: constants.STATUS_ENABLE,
+	}
+
+	todo := models.Todo{}
+	todos := []models.Todo{}
+
+	for _, b := range body {
+		todos = append(todos,
+			models.Todo{
+				Model:   base,
+				Content: b.Content,
+				Done:    false,
+			},
+		)
+	}
+
+	log.Println(todos)
+
+	err := todo.CreateBatch(todos)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+	okRes(c)
 }
 
 func (_ *CTodo) GetTodoList(c *gin.Context) {
