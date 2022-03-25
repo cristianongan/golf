@@ -96,6 +96,9 @@ func (_ *CTablePrice) UpdateTablePrice(c *gin.Context, prof models.CmsUser) {
 	if body.FromDate > 0 {
 		tablePrice.FromDate = body.FromDate
 	}
+	if body.Status != "" {
+		tablePrice.Status = body.Status
+	}
 
 	errUdp := tablePrice.Update()
 	if errUdp != nil {

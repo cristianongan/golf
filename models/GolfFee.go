@@ -18,6 +18,17 @@ type GolfFee struct {
 	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Ten Guest style
 	GuestStyle     string `json:"guest_style" gorm:"index;type:varchar(200)"` // Guest style
 	Dow            string `json:"dow" gorm:"type:varchar(100)"`               // Dow
+	GreenFee       string `json:"green_fee" gorm:"type:varchar(256)"`         // Phi san cỏ
+	CaddieFee      string `json:"caddie_fee" gorm:"type:varchar(256)"`        // Phi Caddie
+	BuggyFee       string `json:"buggy_fee" gorm:"type:varchar(256)"`         // Phi buggy
+	UpdateUserUid  string `json:"update_user_uid" gorm:"index"`               // Nguoi sua
+	UpdateUserName string `json:"update_user_name"`                           // Nguoi sua
+	AccCode        string `json:"acc_code" gorm:"type:varchar(200)"`          // Kết nối với phần mềm kế toán
+	Note           string `json:"note" gorm:"type:varchar(500)"`              // Note
+	NodeOdd        int    `json:"node_odd"`                                   // 0 || 1 Chỉ tính hố lẻ thì tick vào đây
+	PaidType       string `json:"paid_type" gorm:"type:varchar(50)"`          // Kiểu thanh toán: NOW / AFTER
+	Idx            int    `json:"idx"`                                        // Xắp xếp thứ tự
+	AccDebit       string `json:"acc_debit"`                                  // Mã kế toán ghi nợ
 }
 
 func (item *GolfFee) Create() error {

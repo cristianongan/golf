@@ -119,3 +119,19 @@ func udpCourseUid(courseUid, partnerUid string) string {
 	courseUid2 := strings.ReplaceAll(courseUid1, "_", "-")
 	return strings.ToUpper(partnerUid + "-" + courseUid2)
 }
+
+func checkDuplicateGolfFee(body models.GolfFee) bool {
+	golfFee := models.GolfFee{
+		PartnerUid:   body.PartnerUid,
+		CourseUid:    body.CourseUid,
+		GuestStyle:   body.GuestStyle,
+		Dow:          body.Dow,
+		TablePriceId: body.TablePriceId,
+	}
+	errFind := golfFee.FindFirst()
+	if errFind == nil || golfFee.Id > 0 {
+		log.Print("checkDuplicateGolfFee true")
+		return true
+	}
+	return false
+}

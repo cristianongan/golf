@@ -20,19 +20,33 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Check Exits
-	golfFee := models.GolfFee{
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
-		GuestStyle: body.GuestStyle,
-		Dow:        body.Dow,
-	}
-	errFind := golfFee.FindFirst()
-	if errFind == nil || golfFee.Id > 0 {
-		response_message.BadRequest(c, "duplicated golf fee")
+	isDupli := checkDuplicateGolfFee(body)
+	if isDupli {
+		response_message.DuplicateRecord(c, "duplicated golf fee")
 		return
 	}
 
+	golfFee := models.GolfFee{
+		PartnerUid:   body.PartnerUid,
+		CourseUid:    body.CourseUid,
+		GuestStyle:   body.GuestStyle,
+		Dow:          body.Dow,
+		TablePriceId: body.TablePriceId,
+	}
+
 	golfFee.Status = body.Status
+	golfFee.GuestStyleName = body.GuestStyleName
+	golfFee.Dow = body.Dow
+	golfFee.GreenFee = body.GreenFee
+	golfFee.CaddieFee = body.CaddieFee
+	golfFee.BuggyFee = body.BuggyFee
+	golfFee.AccCode = body.AccCode
+	golfFee.NodeOdd = body.NodeOdd
+	golfFee.Note = body.Note
+	golfFee.PaidType = body.PaidType
+	golfFee.Idx = body.Idx
+	golfFee.AccDebit = body.AccDebit
+
 	errC := golfFee.Create()
 
 	if errC != nil {
@@ -98,9 +112,32 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// if body.Name != "" {
-	// 	golfFee.Name = body.Name
-	// }
+	if body.GuestStyle != "" && body.GuestStyle != golfFee.GuestStyle {
+		golfFee.GuestStyle = body.GuestStyle
+	}
+	if body.GuestStyleName != "" {
+		golfFee.GuestStyleName = body.GuestStyleName
+	}
+	if body.Status != "" {
+		golfFee.Status = body.Status
+	}
+
+	golfFee.Dow = body.Dow
+	golfFee.GreenFee = body.GreenFee
+	golfFee.CaddieFee = body.CaddieFee
+	golfFee.BuggyFee = body.BuggyFee
+	golfFee.AccCode = body.AccCode
+	golfFee.Note = body.Note
+	golfFee.NodeOdd = body.NodeOdd
+	golfFee.PaidType = body.PaidType
+	golfFee.Idx = body.Idx
+	golfFee.AccDebit = body.AccDebit
+
+	isDupli := checkDuplicateGolfFee(golfFee)
+	if isDupli {
+		response_message.DuplicateRecord(c, "duplicated golf fee")
+		return
+	}
 
 	errUdp := golfFee.Update()
 	if errUdp != nil {
