@@ -24,6 +24,8 @@ func MigrateDb() {
 		db.AutoMigrate(&models.MemberCardType{})
 		db.AutoMigrate(&models.CustomerUser{})
 		db.AutoMigrate(&models.Agent{})
+		db.AutoMigrate(&models.TablePrice{})
+		db.AutoMigrate(&models.GolfFee{})
 
 		log.Println("migrated db")
 	}

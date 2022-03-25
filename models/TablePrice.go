@@ -9,18 +9,16 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Phí Golf
-type GolfFee struct {
+// Bảng phí
+type TablePrice struct {
 	ModelId
-	PartnerUid     string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid      string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	TablePriceId   int64  `json:"table_price_id" gorm:"index"`                // Id Bang gia
-	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Ten Guest style
-	GuestStyle     string `json:"guest_style" gorm:"index;type:varchar(200)"` // Guest style
-	Dow            string `json:"dow" gorm:"type:varchar(100)"`               // Dow
+	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng Golf
+	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // Sân Golf
+	Name       string `json:"name" gorm:"type:varchar(256)"`              // Tên Bảng phí
+	FromDate   int64  `json:"from_date" gorm:"index"`                     // Áp dụng phí này từ thời gian
 }
 
-func (item *GolfFee) Create() error {
+func (item *TablePrice) Create() error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -32,7 +30,7 @@ func (item *GolfFee) Create() error {
 	return db.Create(item).Error
 }
 
-func (item *GolfFee) Update() error {
+func (item *TablePrice) Update() error {
 	mydb := datasources.GetDatabase()
 	item.ModelId.UpdatedAt = time.Now().Unix()
 	errUpdate := mydb.Save(item).Error
@@ -42,22 +40,22 @@ func (item *GolfFee) Update() error {
 	return nil
 }
 
-func (item *GolfFee) FindFirst() error {
+func (item *TablePrice) FindFirst() error {
 	db := datasources.GetDatabase()
 	return db.Where(item).First(item).Error
 }
 
-func (item *GolfFee) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(GolfFee{})
+func (item *TablePrice) Count() (int64, error) {
+	db := datasources.GetDatabase().Model(TablePrice{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *GolfFee) FindList(page Page) ([]GolfFee, int64, error) {
-	db := datasources.GetDatabase().Model(GolfFee{})
-	list := []GolfFee{}
+func (item *TablePrice) FindList(page Page) ([]TablePrice, int64, error) {
+	db := datasources.GetDatabase().Model(TablePrice{})
+	list := []TablePrice{}
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
@@ -73,7 +71,7 @@ func (item *GolfFee) FindList(page Page) ([]GolfFee, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *GolfFee) Delete() error {
+func (item *TablePrice) Delete() error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}

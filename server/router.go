@@ -94,6 +94,20 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.DELETE("/customer-user/:uid", middlewares.AuthorizedCmsUserHandler(cCustomerUser.DeleteCustomerUser))
 			cmsApiAuthorized.GET("/customer-user/:uid", middlewares.AuthorizedCmsUserHandler(cCustomerUser.GetCustomerUserDetail))
 
+			/// =================== Table Prices =====================
+			cTablePrice := new(controllers.CTablePrice)
+			cmsApiAuthorized.POST("/table-price", middlewares.AuthorizedCmsUserHandler(cTablePrice.CreateTablePrice))
+			cmsApiAuthorized.GET("/table-price/list", middlewares.AuthorizedCmsUserHandler(cTablePrice.GetListTablePrice))
+			cmsApiAuthorized.PUT("/table-price/:id", middlewares.AuthorizedCmsUserHandler(cTablePrice.UpdateTablePrice))
+			cmsApiAuthorized.DELETE("/table-price/:id", middlewares.AuthorizedCmsUserHandler(cTablePrice.DeleteTablePrice))
+
+			/// =================== Golf Fee =====================
+			cGolfFee := new(controllers.CGolfFee)
+			cmsApiAuthorized.POST("/golf-fee", middlewares.AuthorizedCmsUserHandler(cGolfFee.CreateGolfFee))
+			cmsApiAuthorized.GET("/golf-fee/list", middlewares.AuthorizedCmsUserHandler(cGolfFee.GetListGolfFee))
+			cmsApiAuthorized.PUT("/golf-fee/:id", middlewares.AuthorizedCmsUserHandler(cGolfFee.UpdateGolfFee))
+			cmsApiAuthorized.DELETE("/golf-fee/:id", middlewares.AuthorizedCmsUserHandler(cGolfFee.DeleteGolfFee))
+
 			/// =================== Buggy =====================
 			cBuggy := new(controllers.CBuggy)
 			cmsApiAuthorized.POST("/buggy", middlewares.AuthorizedCmsUserHandler(cBuggy.CreateBuggy))
