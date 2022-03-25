@@ -133,6 +133,7 @@ func NewRouter() *gin.Engine {
 		cTodo := new(controllers.CTodo)
 
 		todoRouter.POST("todo", cTodo.CreateTodo)
+		todoRouter.POST("todo/batch", cTodo.CreateTodoBatch)
 		todoRouter.GET("todo/list", cTodo.GetTodoList)
 		todoRouter.PUT("todo/:uid", cTodo.UpdateTodo)
 		todoRouter.DELETE("todo/:uid", cTodo.DeleteTodo)

@@ -42,10 +42,10 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 	}
 	buggy := models.Buggy{
 		ModelId:  base,
+		CourseId: body.CourseId,
 		Number:   body.Number,
 		Origin:   body.Origin,
 		Note:     body.Note,
-		CourseId: body.CourseId,
 	}
 
 	err := buggy.Create()
