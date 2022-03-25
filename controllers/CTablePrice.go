@@ -27,7 +27,6 @@ func (_ *CTablePrice) CreateTablePrice(c *gin.Context, prof models.CmsUser) {
 	}
 	tablePrice.Status = body.Status
 	errC := tablePrice.Create()
-
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
 		return
