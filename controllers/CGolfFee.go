@@ -26,6 +26,33 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Check Table Price Exit
+	tablePrice := models.TablePrice{}
+	tablePrice.Id = body.TablePriceId
+	errFind := tablePrice.FindFirst()
+	if errFind != nil {
+		response_message.BadRequest(c, "table price not found")
+		return
+	}
+
+	// Check và tạo group Fee
+	groupFee := models.GroupFee{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		Name:       body.GroupName,
+	}
+	errFind = groupFee.FindFirst()
+	if errFind != nil || groupFee.Id <= 0 {
+		// Chưa có group fee thì tạo
+		errC := groupFee.Create()
+		if errC != nil {
+			response_message.InternalServerError(c, errC.Error())
+			return
+		}
+	}
+	errFind = nil
+
+	// Tạo Fee
 	golfFee := models.GolfFee{
 		PartnerUid:   body.PartnerUid,
 		CourseUid:    body.CourseUid,
@@ -46,6 +73,10 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.PaidType = body.PaidType
 	golfFee.Idx = body.Idx
 	golfFee.AccDebit = body.AccDebit
+	golfFee.CustomerType = body.CustomerType
+	golfFee.CustomerCategory = getCustomerCategoryFromCustomerType(body.CustomerType)
+	golfFee.GroupName = body.GroupName
+	golfFee.GroupId = groupFee.Id
 
 	errC := golfFee.Create()
 

@@ -135,3 +135,15 @@ func checkDuplicateGolfFee(body models.GolfFee) bool {
 	}
 	return false
 }
+
+func getCustomerCategoryFromCustomerType(cusType string) string {
+	customerType := models.CustomerType{
+		Type: cusType,
+	}
+	errFind := customerType.FindFirst()
+	if errFind != nil {
+		log.Println("getCustomerCategoryFromCustomerType err", errFind.Error())
+		return constants.CUSTOMER_TYPE_CUSTOMER
+	}
+	return customerType.Category
+}

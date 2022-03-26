@@ -32,6 +32,12 @@ func (_ *CTablePrice) CreateTablePrice(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Tao các golf fee từ Old Price id
+	if body.OldPriceId > 0 {
+		//Use Batch Created
+
+	}
+
 	okResponse(c, tablePrice)
 }
 

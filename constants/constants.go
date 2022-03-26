@@ -1,5 +1,8 @@
 package constants
 
+const CUSTOMER_TYPE_CUSTOMER = "CUSTOMER"
+const CUSTOMER_TYPE_AGENCY = "AGENCY"
+
 const TYPE_ADMIN = "ADMIN"
 
 const VOUCHER_DELETE_PARAMS = "-1"

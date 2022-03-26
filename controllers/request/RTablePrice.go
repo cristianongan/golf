@@ -12,4 +12,5 @@ type CreateTablePriceBody struct {
 	CourseUid  string `json:"course_uid" binding:"required"`
 	Status     string `json:"status"`
 	FromDate   int64  `json:"from_date"`
+	OldPriceId int64  `json:"old_price_id"`
 }
