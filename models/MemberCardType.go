@@ -24,6 +24,25 @@ type MemberCardType struct {
 	Type               string `json:"type" gorm:"type:varchar(100);index"`            // Type: Friendly, InsideMember, OutsideMember, Promotion...
 }
 
+func (item *MemberCardType) IsValidated() bool {
+	if item.Name == "" {
+		return false
+	}
+	if item.PartnerUid == "" {
+		return false
+	}
+	if item.CourseUid == "" {
+		return false
+	}
+	if item.Type == "" {
+		return false
+	}
+	if item.GuestStyle == "" {
+		return false
+	}
+	return true
+}
+
 func (item *MemberCardType) Create() error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()

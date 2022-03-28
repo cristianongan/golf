@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"start/constants"
 	"start/controllers/request"
 	"start/models"
 	"start/utils/response_message"
@@ -16,6 +17,11 @@ func (_ *CMemberCardType) CreateMemberCardType(c *gin.Context, prof models.CmsUs
 	body := models.MemberCardType{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
+		return
+	}
+
+	if !body.IsValidated() {
+		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
 		return
 	}
 

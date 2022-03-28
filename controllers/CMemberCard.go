@@ -19,7 +19,7 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.IsValidated() {
+	if !body.IsValidated() {
 		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
 		return
 	}
@@ -27,9 +27,18 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 	// Check Member Card Type Exit
 	mcType := models.MemberCardType{}
 	mcType.Id = body.McTypeId
-	errFindMCType := mcType.FindFirst()
-	if errFindMCType == nil {
-		response_message.BadRequest(c, "mc type id invalid")
+	errFind := mcType.FindFirst()
+	if errFind != nil {
+		response_message.BadRequest(c, errFind.Error())
+		return
+	}
+
+	// Check Owner Invalid
+	owner := models.CustomerUser{}
+	owner.Uid = body.OwnerUid
+	errFind = owner.FindFirst()
+	if errFind != nil {
+		response_message.BadRequest(c, errFind.Error())
 		return
 	}
 
