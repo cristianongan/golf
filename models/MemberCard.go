@@ -27,7 +27,32 @@ type MemberCard struct {
 	Locker          string `json:"locker" gorm:"type:varchar(100)"`    // Mã số tủ gửi đồ
 	AdjustPlayCount int    `json:"adjust_play_count"`                  // Trước đó đã chơi bao nhiêu lần
 
-	PriceCode int64 `json:"price_code"` // Check cái này có thì tính theo giá riêng -> theo cuộc họp suggest nên bỏ
+	PriceCode int64 `json:"price_code"` // Check cái này có thì tính theo giá riêng -> theo cuộc họp suggest nên bỏ - Ko bỏ dc
+	GreenFee  int64 `json:"green_fee"`  // Phí sân cỏ
+	CaddieFee int64 `json:"caddie_fee"` // Phí caddie
+	BuggyFee  int64 `json:"buggy_fee"`  // Phí Buggy
+
+	StartPrecial int64 `json:"start_precial"` // Khoảng TG được dùng giá riêng
+	EndPrecial   int64 `json:"end_precial"`   // Khoảng TG được dùng giá riêng
+}
+
+type MemberCardRes struct {
+	Model
+	PartnerUid      string `json:"partner_uid"`       // Hang Golf
+	CourseUid       string `json:"course_uid"`        // San Golf
+	OwnerUid        string `json:"owner_uid"`         // Uid chủ sở hữu
+	CardId          string `json:"card_id"`           // Id thẻ
+	Type            string `json:"type"`              // Loại thẻ - > Lấy từ MemberCardType.Type = Base Type
+	McType          string `json:"mc_type"`           // Member Card Type = Member Type
+	McTypeId        int64  `json:"mc_type_id"`        // Member Card Type id
+	ValidDate       int64  `json:"valid_date"`        // Hieu luc tu ngay
+	ExpDate         int64  `json:"exp_date"`          // Het hieu luc tu ngay
+	ChipCode        string `json:"chip_code"`         // Sân tập cho bán chip, là mã thẻ đọc bằng máy đọc thẻ
+	Note            string `json:"note"`              // Ghi chu them
+	Locker          string `json:"locker"`            // Mã số tủ gửi đồ
+	AdjustPlayCount int    `json:"adjust_play_count"` // Trước đó đã chơi bao nhiêu lần
+
+	PriceCode int64 `json:"price_code"` // Check cái này có thì tính theo giá riêng -> theo cuộc họp suggest nên bỏ - Ko bỏ dc
 	GreenFee  int64 `json:"green_fee"`  // Phí sân cỏ
 	CaddieFee int64 `json:"caddie_fee"` // Phí caddie
 	BuggyFee  int64 `json:"buggy_fee"`  // Phí Buggy
