@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"start/constants"
 	"start/controllers/request"
 	"start/models"
 	"start/utils/response_message"
@@ -18,16 +19,29 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if body.IsValidated() {
+		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
+		return
+	}
+
+	// Check Member Card Type Exit
+	mcType := models.MemberCardType{}
+	mcType.Id = body.McTypeId
+	errFindMCType := mcType.FindFirst()
+	if errFindMCType == nil {
+		response_message.BadRequest(c, "mc type id invalid")
+		return
+	}
+
+	// Check duplicated
+	if body.IsDuplicated() {
+		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+		return
+	}
+
 	memberCard := models.MemberCard{
 		CardId:   body.CardId,
 		McTypeId: body.McTypeId,
-	}
-
-	//Check Exits
-	errFind := memberCard.FindFirst()
-	if errFind == nil || memberCard.Uid != "" {
-		response_message.DuplicateRecord(c, errors.New("Duplicate uid").Error())
-		return
 	}
 
 	memberCard.PartnerUid = body.PartnerUid
@@ -105,6 +119,12 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 	body := models.MemberCard{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// Check duplicated
+	if body.IsDuplicated() {
+		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
 

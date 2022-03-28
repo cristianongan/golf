@@ -19,7 +19,7 @@ type MemberCard struct {
 	CardId     string `json:"card_id" gorm:"type:varchar(100);index"`     // Id thẻ
 	// Type            string `json:"type" gorm:"type:varchar(100);index"`        // Loại thẻ - > Lấy từ MemberCardType.Type = Base Type
 	// McType          string `json:"mc_type" gorm:"type:varchar(100);index"` // Member Card Type = Member Type
-	McTypeId        int    `json:"mc_type_id" gorm:"index"`            // Member Card Type id
+	McTypeId        int64  `json:"mc_type_id" gorm:"index"`            // Member Card Type id
 	ValidDate       int64  `json:"valid_date" gorm:"index"`            // Hieu luc tu ngay
 	ExpDate         int64  `json:"exp_date" gorm:"index"`              // Het hieu luc tu ngay
 	ChipCode        string `json:"chip_code" gorm:"type:varchar(200)"` // Sân tập cho bán chip, là mã thẻ đọc bằng máy đọc thẻ
@@ -34,6 +34,38 @@ type MemberCard struct {
 
 	StartPrecial int64 `json:"start_precial"` // Khoảng TG được dùng giá riêng
 	EndPrecial   int64 `json:"end_precial"`   // Khoảng TG được dùng giá riêng
+}
+
+func (item *MemberCard) IsValidated() bool {
+	if item.CardId == "" {
+		return false
+	}
+	if item.PartnerUid == "" {
+		return false
+	}
+	if item.CourseUid == "" {
+		return false
+	}
+	if item.OwnerUid == "" {
+		return false
+	}
+	if item.McTypeId <= 0 {
+		return false
+	}
+	return true
+}
+
+func (item *MemberCard) IsDuplicated() bool {
+	memberCard := MemberCard{
+		CardId:   item.CardId,
+		McTypeId: item.McTypeId,
+	}
+	//Check Duplicated
+	errFind := memberCard.FindFirst()
+	if errFind == nil || memberCard.Uid != "" {
+		return true
+	}
+	return false
 }
 
 func (item *MemberCard) Create() error {
