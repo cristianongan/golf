@@ -47,22 +47,20 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 		Name:           body.Name,
 		Phone:          body.Phone,
 		Address:        body.Address,
+		Image:          body.Image,
 		Sex:            body.Sex,
 		BirthDay:       body.BirthDay,
 		IdentityCard:   body.IdentityCard,
 		IssuedBy:       body.IssuedBy,
 		IssuedDate:     body.IssuedDate,
+		ExpiredDate:    body.ExpiredDate,
 		EducationLevel: body.EducationLevel,
 		FingerPrint:    body.FingerPrint,
 		HrCode:         body.HrCode,
 		HrPosition:     body.HrPosition,
 		Group:          body.Group,
-		Row:            body.Row,
 		StartedDate:    body.StartedDate,
-		RaisingChild:   body.RaisingChild,
-		TempAbsent:     body.TempAbsent,
-		FullTime:       body.FullTime,
-		WEWork:         body.WEWork,
+		WorkingStatus:  body.WorkingStatus,
 		Level:          body.Level,
 		Note:           body.Note,
 	}
@@ -79,6 +77,11 @@ func (_ *CCaddie) CreateCaddieBatch(c *gin.Context, prof models.CmsUser) {
 	var body []request.CreateCaddieBody
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		response_message.BadRequest(c, "")
+		return
+	}
+
+	if len(body) < 1 {
+		response_message.BadRequest(c, "empty body")
 		return
 	}
 
@@ -114,22 +117,20 @@ func (_ *CCaddie) CreateCaddieBatch(c *gin.Context, prof models.CmsUser) {
 			Name:           b.Name,
 			Phone:          b.Phone,
 			Address:        b.Address,
+			Image:          b.Image,
 			Sex:            b.Sex,
 			BirthDay:       b.BirthDay,
 			IdentityCard:   b.IdentityCard,
 			IssuedBy:       b.IssuedBy,
 			IssuedDate:     b.IssuedDate,
+			ExpiredDate:    b.ExpiredDate,
 			EducationLevel: b.EducationLevel,
 			FingerPrint:    b.FingerPrint,
 			HrCode:         b.HrCode,
 			HrPosition:     b.HrPosition,
 			Group:          b.Group,
-			Row:            b.Row,
 			StartedDate:    b.StartedDate,
-			RaisingChild:   b.RaisingChild,
-			TempAbsent:     b.TempAbsent,
-			FullTime:       b.FullTime,
-			WEWork:         b.WEWork,
+			WorkingStatus:  b.WorkingStatus,
 			Level:          b.Level,
 			Note:           b.Note,
 		}
@@ -254,6 +255,9 @@ func assignCaddieUpdate(caddieRequest *models.Caddie, body request.UpdateCaddieB
 	if body.Address != nil {
 		caddieRequest.Address = *body.Address
 	}
+	if body.Image != nil {
+		caddieRequest.Image = *body.Image
+	}
 	if body.Sex != nil {
 		caddieRequest.Sex = *body.Sex
 	}
@@ -272,6 +276,9 @@ func assignCaddieUpdate(caddieRequest *models.Caddie, body request.UpdateCaddieB
 	if body.IssuedDate != nil {
 		caddieRequest.IssuedDate = *body.IssuedDate
 	}
+	if body.ExpiredDate != nil {
+		caddieRequest.ExpiredDate = *body.ExpiredDate
+	}
 	if body.EducationLevel != nil {
 		caddieRequest.EducationLevel = *body.EducationLevel
 	}
@@ -287,23 +294,11 @@ func assignCaddieUpdate(caddieRequest *models.Caddie, body request.UpdateCaddieB
 	if body.Group != nil {
 		caddieRequest.Group = *body.Group
 	}
-	if body.Row != nil {
-		caddieRequest.Row = *body.Row
-	}
 	if body.StartedDate != nil {
 		caddieRequest.StartedDate = *body.StartedDate
 	}
-	if body.RaisingChild != nil {
-		caddieRequest.RaisingChild = *body.RaisingChild
-	}
-	if body.TempAbsent != nil {
-		caddieRequest.TempAbsent = *body.TempAbsent
-	}
-	if body.FullTime != nil {
-		caddieRequest.FullTime = *body.FullTime
-	}
-	if body.WEWork != nil {
-		caddieRequest.WEWork = *body.WEWork
+	if body.WorkingStatus != nil {
+		caddieRequest.WorkingStatus = *body.WorkingStatus
 	}
 	if body.Level != nil {
 		caddieRequest.Level = *body.Level
