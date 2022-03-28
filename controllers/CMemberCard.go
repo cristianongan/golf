@@ -19,8 +19,8 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 	}
 
 	memberCard := models.MemberCard{
-		CardId: body.CardId,
-		McType: body.McType,
+		CardId:   body.CardId,
+		McTypeId: body.McTypeId,
 	}
 
 	//Check Exits

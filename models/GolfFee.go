@@ -35,6 +35,11 @@ type GolfFee struct {
 	GroupId          int64  `json:"group_id" gorm:"index"`                           // Id nhóm Fee
 }
 
+type GolfFeeText struct {
+	Hole int   `json:"hole"`
+	Fee  int64 `json:"fee"`
+}
+
 func (item *GolfFee) Create() error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"start/constants"
 	"start/models"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -146,4 +147,48 @@ func getCustomerCategoryFromCustomerType(cusType string) string {
 		return constants.CUSTOMER_TYPE_CUSTOMER
 	}
 	return customerType.Category
+}
+
+// Check Fee Data để lưu vào DB
+func formatGolfFee(feeText string) string {
+	feeTextFormat0 := strings.TrimSpace(feeText)
+	feeTextFormat1 := strings.ReplaceAll(feeTextFormat0, " ", "")
+	feeTextFormat2 := strings.ReplaceAll(feeTextFormat1, ",", "")
+	feeTextFormatLast := strings.ReplaceAll(feeTextFormat2, ".", "")
+
+	if strings.Contains(feeTextFormatLast, constants.FEE_SEPARATE_CHAR) {
+		return feeTextFormatLast
+	}
+	list1 := strings.Split(feeTextFormatLast, constants.FEE_SEPARATE_CHAR)
+	if len(list1) == 0 {
+		return feeTextFormat2
+	}
+	if len(list1) == 1 {
+		return list1[0]
+	}
+	return strings.Join(list1, constants.FEE_SEPARATE_CHAR)
+}
+
+// Caddie Fee, Green Fee, Buggy Fee string to List Model int
+func golfFeeToList(feeText string) []models.GolfFeeText {
+	listF := strings.Split(feeText, constants.FEE_SEPARATE_CHAR)
+	listResult := []models.GolfFeeText{}
+	if len(listF) == 0 {
+		return listResult
+	}
+
+	for i, v := range listF {
+		feeInt, err := strconv.ParseInt(v, 10, 64)
+		if err == nil {
+			golfFeeText := models.GolfFeeText{
+				Hole: (i + 1) * 9,
+				Fee:  feeInt,
+			}
+			listResult = append(listResult, golfFeeText)
+		} else {
+			log.Println("golfFeeToList err", err.Error())
+		}
+	}
+
+	return listResult
 }

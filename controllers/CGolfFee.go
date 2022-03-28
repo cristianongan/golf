@@ -64,9 +64,9 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.Status = body.Status
 	golfFee.GuestStyleName = body.GuestStyleName
 	golfFee.Dow = body.Dow
-	golfFee.GreenFee = body.GreenFee
-	golfFee.CaddieFee = body.CaddieFee
-	golfFee.BuggyFee = body.BuggyFee
+	golfFee.GreenFee = formatGolfFee(body.GreenFee)
+	golfFee.CaddieFee = formatGolfFee(body.CaddieFee)
+	golfFee.BuggyFee = formatGolfFee(body.BuggyFee)
 	golfFee.AccCode = body.AccCode
 	golfFee.NodeOdd = body.NodeOdd
 	golfFee.Note = body.Note
@@ -154,9 +154,9 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	golfFee.Dow = body.Dow
-	golfFee.GreenFee = body.GreenFee
-	golfFee.CaddieFee = body.CaddieFee
-	golfFee.BuggyFee = body.BuggyFee
+	golfFee.GreenFee = formatGolfFee(body.GreenFee)
+	golfFee.CaddieFee = formatGolfFee(body.CaddieFee)
+	golfFee.BuggyFee = formatGolfFee(body.BuggyFee)
 	golfFee.AccCode = body.AccCode
 	golfFee.Note = body.Note
 	golfFee.NodeOdd = body.NodeOdd

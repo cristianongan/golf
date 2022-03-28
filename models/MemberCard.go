@@ -13,18 +13,19 @@ import (
 // Thẻ thành viên
 type MemberCard struct {
 	Model
-	PartnerUid      string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid       string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	OwnerUid        string `json:"owner_uid" gorm:"type:varchar(100);index"`   // Uid chủ sở hữu
-	CardId          string `json:"card_id" gorm:"type:varchar(100);index"`     // Id thẻ
-	Type            string `json:"type" gorm:"type:varchar(100);index"`        // Loại thẻ
-	McType          string `json:"mc_type" gorm:"type:varchar(100);index"`     // Member Card Type = Member Type
-	ValidDate       int64  `json:"valid_date" gorm:"index"`                    // Hieu luc tu ngay
-	ExpDate         int64  `json:"exp_date" gorm:"index"`                      // Het hieu luc tu ngay
-	ChipCode        string `json:"chip_code" gorm:"type:varchar(200)"`         // Sân tập cho bán chip, là mã thẻ đọc bằng máy đọc thẻ
-	Note            string `json:"note" gorm:"type:varchar(500)"`              // Ghi chu them
-	Locker          string `json:"locker" gorm:"type:varchar(100)"`            // Mã số tủ gửi đồ
-	AdjustPlayCount int    `json:"adjust_play_count"`                          // Trước đó đã chơi bao nhiêu lần
+	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	OwnerUid   string `json:"owner_uid" gorm:"type:varchar(100);index"`   // Uid chủ sở hữu
+	CardId     string `json:"card_id" gorm:"type:varchar(100);index"`     // Id thẻ
+	// Type            string `json:"type" gorm:"type:varchar(100);index"`        // Loại thẻ - > Lấy từ MemberCardType.Type = Base Type
+	// McType          string `json:"mc_type" gorm:"type:varchar(100);index"` // Member Card Type = Member Type
+	McTypeId        int    `json:"mc_type_id" gorm:"index"`            // Member Card Type id
+	ValidDate       int64  `json:"valid_date" gorm:"index"`            // Hieu luc tu ngay
+	ExpDate         int64  `json:"exp_date" gorm:"index"`              // Het hieu luc tu ngay
+	ChipCode        string `json:"chip_code" gorm:"type:varchar(200)"` // Sân tập cho bán chip, là mã thẻ đọc bằng máy đọc thẻ
+	Note            string `json:"note" gorm:"type:varchar(500)"`      // Ghi chu them
+	Locker          string `json:"locker" gorm:"type:varchar(100)"`    // Mã số tủ gửi đồ
+	AdjustPlayCount int    `json:"adjust_play_count"`                  // Trước đó đã chơi bao nhiêu lần
 
 	PriceCode int64 `json:"price_code"` // Check cái này có thì tính theo giá riêng -> theo cuộc họp suggest nên bỏ
 	GreenFee  int64 `json:"green_fee"`  // Phí sân cỏ
