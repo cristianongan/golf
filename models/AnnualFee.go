@@ -24,11 +24,11 @@ type AnnualFee struct {
 	PaidForfeit       int64  `json:"paid_forfeit"`                                   // B: Số Tiền phạt do thanh toán chậm
 	PaidReduce        int64  `json:"paid_reduce"`                                    // C: Số Tiền giảm trừ khi nộp sớm
 	LastYearDebit     int64  `json:"last_year_debit"`                                // D: Số tiền nợ từ năm ngoái
-	MustPaid          int64  `json:"must_paid"`                                      // K: Số tiền Phí khách hàng đó pải đóng K = A-B+C-D+E
-	TotalPaid         int64  `json:"total_paid"`                                     // G: Tổng số tiền các lần khách trả
-	Debit             int64  `json:"debit"`                                          // H: tiền nợ H = K - G
-	PlayCountsAdd     int    `json:"play_counts_add"`                                //
-	DaysPaid          string `json:"days_paid" gorm:"type:varchar(256)"`             // Ghi lại các ngày thanh toán của khách
+	// MustPaid          int64  `json:"must_paid"`                                      // K: Số tiền Phí khách hàng đó pải đóng K = A-B+C-D+E
+	TotalPaid int64 `json:"total_paid"` // G: Tổng số tiền các lần khách trả
+	// Debit             int64  `json:"debit"`                                          // H: tiền nợ H = K - G
+	PlayCountsAdd int    `json:"play_counts_add"`                    //
+	DaysPaid      string `json:"days_paid" gorm:"type:varchar(256)"` // Ghi lại các ngày thanh toán của khách
 }
 
 func (item *AnnualFee) IsDuplicated() bool {
