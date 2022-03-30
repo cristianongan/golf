@@ -30,6 +30,15 @@ func (_ *CAnnualFee) CreateAnnualFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Check member card exits
+	memberCard := models.MemberCard{}
+	memberCard.Uid = body.MemberCardUid
+	errFind := memberCard.FindFirst()
+	if errFind != nil {
+		response_message.BadRequest(c, errFind.Error())
+		return
+	}
+
 	annualFee := models.AnnualFee{
 		PartnerUid:        body.PartnerUid,
 		CourseUid:         body.CourseUid,
