@@ -235,3 +235,12 @@ func GeneratePassword(plainPassword string) (string, error) {
 func ComparePassword(hashPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashPassword), []byte(password))
 }
+
+func ConvertHourToTime(hourStr string) (time.Time, error) {
+	t, err := time.Parse(constants.HOUR_FORMAT, hourStr)
+	if err != nil {
+		log.Println("ConvertHourToTime err", err.Error())
+		return t, err
+	}
+	return t, nil
+}

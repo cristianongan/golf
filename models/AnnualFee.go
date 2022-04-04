@@ -10,6 +10,7 @@ import (
 )
 
 // Phí thường niên
+// TODO: Chú ý logic số tiền phải trả và số tiền trả từng đợt
 type AnnualFee struct {
 	ModelId
 	PartnerUid        string `json:"partner_uid" gorm:"type:varchar(100);index"`     // Hang Golf

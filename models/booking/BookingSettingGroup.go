@@ -1,0 +1,94 @@
+package model_booking
+
+import (
+	"start/constants"
+	"start/datasources"
+	"start/models"
+	"strings"
+	"time"
+
+	"github.com/pkg/errors"
+)
+
+// Booking setting
+type BookingSettingGroup struct {
+	models.ModelId
+	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Name       string `json:"name" gorm:"type:varchar(256)"`              // Group Name
+	From       int64  `json:"from"`                                       // Áp dụng từ ngày
+	To         int64  `json:"to"`                                         // Áp dụng tới ngày
+}
+
+func (item *BookingSettingGroup) IsValidated() bool {
+	if item.Name == "" {
+		return false
+	}
+	if item.PartnerUid == "" {
+		return false
+	}
+	if item.CourseUid == "" {
+		return false
+	}
+	return true
+}
+
+func (item *BookingSettingGroup) Create() error {
+	now := time.Now()
+	item.ModelId.CreatedAt = now.Unix()
+	item.ModelId.UpdatedAt = now.Unix()
+	if item.ModelId.Status == "" {
+		item.ModelId.Status = constants.STATUS_ENABLE
+	}
+
+	db := datasources.GetDatabase()
+	return db.Create(item).Error
+}
+
+func (item *BookingSettingGroup) Update() error {
+	mydb := datasources.GetDatabase()
+	item.ModelId.UpdatedAt = time.Now().Unix()
+	errUpdate := mydb.Save(item).Error
+	if errUpdate != nil {
+		return errUpdate
+	}
+	return nil
+}
+
+func (item *BookingSettingGroup) FindFirst() error {
+	db := datasources.GetDatabase()
+	return db.Where(item).First(item).Error
+}
+
+func (item *BookingSettingGroup) Count() (int64, error) {
+	db := datasources.GetDatabase().Model(BookingSettingGroup{})
+	total := int64(0)
+	db = db.Where(item)
+	db = db.Count(&total)
+	return total, db.Error
+}
+
+func (item *BookingSettingGroup) FindList(page models.Page) ([]BookingSettingGroup, int64, error) {
+	db := datasources.GetDatabase().Model(BookingSettingGroup{})
+	list := []BookingSettingGroup{}
+	total := int64(0)
+	status := item.ModelId.Status
+	item.ModelId.Status = ""
+	db = db.Where(item)
+	if status != "" {
+		db = db.Where("status in (?)", strings.Split(status, ","))
+	}
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+	return list, total, db.Error
+}
+
+func (item *BookingSettingGroup) Delete() error {
+	if item.ModelId.Id <= 0 {
+		return errors.New("Primary key is undefined!")
+	}
+	return datasources.GetDatabase().Delete(item).Error
+}

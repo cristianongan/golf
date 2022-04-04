@@ -37,14 +37,6 @@ const STATUS_SUCCESS = "SUCCESS"
 
 const MAX_LIMIT = 9999999999
 
-// ================== Date time
-const LOCATION_DEFAULT = "Asia/Ho_Chi_Minh"
-const DATE_TIME_FORMAT = "2006-01-02 15:04:05"
-const DATE_TIME_FORMAT_OTT = "020106150405" // ddMMyyhhmmss
-const DATE_FORMAT = "2006-01-02"
-const MONTH_FORMAT = "2006-01"
-const YEAR_FORMAT = "2006"
-
 // const USER_PROFILE_KEY = "USER_PROFILE_KEY"
 const CMS_USER_PROFILE_KEY = "CMS_USER_PROFILE_KEY"
 const UNAUTHORIZED_MESSAGE = "Unauthorized"
