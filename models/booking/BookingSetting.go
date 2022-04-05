@@ -30,6 +30,21 @@ type BookingSetting struct {
 	EndPart3       string `json:"end_part3" gorm:"type:varchar(50)"`
 }
 
+func (item *BookingSetting) IsDuplicated() bool {
+	bookingSetting := BookingSetting{
+		PartnerUid: item.PartnerUid,
+		CourseUid:  item.CourseUid,
+		GroupId:    item.GroupId,
+		Dow:        item.Dow,
+	}
+
+	errFind := bookingSetting.FindFirst()
+	if errFind == nil || bookingSetting.Id > 0 {
+		return true
+	}
+	return false
+}
+
 func (item *BookingSetting) IsValidated() bool {
 	if item.Dow == "" {
 		return false

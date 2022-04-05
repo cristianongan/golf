@@ -5,6 +5,7 @@ import (
 	"start/config"
 	"start/datasources"
 	"start/models"
+	model_booking "start/models/booking"
 )
 
 func MigrateDb() {
@@ -24,12 +25,19 @@ func MigrateDb() {
 		db.AutoMigrate(&models.MemberCardType{})
 		db.AutoMigrate(&models.CustomerUser{})
 		db.AutoMigrate(&models.Agent{})
+		db.AutoMigrate(&models.CustomerType{})
+
+		// ----- Fee -------
 		db.AutoMigrate(&models.TablePrice{})
 		db.AutoMigrate(&models.GolfFee{})
-		db.AutoMigrate(&models.CustomerType{})
 		db.AutoMigrate(&models.GroupFee{})
 		db.AutoMigrate(&models.HolePriceFormula{})
 		db.AutoMigrate(&models.AnnualFee{})
+
+		// ----- Booking -----
+		db.AutoMigrate(&model_booking.Booking{})
+		db.AutoMigrate(&model_booking.BookingSetting{})
+		db.AutoMigrate(&model_booking.BookingSettingGroup{})
 
 		log.Println("migrated db")
 	}

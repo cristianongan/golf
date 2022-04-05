@@ -1,6 +1,8 @@
 package model_booking
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"start/constants"
 	"start/datasources"
 	"start/models"
@@ -23,20 +25,62 @@ type Booking struct {
 	GuestStyle     string `json:"guest_style" gorm:"type:varchar(200);index"` // Guest Style
 	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Guest Style Name
 
-	CardId       int64  `json:"card_id" gorm:"index"`                        // Card ID
-	CustomerName string `json:"customer_name" gorm:"type:varchar(256)"`      // Tên khách hàng
-	CustomerUid  string `json:"customer_uid" gorm:"type:varchar(256);index"` // Uid khách hàng
+	CardId        string `json:"card_id" gorm:"index"`                           // Card ID
+	MemberCardUid string `json:"member_card_uid" gorm:"type:varchar(100);index"` // MemberCard Uid
+	CustomerName  string `json:"customer_name" gorm:"type:varchar(256)"`         // Tên khách hàng
+	CustomerUid   string `json:"customer_uid" gorm:"type:varchar(256);index"`    // Uid khách hàng
 
 	TeeType    string `json:"tee_type" gorm:"type:varchar(50);index"` // Tee1, Tee10, Tea1A, Tea1B, Tea1C,
+	TeePath    string `json:"tee_path" gorm:"type:varchar(50);index"` // MORNING, NOON, NIGHT
 	TurnTime   string `json:"turn_time" gorm:"type:varchar(30)"`      // Ex: 16:26
-	TeeOffTime string `json:"tee_off_time" gorm:"type:varchar(30)"`   // Ex: 16:26 --- dự kiến: expected
+	TeeTime    string `json:"tee_time" gorm:"type:varchar(30)"`       // Ex: 16:26 Tee time là thời gian tee off dự kiến
+	TeeOffTime string `json:"tee_off_time" gorm:"type:varchar(30)"`   // Ex: 16:26 Là thời gian thực tế phát bóng
 	RowIndex   int    `json:"row_index"`                              // index trong Flight
 
-	BookingFeeInfo BookingFee `json:"booking_fee_info" gorm:"type:varchar(500)"` // Thông tin phí
+	PriceDetail BookingPriceDetail `json:"price_detail" gorm:"type:varchar(500)"` // Thông tin phí++
+	GolfFee     BookingGolfFee     `json:"golf_fee" gorm:"type:varchar(200)"`     // Thông tin Golf Fee
 
+	Note   string `json:"note" gorm:"type:varchar(500)"`   // Note
+	Locker string `json:"locker" gorm:"type:varchar(100)"` // Locker mã số tủ gửi đồ
+
+	CmsUser string `json:"cms_user" gorm:"type:varchar(100)"` // Cms User
+
+	BookingServices utils.ListBookingServices `json:"booking_services" gorm:"type:varchar(1000)"` // List item service: rental, proshop, restaurant, kiosk
+
+	// TODO
+	// Caddie Info
+	CaddieId int64 `json:"caddie_id" gorm:"index"`
+
+	// Buggy Info
+	BuggyId int64 `json:"buggy_id" gorm:"index"`
+
+	// Subs bag
 }
 
-type BookingFee struct {
+type BookingGolfFee struct {
+	CaddieFee int64 `json:"caddie_fee"`
+	BuggyFee  int64 `json:"buggy_fee"`
+	GreenFee  int64 `json:"green_fee"`
+}
+
+func (item *BookingGolfFee) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item BookingGolfFee) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
+type BookingPriceDetail struct {
+	Kiosk int64 `json:"kiosk"`
+}
+
+func (item *BookingPriceDetail) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item BookingPriceDetail) Value() (driver.Value, error) {
+	return json.Marshal(&item)
 }
 
 func (item *Booking) Create() error {

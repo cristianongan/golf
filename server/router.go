@@ -127,6 +127,24 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/hole-price-formula/:id", middlewares.AuthorizedCmsUserHandler(cHolePriceFormula.UpdateHolePriceFormula))
 			cmsApiAuthorized.DELETE("/hole-price-formula/:id", middlewares.AuthorizedCmsUserHandler(cHolePriceFormula.DeleteHolePriceFormula))
 
+			/// =================== Booking Setting ===================
+			cBookingSetting := new(controllers.CBookingSetting)
+			cmsApiAuthorized.POST("/booking/setting/group", middlewares.AuthorizedCmsUserHandler(cBookingSetting.CreateBookingSettingGroup))
+			cmsApiAuthorized.GET("/booking/setting/group/list", middlewares.AuthorizedCmsUserHandler(cBookingSetting.GetListBookingSettingGroup))
+			cmsApiAuthorized.PUT("/booking/setting/group/:id", middlewares.AuthorizedCmsUserHandler(cBookingSetting.UpdateBookingSettingGroup))
+			cmsApiAuthorized.DELETE("/booking/setting/group/:id", middlewares.AuthorizedCmsUserHandler(cBookingSetting.DeleteBookingSettingGroup))
+
+			cmsApiAuthorized.POST("/booking/setting", middlewares.AuthorizedCmsUserHandler(cBookingSetting.CreateBookingSetting))
+			cmsApiAuthorized.GET("/booking/setting/list", middlewares.AuthorizedCmsUserHandler(cBookingSetting.GetListBookingSetting))
+			cmsApiAuthorized.PUT("/booking/setting/:id", middlewares.AuthorizedCmsUserHandler(cBookingSetting.UpdateBookingSetting))
+			cmsApiAuthorized.DELETE("/booking/setting/:id", middlewares.AuthorizedCmsUserHandler(cBookingSetting.DeleteBookingSetting))
+
+			/// =================== Booking ===================
+			cBooking := new(controllers.CBooking)
+			cmsApiAuthorized.POST("/booking", middlewares.AuthorizedCmsUserHandler(cBooking.CreateBooking))
+			cmsApiAuthorized.GET("/booking/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBooking))
+			cmsApiAuthorized.PUT("/booking/:id", middlewares.AuthorizedCmsUserHandler(cBooking.UpdateBooking))
+
 			/// =================== Buggy =====================
 			cBuggy := new(controllers.CBuggy)
 			cmsApiAuthorized.POST("/buggy", middlewares.AuthorizedCmsUserHandler(cBuggy.CreateBuggy))

@@ -20,6 +20,22 @@ type BookingSettingGroup struct {
 	To         int64  `json:"to"`                                         // Áp dụng tới ngày
 }
 
+func (item *BookingSettingGroup) IsDuplicated() bool {
+	bookingSettingGroup := BookingSettingGroup{
+		PartnerUid: item.PartnerUid,
+		CourseUid:  item.CourseUid,
+		Name:       item.Name,
+		From:       item.From,
+		To:         item.To,
+	}
+
+	errFind := bookingSettingGroup.FindFirst()
+	if errFind == nil || bookingSettingGroup.Id > 0 {
+		return true
+	}
+	return false
+}
+
 func (item *BookingSettingGroup) IsValidated() bool {
 	if item.Name == "" {
 		return false
