@@ -86,6 +86,14 @@ func GetYearMonthDateFromTimestamp(timeStamp int64) (string, error) {
 	return localTime, nil
 }
 
+func GetBookingDateFromTimestamp(timeStamp int64) (string, error) {
+	localTime, errLocalTime := GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_BOOKING, timeStamp)
+	if errLocalTime != nil {
+		return "", errLocalTime
+	}
+	return localTime, nil
+}
+
 // ================================
 func convertUtf8ToUnicode(s string) string {
 	myFunc := func(r rune) bool {

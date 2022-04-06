@@ -3,6 +3,7 @@ package model_booking
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"log"
 	"start/constants"
 	"start/datasources"
 	"start/models"
@@ -20,17 +21,19 @@ type Booking struct {
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 
+	CreatedDate string `json:"created_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
+
 	Bag            string `json:"bag" gorm:"type:varchar(100);index"`         // Golf Bag
 	Hole           int    `json:"hole"`                                       // Số hố
 	GuestStyle     string `json:"guest_style" gorm:"type:varchar(200);index"` // Guest Style
 	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Guest Style Name
 
-	CardId        string `json:"card_id" gorm:"index"`                           // Card ID
-	MemberCardUid string `json:"member_card_uid" gorm:"type:varchar(100);index"` // MemberCard Uid
+	CardId        string `json:"card_id" gorm:"index"`                           // MembarCard, Card ID cms user nhập vào
+	MemberCardUid string `json:"member_card_uid" gorm:"type:varchar(100);index"` // MemberCard Uid, Uid object trong Database
 	CustomerName  string `json:"customer_name" gorm:"type:varchar(256)"`         // Tên khách hàng
 	CustomerUid   string `json:"customer_uid" gorm:"type:varchar(256);index"`    // Uid khách hàng
 
-	TeeType    string `json:"tee_type" gorm:"type:varchar(50);index"` // Tee1, Tee10, Tea1A, Tea1B, Tea1C,
+	TeeType    string `json:"tee_type" gorm:"type:varchar(50);index"` // 1, 1A, 1B, 1C, 10, 10A, 10B
 	TeePath    string `json:"tee_path" gorm:"type:varchar(50);index"` // MORNING, NOON, NIGHT
 	TurnTime   string `json:"turn_time" gorm:"type:varchar(30)"`      // Ex: 16:26
 	TeeTime    string `json:"tee_time" gorm:"type:varchar(30)"`       // Ex: 16:26 Tee time là thời gian tee off dự kiến
@@ -45,7 +48,7 @@ type Booking struct {
 
 	CmsUser string `json:"cms_user" gorm:"type:varchar(100)"` // Cms User
 
-	BookingServices utils.ListBookingServices `json:"booking_services" gorm:"type:varchar(1000)"` // List item service: rental, proshop, restaurant, kiosk
+	BookingServiceItems utils.ListBookingServiceItems `json:"booking_service_items" gorm:"type:varchar(1000)"` // List item service: rental, proshop, restaurant, kiosk
 
 	// TODO
 	// Caddie Info
@@ -54,7 +57,12 @@ type Booking struct {
 	// Buggy Info
 	BuggyId int64 `json:"buggy_id" gorm:"index"`
 
-	// Subs bag
+	// Subs bags
+	SubBags utils.ListSubBag `json:"sub_bags" gorm:"type:varchar(1000)"` // List Sub Bags
+
+	// Main bags
+	MainBags utils.ListSubBag `json:"main_bags" gorm:"type:varchar(200)"` // List Main Bags
+
 }
 
 type BookingGolfFee struct {
@@ -83,6 +91,21 @@ func (item BookingPriceDetail) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
+func (item *Booking) IsDuplicated() bool {
+	booking := Booking{
+		PartnerUid: item.PartnerUid,
+		CourseUid:  item.CourseUid,
+		TeeTime:    item.TeeTime,
+		TurnTime:   item.TurnTime,
+	}
+
+	errFind := booking.FindFirst()
+	if errFind == nil || booking.Uid != "" {
+		return true
+	}
+	return false
+}
+
 func (item *Booking) Create() error {
 	uid := uuid.New()
 	now := time.Now()
@@ -91,6 +114,13 @@ func (item *Booking) Create() error {
 	item.Model.UpdatedAt = now.Unix()
 	if item.Model.Status == "" {
 		item.Model.Status = constants.STATUS_ENABLE
+	}
+
+	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(now.Unix())
+	if errDate == nil {
+		item.CreatedDate = dateDisplay
+	} else {
+		log.Println("booking date display err ", errDate.Error())
 	}
 
 	db := datasources.GetDatabase()

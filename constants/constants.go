@@ -1,5 +1,34 @@
 package constants
 
+/*
+	Member Card Type:
+	Member Card Base Type
+*/
+const (
+	MEMBER_CARD_BASE_TYPE_FRIENDLY       = "FRIENDLY"
+	MEMBER_CARD_BASE_TYPE_INSIDE_MEMBER  = "INSIDE_MEMBER"
+	MEMBER_CARD_BASE_TYPE_OUTSIDE_MEMBER = "OUTSIDE_MEMBER"
+	MEMBER_CARD_BASE_TYPE_PROMOTION      = "PROMOTION"
+)
+
+/*
+Sân 18: Tee 1, Tee 10
+Sân 27: Tee 1A, Tee 1B, Tee 1C
+Sân 36: Tee 1A, Tee 10A, Tee 1B, Tee 10B
+*/
+const (
+	TEE_TYPE_1   = "1"   // Sân 18
+	TEE_TYPE_10  = "10"  // Sân 18
+	TEE_TYPE_10A = "10A" // Sân 36
+	TEE_TYPE_10B = "10B" // Sân 36
+	TEE_TYPE_1A  = "1A"  // Sân 27 or 36
+	TEE_TYPE_1B  = "1B"  // Sân 27 or 36
+	TEE_TYPE_1C  = "1C"  // Sân 27
+)
+
+/*
+  Các dịch vụ của sân Golf: thuê đồ, shop, nhà hàng...
+*/
 const (
 	GOLF_SERVICE_RENTAL     = "RENTAL"
 	GOLF_SERVICE_PROSHOP    = "PROSHOP"
@@ -18,12 +47,9 @@ const CUSTOMER_TYPE_AGENCY = "AGENCY"
 
 const TYPE_ADMIN = "ADMIN"
 
-const VOUCHER_DELETE_PARAMS = "-1"
-
 const DELETE_STR = "delete"
 
 const TIMEOUT = 20
-const DELIVERY_ERROR_SERVICE = "ERROR_SERVICE"
 
 var MAX_SIZE_AVATAR_UPLOAD = int64(3000000)
 
@@ -52,11 +78,3 @@ const URL_CHECK_CRON = "cron-job/check-cron"
 const URL_CRONJOB_BACKUP_ORDER = "cron-job/backup-order"
 
 const CRONJOB_PREFIX = "CRONJOB:"
-
-// Mobile banking transaction status
-const (
-	MbTransInit      = "INIT"
-	MbTransInProcess = "IN_PROCESS"
-	MbTransPaid      = "PAID" // Đã thanh toán
-	MbTransCanceled  = "CANCELED"
-)

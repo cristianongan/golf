@@ -5,26 +5,25 @@ import (
 	"encoding/json"
 )
 
-// ------- Booking Service --------
-type BookingService struct {
-	Order         string `json:"order"`
-	Name          string `json:"name"`
-	Code          string `json:"code"`
-	Quality       int    `json:"quality"`
-	UnitPrice     int64  `json:"unit_price"`
-	DiscountType  string `json:"discount_type"`
-	DiscountValue int64  `json:"discount_value"`
-	Amount        int64  `json:"amount"`
-	Input         string `json:"input"`
-}
+// ------- List Subbag ---------
+type ListSubBag []BookingSubBag
 
-type ListBookingServices []BookingService
-
-func (item *ListBookingServices) Scan(v interface{}) error {
+func (item *ListSubBag) Scan(v interface{}) error {
 	return json.Unmarshal(v.([]byte), item)
 }
 
-func (item ListBookingServices) Value() (driver.Value, error) {
+func (item ListSubBag) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
+// ------- List Booking service ---------
+type ListBookingServiceItems []BookingServiceItem
+
+func (item *ListBookingServiceItems) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListBookingServiceItems) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 

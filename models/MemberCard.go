@@ -154,3 +154,16 @@ func (item *MemberCard) Delete() error {
 	}
 	return datasources.GetDatabase().Delete(item).Error
 }
+
+func (item *MemberCard) GetOwner() (CustomerUser, error) {
+	cusUser := CustomerUser{}
+	if item.OwnerUid == "" {
+		return cusUser, errors.New("Customer uid invalid")
+	}
+	cusUser.Uid = item.OwnerUid
+	errFind := cusUser.FindFirst()
+	if errFind != nil {
+		return cusUser, errFind
+	}
+	return cusUser, nil
+}

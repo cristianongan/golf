@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"start/constants"
 	"start/controllers/request"
 	"start/models"
 	model_booking "start/models/booking"
@@ -14,17 +15,50 @@ type CBooking struct{}
 
 /// --------- Booking ----------
 func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
-	body := request.CreateBookingbody{}
+	body := request.CreateBookingBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
 	}
 
 	booking := model_booking.Booking{
-		PartnerUid:   body.PartnerUid,
-		CourseUid:    body.CourseUid,
-		CustomerName: body.CustomerName,
-		TeeType:      body.TeeType,
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		TeeType:    body.TeeType,
+		TeePath:    body.TeePath,
+		TeeTime:    body.TeeTime,
+		TeeOffTime: body.TeeTime,
+		TurnTime:   body.TurnTime,
+		RowIndex:   body.RowIndex,
+	}
+
+	if booking.IsDuplicated() {
+		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+		return
+	}
+
+	// Check xem booking guest hay booking member
+	if body.MemberCardUid != "" {
+		// Get Member Card
+		memberCard := models.MemberCard{}
+		memberCard.Uid = body.MemberCardUid
+		errFind := memberCard.FindFirst()
+		if errFind != nil {
+			response_message.BadRequest(c, errFind.Error())
+			return
+		}
+
+		// Get Owner
+		owner, errOwner := memberCard.GetOwner()
+		if errOwner != nil {
+			response_message.BadRequest(c, errOwner.Error())
+			return
+		}
+
+		booking.CustomerName = owner.Name
+
+	} else {
+
 	}
 
 	errC := booking.Create()
