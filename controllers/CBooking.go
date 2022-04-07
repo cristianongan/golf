@@ -181,6 +181,13 @@ func (_ *CBooking) AddServiceItemToBooking(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	// Body request
+	body := request.AddServiceItemToBooking{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
 	okResponse(c, booking)
 }
 
