@@ -87,7 +87,15 @@ func GetYearMonthDateFromTimestamp(timeStamp int64) (string, error) {
 }
 
 func GetBookingDateFromTimestamp(timeStamp int64) (string, error) {
-	localTime, errLocalTime := GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_BOOKING, timeStamp)
+	localTime, errLocalTime := GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, timeStamp)
+	if errLocalTime != nil {
+		return "", errLocalTime
+	}
+	return localTime, nil
+}
+
+func GetDateFromTimestampWithFormat(timeStamp int64, format string) (string, error) {
+	localTime, errLocalTime := GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, format, timeStamp)
 	if errLocalTime != nil {
 		return "", errLocalTime
 	}

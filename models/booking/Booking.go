@@ -3,7 +3,6 @@ package model_booking
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"log"
 	"start/constants"
 	"start/datasources"
 	"start/models"
@@ -46,7 +45,8 @@ type Booking struct {
 	Note   string `json:"note" gorm:"type:varchar(500)"`   // Note
 	Locker string `json:"locker" gorm:"type:varchar(100)"` // Locker mã số tủ gửi đồ
 
-	CmsUser string `json:"cms_user" gorm:"type:varchar(100)"` // Cms User
+	CmsUser    string `json:"cms_user" gorm:"type:varchar(100)"`     // Cms User
+	CmsUserLog string `json:"cms_user_log" gorm:"type:varchar(200)"` // Cms User Log
 
 	BookingServiceItems utils.ListBookingServiceItems `json:"booking_service_items" gorm:"type:varchar(1000)"` // List item service: rental, proshop, restaurant, kiosk
 
@@ -93,10 +93,11 @@ func (item BookingPriceDetail) Value() (driver.Value, error) {
 
 func (item *Booking) IsDuplicated() bool {
 	booking := Booking{
-		PartnerUid: item.PartnerUid,
-		CourseUid:  item.CourseUid,
-		TeeTime:    item.TeeTime,
-		TurnTime:   item.TurnTime,
+		PartnerUid:  item.PartnerUid,
+		CourseUid:   item.CourseUid,
+		TeeTime:     item.TeeTime,
+		TurnTime:    item.TurnTime,
+		CreatedDate: item.CreatedDate,
 	}
 
 	errFind := booking.FindFirst()
@@ -114,13 +115,6 @@ func (item *Booking) Create() error {
 	item.Model.UpdatedAt = now.Unix()
 	if item.Model.Status == "" {
 		item.Model.Status = constants.STATUS_ENABLE
-	}
-
-	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(now.Unix())
-	if errDate == nil {
-		item.CreatedDate = dateDisplay
-	} else {
-		log.Println("booking date display err ", errDate.Error())
 	}
 
 	db := datasources.GetDatabase()

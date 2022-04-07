@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"start/constants"
 	"start/models"
+	"start/utils"
 	"strconv"
 	"strings"
 
@@ -191,4 +192,12 @@ func golfFeeToList(feeText string) []models.GolfFeeText {
 	}
 
 	return listResult
+}
+
+// Get log for cms user action booking
+func getBookingCmsUserLog(cmsUser string, timeDo int64) string {
+	hourStr, _ := utils.GetDateFromTimestampWithFormat(timeDo, constants.HOUR_FORMAT)
+	dayStr, _ := utils.GetDateFromTimestampWithFormat(timeDo, constants.DAY_FORMAT)
+	yearStr, _ := utils.GetDateFromTimestampWithFormat(timeDo, constants.DATE_FORMAT_1)
+	return `(` + cmsUser + `, ` + hourStr + `, ` + dayStr + `)` + " Input book: " + yearStr
 }

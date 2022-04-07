@@ -2,11 +2,14 @@ package controllers
 
 import (
 	"errors"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/models"
 	model_booking "start/models/booking"
+	"start/utils"
 	"start/utils/response_message"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,6 +17,9 @@ import (
 type CBooking struct{}
 
 /// --------- Booking ----------
+/*
+ Tạo Booking
+*/
 func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	body := request.CreateBookingBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -30,6 +36,14 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		TeeOffTime: body.TeeTime,
 		TurnTime:   body.TurnTime,
 		RowIndex:   body.RowIndex,
+		CmsUser:    body.CmsUser,
+	}
+
+	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	if errDate == nil {
+		booking.CreatedDate = dateDisplay
+	} else {
+		log.Println("booking date display err ", errDate.Error())
 	}
 
 	if booking.IsDuplicated() {
@@ -55,11 +69,16 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
+		booking.MemberCardUid = body.MemberCardUid
+		booking.CardId = memberCard.CardId
 		booking.CustomerName = owner.Name
+		booking.CustomerUid = owner.Uid
 
 	} else {
-
+		booking.CustomerName = body.CustomerName
 	}
+
+	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
 
 	errC := booking.Create()
 
@@ -71,6 +90,9 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, booking)
 }
 
+/*
+ Danh sách booking
+*/
 func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 	form := request.GetListBookingForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
@@ -103,9 +125,11 @@ func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, res)
 }
 
+/*
+ Cập nhật booking
+*/
 func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	bookingIdStr := c.Param("uid")
-	//bookingId, err := strconv.ParseInt(bookingIdStr, 10, 64)
 	if bookingIdStr == "" {
 		response_message.BadRequest(c, errors.New("uid not valid").Error())
 		return
@@ -133,6 +157,48 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	errUdp := booking.Update()
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, booking)
+}
+
+/*
+ Add service item to Booking
+*/
+func (_ *CBooking) AddServiceItemToBooking(c *gin.Context, prof models.CmsUser) {
+	bookingIdStr := c.Param("uid")
+	if bookingIdStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = bookingIdStr
+	errF := booking.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	okResponse(c, booking)
+}
+
+/*
+ Add Sub bag to Booking
+*/
+func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
+	bookingIdStr := c.Param("uid")
+	if bookingIdStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = bookingIdStr
+	errF := booking.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
