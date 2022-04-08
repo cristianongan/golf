@@ -288,20 +288,14 @@ func CheckDow(dow string, timeCheck time.Time) bool {
 	return isOk
 }
 
-// func GetFeeFromText(feeText string, hole int) int64 {
-// 	fee := int64(0)
-// 	listFee := strings.Split(feeText, constants.FEE_SEPARATE_CHAR)
+func GetFeeFromListFee(feeList ListGolfHoleFee, hole int) int64 {
+	fee := int64(0)
 
-// 	for i, feeStr := range listFee {
-// 		if hole == (i+1)*9 {
-// 			feeInt, err := strconv.ParseInt(feeStr, 10, 64)
-// 			if err != nil {
-// 				log.Println("GetFeeFromText err", err.Error())
-// 			} else {
-// 				fee = feeInt
-// 			}
-// 		}
-// 	}
+	for _, feeModel := range feeList {
+		if feeModel.Hole == hole {
+			fee = feeModel.Fee
+		}
+	}
 
-// 	return fee
-// }
+	return fee
+}

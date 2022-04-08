@@ -90,6 +90,9 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	if errFind == nil {
 		booking.GuestStyle = body.GuestStyle
 		booking.GuestStyleName = golfFee.GuestStyleName
+		booking.GolfFee.CaddieFee = utils.GetFeeFromListFee(golfFee.CaddieFee, body.Hole)
+		booking.GolfFee.BuggyFee = utils.GetFeeFromListFee(golfFee.BuggyFee, body.Hole)
+		booking.GolfFee.GreenFee = utils.GetFeeFromListFee(golfFee.GreenFee, body.Hole)
 
 	}
 
