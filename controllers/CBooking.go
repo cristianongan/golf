@@ -80,6 +80,19 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 
 	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
 
+	//Guest style
+	golfFeeModel := models.GolfFee{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		GuestStyle: body.GuestStyle,
+	}
+	golfFee, errFind := golfFeeModel.GetGuestStyleOnDay()
+	if errFind == nil {
+		booking.GuestStyle = body.GuestStyle
+		booking.GuestStyleName = golfFee.GuestStyleName
+
+	}
+
 	errC := booking.Create()
 
 	if errC != nil {

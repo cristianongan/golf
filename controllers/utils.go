@@ -7,7 +7,6 @@ import (
 	"start/constants"
 	"start/models"
 	"start/utils"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -171,28 +170,28 @@ func formatGolfFee(feeText string) string {
 }
 
 // Caddie Fee, Green Fee, Buggy Fee string to List Model int
-func golfFeeToList(feeText string) []models.GolfFeeText {
-	listF := strings.Split(feeText, constants.FEE_SEPARATE_CHAR)
-	listResult := []models.GolfFeeText{}
-	if len(listF) == 0 {
-		return listResult
-	}
+// func golfFeeToList(feeText string) []models.GolfFeeText {
+// 	listF := strings.Split(feeText, constants.FEE_SEPARATE_CHAR)
+// 	listResult := []models.GolfFeeText{}
+// 	if len(listF) == 0 {
+// 		return listResult
+// 	}
 
-	for i, v := range listF {
-		feeInt, err := strconv.ParseInt(v, 10, 64)
-		if err == nil {
-			golfFeeText := models.GolfFeeText{
-				Hole: (i + 1) * 9,
-				Fee:  feeInt,
-			}
-			listResult = append(listResult, golfFeeText)
-		} else {
-			log.Println("golfFeeToList err", err.Error())
-		}
-	}
+// 	for i, v := range listF {
+// 		feeInt, err := strconv.ParseInt(v, 10, 64)
+// 		if err == nil {
+// 			golfFeeText := models.GolfFeeText{
+// 				Hole: (i + 1) * 9,
+// 				Fee:  feeInt,
+// 			}
+// 			listResult = append(listResult, golfFeeText)
+// 		} else {
+// 			log.Println("golfFeeToList err", err.Error())
+// 		}
+// 	}
 
-	return listResult
-}
+// 	return listResult
+// }
 
 // Get log for cms user action booking
 func getBookingCmsUserLog(cmsUser string, timeDo int64) string {

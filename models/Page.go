@@ -21,3 +21,12 @@ func (p *Page) Setup(db *gorm.DB) *gorm.DB {
 	}
 	return setupDb
 }
+
+func GetPageDefault() Page {
+	return Page{
+		Limit:   20,
+		Page:    1,
+		SortDir: "desc",
+		SortBy:  "created_at",
+	}
+}

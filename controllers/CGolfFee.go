@@ -15,7 +15,7 @@ type CGolfFee struct{}
 func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	body := models.GolfFee{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
-		badRequest(c, bindErr.Error())
+		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
@@ -64,9 +64,9 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.Status = body.Status
 	golfFee.GuestStyleName = body.GuestStyleName
 	golfFee.Dow = body.Dow
-	golfFee.GreenFee = formatGolfFee(body.GreenFee)
-	golfFee.CaddieFee = formatGolfFee(body.CaddieFee)
-	golfFee.BuggyFee = formatGolfFee(body.BuggyFee)
+	golfFee.GreenFee = body.GreenFee
+	golfFee.CaddieFee = body.CaddieFee
+	golfFee.BuggyFee = body.BuggyFee
 	golfFee.AccCode = body.AccCode
 	golfFee.NodeOdd = body.NodeOdd
 	golfFee.Note = body.Note
@@ -154,9 +154,9 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	golfFee.Dow = body.Dow
-	golfFee.GreenFee = formatGolfFee(body.GreenFee)
-	golfFee.CaddieFee = formatGolfFee(body.CaddieFee)
-	golfFee.BuggyFee = formatGolfFee(body.BuggyFee)
+	golfFee.GreenFee = body.GreenFee
+	golfFee.CaddieFee = body.CaddieFee
+	golfFee.BuggyFee = body.BuggyFee
 	golfFee.AccCode = body.AccCode
 	golfFee.Note = body.Note
 	golfFee.NodeOdd = body.NodeOdd

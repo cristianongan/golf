@@ -5,6 +5,17 @@ import (
 	"encoding/json"
 )
 
+// ------- List Golf Hole ---------
+type ListGolfHoleFee []GolfHoleFee
+
+func (item *ListGolfHoleFee) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListGolfHoleFee) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
 // ------- List Subbag ---------
 type ListSubBag []BookingSubBag
 

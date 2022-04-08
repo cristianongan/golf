@@ -19,3 +19,8 @@ type BookingServiceItem struct {
 	Amount        int64  `json:"amount"`
 	Input         string `json:"input"`
 }
+
+type GolfHoleFee struct {
+	Hole int   `json:"hole"`
+	Fee  int64 `json:"fee"`
+}

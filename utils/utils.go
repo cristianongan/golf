@@ -9,6 +9,7 @@ import (
 	"sort"
 	"start/constants"
 	"strconv"
+	"strings"
 	"time"
 	"unicode"
 
@@ -260,3 +261,47 @@ func ConvertHourToTime(hourStr string) (time.Time, error) {
 	}
 	return t, nil
 }
+
+func CheckDow(dow string, timeCheck time.Time) bool {
+	if dow == "" {
+		return false
+	}
+
+	list := strings.Split(dow, "")
+	log.Println("Check Dow ", list, len(list))
+
+	if len(list) == 0 {
+		return false
+	}
+	isOk := false
+	for _, v := range list {
+		dayInt, err := strconv.Atoi(v)
+		if err != nil {
+			log.Println("CheckDow err", err.Error())
+		}
+		dayInt = dayInt - 1 // Vì Dow 0 là ngày lễ
+		if dayInt == int(timeCheck.Weekday()) {
+			isOk = true
+		}
+	}
+
+	return isOk
+}
+
+// func GetFeeFromText(feeText string, hole int) int64 {
+// 	fee := int64(0)
+// 	listFee := strings.Split(feeText, constants.FEE_SEPARATE_CHAR)
+
+// 	for i, feeStr := range listFee {
+// 		if hole == (i+1)*9 {
+// 			feeInt, err := strconv.ParseInt(feeStr, 10, 64)
+// 			if err != nil {
+// 				log.Println("GetFeeFromText err", err.Error())
+// 			} else {
+// 				fee = feeInt
+// 			}
+// 		}
+// 	}
+
+// 	return fee
+// }

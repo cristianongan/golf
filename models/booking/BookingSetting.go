@@ -22,7 +22,7 @@ type BookingSetting struct {
 	IsHideTeePart1 bool   `json:"is_hide_tee_part_1"`                         // show hide tee fart 1 - Morning sáng
 	IsHideTeePart2 bool   `json:"is_hide_tee_part_2"`                         // show hide tee fart 2 - Noon trưa
 	IsHideTeePart3 bool   `json:"is_hide_tee_part_3"`                         // show hide tee fart 3 - Night tối
-	StartPart1     string `json:"start_part1" gorm:"type:varchar(50)"`
+	StartPart1     string `json:"start_part1" gorm:"type:varchar(50)"`        // Ex: 18:26"
 	StartPart2     string `json:"start_part2" gorm:"type:varchar(50)"`
 	StartPart3     string `json:"start_part3" gorm:"type:varchar(50)"`
 	EndPart1       string `json:"end_part1" gorm:"type:varchar(50)"`
