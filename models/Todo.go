@@ -35,7 +35,7 @@ func (item *Todo) Create() error {
 
 func (item *Todo) CreateBatch(todos []Todo) error {
 	now := time.Now()
-	for i, _ := range todos {
+	for i := range todos {
 		t := &todos[i]
 		uid := uuid.New()
 		t.Model.Uid = uid.String()

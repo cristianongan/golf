@@ -10,10 +10,10 @@ import (
 	"strconv"
 )
 
-type CBuggy struct{}
+type CCaddieNote struct{}
 
-func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
-	var body request.CreateBuggyBody
+func (_ *CCaddieNote) CreateCaddieNote(c *gin.Context, prof models.CmsUser) {
+	var body request.CreateCaddieNoteBody
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		response_message.BadRequest(c, "")
 		return
@@ -27,37 +27,37 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	buggyRequest := models.Buggy{}
-	buggyRequest.Number = body.Number
-	buggyRequest.CourseId = body.CourseId
-	errExist := buggyRequest.FindFirst()
+	caddieRequest := models.Caddie{}
+	caddieRequest.Num = body.CaddieNum
+	caddieRequest.CourseId = body.CourseId
+	errExist := caddieRequest.FindFirst()
 
-	if errExist == nil && buggyRequest.ModelId.Id > 0 {
-		response_message.BadRequest(c, "Buggy number existed in course")
+	if errExist != nil || caddieRequest.ModelId.Id < 1 {
+		response_message.BadRequest(c, "Caddie number did not exist in course")
 		return
 	}
 
 	base := models.ModelId{
 		Status: constants.STATUS_ENABLE,
 	}
-	buggy := models.Buggy{
+	caddieNote := models.CaddieNote{
 		ModelId:  base,
 		CourseId: body.CourseId,
-		Number:   body.Number,
-		Origin:   body.Origin,
+		CaddieId: caddieRequest.Id,
+		Type:     body.Type,
 		Note:     body.Note,
 	}
 
-	err := buggy.Create()
+	err := caddieNote.Create()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
-	c.JSON(200, buggy)
+	c.JSON(200, caddieNote)
 }
 
-func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
-	form := request.GetListBuggyForm{}
+func (_ *CCaddieNote) GetCaddieNoteList(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListCaddieNoteForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
@@ -70,13 +70,13 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	buggyRequest := models.Buggy{}
+	caddieNoteRequest := models.CaddieNote{}
 
 	if form.CourseId != "" {
-		buggyRequest.CourseId = form.CourseId
+		caddieNoteRequest.CourseId = form.CourseId
 	}
 
-	list, total, err := buggyRequest.FindList(page)
+	list, total, err := caddieNoteRequest.FindList(page, form.From, form.To)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -91,24 +91,24 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 	c.JSON(200, res)
 }
 
-func (_ *CBuggy) DeleteBuggy(c *gin.Context, prof models.CmsUser) {
-	buggyIdStr := c.Param("id")
-	buggyId, errId := strconv.ParseInt(buggyIdStr, 10, 64)
+func (_ *CCaddieNote) DeleteCaddieNote(c *gin.Context, prof models.CmsUser) {
+	caddieNoteIdStr := c.Param("id")
+	caddieNoteId, errId := strconv.ParseInt(caddieNoteIdStr, 10, 64)
 	if errId != nil {
 		response_message.BadRequest(c, errId.Error())
 		return
 	}
 
-	buggyRequest := models.Buggy{}
-	buggyRequest.Id = buggyId
-	errF := buggyRequest.FindFirst()
+	caddieNoteRequest := models.CaddieNote{}
+	caddieNoteRequest.Id = caddieNoteId
+	errF := caddieNoteRequest.FindFirst()
 
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
 
-	err := buggyRequest.Delete()
+	err := caddieNoteRequest.Delete()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -117,37 +117,40 @@ func (_ *CBuggy) DeleteBuggy(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
-func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
-	buggyIdStr := c.Param("id")
-	buggyId, errId := strconv.ParseInt(buggyIdStr, 10, 64)
+func (_ *CCaddieNote) UpdateCaddieNote(c *gin.Context, prof models.CmsUser) {
+	caddieNoteIdStr := c.Param("id")
+	caddieNoteId, errId := strconv.ParseInt(caddieNoteIdStr, 10, 64)
 	if errId != nil {
 		response_message.BadRequest(c, errId.Error())
 		return
 	}
 
-	var body request.UpdateBuggyBody
+	var body request.UpdateCaddieNoteBody
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
-	buggyRequest := models.Buggy{}
-	buggyRequest.Id = buggyId
+	caddieNoteRequest := models.CaddieNote{}
+	caddieNoteRequest.Id = caddieNoteId
 
-	errF := buggyRequest.FindFirst()
+	errF := caddieNoteRequest.FindFirst()
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
 
-	if body.Origin != nil {
-		buggyRequest.Origin = *body.Origin
+	if body.AtDate != nil {
+		caddieNoteRequest.AtDate = *body.AtDate
+	}
+	if body.Type != nil {
+		caddieNoteRequest.Type = *body.Type
 	}
 	if body.Note != nil {
-		buggyRequest.Note = *body.Note
+		caddieNoteRequest.Note = *body.Note
 	}
 
-	err := buggyRequest.Update()
+	err := caddieNoteRequest.Update()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

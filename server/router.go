@@ -33,7 +33,7 @@ func NewRouter() *gin.Engine {
 	router.Use(cors.AllowAll()) // Để login từ localhost
 
 	/*
-	 - Cấu trúc sub-group để custorm Middleware
+	 - Cấu trúc sub-group để custom Middleware
 	*/
 	routerApi := router.Group(moduleName)
 	{
@@ -150,8 +150,23 @@ func NewRouter() *gin.Engine {
 			cBuggy := new(controllers.CBuggy)
 			cmsApiAuthorized.POST("/buggy", middlewares.AuthorizedCmsUserHandler(cBuggy.CreateBuggy))
 			cmsApiAuthorized.GET("/buggy/list", middlewares.AuthorizedCmsUserHandler(cBuggy.GetBuggyList))
-			cmsApiAuthorized.PUT("/buggy/:uid", middlewares.AuthorizedCmsUserHandler(cBuggy.UpdateBuggy))
-			cmsApiAuthorized.DELETE("/buggy/:uid", middlewares.AuthorizedCmsUserHandler(cBuggy.DeleteBuggy))
+			cmsApiAuthorized.PUT("/buggy/:id", middlewares.AuthorizedCmsUserHandler(cBuggy.UpdateBuggy))
+			cmsApiAuthorized.DELETE("/buggy/:id", middlewares.AuthorizedCmsUserHandler(cBuggy.DeleteBuggy))
+
+			/// =================== Caddie =====================
+			cCaddie := new(controllers.CCaddie)
+			cmsApiAuthorized.POST("/caddie", middlewares.AuthorizedCmsUserHandler(cCaddie.CreateCaddie))
+			cmsApiAuthorized.POST("/caddie-batch", middlewares.AuthorizedCmsUserHandler(cCaddie.CreateCaddieBatch))
+			cmsApiAuthorized.GET("/caddie/list", middlewares.AuthorizedCmsUserHandler(cCaddie.GetCaddieList))
+			cmsApiAuthorized.PUT("/caddie/:id", middlewares.AuthorizedCmsUserHandler(cCaddie.UpdateCaddie))
+			cmsApiAuthorized.DELETE("/caddie/:id", middlewares.AuthorizedCmsUserHandler(cCaddie.DeleteCaddie))
+
+			/// =================== Caddie Note =====================
+			cCaddieNote := new(controllers.CCaddieNote)
+			cmsApiAuthorized.POST("/caddie-note", middlewares.AuthorizedCmsUserHandler(cCaddieNote.CreateCaddieNote))
+			cmsApiAuthorized.GET("/caddie-note/list", middlewares.AuthorizedCmsUserHandler(cCaddieNote.GetCaddieNoteList))
+			cmsApiAuthorized.PUT("/caddie-note/:id", middlewares.AuthorizedCmsUserHandler(cCaddieNote.UpdateCaddieNote))
+			cmsApiAuthorized.DELETE("/caddie-note/:id", middlewares.AuthorizedCmsUserHandler(cCaddieNote.DeleteCaddieNote))
 		}
 
 		// ----------------------------------------------------------

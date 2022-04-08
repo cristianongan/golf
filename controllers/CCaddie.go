@@ -183,7 +183,7 @@ func (_ *CCaddie) GetCaddieList(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
-	caddieIdStr := c.Param("uid")
+	caddieIdStr := c.Param("id")
 	caddieId, errId := strconv.ParseInt(caddieIdStr, 10, 64)
 	if errId != nil {
 		response_message.BadRequest(c, errId.Error())
@@ -209,7 +209,7 @@ func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCaddie) UpdateCaddie(c *gin.Context, prof models.CmsUser) {
-	caddieIdStr := c.Param("uid")
+	caddieIdStr := c.Param("id")
 	caddieId, errId := strconv.ParseInt(caddieIdStr, 10, 64)
 	if errId != nil {
 		response_message.BadRequest(c, errId.Error())
