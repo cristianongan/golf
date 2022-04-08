@@ -72,7 +72,7 @@ func (item *Caddie) Create() error {
 
 func (item *Caddie) CreateBatch(caddies []Caddie) error {
 	now := time.Now()
-	for i, _ := range caddies {
+	for i := range caddies {
 		c := &caddies[i]
 		c.ModelId.CreatedAt = now.Unix()
 		c.ModelId.UpdatedAt = now.Unix()

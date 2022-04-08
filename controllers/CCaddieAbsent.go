@@ -33,14 +33,14 @@ func (_ *CCaddieAbsent) CreateCaddieAbsent(c *gin.Context, prof models.CmsUser) 
 	errExist := caddieRequest.FindFirst()
 
 	if errExist != nil || caddieRequest.ModelId.Id < 1 {
-		response_message.BadRequest(c, "Caddie number existed in course")
+		response_message.BadRequest(c, "Caddie number did not exist in course")
 		return
 	}
 
 	base := models.ModelId{
 		Status: constants.STATUS_ENABLE,
 	}
-	Caddie := models.CaddieAbsent{
+	caddieAbsent := models.CaddieAbsent{
 		ModelId:   base,
 		CourseId:  body.CourseId,
 		CaddieNum: body.CaddieNum,
@@ -50,12 +50,12 @@ func (_ *CCaddieAbsent) CreateCaddieAbsent(c *gin.Context, prof models.CmsUser) 
 		Note:      body.Note,
 	}
 
-	err := Caddie.Create()
+	err := caddieAbsent.Create()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
-	c.JSON(200, Caddie)
+	c.JSON(200, caddieAbsent)
 }
 
 func (_ *CCaddieAbsent) GetCaddieAbsentList(c *gin.Context, prof models.CmsUser) {

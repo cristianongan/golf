@@ -39,6 +39,10 @@ func MigrateDb() {
 		db.AutoMigrate(&model_booking.BookingSetting{})
 		db.AutoMigrate(&model_booking.BookingSettingGroup{})
 
+		// ---- Caddie ----
+		db.AutoMigrate(&models.Caddie{})
+		db.AutoMigrate(&models.CaddieNote{})
+
 		log.Println("migrated db")
 	}
 }
