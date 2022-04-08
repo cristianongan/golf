@@ -39,8 +39,8 @@ type Booking struct {
 	TeeOffTime string `json:"tee_off_time" gorm:"type:varchar(30)"`   // Ex: 16:26 Là thời gian thực tế phát bóng
 	RowIndex   int    `json:"row_index"`                              // index trong Flight
 
-	PriceDetail BookingPriceDetail `json:"price_detail" gorm:"type:varchar(500)"` // Thông tin phí++
-	GolfFee     BookingGolfFee     `json:"golf_fee" gorm:"type:varchar(200)"`     // Thông tin Golf Fee
+	//PriceDetail BookingPriceDetail `json:"price_detail" gorm:"type:varchar(500)"` // Thông tin phí++
+	GolfFee BookingGolfFee `json:"golf_fee" gorm:"type:varchar(200)"` // Thông tin Golf Fee
 
 	Note   string `json:"note" gorm:"type:varchar(500)"`   // Note
 	Locker string `json:"locker" gorm:"type:varchar(100)"` // Locker mã số tủ gửi đồ

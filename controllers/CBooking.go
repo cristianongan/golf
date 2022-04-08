@@ -86,6 +86,7 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		CourseUid:  body.CourseUid,
 		GuestStyle: body.GuestStyle,
 	}
+	// Lấy phí
 	golfFee, errFind := golfFeeModel.GetGuestStyleOnDay()
 	if errFind == nil {
 		booking.GuestStyle = body.GuestStyle
@@ -93,7 +94,6 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.GolfFee.CaddieFee = utils.GetFeeFromListFee(golfFee.CaddieFee, body.Hole)
 		booking.GolfFee.BuggyFee = utils.GetFeeFromListFee(golfFee.BuggyFee, body.Hole)
 		booking.GolfFee.GreenFee = utils.GetFeeFromListFee(golfFee.GreenFee, body.Hole)
-
 	}
 
 	errC := booking.Create()
