@@ -1,6 +1,18 @@
 package constants
 
 /*
+ Main bag for Pay SUB Bag
+*/
+const (
+	MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND = "FIRST_ROUND"
+	MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS = "NEXT_ROUNDS"
+	MAIN_BAG_FOR_PAY_SUB_RENTAL      = "RENTAL"
+	MAIN_BAG_FOR_PAY_SUB_FB          = "FB"
+	MAIN_BAG_FOR_PAY_SUB_PROSHOP     = "PROSHOP"
+	MAIN_BAG_FOR_PAY_SUB_OTHER_FEE   = "OTHER_FEE"
+)
+
+/*
 	Member Card Type:
 	Member Card Base Type
 */

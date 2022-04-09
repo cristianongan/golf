@@ -143,8 +143,13 @@ func NewRouter() *gin.Engine {
 			/// =================== Booking ===================
 			cBooking := new(controllers.CBooking)
 			cmsApiAuthorized.POST("/booking", middlewares.AuthorizedCmsUserHandler(cBooking.CreateBooking))
+			cmsApiAuthorized.POST("/booking/check-in", middlewares.AuthorizedCmsUserHandler(cBooking.CheckIn))
 			cmsApiAuthorized.GET("/booking/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBooking))
-			cmsApiAuthorized.PUT("/booking/:id", middlewares.AuthorizedCmsUserHandler(cBooking.UpdateBooking))
+			cmsApiAuthorized.GET("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingDetail))  // Get Booking detail by uid
+			cmsApiAuthorized.GET("/booking/by-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingByBag)) // Get booking detail by Bag
+			cmsApiAuthorized.PUT("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.UpdateBooking))
+			cmsApiAuthorized.POST("/booking/service-tiem/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddServiceItemToBooking)) // Thêm rental, kiosk, ...
+			cmsApiAuthorized.POST("/booking/sub-bag/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddSubBagToBooking))
 
 			/// =================== Buggy =====================
 			cBuggy := new(controllers.CBuggy)

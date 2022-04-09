@@ -19,6 +19,7 @@ type GetListBookingForm struct {
 	PageRequest
 	PartnerUid string `form:"partner_uid"`
 	CourseUid  string `form:"course_uid"`
+	Bag        string `form:"bag"`
 }
 
 // Tạo Tee booking
@@ -63,4 +64,11 @@ type AddServiceItemToBooking struct {
 type AddSubBagToBooking struct {
 	BookingBaseBody
 	SubBags utils.ListSubBag `json:"sub_bags"`
+}
+
+type CheckInBody struct {
+	BookingBaseBody
+	Bag    string `json:"bag" binding:"required"` // Golf Bag
+	Locker string `json:"locker"`
+	Hole   int    `json:"hole"` // Số hố
 }

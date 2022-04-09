@@ -107,6 +107,61 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
+ Get booking Detail With Uid
+*/
+func (_ *CBooking) GetBookingDetail(c *gin.Context, prof models.CmsUser) {
+	bookingIdStr := c.Param("uid")
+	if bookingIdStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = bookingIdStr
+	errF := booking.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	okResponse(c, booking)
+}
+
+/*
+ Get booking by Bag
+ Get Booking Bag trong ngày
+*/
+func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListBookingForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.Bag == "" {
+		response_message.BadRequest(c, errors.New("Bag invalid").Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Bag = form.Bag
+	toDayDate, errD := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	if errD != nil {
+		response_message.InternalServerError(c, errD.Error())
+		return
+	}
+	booking.CreatedDate = toDayDate
+
+	errF := booking.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	okResponse(c, booking)
+}
+
+/*
  Danh sách booking
 */
 func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
@@ -168,7 +223,17 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	if body.Bag != "" {
 		booking.Bag = body.Bag
 	}
-	booking.GuestStyle = body.GuestStyle
+	if body.GuestStyle != "" {
+		booking.GuestStyle = body.GuestStyle
+	}
+
+	//Upd Main Pay for Sub
+	if body.MainBagNoPay != nil {
+		booking.MainBagNoPay = body.MainBagNoPay
+	}
+
+	booking.CmsUser = body.CmsUser
+	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
 
 	errUdp := booking.Update()
 	if errUdp != nil {
@@ -178,6 +243,54 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	okResponse(c, booking)
 }
+
+/*
+  Check in
+*/
+func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
+	// Body request
+	body := request.CheckInBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	errF := booking.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	if body.Bag != "" {
+		booking.Bag = body.Bag
+	}
+
+	if body.Locker != "" {
+		booking.Locker = body.Locker
+	}
+
+	if body.Hole > 0 {
+		booking.Hole = body.Hole
+	}
+
+	booking.CmsUser = body.CmsUser
+	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
+	booking.CheckInTime = time.Now().Unix()
+
+	errUdp := booking.Update()
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, booking)
+}
+
+/*
+  Check out
+*/
 
 /*
  Add service item to Booking
@@ -201,6 +314,8 @@ func (_ *CBooking) AddServiceItemToBooking(c *gin.Context, prof models.CmsUser) 
 	booking.BookingServiceItems = body.ServiceItems
 	booking.CmsUser = body.CmsUser
 	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
+
+	// Tính lại giá
 
 	errUdp := booking.Update()
 	if errUdp != nil {
@@ -233,6 +348,8 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	booking.SubBags = body.SubBags
 	booking.CmsUser = body.CmsUser
 	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
+
+	// Cập nhật Main bug cho subbag
 
 	errUdp := booking.Update()
 	if errUdp != nil {
