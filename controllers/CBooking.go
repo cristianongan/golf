@@ -183,24 +183,28 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
  Add service item to Booking
 */
 func (_ *CBooking) AddServiceItemToBooking(c *gin.Context, prof models.CmsUser) {
-	bookingIdStr := c.Param("uid")
-	if bookingIdStr == "" {
-		response_message.BadRequest(c, errors.New("uid not valid").Error())
+	// Body request
+	body := request.AddServiceItemToBooking{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
 	booking := model_booking.Booking{}
-	booking.Uid = bookingIdStr
+	booking.Uid = body.BookingUid
 	errF := booking.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	// Body request
-	body := request.AddServiceItemToBooking{}
-	if bindErr := c.ShouldBind(&body); bindErr != nil {
-		response_message.BadRequest(c, bindErr.Error())
+	booking.BookingServiceItems = body.ServiceItems
+	booking.CmsUser = body.CmsUser
+	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
+
+	errUdp := booking.Update()
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
 
@@ -211,17 +215,28 @@ func (_ *CBooking) AddServiceItemToBooking(c *gin.Context, prof models.CmsUser) 
  Add Sub bag to Booking
 */
 func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
-	bookingIdStr := c.Param("uid")
-	if bookingIdStr == "" {
-		response_message.BadRequest(c, errors.New("uid not valid").Error())
+	// Body request
+	body := request.AddSubBagToBooking{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
 	booking := model_booking.Booking{}
-	booking.Uid = bookingIdStr
+	booking.Uid = body.BookingUid
 	errF := booking.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	booking.SubBags = body.SubBags
+	booking.CmsUser = body.CmsUser
+	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
+
+	errUdp := booking.Update()
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
 
