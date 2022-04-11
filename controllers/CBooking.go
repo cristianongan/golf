@@ -144,6 +144,8 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 	}
 
 	booking := model_booking.Booking{}
+	booking.PartnerUid = form.PartnerUid
+	booking.CourseUid = form.CourseUid
 	booking.Bag = form.Bag
 	toDayDate, errD := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 	if errD != nil {
@@ -273,6 +275,10 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	if body.Hole > 0 {
 		booking.Hole = body.Hole
+	}
+
+	if body.Note != "" {
+		booking.Note = body.Note
 	}
 
 	booking.CmsUser = body.CmsUser
