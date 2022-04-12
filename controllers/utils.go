@@ -5,7 +5,9 @@ import (
 	"log"
 	"net/http"
 	"start/constants"
+	"start/controllers/request"
 	"start/models"
+	model_booking "start/models/booking"
 	"start/utils"
 	"strings"
 
@@ -199,4 +201,23 @@ func getBookingCmsUserLog(cmsUser string, timeDo int64) string {
 	dayStr, _ := utils.GetDateFromTimestampWithFormat(timeDo, constants.DAY_FORMAT)
 	yearStr, _ := utils.GetDateFromTimestampWithFormat(timeDo, constants.DATE_FORMAT_1)
 	return `(` + cmsUser + `, ` + hourStr + `, ` + dayStr + `)` + " Input book: " + yearStr
+}
+
+/*
+  Tính golf fee cho tạo đơn có guest style
+	Là phần tử đầu của list golfFee
+*/
+func getInitListGolfFeeForBooking(uid string, body request.CreateBookingBody, golfFee models.GolfFee) (model_booking.ListBookingGolfFee, model_booking.BookingGolfFee) {
+	listBookingGolfFee := model_booking.ListBookingGolfFee{}
+	bookingGolfFee := model_booking.BookingGolfFee{}
+	bookingGolfFee.BookingUid = uid
+	bookingGolfFee.Bag = body.Bag
+	bookingGolfFee.PlayerName = body.CustomerName
+
+	bookingGolfFee.CaddieFee = utils.GetFeeFromListFee(golfFee.CaddieFee, body.Hole)
+	bookingGolfFee.BuggyFee = utils.GetFeeFromListFee(golfFee.BuggyFee, body.Hole)
+	bookingGolfFee.GreenFee = utils.GetFeeFromListFee(golfFee.GreenFee, body.Hole)
+
+	listBookingGolfFee = append(listBookingGolfFee, bookingGolfFee)
+	return listBookingGolfFee, bookingGolfFee
 }

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type CBooking struct{}
@@ -86,17 +87,29 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		CourseUid:  body.CourseUid,
 		GuestStyle: body.GuestStyle,
 	}
-	// Lấy phí
+	// Lấy phí bởi Guest style với ngày tạo
 	golfFee, errFind := golfFeeModel.GetGuestStyleOnDay()
-	if errFind == nil {
-		booking.GuestStyle = body.GuestStyle
-		booking.GuestStyleName = golfFee.GuestStyleName
-		booking.GolfFee.CaddieFee = utils.GetFeeFromListFee(golfFee.CaddieFee, body.Hole)
-		booking.GolfFee.BuggyFee = utils.GetFeeFromListFee(golfFee.BuggyFee, body.Hole)
-		booking.GolfFee.GreenFee = utils.GetFeeFromListFee(golfFee.GreenFee, body.Hole)
+	if errFind != nil {
+		response_message.InternalServerError(c, "golf fee err "+errFind.Error())
+		return
 	}
+	booking.GuestStyle = body.GuestStyle
+	booking.GuestStyleName = golfFee.GuestStyleName
 
-	errC := booking.Create()
+	// Booking Uid
+	bookingUid := uuid.New()
+	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
+
+	// List Booking GolfFee
+	listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(bUid, body, golfFee)
+	booking.ListGolfFee = listBookingGolfFee
+
+	// Current Bag Price Detail
+	currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
+	currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
+	booking.CurrentBagPrice = currentBagPriceDetail
+
+	errC := booking.Create(bUid)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -222,9 +235,10 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.Bag != "" {
-		booking.Bag = body.Bag
-	}
+	// Không udp lại Bag
+	// if body.Bag != "" {
+	// 	booking.Bag = body.Bag
+	// }
 	if body.GuestStyle != "" {
 		booking.GuestStyle = body.GuestStyle
 	}
@@ -234,6 +248,12 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.MainBagNoPay = body.MainBagNoPay
 	}
 
+	// Udp Sub Bags
+	booking.SubBags = body.SubBags
+
+	// Tính lại giá
+
+	// Udp Log Tracking
 	booking.CmsUser = body.CmsUser
 	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
 
@@ -267,6 +287,8 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	if body.Bag != "" {
 		booking.Bag = body.Bag
+		// Cập nhật lại info Bag
+		booking.UpdateBagGolfFee()
 	}
 
 	if body.Locker != "" {
@@ -299,38 +321,40 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 */
 
 /*
+Ignore
  Add service item to Booking
+ Cho vào api udp luôn booking luôn
 */
-func (_ *CBooking) AddServiceItemToBooking(c *gin.Context, prof models.CmsUser) {
-	// Body request
-	body := request.AddServiceItemToBooking{}
-	if bindErr := c.ShouldBind(&body); bindErr != nil {
-		response_message.BadRequest(c, bindErr.Error())
-		return
-	}
+// func (_ *CBooking) AddServiceItemToBooking(c *gin.Context, prof models.CmsUser) {
+// 	// Body request
+// 	body := request.AddServiceItemToBooking{}
+// 	if bindErr := c.ShouldBind(&body); bindErr != nil {
+// 		response_message.BadRequest(c, bindErr.Error())
+// 		return
+// 	}
 
-	booking := model_booking.Booking{}
-	booking.Uid = body.BookingUid
-	errF := booking.FindFirst()
-	if errF != nil {
-		response_message.InternalServerError(c, errF.Error())
-		return
-	}
+// 	booking := model_booking.Booking{}
+// 	booking.Uid = body.BookingUid
+// 	errF := booking.FindFirst()
+// 	if errF != nil {
+// 		response_message.InternalServerError(c, errF.Error())
+// 		return
+// 	}
 
-	booking.BookingServiceItems = body.ServiceItems
-	booking.CmsUser = body.CmsUser
-	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
+// 	booking.BookingServiceItems = body.ServiceItems
+// 	booking.CmsUser = body.CmsUser
+// 	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
 
-	// Tính lại giá
+// 	// Tính lại giá
 
-	errUdp := booking.Update()
-	if errUdp != nil {
-		response_message.InternalServerError(c, errUdp.Error())
-		return
-	}
+// 	errUdp := booking.Update()
+// 	if errUdp != nil {
+// 		response_message.InternalServerError(c, errUdp.Error())
+// 		return
+// 	}
 
-	okResponse(c, booking)
-}
+// 	okResponse(c, booking)
+// }
 
 /*
  Add Sub bag to Booking

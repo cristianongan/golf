@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -42,16 +41,16 @@ type Booking struct {
 	TeeOffTime   string `json:"tee_off_time" gorm:"type:varchar(30)"`   // Ex: 16:26 Là thời gian thực tế phát bóng
 	RowIndex     int    `json:"row_index"`                              // index trong Flight
 
-	PriceDetail BookingPriceDetail `json:"price_detail" gorm:"type:varchar(500)"` // Thông tin phí++: Tính toán lại phí Service items, Tiền cho Subbag
-	GolfFee     BookingGolfFee     `json:"golf_fee" gorm:"type:varchar(200)"`     // Thông tin Golf Fee
+	CurrentBagPrice  BookingCurrentBagPriceDetail  `json:"current_bag_price" gorm:"type:varchar(500)"`   // Thông tin phí++: Tính toán lại phí Service items, Tiền cho Subbag
+	ListGolfFee      ListBookingGolfFee            `json:"list_golf_fee" gorm:"type:varchar(200)"`       // Thông tin List Golf Fee, Main Bag, Sub Bag
+	ListServiceItems utils.ListBookingServiceItems `json:"list_service_items" gorm:"type:varchar(1000)"` // List service item: rental, proshop, restaurant, kiosk
+	MushPayInfo      BookingMushPay                `json:"mush_pay_info" gorm:"type:varchar(200)"`       // Mush Pay info
 
 	Note   string `json:"note" gorm:"type:varchar(500)"`   // Note
 	Locker string `json:"locker" gorm:"type:varchar(100)"` // Locker mã số tủ gửi đồ
 
 	CmsUser    string `json:"cms_user" gorm:"type:varchar(100)"`     // Cms User
 	CmsUserLog string `json:"cms_user_log" gorm:"type:varchar(200)"` // Cms User Log
-
-	BookingServiceItems utils.ListBookingServiceItems `json:"booking_service_items" gorm:"type:varchar(1000)"` // List item service: rental, proshop, restaurant, kiosk
 
 	// TODO
 	// Caddie Info
@@ -69,30 +68,107 @@ type Booking struct {
 	MainBagNoPay utils.ListString `json:"main_bag_no_pay" gorm:"type:varchar(100)"` // Main Bag không thanh toán những phần này
 }
 
+// Booking Mush Pay
+type BookingMushPay struct {
+	MushPay          int64 `json:"mush_pay"`
+	TotalGolfFee     int64 `json:"total_golf_fee"`
+	TotalServiceItem int64 `json:"total_service_item"`
+}
+
+func (item *BookingMushPay) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item BookingMushPay) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
+// Booking GolfFee
 type BookingGolfFee struct {
-	CaddieFee int64 `json:"caddie_fee"`
-	BuggyFee  int64 `json:"buggy_fee"`
-	GreenFee  int64 `json:"green_fee"`
+	BookingUid string `json:"booking_uid"`
+	PlayerName string `json:"player_name"`
+	Bag        string `json:"bag"`
+	CaddieFee  int64  `json:"caddie_fee"`
+	BuggyFee   int64  `json:"buggy_fee"`
+	GreenFee   int64  `json:"green_fee"`
 }
 
-func (item *BookingGolfFee) Scan(v interface{}) error {
+type ListBookingGolfFee []BookingGolfFee
+
+func (item *ListBookingGolfFee) Scan(v interface{}) error {
 	return json.Unmarshal(v.([]byte), item)
 }
 
-func (item BookingGolfFee) Value() (driver.Value, error) {
+func (item ListBookingGolfFee) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
-type BookingPriceDetail struct {
-	Kiosk int64 `json:"kiosk"`
+// Current Bag Price info
+type BookingCurrentBagPriceDetail struct {
+	Transfer   int64 `json:"transfer"`
+	Debit      int64 `json:"debit"`
+	GolfFee    int64 `json:"golf_fee"`
+	Restaurant int64 `json:"restaurant"`
+	Kiosk      int64 `json:"kiosk"`
+	Rental     int64 `json:"rental"`
+	Proshop    int64 `json:"proshop"`
+	Promotion  int64 `json:"promotion"`
+	Amount     int64 `json:"amount"`
 }
 
-func (item *BookingPriceDetail) Scan(v interface{}) error {
+func (item *BookingCurrentBagPriceDetail) Scan(v interface{}) error {
 	return json.Unmarshal(v.([]byte), item)
 }
 
-func (item BookingPriceDetail) Value() (driver.Value, error) {
+func (item BookingCurrentBagPriceDetail) Value() (driver.Value, error) {
 	return json.Marshal(&item)
+}
+
+func (item *Booking) UpdateBagGolfFee() {
+	if len(item.ListGolfFee) > 0 {
+		item.ListGolfFee[0].Bag = item.Bag
+	}
+}
+
+// Udp lại giá cho Booking
+func (item *Booking) UpdatePriceDetail() {
+	priceDetail := BookingCurrentBagPriceDetail{}
+
+	if len(item.ListGolfFee) > 0 {
+		priceDetail.GolfFee = item.ListGolfFee[0].BuggyFee + item.ListGolfFee[0].CaddieFee + item.ListGolfFee[0].GreenFee
+	}
+
+	for _, serviceItem := range item.ListServiceItems {
+		if serviceItem.BookingUid == item.Uid {
+			if serviceItem.Type == constants.GOLF_SERVICE_RENTAL {
+				priceDetail.Rental = serviceItem.Amount
+			}
+			if serviceItem.Type == constants.GOLF_SERVICE_PROSHOP {
+				priceDetail.Proshop = serviceItem.Amount
+			}
+			if serviceItem.Type == constants.GOLF_SERVICE_RESTAURANT {
+				priceDetail.Restaurant = serviceItem.Amount
+			}
+			if serviceItem.Type == constants.GOLF_SERVICE_KIOSK {
+				priceDetail.Kiosk = serviceItem.Amount
+			}
+		}
+
+		// isNeedPay := true
+		// if len(item.MainBagNoPay) > 0 {
+		// 	for _, v := range item.MainBagNoPay {
+		// 		if v == serviceItem.Type {
+		// 			isNeedPay = false
+		// 		}
+		// 	}
+		// }
+		// if isNeedPay {
+
+		// }
+
+	}
+
+	item.CurrentBagPrice = priceDetail
 }
 
 func (item *Booking) IsDuplicated() bool {
@@ -111,10 +187,9 @@ func (item *Booking) IsDuplicated() bool {
 	return false
 }
 
-func (item *Booking) Create() error {
-	uid := uuid.New()
+func (item *Booking) Create(uid string) error {
+	item.Model.Uid = uid
 	now := time.Now()
-	item.Model.Uid = item.CourseUid + "-" + utils.HashCodeUuid(uid.String())
 	item.Model.CreatedAt = now.Unix()
 	item.Model.UpdatedAt = now.Unix()
 	if item.Model.Status == "" {

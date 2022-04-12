@@ -8,8 +8,11 @@ type BookingSubBag struct {
 
 // ------- Booking Service item --------
 type BookingServiceItem struct {
-	Type          string `json:"type"`  // Loại rental, kiosk, proshop,...
-	Order         string `json:"order"` // Có thể là mã
+	BookingUid    string `json:"booking_uid"` // Uid booking
+	PlayerName    string `json:"player_name"` // Tên người chơi
+	Bag           string `json:"bag"`         // Golf Bag
+	Type          string `json:"type"`        // Loại rental, kiosk, proshop,...
+	Order         string `json:"order"`       // Có thể là mã
 	Name          string `json:"name"`
 	Code          string `json:"code"`
 	Quality       int    `json:"quality"` // Số lượng
@@ -17,7 +20,7 @@ type BookingServiceItem struct {
 	DiscountType  string `json:"discount_type"`
 	DiscountValue int64  `json:"discount_value"`
 	Amount        int64  `json:"amount"`
-	Input         string `json:"input"`
+	Input         string `json:"input"` // Note
 }
 
 type GolfHoleFee struct {
