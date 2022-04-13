@@ -324,42 +324,6 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 */
 
 /*
-Ignore
- Add service item to Booking
- Cho vào api udp luôn booking luôn
-*/
-// func (_ *CBooking) AddServiceItemToBooking(c *gin.Context, prof models.CmsUser) {
-// 	// Body request
-// 	body := request.AddServiceItemToBooking{}
-// 	if bindErr := c.ShouldBind(&body); bindErr != nil {
-// 		response_message.BadRequest(c, bindErr.Error())
-// 		return
-// 	}
-
-// 	booking := model_booking.Booking{}
-// 	booking.Uid = body.BookingUid
-// 	errF := booking.FindFirst()
-// 	if errF != nil {
-// 		response_message.InternalServerError(c, errF.Error())
-// 		return
-// 	}
-
-// 	booking.BookingServiceItems = body.ServiceItems
-// 	booking.CmsUser = body.CmsUser
-// 	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
-
-// 	// Tính lại giá
-
-// 	errUdp := booking.Update()
-// 	if errUdp != nil {
-// 		response_message.InternalServerError(c, errUdp.Error())
-// 		return
-// 	}
-
-// 	okResponse(c, booking)
-// }
-
-/*
  Add Sub bag to Booking
 */
 func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
@@ -384,7 +348,12 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 
 	booking.UpdateMushPay()
 
-	// Cập nhật Main bug cho subbag
+	// Cập nhật Main bag cho subbag
+	err := updateMainBagForSubBag(body)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
 
 	errUdp := booking.Update()
 	if errUdp != nil {

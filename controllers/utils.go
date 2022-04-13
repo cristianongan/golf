@@ -221,3 +221,30 @@ func getInitListGolfFeeForBooking(uid string, body request.CreateBookingBody, go
 	listBookingGolfFee = append(listBookingGolfFee, bookingGolfFee)
 	return listBookingGolfFee, bookingGolfFee
 }
+
+// Khi add sub bag vào 1 booking thì cần cập nhật lại main bag cho booking sub bag
+func updateMainBagForSubBag(body request.AddSubBagToBooking) error {
+	var err error
+	for _, v := range body.SubBags {
+		booking := model_booking.Booking{}
+		booking.Uid = v.BookingUid
+		errFind := booking.FindFirst()
+		if errFind == nil {
+			mainBag := utils.BookingSubBag{
+				BookingUid: body.BookingUid,
+				GolfBag:    v.GolfBag,
+			}
+			booking.MainBags = append(booking.MainBags, mainBag)
+			errUdp := booking.Update()
+			if errUdp != nil {
+				err = errUdp
+				log.Println("UpdateMainBagForSubBag errUdp", errUdp.Error())
+			}
+		} else {
+			err = errFind
+			log.Println("UpdateMainBagForSubBag errFind", errFind.Error())
+		}
+	}
+
+	return err
+}
