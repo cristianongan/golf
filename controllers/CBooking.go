@@ -213,6 +213,7 @@ func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 
 /*
  Cập nhật booking
+ Thêm Service item
 */
 func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	bookingIdStr := c.Param("uid")
@@ -248,10 +249,12 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.MainBagNoPay = body.MainBagNoPay
 	}
 
-	// Udp Sub Bags
-	booking.SubBags = body.SubBags
+	//Update service items
+	booking.ListServiceItems = body.ListServiceItems
 
 	// Tính lại giá
+	booking.UpdatePriceDetailCurrentBag()
+	booking.UpdateMushPay()
 
 	// Udp Log Tracking
 	booking.CmsUser = body.CmsUser
@@ -378,6 +381,8 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	booking.SubBags = body.SubBags
 	booking.CmsUser = body.CmsUser
 	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
+
+	booking.UpdateMushPay()
 
 	// Cập nhật Main bug cho subbag
 

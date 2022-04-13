@@ -130,8 +130,42 @@ func (item *Booking) UpdateBagGolfFee() {
 	}
 }
 
+// Udp Mush pay
+func (item *Booking) UpdateMushPay() {
+	mushPay := BookingMushPay{}
+
+	totalGolfFee := int64(0)
+	for _, v := range item.ListGolfFee {
+		totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
+	}
+	mushPay.TotalGolfFee = totalGolfFee
+
+	for _, v := range item.ListServiceItems {
+		isNeedPay := true
+		if len(item.MainBagNoPay) > 0 {
+			for _, v1 := range item.MainBagNoPay {
+				// TODO: Tính Fee cho sub bag fee
+				if v1 == constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS {
+				} else if v1 == constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND {
+				} else if v1 == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE {
+				} else {
+					if v1 == v.Type {
+						isNeedPay = false
+					}
+				}
+			}
+		}
+		if isNeedPay {
+			mushPay.TotalServiceItem += v.Amount
+		}
+	}
+
+	item.MushPayInfo = mushPay
+}
+
 // Udp lại giá cho Booking
-func (item *Booking) UpdatePriceDetail() {
+// Udp sub bag price
+func (item *Booking) UpdatePriceDetailCurrentBag() {
 	priceDetail := BookingCurrentBagPriceDetail{}
 
 	if len(item.ListGolfFee) > 0 {
@@ -140,33 +174,30 @@ func (item *Booking) UpdatePriceDetail() {
 
 	for _, serviceItem := range item.ListServiceItems {
 		if serviceItem.BookingUid == item.Uid {
+			// Udp service detail cho booking uid
 			if serviceItem.Type == constants.GOLF_SERVICE_RENTAL {
-				priceDetail.Rental = serviceItem.Amount
+				priceDetail.Rental += serviceItem.Amount
 			}
 			if serviceItem.Type == constants.GOLF_SERVICE_PROSHOP {
-				priceDetail.Proshop = serviceItem.Amount
+				priceDetail.Proshop += serviceItem.Amount
 			}
 			if serviceItem.Type == constants.GOLF_SERVICE_RESTAURANT {
-				priceDetail.Restaurant = serviceItem.Amount
+				priceDetail.Restaurant += serviceItem.Amount
 			}
 			if serviceItem.Type == constants.GOLF_SERVICE_KIOSK {
-				priceDetail.Kiosk = serviceItem.Amount
+				priceDetail.Kiosk += serviceItem.Amount
 			}
 		}
-
-		// isNeedPay := true
-		// if len(item.MainBagNoPay) > 0 {
-		// 	for _, v := range item.MainBagNoPay {
-		// 		if v == serviceItem.Type {
-		// 			isNeedPay = false
-		// 		}
-		// 	}
-		// }
-		// if isNeedPay {
-
-		// }
-
 	}
+
+	priceDetail.Amount = priceDetail.Transfer +
+		priceDetail.Debit +
+		priceDetail.GolfFee +
+		priceDetail.Restaurant +
+		priceDetail.Kiosk +
+		priceDetail.Rental +
+		priceDetail.Proshop +
+		priceDetail.Promotion
 
 	item.CurrentBagPrice = priceDetail
 }
