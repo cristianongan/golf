@@ -363,3 +363,42 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 
 	okResponse(c, booking)
 }
+
+/*
+ Booking Rounds: Vòng Round
+ Thêm Round cho Booking
+*/
+func (_ *CBooking) AddRound(c *gin.Context, prof models.CmsUser) {
+	// Body request
+	body := request.AddRoundBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if body.BookingUid == "" {
+		response_message.BadRequest(c, errors.New("Uid not valid").Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	errF := booking.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	// Handle Round Logic
+
+	booking.CmsUser = body.CmsUser
+	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
+
+	errUdp := booking.Update()
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, booking)
+}

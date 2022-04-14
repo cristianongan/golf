@@ -77,6 +77,7 @@ func NewRouter() *gin.Engine {
 			cMemberCard := new(controllers.CMemberCard)
 			cmsApiAuthorized.POST("/member-card", middlewares.AuthorizedCmsUserHandler(cMemberCard.CreateMemberCard))
 			cmsApiAuthorized.GET("/member-card/list", middlewares.AuthorizedCmsUserHandler(cMemberCard.GetListMemberCard))
+			cmsApiAuthorized.GET("/member-card/:uid", middlewares.AuthorizedCmsUserHandler(cMemberCard.GetDetail))
 			cmsApiAuthorized.PUT("/member-card/:uid", middlewares.AuthorizedCmsUserHandler(cMemberCard.UpdateMemberCard))
 			cmsApiAuthorized.DELETE("/member-card/:uid", middlewares.AuthorizedCmsUserHandler(cMemberCard.DeleteMemberCard))
 

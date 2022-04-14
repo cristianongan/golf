@@ -176,3 +176,27 @@ func (_ *CMemberCard) DeleteMemberCard(c *gin.Context, prof models.CmsUser) {
 
 	okRes(c)
 }
+
+func (_ *CMemberCard) GetDetail(c *gin.Context, prof models.CmsUser) {
+	memberCardUidStr := c.Param("uid")
+	if memberCardUidStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
+	memberCard := models.MemberCard{}
+	memberCard.Uid = memberCardUidStr
+	errF := memberCard.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	memberDetailRes, errFind := memberCard.FindDetail()
+	if errFind != nil {
+		response_message.BadRequest(c, errFind.Error())
+		return
+	}
+
+	okResponse(c, memberDetailRes)
+}

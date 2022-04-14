@@ -72,3 +72,9 @@ type CheckInBody struct {
 	Locker string `json:"locker"`
 	Hole   int    `json:"hole"` // Số hố
 }
+
+type AddRoundBody struct {
+	BookingBaseBody
+	MemberCardId string `json:"member_card_id"`
+	GuestStyle   string `json:"guest_style"`
+}

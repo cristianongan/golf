@@ -1,6 +1,8 @@
 package models
 
 import (
+	"encoding/json"
+	"log"
 	"start/constants"
 	"start/datasources"
 	"strings"
@@ -36,7 +38,7 @@ type MemberCard struct {
 	EndPrecial   int64 `json:"end_precial"`   // Khoảng TG được dùng giá riêng
 }
 
-type MemberCardRes struct {
+type MemberCardDetailRes struct {
 	Model
 	PartnerUid      string `json:"partner_uid"`       // Hang Golf
 	CourseUid       string `json:"course_uid"`        // San Golf
@@ -59,6 +61,46 @@ type MemberCardRes struct {
 
 	StartPrecial int64 `json:"start_precial"` // Khoảng TG được dùng giá riêng
 	EndPrecial   int64 `json:"end_precial"`   // Khoảng TG được dùng giá riêng
+
+	//MemberCardType Info
+	MemberCardTypeInfo MemberCardType `json:"member_card_type_info"`
+
+	//Owner Info
+	OwnerInfo CustomerUser `json:"owner_info"`
+}
+
+func (item *MemberCard) FindDetail() (MemberCardDetailRes, error) {
+	memberCardDetailRes := MemberCardDetailRes{}
+	memberCardByte, err := json.Marshal(item)
+	if err != nil {
+		return memberCardDetailRes, err
+	}
+
+	errUnM := json.Unmarshal(memberCardByte, &memberCardDetailRes)
+	if errUnM != nil {
+		return memberCardDetailRes, errUnM
+	}
+
+	//Find MemberCardType
+	memberCardType := MemberCardType{}
+	memberCardType.Id = item.McTypeId
+	errFind := memberCardType.FindFirst()
+	if errFind != nil {
+		log.Println("FindDetail errFind ", errFind.Error())
+	}
+
+	//Find Owner
+	owner := CustomerUser{}
+	owner.Uid = item.OwnerUid
+	errFind1 := owner.FindFirst()
+	if errFind1 != nil {
+		log.Println("FindDetail errFind1", errFind1.Error())
+	}
+
+	memberCardDetailRes.MemberCardTypeInfo = memberCardType
+	memberCardDetailRes.OwnerInfo = owner
+
+	return memberCardDetailRes, nil
 }
 
 func (item *MemberCard) IsValidated() bool {
