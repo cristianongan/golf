@@ -18,6 +18,62 @@ import (
 type CBooking struct{}
 
 /// --------- Booking ----------
+
+/*
+ Tạo Booking rồi Check In luôn
+*/
+func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
+	body := request.CreateBookingCheckInBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	// Check validatte, Check đã tạo
+	if !body.Validated() {
+		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
+		return
+	}
+
+	// Get GolfFee
+	golfFeeGet := models.GolfFee{
+		GuestStyle: body.GuestStyle,
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+	}
+	_, errFind := golfFeeGet.GetGuestStyleOnDay()
+	if errFind != nil {
+		response_message.BadRequest(c, errFind.Error())
+		return
+	}
+
+	booking := model_booking.Booking{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		Bag:        body.Bag,
+		Hole:       body.Hole,
+	}
+
+	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	if errDate == nil {
+		booking.CreatedDate = dateDisplay
+	} else {
+		log.Println("booking date display err ", errDate.Error())
+	}
+
+	// Booking Uid
+	bookingUid := uuid.New()
+	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
+
+	log.Println(bUid)
+
+	// List Booking GolfFee
+	// listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(bUid, body, golfFee)
+	// booking.ListGolfFee = listBookingGolfFee
+
+	okResponse(c, booking)
+}
+
 /*
  Tạo Booking
 */

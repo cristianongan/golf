@@ -46,6 +46,41 @@ type CreateBookingBody struct {
 	MemberCardUid string `json:"member_card_uid"`
 }
 
+type CreateBookingCheckInBody struct {
+	CmsUser    string `json:"cms_user"`                       // Acc Operator Tạo
+	PartnerUid string `json:"partner_uid" binding:"required"` // Hang Golf
+	CourseUid  string `json:"course_uid" binding:"required"`  // San Golf
+	Bag        string `json:"bag"`                            // Golf Bag
+	Hole       int    `json:"hole"`                           // Số hố
+
+	// Guest booking
+	GuestStyle   string `json:"guest_style"`   // Guest Style
+	CustomerName string `json:"customer_name"` // Tên khách hàng
+
+	// Member Card
+	MemberCardUid string `json:"member_card_uid"`
+}
+
+func (item *CreateBookingCheckInBody) Validated() bool {
+	if item.GuestStyle == "" {
+		return false
+	}
+
+	if item.Bag == "" {
+		return false
+	}
+
+	if item.Hole <= 0 {
+		return false
+	}
+
+	if item.CustomerName == "" {
+		return false
+	}
+
+	return true
+}
+
 type BookingBaseBody struct {
 	BookingUid string `json:"booking_uid"`
 	CmsUser    string `json:"cms_user"`
