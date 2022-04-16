@@ -23,14 +23,19 @@ type CBooking struct{}
  Tạo Booking rồi Check In luôn
 */
 func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
-	body := request.CreateBookingCheckInBody{}
+	body := request.CreateBookingBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
 	}
 
-	// Check validatte, Check đã tạo
-	if !body.Validated() {
+	// Check validated, Check đã tạo
+	if body.Bag == "" || body.CustomerName == "" || body.GuestStyle == "" {
+		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
+		return
+	}
+
+	if body.Hole <= 0 {
 		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
 		return
 	}
@@ -41,12 +46,13 @@ func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: body.PartnerUid,
 		CourseUid:  body.CourseUid,
 	}
-	_, errFind := golfFeeGet.GetGuestStyleOnDay()
+	golfFee, errFind := golfFeeGet.GetGuestStyleOnDay()
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
 	}
 
+	// Booking
 	booking := model_booking.Booking{
 		PartnerUid: body.PartnerUid,
 		CourseUid:  body.CourseUid,
@@ -65,11 +71,21 @@ func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
 	bookingUid := uuid.New()
 	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
 
-	log.Println(bUid)
-
 	// List Booking GolfFee
-	// listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(bUid, body, golfFee)
-	// booking.ListGolfFee = listBookingGolfFee
+	listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(bUid, body, golfFee)
+	booking.ListGolfFee = listBookingGolfFee
+
+	// Current Bag Price Detail
+	currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
+	currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
+	booking.CurrentBagPrice = currentBagPriceDetail
+
+	errC := booking.Create(bUid)
+
+	if errC != nil {
+		response_message.InternalServerError(c, errC.Error())
+		return
+	}
 
 	okResponse(c, booking)
 }
