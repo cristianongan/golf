@@ -1,5 +1,10 @@
 package constants
 
+const (
+	BOOKING_INIT_TYPE_BOOKING = "BOOKING"
+	BOOKING_INIT_TYPE_CHECKIN = "CHECKIN"
+)
+
 /*
  Check in out status
 */

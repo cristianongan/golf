@@ -80,6 +80,10 @@ func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
 	currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
 	booking.CurrentBagPrice = currentBagPriceDetail
 
+	// Check in out
+	booking.CheckInOutStatus = constants.CHECK_IN_OUT_STATUS_IN
+	booking.InitType = constants.BOOKING_INIT_TYPE_CHECKIN
+
 	errC := booking.Create(bUid)
 
 	if errC != nil {
@@ -180,6 +184,9 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
 	currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
 	booking.CurrentBagPrice = currentBagPriceDetail
+
+	booking.CheckInOutStatus = constants.CHECK_IN_OUT_STATUS_INIT
+	booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
 
 	errC := booking.Create(bUid)
 
@@ -381,6 +388,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	booking.CmsUser = body.CmsUser
 	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
 	booking.CheckInTime = time.Now().Unix()
+	booking.CheckInOutStatus = constants.CHECK_IN_OUT_STATUS_IN
 
 	errUdp := booking.Update()
 	if errUdp != nil {

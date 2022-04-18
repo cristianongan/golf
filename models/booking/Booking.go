@@ -32,14 +32,15 @@ type Booking struct {
 	CustomerUid   string `json:"customer_uid" gorm:"type:varchar(256);index"`    // Uid khách hàng
 	// Thêm customer info
 
-	CheckInTime  int64  `json:"check_in_time"`                          // Time Check In
-	CheckOutTime int64  `json:"check_out_time"`                         // Time Check Out
-	TeeType      string `json:"tee_type" gorm:"type:varchar(50);index"` // 1, 1A, 1B, 1C, 10, 10A, 10B
-	TeePath      string `json:"tee_path" gorm:"type:varchar(50);index"` // MORNING, NOON, NIGHT
-	TurnTime     string `json:"turn_time" gorm:"type:varchar(30)"`      // Ex: 16:26
-	TeeTime      string `json:"tee_time" gorm:"type:varchar(30)"`       // Ex: 16:26 Tee time là thời gian tee off dự kiến
-	TeeOffTime   string `json:"tee_off_time" gorm:"type:varchar(30)"`   // Ex: 16:26 Là thời gian thực tế phát bóng
-	RowIndex     int    `json:"row_index"`                              // index trong Flight
+	CheckInOutStatus string `json:"check_in_out_status" gorm:"type:varchar(50);index"` // Time Check In Out status
+	CheckInTime      int64  `json:"check_in_time"`                                     // Time Check In
+	CheckOutTime     int64  `json:"check_out_time"`                                    // Time Check Out
+	TeeType          string `json:"tee_type" gorm:"type:varchar(50);index"`            // 1, 1A, 1B, 1C, 10, 10A, 10B
+	TeePath          string `json:"tee_path" gorm:"type:varchar(50);index"`            // MORNING, NOON, NIGHT
+	TurnTime         string `json:"turn_time" gorm:"type:varchar(30)"`                 // Ex: 16:26
+	TeeTime          string `json:"tee_time" gorm:"type:varchar(30)"`                  // Ex: 16:26 Tee time là thời gian tee off dự kiến
+	TeeOffTime       string `json:"tee_off_time" gorm:"type:varchar(30)"`              // Ex: 16:26 Là thời gian thực tế phát bóng
+	RowIndex         int    `json:"row_index"`                                         // index trong Flight
 
 	CurrentBagPrice  BookingCurrentBagPriceDetail  `json:"current_bag_price" gorm:"type:varchar(500)"`   // Thông tin phí++: Tính toán lại phí Service items, Tiền cho Subbag
 	ListGolfFee      ListBookingGolfFee            `json:"list_golf_fee" gorm:"type:varchar(200)"`       // Thông tin List Golf Fee, Main Bag, Sub Bag
@@ -67,6 +68,7 @@ type Booking struct {
 	MainBags utils.ListSubBag `json:"main_bags" gorm:"type:varchar(200)"` // List Main Bags, thêm main bag sẽ thanh toán những cái gì
 	// Main bug for Pay: Mặc định thanh toán all, Nếu có trong list này thì k thanh toán
 	MainBagNoPay utils.ListString `json:"main_bag_no_pay" gorm:"type:varchar(100)"` // Main Bag không thanh toán những phần này
+	InitType     string           `json:"init_type" gorm:"type:varchar(50);index"`  // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
 }
 
 // Booking Mush Pay
