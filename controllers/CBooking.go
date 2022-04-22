@@ -188,6 +188,8 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	booking.CheckInOutStatus = constants.CHECK_IN_OUT_STATUS_INIT
 	booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
 
+	// Rounds
+
 	errC := booking.Create(bUid)
 
 	if errC != nil {

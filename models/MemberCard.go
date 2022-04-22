@@ -69,6 +69,7 @@ type MemberCardDetailRes struct {
 	OwnerInfo CustomerUser `json:"owner_info"`
 }
 
+// Find member card detail with info card type and owner
 func (item *MemberCard) FindDetail() (MemberCardDetailRes, error) {
 	memberCardDetailRes := MemberCardDetailRes{}
 	memberCardByte, err := json.Marshal(item)
