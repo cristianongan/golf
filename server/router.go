@@ -144,6 +144,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Booking ===================
 			cBooking := new(controllers.CBooking)
 			cmsApiAuthorized.POST("/booking", middlewares.AuthorizedCmsUserHandler(cBooking.CreateBooking))
+			cmsApiAuthorized.POST("/booking-with-checkin", middlewares.AuthorizedCmsUserHandler(cBooking.CreateBookingCheckIn))
 			cmsApiAuthorized.POST("/booking/check-in", middlewares.AuthorizedCmsUserHandler(cBooking.CheckIn))
 			cmsApiAuthorized.GET("/booking/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBooking))
 			cmsApiAuthorized.GET("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingDetail))  // Get Booking detail by uid
