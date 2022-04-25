@@ -67,6 +67,18 @@ func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
 		log.Println("booking date display err ", errDate.Error())
 	}
 
+	/*
+		Data cần xử lý:
+		CurrentBagPrice
+		ListGolfFee
+		MushPayInfo
+		Rounds
+		ListServiceItems (?)
+		MainBags (?)
+		SubBags (?)
+		MainBagNoPay (?)
+	*/
+
 	// Booking Uid
 	bookingUid := uuid.New()
 	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
@@ -80,9 +92,21 @@ func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
 	currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
 	booking.CurrentBagPrice = currentBagPriceDetail
 
+	// MushPayInfo
+	mushPayInfo := initBookingMushPayInfo(booking)
+	booking.MushPayInfo = mushPayInfo
+
+	// Check in Time
+	checkInTime := time.Now().Unix()
+
+	// Rounds: Init First
+	listRounds := initListRound(booking, bookingGolfFee, checkInTime)
+	booking.Rounds = listRounds
+
 	// Check in out
 	booking.CheckInOutStatus = constants.CHECK_IN_OUT_STATUS_IN
 	booking.InitType = constants.BOOKING_INIT_TYPE_CHECKIN
+	booking.CheckInTime = checkInTime
 
 	errC := booking.Create(bUid)
 
@@ -95,7 +119,7 @@ func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
- Tạo Booking
+ Tạo Booking từ TeeSheet
 */
 func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	body := request.CreateBookingBody{}
@@ -185,10 +209,18 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
 	booking.CurrentBagPrice = currentBagPriceDetail
 
+	// MushPayInfo
+	mushPayInfo := initBookingMushPayInfo(booking)
+	booking.MushPayInfo = mushPayInfo
+
+	// Check In Out
+	checkInTime := time.Now().Unix()
 	booking.CheckInOutStatus = constants.CHECK_IN_OUT_STATUS_INIT
 	booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
 
-	// Rounds
+	// Rounds: Init First
+	listRounds := initListRound(booking, bookingGolfFee, checkInTime)
+	booking.Rounds = listRounds
 
 	errC := booking.Create(bUid)
 

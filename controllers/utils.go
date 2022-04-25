@@ -248,3 +248,33 @@ func updateMainBagForSubBag(body request.AddSubBagToBooking) error {
 
 	return err
 }
+
+/*
+	Init List Round
+*/
+func initListRound(booking model_booking.Booking, bookingGolfFee model_booking.BookingGolfFee, checkInTime int64) model_booking.ListBookingRound {
+	round := model_booking.BookingRound{}
+	round.GuestStyle = booking.GuestStyle
+	round.BuggyFee = bookingGolfFee.BuggyFee
+	round.CaddieFee = bookingGolfFee.CaddieFee
+	round.GreenFee = bookingGolfFee.GreenFee
+	round.Hole = booking.Hole
+	round.MemberCardUid = booking.MemberCardUid
+	round.TeeOffTime = checkInTime
+	round.Pax = 1
+
+	listRounds := model_booking.ListBookingRound{}
+	listRounds = append(listRounds, round)
+	return listRounds
+}
+
+/*
+ Init Booking MushPayInfo
+*/
+func initBookingMushPayInfo(booking model_booking.Booking) model_booking.BookingMushPay {
+	mushPayInfo := model_booking.BookingMushPay{}
+	mushPayInfo.TotalGolfFee = booking.GetTotalGolfFee()
+	mushPayInfo.TotalServiceItem = booking.GetTotalServicesFee()
+	mushPayInfo.MushPay = mushPayInfo.TotalGolfFee + mushPayInfo.TotalServiceItem
+	return mushPayInfo
+}

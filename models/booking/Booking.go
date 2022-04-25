@@ -134,6 +134,7 @@ type BookingRound struct {
 	BuggyFee      int64  `json:"buggy_fee"`
 	GreenFee      int64  `json:"green_fee"`
 	Hole          int    `json:"hole"`
+	GuestStyle    string `json:"guest_style"` // Nếu là member Card thì lấy guest style của member Card, nếu không thì lấy guest style Của booking đó
 	MemberCardId  string `json:"member_card_id"`
 	MemberCardUid string `json:"member_card_uid"`
 	Pax           int    `json:"pax"`
@@ -151,6 +152,30 @@ func (item ListBookingRound) Value() (driver.Value, error) {
 }
 
 // -------- Booking Logic --------
+
+func (item *Booking) GetTotalServicesFee() int64 {
+	total := int64(0)
+	if item.ListServiceItems != nil {
+		for _, v := range item.ListServiceItems {
+			temp := v.Amount
+			total += temp
+		}
+	}
+
+	return total
+}
+
+func (item *Booking) GetTotalGolfFee() int64 {
+	total := int64(0)
+	if item.ListGolfFee != nil {
+		for _, v := range item.ListGolfFee {
+			golfFeeTemp := v.BuggyFee + v.CaddieFee + v.GreenFee
+			total += golfFeeTemp
+		}
+	}
+
+	return total
+}
 
 func (item *Booking) AddRound(memberCardUid string, golfFee models.GolfFee) error {
 	lengthRound := len(item.Rounds)
@@ -279,6 +304,7 @@ func (item *Booking) IsDuplicated() bool {
 	return false
 }
 
+// ----------- CRUD ------------
 func (item *Booking) Create(uid string) error {
 	item.Model.Uid = uid
 	now := time.Now()
