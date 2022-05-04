@@ -288,20 +288,41 @@ func (item *Booking) UpdatePriceDetailCurrentBag() {
 	item.CurrentBagPrice = priceDetail
 }
 
-func (item *Booking) IsDuplicated() bool {
-	booking := Booking{
-		PartnerUid:  item.PartnerUid,
-		CourseUid:   item.CourseUid,
-		TeeTime:     item.TeeTime,
-		TurnTime:    item.TurnTime,
-		CreatedDate: item.CreatedDate,
+// Check Duplicated
+func (item *Booking) IsDuplicated(checkTeeTime, checkBag bool) (bool, error) {
+	//Check turn time đã tồn tại
+	if checkTeeTime {
+		booking := Booking{
+			PartnerUid:  item.PartnerUid,
+			CourseUid:   item.CourseUid,
+			TeeTime:     item.TeeTime,
+			TurnTime:    item.TurnTime,
+			CreatedDate: item.CreatedDate,
+		}
+
+		errFind := booking.FindFirst()
+		if errFind == nil || booking.Uid != "" {
+			return true, errors.New("Duplicated TeeTime")
+		}
 	}
 
-	errFind := booking.FindFirst()
-	if errFind == nil || booking.Uid != "" {
-		return true
+	//Check Bag đã tồn tại
+	if checkBag {
+		if item.Bag != "" {
+			booking := Booking{
+				PartnerUid:  item.PartnerUid,
+				CourseUid:   item.CourseUid,
+				CreatedDate: item.CreatedDate,
+				Bag:         item.Bag,
+			}
+			errBagFind := booking.FindFirst()
+			if errBagFind == nil || booking.Uid != "" {
+				return true, errors.New("Duplicated Bag")
+			}
+		}
 	}
-	return false
+
+	return false, nil
 }
 
 // ----------- CRUD ------------

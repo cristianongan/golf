@@ -67,6 +67,17 @@ func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
 		log.Println("booking date display err ", errDate.Error())
 	}
 
+	//Check duplicated
+	isDuplicated, errDupli := booking.IsDuplicated(true, true)
+	if isDuplicated {
+		if errDupli != nil {
+			response_message.DuplicateRecord(c, errDupli.Error())
+			return
+		}
+		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+		return
+	}
+
 	/*
 		Data cần xử lý:
 		CurrentBagPrice
@@ -141,6 +152,10 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		Hole:       body.Hole,
 	}
 
+	if body.Bag != "" {
+		booking.Bag = body.Bag
+	}
+
 	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 	if errDate == nil {
 		booking.CreatedDate = dateDisplay
@@ -148,7 +163,13 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		log.Println("booking date display err ", errDate.Error())
 	}
 
-	if booking.IsDuplicated() {
+	//Check duplicated
+	isDuplicated, errDupli := booking.IsDuplicated(true, true)
+	if isDuplicated {
+		if errDupli != nil {
+			response_message.DuplicateRecord(c, errDupli.Error())
+			return
+		}
 		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
@@ -399,6 +420,19 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	errF := booking.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	booking.Hole = body.Hole
+
+	//Check duplicated
+	isDuplicated, errDupli := booking.IsDuplicated(false, true)
+	if isDuplicated {
+		if errDupli != nil {
+			response_message.DuplicateRecord(c, errDupli.Error())
+			return
+		}
+		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
 
