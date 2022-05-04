@@ -68,7 +68,7 @@ func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Check duplicated
-	isDuplicated, errDupli := booking.IsDuplicated(true, true)
+	isDuplicated, errDupli := booking.IsDuplicated(false, true)
 	if isDuplicated {
 		if errDupli != nil {
 			response_message.DuplicateRecord(c, errDupli.Error())
