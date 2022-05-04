@@ -138,6 +138,7 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		TurnTime:   body.TurnTime,
 		RowIndex:   body.RowIndex,
 		CmsUser:    body.CmsUser,
+		Hole:       body.Hole,
 	}
 
 	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
