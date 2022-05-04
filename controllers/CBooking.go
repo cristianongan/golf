@@ -425,19 +425,18 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	booking.Hole = body.Hole
 
-	//Check duplicated
-	isDuplicated, errDupli := booking.IsDuplicated(false, true)
-	if isDuplicated {
-		if errDupli != nil {
-			response_message.DuplicateRecord(c, errDupli.Error())
-			return
-		}
-		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-		return
-	}
-
 	if body.Bag != "" {
 		booking.Bag = body.Bag
+		//Check duplicated
+		isDuplicated, errDupli := booking.IsDuplicated(false, true)
+		if isDuplicated {
+			if errDupli != nil {
+				response_message.DuplicateRecord(c, errDupli.Error())
+				return
+			}
+			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+			return
+		}
 		// Cập nhật lại info Bag
 		booking.UpdateBagGolfFee()
 	}
