@@ -232,7 +232,7 @@ func updateMainBagForSubBag(body request.AddSubBagToBooking) error {
 		if errFind == nil {
 			mainBag := utils.BookingSubBag{
 				BookingUid: body.BookingUid,
-				GolfBag:    v.GolfBag,
+				GolfBag:    booking.Bag,
 			}
 			booking.MainBags = append(booking.MainBags, mainBag)
 			errUdp := booking.Update()

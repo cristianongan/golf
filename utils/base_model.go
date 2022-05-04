@@ -2,7 +2,7 @@ package utils
 
 // -------- Booking Sub Bag ------
 type BookingSubBag struct {
-	GolfBag    string `json:"golf_bag"`
+	GolfBag    string `json:"golf_bag"` // Có thể bỏ
 	BookingUid string `json:"booking_uid"`
 }
 
