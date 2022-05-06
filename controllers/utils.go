@@ -223,7 +223,7 @@ func getInitListGolfFeeForBooking(uid string, body request.CreateBookingBody, go
 }
 
 // Khi add sub bag vào 1 booking thì cần cập nhật lại main bag cho booking sub bag
-func updateMainBagForSubBag(body request.AddSubBagToBooking) error {
+func updateMainBagForSubBag(body request.AddSubBagToBooking, mainBag string) error {
 	var err error
 	for _, v := range body.SubBags {
 		booking := model_booking.Booking{}
@@ -232,7 +232,7 @@ func updateMainBagForSubBag(body request.AddSubBagToBooking) error {
 		if errFind == nil {
 			mainBag := utils.BookingSubBag{
 				BookingUid: body.BookingUid,
-				GolfBag:    booking.Bag,
+				GolfBag:    mainBag,
 			}
 			booking.MainBags = append(booking.MainBags, mainBag)
 			errUdp := booking.Update()
@@ -279,25 +279,21 @@ func initBookingMushPayInfo(booking model_booking.Booking) model_booking.Booking
 	return mushPayInfo
 }
 
-// Update sub bags
-func updateSubBagsBody(body request.AddSubBagToBooking) (error, utils.ListSubBag) {
-	var err error
-	subBags := utils.ListSubBag{}
-	for _, v := range body.SubBags {
-		booking := model_booking.Booking{}
-		booking.Uid = v.BookingUid
-		err1 := booking.FindFirst()
-		if err1 == nil {
-			bookingSubBag := utils.BookingSubBag{
-				BookingUid: v.BookingUid,
-				GolfBag:    booking.Bag,
-			}
+// Check Duplicated SubBag
+func checkCheckSubBagDupli(bookingUid string, booking model_booking.Booking) bool {
+	isDupli := false
 
-			subBags = append(subBags, bookingSubBag)
-		} else {
-			err = err1
+	if booking.SubBags == nil {
+		return isDupli
+	}
+	if len(booking.SubBags) == 0 {
+		return isDupli
+	}
+	for _, v := range booking.SubBags {
+		if v.BookingUid == bookingUid {
+			isDupli = true
 		}
 	}
 
-	return err, subBags
+	return isDupli
 }

@@ -152,6 +152,17 @@ func (item ListBookingRound) Value() (driver.Value, error) {
 }
 
 // -------- Booking Logic --------
+func (item *Booking) GetCurrentBagGolfFee() BookingGolfFee {
+	golfFee := BookingGolfFee{}
+	if item.ListGolfFee == nil {
+		return golfFee
+	}
+	if len(item.ListGolfFee) <= 0 {
+		return golfFee
+	}
+
+	return item.ListGolfFee[0]
+}
 
 func (item *Booking) GetTotalServicesFee() int64 {
 	total := int64(0)
@@ -216,7 +227,7 @@ func (item *Booking) UpdateBagGolfFee() {
 	}
 }
 
-// Udp Mush pay
+// Udp MushPay
 func (item *Booking) UpdateMushPay() {
 	mushPay := BookingMushPay{}
 

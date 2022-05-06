@@ -391,6 +391,8 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	booking.UpdatePriceDetailCurrentBag()
 	booking.UpdateMushPay()
 
+	// Nếu có MainBag thì udp lại giá cho MainBag
+
 	// Udp Log Tracking
 	booking.CmsUser = body.CmsUser
 	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
@@ -490,21 +492,67 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if body.SubBags == nil {
+		response_message.BadRequest(c, "Subbags invalid nil")
+		return
+	}
+
+	if len(body.SubBags) == 0 {
+		response_message.BadRequest(c, "Subbags invalid empty")
+		return
+	}
+
+	if booking.SubBags == nil {
+		booking.SubBags = utils.ListSubBag{}
+	}
+	if booking.ListServiceItems == nil {
+		booking.ListServiceItems = utils.ListBookingServiceItems{}
+	}
+
 	// Check lại SubBag
-	errUdpSubBag, subBags := updateSubBagsBody(body)
-	if errUdpSubBag == nil {
-		booking.SubBags = subBags
-	} else {
-		log.Println("AddSubBagToBooking ", errUdpSubBag.Error())
+	// Có thể udp thêm vào hoặc remove đi
+	// Check exits
+	for _, v := range body.SubBags {
+		if checkCheckSubBagDupli(v.BookingUid, booking) {
+			// Có rồi không thêm nữa
+			log.Println("AddSubBagToBooking dupli book", v.BookingUid)
+		} else {
+			subBooking := model_booking.Booking{}
+			subBooking.Uid = v.BookingUid
+			err1 := subBooking.FindFirst()
+			if err1 == nil {
+				//Subbag
+				subBag := utils.BookingSubBag{
+					BookingUid: v.BookingUid,
+					GolfBag:    subBooking.Bag,
+				}
+				booking.SubBags = append(booking.SubBags, subBag)
+
+				//Udp List GolfFee
+				subBagGolfFee := subBooking.GetCurrentBagGolfFee()
+				if booking.ListGolfFee == nil {
+					booking.ListGolfFee = model_booking.ListBookingGolfFee{}
+				}
+				booking.ListGolfFee = append(booking.ListGolfFee, subBagGolfFee)
+
+				//Udp lại Sub service items
+				if subBooking.ListServiceItems != nil {
+					booking.ListServiceItems = append(booking.ListServiceItems, subBooking.ListServiceItems...)
+				}
+			} else {
+				log.Println("AddSubBagToBooking err1", err1.Error())
+			}
+		}
 	}
 
 	booking.CmsUser = body.CmsUser
 	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
 
+	// Tính lại giá
 	booking.UpdateMushPay()
 
 	// Cập nhật Main bag cho subbag
-	err := updateMainBagForSubBag(body)
+	err := updateMainBagForSubBag(body, booking.Bag)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -545,6 +593,7 @@ func (_ *CBooking) AddRound(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Handle Round Logic
+	// Tính lại giá
 
 	booking.CmsUser = body.CmsUser
 	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
