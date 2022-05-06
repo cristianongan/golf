@@ -226,6 +226,9 @@ func (item *Booking) UpdateMushPay() {
 	}
 	mushPay.TotalGolfFee = totalGolfFee
 
+	// SubBag
+
+	// Sub Service Item của current Bag
 	for _, v := range item.ListServiceItems {
 		isNeedPay := true
 		if len(item.MainBagNoPay) > 0 {

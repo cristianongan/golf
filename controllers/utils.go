@@ -278,3 +278,26 @@ func initBookingMushPayInfo(booking model_booking.Booking) model_booking.Booking
 	mushPayInfo.MushPay = mushPayInfo.TotalGolfFee + mushPayInfo.TotalServiceItem
 	return mushPayInfo
 }
+
+// Update sub bags
+func updateSubBagsBody(body request.AddSubBagToBooking) (error, utils.ListSubBag) {
+	var err error
+	subBags := utils.ListSubBag{}
+	for _, v := range body.SubBags {
+		booking := model_booking.Booking{}
+		booking.Uid = v.BookingUid
+		err1 := booking.FindFirst()
+		if err1 == nil {
+			bookingSubBag := utils.BookingSubBag{
+				BookingUid: v.BookingUid,
+				GolfBag:    booking.Bag,
+			}
+
+			subBags = append(subBags, bookingSubBag)
+		} else {
+			err = err1
+		}
+	}
+
+	return err, subBags
+}

@@ -490,7 +490,14 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking.SubBags = body.SubBags
+	// Check lại SubBag
+	errUdpSubBag, subBags := updateSubBagsBody(body)
+	if errUdpSubBag == nil {
+		booking.SubBags = subBags
+	} else {
+		log.Println("AddSubBagToBooking ", errUdpSubBag.Error())
+	}
+
 	booking.CmsUser = body.CmsUser
 	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
 
