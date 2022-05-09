@@ -182,7 +182,7 @@ func (item *Booking) UpdateBookingMainBag() error {
 			mainBagBooking.ListGolfFee = append(mainBagBooking.ListGolfFee, item.GetCurrentBagGolfFee())
 		} else {
 			// Update cái mới
-			mainBagBooking.ListGolfFee[idxTemp] = mainBagBooking.GetCurrentBagGolfFee()
+			mainBagBooking.ListGolfFee[idxTemp] = item.GetCurrentBagGolfFee()
 		}
 	}
 
