@@ -43,10 +43,10 @@ type Booking struct {
 	RowIndex         int    `json:"row_index"`                                         // index trong Flight
 
 	CurrentBagPrice  BookingCurrentBagPriceDetail  `json:"current_bag_price" gorm:"type:varchar(500)"`   // Thông tin phí++: Tính toán lại phí Service items, Tiền cho Subbag
-	ListGolfFee      ListBookingGolfFee            `json:"list_golf_fee" gorm:"type:varchar(200)"`       // Thông tin List Golf Fee, Main Bag, Sub Bag
-	ListServiceItems utils.ListBookingServiceItems `json:"list_service_items" gorm:"type:varchar(1000)"` // List service item: rental, proshop, restaurant, kiosk
+	ListGolfFee      ListBookingGolfFee            `json:"list_golf_fee" gorm:"type:varchar(2000)"`      // Thông tin List Golf Fee, Main Bag, Sub Bag
+	ListServiceItems utils.ListBookingServiceItems `json:"list_service_items" gorm:"type:varchar(2000)"` // List service item: rental, proshop, restaurant, kiosk
 	MushPayInfo      BookingMushPay                `json:"mush_pay_info" gorm:"type:varchar(200)"`       // Mush Pay info
-	Rounds           ListBookingRound              `json:"rounds" gorm:"type:varchar(500)"`              // List Rounds: Sẽ sinh golf Fee với List GolfFee
+	Rounds           ListBookingRound              `json:"rounds" gorm:"type:varchar(1000)"`             // List Rounds: Sẽ sinh golf Fee với List GolfFee
 
 	Note   string `json:"note" gorm:"type:varchar(500)"`   // Note
 	Locker string `json:"locker" gorm:"type:varchar(100)"` // Locker mã số tủ gửi đồ
