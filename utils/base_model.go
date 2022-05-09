@@ -8,6 +8,7 @@ type BookingSubBag struct {
 
 // ------- Booking Service item --------
 type BookingServiceItem struct {
+	ItemId        int64  `json:"item_id"`     // Id item
 	BookingUid    string `json:"booking_uid"` // Uid booking
 	PlayerName    string `json:"player_name"` // Tên người chơi
 	Bag           string `json:"bag"`         // Golf Bag

@@ -152,6 +152,78 @@ func (item ListBookingRound) Value() (driver.Value, error) {
 }
 
 // -------- Booking Logic --------
+func (item *Booking) UpdateBookingMainBag() error {
+	if item.MainBags == nil || len(item.MainBags) == 0 {
+		return errors.New("invalid main bags")
+	}
+	mainBagBookingUid := item.MainBags[0].BookingUid
+	mainBagBooking := Booking{}
+	mainBagBooking.Uid = mainBagBookingUid
+	errFindMainB := mainBagBooking.FindFirst()
+	if errFindMainB != nil {
+		return errFindMainB
+	}
+
+	if mainBagBooking.ListGolfFee == nil {
+		mainBagBooking.ListGolfFee = ListBookingGolfFee{}
+	}
+
+	// Update lại cho Main Bag Booking
+	// Check GolfFee
+	if item.ListGolfFee != nil {
+		idxTemp := -1
+		for i, gf := range mainBagBooking.ListGolfFee {
+			if gf.BookingUid == item.Uid {
+				idxTemp = i
+			}
+		}
+		if idxTemp == -1 {
+			// Chưa có thì thêm vào
+			mainBagBooking.ListGolfFee = append(item.ListGolfFee, mainBagBooking.GetCurrentBagGolfFee())
+		} else {
+			// Update cái mới
+			mainBagBooking.ListGolfFee[idxTemp] = mainBagBooking.GetCurrentBagGolfFee()
+		}
+	}
+
+	// Udp list service items
+	if mainBagBooking.ListServiceItems == nil {
+		mainBagBooking.ListServiceItems = utils.ListBookingServiceItems{}
+	}
+
+	if item.ListServiceItems != nil && len(item.ListServiceItems) > 0 {
+		for _, v := range item.ListServiceItems {
+			// Check cùng booking và cùng item id
+			idxTemp := -1
+			if len(mainBagBooking.ListServiceItems) > 0 {
+				for i, v1 := range mainBagBooking.ListServiceItems {
+					if v1.BookingUid == v.BookingUid && v1.ItemId == v.ItemId {
+						idxTemp = i
+					}
+				}
+			}
+
+			if idxTemp == -1 {
+				// Chưa có thì thêm vào List
+				mainBagBooking.ListServiceItems = append(mainBagBooking.ListServiceItems, v)
+			} else {
+				// Update cái mới
+				mainBagBooking.ListServiceItems[idxTemp] = v
+			}
+		}
+	}
+
+	// Udp lại mush Pay
+	mainBagBooking.UpdateMushPay()
+
+	errUdp := mainBagBooking.Update()
+	if errUdp != nil {
+		return errUdp
+	}
+
+	return nil
+}
+
 func (item *Booking) GetCurrentBagGolfFee() BookingGolfFee {
 	golfFee := BookingGolfFee{}
 	if item.ListGolfFee == nil {

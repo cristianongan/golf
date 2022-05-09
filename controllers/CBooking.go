@@ -375,6 +375,7 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	// if body.Bag != "" {
 	// 	booking.Bag = body.Bag
 	// }
+
 	if body.GuestStyle != "" {
 		booking.GuestStyle = body.GuestStyle
 	}
@@ -392,6 +393,15 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	booking.UpdateMushPay()
 
 	// Nếu có MainBag thì udp lại giá cho MainBag
+	// Update Lại GolfFee, Service items
+	if booking.MainBags != nil && len(booking.MainBags) > 0 {
+		// Chỉ có 1 main bags
+		errBookingMainBag := booking.UpdateBookingMainBag()
+		if errBookingMainBag != nil {
+			response_message.BadRequest(c, errBookingMainBag.Error())
+			return
+		}
+	}
 
 	// Udp Log Tracking
 	booking.CmsUser = body.CmsUser
