@@ -147,11 +147,11 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/booking-with-checkin", middlewares.AuthorizedCmsUserHandler(cBooking.CreateBookingCheckIn))
 			cmsApiAuthorized.POST("/booking/check-in", middlewares.AuthorizedCmsUserHandler(cBooking.CheckIn))
 			cmsApiAuthorized.GET("/booking/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBooking))
-			cmsApiAuthorized.GET("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingDetail))  // Get Booking detail by uid
-			cmsApiAuthorized.GET("/booking/by-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingByBag)) // Get booking detail by Bag
-			cmsApiAuthorized.PUT("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.UpdateBooking))
-			//cmsApiAuthorized.POST("/booking/service-tiem/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddServiceItemToBooking)) // Thêm rental, kiosk, ...
-			cmsApiAuthorized.POST("/booking/sub-bag/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddSubBagToBooking)) // Add sub bag
+			cmsApiAuthorized.GET("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingDetail))           // Get Booking detail by uid
+			cmsApiAuthorized.GET("/booking/by-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingByBag))          // Get booking detail by Bag
+			cmsApiAuthorized.PUT("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.UpdateBooking))              // Thêm Info..., rental, kiosk, ...
+			cmsApiAuthorized.POST("/booking/sub-bag/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddSubBagToBooking)) // Add SubBag
+			cmsApiAuthorized.POST("/booking/round/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddRound))             // Add Round
 
 			/// =================== Buggy =====================
 			cBuggy := new(controllers.CBuggy)
