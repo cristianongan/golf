@@ -332,6 +332,7 @@ func (item *Booking) UpdateMushPay() {
 		}
 	}
 
+	mushPay.MushPay = mushPay.TotalGolfFee + mushPay.TotalServiceItem
 	item.MushPayInfo = mushPay
 }
 
