@@ -375,6 +375,16 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	// if body.Bag != "" {
 	// 	booking.Bag = body.Bag
 	// }
+	if body.ListServiceItems != nil {
+		countItems := len(body.ListServiceItems)
+		if countItems > 0 {
+			for i := 0; i < countItems; i++ {
+				body.ListServiceItems[i].BookingUid = booking.Uid
+				body.ListServiceItems[i].PlayerName = booking.CustomerName
+				body.ListServiceItems[i].Bag = booking.Bag
+			}
+		}
+	}
 
 	if body.GuestStyle != "" {
 		booking.GuestStyle = body.GuestStyle
