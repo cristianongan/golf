@@ -40,6 +40,13 @@ func (item *CustomerType) Count() (int64, error) {
 	return total, db.Error
 }
 
+func (item *CustomerType) FindAll() ([]CustomerType, error) {
+	db := datasources.GetDatabase().Model(CustomerType{})
+	list := []CustomerType{}
+	db.Find(&list)
+	return list, db.Error
+}
+
 func (item *CustomerType) FindList(page Page) ([]CustomerType, int64, error) {
 	db := datasources.GetDatabase().Model(CustomerType{})
 	list := []CustomerType{}

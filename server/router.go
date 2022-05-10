@@ -59,6 +59,10 @@ func NewRouter() *gin.Engine {
 			// ================== use Middleware check jwtToken ================
 			cmsApiAuthorized := groupApi.Use(middlewares.CmsUserJWTAuth)
 
+			/// =================== System ===================
+			cSystem := new(controllers.CSystem)
+			cmsApiAuthorized.GET("/system/customer-type", middlewares.AuthorizedCmsUserHandler(cSystem.GetListCategoryType))
+
 			/// =================== Partner =====================
 			cPartner := new(controllers.CPartner)
 			cmsApiAuthorized.POST("/partner", middlewares.AuthorizedCmsUserHandler(cPartner.CreatePartner))
