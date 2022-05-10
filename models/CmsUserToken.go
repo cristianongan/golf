@@ -13,6 +13,7 @@ type CmsUserToken struct {
 	UserUid    string `json:"user_uid" gorm:"index;type:varchar(100)"`
 	PartnerUid string `json:"partner_uid" gorm:"index;type:varchar(100)"`
 	UserName   string `json:"user_name" gorm:"type:varchar(20)"`
+	CourseUid  string `json:"course_uid" gorm:"index;type:varchar(100)"`
 	Token      string `json:"token"`
 }
 

@@ -97,6 +97,7 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 	}
 	prof.Uid = user.Uid
 	prof.PartnerUid = user.PartnerUid
+	prof.CourseUid = user.CourseUid
 	prof.UserName = user.UserName
 	prof.Status = user.Status
 
@@ -113,6 +114,7 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 		UserUid:    user.Uid,
 		UserName:   user.UserName,
 		PartnerUid: user.PartnerUid,
+		CourseUid:  user.CourseUid,
 		Token:      jwt,
 	}
 	errCreate := userToken.Create()
