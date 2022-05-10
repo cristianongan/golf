@@ -147,6 +147,7 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 		"user_name":   user.UserName,
 		"phone":       user.Phone,
 		"partner_uid": user.PartnerUid,
+		"course_uid":  user.CourseUid,
 	}
 
 	okResponse(c, gin.H{"token": jwt, "data": userDataRes})

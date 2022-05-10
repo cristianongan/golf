@@ -52,10 +52,9 @@ func (_ *CGroupFee) CreateGroupFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	groupFee := models.GroupFee{}
-	groupFee.PartnerUid = body.PartnerUid
-	groupFee.CourseUid = body.CourseUid
+	groupFee.PartnerUid = prof.PartnerUid
+	groupFee.CourseUid = prof.CourseUid
 	groupFee.Name = body.Name
-	//groupFee.Status = body.Status
 	groupFee.CategoryType = body.CategoryType
 
 	// Check duplicated
@@ -64,6 +63,8 @@ func (_ *CGroupFee) CreateGroupFee(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
+
+	groupFee.Status = body.Status
 
 	errC := groupFee.Create()
 
