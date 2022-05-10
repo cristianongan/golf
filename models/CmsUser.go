@@ -16,7 +16,8 @@ import (
 type CmsUser struct {
 	Model
 
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"`
+	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng Golf
+	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	UserName   string `json:"user_name" gorm:"type:varchar(20);uniqueIndex"`
 
 	FullName string `json:"full_name" gorm:"type:varchar(256);index"`
@@ -51,6 +52,7 @@ func (item CmsUserResponse) Value() (driver.Value, error) {
 type CmsUserBaseInfo struct {
 	Uid        string `json:"uid"`
 	PartnerUid string `json:"partner_uid"`
+	CourseUid  string `json:"course_uid"`
 	UserName   string `json:"user_name"`
 	Status     string `json:"status"`
 }

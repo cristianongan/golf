@@ -10,7 +10,6 @@ import (
 type CSystem struct{}
 
 func (_ *CSystem) GetListCategoryType(c *gin.Context, prof models.CmsUser) {
-
 	cusTypesGet := models.CustomerType{}
 
 	list, err := cusTypesGet.FindAll()

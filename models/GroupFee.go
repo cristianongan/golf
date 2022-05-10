@@ -12,9 +12,10 @@ import (
 // Group Fee
 type GroupFee struct {
 	ModelId
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Name       string `json:"name" gorm:"type:varchar(256)"`              // Ten Group Fee
+	PartnerUid   string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid    string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Name         string `json:"name" gorm:"type:varchar(256)"`              // Ten Group Fee
+	CategoryType string `json:"category_type" gorm:"type:varchar(100)"`     // Category Type
 }
 
 func (item *GroupFee) Create() error {

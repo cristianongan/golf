@@ -122,9 +122,12 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.DELETE("/annual-fee/:id", middlewares.AuthorizedCmsUserHandler(cAnnualFee.DeleteAnnualFee))
 
 			/// =================== Group Fee =====================
-			/// Tạo sửa cùng Golf Fee
+			/// Tạo sửa cùng
 			cGroupFee := new(controllers.CGroupFee)
 			cmsApiAuthorized.GET("/group-fee/list", middlewares.AuthorizedCmsUserHandler(cGroupFee.GetListGroupFee))
+			cmsApiAuthorized.POST("/group-fee", middlewares.AuthorizedCmsUserHandler(cGroupFee.CreateGroupFee))
+			cmsApiAuthorized.PUT("/group-fee/:id", middlewares.AuthorizedCmsUserHandler(cGroupFee.UpdateGroupFee))
+			cmsApiAuthorized.DELETE("/group-fee/:id", middlewares.AuthorizedCmsUserHandler(cGroupFee.DeleteGroupFee))
 
 			/// =================== Hole Price Formula =====================
 			cHolePriceFormula := new(controllers.CHolePriceFormula)
