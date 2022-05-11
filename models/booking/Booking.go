@@ -51,7 +51,8 @@ type Booking struct {
 	// Note          string `json:"note" gorm:"type:varchar(500)"`            // Note
 	NoteOfBag     string `json:"note_of_bag" gorm:"type:varchar(500)"`     // Note of Bag
 	NoteOfBooking string `json:"note_of_booking" gorm:"type:varchar(500)"` // Note of Booking
-	Locker        string `json:"locker" gorm:"type:varchar(100)"`          // Locker mã số tủ gửi đồ
+	LockerNo      string `json:"locker_no" gorm:"type:varchar(100)"`       // Locker mã số tủ gửi đồ
+	ReportNo      string `json:"report_no" gorm:"type:varchar(200)"`       // Report No
 
 	CmsUser    string `json:"cms_user" gorm:"type:varchar(100)"`     // Cms User
 	CmsUserLog string `json:"cms_user_log" gorm:"type:varchar(200)"` // Cms User Log

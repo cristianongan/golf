@@ -395,6 +395,14 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.MainBagNoPay = body.MainBagNoPay
 	}
 
+	if body.LockerNo == "" {
+		booking.LockerNo = body.LockerNo
+	}
+
+	if body.ReportNo == "" {
+		booking.ReportNo = body.ReportNo
+	}
+
 	//Update service items
 	booking.ListServiceItems = body.ListServiceItems
 
@@ -475,7 +483,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.Locker != "" {
-		booking.Locker = body.Locker
+		booking.LockerNo = body.Locker
 	}
 
 	if body.Hole > 0 {
