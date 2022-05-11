@@ -11,8 +11,13 @@ import (
 // Sân Golf
 type Course struct {
 	Model
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"`
-	Name       string `json:"name" gorm:"type:varchar(256)"`
+	PartnerUid string  `json:"partner_uid" gorm:"type:varchar(100);index"`
+	Name       string  `json:"name" gorm:"type:varchar(256)"`
+	Hole       int     `json:"hole"`
+	Address    string  `json:"address" gorm:"type:varchar(500)"`
+	Lat        float64 `json:"lat"`
+	Lng        float64 `json:"lng"`
+	Icon       string  `json:"icon" gorm:"type:varchar(256)"`
 }
 
 // ======= CRUD ===========

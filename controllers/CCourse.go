@@ -12,7 +12,7 @@ import (
 type CCourse struct{}
 
 func (_ *CCourse) CreateCourse(c *gin.Context, prof models.CmsUser) {
-	body := request.CreateCourseBody{}
+	body := models.Course{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
@@ -42,6 +42,11 @@ func (_ *CCourse) CreateCourse(c *gin.Context, prof models.CmsUser) {
 	course.Name = body.Name
 	course.Status = body.Status
 	course.PartnerUid = body.PartnerUid
+	course.Address = body.Address
+	course.Lat = body.Lat
+	course.Lng = body.Lng
+	course.Icon = body.Icon
+	course.Hole = body.Hole
 
 	errC := course.Create()
 
@@ -100,7 +105,7 @@ func (_ *CCourse) UpdateCourse(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	body := request.UpdateCourseBody{}
+	body := models.Course{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
@@ -111,6 +116,21 @@ func (_ *CCourse) UpdateCourse(c *gin.Context, prof models.CmsUser) {
 	}
 	if body.Status != "" {
 		course.Status = body.Status
+	}
+	if body.Hole > 0 {
+		course.Hole = body.Hole
+	}
+	if body.Address != "" {
+		course.Address = body.Address
+	}
+	if body.Lat > 0 {
+		course.Lat = body.Lat
+	}
+	if body.Lng > 0 {
+		course.Lng = body.Lng
+	}
+	if body.Icon != "" {
+		course.Icon = body.Icon
 	}
 
 	errUdp := course.Update()
