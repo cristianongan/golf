@@ -48,8 +48,10 @@ type Booking struct {
 	MushPayInfo      BookingMushPay                `json:"mush_pay_info" gorm:"type:varchar(200)"`       // Mush Pay info
 	Rounds           ListBookingRound              `json:"rounds" gorm:"type:varchar(1000)"`             // List Rounds: Sẽ sinh golf Fee với List GolfFee
 
-	Note   string `json:"note" gorm:"type:varchar(500)"`   // Note
-	Locker string `json:"locker" gorm:"type:varchar(100)"` // Locker mã số tủ gửi đồ
+	// Note          string `json:"note" gorm:"type:varchar(500)"`            // Note
+	NoteOfBag     string `json:"note_of_bag" gorm:"type:varchar(500)"`     // Note of Bag
+	NoteOfBooking string `json:"note_of_booking" gorm:"type:varchar(500)"` // Note of Booking
+	Locker        string `json:"locker" gorm:"type:varchar(100)"`          // Locker mã số tủ gửi đồ
 
 	CmsUser    string `json:"cms_user" gorm:"type:varchar(100)"`     // Cms User
 	CmsUserLog string `json:"cms_user_log" gorm:"type:varchar(200)"` // Cms User Log

@@ -16,6 +16,7 @@ type BagsNote struct {
 	BookingUid string `json:"booking_uid" gorm:"type:varchar(50);index"`
 	Note       string `json:"note" gorm:"type:varchar(2000)"`
 	PlayerName string `json:"player_name" gorm:"type:varchar(256)"`
+	Type       string `json:"type" gorm:"type:varchar(50)"`
 }
 
 // ======= CRUD ===========

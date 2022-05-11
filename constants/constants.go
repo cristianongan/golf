@@ -1,6 +1,11 @@
 package constants
 
 const (
+	BAGS_NOTE_TYPE_BOOKING = "BOOKING"
+	BAGS_NOTE_TYPE_BAG     = "BAG"
+)
+
+const (
 	BOOKING_INIT_TYPE_BOOKING = "BOOKING"
 	BOOKING_INIT_TYPE_CHECKIN = "CHECKIN"
 )

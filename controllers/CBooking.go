@@ -395,11 +395,6 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.MainBagNoPay = body.MainBagNoPay
 	}
 
-	if body.Note != "" && body.Note != booking.Note {
-		booking.Note = body.Note
-		go createBagsNote(booking)
-	}
-
 	//Update service items
 	booking.ListServiceItems = body.ListServiceItems
 
@@ -416,6 +411,17 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.BadRequest(c, errBookingMainBag.Error())
 			return
 		}
+	}
+
+	// Booking Note
+	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
+		booking.NoteOfBag = body.NoteOfBag
+		go createBagsNoteNoteOfBag(booking)
+	}
+
+	if body.NoteOfBooking != "" && body.NoteOfBooking != booking.NoteOfBooking {
+		booking.NoteOfBooking = body.NoteOfBooking
+		go createBagsNoteNoteOfBooking(booking)
 	}
 
 	// Udp Log Tracking
@@ -476,9 +482,9 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.Hole = body.Hole
 	}
 
-	if body.Note != "" {
-		booking.Note = body.Note
-	}
+	// if body.Note != "" {
+	// 	booking.Note = body.Note
+	// }
 
 	booking.CmsUser = body.CmsUser
 	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())

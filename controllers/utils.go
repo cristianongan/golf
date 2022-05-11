@@ -299,18 +299,41 @@ func checkCheckSubBagDupli(bookingUid string, booking model_booking.Booking) boo
 }
 
 /*
-	Create bags note
+	Create bags note: Note of Bag
 */
-func createBagsNote(booking model_booking.Booking) {
-	if booking.Note == "" {
+func createBagsNoteNoteOfBag(booking model_booking.Booking) {
+	if booking.NoteOfBag == "" {
 		return
 	}
 
 	bagsNote := models.BagsNote{
 		BookingUid: booking.Uid,
 		GolfBag:    booking.Bag,
-		Note:       booking.Note,
+		Note:       booking.NoteOfBag,
 		PlayerName: booking.CustomerName,
+		Type:       constants.BAGS_NOTE_TYPE_BAG,
+	}
+
+	errC := bagsNote.Create()
+	if errC != nil {
+		log.Println("createBagsNote err", errC.Error())
+	}
+}
+
+/*
+	Create bags note: Note of Booking
+*/
+func createBagsNoteNoteOfBooking(booking model_booking.Booking) {
+	if booking.NoteOfBooking == "" {
+		return
+	}
+
+	bagsNote := models.BagsNote{
+		BookingUid: booking.Uid,
+		GolfBag:    booking.Bag,
+		Note:       booking.NoteOfBooking,
+		PlayerName: booking.CustomerName,
+		Type:       constants.BAGS_NOTE_TYPE_BOOKING,
 	}
 
 	errC := bagsNote.Create()
