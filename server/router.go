@@ -160,6 +160,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/booking/sub-bag/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddSubBagToBooking)) // Add SubBag
 			cmsApiAuthorized.POST("/booking/round/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddRound))             // Add Round
 
+			/// =================== BagsNote ===================
+			cBagsNote := new(controllers.CBagsNote)
+			cmsApiAuthorized.GET("/bags-note/list", middlewares.AuthorizedCmsUserHandler(cBagsNote.GetListBagsNote))
+
 			/// =================== Buggy =====================
 			cBuggy := new(controllers.CBuggy)
 			cmsApiAuthorized.POST("/buggy", middlewares.AuthorizedCmsUserHandler(cBuggy.CreateBuggy))

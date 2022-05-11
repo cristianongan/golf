@@ -43,6 +43,9 @@ func MigrateDb() {
 		db.AutoMigrate(&models.Caddie{})
 		db.AutoMigrate(&models.CaddieNote{})
 
+		// ---- Bag Note ----
+		db.AutoMigrate(&models.BagsNote{})
+
 		log.Println("migrated db")
 	}
 }

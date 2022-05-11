@@ -395,6 +395,11 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.MainBagNoPay = body.MainBagNoPay
 	}
 
+	if body.Note != "" && body.Note != booking.Note {
+		booking.Note = body.Note
+		go createBagsNote(booking)
+	}
+
 	//Update service items
 	booking.ListServiceItems = body.ListServiceItems
 

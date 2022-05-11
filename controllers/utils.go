@@ -297,3 +297,24 @@ func checkCheckSubBagDupli(bookingUid string, booking model_booking.Booking) boo
 
 	return isDupli
 }
+
+/*
+	Create bags note
+*/
+func createBagsNote(booking model_booking.Booking) {
+	if booking.Note == "" {
+		return
+	}
+
+	bagsNote := models.BagsNote{
+		BookingUid: booking.Uid,
+		GolfBag:    booking.Bag,
+		Note:       booking.Note,
+		PlayerName: booking.CustomerName,
+	}
+
+	errC := bagsNote.Create()
+	if errC != nil {
+		log.Println("createBagsNote err", errC.Error())
+	}
+}
