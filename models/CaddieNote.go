@@ -11,7 +11,7 @@ import (
 type CaddieNote struct {
 	ModelId
 	CourseId string `json:"course_id" gorm:"type:varchar(100);index"`
-	CaddieId int64  `json:"caddie_id" gorm:"type:varchar(100);index"`
+	CaddieId string `json:"caddie_id" gorm:"type:varchar(100);index"`
 	AtDate   int64  `json:"at_date"`
 	Type     string `json:"type" gorm:"type:varchar(40)"`
 	Note     string `json:"note" gorm:"type:varchar(200)"`

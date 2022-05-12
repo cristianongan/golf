@@ -10,54 +10,46 @@ import (
 
 type Caddie struct {
 	ModelId
-	CourseId       string `json:"course_id" gorm:"type:varchar(100);index"`
-	Num            string `json:"caddie_num" gorm:"type:varchar(40)"`
-	Name           string `json:"name" gorm:"type:varchar(120)"`
-	Phone          string `json:"phone" gorm:"type:varchar(20)"`
-	Address        string `json:"address" gorm:"type:varchar(200)"`
-	Image          string `json:"image" gorm:"type:varchar(200)"`
-	Sex            bool   `json:"sex"`
-	BirthDay       int64  `json:"birth_day"`
-	BirthPlace     string `json:"birth_place" gorm:"type:varchar(200)"`
-	IdentityCard   string `json:"identity_card" gorm:"type:varchar(20)"`
-	IssuedBy       string `json:"issued_by" gorm:"type:varchar(200)"`
-	IssuedDate     int64  `json:"issued_date"`
-	ExpiredDate    int64  `json:"expired_date"`
-	EducationLevel string `json:"education_level" gorm:"type:varchar(40)"`
-	FingerPrint    string `json:"finger_print" gorm:"type:varchar(40)"`
-	HrCode         string `json:"hr_code" gorm:"type:varchar(20)"`
-	HrPosition     string `json:"hr_position" gorm:"type:varchar(40)"`
-	Group          string `json:"group" gorm:"type:varchar(20)"`
-	StartedDate    int64  `json:"started_date"`
-	WorkingStatus  string `json:"working_status" gorm:"type:varchar(20)"`
-	Level          string `json:"level" gorm:"type:varchar(40)"`
-	Note           string `json:"note" gorm:"type:varchar(200)"`
+	CaddieId      string `json:"caddie_id" gorm:"type:varchar(100);index"`
+	CourseId      string `json:"course_id" gorm:"type:varchar(100);index"`
+	Name          string `json:"name" gorm:"type:varchar(120)"`
+	Sex           bool   `json:"sex"`
+	BirthDay      int64  `json:"birth_day"`
+	WorkingStatus string `json:"working_status" gorm:"type:varchar(20)"`
+	Group         string `json:"group" gorm:"type:varchar(20)"`
+	StartedDate   int64  `json:"started_date"`
+	IdHr          string `json:"id_hr" gorm:"type:varchar(100)"`
+	Phone         string `json:"phone" gorm:"type:varchar(20)"`
+	Email         string `json:"email" gorm:"type:varchar(100)"`
+	IdentityCard  string `json:"identity_card" gorm:"type:varchar(20)"`
+	IssuedBy      string `json:"issued_by" gorm:"type:varchar(200)"`
+	ExpiredDate   int64  `json:"expired_date"`
+	PlaceOfOrigin string `json:"place_of_origin" gorm:"type:varchar(200)"`
+	Address       string `json:"address" gorm:"type:varchar(200)"`
+	Level         string `json:"level" gorm:"type:varchar(40)"`
+	Note          string `json:"note" gorm:"type:varchar(200)"`
 }
 
 type CaddieResponse struct {
 	ModelId
-	CourseId       string `json:"course_id"`
-	Num            string `json:"caddie_num"`
-	Name           string `json:"name"`
-	Phone          string `json:"phone"`
-	Address        string `json:"address"`
-	Image          string `json:"image"`
-	Sex            bool   `json:"sex"`
-	BirthDay       int64  `json:"birth_day"`
-	BirthPlace     string `json:"birth_place"`
-	IdentityCard   string `json:"identity_card"`
-	IssuedBy       string `json:"issued_by"`
-	IssuedDate     int64  `json:"issued_date"`
-	ExpiredDate    int64  `json:"expired_date"`
-	EducationLevel string `json:"education_level"`
-	FingerPrint    string `json:"finger_print"`
-	HrCode         string `json:"hr_code"`
-	HrPosition     string `json:"hr_position"`
-	Group          string `json:"group"`
-	StartedDate    int64  `json:"started_date"`
-	WorkingStatus  string `json:"working_status"`
-	Level          string `json:"level"`
-	Note           string `json:"note"`
+	CaddieId      string `json:"caddie_id"`
+	CourseId      string `json:"course_id"`
+	Name          string `json:"name"`
+	Sex           bool   `json:"sex"`
+	BirthDay      int64  `json:"birth_day"`
+	WorkingStatus string `json:"working_status"`
+	Group         string `json:"group"`
+	StartedDate   int64  `json:"started_date"`
+	IdHr          string `json:"id_hr"`
+	Phone         string `json:"phone"`
+	Email         string `json:"email"`
+	IdentityCard  string `json:"identity_card"`
+	IssuedBy      string `json:"issued_by"`
+	ExpiredDate   int64  `json:"expired_date"`
+	PlaceOfOrigin string `json:"place_of_origin"`
+	Address       string `json:"address"`
+	Level         string `json:"level"`
+	Note          string `json:"note"`
 }
 
 func (item *Caddie) Create() error {

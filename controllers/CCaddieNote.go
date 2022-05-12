@@ -1,13 +1,15 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CCaddieNote struct{}
@@ -15,6 +17,7 @@ type CCaddieNote struct{}
 func (_ *CCaddieNote) CreateCaddieNote(c *gin.Context, prof models.CmsUser) {
 	var body request.CreateCaddieNoteBody
 	if bindErr := c.BindJSON(&body); bindErr != nil {
+		log.Print("BindJSON CaddieNote error")
 		response_message.BadRequest(c, "")
 		return
 	}
@@ -23,12 +26,13 @@ func (_ *CCaddieNote) CreateCaddieNote(c *gin.Context, prof models.CmsUser) {
 	courseRequest.Uid = body.CourseId
 	errFind := courseRequest.FindFirst()
 	if errFind != nil {
+		log.Print("BindJSON Course error")
 		response_message.BadRequest(c, errFind.Error())
 		return
 	}
 
 	caddieRequest := models.Caddie{}
-	caddieRequest.Num = body.CaddieNum
+	caddieRequest.CaddieId = body.CaddieId
 	caddieRequest.CourseId = body.CourseId
 	errExist := caddieRequest.FindFirst()
 
@@ -43,13 +47,14 @@ func (_ *CCaddieNote) CreateCaddieNote(c *gin.Context, prof models.CmsUser) {
 	caddieNote := models.CaddieNote{
 		ModelId:  base,
 		CourseId: body.CourseId,
-		CaddieId: caddieRequest.Id,
+		CaddieId: caddieRequest.CaddieId,
 		Type:     body.Type,
 		Note:     body.Note,
 	}
 
 	err := caddieNote.Create()
 	if err != nil {
+		log.Print("Create caddieNote error")
 		response_message.InternalServerError(c, err.Error())
 		return
 	}

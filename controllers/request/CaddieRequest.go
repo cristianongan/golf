@@ -1,28 +1,24 @@
 package request
 
 type CreateCaddieBody struct {
-	CourseId       string `json:"course_id" binding:"required"`
-	Num            string `json:"caddie_num" binding:"required"`
-	Name           string `json:"name" binding:"required"`
-	Phone          string `json:"phone"`
-	Address        string `json:"address"`
-	Image          string `json:"image"`
-	Sex            bool   `json:"sex"`
-	BirthDay       int64  `json:"birth_day"`
-	BirthPlace     string `json:"birth_place"`
-	IdentityCard   string `json:"identity_card"`
-	IssuedBy       string `json:"issued_by"`
-	IssuedDate     int64  `json:"issued_date"`
-	ExpiredDate    int64  `json:"expired_date"`
-	EducationLevel string `json:"education_level"`
-	FingerPrint    string `json:"finger_print"`
-	HrCode         string `json:"hr_code"`
-	HrPosition     string `json:"hr_position"`
-	Group          string `json:"group"`
-	StartedDate    int64  `json:"started_date"`
-	WorkingStatus  string `json:"working_status"`
-	Level          string `json:"level"`
-	Note           string `json:"note"`
+	CaddieId      string `json:"caddie_id"`
+	CourseId      string `json:"course_id"`
+	Name          string `json:"name"`
+	Sex           bool   `json:"sex"`
+	BirthDay      int64  `json:"birth_day"`
+	WorkingStatus string `json:"working_status"`
+	Group         string `json:"group"`
+	StartedDate   int64  `json:"started_date"`
+	IdHr          string `json:"id_hr"`
+	Phone         string `json:"phone"`
+	Email         string `json:"email"`
+	IdentityCard  string `json:"identity_card"`
+	IssuedBy      string `json:"issued_by"`
+	ExpiredDate   int64  `json:"expired_date"`
+	PlaceOfOrigin string `json:"place_of_origin"`
+	Address       string `json:"address"`
+	Level         string `json:"level"`
+	Note          string `json:"note"`
 }
 
 type GetListCaddieForm struct {
@@ -31,25 +27,22 @@ type GetListCaddieForm struct {
 }
 
 type UpdateCaddieBody struct {
-	Num            *string `json:"caddie_num"`
-	Name           *string `json:"name"`
-	Phone          *string `json:"phone"`
-	Address        *string `json:"address"`
-	Image          *string `json:"image"`
-	Sex            *bool   `json:"sex"`
-	BirthDay       *int64  `json:"birth_day"`
-	BirthPlace     *string `json:"birth_place"`
-	IdentityCard   *string `json:"identity_card"`
-	IssuedBy       *string `json:"issued_by"`
-	IssuedDate     *int64  `json:"issued_date"`
-	ExpiredDate    *int64  `json:"expired_date"`
-	EducationLevel *string `json:"education_level"`
-	FingerPrint    *string `json:"finger_print"`
-	HrCode         *string `json:"hr_code"`
-	HrPosition     *string `json:"hr_position"`
-	Group          *string `json:"group"`
-	StartedDate    *int64  `json:"started_date"`
-	WorkingStatus  *string `json:"working_status"`
-	Level          *string `json:"level"`
-	Note           *string `json:"note"`
+	CaddieId      *string `json:"caddie_num"`
+	CourseId      *string `json:"course_id"`
+	Name          *string `json:"name"`
+	Sex           *bool   `json:"sex"`
+	BirthDay      *int64  `json:"birth_day"`
+	WorkingStatus *string `json:"working_status"`
+	Group         *string `json:"group"`
+	StartedDate   *int64  `json:"started_date"`
+	IdHr          *string `json:"id_hr"`
+	Phone         *string `json:"phone"`
+	Email         *string `json:"email"`
+	IdentityCard  *string `json:"identity_card"`
+	IssuedBy      *string `json:"issued_by"`
+	ExpiredDate   *int64  `json:"expired_date"`
+	PlaceOfOrigin *string `json:"place_of_origin"`
+	Level         *string `json:"level"`
+	Address       *string `json:"address"`
+	Note          *string `json:"note"`
 }

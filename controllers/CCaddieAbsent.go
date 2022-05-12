@@ -1,13 +1,14 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CCaddieAbsent struct{}
@@ -28,7 +29,7 @@ func (_ *CCaddieAbsent) CreateCaddieAbsent(c *gin.Context, prof models.CmsUser) 
 	}
 
 	caddieRequest := models.Caddie{}
-	caddieRequest.Num = body.CaddieNum
+	caddieRequest.CaddieId = body.CaddieNum
 	caddieRequest.CourseId = body.CourseId
 	errExist := caddieRequest.FindFirst()
 
