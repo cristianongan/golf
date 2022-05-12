@@ -38,6 +38,8 @@ func (_ *CSystem) CreateJob(c *gin.Context, prof models.CmsUser) {
 	}
 
 	job := models.SystemConfigJob{}
+	job.PartnerUid = body.PartnerUid
+	job.CourseUid = body.CourseUid
 	job.Name = body.Name
 
 	//Check Exits
@@ -59,7 +61,7 @@ func (_ *CSystem) CreateJob(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CSystem) GetListJob(c *gin.Context, prof models.CmsUser) {
-	form := request.GetListPartnerForm{}
+	form := request.GeneralPageRequest{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
@@ -72,7 +74,10 @@ func (_ *CSystem) GetListJob(c *gin.Context, prof models.CmsUser) {
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	jobR := models.SystemConfigJob{}
+	jobR := models.SystemConfigJob{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
 	list, total, err := jobR.FindList(page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -160,6 +165,8 @@ func (_ *CSystem) CreatePosition(c *gin.Context, prof models.CmsUser) {
 
 	position := models.SystemConfigPosition{}
 	position.Name = body.Name
+	position.PartnerUid = body.PartnerUid
+	position.CourseUid = body.CourseUid
 
 	//Check Exits
 	errFind := position.FindFirst()
@@ -180,7 +187,7 @@ func (_ *CSystem) CreatePosition(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CSystem) GetListPosition(c *gin.Context, prof models.CmsUser) {
-	form := request.GetListPartnerForm{}
+	form := request.GeneralPageRequest{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
@@ -193,7 +200,10 @@ func (_ *CSystem) GetListPosition(c *gin.Context, prof models.CmsUser) {
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	positionR := models.SystemConfigPosition{}
+	positionR := models.SystemConfigPosition{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
 	list, total, err := positionR.FindList(page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

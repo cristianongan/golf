@@ -11,7 +11,9 @@ import (
 // System config job
 type SystemConfigJob struct {
 	ModelId
-	Name string `json:"name" gorm:"type:varchar(256)"`
+	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Name       string `json:"name" gorm:"type:varchar(256)"`
 }
 
 // ======= CRUD ===========

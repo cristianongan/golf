@@ -17,6 +17,13 @@ type AdvanceSearchPageRequest struct {
 	Search string `form:"search"`
 }
 
+type GeneralPageRequest struct {
+	PageRequest
+	Search     string `form:"search"`
+	CourseUid  string `form:"course_uid"`
+	PartnerUid string `form:"partner_uid"`
+}
+
 func (p *PageRequest) ToPage() models.Page {
 	page := models.Page{SortBy: p.SortBy}
 	if p.Limit > 0 {
