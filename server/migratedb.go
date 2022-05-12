@@ -46,6 +46,10 @@ func MigrateDb() {
 		// ---- Bag Note ----
 		db.AutoMigrate(&models.BagsNote{})
 
+		// ------ System ------
+		db.AutoMigrate(&models.SystemConfigJob{})
+		db.AutoMigrate(&models.SystemConfigPosition{})
+
 		log.Println("migrated db")
 	}
 }

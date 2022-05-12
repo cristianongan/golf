@@ -62,6 +62,16 @@ func NewRouter() *gin.Engine {
 			/// =================== System ===================
 			cSystem := new(controllers.CSystem)
 			cmsApiAuthorized.GET("/system/customer-type", middlewares.AuthorizedCmsUserHandler(cSystem.GetListCategoryType))
+			// ----- Job -----
+			cmsApiAuthorized.POST("/system/job", middlewares.AuthorizedCmsUserHandler(cSystem.CreateJob))
+			cmsApiAuthorized.GET("/system/job/list", middlewares.AuthorizedCmsUserHandler(cSystem.GetListJob))
+			cmsApiAuthorized.PUT("/system/job/:uid", middlewares.AuthorizedCmsUserHandler(cSystem.UpdateJob))
+			cmsApiAuthorized.DELETE("/system/job/:uid", middlewares.AuthorizedCmsUserHandler(cSystem.DeleteJob))
+			// ----- position -----
+			cmsApiAuthorized.POST("/system/position", middlewares.AuthorizedCmsUserHandler(cSystem.CreatePosition))
+			cmsApiAuthorized.GET("/system/position/list", middlewares.AuthorizedCmsUserHandler(cSystem.GetListPosition))
+			cmsApiAuthorized.PUT("/system/position/:uid", middlewares.AuthorizedCmsUserHandler(cSystem.UpdatePosition))
+			cmsApiAuthorized.DELETE("/system/position/:uid", middlewares.AuthorizedCmsUserHandler(cSystem.DeletePosition))
 
 			/// =================== Partner =====================
 			cPartner := new(controllers.CPartner)
