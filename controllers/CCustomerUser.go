@@ -68,11 +68,11 @@ func (_ *CCustomerUser) GetListCustomerUser(c *gin.Context, prof models.CmsUser)
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	customerUserR := models.CustomerUser{
+	customerUserGet := models.CustomerUser{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
-	list, total, err := customerUserR.FindList(page)
+	list, total, err := customerUserGet.FindList(page, form.PartnerUid, form.CourseUid, form.Type, form.CustomerUid, form.Name)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

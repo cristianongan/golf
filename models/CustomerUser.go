@@ -72,7 +72,7 @@ func (item *CustomerUser) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *CustomerUser) FindList(page Page) ([]CustomerUser, int64, error) {
+func (item *CustomerUser) FindList(page Page, partnerUid, courseUid, typeCus, customerUid, name string) ([]CustomerUser, int64, error) {
 	db := datasources.GetDatabase().Model(CustomerUser{})
 	list := []CustomerUser{}
 	total := int64(0)
@@ -82,6 +82,23 @@ func (item *CustomerUser) FindList(page Page) ([]CustomerUser, int64, error) {
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+	if partnerUid != "" {
+		db = db.Where("partner_uid = ?", partnerUid)
+	}
+	if courseUid != "" {
+		db = db.Where("course_uid = ?", courseUid)
+	}
+	if typeCus != "" {
+		db = db.Where("type = ?", typeCus)
+	}
+	if customerUid != "" {
+		db = db.Where("uid = ?", customerUid)
+	}
+	if name != "" {
+		db = db.Where("name LIKE ?", "%"+name+"%")
+	}
+
+	db = db.Where("type = ?", typeCus)
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
