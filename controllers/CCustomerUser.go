@@ -42,6 +42,7 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		CompanyName: body.CompanyName,
 		Mst:         body.Mst,
 		Note:        body.Note,
+		Identify:    body.Identify,
 	}
 
 	errC := customerUser.Create()
@@ -110,6 +111,41 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 	if body.Status != "" {
 		customerUser.Status = body.Status
 	}
+	if body.Identify != "" {
+		customerUser.Identify = body.Identify
+	}
+	if body.Name != "" {
+		customerUser.Name = body.Name
+	}
+	if body.Address1 != "" {
+		customerUser.Address1 = body.Address1
+	}
+	if body.Address2 != "" {
+		customerUser.Address2 = body.Address2
+	}
+	if body.Note != "" {
+		customerUser.Note = body.Note
+	}
+	if body.Avatar != "" {
+		customerUser.Avatar = body.Avatar
+	}
+	if body.Nationality != "" {
+		customerUser.Nationality = body.Nationality
+	}
+	if body.Fax != "" {
+		customerUser.Fax = body.Fax
+	}
+	if body.Email != "" {
+		customerUser.Email = body.Email
+	}
+	if body.Job != "" {
+		customerUser.Job = body.Job
+	}
+	if body.Position != "" {
+		customerUser.Position = body.Position
+	}
+
+	customerUser.Sex = body.Sex
 
 	errUdp := customerUser.Update()
 	if errUdp != nil {

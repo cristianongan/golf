@@ -31,7 +31,9 @@ type CustomerUser struct {
 	Job         string `json:"job" gorm:"type:varchar(200)"`               // Ex: Ngan hang
 	Position    string `json:"position" gorm:"type:varchar(200)"`          // Ex: Chu tich
 	CompanyName string `json:"company_name" gorm:"type:varchar(200)"`      // Ten cong ty
+	CompanyId   int64  `json:"company_id" gorm:"index"`                    // Id cong ty
 	Mst         string `json:"mst" gorm:"type:varchar(50)"`                // mã số thuế
+	Identify    string `json:"identify" gorm:"type:varchar(50)"`           // CMT
 	Note        string `json:"note" gorm:"type:varchar(500)"`              // Ghi chu them
 }
 
