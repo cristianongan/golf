@@ -12,6 +12,25 @@ import (
 
 type CSystem struct{}
 
+//Nationality
+func (_ *CSystem) GetListNationality(c *gin.Context, prof models.CmsUser) {
+	nationalityGet := models.Nationality{}
+
+	list, err := nationalityGet.FindAll()
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": len(list),
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
+// Category Type
 func (_ *CSystem) GetListCategoryType(c *gin.Context, prof models.CmsUser) {
 	cusTypesGet := models.CustomerType{}
 

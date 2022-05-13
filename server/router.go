@@ -62,6 +62,8 @@ func NewRouter() *gin.Engine {
 			/// =================== System ===================
 			cSystem := new(controllers.CSystem)
 			cmsApiAuthorized.GET("/system/customer-type", middlewares.AuthorizedCmsUserHandler(cSystem.GetListCategoryType))
+			cmsApiAuthorized.GET("/system/nationality", middlewares.AuthorizedCmsUserHandler(cSystem.GetListNationality))
+
 			// ----- Job -----
 			cmsApiAuthorized.POST("/system/job", middlewares.AuthorizedCmsUserHandler(cSystem.CreateJob))
 			cmsApiAuthorized.GET("/system/job/list", middlewares.AuthorizedCmsUserHandler(cSystem.GetListJob))

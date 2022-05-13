@@ -49,6 +49,7 @@ func MigrateDb() {
 		// ------ System ------
 		db.AutoMigrate(&models.SystemConfigJob{})
 		db.AutoMigrate(&models.SystemConfigPosition{})
+		db.AutoMigrate(&models.Nationality{})
 
 		log.Println("migrated db")
 	}
