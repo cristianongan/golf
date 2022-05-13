@@ -51,9 +51,14 @@ func (_ *CGroupFee) CreateGroupFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if body.PartnerUid == "" || body.CourseUid == "" {
+		response_message.BadRequest(c, "data not valid")
+		return
+	}
+
 	groupFee := models.GroupFee{}
-	groupFee.PartnerUid = prof.PartnerUid
-	groupFee.CourseUid = prof.CourseUid
+	groupFee.PartnerUid = body.PartnerUid
+	groupFee.CourseUid = body.CourseUid
 	groupFee.Name = body.Name
 	groupFee.CategoryType = body.CategoryType
 
