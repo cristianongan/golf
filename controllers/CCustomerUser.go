@@ -144,6 +144,12 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 	if body.Position != "" {
 		customerUser.Position = body.Position
 	}
+	if body.CompanyName != "" {
+		customerUser.CompanyName = body.CompanyName
+	}
+	if body.CompanyId > 0 {
+		customerUser.CompanyId = body.CompanyId
+	}
 
 	customerUser.Sex = body.Sex
 

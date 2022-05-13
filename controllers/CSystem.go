@@ -299,3 +299,129 @@ func (_ *CSystem) DeletePosition(c *gin.Context, prof models.CmsUser) {
 
 	okRes(c)
 }
+
+// ---------- Company Type -----------
+func (_ *CSystem) CreateCompanyType(c *gin.Context, prof models.CmsUser) {
+	body := models.CompanyType{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	companyType := models.CompanyType{}
+	companyType.Name = body.Name
+	companyType.PartnerUid = body.PartnerUid
+	companyType.CourseUid = body.CourseUid
+
+	//Check Exits
+	errFind := companyType.FindFirst()
+	if errFind == nil || companyType.Id > 0 {
+		response_message.DuplicateRecord(c, errors.New("Duplicate name").Error())
+		return
+	}
+
+	companyType.Status = body.Status
+
+	errC := companyType.Create()
+	if errC != nil {
+		response_message.InternalServerError(c, errC.Error())
+		return
+	}
+
+	okResponse(c, companyType)
+}
+
+func (_ *CSystem) GetListCompanyType(c *gin.Context, prof models.CmsUser) {
+	form := request.GeneralPageRequest{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	companyTypeR := models.CompanyType{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+	list, total, err := companyTypeR.FindList(page)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
+func (_ *CSystem) UpdateCompanyType(c *gin.Context, prof models.CmsUser) {
+	companyTypeIdStr := c.Param("id")
+	companyTypeId, err := strconv.ParseInt(companyTypeIdStr, 10, 64) // Nếu uid là int64 mới cần convert
+	if err != nil || companyTypeId == 0 {
+		response_message.BadRequest(c, errors.New("id not valid").Error())
+		return
+	}
+
+	companyType := models.CompanyType{}
+	companyType.Id = companyTypeId
+	errF := companyType.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	body := models.CompanyType{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if body.Name != "" {
+		companyType.Name = body.Name
+	}
+	if body.Status != "" {
+		companyType.Status = body.Status
+	}
+
+	errUdp := companyType.Update()
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, companyType)
+}
+
+func (_ *CSystem) DeleteCompanyType(c *gin.Context, prof models.CmsUser) {
+	companyTypeIdStr := c.Param("id")
+	companyTypeId, err := strconv.ParseInt(companyTypeIdStr, 10, 64) // Nếu uid là int64 mới cần convert
+	if err != nil || companyTypeId == 0 {
+		response_message.BadRequest(c, errors.New("id not valid").Error())
+		return
+	}
+
+	companyType := models.CompanyType{}
+	companyType.Id = companyTypeId
+	errF := companyType.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	errDel := companyType.Delete()
+	if errDel != nil {
+		response_message.InternalServerError(c, errDel.Error())
+		return
+	}
+
+	okRes(c)
+}
