@@ -43,6 +43,7 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		Mst:         body.Mst,
 		Note:        body.Note,
 		Identify:    body.Identify,
+		Type:        body.Type,
 	}
 
 	errC := customerUser.Create()
@@ -113,6 +114,9 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 	}
 	if body.Identify != "" {
 		customerUser.Identify = body.Identify
+	}
+	if body.Type != "" {
+		customerUser.Type = body.Type
 	}
 	if body.Name != "" {
 		customerUser.Name = body.Name
