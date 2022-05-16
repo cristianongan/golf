@@ -15,7 +15,7 @@ type Company struct {
 	CourseUid       string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	Code            string `json:"code" gorm:"type:varchar(256);index"`        // Mã công ty
 	Name            string `json:"name" gorm:"type:varchar(256)"`
-	Address         string `json:"addresss" gorm:"type:varchar(500)"`
+	Address         string `json:"address" gorm:"type:varchar(500)"`
 	Phone           string `json:"phone" gorm:"type:varchar(30);index"`
 	Fax             string `json:"fax" gorm:"type:varchar(30);index"`
 	FaxCode         string `json:"fax_code" gorm:"type:varchar(30);index"`
