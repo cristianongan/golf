@@ -35,20 +35,13 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// Check và tạo group Fee
-	groupFee := models.GroupFee{
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
-		Name:       body.GroupName,
-	}
+	// Check group Fee
+	groupFee := models.GroupFee{}
+	groupFee.Id = body.GroupId
 	errFind = groupFee.FindFirst()
 	if errFind != nil || groupFee.Id <= 0 {
-		// Chưa có group fee thì tạo
-		errC := groupFee.Create()
-		if errC != nil {
-			response_message.InternalServerError(c, errC.Error())
-			return
-		}
+		response_message.BadRequest(c, "group fee not found")
+		return
 	}
 	errFind = nil
 
@@ -141,6 +134,18 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
+	}
+
+	if golfFee.GroupId != body.GroupId {
+		groupFee := models.GroupFee{}
+		groupFee.Id = body.GroupId
+		errFindGroupFee := groupFee.FindFirst()
+		if errFindGroupFee != nil || groupFee.Id <= 0 {
+			response_message.BadRequest(c, "group fee not found")
+			return
+		}
+		golfFee.GroupId = groupFee.Id
+		golfFee.GroupName = groupFee.Name
 	}
 
 	if body.GuestStyle != "" && body.GuestStyle != golfFee.GuestStyle {
