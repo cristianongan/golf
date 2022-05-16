@@ -181,6 +181,14 @@ func NewRouter() *gin.Engine {
 			cBagsNote := new(controllers.CBagsNote)
 			cmsApiAuthorized.GET("/bags-note/list", middlewares.AuthorizedCmsUserHandler(cBagsNote.GetListBagsNote))
 
+			/// =================== Company =====================
+			cCompany := new(controllers.CCompany)
+			cmsApiAuthorized.POST("/company", middlewares.AuthorizedCmsUserHandler(cCompany.CreateCompany))
+			cmsApiAuthorized.GET("/company/list", middlewares.AuthorizedCmsUserHandler(cCompany.GetListCompany))
+			cmsApiAuthorized.PUT("/company/:id", middlewares.AuthorizedCmsUserHandler(cCompany.UpdateCompany))
+			cmsApiAuthorized.DELETE("/company/:id", middlewares.AuthorizedCmsUserHandler(cCompany.DeleteCompany))
+
+			/// **************** GO ****************
 			/// =================== Buggy =====================
 			cBuggy := new(controllers.CBuggy)
 			cmsApiAuthorized.POST("/buggy", middlewares.AuthorizedCmsUserHandler(cBuggy.CreateBuggy))

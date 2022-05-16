@@ -11,9 +11,15 @@ import (
 // Company
 type Company struct {
 	ModelId
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Name       string `json:"name" gorm:"type:varchar(256)"`
+	PartnerUid      string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid       string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Name            string `json:"name" gorm:"type:varchar(256)"`
+	Address         string `json:"addresss" gorm:"type:varchar(500)"`
+	Phone           string `json:"phone" gorm:"type:varchar(30);index"`
+	Fax             string `json:"fax" gorm:"type:varchar(30);index"`
+	FaxCode         string `json:"fax_code" gorm:"type:varchar(30);index"`
+	CompanyTypeId   int64  `json:"company_type_id" gorm:"index"`
+	CompanyTypeName string `json:"company_type_name" gorm:"type:varchar(300)"`
 }
 
 // ======= CRUD ===========
@@ -59,11 +65,26 @@ func (item *Company) FindList(page Page) ([]Company, int64, error) {
 	total := int64(0)
 	status := item.Status
 	item.Status = ""
-	db = db.Where(item)
 
 	if status != "" {
-		db = db.Where("status IN (?)", strings.Split(status, ","))
+		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.Name != "" {
+		db = db.Where("name LIKE ?", "%"+item.Name+"%")
+	}
+	if item.CompanyTypeId > 0 {
+		db = db.Where("type = ?", item.CompanyTypeId)
+	}
+	if item.Phone != "" {
+		db = db.Where("phone LIKE ?", "%"+item.Phone+"%")
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
