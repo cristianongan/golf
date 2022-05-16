@@ -121,7 +121,7 @@ func (_ *CCompany) UpdateCompany(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.Code != "" {
+	if body.Code != "" && body.Code != company.Code {
 		if body.IsDuplicated() {
 			response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
 			return
