@@ -8,4 +8,5 @@ type GetListCompanyForm struct {
 	Name          string `form:"name"`
 	CompanyTypeId int64  `form:"company_type_id"`
 	Phone         string `form:"phone"`
+	Code          string `form:"code"`
 }

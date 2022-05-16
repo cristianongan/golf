@@ -20,7 +20,7 @@ func (_ *CCompany) CreateCompany(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.Name == "" || body.CompanyTypeId <= 0 || body.PartnerUid == "" || body.CourseUid == "" {
+	if body.Code == "" || body.Name == "" || body.CompanyTypeId <= 0 || body.PartnerUid == "" || body.CourseUid == "" {
 		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
 		return
 	}
@@ -37,13 +37,21 @@ func (_ *CCompany) CreateCompany(c *gin.Context, prof models.CmsUser) {
 	company := models.Company{}
 	company.PartnerUid = body.PartnerUid
 	company.CourseUid = body.CourseUid
+	company.Code = body.Code
+
+	// Check duplicate code trong 1 hãng
+	if company.IsDuplicated() {
+		response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
+		return
+	}
+
 	company.Name = body.Name
 	company.Status = body.Status
 	company.Address = body.Address
 	company.Fax = body.Fax
 	company.FaxCode = body.FaxCode
 	company.CompanyTypeId = companyType.Id
-	company.Name = companyType.Name
+	company.CompanyTypeName = companyType.Name
 
 	errC := company.Create()
 
@@ -111,6 +119,14 @@ func (_ *CCompany) UpdateCompany(c *gin.Context, prof models.CmsUser) {
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
+	}
+
+	if body.Code != "" {
+		if body.IsDuplicated() {
+			response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
+			return
+		}
+		company.Code = body.Code
 	}
 
 	if body.Name != "" {

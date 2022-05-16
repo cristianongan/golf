@@ -13,6 +13,7 @@ type Company struct {
 	ModelId
 	PartnerUid      string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid       string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Code            string `json:"code" gorm:"type:varchar(256);index"`        // Mã công ty
 	Name            string `json:"name" gorm:"type:varchar(256)"`
 	Address         string `json:"addresss" gorm:"type:varchar(500)"`
 	Phone           string `json:"phone" gorm:"type:varchar(30);index"`
@@ -20,6 +21,20 @@ type Company struct {
 	FaxCode         string `json:"fax_code" gorm:"type:varchar(30);index"`
 	CompanyTypeId   int64  `json:"company_type_id" gorm:"index"`
 	CompanyTypeName string `json:"company_type_name" gorm:"type:varchar(300)"`
+}
+
+func (item *Company) IsDuplicated() bool {
+	company := Company{
+		PartnerUid: item.PartnerUid,
+		CourseUid:  item.CourseUid,
+		Code:       item.Code,
+	}
+
+	errFind := company.FindFirst()
+	if errFind == nil || company.Id > 0 {
+		return true
+	}
+	return false
 }
 
 // ======= CRUD ===========
