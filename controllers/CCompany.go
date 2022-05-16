@@ -20,7 +20,7 @@ func (_ *CCompany) CreateCompany(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.Name == "" || body.CompanyTypeId <= 0 {
+	if body.Name == "" || body.CompanyTypeId <= 0 || body.PartnerUid == "" || body.CourseUid == "" {
 		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
 		return
 	}
@@ -35,6 +35,8 @@ func (_ *CCompany) CreateCompany(c *gin.Context, prof models.CmsUser) {
 	}
 
 	company := models.Company{}
+	company.PartnerUid = body.PartnerUid
+	company.CourseUid = body.CourseUid
 	company.Name = body.Name
 	company.Status = body.Status
 	company.Address = body.Address
