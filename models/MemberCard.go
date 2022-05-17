@@ -179,10 +179,24 @@ func (item *MemberCard) FindList(page Page) ([]MemberCard, int64, error) {
 	total := int64(0)
 	status := item.Model.Status
 	item.Model.Status = ""
-	db = db.Where(item)
+	// db = db.Where(item)
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.OwnerUid != "" {
+		db = db.Where("owner_uid = ?", item.OwnerUid)
+	}
+	if item.McTypeId > 0 {
+		db = db.Where("mc_type_id = ?", item.McTypeId)
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

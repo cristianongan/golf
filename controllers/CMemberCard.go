@@ -95,6 +95,8 @@ func (_ *CMemberCard) GetListMemberCard(c *gin.Context, prof models.CmsUser) {
 	memberCardR := models.MemberCard{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
+		McTypeId:   form.McTypeId,
+		OwnerUid:   form.OwnerUid,
 	}
 	list, total, err := memberCardR.FindList(page)
 	if err != nil {
