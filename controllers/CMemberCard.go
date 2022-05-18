@@ -143,6 +143,11 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 	memberCard.GreenFee = body.GreenFee
 	memberCard.CaddieFee = body.CaddieFee
 	memberCard.BuggyFee = body.BuggyFee
+	memberCard.Note = body.Note
+	memberCard.ValidDate = body.ValidDate
+	memberCard.StartPrecial = body.StartPrecial
+	memberCard.EndPrecial = body.EndPrecial
+	memberCard.AdjustPlayCount = body.AdjustPlayCount
 
 	errUdp := memberCard.Update()
 	if errUdp != nil {
