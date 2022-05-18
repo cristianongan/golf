@@ -103,10 +103,24 @@ func (item *AnnualFee) FindList(page Page) ([]AnnualFee, int64, error) {
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
-	db = db.Where(item)
+	// db = db.Where(item)
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.MemberCardUid != "" {
+		db = db.Where("member_card_uid = ?", item.MemberCardUid)
+	}
+	if item.Year > 0 {
+		db = db.Where("year = ?", item.Year)
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

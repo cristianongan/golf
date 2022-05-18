@@ -136,6 +136,14 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if golfFee.Dow != body.Dow || golfFee.GuestStyle != body.GuestStyle {
+		isDupli := checkDuplicateGolfFee(body)
+		if isDupli {
+			response_message.DuplicateRecord(c, "duplicated golf fee")
+			return
+		}
+	}
+
 	if golfFee.GroupId != body.GroupId {
 		groupFee := models.GroupFee{}
 		groupFee.Id = body.GroupId
@@ -168,12 +176,6 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.PaidType = body.PaidType
 	golfFee.Idx = body.Idx
 	golfFee.AccDebit = body.AccDebit
-
-	isDupli := checkDuplicateGolfFee(golfFee)
-	if isDupli {
-		response_message.DuplicateRecord(c, "duplicated golf fee")
-		return
-	}
 
 	errUdp := golfFee.Update()
 	if errUdp != nil {

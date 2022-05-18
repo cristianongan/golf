@@ -133,18 +133,16 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// Check duplicated
-	if body.IsDuplicated() {
-		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-		return
-	}
-
 	if body.OwnerUid != "" {
 		memberCard.OwnerUid = body.OwnerUid
 	}
 	if body.Status != "" {
 		memberCard.Status = body.Status
 	}
+	memberCard.PriceCode = body.PriceCode
+	memberCard.GreenFee = body.GreenFee
+	memberCard.CaddieFee = body.CaddieFee
+	memberCard.BuggyFee = body.BuggyFee
 
 	errUdp := memberCard.Update()
 	if errUdp != nil {
