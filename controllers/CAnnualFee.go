@@ -100,6 +100,40 @@ func (_ *CAnnualFee) GetListAnnualFee(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, res)
 }
 
+func (_ *CAnnualFee) GetListAnnualFeeWithGroupMemberCard(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListAnnualFeeForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	annualFeeR := models.AnnualFee{
+		PartnerUid:    form.PartnerUid,
+		CourseUid:     form.CourseUid,
+		MemberCardUid: form.MemberCardUid,
+		Year:          form.Year,
+	}
+	list, total, err := annualFeeR.FindListWithGroupMemberCard(page)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
 func (_ *CAnnualFee) UpdateAnnualFee(c *gin.Context, prof models.CmsUser) {
 	annualFeeIdStr := c.Param("id")
 	annualFeeId, err := strconv.ParseInt(annualFeeIdStr, 10, 64)
