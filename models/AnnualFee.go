@@ -1,8 +1,11 @@
 package models
 
 import (
+	"log"
 	"start/constants"
 	"start/datasources"
+	"start/utils"
+	"strconv"
 	"strings"
 	"time"
 
@@ -131,7 +134,7 @@ func (item *AnnualFee) FindListWithGroupMemberCard(page Page) ([]AnnualFee, int6
 }
 
 func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, int64, error) {
-	db := datasources.GetDatabase()
+	db := datasources.GetDatabase().Table("annual_fees")
 	list := []map[string]interface{}{}
 	total := int64(0)
 	// status := item.ModelId.Status
@@ -154,7 +157,7 @@ func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, int64, err
 	// 	db = db.Where("year = ?", item.Year)
 	// }
 
-	queryStr := `select * from (select * from annual_fees where annual_fees.partner_uid = "FLC" and annual_fees.course_uid = "FLC-HA-LONG") tb0
+	queryStr := `select * from (select * from (select * from annual_fees where annual_fees.partner_uid = "FLC" and annual_fees.course_uid = "FLC-HA-LONG") tb0
 	LEFT JOIN (select tb1.*, 
 	member_card_types.name as member_card_types_names, 
 	member_card_types.type as base_type, 
@@ -171,15 +174,31 @@ func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, int64, err
 	from member_cards WHERE member_cards.partner_uid = "FLC" and member_cards.course_uid = "FLC-HA-LONG") tb1 
 	LEFT JOIN member_card_types on member_card_types.id = tb1.mc_type_id
 	LEFT JOIN customer_users on customer_users.uid = tb1.owner_uid
-	) tb2 on tb0.member_card_uid = tb2.mc_uid`
+	) tb2 on tb0.member_card_uid = tb2.mc_uid) tb3`
 
-	db = db.Joins(queryStr)
+	// var countReturn CountStruct
+	var countReturn utils.CountStruct
+	strSQLCount := " select count(*) as count from ( " + queryStr + " ) as subTable "
+	errCount := db.Raw(strSQLCount).Scan(&countReturn).Error
+	if errCount != nil {
+		log.Println(errCount)
+		return list, total, errCount
+	}
 
-	db.Count(&total)
+	total = countReturn.Count
+	//Check if limit large then set to 50
+	if page.Limit > 50 {
+		page.Limit = 50
+	}
 
 	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Find(&list)
+		queryStr = queryStr + " order by tb3." + page.SortBy + " " + page.SortDir + " LIMIT " + strconv.Itoa(page.Limit) + " OFFSET " + strconv.Itoa(page.Offset())
 	}
+	err := db.Raw(queryStr).Scan(&list).Error
+	if err != nil {
+		return list, total, err
+	}
+
 	return list, total, db.Error
 }
 

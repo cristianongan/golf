@@ -28,3 +28,7 @@ type GolfHoleFee struct {
 	Hole int   `json:"hole"`
 	Fee  int64 `json:"fee"`
 }
+
+type CountStruct struct {
+	Count int64 `json:"count"`
+}
