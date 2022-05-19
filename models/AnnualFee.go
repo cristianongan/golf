@@ -16,7 +16,7 @@ type AnnualFee struct {
 	PartnerUid        string `json:"partner_uid" gorm:"type:varchar(100);index"`     // Hang Golf
 	CourseUid         string `json:"course_uid" gorm:"type:varchar(256);index"`      // San Golf
 	MemberCardUid     string `json:"member_card_uid" gorm:"type:varchar(100);index"` // Member Card Uid
-	Year              int    `json:"year"`                                           // Year
+	Year              int    `json:"year" gorm:"index"`                              // Year
 	PaymentType       string `json:"payment_type" gorm:"type:varchar(50);index"`     // TM, CK, CC, TM+CK, TM+CC
 	BillNumber        string `json:"bill_number" gorm:"type:varchar(100)"`           //
 	Note              string `json:"note" gorm:"type:varchar(256)"`                  //
