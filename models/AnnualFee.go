@@ -157,22 +157,36 @@ func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, int64, err
 	// 	db = db.Where("year = ?", item.Year)
 	// }
 
-	queryStr := `select * from (select * from (select * from annual_fees where annual_fees.partner_uid = "FLC" and annual_fees.course_uid = "FLC-HA-LONG") tb0
-	LEFT JOIN (select tb1.*, 
-	member_card_types.name as member_card_types_names, 
-	member_card_types.type as base_type, 
-	customer_users.name as owner_name,
-	customer_users.email as owner_email,
-	customer_users.address1 as owner_address1,
-	customer_users.phone as owner_phone
-	from (
-	select member_cards.uid as mc_uid,  
-	member_cards.valid_date as mc_valid_date, 
-	member_cards.exp_date as mc_exp_date, 
-	member_cards.owner_uid as owner_uid, 
-	member_cards.mc_type_id as mc_type_id
-	from member_cards WHERE member_cards.partner_uid = "FLC" and member_cards.course_uid = "FLC-HA-LONG") tb1 
-	LEFT JOIN member_card_types on member_card_types.id = tb1.mc_type_id
+	queryStr := `select * from (select * from (select * from annual_fees where annual_fees.partner_uid = ` + `"` + item.PartnerUid + `"`
+
+	if item.CourseUid != "" {
+		queryStr = queryStr + " and annual_fees.course_uid = " + `"` + item.CourseUid + `"`
+	}
+
+	queryStr = queryStr + ") tb0 "
+	queryStr = queryStr + `LEFT JOIN (select tb1.*, 
+		member_card_types.name as member_card_types_names, 
+		member_card_types.type as base_type, 
+		customer_users.name as owner_name,
+		customer_users.email as owner_email,
+		customer_users.address1 as owner_address1,
+		customer_users.phone as owner_phone
+		from (
+		select member_cards.uid as mc_uid,  
+		member_cards.valid_date as mc_valid_date, 
+		member_cards.exp_date as mc_exp_date, 
+		member_cards.owner_uid as owner_uid, 
+		member_cards.mc_type_id as mc_type_id
+		from member_cards WHERE member_cards.partner_uid = `
+
+	queryStr = queryStr + `"` + item.PartnerUid + `"`
+
+	if item.CourseUid != "" {
+		queryStr = queryStr + "and member_cards.course_uid = " + `"` + item.CourseUid + `"`
+	}
+
+	queryStr = queryStr + ") tb1 "
+	queryStr = queryStr + `LEFT JOIN member_card_types on member_card_types.id = tb1.mc_type_id
 	LEFT JOIN customer_users on customer_users.uid = tb1.owner_uid
 	) tb2 on tb0.member_card_uid = tb2.mc_uid) tb3`
 
@@ -181,7 +195,7 @@ func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, int64, err
 	strSQLCount := " select count(*) as count from ( " + queryStr + " ) as subTable "
 	errCount := db.Raw(strSQLCount).Scan(&countReturn).Error
 	if errCount != nil {
-		log.Println(errCount)
+		log.Println("AnnualFee err", errCount.Error())
 		return list, total, errCount
 	}
 
