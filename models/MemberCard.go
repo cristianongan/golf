@@ -256,7 +256,7 @@ func (item *MemberCard) FindList(page Page) ([]map[string]interface{}, int64, er
 	}
 
 	if total > 0 && int64(page.Offset()) < total {
-		queryStr = queryStr + " order by tb3." + page.SortBy + " " + page.SortDir + " LIMIT " + strconv.Itoa(page.Limit) + " OFFSET " + strconv.Itoa(page.Offset())
+		queryStr = queryStr + " order by tb1." + page.SortBy + " " + page.SortDir + " LIMIT " + strconv.Itoa(page.Limit) + " OFFSET " + strconv.Itoa(page.Offset())
 	}
 	err := db.Raw(queryStr).Scan(&list).Error
 	if err != nil {
