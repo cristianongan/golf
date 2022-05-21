@@ -175,36 +175,6 @@ func (item *MemberCard) Count() (int64, error) {
 }
 
 func (item *MemberCard) FindList(page Page) ([]map[string]interface{}, int64, error) {
-	// db := datasources.GetDatabase().Model(MemberCard{})
-	// list := []MemberCard{}
-	// total := int64(0)
-	// status := item.Model.Status
-	// item.Model.Status = ""
-	// // db = db.Where(item)
-	// if status != "" {
-	// 	db = db.Where("status in (?)", strings.Split(status, ","))
-	// }
-
-	// if item.PartnerUid != "" {
-	// 	db = db.Where("partner_uid = ?", item.PartnerUid)
-	// }
-	// if item.CourseUid != "" {
-	// 	db = db.Where("course_uid = ?", item.CourseUid)
-	// }
-	// if item.OwnerUid != "" {
-	// 	db = db.Where("owner_uid = ?", item.OwnerUid)
-	// }
-	// if item.McTypeId > 0 {
-	// 	db = db.Where("mc_type_id = ?", item.McTypeId)
-	// }
-
-	// db.Count(&total)
-
-	// if total > 0 && int64(page.Offset()) < total {
-	// 	db = page.Setup(db).Find(&list)
-	// }
-	// return list, total, db.Error
-
 	db := datasources.GetDatabase().Table("member_cards")
 	list := []map[string]interface{}{}
 	total := int64(0)
@@ -212,6 +182,7 @@ func (item *MemberCard) FindList(page Page) ([]map[string]interface{}, int64, er
 	queryStr := `select * from (select tb0.*, 
 	member_card_types.name as mc_types_name,
 	member_card_types.type as base_type,
+	member_card_types.guest_style as guest_style,
 	customer_users.name as owner_name,
 	customer_users.email as owner_email,
 	customer_users.address1 as owner_address1,
