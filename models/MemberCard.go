@@ -219,7 +219,7 @@ func (item *MemberCard) FindList(page Page, playerName string) ([]map[string]int
 
 	if playerName != "" {
 		queryStr = queryStr + " where "
-		queryStr = queryStr + " tb1.owner_name LIKE " + `%` + playerName + `%`
+		queryStr = queryStr + " tb1.owner_name LIKE " + `"%` + playerName + `%"`
 	}
 
 	// var countReturn CountStruct
