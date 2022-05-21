@@ -8,4 +8,7 @@ type GetListMemberCardForm struct {
 	Type       string `form:"type"` // BaseType
 	McType     string `form:"mc_type"`
 	McTypeId   int64  `form:"mc_type_id"`
+	CardId     string `form:"card_id"`
+	PlayerName string `form:"player_name"`
+	Status     string `form:"status"`
 }

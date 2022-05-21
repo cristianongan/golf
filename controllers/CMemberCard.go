@@ -97,8 +97,10 @@ func (_ *CMemberCard) GetListMemberCard(c *gin.Context, prof models.CmsUser) {
 		CourseUid:  form.CourseUid,
 		McTypeId:   form.McTypeId,
 		OwnerUid:   form.OwnerUid,
+		CardId:     form.CardId,
 	}
-	list, total, err := memberCardR.FindList(page)
+	memberCardR.Status = form.Status
+	list, total, err := memberCardR.FindList(page, form.PlayerName)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

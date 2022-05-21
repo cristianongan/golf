@@ -174,7 +174,7 @@ func (item *MemberCard) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *MemberCard) FindList(page Page) ([]map[string]interface{}, int64, error) {
+func (item *MemberCard) FindList(page Page, playerName string) ([]map[string]interface{}, int64, error) {
 	db := datasources.GetDatabase().Table("member_cards")
 	list := []map[string]interface{}{}
 	total := int64(0)
@@ -203,6 +203,12 @@ func (item *MemberCard) FindList(page Page) ([]map[string]interface{}, int64, er
 	if item.OwnerUid != "" {
 		queryStr = queryStr + " and member_cards.owner_uid = " + `"` + item.OwnerUid + `"`
 	}
+	if item.Status != "" {
+		queryStr = queryStr + " and member_cards.status = " + `"` + item.Status + `"`
+	}
+	if item.CardId != "" {
+		queryStr = queryStr + " and member_cards.card_id = " + `"` + item.CardId + `"`
+	}
 	if item.McTypeId > 0 {
 		queryStr = queryStr + " and member_cards.mc_type_id = " + strconv.Itoa(int(item.McTypeId))
 	}
@@ -210,6 +216,11 @@ func (item *MemberCard) FindList(page Page) ([]map[string]interface{}, int64, er
 	queryStr = queryStr + ") tb0 "
 	queryStr = queryStr + `LEFT JOIN member_card_types on tb0.mc_type_id = member_card_types.id
 	LEFT JOIN customer_users on tb0.owner_uid = customer_users.uid) tb1 `
+
+	if playerName != "" {
+		queryStr = queryStr + " where "
+		queryStr = queryStr + " tb1.owner_name LIKE " + `%` + playerName + `%`
+	}
 
 	// var countReturn CountStruct
 	var countReturn utils.CountStruct
