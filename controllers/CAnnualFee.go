@@ -42,12 +42,12 @@ func (_ *CAnnualFee) CreateAnnualFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	annualFee := models.AnnualFee{
-		PartnerUid:        body.PartnerUid,
-		CourseUid:         body.CourseUid,
-		Year:              body.Year,
-		MemberCardUid:     body.MemberCardUid,
-		PaymentType:       body.PaymentType,
-		BillNumber:        body.BillNumber,
+		PartnerUid:    body.PartnerUid,
+		CourseUid:     body.CourseUid,
+		Year:          body.Year,
+		MemberCardUid: body.MemberCardUid,
+		// PaymentType:       body.PaymentType,
+		// BillNumber:        body.BillNumber,
 		Note:              body.Note,
 		AnnualQuotaAmount: body.AnnualQuotaAmount,
 		PrePaid:           body.PrePaid,

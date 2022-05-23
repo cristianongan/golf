@@ -140,6 +140,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/annual-fee/:id", middlewares.AuthorizedCmsUserHandler(cAnnualFee.UpdateAnnualFee))
 			cmsApiAuthorized.DELETE("/annual-fee/:id", middlewares.AuthorizedCmsUserHandler(cAnnualFee.DeleteAnnualFee))
 
+			cAnnualFeePay := new(controllers.CAnnualFeePay)
+			cmsApiAuthorized.POST("/annual-fee-pay", middlewares.AuthorizedCmsUserHandler(cAnnualFeePay.CreateAnnualFeePay))
+			cmsApiAuthorized.GET("/annual-fee-pay/list", middlewares.AuthorizedCmsUserHandler(cAnnualFeePay.GetListAnnualFeePay))
+
 			/// =================== Group Fee =====================
 			/// Tạo sửa cùng
 			cGroupFee := new(controllers.CGroupFee)
