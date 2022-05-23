@@ -103,24 +103,6 @@ func (item *AnnualFee) FindListWithGroupMemberCard(page Page) ([]map[string]inte
 	db := datasources.GetDatabase().Table("annual_fees")
 	list := []map[string]interface{}{}
 	total := int64(0)
-	// db = db.Where(item)
-	// if status != "" {
-	// 	db = db.Where("status in (?)", strings.Split(status, ","))
-	// }
-
-	// if item.PartnerUid != "" {
-	// 	db = db.Where("partner_uid = ?", item.PartnerUid)
-	// }
-	// if item.CourseUid != "" {
-	// 	db = db.Where("course_uid = ?", item.CourseUid)
-	// }
-	// if item.MemberCardUid != "" {
-	// 	db = db.Where("member_card_uid = ?", item.MemberCardUid)
-	// }
-	// if item.Year > 0 {
-	// 	db = db.Where("year = ?", item.Year)
-	// }
-	// db = db.Group("member_card_uid")
 
 	queryStr := `select * from (select * from (select * from annual_fees where annual_fees.partner_uid = ` + `"` + item.PartnerUid + `"`
 
@@ -140,7 +122,9 @@ func (item *AnnualFee) FindListWithGroupMemberCard(page Page) ([]map[string]inte
 		customer_users.name as owner_name,
 		customer_users.email as owner_email,
 		customer_users.address1 as owner_address1,
-		customer_users.phone as owner_phone
+		customer_users.phone as owner_phone,
+		customer_users.sex as owner_sex,
+		customer_users.dob as owner_dob
 		from (
 		select member_cards.uid as mc_uid,  
 		member_cards.valid_date as mc_valid_date, 
@@ -210,7 +194,9 @@ func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, int64, err
 		customer_users.name as owner_name,
 		customer_users.email as owner_email,
 		customer_users.address1 as owner_address1,
-		customer_users.phone as owner_phone
+		customer_users.phone as owner_phone,
+		customer_users.sex as owner_sex,
+		customer_users.dob as owner_dob
 		from (
 		select member_cards.uid as mc_uid,  
 		member_cards.valid_date as mc_valid_date, 
