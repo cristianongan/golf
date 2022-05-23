@@ -215,7 +215,18 @@ func (item *MemberCard) FindList(page Page, playerName string) ([]map[string]int
 
 	queryStr = queryStr + ") tb0 "
 	queryStr = queryStr + `LEFT JOIN member_card_types on tb0.mc_type_id = member_card_types.id
-	LEFT JOIN customer_users on tb0.owner_uid = customer_users.uid) tb1 `
+	LEFT JOIN customer_users on tb0.owner_uid = customer_users.uid `
+
+	queryStr = queryStr + " LEFT JOIN (select * from annual_fees where annual_fees.partner_uid = " + `"` + item.PartnerUid + `"`
+	if item.CourseUid != "" {
+		queryStr = queryStr + " and annual_fees.course_uid = " + `"` + item.CourseUid + `"`
+	}
+	currentYear := utils.GetCurrentYear()
+	if currentYear != "" {
+		queryStr = queryStr + " and annual_fees.year = " + currentYear
+	}
+
+	queryStr = queryStr + ") af on tb0.uid = af.member_card_uid) tb1 "
 
 	if playerName != "" {
 		queryStr = queryStr + " where "

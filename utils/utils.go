@@ -22,6 +22,11 @@ import (
 	"github.com/ttacon/libphonenumber"
 )
 
+func GetCurrentYear() string {
+	currentYearStr, _ := GetDateFromTimestampWithFormat(time.Now().Unix(), constants.YEAR_FORMAT)
+	return currentYearStr
+}
+
 func HashCodeUuid(uid string) string {
 	return NumberToString(uuid.MustParse(uid).ID())
 }
