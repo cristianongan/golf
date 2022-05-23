@@ -194,7 +194,10 @@ func (item *MemberCard) FindList(page Page, playerName string) ([]map[string]int
 	customer_users.position as owner_position,
 	customer_users.identify as owner_identify,
 	customer_users.company_id as owner_company_id,
-	customer_users.company_name as owner_company_name
+	customer_users.company_name as owner_company_name,
+	af.annual_quota_amount as annual_quota_amount,
+	af.total_paid as total_paid,
+	af.play_counts_add as play_counts_add
 	from (select * from member_cards WHERE member_cards.partner_uid = ` + `"` + item.PartnerUid + `"`
 
 	if item.CourseUid != "" {
