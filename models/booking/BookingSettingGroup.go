@@ -17,8 +17,8 @@ type BookingSettingGroup struct {
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	Name       string `json:"name" gorm:"type:varchar(256)"`              // Group Name
-	From       int64  `json:"from" gorm:"index"`                          // Áp dụng từ ngày
-	To         int64  `json:"to" gorm:"index"`                            // Áp dụng tới ngày
+	FromDate   int64  `json:"from_date" gorm:"index"`                     // Áp dụng từ ngày
+	ToDate     int64  `json:"to_date" gorm:"index"`                       // Áp dụng tới ngày
 }
 
 func (item *BookingSettingGroup) IsDuplicated() bool {
@@ -26,8 +26,8 @@ func (item *BookingSettingGroup) IsDuplicated() bool {
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
 		Name:       item.Name,
-		From:       item.From,
-		To:         item.To,
+		FromDate:   item.FromDate,
+		ToDate:     item.ToDate,
 	}
 
 	errFind := bookingSettingGroup.FindFirst()
@@ -104,14 +104,14 @@ func (item *BookingSettingGroup) FindList(page models.Page, from, to int64) ([]B
 
 	//Search With Time
 	if from > 0 && to > 0 {
-		db = db.Where("from < " + strconv.FormatInt(from+30, 10) + " ")
-		// db = db.Where("to > " + strconv.FormatInt(to-30, 10) + " ")
+		db = db.Where("from_date < " + strconv.FormatInt(from+30, 10) + " ")
+		db = db.Where("to_date > " + strconv.FormatInt(to-30, 10) + " ")
 	}
 	if from > 0 && to == 0 {
-		db = db.Where("from < " + strconv.FormatInt(from+30, 10) + " ")
+		db = db.Where("from_date < " + strconv.FormatInt(from+30, 10) + " ")
 	}
 	if from == 0 && to > 0 {
-		db = db.Where("to > " + strconv.FormatInt(to-30, 10) + " ")
+		db = db.Where("to_date > " + strconv.FormatInt(to-30, 10) + " ")
 	}
 
 	db.Count(&total)

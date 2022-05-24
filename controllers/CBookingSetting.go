@@ -37,8 +37,8 @@ func (_ *CBookingSetting) CreateBookingSettingGroup(c *gin.Context, prof models.
 		PartnerUid: body.PartnerUid,
 		CourseUid:  body.CourseUid,
 		Name:       body.Name,
-		From:       body.From,
-		To:         body.To,
+		FromDate:   body.FromDate,
+		ToDate:     body.ToDate,
 	}
 
 	errC := bookingSettingGroup.Create()
@@ -116,8 +116,8 @@ func (_ *CBookingSetting) UpdateBookingSettingGroup(c *gin.Context, prof models.
 	if body.Status != "" {
 		bookingSettingGroup.Status = body.Status
 	}
-	bookingSettingGroup.From = body.From
-	bookingSettingGroup.To = body.To
+	bookingSettingGroup.FromDate = body.FromDate
+	bookingSettingGroup.ToDate = body.ToDate
 
 	errUdp := bookingSettingGroup.Update()
 	if errUdp != nil {
