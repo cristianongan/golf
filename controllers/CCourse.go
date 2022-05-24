@@ -175,3 +175,21 @@ func (_ *CCourse) DeleteCourse(c *gin.Context, prof models.CmsUser) {
 
 	okRes(c)
 }
+
+func (_ *CCourse) GetCourseDetail(c *gin.Context, prof models.CmsUser) {
+	courseUidStr := c.Param("uid")
+	if courseUidStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
+	course := models.Course{}
+	course.Uid = courseUidStr
+	errF := course.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	okResponse(c, course)
+}

@@ -93,6 +93,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/course/list", middlewares.AuthorizedCmsUserHandler(cCourse.GetListCourse))
 			cmsApiAuthorized.PUT("/course/:uid", middlewares.AuthorizedCmsUserHandler(cCourse.UpdateCourse))
 			cmsApiAuthorized.DELETE("/course/:uid", middlewares.AuthorizedCmsUserHandler(cCourse.DeleteCourse))
+			cmsApiAuthorized.GET("/course/:uid", middlewares.AuthorizedCmsUserHandler(cCourse.GetCourseDetail))
 
 			/// =================== Member Card =====================
 			cMemberCard := new(controllers.CMemberCard)

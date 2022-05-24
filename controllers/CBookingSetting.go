@@ -360,7 +360,10 @@ func (_ *CBookingSetting) GetListBookingSettingOnDate(c *gin.Context, prof model
 		SortDir: "desc",
 	}
 
-	bookingSettingGroupR := model_booking.BookingSettingGroup{}
+	bookingSettingGroupR := model_booking.BookingSettingGroup{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
 	listBSG, _, errLBSG := bookingSettingGroupR.FindList(page, from, to)
 	if errLBSG != nil || len(listBSG) == 0 {
 		response_message.InternalServerError(c, "Not found booking setting group")
