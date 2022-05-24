@@ -7,6 +7,7 @@ import (
 	"start/datasources"
 	"start/models"
 	"start/utils"
+	"strconv"
 	"strings"
 	"time"
 
@@ -452,7 +453,7 @@ func (item *Booking) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *Booking) FindList(page models.Page) ([]Booking, int64, error) {
+func (item *Booking) FindList(page models.Page, from, to int64) ([]Booking, int64, error) {
 	db := datasources.GetDatabase().Model(Booking{})
 	list := []Booking{}
 	total := int64(0)
@@ -462,6 +463,26 @@ func (item *Booking) FindList(page models.Page) ([]Booking, int64, error) {
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	//Search With Time
+	if from > 0 && to > 0 {
+		db = db.Where("created_at between " + strconv.FormatInt(from-5, 10) + " and " + strconv.FormatInt(to+5, 10) + " ")
+	}
+
+	if from > 0 && to == 0 {
+		db = db.Where("created_at > " + strconv.FormatInt(from-5, 10) + " ")
+	}
+
+	if from == 0 && to > 0 {
+		db = db.Where("created_at < " + strconv.FormatInt(to+5, 10) + " ")
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

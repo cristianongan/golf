@@ -20,6 +20,8 @@ type GetListBookingForm struct {
 	PartnerUid string `form:"partner_uid"`
 	CourseUid  string `form:"course_uid"`
 	Bag        string `form:"bag"`
+	From       int64  `form:"from"`
+	To         int64  `form:"to"`
 }
 
 // Tạo Tee booking

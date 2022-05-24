@@ -332,7 +332,7 @@ func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
-	list, total, err := bookingR.FindList(page)
+	list, total, err := bookingR.FindList(page, form.From, form.To)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
