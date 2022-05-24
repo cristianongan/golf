@@ -196,7 +196,7 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CardId = memberCard.CardId
 		booking.CustomerName = owner.Name
 		booking.CustomerUid = owner.Uid
-
+		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
 	} else {
 		booking.CustomerName = body.CustomerName
 	}

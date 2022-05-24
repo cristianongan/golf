@@ -171,30 +171,6 @@ func formatGolfFee(feeText string) string {
 	return strings.Join(list1, constants.FEE_SEPARATE_CHAR)
 }
 
-// Caddie Fee, Green Fee, Buggy Fee string to List Model int
-// func golfFeeToList(feeText string) []models.GolfFeeText {
-// 	listF := strings.Split(feeText, constants.FEE_SEPARATE_CHAR)
-// 	listResult := []models.GolfFeeText{}
-// 	if len(listF) == 0 {
-// 		return listResult
-// 	}
-
-// 	for i, v := range listF {
-// 		feeInt, err := strconv.ParseInt(v, 10, 64)
-// 		if err == nil {
-// 			golfFeeText := models.GolfFeeText{
-// 				Hole: (i + 1) * 9,
-// 				Fee:  feeInt,
-// 			}
-// 			listResult = append(listResult, golfFeeText)
-// 		} else {
-// 			log.Println("golfFeeToList err", err.Error())
-// 		}
-// 	}
-
-// 	return listResult
-// }
-
 // Get log for cms user action booking
 func getBookingCmsUserLog(cmsUser string, timeDo int64) string {
 	hourStr, _ := utils.GetDateFromTimestampWithFormat(timeDo, constants.HOUR_FORMAT)
@@ -340,4 +316,19 @@ func createBagsNoteNoteOfBooking(booking model_booking.Booking) {
 	if errC != nil {
 		log.Println("createBagsNote err", errC.Error())
 	}
+}
+
+func convertToCustomerSqlIntoBooking(customerSql models.CustomerUser) model_booking.CustomerInfo {
+	cusBook := model_booking.CustomerInfo{}
+	byteData, err := json.Marshal(customerSql)
+	if err != nil {
+		log.Println("convertToCustomerSqlIntoBooking err", err.Error())
+		return cusBook
+	}
+	errUnM := json.Unmarshal(byteData, &cusBook)
+	if errUnM != nil {
+		log.Println("convertToCustomerSqlIntoBooking errUnM", errUnM.Error())
+	}
+
+	return cusBook
 }

@@ -15,6 +15,7 @@ import (
 )
 
 // Booking
+// omitempty: xứ lý khi các field trả về rỗng
 type Booking struct {
 	models.Model
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
@@ -32,6 +33,7 @@ type Booking struct {
 	CustomerName  string `json:"customer_name" gorm:"type:varchar(256)"`         // Tên khách hàng
 	CustomerUid   string `json:"customer_uid" gorm:"type:varchar(256);index"`    // Uid khách hàng
 	// Thêm customer info
+	CustomerInfo CustomerInfo `json:"customer_info,omitempty" gorm:"type:json"` // Customer Info
 
 	CheckInOutStatus string `json:"check_in_out_status" gorm:"type:varchar(50);index"` // Time Check In Out status
 	CheckInTime      int64  `json:"check_in_time"`                                     // Time Check In
@@ -43,11 +45,11 @@ type Booking struct {
 	TeeOffTime       string `json:"tee_off_time" gorm:"type:varchar(30)"`              // Ex: 16:26 Là thời gian thực tế phát bóng
 	RowIndex         int    `json:"row_index"`                                         // index trong Flight
 
-	CurrentBagPrice  BookingCurrentBagPriceDetail  `json:"current_bag_price" gorm:"type:varchar(500)"`   // Thông tin phí++: Tính toán lại phí Service items, Tiền cho Subbag
-	ListGolfFee      ListBookingGolfFee            `json:"list_golf_fee" gorm:"type:varchar(3000)"`      // Thông tin List Golf Fee, Main Bag, Sub Bag
-	ListServiceItems utils.ListBookingServiceItems `json:"list_service_items" gorm:"type:varchar(6000)"` // List service item: rental, proshop, restaurant, kiosk
-	MushPayInfo      BookingMushPay                `json:"mush_pay_info" gorm:"type:varchar(200)"`       // Mush Pay info
-	Rounds           ListBookingRound              `json:"rounds" gorm:"type:varchar(1000)"`             // List Rounds: Sẽ sinh golf Fee với List GolfFee
+	CurrentBagPrice  BookingCurrentBagPriceDetail  `json:"current_bag_price,omitempty" gorm:"type:json"`  // Thông tin phí++: Tính toán lại phí Service items, Tiền cho Subbag
+	ListGolfFee      ListBookingGolfFee            `json:"list_golf_fee,omitempty" gorm:"type:json"`      // Thông tin List Golf Fee, Main Bag, Sub Bag
+	ListServiceItems utils.ListBookingServiceItems `json:"list_service_items,omitempty" gorm:"type:json"` // List service item: rental, proshop, restaurant, kiosk
+	MushPayInfo      BookingMushPay                `json:"mush_pay_info,omitempty" gorm:"type:json"`      // Mush Pay info
+	Rounds           ListBookingRound              `json:"rounds,omitempty" gorm:"type:json"`             // List Rounds: Sẽ sinh golf Fee với List GolfFee
 
 	// Note          string `json:"note" gorm:"type:varchar(500)"`            // Note
 	NoteOfBag     string `json:"note_of_bag" gorm:"type:varchar(500)"`     // Note of Bag
@@ -66,13 +68,46 @@ type Booking struct {
 	BuggyId int64 `json:"buggy_id" gorm:"index"`
 
 	// Subs bags
-	SubBags utils.ListSubBag `json:"sub_bags" gorm:"type:varchar(1000)"` // List Sub Bags
+	SubBags utils.ListSubBag `json:"sub_bags,omitempty" gorm:"type:json"` // List Sub Bags
 
 	// Main bags
-	MainBags utils.ListSubBag `json:"main_bags" gorm:"type:varchar(200)"` // List Main Bags, thêm main bag sẽ thanh toán những cái gì
+	MainBags utils.ListSubBag `json:"main_bags,omitempty" gorm:"type:json"` // List Main Bags, thêm main bag sẽ thanh toán những cái gì
 	// Main bug for Pay: Mặc định thanh toán all, Nếu có trong list này thì k thanh toán
-	MainBagNoPay utils.ListString `json:"main_bag_no_pay" gorm:"type:varchar(100)"` // Main Bag không thanh toán những phần này
-	InitType     string           `json:"init_type" gorm:"type:varchar(50);index"`  // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
+	MainBagNoPay utils.ListString `json:"main_bag_no_pay,omitempty" gorm:"type:json"` // Main Bag không thanh toán những phần này
+	InitType     string           `json:"init_type" gorm:"type:varchar(50);index"`    // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
+}
+
+type CustomerInfo struct {
+	Uid         string `json:"uid"`
+	PartnerUid  string `json:"partner_uid"`  // Hang Golf
+	CourseUid   string `json:"course_uid"`   // San Golf
+	Type        string `json:"type"`         // Loai khach hang: Member, Guest, Visitor...
+	Name        string `json:"name"`         // Ten KH
+	Dob         int64  `json:"dob"`          // Ngay sinh
+	Sex         int    `json:"sex"`          // giới tính
+	Avatar      string `json:"avatar"`       // ảnh đại diện
+	Nationality string `json:"nationality"`  // Quốc gia
+	Phone       string `json:"phone"`        // So dien thoai
+	CellPhone   string `json:"cell_phone"`   // So dien thoai
+	Fax         string `json:"fax"`          // So Fax
+	Email       string `json:"email"`        // Email
+	Address1    string `json:"address1"`     // Dia chi
+	Address2    string `json:"address2"`     // Dia chi
+	Job         string `json:"job"`          // Ex: Ngan hang
+	Position    string `json:"position"`     // Ex: Chu tich
+	CompanyName string `json:"company_name"` // Ten cong ty
+	CompanyId   int64  `json:"company_id"`   // Id cong ty
+	Mst         string `json:"mst"`          // mã số thuế
+	Identify    string `json:"identify"`     // CMT
+	Note        string `json:"note"`         // Ghi chu them
+}
+
+func (item *CustomerInfo) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item CustomerInfo) Value() (driver.Value, error) {
+	return json.Marshal(&item)
 }
 
 // Booking Mush Pay
