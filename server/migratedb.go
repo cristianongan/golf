@@ -6,6 +6,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	model_service "start/models/service"
 )
 
 func MigrateDb() {
@@ -53,6 +54,12 @@ func MigrateDb() {
 		db.AutoMigrate(&models.Nationality{})
 		db.AutoMigrate(&models.CompanyType{})
 		db.AutoMigrate(&models.Company{})
+
+		// ------- Service ------
+		db.AutoMigrate(&model_service.Kiosk{})
+		db.AutoMigrate(&model_service.Rental{})
+		db.AutoMigrate(&model_service.Proshop{})
+		db.AutoMigrate(&model_service.Restaurent{})
 
 		log.Println("migrated db")
 	}
