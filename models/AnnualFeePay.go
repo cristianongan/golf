@@ -97,6 +97,9 @@ func (item *AnnualFeePay) FindList(page Page) ([]AnnualFeePay, int64, error) {
 	if item.MemberCardUid != "" {
 		db = db.Where("member_card_uid = ?", item.MemberCardUid)
 	}
+	if item.Year > 0 {
+		db = db.Where("year = ?", item.Year)
+	}
 
 	db.Count(&total)
 

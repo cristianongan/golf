@@ -75,6 +75,7 @@ func (_ *CAnnualFeePay) GetListAnnualFeePay(c *gin.Context, prof models.CmsUser)
 		PartnerUid:    form.PartnerUid,
 		CourseUid:     form.CourseUid,
 		MemberCardUid: form.MemberCardUid,
+		Year:          form.Year,
 	}
 	list, total, err := annualFeeR.FindList(page)
 	if err != nil {
