@@ -104,14 +104,14 @@ func (item *BookingSettingGroup) FindList(page models.Page, from, to int64) ([]B
 
 	//Search With Time
 	if from > 0 && to > 0 {
-		db = db.Where("from >= " + strconv.FormatInt(from, 10) + " ")
-		db = db.Where("to <= " + strconv.FormatInt(to, 10) + " ")
+		db = db.Where("from <= " + strconv.FormatInt(from, 10) + " ")
+		db = db.Where("to >= " + strconv.FormatInt(to, 10) + " ")
 	}
 	if from > 0 && to == 0 {
-		db = db.Where("from >=" + strconv.FormatInt(from, 10) + " ")
+		db = db.Where("from <=" + strconv.FormatInt(from, 10) + " ")
 	}
 	if from == 0 && to > 0 {
-		db = db.Where("to <= " + strconv.FormatInt(to, 10) + " ")
+		db = db.Where("to => " + strconv.FormatInt(to, 10) + " ")
 	}
 
 	db.Count(&total)
