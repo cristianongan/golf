@@ -27,6 +27,11 @@ func GetCurrentYear() string {
 	return currentYearStr
 }
 
+func GetCurrentDay() string {
+	currentDayStr, _ := GetDateFromTimestampWithFormat(time.Now().Unix(), constants.DATE_FORMAT)
+	return currentDayStr
+}
+
 func HashCodeUuid(uid string) string {
 	return NumberToString(uuid.MustParse(uid).ID())
 }
@@ -48,13 +53,19 @@ func Sum(v []int) int {
 	return output
 }
 
-func GetTimeStampFromLocationTime(location, localTime string) int64 { //
+func GetTimeStampFromLocationTime(location, formatTime, localTime string) int64 { //
+	if location == "" {
+		location = constants.LOCATION_DEFAULT
+	}
+	if formatTime == "" {
+		formatTime = constants.DATE_TIME_FORMAT
+	}
 	loc, errLoc := time.LoadLocation(location)
 	if errLoc != nil {
 		log.Println(errLoc)
 		return 0
 	}
-	time, errParse := time.ParseInLocation(constants.DATE_TIME_FORMAT, localTime, loc)
+	time, errParse := time.ParseInLocation(formatTime, localTime, loc)
 	if errParse != nil {
 		log.Println(errParse)
 		return 0

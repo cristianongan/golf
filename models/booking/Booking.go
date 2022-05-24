@@ -472,15 +472,15 @@ func (item *Booking) FindList(page models.Page, from, to int64) ([]Booking, int6
 
 	//Search With Time
 	if from > 0 && to > 0 {
-		db = db.Where("created_at between " + strconv.FormatInt(from-5, 10) + " and " + strconv.FormatInt(to+5, 10) + " ")
+		db = db.Where("created_at between " + strconv.FormatInt(from, 10) + " and " + strconv.FormatInt(to, 10) + " ")
 	}
 
 	if from > 0 && to == 0 {
-		db = db.Where("created_at > " + strconv.FormatInt(from-5, 10) + " ")
+		db = db.Where("created_at > " + strconv.FormatInt(from, 10) + " ")
 	}
 
 	if from == 0 && to > 0 {
-		db = db.Where("created_at < " + strconv.FormatInt(to+5, 10) + " ")
+		db = db.Where("created_at < " + strconv.FormatInt(to, 10) + " ")
 	}
 
 	db.Count(&total)

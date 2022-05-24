@@ -168,6 +168,7 @@ func NewRouter() *gin.Engine {
 
 			cmsApiAuthorized.POST("/booking/setting", middlewares.AuthorizedCmsUserHandler(cBookingSetting.CreateBookingSetting))
 			cmsApiAuthorized.GET("/booking/setting/list", middlewares.AuthorizedCmsUserHandler(cBookingSetting.GetListBookingSetting))
+			cmsApiAuthorized.GET("/booking/setting/on-date", middlewares.AuthorizedCmsUserHandler(cBookingSetting.GetListBookingSettingOnDate))
 			cmsApiAuthorized.PUT("/booking/setting/:id", middlewares.AuthorizedCmsUserHandler(cBookingSetting.UpdateBookingSetting))
 			cmsApiAuthorized.DELETE("/booking/setting/:id", middlewares.AuthorizedCmsUserHandler(cBookingSetting.DeleteBookingSetting))
 

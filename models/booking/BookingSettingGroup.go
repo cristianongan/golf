@@ -4,6 +4,7 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
+	"strconv"
 	"strings"
 	"time"
 
@@ -16,8 +17,8 @@ type BookingSettingGroup struct {
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	Name       string `json:"name" gorm:"type:varchar(256)"`              // Group Name
-	From       int64  `json:"from"`                                       // Áp dụng từ ngày
-	To         int64  `json:"to"`                                         // Áp dụng tới ngày
+	From       int64  `json:"from" gorm:"index"`                          // Áp dụng từ ngày
+	To         int64  `json:"to" gorm:"index"`                            // Áp dụng tới ngày
 }
 
 func (item *BookingSettingGroup) IsDuplicated() bool {
@@ -84,16 +85,35 @@ func (item *BookingSettingGroup) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *BookingSettingGroup) FindList(page models.Page) ([]BookingSettingGroup, int64, error) {
+func (item *BookingSettingGroup) FindList(page models.Page, from, to int64) ([]BookingSettingGroup, int64, error) {
 	db := datasources.GetDatabase().Model(BookingSettingGroup{})
 	list := []BookingSettingGroup{}
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
-	db = db.Where(item)
+	// db = db.Where(item)
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	//Search With Time
+	if from > 0 && to > 0 {
+		db = db.Where("from >= " + strconv.FormatInt(from, 10) + " ")
+		db = db.Where("to <= " + strconv.FormatInt(to, 10) + " ")
+	}
+	if from > 0 && to == 0 {
+		db = db.Where("from >=" + strconv.FormatInt(from, 10) + " ")
+	}
+	if from == 0 && to > 0 {
+		db = db.Where("to <= " + strconv.FormatInt(to, 10) + " ")
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
