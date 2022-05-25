@@ -218,6 +218,11 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/caddie-note/list", middlewares.AuthorizedCmsUserHandler(cCaddieNote.GetCaddieNoteList))
 			cmsApiAuthorized.PUT("/caddie-note/:id", middlewares.AuthorizedCmsUserHandler(cCaddieNote.UpdateCaddieNote))
 			cmsApiAuthorized.DELETE("/caddie-note/:id", middlewares.AuthorizedCmsUserHandler(cCaddieNote.DeleteCaddieNote))
+
+			/// =================== CGolf Service: Rental, Proshop, Restaurent, Kiosk =====================
+			cGolfService := new(controllers.CGolfService)
+			cmsApiAuthorized.GET("/golf-service/list/reception", middlewares.AuthorizedCmsUserHandler(cGolfService.GetGolfServiceForReception))
+
 		}
 
 		// ----------------------------------------------------------
