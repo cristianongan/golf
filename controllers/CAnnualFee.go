@@ -5,8 +5,10 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -40,12 +42,12 @@ func (_ *CAnnualFee) CreateAnnualFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	annualFee := models.AnnualFee{
-		PartnerUid:        body.PartnerUid,
-		CourseUid:         body.CourseUid,
-		Year:              body.Year,
-		MemberCardUid:     body.MemberCardUid,
-		PaymentType:       body.PaymentType,
-		BillNumber:        body.BillNumber,
+		PartnerUid:    body.PartnerUid,
+		CourseUid:     body.CourseUid,
+		Year:          body.Year,
+		MemberCardUid: body.MemberCardUid,
+		// PaymentType:       body.PaymentType,
+		// BillNumber:        body.BillNumber,
 		Note:              body.Note,
 		AnnualQuotaAmount: body.AnnualQuotaAmount,
 		PrePaid:           body.PrePaid,
@@ -72,6 +74,15 @@ func (_ *CAnnualFee) GetListAnnualFee(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
+	if form.Year == 0 && form.MemberCardUid == "" {
+		currentYearStr, errParseTime := utils.GetDateFromTimestampWithFormat(time.Now().Unix(), constants.YEAR_FORMAT)
+		if errParseTime == nil {
+			currentYearInt, errPInt := strconv.Atoi(currentYearStr)
+			if errPInt == nil {
+				form.Year = currentYearInt
+			}
+		}
+	}
 
 	page := models.Page{
 		Limit:   form.PageRequest.Limit,
@@ -81,10 +92,46 @@ func (_ *CAnnualFee) GetListAnnualFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	annualFeeR := models.AnnualFee{
-		PartnerUid: form.PartnerUid,
-		CourseUid:  form.CourseUid,
+		PartnerUid:    form.PartnerUid,
+		CourseUid:     form.CourseUid,
+		MemberCardUid: form.MemberCardUid,
+		Year:          form.Year,
 	}
 	list, total, err := annualFeeR.FindList(page)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
+func (_ *CAnnualFee) GetListAnnualFeeWithGroupMemberCard(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListAnnualFeeForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	annualFeeR := models.AnnualFee{
+		PartnerUid:    form.PartnerUid,
+		CourseUid:     form.CourseUid,
+		MemberCardUid: form.MemberCardUid,
+		Year:          form.Year,
+	}
+	list, total, err := annualFeeR.FindListWithGroupMemberCard(page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

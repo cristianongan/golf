@@ -5,7 +5,8 @@ import (
 	"log"
 	"start/constants"
 	"start/datasources"
-	"strings"
+	"start/utils"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,7 +30,7 @@ type MemberCard struct {
 	Locker          string `json:"locker" gorm:"type:varchar(100)"`    // Mã số tủ gửi đồ
 	AdjustPlayCount int    `json:"adjust_play_count"`                  // Trước đó đã chơi bao nhiêu lần
 
-	PriceCode int64 `json:"price_code"` // Check cái này có thì tính theo giá riêng -> theo cuộc họp suggest nên bỏ - Ko bỏ dc
+	PriceCode int64 `json:"price_code"` // 0|1 Check cái này có thì tính theo giá riêng -> theo cuộc họp suggest nên bỏ - Ko bỏ dc
 	GreenFee  int64 `json:"green_fee"`  // Phí sân cỏ
 	CaddieFee int64 `json:"caddie_fee"` // Phí caddie
 	BuggyFee  int64 `json:"buggy_fee"`  // Phí Buggy
@@ -173,21 +174,91 @@ func (item *MemberCard) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *MemberCard) FindList(page Page) ([]MemberCard, int64, error) {
-	db := datasources.GetDatabase().Model(MemberCard{})
-	list := []MemberCard{}
+func (item *MemberCard) FindList(page Page, playerName string) ([]map[string]interface{}, int64, error) {
+	db := datasources.GetDatabase().Table("member_cards")
+	list := []map[string]interface{}{}
 	total := int64(0)
-	status := item.Model.Status
-	item.Model.Status = ""
-	db = db.Where(item)
-	if status != "" {
-		db = db.Where("status in (?)", strings.Split(status, ","))
+
+	queryStr := `select * from (select tb0.*, 
+	member_card_types.name as mc_types_name,
+	member_card_types.type as base_type,
+	member_card_types.guest_style as guest_style,
+	customer_users.name as owner_name,
+	customer_users.email as owner_email,
+	customer_users.address1 as owner_address1,
+	customer_users.address2 as owner_address2,
+	customer_users.phone as owner_phone,
+	customer_users.dob as owner_dob,
+	customer_users.sex as owner_sex,
+	customer_users.job as owner_job,
+	customer_users.position as owner_position,
+	customer_users.identify as owner_identify,
+	customer_users.company_id as owner_company_id,
+	customer_users.company_name as owner_company_name,
+	af.annual_quota_amount as annual_quota_amount,
+	af.total_paid as total_paid,
+	af.play_counts_add as play_counts_add
+	from (select * from member_cards WHERE member_cards.partner_uid = ` + `"` + item.PartnerUid + `"`
+
+	if item.CourseUid != "" {
+		queryStr = queryStr + " and member_cards.course_uid = " + `"` + item.CourseUid + `"`
 	}
-	db.Count(&total)
+	if item.OwnerUid != "" {
+		queryStr = queryStr + " and member_cards.owner_uid = " + `"` + item.OwnerUid + `"`
+	}
+	if item.Status != "" {
+		queryStr = queryStr + " and member_cards.status = " + `"` + item.Status + `"`
+	}
+	if item.CardId != "" {
+		queryStr = queryStr + " and member_cards.card_id = " + `"` + item.CardId + `"`
+	}
+	if item.McTypeId > 0 {
+		queryStr = queryStr + " and member_cards.mc_type_id = " + strconv.Itoa(int(item.McTypeId))
+	}
+
+	queryStr = queryStr + ") tb0 "
+	queryStr = queryStr + `LEFT JOIN member_card_types on tb0.mc_type_id = member_card_types.id
+	LEFT JOIN customer_users on tb0.owner_uid = customer_users.uid `
+
+	queryStr = queryStr + " LEFT JOIN (select * from annual_fees where annual_fees.partner_uid = " + `"` + item.PartnerUid + `"`
+	if item.CourseUid != "" {
+		queryStr = queryStr + " and annual_fees.course_uid = " + `"` + item.CourseUid + `"`
+	}
+	currentYear := utils.GetCurrentYear()
+	if currentYear != "" {
+		queryStr = queryStr + " and annual_fees.year = " + currentYear
+	}
+
+	queryStr = queryStr + ") af on tb0.uid = af.member_card_uid) tb1 "
+
+	if playerName != "" {
+		queryStr = queryStr + " where "
+		queryStr = queryStr + " tb1.owner_name LIKE " + `"%` + playerName + `%"`
+	}
+
+	// var countReturn CountStruct
+	var countReturn utils.CountStruct
+	strSQLCount := " select count(*) as count from ( " + queryStr + " ) as subTable "
+	errCount := db.Raw(strSQLCount).Scan(&countReturn).Error
+	if errCount != nil {
+		log.Println("Membercard err", errCount.Error())
+		return list, total, errCount
+	}
+
+	total = countReturn.Count
+	//Check if limit large then set to 50
+	if page.Limit > 50 {
+		page.Limit = 50
+	}
 
 	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Find(&list)
+		queryStr = queryStr + " order by tb1." + page.SortBy + " " + page.SortDir + " LIMIT " + strconv.Itoa(page.Limit) + " OFFSET " + strconv.Itoa(page.Offset())
 	}
+	err := db.Raw(queryStr).Scan(&list).Error
+	if err != nil {
+		return list, total, err
+	}
+
 	return list, total, db.Error
 }
 

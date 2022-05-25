@@ -13,6 +13,7 @@ type GetListBookingSettingForm struct {
 	PartnerUid string `form:"partner_uid"`
 	CourseUid  string `form:"course_uid"`
 	GroupId    int64  `form:"group_id"`
+	OnDate     string `form:"on_date"`
 }
 
 type GetListBookingForm struct {
@@ -20,6 +21,8 @@ type GetListBookingForm struct {
 	PartnerUid string `form:"partner_uid"`
 	CourseUid  string `form:"course_uid"`
 	Bag        string `form:"bag"`
+	From       int64  `form:"from"`
+	To         int64  `form:"to"`
 }
 
 // Tạo Tee booking

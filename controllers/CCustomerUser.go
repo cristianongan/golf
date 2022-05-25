@@ -42,6 +42,8 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		CompanyName: body.CompanyName,
 		Mst:         body.Mst,
 		Note:        body.Note,
+		Identify:    body.Identify,
+		Type:        body.Type,
 	}
 
 	errC := customerUser.Create()
@@ -68,11 +70,11 @@ func (_ *CCustomerUser) GetListCustomerUser(c *gin.Context, prof models.CmsUser)
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	customerUserR := models.CustomerUser{
+	customerUserGet := models.CustomerUser{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
-	list, total, err := customerUserR.FindList(page)
+	list, total, err := customerUserGet.FindList(page, form.PartnerUid, form.CourseUid, form.Type, form.CustomerUid, form.Name)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -110,6 +112,53 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 	if body.Status != "" {
 		customerUser.Status = body.Status
 	}
+	if body.Identify != "" {
+		customerUser.Identify = body.Identify
+	}
+	if body.Type != "" {
+		customerUser.Type = body.Type
+	}
+	if body.Name != "" {
+		customerUser.Name = body.Name
+	}
+	if body.Address1 != "" {
+		customerUser.Address1 = body.Address1
+	}
+	if body.Address2 != "" {
+		customerUser.Address2 = body.Address2
+	}
+	if body.Note != "" {
+		customerUser.Note = body.Note
+	}
+	if body.Avatar != "" {
+		customerUser.Avatar = body.Avatar
+	}
+	if body.Nationality != "" {
+		customerUser.Nationality = body.Nationality
+	}
+	if body.Fax != "" {
+		customerUser.Fax = body.Fax
+	}
+	if body.Email != "" {
+		customerUser.Email = body.Email
+	}
+	if body.Job != "" {
+		customerUser.Job = body.Job
+	}
+	if body.Position != "" {
+		customerUser.Position = body.Position
+	}
+	if body.CompanyName != "" {
+		customerUser.CompanyName = body.CompanyName
+	}
+	if body.CompanyId > 0 {
+		customerUser.CompanyId = body.CompanyId
+	}
+	if body.Dob > 0 {
+		customerUser.Dob = body.Dob
+	}
+
+	customerUser.Sex = body.Sex
 
 	errUdp := customerUser.Update()
 	if errUdp != nil {

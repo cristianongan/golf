@@ -6,6 +6,7 @@ import (
 	"start/controllers/request"
 	"start/models"
 	model_booking "start/models/booking"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -36,8 +37,8 @@ func (_ *CBookingSetting) CreateBookingSettingGroup(c *gin.Context, prof models.
 		PartnerUid: body.PartnerUid,
 		CourseUid:  body.CourseUid,
 		Name:       body.Name,
-		From:       body.From,
-		To:         body.To,
+		FromDate:   body.FromDate,
+		ToDate:     body.ToDate,
 	}
 
 	errC := bookingSettingGroup.Create()
@@ -68,7 +69,7 @@ func (_ *CBookingSetting) GetListBookingSettingGroup(c *gin.Context, prof models
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
-	list, total, err := bookingSettingGroupR.FindList(page)
+	list, total, err := bookingSettingGroupR.FindList(page, 0, 0)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -115,8 +116,8 @@ func (_ *CBookingSetting) UpdateBookingSettingGroup(c *gin.Context, prof models.
 	if body.Status != "" {
 		bookingSettingGroup.Status = body.Status
 	}
-	bookingSettingGroup.From = body.From
-	bookingSettingGroup.To = body.To
+	bookingSettingGroup.FromDate = body.FromDate
+	bookingSettingGroup.ToDate = body.ToDate
 
 	errUdp := bookingSettingGroup.Update()
 	if errUdp != nil {
@@ -322,4 +323,77 @@ func (_ *CBookingSetting) DeleteBookingSetting(c *gin.Context, prof models.CmsUs
 	}
 
 	okRes(c)
+}
+
+// Get booking Config của ngày
+func (_ *CBookingSetting) GetListBookingSettingOnDate(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListBookingSettingForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.OnDate == "" {
+		form.OnDate = utils.GetCurrentDay()
+	}
+
+	from := int64(0)
+	to := int64(0)
+
+	if form.OnDate != "" {
+		// Lấy ngày hiện tại
+		fromInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT, form.OnDate)
+		from = fromInt
+		to = from + 24*60*60
+	}
+
+	if from == 0 {
+		response_message.BadRequest(c, "from not valid")
+		return
+	}
+
+	// Get booking Group
+	page := models.Page{
+		Limit:   20,
+		Page:    1,
+		SortBy:  "created_at",
+		SortDir: "desc",
+	}
+
+	bookingSettingGroupR := model_booking.BookingSettingGroup{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+	listBSG, _, errLBSG := bookingSettingGroupR.FindList(page, from, to)
+	if errLBSG != nil || len(listBSG) == 0 {
+		response_message.InternalServerError(c, "Not found booking setting group")
+		return
+	}
+	bookingSettingGroup := listBSG[0]
+	bookingSettingGroupId := bookingSettingGroup.Id
+
+	page1 := models.Page{
+		Limit:   200,
+		Page:    1,
+		SortBy:  "created_at",
+		SortDir: "desc",
+	}
+
+	bookingSettingR := model_booking.BookingSetting{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		GroupId:    bookingSettingGroupId,
+	}
+	list, _, err := bookingSettingR.FindList(page1)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"booking-setting-group": bookingSettingGroup,
+		"data":                  list,
+	}
+
+	okResponse(c, res)
 }

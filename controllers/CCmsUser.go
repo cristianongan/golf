@@ -122,32 +122,20 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 		log.Println("cmsUserToken.Create: ", errCreate)
 	}
 
-	// // =============== user permission =================
-	// permissionUid := ""
-	// roleIds := []string{}
-	// uPermission := models.UserPermission{
-	// 	UserUid: user.Uid,
-	// }
-	// errFindPermission := uPermission.FindFirst()
-	// if errFindPermission != nil {
-	// 	log.Println(errFindPermission)
-	// }
-	// permissionUid = uPermission.PermissionUid
-	// if permissionUid != "" {
-	// 	accessControl := models.AccessControl{
-	// 		PermissionUid: permissionUid,
-	// 	}
-	// 	accessControls, _, _ := accessControl.FindList(models.Page{Limit: 1000})
-	// 	for _, item := range accessControls {
-	// 		roleIds = append(roleIds, item.RoleUid)
-	// 	}
-	// }
+	courseInfo := models.Course{}
+	courseInfo.Uid = user.CourseUid
+	errFindCourse := courseInfo.FindFirst()
+	if errFindCourse != nil {
+		response_message.BadRequest(c, errFindCourse.Error())
+		return
+	}
 
 	userDataRes := map[string]interface{}{
 		"user_name":   user.UserName,
 		"phone":       user.Phone,
 		"partner_uid": user.PartnerUid,
 		"course_uid":  user.CourseUid,
+		"course_info": courseInfo,
 	}
 
 	okResponse(c, gin.H{"token": jwt, "data": userDataRes})

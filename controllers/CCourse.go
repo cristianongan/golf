@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"start/constants"
 	"start/controllers/request"
 	"start/models"
 	"start/utils/response_message"
@@ -15,6 +16,11 @@ func (_ *CCourse) CreateCourse(c *gin.Context, prof models.CmsUser) {
 	body := models.Course{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
+		return
+	}
+
+	if body.PartnerUid == "" || body.Hole <= 0 || body.Name == "" || body.RateGolfFee == "" {
+		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
 		return
 	}
 
@@ -47,6 +53,7 @@ func (_ *CCourse) CreateCourse(c *gin.Context, prof models.CmsUser) {
 	course.Lng = body.Lng
 	course.Icon = body.Icon
 	course.Hole = body.Hole
+	course.RateGolfFee = body.RateGolfFee
 
 	errC := course.Create()
 
@@ -132,6 +139,9 @@ func (_ *CCourse) UpdateCourse(c *gin.Context, prof models.CmsUser) {
 	if body.Icon != "" {
 		course.Icon = body.Icon
 	}
+	if body.RateGolfFee != "" {
+		course.RateGolfFee = body.RateGolfFee
+	}
 
 	errUdp := course.Update()
 	if errUdp != nil {
@@ -164,4 +174,22 @@ func (_ *CCourse) DeleteCourse(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okRes(c)
+}
+
+func (_ *CCourse) GetCourseDetail(c *gin.Context, prof models.CmsUser) {
+	courseUidStr := c.Param("uid")
+	if courseUidStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
+	course := models.Course{}
+	course.Uid = courseUidStr
+	errF := course.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	okResponse(c, course)
 }

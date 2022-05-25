@@ -31,7 +31,9 @@ type CustomerUser struct {
 	Job         string `json:"job" gorm:"type:varchar(200)"`               // Ex: Ngan hang
 	Position    string `json:"position" gorm:"type:varchar(200)"`          // Ex: Chu tich
 	CompanyName string `json:"company_name" gorm:"type:varchar(200)"`      // Ten cong ty
+	CompanyId   int64  `json:"company_id" gorm:"index"`                    // Id cong ty
 	Mst         string `json:"mst" gorm:"type:varchar(50)"`                // mã số thuế
+	Identify    string `json:"identify" gorm:"type:varchar(50)"`           // CMT
 	Note        string `json:"note" gorm:"type:varchar(500)"`              // Ghi chu them
 }
 
@@ -72,16 +74,32 @@ func (item *CustomerUser) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *CustomerUser) FindList(page Page) ([]CustomerUser, int64, error) {
-	db := datasources.GetDatabase().Model(CustomerUser{})
+func (item *CustomerUser) FindList(page Page, partnerUid, courseUid, typeCus, customerUid, name string) ([]CustomerUser, int64, error) {
+	db := datasources.GetDatabase().Table("customer_users")
 	list := []CustomerUser{}
 	total := int64(0)
 	status := item.Model.Status
 	item.Model.Status = ""
-	db = db.Where(item)
+	// db = db.Where(item)
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+	if partnerUid != "" {
+		db = db.Where("partner_uid = ?", partnerUid)
+	}
+	if courseUid != "" {
+		db = db.Where("course_uid = ?", courseUid)
+	}
+	if typeCus != "" {
+		db = db.Where("type = ?", typeCus)
+	}
+	if customerUid != "" {
+		db = db.Where("uid = ?", customerUid)
+	}
+	if name != "" {
+		db = db.Where("name LIKE ?", "%"+name+"%")
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

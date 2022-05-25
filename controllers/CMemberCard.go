@@ -95,8 +95,12 @@ func (_ *CMemberCard) GetListMemberCard(c *gin.Context, prof models.CmsUser) {
 	memberCardR := models.MemberCard{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
+		McTypeId:   form.McTypeId,
+		OwnerUid:   form.OwnerUid,
+		CardId:     form.CardId,
 	}
-	list, total, err := memberCardR.FindList(page)
+	memberCardR.Status = form.Status
+	list, total, err := memberCardR.FindList(page, form.PlayerName)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -131,18 +135,21 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// Check duplicated
-	if body.IsDuplicated() {
-		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-		return
-	}
-
 	if body.OwnerUid != "" {
 		memberCard.OwnerUid = body.OwnerUid
 	}
 	if body.Status != "" {
 		memberCard.Status = body.Status
 	}
+	memberCard.PriceCode = body.PriceCode
+	memberCard.GreenFee = body.GreenFee
+	memberCard.CaddieFee = body.CaddieFee
+	memberCard.BuggyFee = body.BuggyFee
+	memberCard.Note = body.Note
+	memberCard.ValidDate = body.ValidDate
+	memberCard.StartPrecial = body.StartPrecial
+	memberCard.EndPrecial = body.EndPrecial
+	memberCard.AdjustPlayCount = body.AdjustPlayCount
 
 	errUdp := memberCard.Update()
 	if errUdp != nil {

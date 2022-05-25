@@ -5,6 +5,8 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/models"
+	model_booking "start/models/booking"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -67,7 +69,11 @@ func (_ *CMemberCardType) GetListMemberCardType(c *gin.Context, prof models.CmsU
 	memberCardTypeR := models.MemberCardType{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
+		GuestStyle: form.GuestStyle,
+		Name:       form.Name,
+		Type:       form.Type,
 	}
+	memberCardTypeR.Status = form.Status
 	list, total, err := memberCardTypeR.FindList(page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -148,4 +154,49 @@ func (_ *CMemberCardType) DeleteMemberCardType(c *gin.Context, prof models.CmsUs
 	}
 
 	okRes(c)
+}
+
+func (_ *CMemberCardType) GetFeeByHole(c *gin.Context, prof models.CmsUser) {
+	form := request.GetFeeByHoleForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.McTypeId == 0 {
+		response_message.BadRequest(c, "invalid mc type id")
+		return
+	}
+
+	if form.Hole == 0 {
+		form.Hole = 18
+	}
+
+	memberCardType := models.MemberCardType{}
+	memberCardType.Id = form.McTypeId
+	errFind := memberCardType.FindFirst()
+	if errFind != nil {
+		response_message.BadRequest(c, errFind.Error())
+		return
+	}
+
+	golfFeeR := models.GolfFee{
+		PartnerUid: memberCardType.PartnerUid,
+		CourseUid:  memberCardType.CourseUid,
+		GuestStyle: memberCardType.GuestStyle,
+	}
+
+	golfFee, err := golfFeeR.GetGuestStyleOnDay()
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	bookingGolfFee := model_booking.BookingGolfFee{}
+
+	bookingGolfFee.CaddieFee = utils.GetFeeFromListFee(golfFee.CaddieFee, form.Hole)
+	bookingGolfFee.BuggyFee = utils.GetFeeFromListFee(golfFee.BuggyFee, form.Hole)
+	bookingGolfFee.GreenFee = utils.GetFeeFromListFee(golfFee.GreenFee, form.Hole)
+
+	okResponse(c, bookingGolfFee)
 }
