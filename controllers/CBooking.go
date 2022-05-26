@@ -523,7 +523,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 		// List Booking GolfFee
 		bodyCreate := request.CreateBookingBody{
-			Hole:         body.Hole,
+			Hole:         booking.Hole,
 			CustomerName: booking.CustomerName,
 			Bag:          booking.Bag,
 		}
