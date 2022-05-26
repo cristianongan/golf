@@ -196,6 +196,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/company/:id", middlewares.AuthorizedCmsUserHandler(cCompany.UpdateCompany))
 			cmsApiAuthorized.DELETE("/company/:id", middlewares.AuthorizedCmsUserHandler(cCompany.DeleteCompany))
 
+			/// =================== Agency =====================
+			cAgency := new(controllers.CAgency)
+			cmsApiAuthorized.POST("/agency", middlewares.AuthorizedCmsUserHandler(cAgency.CreateAgency))
+			cmsApiAuthorized.GET("/agency/list", middlewares.AuthorizedCmsUserHandler(cAgency.GetListAgency))
+			cmsApiAuthorized.PUT("/agency/:id", middlewares.AuthorizedCmsUserHandler(cAgency.UpdateAgency))
+			cmsApiAuthorized.DELETE("/agency/:id", middlewares.AuthorizedCmsUserHandler(cAgency.DeleteAgency))
+
 			/// **************** GO ****************
 			/// =================== Buggy =====================
 			cBuggy := new(controllers.CBuggy)
