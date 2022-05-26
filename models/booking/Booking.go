@@ -21,7 +21,7 @@ type Booking struct {
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 
-	CreatedDate string `json:"created_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
+	BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
 
 	Bag            string `json:"bag" gorm:"type:varchar(100);index"`         // Golf Bag
 	Hole           int    `json:"hole"`                                       // Số hố
@@ -423,7 +423,7 @@ func (item *Booking) IsDuplicated(checkTeeTime, checkBag bool) (bool, error) {
 			CourseUid:   item.CourseUid,
 			TeeTime:     item.TeeTime,
 			TurnTime:    item.TurnTime,
-			CreatedDate: item.CreatedDate,
+			BookingDate: item.BookingDate,
 		}
 
 		errFind := booking.FindFirst()
@@ -438,7 +438,7 @@ func (item *Booking) IsDuplicated(checkTeeTime, checkBag bool) (bool, error) {
 			booking := Booking{
 				PartnerUid:  item.PartnerUid,
 				CourseUid:   item.CourseUid,
-				CreatedDate: item.CreatedDate,
+				BookingDate: item.BookingDate,
 				Bag:         item.Bag,
 			}
 			errBagFind := booking.FindFirst()

@@ -60,11 +60,15 @@ func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
 		Hole:       body.Hole,
 	}
 
-	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-	if errDate == nil {
-		booking.CreatedDate = dateDisplay
+	if body.BookingDate != "" {
+		booking.BookingDate = body.BookingDate
 	} else {
-		log.Println("booking date display err ", errDate.Error())
+		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		if errDate == nil {
+			booking.BookingDate = dateDisplay
+		} else {
+			log.Println("booking date display err ", errDate.Error())
+		}
 	}
 
 	//Check duplicated
@@ -156,11 +160,15 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.Bag = body.Bag
 	}
 
-	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-	if errDate == nil {
-		booking.CreatedDate = dateDisplay
+	if body.BookingDate != "" {
+		booking.BookingDate = body.BookingDate
 	} else {
-		log.Println("booking date display err ", errDate.Error())
+		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		if errDate == nil {
+			booking.BookingDate = dateDisplay
+		} else {
+			log.Println("booking date display err ", errDate.Error())
+		}
 	}
 
 	//Check duplicated
@@ -295,12 +303,17 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 	booking.PartnerUid = form.PartnerUid
 	booking.CourseUid = form.CourseUid
 	booking.Bag = form.Bag
-	toDayDate, errD := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-	if errD != nil {
-		response_message.InternalServerError(c, errD.Error())
-		return
+
+	if form.BookingDate != "" {
+		booking.BookingDate = form.BookingDate
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+		booking.BookingDate = toDayDate
 	}
-	booking.CreatedDate = toDayDate
 
 	errF := booking.FindFirst()
 	if errF != nil {
