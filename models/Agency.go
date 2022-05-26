@@ -1,6 +1,8 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"start/constants"
 	"start/datasources"
 	"strings"
@@ -12,7 +14,6 @@ import (
 // Đại lý
 type Agency struct {
 	ModelId
-	Code                 string         `json:"code" gorm:"type:varchar(100);uniqueIndex"`  // Mã code
 	PartnerUid           string         `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid            string         `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	AgencyId             string         `json:"agency_id" gorm:"type:varchar(100);index"`   // Id Agency
@@ -33,6 +34,14 @@ type AgencyContact struct {
 	Mail        string `json:"mail"`
 }
 
+func (item *AgencyContact) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item AgencyContact) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
 type AgencyContract struct {
 	ContractNo      string `json:"contract_no"`
 	ExpDate         int64  `json:"exp_date"`
@@ -45,6 +54,14 @@ type AgencyContract struct {
 	Rounds          int    `json:"rounds"`
 	PrePaid         bool   `json:"pre_paid"`
 	ContractAddress string `json:"contract_address"`
+}
+
+func (item *AgencyContract) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item AgencyContract) Value() (driver.Value, error) {
+	return json.Marshal(&item)
 }
 
 func (item *Agency) IsDuplicated() bool {
@@ -75,7 +92,7 @@ func (item *Agency) IsValidated() bool {
 	if item.AgencyId == "" {
 		return false
 	}
-	if item.Code == "" {
+	if item.ShortName == "" {
 		return false
 	}
 	if item.GuestStyle == "" {
