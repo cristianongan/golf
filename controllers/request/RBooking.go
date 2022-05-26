@@ -112,6 +112,9 @@ type CheckInBody struct {
 	Bag    string `json:"bag" binding:"required"` // Golf Bag
 	Locker string `json:"locker"`
 	Hole   int    `json:"hole"` // Số hố
+
+	GuestStyle     string `json:"guest_style"`      // Guest Style
+	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
 }
 
 type AddRoundBody struct {
