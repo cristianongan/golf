@@ -197,7 +197,13 @@ func (_ *CBookingSetting) CreateBookingSetting(c *gin.Context, prof models.CmsUs
 		EndPart1:       body.EndPart1,
 		EndPart2:       body.EndPart2,
 		EndPart3:       body.EndPart3,
+		Part1TeeType:   body.Part1TeeType,
+		Part2TeeType:   body.Part2TeeType,
+		Part3TeeType:   body.Part3TeeType,
+		IncludeDays:    body.IncludeDays,
 	}
+
+	bookingSetting.Status = body.Status
 
 	errC := bookingSetting.Create()
 
@@ -290,6 +296,10 @@ func (_ *CBookingSetting) UpdateBookingSetting(c *gin.Context, prof models.CmsUs
 	bookingSetting.EndPart1 = body.EndPart1
 	bookingSetting.EndPart2 = body.EndPart2
 	bookingSetting.EndPart3 = body.EndPart3
+
+	bookingSetting.Part1TeeType = body.Part1TeeType
+	bookingSetting.Part2TeeType = body.Part2TeeType
+	bookingSetting.Part3TeeType = body.Part3TeeType
 
 	errUdp := bookingSetting.Update()
 	if errUdp != nil {
