@@ -222,6 +222,9 @@ func (_ *CGolfFee) GetListGuestStyle(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
+
+	// Lấy table Price
+
 	golfFeeR := models.GolfFee{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
