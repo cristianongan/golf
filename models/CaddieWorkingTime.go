@@ -25,6 +25,11 @@ type CaddieWorkingTimeResponse struct {
 	CaddieName   string `json:"caddie_name"`
 }
 
+type WorkingTimeTotal struct {
+	CaddieId string `json:"caddie_id"`
+	Total    int    `json:"total"`
+}
+
 func (item *CaddieWorkingTime) Create() error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
@@ -82,6 +87,7 @@ func (item *CaddieWorkingTime) Count() (int64, error) {
 
 func (item *CaddieWorkingTimeResponse) FindList(page Page, from, to int64) ([]CaddieWorkingTimeResponse, int64, error) {
 	var list []CaddieWorkingTimeResponse
+	// var results []WorkingTimeTotal
 
 	total := int64(0)
 
@@ -102,17 +108,20 @@ func (item *CaddieWorkingTimeResponse) FindList(page Page, from, to int64) ([]Ca
 	if to > 0 {
 		db = db.Where("caddie_working_times.created_at < ?", to)
 	}
+	db2 := db
 
 	db = db.Joins("JOIN caddies ON caddie_working_times.caddie_id = caddies.caddie_id")
 	db = db.Select("caddie_working_times.id, caddie_working_times.caddie_id, caddie_working_times.check_in_time, " +
 		"caddie_working_times.check_out_time, caddies.name as caddie_name")
-	// db = db.Group("caddie_working_times.caddie_id")
+	db2 = db2.Group("caddie_working_times.caddie_id")
+	db2 = db2.Select("SUM(caddie_working_times.check_out_time - caddie_working_times.check_in_time), caddie_working_times.caddie_id ")
+	db = page.Setup(db).Find(&list)
 
 	db.Count(&total)
 
-	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Find(&list)
-	}
+	// if total > 0 && int64(page.Offset()) < total {
+	// 	db = page.Setup(db).Find(&list)
+	// }
 
 	for i := range list {
 		c := &list[i]
