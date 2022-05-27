@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"start/constants"
 	"start/controllers/request"
 	"start/models"
 	"start/utils/response_message"
@@ -213,4 +214,19 @@ func (_ *CGolfFee) DeleteGolfFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okRes(c)
+}
+
+func (_ *CGolfFee) GetListGuestStyle(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListGolfFeeForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+	golfFeeR := models.GolfFee{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+	golfFeeR.Status = constants.STATUS_ENABLE
+	guestStyles := golfFeeR.GetGuestStyleList()
+	okResponse(c, guestStyles)
 }

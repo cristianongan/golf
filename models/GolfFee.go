@@ -37,6 +37,12 @@ type GolfFee struct {
 	GroupId          int64  `json:"group_id" gorm:"index"`                           // Id nhóm Fee
 }
 
+type GuestStyle struct {
+	TablePriceId   int64  `json:"table_price_id"`   // Id Bang gia
+	GuestStyleName string `json:"guest_style_name"` // Ten Guest style
+	GuestStyle     string `json:"guest_style"`      // Guest style
+}
+
 func (item *GolfFee) Create() error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
@@ -149,4 +155,25 @@ func (item *GolfFee) Delete() error {
 		return errors.New("Primary key is undefined!")
 	}
 	return datasources.GetDatabase().Delete(item).Error
+}
+
+func (item *GolfFee) GetGuestStyleList() []GuestStyle {
+	db := datasources.GetDatabase().Table("golf_fees")
+	list := []GuestStyle{}
+	status := item.ModelId.Status
+	if status != "" {
+		db = db.Where("status in (?)", strings.Split(status, ","))
+	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	db = db.Group("guest_style")
+	db.Find(&list)
+
+	return list
 }
