@@ -425,6 +425,7 @@ func (item *Booking) IsDuplicated(checkTeeTime, checkBag bool) (bool, error) {
 			TurnTime:    item.TurnTime,
 			BookingDate: item.BookingDate,
 			RowIndex:    item.RowIndex,
+			TeeType:     item.TeeType,
 		}
 
 		errFind := booking.FindFirst()
