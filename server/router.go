@@ -209,6 +209,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/caddie", middlewares.AuthorizedCmsUserHandler(cCaddie.CreateCaddie))
 			cmsApiAuthorized.POST("/caddie-batch", middlewares.AuthorizedCmsUserHandler(cCaddie.CreateCaddieBatch))
 			cmsApiAuthorized.GET("/caddie/list", middlewares.AuthorizedCmsUserHandler(cCaddie.GetCaddieList))
+			cmsApiAuthorized.GET("/caddie/:uid", middlewares.AuthorizedCmsUserHandler(cCaddie.GetCaddieDetail))
 			cmsApiAuthorized.PUT("/caddie/:id", middlewares.AuthorizedCmsUserHandler(cCaddie.UpdateCaddie))
 			cmsApiAuthorized.DELETE("/caddie/:id", middlewares.AuthorizedCmsUserHandler(cCaddie.DeleteCaddie))
 
@@ -218,6 +219,11 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/caddie-note/list", middlewares.AuthorizedCmsUserHandler(cCaddieNote.GetCaddieNoteList))
 			cmsApiAuthorized.PUT("/caddie-note/:id", middlewares.AuthorizedCmsUserHandler(cCaddieNote.UpdateCaddieNote))
 			cmsApiAuthorized.DELETE("/caddie-note/:id", middlewares.AuthorizedCmsUserHandler(cCaddieNote.DeleteCaddieNote))
+
+			/// =================== Caddie Working Time =====================
+			cCaddieWorkingTime := new(controllers.CCaddieWorkingTime)
+			cmsApiAuthorized.POST("/caddie-working-time", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.CreateCaddieWorkingTime))
+			cmsApiAuthorized.GET("/caddie-working-time/list", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.GetCaddieWorkingTimeDetail))
 		}
 
 		// ----------------------------------------------------------

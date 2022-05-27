@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"log"
 	"start/constants"
 	"start/controllers/request"
@@ -184,16 +185,33 @@ func (_ *CCaddie) GetCaddieList(c *gin.Context, prof models.CmsUser) {
 	c.JSON(200, res)
 }
 
-func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
-	caddieIdStr := c.Param("id")
-	caddieId, errId := strconv.ParseInt(caddieIdStr, 10, 64)
-	if errId != nil {
-		response_message.BadRequest(c, errId.Error())
+func (_ *CCaddie) GetCaddieDetail(c *gin.Context, prof models.CmsUser) {
+	caddieIdStr := c.Param("uid")
+	if caddieIdStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
 		return
 	}
 
 	caddieRequest := models.Caddie{}
-	caddieRequest.Id = caddieId
+	caddieRequest.CaddieId = caddieIdStr
+	errF := caddieRequest.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	okResponse(c, caddieRequest)
+}
+
+func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
+	caddieIdStr := c.Param("id")
+	if caddieIdStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
+	caddieRequest := models.Caddie{}
+	caddieRequest.CaddieId = caddieIdStr
 	errF := caddieRequest.FindFirst()
 
 	if errF != nil {
