@@ -118,10 +118,24 @@ func (item *GolfFee) FindList(page Page) ([]GolfFee, int64, error) {
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
-	db = db.Where(item)
+	// db = db.Where(item)
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.GroupId > 0 {
+		db = db.Where("group_id = ?", item.GroupId)
+	}
+	if item.TablePriceId > 0 {
+		db = db.Where("table_price_id = ?", item.TablePriceId)
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
