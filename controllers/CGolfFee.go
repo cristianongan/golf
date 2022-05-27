@@ -70,7 +70,7 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.CustomerCategory = getCustomerCategoryFromCustomerType(body.CustomerType)
 	golfFee.GroupName = body.GroupName
 	golfFee.GroupId = groupFee.Id
-	golfFee.UpdateUserName = body.UpdateUserName
+	golfFee.UpdateUserName = prof.UserName
 
 	errC := golfFee.Create()
 
@@ -179,7 +179,7 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.PaidType = body.PaidType
 	golfFee.Idx = body.Idx
 	golfFee.AccDebit = body.AccDebit
-	golfFee.UpdateUserName = body.UpdateUserName
+	golfFee.UpdateUserName = prof.UserName
 
 	errUdp := golfFee.Update()
 	if errUdp != nil {
