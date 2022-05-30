@@ -271,9 +271,11 @@ func (_ *CBookingSetting) UpdateBookingSetting(c *gin.Context, prof models.CmsUs
 		return
 	}
 
-	if body.IsDuplicated() {
-		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-		return
+	if body.Dow != bookingSetting.Dow {
+		if body.IsDuplicated() {
+			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+			return
+		}
 	}
 
 	if body.Status != "" {
