@@ -18,27 +18,29 @@ type GetListBookingSettingForm struct {
 
 type GetListBookingForm struct {
 	PageRequest
-	PartnerUid string `form:"partner_uid"`
-	CourseUid  string `form:"course_uid"`
-	Bag        string `form:"bag"`
-	From       int64  `form:"from"`
-	To         int64  `form:"to"`
+	PartnerUid  string `form:"partner_uid"`
+	CourseUid   string `form:"course_uid"`
+	Bag         string `form:"bag"`
+	From        int64  `form:"from"`
+	To          int64  `form:"to"`
+	BookingDate string `form:"booking_date"`
 }
 
 // Tạo Tee booking
 // Guest Booking
 // Member Booking
 type CreateBookingBody struct {
-	CmsUser    string `json:"cms_user"`                       // Acc Operator Tạo
-	PartnerUid string `json:"partner_uid" binding:"required"` // Hang Golf
-	CourseUid  string `json:"course_uid" binding:"required"`  // San Golf
-	Bag        string `json:"bag"`                            // Golf Bag
-	Hole       int    `json:"hole"`                           // Số hố
-	TeeType    string `json:"tee_type"`                       // 1, 1A, 1B, 1C, 10, 10A, 10B
-	TeePath    string `json:"tee_path"`                       // MORNING, NOON, NIGHT
-	TurnTime   string `json:"turn_time"`                      // Ex: 16:26
-	TeeTime    string `json:"tee_time"`                       // Ex: 16:26 Tee time là thời gian tee off dự kiến
-	RowIndex   int    `json:"row_index"`                      // index trong Flight
+	BookingDate string `json:"booking_date"`                   // dd/mm/yyyy
+	CmsUser     string `json:"cms_user"`                       // Acc Operator Tạo
+	PartnerUid  string `json:"partner_uid" binding:"required"` // Hang Golf
+	CourseUid   string `json:"course_uid" binding:"required"`  // San Golf
+	Bag         string `json:"bag"`                            // Golf Bag
+	Hole        int    `json:"hole"`                           // Số hố
+	TeeType     string `json:"tee_type"`                       // 1, 1A, 1B, 1C, 10, 10A, 10B
+	TeePath     string `json:"tee_path"`                       // MORNING, NOON, NIGHT
+	TurnTime    string `json:"turn_time"`                      // Ex: 16:26
+	TeeTime     string `json:"tee_time"`                       // Ex: 16:26 Tee time là thời gian tee off dự kiến
+	RowIndex    int    `json:"row_index"`                      // index trong Flight
 
 	// Guest booking
 	GuestStyle     string `json:"guest_style"`      // Guest Style
@@ -50,11 +52,12 @@ type CreateBookingBody struct {
 }
 
 type CreateBookingCheckInBody struct {
-	CmsUser    string `json:"cms_user"`                       // Acc Operator Tạo
-	PartnerUid string `json:"partner_uid" binding:"required"` // Hang Golf
-	CourseUid  string `json:"course_uid" binding:"required"`  // San Golf
-	Bag        string `json:"bag"`                            // Golf Bag
-	Hole       int    `json:"hole"`                           // Số hố
+	BookingDate string `json:"booking_date"`                   // dd/mm/yyyy
+	CmsUser     string `json:"cms_user"`                       // Acc Operator Tạo
+	PartnerUid  string `json:"partner_uid" binding:"required"` // Hang Golf
+	CourseUid   string `json:"course_uid" binding:"required"`  // San Golf
+	Bag         string `json:"bag"`                            // Golf Bag
+	Hole        int    `json:"hole"`                           // Số hố
 
 	// Guest booking
 	GuestStyle   string `json:"guest_style"`   // Guest Style
@@ -109,6 +112,9 @@ type CheckInBody struct {
 	Bag    string `json:"bag" binding:"required"` // Golf Bag
 	Locker string `json:"locker"`
 	Hole   int    `json:"hole"` // Số hố
+
+	GuestStyle     string `json:"guest_style"`      // Guest Style
+	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
 }
 
 type AddRoundBody struct {

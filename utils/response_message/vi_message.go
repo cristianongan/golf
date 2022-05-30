@@ -24,4 +24,7 @@ var ViLanguage = map[string]string{
 	"JWT_TOKEN_INVALID":            "Đăng nhập không thành công",
 	"VALIDATE_SOURCE_INVALID":      "Start point is not available",
 	"VALIDATE_DESTINATION_INVALID": "Destination point is not available",
+
+	//BAG
+	"BAG_NOT_FOUND": "Không tìm thấy Bag này",
 }

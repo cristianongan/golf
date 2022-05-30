@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/models"
@@ -197,7 +198,13 @@ func (_ *CBookingSetting) CreateBookingSetting(c *gin.Context, prof models.CmsUs
 		EndPart1:       body.EndPart1,
 		EndPart2:       body.EndPart2,
 		EndPart3:       body.EndPart3,
+		Part1TeeType:   body.Part1TeeType,
+		Part2TeeType:   body.Part2TeeType,
+		Part3TeeType:   body.Part3TeeType,
+		IncludeDays:    body.IncludeDays,
 	}
+
+	bookingSetting.Status = body.Status
 
 	errC := bookingSetting.Create()
 
@@ -264,9 +271,11 @@ func (_ *CBookingSetting) UpdateBookingSetting(c *gin.Context, prof models.CmsUs
 		return
 	}
 
-	if body.IsDuplicated() {
-		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-		return
+	if body.Dow != bookingSetting.Dow {
+		if body.IsDuplicated() {
+			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+			return
+		}
 	}
 
 	if body.Status != "" {
@@ -290,6 +299,10 @@ func (_ *CBookingSetting) UpdateBookingSetting(c *gin.Context, prof models.CmsUs
 	bookingSetting.EndPart1 = body.EndPart1
 	bookingSetting.EndPart2 = body.EndPart2
 	bookingSetting.EndPart3 = body.EndPart3
+
+	bookingSetting.Part1TeeType = body.Part1TeeType
+	bookingSetting.Part2TeeType = body.Part2TeeType
+	bookingSetting.Part3TeeType = body.Part3TeeType
 
 	errUdp := bookingSetting.Update()
 	if errUdp != nil {
@@ -334,6 +347,7 @@ func (_ *CBookingSetting) GetListBookingSettingOnDate(c *gin.Context, prof model
 	}
 
 	if form.OnDate == "" {
+		log.Println("on-date empty", form)
 		form.OnDate = utils.GetCurrentDay()
 	}
 
@@ -342,7 +356,7 @@ func (_ *CBookingSetting) GetListBookingSettingOnDate(c *gin.Context, prof model
 
 	if form.OnDate != "" {
 		// Lấy ngày hiện tại
-		fromInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT, form.OnDate)
+		fromInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, form.OnDate)
 		from = fromInt
 		to = from + 24*60*60
 	}

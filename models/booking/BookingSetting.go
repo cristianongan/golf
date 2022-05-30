@@ -28,6 +28,12 @@ type BookingSetting struct {
 	EndPart1       string `json:"end_part1" gorm:"type:varchar(50)"`
 	EndPart2       string `json:"end_part2" gorm:"type:varchar(50)"`
 	EndPart3       string `json:"end_part3" gorm:"type:varchar(50)"`
+
+	Part1TeeType string `json:"part1_tee_type" gorm:"type:varchar(50)"` // ALL, 1, 10
+	Part2TeeType string `json:"part2_tee_type" gorm:"type:varchar(50)"`
+	Part3TeeType string `json:"part3_tee_type" gorm:"type:varchar(50)"`
+
+	IncludeDays int `json:"include_days"`
 }
 
 func (item *BookingSetting) IsDuplicated() bool {

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"start/constants"
 	"start/controllers/request"
 	"start/models"
 	"start/utils/response_message"
@@ -70,6 +71,7 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.CustomerCategory = getCustomerCategoryFromCustomerType(body.CustomerType)
 	golfFee.GroupName = body.GroupName
 	golfFee.GroupId = groupFee.Id
+	golfFee.UpdateUserName = prof.UserName
 
 	errC := golfFee.Create()
 
@@ -96,8 +98,10 @@ func (_ *CGolfFee) GetListGolfFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	golfFeeR := models.GolfFee{
-		PartnerUid: form.PartnerUid,
-		CourseUid:  form.CourseUid,
+		PartnerUid:   form.PartnerUid,
+		CourseUid:    form.CourseUid,
+		TablePriceId: form.TablePriceId,
+		GroupId:      form.GroupId,
 	}
 	golfFeeR.Status = form.Status
 	list, total, err := golfFeeR.FindList(page)
@@ -176,6 +180,7 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.PaidType = body.PaidType
 	golfFee.Idx = body.Idx
 	golfFee.AccDebit = body.AccDebit
+	golfFee.UpdateUserName = prof.UserName
 
 	errUdp := golfFee.Update()
 	if errUdp != nil {
@@ -209,4 +214,22 @@ func (_ *CGolfFee) DeleteGolfFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okRes(c)
+}
+
+func (_ *CGolfFee) GetListGuestStyle(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListGolfFeeForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// Lấy table Price
+
+	golfFeeR := models.GolfFee{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+	golfFeeR.Status = constants.STATUS_ENABLE
+	guestStyles := golfFeeR.GetGuestStyleList()
+	okResponse(c, guestStyles)
 }

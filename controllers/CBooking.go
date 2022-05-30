@@ -60,11 +60,15 @@ func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
 		Hole:       body.Hole,
 	}
 
-	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-	if errDate == nil {
-		booking.CreatedDate = dateDisplay
+	if body.BookingDate != "" {
+		booking.BookingDate = body.BookingDate
 	} else {
-		log.Println("booking date display err ", errDate.Error())
+		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		if errDate == nil {
+			booking.BookingDate = dateDisplay
+		} else {
+			log.Println("booking date display err ", errDate.Error())
+		}
 	}
 
 	//Check duplicated
@@ -156,11 +160,15 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.Bag = body.Bag
 	}
 
-	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-	if errDate == nil {
-		booking.CreatedDate = dateDisplay
+	if body.BookingDate != "" {
+		booking.BookingDate = body.BookingDate
 	} else {
-		log.Println("booking date display err ", errDate.Error())
+		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		if errDate == nil {
+			booking.BookingDate = dateDisplay
+		} else {
+			log.Println("booking date display err ", errDate.Error())
+		}
 	}
 
 	//Check duplicated
@@ -203,46 +211,48 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 
 	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
 
-	//Guest style
-	golfFeeModel := models.GolfFee{
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
-		GuestStyle: body.GuestStyle,
-	}
-	// Lấy phí bởi Guest style với ngày tạo
-	golfFee, errFind := golfFeeModel.GetGuestStyleOnDay()
-	if errFind != nil {
-		response_message.InternalServerError(c, "golf fee err "+errFind.Error())
-		return
-	}
-	booking.GuestStyle = body.GuestStyle
-	booking.GuestStyleName = golfFee.GuestStyleName
-
 	// Booking Uid
 	bookingUid := uuid.New()
 	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
 
-	// List Booking GolfFee
-	listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(bUid, body, golfFee)
-	booking.ListGolfFee = listBookingGolfFee
+	if body.GuestStyle != "" {
+		//Guest style
+		golfFeeModel := models.GolfFee{
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+			GuestStyle: body.GuestStyle,
+		}
+		// Lấy phí bởi Guest style với ngày tạo
+		golfFee, errFind := golfFeeModel.GetGuestStyleOnDay()
+		if errFind != nil {
+			response_message.InternalServerError(c, "golf fee err "+errFind.Error())
+			return
+		}
+		booking.GuestStyle = body.GuestStyle
+		booking.GuestStyleName = golfFee.GuestStyleName
 
-	// Current Bag Price Detail
-	currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
-	currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
-	booking.CurrentBagPrice = currentBagPriceDetail
+		// List Booking GolfFee
+		listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(bUid, body, golfFee)
+		booking.ListGolfFee = listBookingGolfFee
 
-	// MushPayInfo
-	mushPayInfo := initBookingMushPayInfo(booking)
-	booking.MushPayInfo = mushPayInfo
+		// Current Bag Price Detail
+		currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
+		currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
+		booking.CurrentBagPrice = currentBagPriceDetail
+
+		// MushPayInfo
+		mushPayInfo := initBookingMushPayInfo(booking)
+		booking.MushPayInfo = mushPayInfo
+
+		// Rounds: Init First
+		checkInTime := time.Now().Unix()
+		listRounds := initListRound(booking, bookingGolfFee, checkInTime)
+		booking.Rounds = listRounds
+	}
 
 	// Check In Out
-	checkInTime := time.Now().Unix()
 	booking.CheckInOutStatus = constants.CHECK_IN_OUT_STATUS_INIT
 	booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
-
-	// Rounds: Init First
-	listRounds := initListRound(booking, bookingGolfFee, checkInTime)
-	booking.Rounds = listRounds
 
 	errC := booking.Create(bUid)
 
@@ -295,16 +305,22 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 	booking.PartnerUid = form.PartnerUid
 	booking.CourseUid = form.CourseUid
 	booking.Bag = form.Bag
-	toDayDate, errD := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-	if errD != nil {
-		response_message.InternalServerError(c, errD.Error())
-		return
+
+	if form.BookingDate != "" {
+		booking.BookingDate = form.BookingDate
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+		booking.BookingDate = toDayDate
 	}
-	booking.CreatedDate = toDayDate
 
 	errF := booking.FindFirst()
 	if errF != nil {
-		response_message.InternalServerError(c, errF.Error())
+		// response_message.InternalServerError(c, errF.Error())
+		response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
 		return
 	}
 
@@ -490,9 +506,45 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.Hole = body.Hole
 	}
 
-	// if body.Note != "" {
-	// 	booking.Note = body.Note
-	// }
+	if body.GuestStyle != "" {
+		// Tính giá
+		golfFeeModel := models.GolfFee{
+			PartnerUid: booking.PartnerUid,
+			CourseUid:  booking.CourseUid,
+			GuestStyle: body.GuestStyle,
+		}
+		// Lấy phí bởi Guest style với ngày tạo
+		golfFee, errFind := golfFeeModel.GetGuestStyleOnDay()
+		if errFind != nil {
+			response_message.InternalServerError(c, "golf fee err "+errFind.Error())
+			return
+		}
+		booking.GuestStyle = body.GuestStyle
+		booking.GuestStyleName = golfFee.GuestStyleName
+
+		// List Booking GolfFee
+		bodyCreate := request.CreateBookingBody{
+			Hole:         booking.Hole,
+			CustomerName: booking.CustomerName,
+			Bag:          booking.Bag,
+		}
+		listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(booking.Uid, bodyCreate, golfFee)
+		booking.ListGolfFee = listBookingGolfFee
+
+		// Current Bag Price Detail
+		currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
+		currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
+		booking.CurrentBagPrice = currentBagPriceDetail
+
+		// MushPayInfo
+		mushPayInfo := initBookingMushPayInfo(booking)
+		booking.MushPayInfo = mushPayInfo
+
+		// Rounds: Init First
+		checkInTime := time.Now().Unix()
+		listRounds := initListRound(booking, bookingGolfFee, checkInTime)
+		booking.Rounds = listRounds
+	}
 
 	booking.CmsUser = body.CmsUser
 	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())

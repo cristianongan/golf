@@ -130,6 +130,7 @@ func NewRouter() *gin.Engine {
 			cGolfFee := new(controllers.CGolfFee)
 			cmsApiAuthorized.POST("/golf-fee", middlewares.AuthorizedCmsUserHandler(cGolfFee.CreateGolfFee))
 			cmsApiAuthorized.GET("/golf-fee/list", middlewares.AuthorizedCmsUserHandler(cGolfFee.GetListGolfFee))
+			cmsApiAuthorized.GET("/golf-fee/list/guest-style", middlewares.AuthorizedCmsUserHandler(cGolfFee.GetListGuestStyle))
 			cmsApiAuthorized.PUT("/golf-fee/:id", middlewares.AuthorizedCmsUserHandler(cGolfFee.UpdateGolfFee))
 			cmsApiAuthorized.DELETE("/golf-fee/:id", middlewares.AuthorizedCmsUserHandler(cGolfFee.DeleteGolfFee))
 
@@ -196,6 +197,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/company/:id", middlewares.AuthorizedCmsUserHandler(cCompany.UpdateCompany))
 			cmsApiAuthorized.DELETE("/company/:id", middlewares.AuthorizedCmsUserHandler(cCompany.DeleteCompany))
 
+			/// =================== Agency =====================
+			cAgency := new(controllers.CAgency)
+			cmsApiAuthorized.POST("/agency", middlewares.AuthorizedCmsUserHandler(cAgency.CreateAgency))
+			cmsApiAuthorized.GET("/agency/list", middlewares.AuthorizedCmsUserHandler(cAgency.GetListAgency))
+			cmsApiAuthorized.PUT("/agency/:id", middlewares.AuthorizedCmsUserHandler(cAgency.UpdateAgency))
+			cmsApiAuthorized.DELETE("/agency/:id", middlewares.AuthorizedCmsUserHandler(cAgency.DeleteAgency))
+
 			/// **************** GO ****************
 			/// =================== Buggy =====================
 			cBuggy := new(controllers.CBuggy)
@@ -226,6 +234,9 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/caddie-working-time/list", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.GetCaddieWorkingTimeDetail))
 			cmsApiAuthorized.PUT("/caddie-working-time/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.UpdateCaddieWorkingTime))
 			cmsApiAuthorized.DELETE("/caddie-working-time/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.DeleteCaddieWorkingTime))
+			/// =================== CGolf Service: Rental, Proshop, Restaurent, Kiosk =====================
+			cGolfService := new(controllers.CGolfService)
+			cmsApiAuthorized.GET("/golf-service/list/reception", middlewares.AuthorizedCmsUserHandler(cGolfService.GetGolfServiceForReception))
 		}
 
 		// ----------------------------------------------------------

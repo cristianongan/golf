@@ -107,6 +107,9 @@ func (item *Kiosk) FindList(page models.Page) ([]Kiosk, int64, error) {
 	if item.GroupId > 0 {
 		db = db.Where("group_id = ?", strconv.FormatInt(item.GroupId, 10))
 	}
+	if item.Code != "" {
+		db = db.Where("code = ?", item.Code)
+	}
 
 	db.Count(&total)
 
