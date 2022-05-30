@@ -24,4 +24,6 @@ var EnLanguage = map[string]string{
 	"VALIDATE_SOURCE_INVALID":      "Start point is not available",
 	"VALIDATE_DESTINATION_INVALID": "Destination point is not available",
 	"PHONE_INVALID":                "Invalid phone number",
+	//BAG
+	"BAG_NOT_FOUND": "Cannot found this bag",
 }

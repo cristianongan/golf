@@ -1,6 +1,10 @@
 package constants
 
 const (
+	GORM_API_LOG_RECORD_NOT_FOUND = "record not found"
+)
+
+const (
 	BAGS_NOTE_TYPE_BOOKING = "BOOKING"
 	BAGS_NOTE_TYPE_BAG     = "BAG"
 )
