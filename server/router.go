@@ -224,6 +224,8 @@ func NewRouter() *gin.Engine {
 			cCaddieWorkingTime := new(controllers.CCaddieWorkingTime)
 			cmsApiAuthorized.POST("/caddie-working-time", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.CreateCaddieWorkingTime))
 			cmsApiAuthorized.GET("/caddie-working-time/list", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.GetCaddieWorkingTimeDetail))
+			cmsApiAuthorized.PUT("/caddie-working-time/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.UpdateCaddieWorkingTime))
+			cmsApiAuthorized.DELETE("/caddie-working-time/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.DeleteCaddieWorkingTime))
 		}
 
 		// ----------------------------------------------------------

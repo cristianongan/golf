@@ -90,15 +90,15 @@ func (_ *CCaddieWorkingTime) GetCaddieWorkingTimeDetail(c *gin.Context, prof mod
 }
 
 func (_ *CCaddieWorkingTime) DeleteCaddieWorkingTime(c *gin.Context, prof models.CmsUser) {
-	caddieWorkingTimeId := c.Param("id")
-	caddieNoteId, errId := strconv.ParseInt(caddieWorkingTimeId, 10, 64)
+	idRequest := c.Param("id")
+	caddieIdIncrement, errId := strconv.ParseInt(idRequest, 10, 64)
 	if errId != nil {
 		response_message.BadRequest(c, errId.Error())
 		return
 	}
 
 	caddieWorkingTimeRequest := models.CaddieWorkingTime{}
-	caddieWorkingTimeRequest.Id = caddieNoteId
+	caddieWorkingTimeRequest.Id = caddieIdIncrement
 	errF := caddieWorkingTimeRequest.FindFirst()
 
 	if errF != nil {
@@ -115,6 +115,43 @@ func (_ *CCaddieWorkingTime) DeleteCaddieWorkingTime(c *gin.Context, prof models
 	okRes(c)
 }
 
-func (_ *CCaddieWorkingTime) UpdateCaddieNote(c *gin.Context, prof models.CmsUser) {
+func (_ *CCaddieWorkingTime) UpdateCaddieWorkingTime(c *gin.Context, prof models.CmsUser) {
+	idStr := c.Param("id")
+	caddieId, errId := strconv.ParseInt(idStr, 10, 64)
+	if errId != nil {
+		response_message.BadRequest(c, errId.Error())
+		return
+	}
 
+	var body request.UpdateCaddieWorkingTimeBody
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	caddieRequest := models.CaddieWorkingTime{}
+	caddieRequest.Id = caddieId
+
+	errF := caddieRequest.FindFirst()
+	if errF != nil {
+		response_message.BadRequest(c, errF.Error())
+		return
+	}
+	if body.CaddieId != nil {
+		caddieRequest.CaddieId = *body.CaddieId
+	}
+	if body.CheckInTime != nil {
+		caddieRequest.CheckOutTime = *body.CheckOutTime
+	}
+	if body.CheckInTime != nil {
+		caddieRequest.CheckInTime = *body.CheckInTime
+	}
+
+	err := caddieRequest.Update()
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okRes(c)
 }
