@@ -1,9 +1,11 @@
 package models
 
 import (
+	"log"
 	"start/constants"
 	"start/datasources"
-	"strings"
+	"start/utils"
+	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -80,21 +82,54 @@ func (item *AgencySpecialPrice) FindFirst() error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *AgencySpecialPrice) FindList(page Page) ([]AgencySpecialPrice, int64, error) {
-	db := datasources.GetDatabase().Model(AgencySpecialPrice{})
-	list := []AgencySpecialPrice{}
+func (item *AgencySpecialPrice) FindList(page Page) ([]map[string]interface{}, int64, error) {
+	db := datasources.GetDatabase().Table("agency_special_prices")
+	list := []map[string]interface{}{}
 	total := int64(0)
-	status := item.ModelId.Status
-	item.ModelId.Status = ""
-	db = db.Where(item)
-	if status != "" {
-		db = db.Where("status in (?)", strings.Split(status, ","))
+
+	queryStr := `select * from (select tb0.*, 
+	agencies.agency_id as agency_id_str,
+	agencies.name as agency_name,
+	agencies.short_name as short_name,
+	agencies.guest_style as guest_style,
+	agencies.category as category
+	from (select * from agency_special_prices WHERE agency_special_prices.partner_uid = ` + `"` + item.PartnerUid + `"`
+
+	if item.CourseUid != "" {
+		queryStr = queryStr + " and agency_special_prices.course_uid = " + `"` + item.CourseUid + `"`
 	}
-	db.Count(&total)
+	if item.Status != "" {
+		queryStr = queryStr + " and agency_special_prices.status = " + `"` + item.Status + `"`
+	}
+
+	queryStr = queryStr + ") tb0 "
+	queryStr = queryStr + `LEFT JOIN agencies on tb0.agency_id = agencies.id ) tb1 `
+
+	// queryStr = queryStr + ") af on tb0.uid = af.member_card_uid) tb1 "
+
+	// var countReturn CountStruct
+	var countReturn utils.CountStruct
+	strSQLCount := " select count(*) as count from ( " + queryStr + " ) as subTable "
+	errCount := db.Raw(strSQLCount).Scan(&countReturn).Error
+	if errCount != nil {
+		log.Println("AgencySpecialPrice err", errCount.Error())
+		return list, total, errCount
+	}
+
+	total = countReturn.Count
+	//Check if limit large then set to 50
+	if page.Limit > 50 {
+		page.Limit = 50
+	}
 
 	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Find(&list)
+		queryStr = queryStr + " order by tb1." + page.SortBy + " " + page.SortDir + " LIMIT " + strconv.Itoa(page.Limit) + " OFFSET " + strconv.Itoa(page.Offset())
 	}
+	err := db.Raw(queryStr).Scan(&list).Error
+	if err != nil {
+		return list, total, err
+	}
+
 	return list, total, db.Error
 }
 
