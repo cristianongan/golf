@@ -146,6 +146,20 @@ func (item *Agency) FindList(page Page) ([]Agency, int64, error) {
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.Name != "" {
+		db = db.Where("name LIKE ?", "%"+item.Name+"%").Or("short_name = ?", item.Name)
+	}
+	if item.AgencyId != "" {
+		db = db.Where("agency_id = ?", item.AgencyId)
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
