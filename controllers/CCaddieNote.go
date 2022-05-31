@@ -39,6 +39,7 @@ func (_ *CCaddieNote) CreateCaddieNote(c *gin.Context, prof models.CmsUser) {
 		CaddieId: caddieRequest.Uid,
 		Type:     body.Type,
 		Note:     body.Note,
+		AtDate:   body.AtDate,
 	}
 
 	err := caddieNote.Create()

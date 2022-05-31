@@ -15,16 +15,22 @@ type CaddieWorkingTime struct {
 	CheckOutTime int64  `json:"check_out_time"` // Time Check Out
 }
 
-type CaddieWorkingTimeResponse struct {
+type CaddieWorkingTimeRequest struct {
 	Id           int64  `json:"id"`
 	CaddieId     string `json:"caddie_id" gorm:"type:varchar(20)"`
+	CaddieName   string `json:"caddie_name"`
 	CheckInTime  int64  `json:"check_in_time"`  // Time Check In
 	CheckOutTime int64  `json:"check_out_time"` // Time Check Out
 	WorkingTime  int64  `json:"working_time"`
 	OverTime     int64  `json:"over_time"`
-	CaddieName   string `json:"caddie_name"`
 }
 
+type CaddieWorkingTimeResponse struct {
+	CheckInTime  int64 `json:"check_in_time"`  // Time Check In
+	CheckOutTime int64 `json:"check_out_time"` // Time Check Out
+	WorkingTime  int64 `json:"working_time"`
+	OverTime     int64 `json:"over_time"`
+}
 type WorkingTimeTotal struct {
 	CaddieId              string                      `json:"caddie_id"`
 	Total                 int                         `json:"total"`
@@ -95,8 +101,8 @@ func (item *CaddieWorkingTime) FindCaddieWorkingTimeDetail() *CaddieWorkingTime 
 	return &time
 }
 
-func (item *CaddieWorkingTimeResponse) FindList(page Page, from, to int64) ([]WorkingTimeTotal, int64, error) {
-	var list []CaddieWorkingTimeResponse
+func (item *CaddieWorkingTimeRequest) FindList(page Page, from, to int64) ([]WorkingTimeTotal, int64, error) {
+	var list []CaddieWorkingTimeRequest
 	var results []WorkingTimeTotal
 
 	total := int64(0)
@@ -123,7 +129,7 @@ func (item *CaddieWorkingTimeResponse) FindList(page Page, from, to int64) ([]Wo
 	db = db.Joins("JOIN caddies ON caddie_working_times.caddie_id = caddies.uid")
 
 	db2 = db2.Select("caddie_working_times.id, caddie_working_times.caddie_id, caddie_working_times.check_in_time, " +
-		"caddie_working_times.check_out_time, (caddie_working_times.check_out_time - caddie_working_times.check_in_time) as working_time, caddies.name as caddie_name")
+		"caddie_working_times.check_out_time, (caddie_working_times.check_out_time - caddie_working_times.check_in_time) as working_time")
 	db2 = page.Setup(db2).Find(&list)
 
 	db = db.Group("caddie_working_times.caddie_id")
@@ -136,7 +142,13 @@ func (item *CaddieWorkingTimeResponse) FindList(page Page, from, to int64) ([]Wo
 		for i := range list {
 			c := &list[i]
 			if d.CaddieId == c.CaddieId {
-				d.CaddieWorkingTimeList = append(d.CaddieWorkingTimeList, *c)
+				data := CaddieWorkingTimeResponse{
+					CheckInTime:  c.CheckInTime,
+					CheckOutTime: c.CheckOutTime,
+					OverTime:     c.OverTime,
+					WorkingTime:  c.WorkingTime,
+				}
+				d.CaddieWorkingTimeList = append(d.CaddieWorkingTimeList, data)
 			}
 		}
 	}

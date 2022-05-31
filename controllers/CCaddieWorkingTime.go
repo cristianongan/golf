@@ -104,7 +104,7 @@ func (_ *CCaddieWorkingTime) GetCaddieWorkingTimeDetail(c *gin.Context, prof mod
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	caddieWorkingTimeRequest := models.CaddieWorkingTimeResponse{}
+	caddieWorkingTimeRequest := models.CaddieWorkingTimeRequest{}
 
 	if form.CaddieId != "" {
 		caddieWorkingTimeRequest.CaddieId = form.CaddieId
