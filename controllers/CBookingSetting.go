@@ -106,9 +106,11 @@ func (_ *CBookingSetting) UpdateBookingSettingGroup(c *gin.Context, prof models.
 		return
 	}
 
-	if body.IsDuplicated() {
-		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-		return
+	if bookingSettingGroup.Name != body.Name || bookingSettingGroup.FromDate != body.FromDate || bookingSettingGroup.ToDate != body.ToDate {
+		if body.IsDuplicated() {
+			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+			return
+		}
 	}
 
 	if body.Name != "" {

@@ -95,9 +95,11 @@ func (_ *CAgency) UpdateAgency(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.IsDuplicated() {
-		response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
-		return
+	if agency.AgencyId != body.AgencyId || agency.ShortName != body.ShortName {
+		if body.IsDuplicated() {
+			response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
+			return
+		}
 	}
 
 	if body.Name != "" {
