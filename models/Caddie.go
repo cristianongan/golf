@@ -4,13 +4,10 @@ import (
 	"start/constants"
 	"start/datasources"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 type Caddie struct {
-	ModelId
-	CaddieId      string `json:"caddie_id" gorm:"type:varchar(100);index"`
+	Model
 	CourseId      string `json:"course_id" gorm:"type:varchar(100);index"`
 	Name          string `json:"name" gorm:"type:varchar(120)"`
 	Sex           bool   `json:"sex"`
@@ -31,8 +28,7 @@ type Caddie struct {
 }
 
 type CaddieResponse struct {
-	ModelId
-	CaddieId      string `json:"caddie_id"`
+	Model
 	CourseId      string `json:"course_id"`
 	Name          string `json:"name"`
 	Sex           bool   `json:"sex"`
@@ -54,9 +50,9 @@ type CaddieResponse struct {
 
 func (item *Caddie) Create() error {
 	now := time.Now()
-	item.ModelId.CreatedAt = now.Unix()
-	item.ModelId.UpdatedAt = now.Unix()
-	item.ModelId.Status = constants.STATUS_ENABLE
+	item.Model.CreatedAt = now.Unix()
+	item.Model.UpdatedAt = now.Unix()
+	item.Model.Status = constants.STATUS_ENABLE
 
 	db := datasources.GetDatabase()
 	return db.Create(item).Error
@@ -66,9 +62,9 @@ func (item *Caddie) CreateBatch(caddies []Caddie) error {
 	now := time.Now()
 	for i := range caddies {
 		c := &caddies[i]
-		c.ModelId.CreatedAt = now.Unix()
-		c.ModelId.UpdatedAt = now.Unix()
-		c.ModelId.Status = constants.STATUS_ENABLE
+		c.Model.CreatedAt = now.Unix()
+		c.Model.UpdatedAt = now.Unix()
+		c.Model.Status = constants.STATUS_ENABLE
 	}
 
 	db := datasources.GetDatabase()
@@ -76,14 +72,11 @@ func (item *Caddie) CreateBatch(caddies []Caddie) error {
 }
 
 func (item *Caddie) Delete() error {
-	if item.ModelId.Id < 0 {
-		return errors.New("Primary key is undefined!")
-	}
 	return datasources.GetDatabase().Delete(item).Error
 }
 
 func (item *Caddie) Update() error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.Model.UpdatedAt = time.Now().Unix()
 
 	db := datasources.GetDatabase()
 	errUpdate := db.Save(item).Error

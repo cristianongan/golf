@@ -8,14 +8,16 @@ import (
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 type CCaddieWorkingTime struct{}
 
-func (_ *CCaddieWorkingTime) CreateCaddieWorkingTime(c *gin.Context, prof models.CmsUser) {
-	var body request.CreateCaddieWorkingTimeBody
+func (_ *CCaddieWorkingTime) CaddieCheckInWorkingTime(c *gin.Context, prof models.CmsUser) {
+	var body request.CaddieCheckInWorkingTimeBody
+
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		log.Print("BindJSON CaddieNote error")
 		response_message.BadRequest(c, "")
@@ -23,7 +25,7 @@ func (_ *CCaddieWorkingTime) CreateCaddieWorkingTime(c *gin.Context, prof models
 	}
 
 	caddieRequest := models.Caddie{}
-	caddieRequest.CaddieId = body.CaddieId
+	caddieRequest.Uid = body.CaddieId
 	errExist := caddieRequest.FindFirst()
 
 	if errExist != nil {
@@ -34,14 +36,52 @@ func (_ *CCaddieWorkingTime) CreateCaddieWorkingTime(c *gin.Context, prof models
 	base := models.ModelId{
 		Status: constants.STATUS_ENABLE,
 	}
+
+	checkInTime := time.Now().Unix()
+
 	caddieWorkingTime := models.CaddieWorkingTime{
-		ModelId:      base,
-		CaddieId:     body.CaddieId,
-		CheckInTime:  body.CheckInTime,
-		CheckOutTime: body.CheckOutTime,
+		ModelId:     base,
+		CaddieId:    body.CaddieId,
+		CheckInTime: checkInTime,
 	}
 
 	err := caddieWorkingTime.Create()
+	if err != nil {
+		log.Print("Create caddieNote error")
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+	c.JSON(200, caddieWorkingTime)
+}
+
+func (_ *CCaddieWorkingTime) CaddieCheckOutWorkingTime(c *gin.Context, prof models.CmsUser) {
+	var body request.CaddieCheckOutWorkingTimeBody
+
+	if bindErr := c.BindJSON(&body); bindErr != nil {
+		log.Print("BindJSON CaddieNote error")
+		response_message.BadRequest(c, "")
+		return
+	}
+
+	caddieWorkingTimeRequest := models.CaddieWorkingTime{}
+	caddieWorkingTimeRequest.Id = body.Id
+	response := caddieWorkingTimeRequest.FindCaddieWorkingTimeDetail()
+
+	if response == nil {
+		response_message.BadRequest(c, "Caddie IdentityCard did not exist")
+		return
+	}
+
+	checkOutTime := time.Now().Unix()
+
+	caddieWorkingTime := models.CaddieWorkingTime{
+		ModelId:      response.ModelId,
+		CaddieId:     response.CaddieId,
+		CheckInTime:  response.CheckInTime,
+		CheckOutTime: checkOutTime,
+	}
+
+	err := caddieWorkingTime.Update()
 	if err != nil {
 		log.Print("Create caddieNote error")
 		response_message.InternalServerError(c, err.Error())

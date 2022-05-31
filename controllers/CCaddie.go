@@ -8,7 +8,6 @@ import (
 	"start/controllers/response"
 	"start/models"
 	"start/utils/response_message"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,23 +32,23 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 	}
 
 	caddieRequest := models.Caddie{}
-	caddieRequest.CaddieId = body.CaddieId
+	caddieRequest.Model.Uid = body.CaddieId
 	caddieRequest.CourseId = body.CourseId
 	errExist := caddieRequest.FindFirst()
 
-	if errExist == nil && caddieRequest.ModelId.Id > 0 {
+	if errExist == nil {
 		log.Print("caddieRequest")
-		response_message.BadRequest(c, "Caddie number existed in course")
+		response_message.BadRequest(c, "Caddie Id existed in course")
 		return
 	}
 
-	base := models.ModelId{
+	base := models.Model{
+		Uid:    body.CaddieId,
 		Status: constants.STATUS_ENABLE,
 	}
 	Caddie := models.Caddie{
-		ModelId:       base,
+		Model:         base,
 		CourseId:      body.CourseId,
-		CaddieId:      body.CaddieId,
 		Name:          body.Name,
 		Phone:         body.Phone,
 		Address:       body.Address,
@@ -91,7 +90,7 @@ func (_ *CCaddie) CreateCaddieBatch(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	base := models.ModelId{
+	base := models.Model{
 		Status: constants.STATUS_ENABLE,
 	}
 
@@ -108,18 +107,17 @@ func (_ *CCaddie) CreateCaddieBatch(c *gin.Context, prof models.CmsUser) {
 		}
 
 		caddieRequest := models.Caddie{}
-		caddieRequest.CaddieId = body.CaddieId
+		caddieRequest.Model.Uid = body.CaddieId
 		caddieRequest.CourseId = body.CourseId
 		errExist := caddieRequest.FindFirst()
-		if errExist == nil && caddieRequest.ModelId.Id > 0 {
+		if errExist == nil {
 			response_message.BadRequest(c, "Caddie number existed in course")
 			return
 		}
 
 		caddie := models.Caddie{
-			ModelId:       base,
+			Model:         base,
 			CourseId:      body.CourseId,
-			CaddieId:      body.CaddieId,
 			Name:          body.Name,
 			Phone:         body.Phone,
 			Address:       body.Address,
@@ -187,13 +185,14 @@ func (_ *CCaddie) GetCaddieList(c *gin.Context, prof models.CmsUser) {
 
 func (_ *CCaddie) GetCaddieDetail(c *gin.Context, prof models.CmsUser) {
 	caddieIdStr := c.Param("uid")
+
 	if caddieIdStr == "" {
-		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		response_message.BadRequest(c, errors.New("id not valid").Error())
 		return
 	}
 
 	caddieRequest := models.Caddie{}
-	caddieRequest.CaddieId = caddieIdStr
+	caddieRequest.Uid = caddieIdStr
 	errF := caddieRequest.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -204,14 +203,15 @@ func (_ *CCaddie) GetCaddieDetail(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
-	caddieIdStr := c.Param("id")
+	caddieIdStr := c.Param("uid")
+
 	if caddieIdStr == "" {
-		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		response_message.BadRequest(c, errors.New("id not valid").Error())
 		return
 	}
 
 	caddieRequest := models.Caddie{}
-	caddieRequest.CaddieId = caddieIdStr
+	caddieRequest.Uid = caddieIdStr
 	errF := caddieRequest.FindFirst()
 
 	if errF != nil {
@@ -229,12 +229,7 @@ func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCaddie) UpdateCaddie(c *gin.Context, prof models.CmsUser) {
-	caddieIdStr := c.Param("id")
-	caddieId, errId := strconv.ParseInt(caddieIdStr, 10, 64)
-	if errId != nil {
-		response_message.BadRequest(c, errId.Error())
-		return
-	}
+	caddieIdStr := c.Param("uid")
 
 	var body request.UpdateCaddieBody
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -243,7 +238,7 @@ func (_ *CCaddie) UpdateCaddie(c *gin.Context, prof models.CmsUser) {
 	}
 
 	caddieRequest := models.Caddie{}
-	caddieRequest.Id = caddieId
+	caddieRequest.Uid = caddieIdStr
 
 	errF := caddieRequest.FindFirst()
 	if errF != nil {
@@ -263,9 +258,6 @@ func (_ *CCaddie) UpdateCaddie(c *gin.Context, prof models.CmsUser) {
 }
 
 func assignCaddieUpdate(caddieRequest *models.Caddie, body request.UpdateCaddieBody) {
-	if body.CaddieId != nil {
-		caddieRequest.CaddieId = *body.CaddieId
-	}
 	if body.CourseId != nil {
 		caddieRequest.CourseId = *body.CourseId
 	}

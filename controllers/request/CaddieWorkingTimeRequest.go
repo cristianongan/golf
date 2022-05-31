@@ -1,11 +1,12 @@
 package request
 
-type CreateCaddieWorkingTimeBody struct {
-	CaddieId     string `json:"caddie_id" binding:"required"`
-	CheckInTime  int64  `json:"checkin_time"`
-	CheckOutTime int64  `json:"checkout_time"`
+type CaddieCheckInWorkingTimeBody struct {
+	CaddieId string `json:"caddie_id" binding:"required"`
 }
 
+type CaddieCheckOutWorkingTimeBody struct {
+	Id int64 `json:"id" binding:"required"`
+}
 type GetListCaddieWorkingTimeForm struct {
 	PageRequest
 	CaddieId   string `form:"caddie_id" json:"caddie_id"`

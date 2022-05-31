@@ -88,6 +88,13 @@ func (item *CaddieWorkingTime) Count() (int64, error) {
 	return total, db.Error
 }
 
+func (item *CaddieWorkingTime) FindCaddieWorkingTimeDetail() *CaddieWorkingTime {
+	time := CaddieWorkingTime{}
+	db := datasources.GetDatabase().Model(CaddieWorkingTime{})
+	db.Where(item).Find(&time)
+	return &time
+}
+
 func (item *CaddieWorkingTimeResponse) FindList(page Page, from, to int64) ([]WorkingTimeTotal, int64, error) {
 	var list []CaddieWorkingTimeResponse
 	var results []WorkingTimeTotal
@@ -113,7 +120,7 @@ func (item *CaddieWorkingTimeResponse) FindList(page Page, from, to int64) ([]Wo
 	}
 
 	db2 := db
-	db = db.Joins("JOIN caddies ON caddie_working_times.caddie_id = caddies.caddie_id")
+	db = db.Joins("JOIN caddies ON caddie_working_times.caddie_id = caddies.uid")
 
 	db2 = db2.Select("caddie_working_times.id, caddie_working_times.caddie_id, caddie_working_times.check_in_time, " +
 		"caddie_working_times.check_out_time, (caddie_working_times.check_out_time - caddie_working_times.check_in_time) as working_time, caddies.name as caddie_name")

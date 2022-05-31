@@ -22,21 +22,11 @@ func (_ *CCaddieNote) CreateCaddieNote(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	courseRequest := models.Course{}
-	courseRequest.Uid = body.CourseId
-	errFind := courseRequest.FindFirst()
-	if errFind != nil {
-		log.Print("BindJSON Course error")
-		response_message.BadRequest(c, errFind.Error())
-		return
-	}
-
 	caddieRequest := models.Caddie{}
-	caddieRequest.CaddieId = body.CaddieId
-	caddieRequest.CourseId = body.CourseId
+	caddieRequest.Uid = body.CaddieId
 	errExist := caddieRequest.FindFirst()
 
-	if errExist != nil || caddieRequest.ModelId.Id < 1 {
+	if errExist != nil {
 		response_message.BadRequest(c, "Caddie number did not exist in course")
 		return
 	}
@@ -46,8 +36,7 @@ func (_ *CCaddieNote) CreateCaddieNote(c *gin.Context, prof models.CmsUser) {
 	}
 	caddieNote := models.CaddieNote{
 		ModelId:  base,
-		CourseId: body.CourseId,
-		CaddieId: caddieRequest.CaddieId,
+		CaddieId: caddieRequest.Uid,
 		Type:     body.Type,
 		Note:     body.Note,
 	}
@@ -76,10 +65,6 @@ func (_ *CCaddieNote) GetCaddieNoteList(c *gin.Context, prof models.CmsUser) {
 	}
 
 	caddieNoteRequest := models.CaddieNote{}
-
-	if form.CourseId != "" {
-		caddieNoteRequest.CourseId = form.CourseId
-	}
 
 	list, total, err := caddieNoteRequest.FindList(page, form.From, form.To)
 
