@@ -25,8 +25,11 @@ func MigrateDb() {
 		db.AutoMigrate(&models.MemberCard{})
 		db.AutoMigrate(&models.MemberCardType{})
 		db.AutoMigrate(&models.CustomerUser{})
-		db.AutoMigrate(&models.Agency{})
 		db.AutoMigrate(&models.CustomerType{})
+
+		// ----- Agency ------
+		db.AutoMigrate(&models.Agency{})
+		db.AutoMigrate(&models.AgencySpecialPrice{})
 
 		// ----- Fee -------
 		db.AutoMigrate(&models.TablePrice{})

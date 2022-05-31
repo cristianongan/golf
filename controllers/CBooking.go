@@ -105,6 +105,7 @@ func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
 	// Current Bag Price Detail
 	currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
 	currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
+	currentBagPriceDetail.UpdateAmount()
 	booking.CurrentBagPrice = currentBagPriceDetail
 
 	// MushPayInfo
@@ -238,6 +239,7 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		// Current Bag Price Detail
 		currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
 		currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
+		currentBagPriceDetail.UpdateAmount()
 		booking.CurrentBagPrice = currentBagPriceDetail
 
 		// MushPayInfo
@@ -534,6 +536,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		// Current Bag Price Detail
 		currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
 		currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
+		currentBagPriceDetail.UpdateAmount()
 		booking.CurrentBagPrice = currentBagPriceDetail
 
 		// MushPayInfo

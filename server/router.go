@@ -208,6 +208,12 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/agency/:id", middlewares.AuthorizedCmsUserHandler(cAgency.UpdateAgency))
 			cmsApiAuthorized.DELETE("/agency/:id", middlewares.AuthorizedCmsUserHandler(cAgency.DeleteAgency))
 
+			cAgencySpecialPrice := new(controllers.CAgencySpecialPrice)
+			cmsApiAuthorized.POST("/agency-special-price", middlewares.AuthorizedCmsUserHandler(cAgencySpecialPrice.CreateAgencySpecialPrice))
+			cmsApiAuthorized.GET("/agency-special-price/list", middlewares.AuthorizedCmsUserHandler(cAgencySpecialPrice.GetListAgencySpecialPrice))
+			cmsApiAuthorized.PUT("/agency-special-price/:id", middlewares.AuthorizedCmsUserHandler(cAgencySpecialPrice.UpdateAgencySpecialPrice))
+			cmsApiAuthorized.DELETE("/agency-special-price/:id", middlewares.AuthorizedCmsUserHandler(cAgencySpecialPrice.DeleteAgencySpecialPrice))
+
 			/// **************** GO ****************
 			/// =================== Buggy =====================
 			cBuggy := new(controllers.CBuggy)

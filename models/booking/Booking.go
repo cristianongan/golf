@@ -166,6 +166,10 @@ func (item BookingCurrentBagPriceDetail) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
+func (item *BookingCurrentBagPriceDetail) UpdateAmount() {
+	item.Amount = item.Transfer + item.Debit + item.GolfFee + item.Restaurant + item.Kiosk + item.Rental + item.Proshop + item.Promotion
+}
+
 // Booking Round
 type BookingRound struct {
 	Index         int    `json:"index"`
@@ -402,14 +406,7 @@ func (item *Booking) UpdatePriceDetailCurrentBag() {
 		}
 	}
 
-	priceDetail.Amount = priceDetail.Transfer +
-		priceDetail.Debit +
-		priceDetail.GolfFee +
-		priceDetail.Restaurant +
-		priceDetail.Kiosk +
-		priceDetail.Rental +
-		priceDetail.Proshop +
-		priceDetail.Promotion
+	priceDetail.UpdateAmount()
 
 	item.CurrentBagPrice = priceDetail
 }
