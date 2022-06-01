@@ -281,3 +281,15 @@ func (item *MemberCard) GetOwner() (CustomerUser, error) {
 	}
 	return cusUser, nil
 }
+
+func (item *MemberCard) GetGuestStyle() string {
+	// Get Member card Type
+	memberCardType := MemberCardType{}
+	memberCardType.Id = item.McTypeId
+	err := memberCardType.FindFirst()
+	if err != nil {
+		log.Println("Member card get guestStyle err", err.Error())
+		return ""
+	}
+	return memberCardType.GuestStyle
+}

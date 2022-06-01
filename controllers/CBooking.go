@@ -206,6 +206,13 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerName = owner.Name
 		booking.CustomerUid = owner.Uid
 		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
+		if memberCard.PriceCode == 1 {
+			// Giá riêng không theo guest style
+
+		} else {
+			// Lấy theo GuestStyle
+			body.GuestStyle = memberCard.GetGuestStyle()
+		}
 	} else {
 		booking.CustomerName = body.CustomerName
 	}
@@ -250,6 +257,8 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		checkInTime := time.Now().Unix()
 		listRounds := initListRound(booking, bookingGolfFee, checkInTime)
 		booking.Rounds = listRounds
+	} else {
+
 	}
 
 	// Check In Out
