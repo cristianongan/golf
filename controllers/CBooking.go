@@ -650,8 +650,8 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	booking.CmsUser = body.CmsUser
-	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
+	booking.CmsUser = prof.UserName
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
 	// Tính lại giá
 	booking.UpdateMushPay()
