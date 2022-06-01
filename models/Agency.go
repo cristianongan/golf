@@ -142,7 +142,6 @@ func (item *Agency) FindList(page Page) ([]Agency, int64, error) {
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
-	db = db.Where(item)
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}

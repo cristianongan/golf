@@ -567,7 +567,6 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
   Check out: c
 */
 func (_ *CBooking) CheckOut(c *gin.Context, prof models.CmsUser) {
-
 }
 
 /*
@@ -702,4 +701,53 @@ func (_ *CBooking) AddRound(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, booking)
+}
+
+/*
+ Danh sách booking cho Add sub bag
+*/
+func (_ *CBooking) GetListBookingForAddSubBag(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListBookingForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.PartnerUid == "" || form.CourseUid == "" || form.Bag == "" {
+		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
+		return
+	}
+
+	bookingR := model_booking.Booking{
+		PartnerUid:       form.PartnerUid,
+		CourseUid:        form.CourseUid,
+		CheckInOutStatus: constants.CHECK_IN_OUT_STATUS_IN,
+	}
+	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	if errDate == nil {
+		bookingR.BookingDate = dateDisplay
+	} else {
+		log.Println("GetListBookingForAddSubBag booking date display err ", errDate.Error())
+	}
+
+	list, errF := bookingR.FindListForSubBag()
+	if errF != nil {
+		response_message.BadRequest(c, errF.Error())
+		return
+	}
+
+	listResponse := []model_booking.BookingForSubBag{}
+
+	if len(list) == 0 {
+		okResponse(c, listResponse)
+		return
+	}
+
+	for _, v := range list {
+		if v.Bag != form.Bag {
+			listResponse = append(listResponse, v)
+		}
+	}
+
+	okResponse(c, listResponse)
 }

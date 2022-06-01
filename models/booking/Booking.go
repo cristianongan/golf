@@ -35,7 +35,7 @@ type Booking struct {
 	// Thêm customer info
 	CustomerInfo CustomerInfo `json:"customer_info,omitempty" gorm:"type:json"` // Customer Info
 
-	CheckInOutStatus string `json:"check_in_out_status" gorm:"type:varchar(50);index"` // Time Check In Out status
+	CheckInOutStatus string `json:"check_in_out_status" gorm:"type:varchar(50);index"` // Check In Out status
 	CheckInTime      int64  `json:"check_in_time"`                                     // Time Check In
 	CheckOutTime     int64  `json:"check_out_time"`                                    // Time Check Out
 	TeeType          string `json:"tee_type" gorm:"type:varchar(50);index"`            // 1, 1A, 1B, 1C, 10, 10A, 10B
@@ -75,6 +75,21 @@ type Booking struct {
 	// Main bug for Pay: Mặc định thanh toán all, Nếu có trong list này thì k thanh toán
 	MainBagNoPay utils.ListString `json:"main_bag_no_pay,omitempty" gorm:"type:json"` // Main Bag không thanh toán những phần này
 	InitType     string           `json:"init_type" gorm:"type:varchar(50);index"`    // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
+}
+
+type BookingForSubBag struct {
+	models.Model
+	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+
+	BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
+
+	Bag            string `json:"bag" gorm:"type:varchar(100);index"`         // Golf Bag
+	Hole           int    `json:"hole"`                                       // Số hố
+	GuestStyle     string `json:"guest_style" gorm:"type:varchar(200);index"` // Guest Style
+	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Guest Style Name
+
+	CustomerName string `json:"customer_name" gorm:"type:varchar(256)"` // Tên khách hàng
 }
 
 type CustomerInfo struct {
@@ -523,6 +538,33 @@ func (item *Booking) FindList(page models.Page, from, to int64) ([]Booking, int6
 		db = page.Setup(db).Find(&list)
 	}
 	return list, total, db.Error
+}
+
+func (item *Booking) FindListForSubBag() ([]BookingForSubBag, error) {
+	db := datasources.GetDatabase().Table("bookings")
+	list := []BookingForSubBag{}
+	status := item.Model.Status
+	item.Model.Status = ""
+	if status != "" {
+		db = db.Where("status in (?)", strings.Split(status, ","))
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.CheckInOutStatus != "" {
+		db = db.Where("check_in_out_status = ?", item.CheckInOutStatus)
+	}
+
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+
+	db.Find(&list)
+
+	return list, db.Error
 }
 
 func (item *Booking) Delete() error {
