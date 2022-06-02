@@ -289,6 +289,8 @@ func createBagsNoteNoteOfBag(booking model_booking.Booking) {
 		Note:       booking.NoteOfBag,
 		PlayerName: booking.CustomerName,
 		Type:       constants.BAGS_NOTE_TYPE_BAG,
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
 	}
 
 	errC := bagsNote.Create()
@@ -311,6 +313,8 @@ func createBagsNoteNoteOfBooking(booking model_booking.Booking) {
 		Note:       booking.NoteOfBooking,
 		PlayerName: booking.CustomerName,
 		Type:       constants.BAGS_NOTE_TYPE_BOOKING,
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
 	}
 
 	errC := bagsNote.Create()

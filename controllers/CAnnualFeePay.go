@@ -44,7 +44,7 @@ func (_ *CAnnualFeePay) CreateAnnualFeePay(c *gin.Context, prof models.CmsUser) 
 		Note:          body.Note,
 		Amount:        body.Amount,
 		PayDate:       body.PayDate,
-		CmsUser:       body.CmsUser,
+		CmsUser:       prof.UserName,
 	}
 
 	errC := annualFeePay.Create()
@@ -114,7 +114,7 @@ func (_ *CAnnualFeePay) UpdateAnnualFeePay(c *gin.Context, prof models.CmsUser) 
 	}
 
 	annualFeePay.Amount = body.Amount
-	annualFeePay.CmsUser = body.CmsUser
+	annualFeePay.CmsUser = prof.UserName
 
 	errUdp := annualFeePay.Update()
 	if errUdp != nil {

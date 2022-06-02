@@ -11,7 +11,7 @@ import (
 type CBagsNote struct{}
 
 func (_ *CBagsNote) GetListBagsNote(c *gin.Context, prof models.CmsUser) {
-	form := request.GetListPartnerForm{}
+	form := request.GetListBagNoteForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
@@ -24,7 +24,11 @@ func (_ *CBagsNote) GetListBagsNote(c *gin.Context, prof models.CmsUser) {
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	bagsNoteR := models.BagsNote{}
+	bagsNoteR := models.BagsNote{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		GolfBag:    form.GolfBag,
+	}
 	list, total, err := bagsNoteR.FindList(page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

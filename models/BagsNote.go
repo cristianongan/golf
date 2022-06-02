@@ -12,6 +12,8 @@ import (
 // Bag Note
 type BagsNote struct {
 	ModelId
+	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	GolfBag    string `json:"golf_bag" gorm:"type:varchar(200)"`
 	BookingUid string `json:"booking_uid" gorm:"type:varchar(50);index"`
 	Note       string `json:"note" gorm:"type:varchar(2000)"`
@@ -62,11 +64,20 @@ func (item *BagsNote) FindList(page Page) ([]BagsNote, int64, error) {
 	total := int64(0)
 	status := item.Status
 	item.Status = ""
-	db = db.Where(item)
 
 	if status != "" {
-		db = db.Where("status IN (?)", strings.Split(status, ","))
+		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.GolfBag != "" {
+		db = db.Where("golf_bag = ?", item.GolfBag)
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

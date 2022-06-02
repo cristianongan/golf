@@ -153,7 +153,7 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		TeeOffTime: body.TeeTime,
 		TurnTime:   body.TurnTime,
 		RowIndex:   body.RowIndex,
-		CmsUser:    body.CmsUser,
+		CmsUser:    prof.UserName,
 		Hole:       body.Hole,
 	}
 
@@ -207,7 +207,7 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerUid = owner.Uid
 		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
 		if memberCard.PriceCode == 1 {
-			// Giá riêng không theo guest style
+			// TODO: Giá riêng không theo guest style
 
 		} else {
 			// Lấy theo GuestStyle
@@ -217,7 +217,7 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerName = body.CustomerName
 	}
 
-	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
 	// Booking Uid
 	bookingUid := uuid.New()
@@ -460,8 +460,8 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Udp Log Tracking
-	booking.CmsUser = body.CmsUser
-	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
+	booking.CmsUser = prof.UserName
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
 	errUdp := booking.Update()
 	if errUdp != nil {
@@ -558,8 +558,8 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.Rounds = listRounds
 	}
 
-	booking.CmsUser = body.CmsUser
-	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
+	booking.CmsUser = prof.UserName
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 	booking.CheckInTime = time.Now().Unix()
 	booking.CheckInOutStatus = constants.CHECK_IN_OUT_STATUS_IN
 
@@ -701,8 +701,8 @@ func (_ *CBooking) AddRound(c *gin.Context, prof models.CmsUser) {
 	// Handle Round Logic
 	// Tính lại giá
 
-	booking.CmsUser = body.CmsUser
-	booking.CmsUserLog = getBookingCmsUserLog(body.CmsUser, time.Now().Unix())
+	booking.CmsUser = prof.UserName
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
 	errUdp := booking.Update()
 	if errUdp != nil {
