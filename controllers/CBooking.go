@@ -630,6 +630,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 				subBag := utils.BookingSubBag{
 					BookingUid: v.BookingUid,
 					GolfBag:    subBooking.Bag,
+					PlayerName: subBooking.CustomerName,
 				}
 				booking.SubBags = append(booking.SubBags, subBag)
 
@@ -657,7 +658,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	booking.UpdateMushPay()
 
 	// Cập nhật Main bag cho subbag
-	err := updateMainBagForSubBag(body, booking.Bag)
+	err := updateMainBagForSubBag(body, booking.Bag, booking.CustomerName)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
