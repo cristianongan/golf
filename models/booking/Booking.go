@@ -225,6 +225,14 @@ type BookingAgency struct {
 	Name       string `json:"name"`        // Ten Dai ly
 }
 
+func (item *BookingAgency) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item BookingAgency) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
 // -------- Booking Logic --------
 func (item *Booking) UpdateBookingMainBag() error {
 	if item.MainBags == nil || len(item.MainBags) == 0 {
