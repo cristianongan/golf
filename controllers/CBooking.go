@@ -18,129 +18,6 @@ import (
 type CBooking struct{}
 
 /// --------- Booking ----------
-
-/*
- Tạo Booking rồi Check In luôn
- deprecated: Không dùng
-*/
-func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
-	body := request.CreateBookingBody{}
-	if bindErr := c.ShouldBind(&body); bindErr != nil {
-		badRequest(c, bindErr.Error())
-		return
-	}
-
-	// Check validated, Check đã tạo
-	if body.Bag == "" || body.Hole <= 0 {
-		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
-		return
-	}
-
-	if body.MemberCardUid == "" {
-		if body.GuestStyle == "" && body.CustomerName == "" {
-			response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
-			return
-		}
-	}
-
-	if body.MemberCardUid != "" {
-		// Tạo booking với MemberCard(Hội viên)
-	}
-
-	// Get GolfFee
-	golfFeeGet := models.GolfFee{
-		GuestStyle: body.GuestStyle,
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
-	}
-	golfFee, errFind := golfFeeGet.GetGuestStyleOnDay()
-	if errFind != nil {
-		response_message.BadRequest(c, errFind.Error())
-		return
-	}
-
-	// Booking
-	booking := model_booking.Booking{
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
-		Bag:        body.Bag,
-		Hole:       body.Hole,
-	}
-
-	if body.BookingDate != "" {
-		booking.BookingDate = body.BookingDate
-	} else {
-		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-		if errDate == nil {
-			booking.BookingDate = dateDisplay
-		} else {
-			log.Println("booking date display err ", errDate.Error())
-		}
-	}
-
-	//Check duplicated
-	isDuplicated, errDupli := booking.IsDuplicated(false, true)
-	if isDuplicated {
-		if errDupli != nil {
-			response_message.DuplicateRecord(c, errDupli.Error())
-			return
-		}
-		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-		return
-	}
-
-	/*
-		Data cần xử lý:
-		CurrentBagPrice
-		ListGolfFee
-		MushPayInfo
-		Rounds
-		ListServiceItems (?)
-		MainBags (?)
-		SubBags (?)
-		MainBagNoPay (?)
-	*/
-
-	// Booking Uid
-	bookingUid := uuid.New()
-	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
-
-	// List Booking GolfFee
-	listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(bUid, body, golfFee)
-	booking.ListGolfFee = listBookingGolfFee
-
-	// Current Bag Price Detail
-	currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
-	currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
-	currentBagPriceDetail.UpdateAmount()
-	booking.CurrentBagPrice = currentBagPriceDetail
-
-	// MushPayInfo
-	mushPayInfo := initBookingMushPayInfo(booking)
-	booking.MushPayInfo = mushPayInfo
-
-	// Check in Time
-	checkInTime := time.Now().Unix()
-
-	// Rounds: Init First
-	listRounds := initListRound(booking, bookingGolfFee, checkInTime)
-	booking.Rounds = listRounds
-
-	// Check in out
-	booking.CheckInOutStatus = constants.CHECK_IN_OUT_STATUS_IN
-	booking.InitType = constants.BOOKING_INIT_TYPE_CHECKIN
-	booking.CheckInTime = checkInTime
-
-	errC := booking.Create(bUid)
-
-	if errC != nil {
-		response_message.InternalServerError(c, errC.Error())
-		return
-	}
-
-	okResponse(c, booking)
-}
-
 /*
  Tạo Booking từ TeeSheet
 */
@@ -192,6 +69,7 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Member Card
 	// Check xem booking guest hay booking member
 	if body.MemberCardUid != "" {
 		// Get Member Card
@@ -230,7 +108,37 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	if body.AgencyId > 0 {
 		agency := models.Agency{}
 		agency.Id = body.AgencyId
+		errFindAgency := agency.FindFirst()
+		if errFindAgency != nil || agency.Id == 0 {
+			response_message.BadRequest(c, "agency"+errFindAgency.Error())
+			return
+		}
 
+		agencyBooking := cloneToAgencyBooking(agency)
+
+		booking.AgencyInfo = agencyBooking
+		body.GuestStyle = agency.GuestStyle
+		//TODO: check giá đặc biệt của agency
+
+	}
+
+	// Có thông tin khách hàng
+	/*
+		Chọn khách hàng từ agency
+	*/
+	if body.CustomerUid != "" {
+		//check customer
+		customer := models.CustomerUser{}
+		customer.Uid = body.CustomerUid
+		errFindCus := customer.FindFirst()
+		if errFindCus != nil || customer.Uid == "" {
+			response_message.BadRequest(c, "customer"+errFindCus.Error())
+			return
+		}
+
+		booking.CustomerName = customer.Name
+		booking.CustomerInfo = cloneToCustomerBooking(customer)
+		booking.CustomerUid = body.CustomerUid
 	}
 
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
@@ -242,6 +150,7 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	// Checkin Time
 	checkInTime := time.Now().Unix()
 
+	// GuestStyle
 	if body.GuestStyle != "" {
 		//Guest style
 		golfFeeModel := models.GolfFee{
@@ -275,8 +184,6 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		// Rounds: Init First
 		listRounds := initListRound(booking, bookingGolfFee, checkInTime)
 		booking.Rounds = listRounds
-	} else {
-
 	}
 
 	// Check In Out
