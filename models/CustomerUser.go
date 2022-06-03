@@ -107,6 +107,9 @@ func (item *CustomerUser) FindList(page Page, partnerUid, courseUid, typeCus, cu
 	if item.AgencyId > 0 {
 		db = db.Where("agency_id = ?", item.AgencyId)
 	}
+	if item.Phone != "" {
+		db = db.Where("phone = ?", item.Phone)
+	}
 
 	db.Count(&total)
 

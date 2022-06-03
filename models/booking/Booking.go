@@ -70,7 +70,8 @@ type Booking struct {
 	BuggyId int64 `json:"buggy_id" gorm:"index"`
 
 	// Agency Id
-	AgencyId int64 `json:"agency_id" gorm:"index"`
+	AgencyId   int64         `json:"agency_id" gorm:"index"`
+	AgencyInfo BookingAgency `json:"agency_info" gorm:"type:json"`
 
 	// Subs bags
 	SubBags utils.ListSubBag `json:"sub_bags,omitempty" gorm:"type:json"` // List Sub Bags
@@ -216,6 +217,12 @@ func (item ListBookingRound) Value() (driver.Value, error) {
 
 // Agency
 type BookingAgency struct {
+	Id         int64  `json:"id"`
+	AgencyId   string `json:"agency_id"`   // Id Agency
+	ShortName  string `json:"short_name"`  // Ten ngắn Dai ly
+	Category   string `json:"category"`    // Category
+	GuestStyle string `json:"guest_style"` // Guest Style
+	Name       string `json:"name"`        // Ten Dai ly
 }
 
 // -------- Booking Logic --------

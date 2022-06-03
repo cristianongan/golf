@@ -226,6 +226,13 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerName = body.CustomerName
 	}
 
+	//Agency id
+	if body.AgencyId > 0 {
+		agency := models.Agency{}
+		agency.Id = body.AgencyId
+
+	}
+
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
 	// Booking Uid
