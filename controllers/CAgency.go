@@ -157,3 +157,21 @@ func (_ *CAgency) DeleteAgency(c *gin.Context, prof models.CmsUser) {
 
 	okRes(c)
 }
+
+func (_ *CAgency) GetAgencyDetail(c *gin.Context, prof models.CmsUser) {
+	agencyIdStr := c.Param("id")
+	agencyId, err := strconv.ParseInt(agencyIdStr, 10, 64)
+	if err != nil || agencyId <= 0 {
+		response_message.BadRequest(c, errors.New("Id not valid").Error())
+		return
+	}
+
+	agency := models.Agency{}
+	agency.Id = agencyId
+	errF := agency.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+	okResponse(c, agency)
+}
