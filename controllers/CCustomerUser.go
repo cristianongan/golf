@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
+	"start/constants"
 	"start/controllers/request"
 	"start/models"
 	"start/utils/response_message"
@@ -23,27 +25,43 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
-	customerUser := models.CustomerUser{
-		PartnerUid:  body.PartnerUid,
-		CourseUid:   body.CourseUid,
-		Name:        body.Name,
-		Dob:         body.Dob,
-		Sex:         body.Sex,
-		Avatar:      body.Avatar,
-		Nationality: body.Nationality,
-		Phone:       body.Phone,
-		CellPhone:   body.CellPhone,
-		Fax:         body.Fax,
-		Email:       body.Email,
-		Address1:    body.Address1,
-		Address2:    body.Address2,
-		Job:         body.Job,
-		Position:    body.Position,
-		CompanyName: body.CompanyName,
-		Mst:         body.Mst,
-		Note:        body.Note,
-		Identify:    body.Identify,
-		Type:        body.Type,
+	// Check Customer
+	if body.Phone != "" {
+		cusTemp := models.CustomerUser{
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+			Phone:      body.Phone,
+		}
+
+		errFind := cusTemp.FindFirst()
+		if errFind == nil || cusTemp.Uid != "" {
+			// đã tồn tại
+			res := map[string]interface{}{
+				"message":     "Khách hàng đã tồn tại",
+				"status_code": 400,
+				"user":        cusTemp,
+			}
+			c.JSON(400, res)
+			return
+		}
+	}
+
+	customerUser := models.CustomerUser{}
+	dataByte, _ := json.Marshal(&body)
+	_ = json.Unmarshal(dataByte, &customerUser)
+
+	if body.AgencyId > 0 {
+		// Check agency Valid
+		agency := models.Agency{}
+		agency.Id = body.AgencyId
+		errFind := agency.FindFirst()
+		if errFind != nil || agency.Id == 0 {
+			response_message.BadRequest(c, "agency "+errFind.Error())
+			return
+		}
+
+		customerUser.AgencyId = body.AgencyId
+		customerUser.Type = constants.CUSTOMER_TYPE_AGENCY
 	}
 
 	errC := customerUser.Create()
@@ -73,6 +91,7 @@ func (_ *CCustomerUser) GetListCustomerUser(c *gin.Context, prof models.CmsUser)
 	customerUserGet := models.CustomerUser{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
+		AgencyId:   form.AgencyId,
 	}
 	list, total, err := customerUserGet.FindList(page, form.PartnerUid, form.CourseUid, form.Type, form.CustomerUid, form.Name)
 	if err != nil {
@@ -159,6 +178,20 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 	}
 
 	customerUser.Sex = body.Sex
+
+	if body.AgencyId > 0 {
+		// Check agency Valid
+		agency := models.Agency{}
+		agency.Id = body.AgencyId
+		errFind := agency.FindFirst()
+		if errFind != nil || agency.Id == 0 {
+			response_message.BadRequest(c, "agency "+errFind.Error())
+			return
+		}
+
+		customerUser.AgencyId = body.AgencyId
+		customerUser.Type = constants.CUSTOMER_TYPE_AGENCY
+	}
 
 	errUdp := customerUser.Update()
 	if errUdp != nil {

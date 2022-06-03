@@ -30,11 +30,16 @@ type CustomerUser struct {
 	Address2    string `json:"address2" gorm:"type:varchar(500)"`          // Dia chi
 	Job         string `json:"job" gorm:"type:varchar(200)"`               // Ex: Ngan hang
 	Position    string `json:"position" gorm:"type:varchar(200)"`          // Ex: Chu tich
-	CompanyName string `json:"company_name" gorm:"type:varchar(200)"`      // Ten cong ty
-	CompanyId   int64  `json:"company_id" gorm:"index"`                    // Id cong ty
-	Mst         string `json:"mst" gorm:"type:varchar(50)"`                // mã số thuế
-	Identify    string `json:"identify" gorm:"type:varchar(50)"`           // CMT
-	Note        string `json:"note" gorm:"type:varchar(500)"`              // Ghi chu them
+	// Company
+	CompanyName string `json:"company_name" gorm:"type:varchar(200)"` // Ten cong ty
+	CompanyId   int64  `json:"company_id" gorm:"index"`               // Id cong ty
+	// Agency
+	AgencyId int64  `json:"agency_id" gorm:"index"`                 // Id Agency
+	GolfBag  string `json:"golf_bag" gorm:"type:varchar(50);index"` // GolfBag cố định đại lý
+
+	Mst      string `json:"mst" gorm:"type:varchar(50)"`      // mã số thuế
+	Identify string `json:"identify" gorm:"type:varchar(50)"` // CMT
+	Note     string `json:"note" gorm:"type:varchar(500)"`    // Ghi chu them
 }
 
 func (item *CustomerUser) Create() error {
@@ -98,6 +103,9 @@ func (item *CustomerUser) FindList(page Page, partnerUid, courseUid, typeCus, cu
 	}
 	if name != "" {
 		db = db.Where("name LIKE ?", "%"+name+"%")
+	}
+	if item.AgencyId > 0 {
+		db = db.Where("agency_id = ?", item.AgencyId)
 	}
 
 	db.Count(&total)

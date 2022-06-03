@@ -7,4 +7,5 @@ type GetListCustomerUserForm struct {
 	Type        string `form:"type"`
 	CustomerUid string `form:"customer_uid"`
 	Name        string `form:"name"`
+	AgencyId    int64  `form:"agency_id"`
 }

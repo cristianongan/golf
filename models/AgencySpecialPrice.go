@@ -105,6 +105,7 @@ func (item *AgencySpecialPrice) FindList(page Page, agencyIdStr string) ([]map[s
 	queryStr = queryStr + ") tb0 "
 	queryStr = queryStr + `LEFT JOIN agencies on tb0.agency_id = agencies.id ) tb1 `
 
+	// TODO: chưa tối ưu truy vấn
 	if agencyIdStr != "" {
 		queryStr = queryStr + " WHERE tb1.agency_id_str = " + `"` + agencyIdStr + `"`
 	}
