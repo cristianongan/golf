@@ -21,6 +21,7 @@ type CBooking struct{}
 
 /*
  Tạo Booking rồi Check In luôn
+ deprecated: Không dùng
 */
 func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
 	body := request.CreateBookingBody{}
@@ -30,14 +31,20 @@ func (_ *CBooking) CreateBookingCheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Check validated, Check đã tạo
-	if body.Bag == "" || body.CustomerName == "" || body.GuestStyle == "" {
+	if body.Bag == "" || body.Hole <= 0 {
 		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
 		return
 	}
 
-	if body.Hole <= 0 {
-		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
-		return
+	if body.MemberCardUid == "" {
+		if body.GuestStyle == "" && body.CustomerName == "" {
+			response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
+			return
+		}
+	}
+
+	if body.MemberCardUid != "" {
+		// Tạo booking với MemberCard(Hội viên)
 	}
 
 	// Get GolfFee
@@ -157,6 +164,8 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		Hole:       body.Hole,
 	}
 
+	// TODO: check kho tea time trong ngày đó còn trống mới cho đặt
+
 	if body.Bag != "" {
 		booking.Bag = body.Bag
 	}
@@ -223,6 +232,9 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	bookingUid := uuid.New()
 	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
 
+	// Checkin Time
+	checkInTime := time.Now().Unix()
+
 	if body.GuestStyle != "" {
 		//Guest style
 		golfFeeModel := models.GolfFee{
@@ -254,7 +266,6 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.MushPayInfo = mushPayInfo
 
 		// Rounds: Init First
-		checkInTime := time.Now().Unix()
 		listRounds := initListRound(booking, bookingGolfFee, checkInTime)
 		booking.Rounds = listRounds
 	} else {
@@ -262,8 +273,16 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Check In Out
-	booking.CheckInOutStatus = constants.CHECK_IN_OUT_STATUS_INIT
-	booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
+	if body.IsCheckIn {
+		// Tạo booking check in luôn
+		booking.CheckInOutStatus = constants.CHECK_IN_OUT_STATUS_IN
+		booking.InitType = constants.BOOKING_INIT_TYPE_CHECKIN
+		booking.CheckInTime = checkInTime
+	} else {
+		// Tạo booking
+		booking.CheckInOutStatus = constants.CHECK_IN_OUT_STATUS_INIT
+		booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
+	}
 
 	errC := booking.Create(bUid)
 

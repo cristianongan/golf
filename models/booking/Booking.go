@@ -28,12 +28,14 @@ type Booking struct {
 	GuestStyle     string `json:"guest_style" gorm:"type:varchar(200);index"` // Guest Style
 	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Guest Style Name
 
+	// MemberCard
 	CardId        string `json:"card_id" gorm:"index"`                           // MembarCard, Card ID cms user nhập vào
 	MemberCardUid string `json:"member_card_uid" gorm:"type:varchar(100);index"` // MemberCard Uid, Uid object trong Database
-	CustomerName  string `json:"customer_name" gorm:"type:varchar(256)"`         // Tên khách hàng
-	CustomerUid   string `json:"customer_uid" gorm:"type:varchar(256);index"`    // Uid khách hàng
+
 	// Thêm customer info
-	CustomerInfo CustomerInfo `json:"customer_info,omitempty" gorm:"type:json"` // Customer Info
+	CustomerName string       `json:"customer_name" gorm:"type:varchar(256)"`      // Tên khách hàng
+	CustomerUid  string       `json:"customer_uid" gorm:"type:varchar(256);index"` // Uid khách hàng
+	CustomerInfo CustomerInfo `json:"customer_info,omitempty" gorm:"type:json"`    // Customer Info
 
 	CheckInOutStatus string `json:"check_in_out_status" gorm:"type:varchar(50);index"` // Check In Out status
 	CheckInTime      int64  `json:"check_in_time"`                                     // Time Check In
@@ -61,11 +63,14 @@ type Booking struct {
 	CmsUserLog string `json:"cms_user_log" gorm:"type:varchar(200)"` // Cms User Log
 
 	// TODO
-	// Caddie Info
+	// Caddie Id
 	CaddieId int64 `json:"caddie_id" gorm:"index"`
 
-	// Buggy Info
+	// Buggy Id
 	BuggyId int64 `json:"buggy_id" gorm:"index"`
+
+	// Agency Id
+	AgencyId int64 `json:"agency_id" gorm:"index"`
 
 	// Subs bags
 	SubBags utils.ListSubBag `json:"sub_bags,omitempty" gorm:"type:json"` // List Sub Bags
@@ -207,6 +212,10 @@ func (item *ListBookingRound) Scan(v interface{}) error {
 
 func (item ListBookingRound) Value() (driver.Value, error) {
 	return json.Marshal(&item)
+}
+
+// Agency
+type BookingAgency struct {
 }
 
 // -------- Booking Logic --------

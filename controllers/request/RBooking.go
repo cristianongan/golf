@@ -49,6 +49,7 @@ type CreateBookingBody struct {
 
 	// Member Card
 	MemberCardUid string `json:"member_card_uid"`
+	IsCheckIn     bool   `json:"is_check_in"`
 }
 
 type CreateBookingCheckInBody struct {

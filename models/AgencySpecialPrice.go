@@ -82,7 +82,7 @@ func (item *AgencySpecialPrice) FindFirst() error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *AgencySpecialPrice) FindList(page Page) ([]map[string]interface{}, int64, error) {
+func (item *AgencySpecialPrice) FindList(page Page, agencyIdStr string) ([]map[string]interface{}, int64, error) {
 	db := datasources.GetDatabase().Table("agency_special_prices")
 	list := []map[string]interface{}{}
 	total := int64(0)
@@ -104,6 +104,10 @@ func (item *AgencySpecialPrice) FindList(page Page) ([]map[string]interface{}, i
 
 	queryStr = queryStr + ") tb0 "
 	queryStr = queryStr + `LEFT JOIN agencies on tb0.agency_id = agencies.id ) tb1 `
+
+	if agencyIdStr != "" {
+		queryStr = queryStr + " WHERE tb1.agency_id_str = " + `"` + agencyIdStr + `"`
+	}
 
 	// queryStr = queryStr + ") af on tb0.uid = af.member_card_uid) tb1 "
 
