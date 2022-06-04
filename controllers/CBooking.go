@@ -694,3 +694,38 @@ func (_ *CBooking) GetListBookingForAddSubBag(c *gin.Context, prof models.CmsUse
 
 	okResponse(c, listResponse)
 }
+
+func (_ *CBooking) GetSubBagDetail(c *gin.Context, prof models.CmsUser) {
+	bookingIdStr := c.Param("uid")
+	if bookingIdStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = bookingIdStr
+	errF := booking.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	list := []model_booking.Booking{}
+
+	if booking.SubBags == nil || len(booking.SubBags) == 0 {
+		okResponse(c, list)
+		return
+	}
+
+	for _, v := range booking.SubBags {
+		bookingTemp := model_booking.Booking{}
+		bookingTemp.Uid = v.BookingUid
+		errFind := bookingTemp.FindFirst()
+		if errFind != nil {
+			log.Println("GetListSubBagDetail err", errFind.Error())
+		}
+		list = append(list, bookingTemp)
+	}
+
+	okResponse(c, list)
+}
