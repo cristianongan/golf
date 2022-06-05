@@ -159,9 +159,9 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 			GuestStyle: body.GuestStyle,
 		}
 		// Lấy phí bởi Guest style với ngày tạo
-		golfFee, errFind := golfFeeModel.GetGuestStyleOnDay()
-		if errFind != nil {
-			response_message.InternalServerError(c, "golf fee err "+errFind.Error())
+		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay()
+		if errFindGF != nil {
+			response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
 			return
 		}
 		booking.GuestStyle = body.GuestStyle

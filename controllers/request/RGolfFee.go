@@ -7,4 +7,5 @@ type GetListGolfFeeForm struct {
 	Status       string `form:"status"`
 	TablePriceId int64  `form:"table_price_id"`
 	GroupId      int64  `form:"group_id"`
+	CustomerType string `form:"customer_type"` // GUEST, AGENCY
 }

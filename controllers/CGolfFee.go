@@ -223,11 +223,27 @@ func (_ *CGolfFee) GetListGuestStyle(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// Lấy table Price
+	if form.PartnerUid == "" {
+		response_message.BadRequest(c, "partner uid invalid")
+		return
+	}
 
-	golfFeeR := models.GolfFee{
+	// Lấy table Price hợp lệ
+	tablePriceR := models.TablePrice{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
+	}
+	tablePrice, err := tablePriceR.FindCurrentUse()
+	if err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	golfFeeR := models.GolfFee{
+		PartnerUid:   form.PartnerUid,
+		CourseUid:    form.CourseUid,
+		TablePriceId: tablePrice.Id,
+		CustomerType: form.CustomerType,
 	}
 	golfFeeR.Status = constants.STATUS_ENABLE
 	guestStyles := golfFeeR.GetGuestStyleList()

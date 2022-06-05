@@ -77,6 +77,54 @@ func (item *TablePrice) FindList(page Page) ([]TablePrice, int64, error) {
 	return list, total, db.Error
 }
 
+func (item *TablePrice) FindCurrentUse() (TablePrice, error) {
+	db := datasources.GetDatabase().Model(TablePrice{})
+	list := []TablePrice{}
+
+	db = db.Where("partner_uid = ?", item.PartnerUid)
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	err := db.Find(&list).Error
+
+	if err != nil {
+		return TablePrice{}, err
+	}
+
+	if len(list) == 0 {
+		return TablePrice{}, errors.New("list empty")
+	}
+
+	maxFromDate := int64(0)
+	indexCurrent := -1
+
+	currentTime := time.Now().Unix()
+
+	// Lấy theo điều kiện
+	// TODO: điều kiện ap dụng bảng giá
+	/*
+		max from-date: ngày áp dụng
+		max ngày update:
+		ngày áp dụng T+1: fromDate > current + 1 ngày
+	*/
+
+	for i, v := range list {
+		if v.Status == constants.STATUS_ENABLE {
+			if v.FromDate > int64(maxFromDate) && currentTime > (v.FromDate+86400) {
+				maxFromDate = v.FromDate
+				indexCurrent = i
+			}
+		}
+	}
+
+	if indexCurrent == -1 {
+		return TablePrice{}, errors.New("Not found table price valid")
+	}
+
+	return list[indexCurrent], nil
+}
+
 func (item *TablePrice) Delete() error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
