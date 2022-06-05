@@ -173,6 +173,10 @@ func (item *GolfFee) GetGuestStyleList() []GuestStyle {
 		db = db.Where("customer_type = ?", item.CustomerType)
 	}
 
+	if item.TablePriceId > 0 {
+		db = db.Where("table_price_id = ?", item.TablePriceId)
+	}
+
 	db = db.Group("guest_style")
 	db.Find(&list)
 
