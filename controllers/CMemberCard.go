@@ -60,6 +60,7 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 	memberCard.ValidDate = body.ValidDate
 	memberCard.ExpDate = body.ExpDate
 	memberCard.Note = body.Note
+	memberCard.ReasonUnactive = body.ReasonUnactive
 	memberCard.ChipCode = body.ChipCode
 
 	memberCard.PriceCode = body.PriceCode
@@ -141,6 +142,9 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 	if body.Status != "" {
 		memberCard.Status = body.Status
 	}
+	if body.ReasonUnactive != "" {
+		memberCard.ReasonUnactive = body.ReasonUnactive
+	}
 	memberCard.PriceCode = body.PriceCode
 	memberCard.GreenFee = body.GreenFee
 	memberCard.CaddieFee = body.CaddieFee
@@ -206,4 +210,31 @@ func (_ *CMemberCard) GetDetail(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, memberDetailRes)
+}
+
+func (_ *CMemberCard) UnactiveMemberCard(c *gin.Context, prof models.CmsUser) {
+	body := request.LockMemberCardBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	memberCard := models.MemberCard{}
+	memberCard.Uid = body.MemberCardUid
+	errF := memberCard.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	memberCard.Status = body.Status
+	memberCard.ReasonUnactive = body.ReasonUnactive
+
+	errUdp := memberCard.Update()
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, memberCard)
 }

@@ -12,3 +12,9 @@ type GetListMemberCardForm struct {
 	PlayerName string `form:"player_name"`
 	Status     string `form:"status"`
 }
+
+type LockMemberCardBody struct {
+	MemberCardUid  string `json:"member_card_uid" binding:"required"`
+	Status         string `json:"status" binding:"required"`
+	ReasonUnactive string `json:"reason_unactive"` // Ghi chu khi Unactive
+}
