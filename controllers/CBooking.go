@@ -607,6 +607,123 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
+ Edit Sub bag to Booking
+*/
+func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
+	// Body request
+	body := request.EditSubBagToBooking{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	errF := booking.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	if body.SubBags == nil {
+		response_message.BadRequest(c, "Subbags invalid nil")
+		return
+	}
+
+	if len(body.SubBags) == 0 {
+		response_message.BadRequest(c, "subbag empty")
+		return
+	}
+
+	// Khi có xoá note thì Udp lại giá
+	isUpdPrice := false
+
+	for i, v := range body.SubBags {
+		// Get Booking Detail
+		subBooking := model_booking.Booking{}
+		subBooking.Uid = v.BookingUid
+		errFSB := subBooking.FindFirst()
+
+		if errFSB != nil {
+			log.Println("EditSubBagToBooking errFSB", errF.Error())
+		}
+
+		if v.IsOut == true {
+			//remove di
+			// Remove main bag
+			subBooking.MainBags = utils.ListSubBag{}
+			errSBUdp := subBooking.Update()
+			if errSBUdp != nil {
+				log.Println("EditSubBagToBooking errSBUdp", errSBUdp.Error())
+			}
+			isUpdPrice = true
+			// Udp sub bag for booking
+			// remove sub bag
+			subBags := utils.ListSubBag{}
+			for _, v1 := range booking.SubBags {
+				if v1.BookingUid != v.BookingUid {
+					subBags = append(subBags, v1)
+				}
+			}
+			booking.SubBags = subBags
+			// remove list golf fee
+			listGolfFees := model_booking.ListBookingGolfFee{}
+			for _, v1 := range booking.ListGolfFee {
+				if v1.BookingUid != v.BookingUid {
+					listGolfFees = append(listGolfFees, v1)
+				}
+			}
+			booking.ListGolfFee = listGolfFees
+			// remove list service items
+			listServiceItems := utils.ListBookingServiceItems{}
+			for _, v1 := range booking.ListServiceItems {
+				if v1.BookingUid != v.BookingUid {
+					listServiceItems = append(listServiceItems, v1)
+				}
+			}
+			booking.ListServiceItems = listServiceItems
+		} else {
+			isCanUdp := false
+
+			if subBooking.SubBagNote != v.SubBagNote {
+				subBooking.SubBagNote = v.SubBagNote
+				isCanUdp = true
+			}
+			if subBooking.CustomerName != v.PlayerName {
+				subBooking.CustomerName = v.PlayerName
+				if i < len(booking.SubBags) {
+					booking.SubBags[i].PlayerName = v.PlayerName
+				}
+				isCanUdp = true
+			}
+
+			if isCanUdp {
+				errSBUdp := subBooking.Update()
+				if errSBUdp != nil {
+					log.Println("EditSubBagToBooking errSBUdp", errSBUdp.Error())
+				}
+			}
+		}
+	}
+
+	if isUpdPrice {
+		booking.UpdateMushPay()
+	}
+
+	booking.CmsUser = prof.UserName
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+
+	errUdp := booking.Update()
+
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, booking)
+}
+
+/*
  Booking Rounds: Vòng Round
  Thêm Round cho Booking
 */

@@ -1,6 +1,10 @@
 package request
 
-import "start/utils"
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"start/utils"
+)
 
 type GetListBookingSettingGroupForm struct {
 	PageRequest
@@ -74,6 +78,28 @@ type AddServiceItemToBooking struct {
 type AddSubBagToBooking struct {
 	BookingBaseBody
 	SubBags utils.ListSubBag `json:"sub_bags"`
+}
+
+// Edit Subbag
+type EditSubBagToBooking struct {
+	BookingBaseBody
+	SubBags ListEditSubBagBooking `json:"sub_bags"`
+}
+type ListEditSubBagBooking []EditSubBagBooking
+
+func (item *ListEditSubBagBooking) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListEditSubBagBooking) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
+type EditSubBagBooking struct {
+	BookingUid string `json:"booking_uid"`
+	PlayerName string `json:"player_name"`
+	SubBagNote string `json:"sub_bag_note"` // Note of SubBag
+	IsOut      bool   `json:"is_out"`
 }
 
 type CheckInBody struct {

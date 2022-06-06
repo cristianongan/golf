@@ -80,7 +80,9 @@ type Booking struct {
 	MainBags utils.ListSubBag `json:"main_bags,omitempty" gorm:"type:json"` // List Main Bags, thêm main bag sẽ thanh toán những cái gì
 	// Main bug for Pay: Mặc định thanh toán all, Nếu có trong list này thì k thanh toán
 	MainBagNoPay utils.ListString `json:"main_bag_no_pay,omitempty" gorm:"type:json"` // Main Bag không thanh toán những phần này
-	InitType     string           `json:"init_type" gorm:"type:varchar(50);index"`    // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
+	SubBagNote   string           `json:"sub_bag_note" gorm:"type:varchar(500)"`      // Note of SubBag
+
+	InitType string `json:"init_type" gorm:"type:varchar(50);index"` // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
 }
 
 type BookingForSubBag struct {
