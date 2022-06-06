@@ -96,6 +96,11 @@ type BookingForSubBag struct {
 	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Guest Style Name
 
 	CustomerName string `json:"customer_name" gorm:"type:varchar(256)"` // Tên khách hàng
+	// Subs bags
+	SubBags utils.ListSubBag `json:"sub_bags,omitempty" gorm:"type:json"` // List Sub Bags
+
+	// Main bags
+	MainBags utils.ListSubBag `json:"main_bags,omitempty" gorm:"type:json"` // List Main Bags, thêm main bag sẽ thanh toán những cái gì
 }
 
 type CustomerInfo struct {
