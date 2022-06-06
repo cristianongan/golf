@@ -123,6 +123,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/customer-user/:uid", middlewares.AuthorizedCmsUserHandler(cCustomerUser.UpdateCustomerUser))
 			cmsApiAuthorized.DELETE("/customer-user/:uid", middlewares.AuthorizedCmsUserHandler(cCustomerUser.DeleteCustomerUser))
 			cmsApiAuthorized.GET("/customer-user/:uid", middlewares.AuthorizedCmsUserHandler(cCustomerUser.GetCustomerUserDetail))
+			cmsApiAuthorized.POST("/customer-user/agency-delete", middlewares.AuthorizedCmsUserHandler(cCustomerUser.DeleteAgencyCustomerUser))
 
 			/// =================== Table Prices =====================
 			cTablePrice := new(controllers.CTablePrice)

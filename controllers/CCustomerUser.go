@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/models"
@@ -244,4 +245,36 @@ func (_ *CCustomerUser) GetCustomerUserDetail(c *gin.Context, prof models.CmsUse
 	}
 
 	c.JSON(200, customerUser)
+}
+
+// Delete agency customer
+func (_ *CCustomerUser) DeleteAgencyCustomerUser(c *gin.Context, prof models.CmsUser) {
+	body := request.DeleteAgencyCustomerUser{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	if len(body.CusUserUids) == 0 {
+		okRes(c)
+		return
+	}
+
+	for _, v := range body.CusUserUids {
+		cusUser := models.CustomerUser{}
+		cusUser.Uid = v
+		errF := cusUser.FindFirst()
+		if errF == nil {
+			cusUser.AgencyId = 0
+			cusUser.GolfBag = ""
+			errUdp := cusUser.Update()
+			if errUdp != nil {
+				log.Println("DeleteAgencyCustomerUser errUdp", errUdp.Error())
+			}
+		} else {
+			log.Println("DeleteAgencyCustomerUser errF", errF.Error())
+		}
+	}
+
+	okRes(c)
 }
