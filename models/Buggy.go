@@ -1,10 +1,11 @@
 package models
 
 import (
-	"github.com/pkg/errors"
 	"start/constants"
 	"start/datasources"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 type Buggy struct {
