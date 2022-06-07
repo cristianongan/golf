@@ -563,6 +563,10 @@ func (item *Booking) FindList(page models.Page, from, to int64) ([]Booking, int6
 		db = db.Where("created_at < " + strconv.FormatInt(to, 10) + " ")
 	}
 
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
