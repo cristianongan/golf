@@ -1,13 +1,14 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CCaddieAbsent struct{}
@@ -28,11 +29,11 @@ func (_ *CCaddieAbsent) CreateCaddieAbsent(c *gin.Context, prof models.CmsUser) 
 	}
 
 	caddieRequest := models.Caddie{}
-	caddieRequest.Num = body.CaddieNum
+	caddieRequest.Uid = body.CaddieId
 	caddieRequest.CourseId = body.CourseId
 	errExist := caddieRequest.FindFirst()
 
-	if errExist != nil || caddieRequest.ModelId.Id < 1 {
+	if errExist != nil {
 		response_message.BadRequest(c, "Caddie number did not exist in course")
 		return
 	}
@@ -41,13 +42,13 @@ func (_ *CCaddieAbsent) CreateCaddieAbsent(c *gin.Context, prof models.CmsUser) 
 		Status: constants.STATUS_ENABLE,
 	}
 	caddieAbsent := models.CaddieAbsent{
-		ModelId:   base,
-		CourseId:  body.CourseId,
-		CaddieNum: body.CaddieNum,
-		From:      body.From,
-		To:        body.To,
-		Type:      body.Type,
-		Note:      body.Note,
+		ModelId:  base,
+		CourseId: body.CourseId,
+		CaddieId: body.CaddieId,
+		From:     body.From,
+		To:       body.To,
+		Type:     body.Type,
+		Note:     body.Note,
 	}
 
 	err := caddieAbsent.Create()
@@ -78,8 +79,8 @@ func (_ *CCaddieAbsent) GetCaddieAbsentList(c *gin.Context, prof models.CmsUser)
 		caddieRequest.CourseId = form.CourseId
 	}
 
-	if form.CaddieNum != "" {
-		caddieRequest.CaddieNum = form.CaddieNum
+	if form.CourseId != "" {
+		caddieRequest.CaddieId = form.CourseId
 	}
 
 	list, total, err := caddieRequest.FindList(page, form.From, form.To)

@@ -10,8 +10,7 @@ import (
 
 type CaddieNote struct {
 	ModelId
-	CourseId string `json:"course_id" gorm:"type:varchar(100);index"`
-	CaddieId int64  `json:"caddie_id" gorm:"type:varchar(100);index"`
+	CaddieId string `json:"caddie_id" gorm:"type:varchar(100);index"`
 	AtDate   int64  `json:"at_date"`
 	Type     string `json:"type" gorm:"type:varchar(40)"`
 	Note     string `json:"note" gorm:"type:varchar(200)"`
@@ -19,9 +18,7 @@ type CaddieNote struct {
 
 type CaddieNoteResponse struct {
 	ModelId
-	CourseId   string `json:"course_id"`
-	CaddieId   int64  `json:"caddie_id"`
-	CaddieNum  string `json:"caddie_num"`
+	CaddieId   string `json:"caddie_id"`
 	CaddieName string `json:"caddie_name"`
 	Phone      string `json:"phone"`
 	AtDate     int64  `json:"at_date"`
@@ -78,22 +75,21 @@ func (item *CaddieNote) FindList(page Page, from int64, to int64) ([]CaddieNoteR
 	db := datasources.GetDatabase().Model(CaddieNote{})
 	db = db.Where(item)
 
+	print(from, to)
 	if from > 0 {
-		db = db.Where("at_date >= ?", from)
+		db = db.Where("caddie_notes.at_date >= ?", from)
 	}
 
 	if to > 0 {
-		db = db.Where("at_date < ?", to)
+		db = db.Where("caddie_notes.at_date < ?", to)
 	}
 
-	db.Count(&total)
-
-	db = db.Joins("JOIN caddies ON caddie_notes.caddie_id = caddies.id")
+	db = db.Joins("JOIN caddies ON caddie_notes.caddie_id = caddies.uid")
 	db = db.Select("caddie_notes.id, caddie_notes.created_at, caddie_notes.updated_at, " +
-		"caddie_notes.status, caddie_notes.course_id, caddies.id AS caddie_id, " +
-		"caddies.num AS caddie_num, caddies.name AS caddie_name, caddies.phone as phone, " +
+		"caddie_notes.status, caddie_notes.caddie_id, caddies.name AS caddie_name, caddies.phone as phone, " +
 		"caddie_notes.at_date, caddie_notes.type, caddie_notes.note")
 
+	db.Count(&total)
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)
 	}

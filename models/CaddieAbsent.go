@@ -1,30 +1,31 @@
 package models
 
 import (
-	"github.com/pkg/errors"
 	"start/constants"
 	"start/datasources"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 type CaddieAbsent struct {
 	ModelId
-	CourseId  string `json:"course_id" gorm:"type:varchar(100);index"`
-	CaddieNum string `json:"caddie_num" gorm:"type:varchar(40)"`
-	From      int64  `json:"from"`
-	To        int64  `json:"to"`
-	Type      string `json:"type" gorm:"type:varchar(20)"`
-	Note      string `json:"note" gorm:"type:varchar(200)"`
+	CourseId string `json:"course_id" gorm:"type:varchar(100);index"`
+	CaddieId string `json:"caddie_id" gorm:"type:varchar(40)"`
+	From     int64  `json:"from"`
+	To       int64  `json:"to"`
+	Type     string `json:"type" gorm:"type:varchar(20)"`
+	Note     string `json:"note" gorm:"type:varchar(200)"`
 }
 
 type CaddieAbsentResponse struct {
 	ModelId
-	CourseId  string `json:"course_id"`
-	CaddieNum string `json:"caddie_num"`
-	From      int64  `json:"from"`
-	To        int64  `json:"to"`
-	Type      string `json:"type"`
-	Note      string `json:"note"`
+	CourseId string `json:"course_id"`
+	CaddieId string `json:"caddie_id"`
+	From     int64  `json:"from"`
+	To       int64  `json:"to"`
+	Type     string `json:"type"`
+	Note     string `json:"note"`
 }
 
 func (item *CaddieAbsent) Create() error {

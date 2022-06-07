@@ -47,6 +47,7 @@ func MigrateDb() {
 		// ---- Caddie ----
 		db.AutoMigrate(&models.Caddie{})
 		db.AutoMigrate(&models.CaddieNote{})
+		db.AutoMigrate(&models.CaddieWorkingTime{})
 
 		// ---- Bag Note ----
 		db.AutoMigrate(&models.BagsNote{})
