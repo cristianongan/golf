@@ -899,6 +899,8 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 	booking.ListServiceItems = listServiceItems
 	booking.UpdateMushPay()
 
+	booking.OtherPaids = body.OtherPaids
+
 	booking.CmsUser = prof.UserName
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 

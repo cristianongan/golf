@@ -121,20 +121,5 @@ type AddRoundBody struct {
 // ------ Other Paid --------
 type AddOtherPaidBody struct {
 	BookingBaseBody
-	OtherPaids ListOtherPaidBody `json:"other_paids"`
-}
-
-type ListOtherPaidBody []OtherPaidBody
-
-func (item *ListOtherPaidBody) Scan(v interface{}) error {
-	return json.Unmarshal(v.([]byte), item)
-}
-
-func (item ListOtherPaidBody) Value() (driver.Value, error) {
-	return json.Marshal(&item)
-}
-
-type OtherPaidBody struct {
-	Reason string `json:"reason"`
-	Amount int64  `json:"amount"`
+	OtherPaids utils.ListOtherPaid `json:"other_paids"`
 }
