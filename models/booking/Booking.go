@@ -459,6 +459,9 @@ func (item *Booking) UpdatePriceDetailCurrentBag() {
 
 // Check Duplicated
 func (item *Booking) IsDuplicated(checkTeeTime, checkBag bool) (bool, error) {
+	if item.TeeTime == "" {
+		return false, nil
+	}
 	//Check turn time đã tồn tại
 	if checkTeeTime {
 		booking := Booking{
