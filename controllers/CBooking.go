@@ -889,9 +889,11 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 	// add cái mới
 	for _, v := range body.OtherPaids {
 		serviceItem := utils.BookingServiceItem{
-			Type:   constants.BOOKING_OTHER_FEE,
-			Amount: v.Amount,
-			Name:   v.Reason,
+			Type:       constants.BOOKING_OTHER_FEE,
+			Amount:     v.Amount,
+			Name:       v.Reason,
+			PlayerName: booking.CustomerName,
+			Bag:        booking.Bag,
 		}
 		listServiceItems = append(listServiceItems, serviceItem)
 	}
