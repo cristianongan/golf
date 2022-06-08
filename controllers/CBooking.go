@@ -847,3 +847,67 @@ func (_ *CBooking) GetSubBagDetail(c *gin.Context, prof models.CmsUser) {
 
 	okResponse(c, list)
 }
+
+/*
+	Other Paid
+*/
+func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
+	// Body request
+	body := request.AddOtherPaidBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if body.BookingUid == "" {
+		response_message.BadRequest(c, errors.New("Uid not valid").Error())
+		return
+	}
+
+	if body.OtherPaids == nil || len(body.OtherPaids) == 0 {
+		response_message.BadRequest(c, errors.New("other paid empty").Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	errF := booking.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	// list service items
+	// Remove cái cũ
+	listServiceItems := utils.ListBookingServiceItems{}
+	for _, v := range booking.ListServiceItems {
+		if v.Type != constants.BOOKING_OTHER_FEE {
+			listServiceItems = append(listServiceItems, v)
+		}
+	}
+
+	// add cái mới
+	for _, v := range body.OtherPaids {
+		serviceItem := utils.BookingServiceItem{
+			Type:   constants.BOOKING_OTHER_FEE,
+			Amount: v.Amount,
+			Name:   v.Reason,
+		}
+		listServiceItems = append(listServiceItems, serviceItem)
+	}
+
+	booking.ListServiceItems = listServiceItems
+	booking.UpdateMushPay()
+
+	booking.CmsUser = prof.UserName
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+
+	errUdp := booking.Update()
+
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, booking)
+}
