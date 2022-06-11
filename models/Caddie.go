@@ -7,8 +7,10 @@ import (
 )
 
 type Caddie struct {
-	Model
-	CourseId      string `json:"course_id" gorm:"type:varchar(100);index"`
+	ModelId
+	PartnerUid    string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid     string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Code          string `json:"code" gorm:"type:varchar(256);index"`        // Id Caddie vận hành
 	Name          string `json:"name" gorm:"type:varchar(120)"`
 	Sex           bool   `json:"sex"`
 	BirthDay      int64  `json:"birth_day"`
@@ -28,8 +30,10 @@ type Caddie struct {
 }
 
 type CaddieResponse struct {
-	Model
-	CourseId      string `json:"course_id"`
+	ModelId
+	PartnerUid    string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid     string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Code          string `json:"code" gorm:"type:varchar(256);index"`        // Id Caddie vận hành
 	Name          string `json:"name"`
 	Sex           bool   `json:"sex"`
 	BirthDay      int64  `json:"birth_day"`
@@ -50,9 +54,9 @@ type CaddieResponse struct {
 
 func (item *Caddie) Create() error {
 	now := time.Now()
-	item.Model.CreatedAt = now.Unix()
-	item.Model.UpdatedAt = now.Unix()
-	item.Model.Status = constants.STATUS_ENABLE
+	item.ModelId.CreatedAt = now.Unix()
+	item.ModelId.UpdatedAt = now.Unix()
+	item.ModelId.Status = constants.STATUS_ENABLE
 
 	db := datasources.GetDatabase()
 	return db.Create(item).Error
@@ -62,9 +66,9 @@ func (item *Caddie) CreateBatch(caddies []Caddie) error {
 	now := time.Now()
 	for i := range caddies {
 		c := &caddies[i]
-		c.Model.CreatedAt = now.Unix()
-		c.Model.UpdatedAt = now.Unix()
-		c.Model.Status = constants.STATUS_ENABLE
+		c.ModelId.CreatedAt = now.Unix()
+		c.ModelId.UpdatedAt = now.Unix()
+		c.ModelId.Status = constants.STATUS_ENABLE
 	}
 
 	db := datasources.GetDatabase()
@@ -76,7 +80,7 @@ func (item *Caddie) Delete() error {
 }
 
 func (item *Caddie) Update() error {
-	item.Model.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = time.Now().Unix()
 
 	db := datasources.GetDatabase()
 	errUpdate := db.Save(item).Error

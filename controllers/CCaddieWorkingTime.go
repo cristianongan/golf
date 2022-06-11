@@ -25,7 +25,7 @@ func (_ *CCaddieWorkingTime) CaddieCheckInWorkingTime(c *gin.Context, prof model
 	}
 
 	caddieRequest := models.Caddie{}
-	caddieRequest.Uid = body.CaddieId
+	// caddieRequest.Uid = body.CaddieId
 	errExist := caddieRequest.FindFirst()
 
 	if errExist != nil {

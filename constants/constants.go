@@ -24,6 +24,15 @@ const (
 )
 
 /*
+ Caddie status on booking
+*/
+const (
+	BOOKING_CADDIE_STATUS_IN   = "IN"
+	BOOKING_CADDIE_STATUS_OUT  = "OUT"
+	BOOKING_CADDIE_STATUS_INIT = "INIT"
+)
+
+/*
  Main bag for Pay SUB Bag
 */
 const (

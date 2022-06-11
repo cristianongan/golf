@@ -3,6 +3,7 @@ package model_booking
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"log"
 	"start/constants"
 	"start/datasources"
 	"start/models"
@@ -65,10 +66,16 @@ type Booking struct {
 
 	// TODO
 	// Caddie Id
-	CaddieId int64 `json:"caddie_id" gorm:"index"`
+	CaddieStatus string        `json:"caddie_status" gorm:"type:varchar(50);index"` // Caddie status
+	CaddieId     int64         `json:"caddie_id" gorm:"index"`
+	CaddieInfo   BookingCaddie `json:"caddie_info,omitempty" gorm:"type:json"` // Caddie Info
 
 	// Buggy Id
-	BuggyId int64 `json:"buggy_id" gorm:"index"`
+	BuggyId   int64        `json:"buggy_id" gorm:"index"`
+	BuggyInfo BookingBuggy `json:"buggy_info,omitempty" gorm:"type:json"` // Buggy Info
+
+	// Flight Id
+	FlightId int64 `json:"flight_id" gorm:"index"`
 
 	// Agency Id
 	AgencyId   int64         `json:"agency_id" gorm:"index"`
@@ -223,7 +230,7 @@ func (item ListBookingRound) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
-// Agency
+// Agency info
 type BookingAgency struct {
 	Id         int64  `json:"id"`
 	AgencyId   string `json:"agency_id"`   // Id Agency
@@ -238,6 +245,42 @@ func (item *BookingAgency) Scan(v interface{}) error {
 }
 
 func (item BookingAgency) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
+// Caddie Info
+type BookingCaddie struct {
+	Id       int64  `json:"id"`
+	Code     string `json:"code"`
+	Name     string `json:"name"`
+	Sex      bool   `json:"sex"`
+	BirthDay int64  `json:"birth_day"`
+	Group    string `json:"group"`
+	Phone    string `json:"phone"`
+	Email    string `json:"email"`
+}
+
+func (item *BookingCaddie) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item BookingCaddie) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
+// Buggy Info
+type BookingBuggy struct {
+	Id     int64  `json:"id"`
+	Code   string `json:"code"`
+	Number int    `json:"number"`
+	Origin string `json:"origin"`
+}
+
+func (item *BookingBuggy) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item BookingBuggy) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
@@ -611,4 +654,31 @@ func (item *Booking) Delete() error {
 		return errors.New("Primary key is undefined!")
 	}
 	return datasources.GetDatabase().Delete(item).Error
+}
+
+func (item *Booking) FindForCaddieOnCourse() []Booking {
+	db := datasources.GetDatabase().Model(Booking{})
+	list := []Booking{}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.BookingDate == "" {
+		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		if errDate == nil {
+			item.BookingDate = dateDisplay
+		} else {
+			log.Println("FindForCaddieOnCourse BookingDate err ", errDate.Error())
+		}
+	}
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+	db = db.Where("check_in_out_status = ?", constants.CHECK_IN_OUT_STATUS_IN)
+	db = db.Not("caddie_status = ?", constants.BOOKING_CADDIE_STATUS_OUT)
+
+	db.Find(&list)
+	return list
 }

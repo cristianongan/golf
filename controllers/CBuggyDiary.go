@@ -1,13 +1,14 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CBuggyDiary struct{}
@@ -29,7 +30,7 @@ func (_ *CBuggyDiary) CreateBuggyDiary(c *gin.Context, prof models.CmsUser) {
 
 	buggyRequest := models.Buggy{}
 	buggyRequest.Number = body.BuggyNumber
-	buggyRequest.CourseId = body.CourseId
+	buggyRequest.CourseUid = body.CourseId
 	errExist := buggyRequest.FindFirst()
 
 	if errExist != nil || buggyRequest.ModelId.Id < 1 {

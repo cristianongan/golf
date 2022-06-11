@@ -65,8 +65,16 @@ func errorRequest(c *gin.Context, cause interface{}) {
 	c.Abort()
 }
 
+func BadRequest(c *gin.Context, cause interface{}) {
+	c.JSON(http.StatusBadRequest, errorResponse{cause})
+}
+
 func badRequest(c *gin.Context, cause interface{}) {
 	c.JSON(http.StatusBadRequest, errorResponse{cause})
+}
+
+func InternalError(c *gin.Context, cause interface{}) {
+	c.JSON(http.StatusInternalServerError, errorResponse{cause})
 }
 
 func internalError(c *gin.Context, cause interface{}) {
@@ -85,6 +93,10 @@ func okRes(c *gin.Context) {
 	okResponse(c, gin.H{"message": "success"})
 }
 func okResponse(c *gin.Context, data interface{}) {
+	c.JSON(http.StatusOK, data)
+}
+
+func OkResponse(c *gin.Context, data interface{}) {
 	c.JSON(http.StatusOK, data)
 }
 

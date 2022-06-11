@@ -1,8 +1,9 @@
 package request
 
 type CreateCaddieBody struct {
-	CaddieId      string `json:"caddie_id"`
-	CourseId      string `json:"course_id"`
+	Code          string `json:"code"` // id caddie
+	CourseUid     string `json:"course_uid"`
+	PartnerUid    string `json:"partner_uid"`
 	Name          string `json:"name"`
 	Sex           bool   `json:"sex"`
 	BirthDay      int64  `json:"birth_day"`
@@ -27,6 +28,7 @@ type GetListCaddieForm struct {
 }
 
 type UpdateCaddieBody struct {
+	Code          string  `json:"code"` // id caddie
 	CaddieId      *string `json:"caddie_num"`
 	CourseId      *string `json:"course_id"`
 	Name          *string `json:"name"`

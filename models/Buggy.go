@@ -10,18 +10,22 @@ import (
 
 type Buggy struct {
 	ModelId
-	CourseId string `json:"course_id" gorm:"type:varchar(100);index"`
-	Number   int    `json:"number" gorm:"type:int"`
-	Origin   string `json:"origin" gorm:"type:varchar(200)"`
-	Note     string `json:"note" gorm:"type:varchar(200)"`
+	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Code       string `json:"code" gorm:"type:varchar(256);index"`        // Id Buddy vận hành
+	Number     int    `json:"number" gorm:"type:int"`
+	Origin     string `json:"origin" gorm:"type:varchar(200)"`
+	Note       string `json:"note" gorm:"type:varchar(200)"`
 }
 
 type BuggyResponse struct {
 	ModelId
-	CourseId string `json:"course_id"`
-	Number   int    `json:"number"`
-	Origin   string `json:"origin"`
-	Note     string `json:"note"`
+	PartnerUid string `json:"partner_uid"` // Hang Golf
+	CourseUid  string `json:"course_uid"`  // San Golf
+	Code       string `json:"code"`        // Id Buddy vận hành
+	Number     int    `json:"number"`
+	Origin     string `json:"origin"`
+	Note       string `json:"note"`
 }
 
 func (item *Buggy) Create() error {

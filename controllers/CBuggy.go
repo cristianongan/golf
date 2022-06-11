@@ -30,7 +30,7 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 
 	buggyRequest := models.Buggy{}
 	buggyRequest.Number = body.Number
-	buggyRequest.CourseId = body.CourseId
+	buggyRequest.CourseUid = body.CourseId
 	errExist := buggyRequest.FindFirst()
 
 	if errExist == nil && buggyRequest.ModelId.Id > 0 {
@@ -42,11 +42,11 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 		Status: constants.STATUS_ENABLE,
 	}
 	buggy := models.Buggy{
-		ModelId:  base,
-		CourseId: body.CourseId,
-		Number:   body.Number,
-		Origin:   body.Origin,
-		Note:     body.Note,
+		ModelId:   base,
+		CourseUid: body.CourseId,
+		Number:    body.Number,
+		Origin:    body.Origin,
+		Note:      body.Note,
 	}
 
 	err := buggy.Create()
@@ -74,7 +74,7 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 	buggyRequest := models.Buggy{}
 
 	if form.CourseId != "" {
-		buggyRequest.CourseId = form.CourseId
+		buggyRequest.CourseUid = form.CourseId
 	}
 
 	list, total, err := buggyRequest.FindList(page)

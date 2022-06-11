@@ -198,6 +198,8 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
 	}
 
+	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
+
 	errC := booking.Create(bUid)
 
 	if errC != nil {

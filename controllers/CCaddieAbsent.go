@@ -29,8 +29,8 @@ func (_ *CCaddieAbsent) CreateCaddieAbsent(c *gin.Context, prof models.CmsUser) 
 	}
 
 	caddieRequest := models.Caddie{}
-	caddieRequest.Uid = body.CaddieId
-	caddieRequest.CourseId = body.CourseId
+	// caddieRequest.Uid = body.CaddieId
+	// caddieRequest.CourseId = body.CourseId
 	errExist := caddieRequest.FindFirst()
 
 	if errExist != nil {
