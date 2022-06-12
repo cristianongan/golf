@@ -1,7 +1,6 @@
 package go_controllers
 
 import (
-	"encoding/json"
 	"errors"
 	"start/constants"
 	"start/controllers"
@@ -52,61 +51,14 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 		return
 	}
 
-	// Get booking
-	booking := model_booking.Booking{
-		PartnerUid:  body.PartnerUid,
-		CourseUid:   body.CourseUid,
-		BookingDate: body.BookingDate,
-		Bag:         body.Bag,
-	}
-
-	err := booking.FindFirst()
-
-	if err != nil {
-		response_message.InternalServerError(c, err.Error())
+	errB, booking := controllers.AddCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode)
+	if errB != nil {
+		response_message.InternalServerError(c, errB.Error())
 		return
 	}
-
-	//Check caddie
-	caddie := models.Caddie{
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
-		Code:       body.CaddieCode,
-	}
-	errFC := caddie.FindFirst()
-	if errFC != nil {
-		response_message.BadRequest(c, "Caddie err "+errFC.Error())
-		return
-	}
-	//Check buggy
-	buggy := models.Buggy{
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
-		Code:       body.BuggyCode,
-	}
-	errFB := buggy.FindFirst()
-	if errFC != nil {
-		response_message.BadRequest(c, "Buggy err "+errFB.Error())
-		return
-	}
-
-	//Caddie
-	caddieInfo := model_booking.BookingCaddie{}
-	caddieData, _ := json.Marshal(caddie)
-	json.Unmarshal(caddieData, &caddieInfo)
-	booking.CaddieId = caddie.Id
-	booking.CaddieInfo = caddieInfo
-	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
-
-	//Buggy
-	buggyInfo := model_booking.BookingBuggy{}
-	buggyData, _ := json.Marshal(buggy)
-	json.Unmarshal(buggyData, &buggyInfo)
-	booking.BuggyId = buggy.Id
-	booking.BuggyInfo = buggyInfo
 
 	errUdp := booking.Update()
-	if err != nil {
+	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
@@ -118,11 +70,35 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 	Add Caddie list
 */
 func (_ *CCourseOperating) AddListCaddieBuggyToBooking(c *gin.Context, prof models.CmsUser) {
-
-	body := request.AddCaddieBuggyToBooking{}
+	body := request.AddListCaddieBuggyToBooking{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		controllers.BadRequest(c, bindErr.Error())
 		return
 	}
 
+	if len(body.ListData) == 0 {
+		response_message.BadRequest(c, "List Data empty")
+		return
+	}
+
+	listError := []error{}
+
+	for _, v := range body.ListData {
+		errB, booking := controllers.AddCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
+		if errB == nil {
+			errUdp := booking.Update()
+			if errUdp != nil {
+				listError = append(listError, errUdp)
+			}
+		} else {
+			listError = append(listError, errB)
+		}
+	}
+
+	if len(listError) > 0 {
+		controllers.BadRequest(c, listError)
+		return
+	}
+
+	controllers.OkRes(c)
 }

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"start/constants"
@@ -92,6 +93,11 @@ func unauthorizedResponse(c *gin.Context, cause interface{}) {
 func okRes(c *gin.Context) {
 	okResponse(c, gin.H{"message": "success"})
 }
+
+func OkRes(c *gin.Context) {
+	okResponse(c, gin.H{"message": "success"})
+}
+
 func okResponse(c *gin.Context, data interface{}) {
 	c.JSON(http.StatusOK, data)
 }
@@ -376,4 +382,87 @@ func cloneToCustomerBooking(cus models.CustomerUser) model_booking.CustomerInfo 
 	}
 
 	return cusBooking
+}
+
+func cloneToCaddieBooking(caddie models.Caddie) model_booking.BookingCaddie {
+	caddieBooking := model_booking.BookingCaddie{}
+	caddieData, errM := json.Marshal(&caddie)
+	if errM != nil {
+		log.Println("cloneToCaddieBooking errM", errM.Error())
+	}
+	errUnM := json.Unmarshal(caddieData, &caddieBooking)
+	if errUnM != nil {
+		log.Println("cloneToCaddieBooking errUnM", errUnM.Error())
+	}
+
+	return caddieBooking
+}
+
+func cloneToBuggyBooking(buggy models.Buggy) model_booking.BookingBuggy {
+	buggyBooking := model_booking.BookingBuggy{}
+	buggyData, errM := json.Marshal(&buggy)
+	if errM != nil {
+		log.Println("cloneToBuggyBooking errM", errM.Error())
+	}
+	errUnM := json.Unmarshal(buggyData, &buggyBooking)
+	if errUnM != nil {
+		log.Println("cloneToBuggyBooking errUnM", errUnM.Error())
+	}
+
+	return buggyBooking
+}
+
+/*
+	Add Caddie, Buggy To Booking
+*/
+func AddCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode, buggyCode string) (error, model_booking.Booking) {
+	if partnerUid == "" || courseUid == "" || bookingDate == "" || bag == "" {
+		return errors.New(constants.API_ERR_INVALID_BODY_DATA), model_booking.Booking{}
+	}
+
+	// Get booking
+	booking := model_booking.Booking{
+		PartnerUid:  partnerUid,
+		CourseUid:   courseUid,
+		BookingDate: bookingDate,
+		Bag:         bag,
+	}
+
+	err := booking.FindFirst()
+	if err != nil {
+		return errors.New("Không "), booking
+	}
+
+	//Check caddie
+	//TODO: check caddie avaible
+	caddie := models.Caddie{
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+		Code:       caddieCode,
+	}
+	errFC := caddie.FindFirst()
+	if errFC != nil {
+		return errFC, booking
+	}
+	//Check buggy
+	buggy := models.Buggy{
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+		Code:       buggyCode,
+	}
+	errFB := buggy.FindFirst()
+	if errFC != nil {
+		return errFB, booking
+	}
+
+	//Caddie
+	booking.CaddieId = caddie.Id
+	booking.CaddieInfo = cloneToCaddieBooking(caddie)
+	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+
+	//Buggy
+	booking.BuggyId = buggy.Id
+	booking.BuggyInfo = cloneToBuggyBooking(buggy)
+
+	return nil, booking
 }
