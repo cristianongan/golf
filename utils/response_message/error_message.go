@@ -23,6 +23,14 @@ type ErrorResponseData struct {
 	StatusCode int    `json:"status_code"`
 }
 
+type ErrorResponseDataV2 struct {
+	Message     string      `json:"message"`
+	Log         string      `json:"log"`
+	StatusCode  int         `json:"status_code"`
+	ErrorDetail interface{} `json:"error_detail"`
+	Code        string      `json:"code"`
+}
+
 var languages = map[string]map[string]string{
 	"default": ViLanguage,
 	"vi":      ViLanguage,

@@ -16,7 +16,7 @@ type AddCaddieBuggyToBooking struct {
 	BookingDate string `json:"booking_date"`
 }
 
-type AddListCaddieBuggyToBooking struct {
+type CreateFlightBody struct {
 	PartnerUid  string                 `json:"partner_uid"`
 	CourseUid   string                 `json:"course_uid"`
 	BookingDate string                 `json:"booking_date"`

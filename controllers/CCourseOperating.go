@@ -1,9 +1,7 @@
-package go_controllers
+package controllers
 
 import (
-	"errors"
 	"start/constants"
-	"start/controllers"
 	"start/controllers/request"
 	"start/models"
 	model_booking "start/models/booking"
@@ -33,25 +31,26 @@ func (_ *CCourseOperating) GetListBookingCaddieOnCourse(c *gin.Context, prof mod
 
 	list := bookingR.FindForCaddieOnCourse()
 
-	controllers.OkResponse(c, list)
+	okResponse(c, list)
 }
 
 /*
 	Add Caddie short
+	Chưa tạo flight
 */
 func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.CmsUser) {
 	body := request.AddCaddieBuggyToBooking{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
-		controllers.BadRequest(c, bindErr.Error())
+		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
 	if body.PartnerUid == "" || body.CourseUid == "" || body.BookingDate == "" || body.Bag == "" {
-		controllers.BadRequest(c, errors.New(constants.API_ERR_INVALID_BODY_DATA))
+		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
 		return
 	}
 
-	errB, booking := controllers.AddCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode)
+	errB, booking := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode)
 	if errB != nil {
 		response_message.InternalServerError(c, errB.Error())
 		return
@@ -63,16 +62,17 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 		return
 	}
 
-	controllers.OkResponse(c, booking)
+	okResponse(c, booking)
 }
 
 /*
 	Add Caddie list
+	Create Flight
 */
-func (_ *CCourseOperating) AddListCaddieBuggyToBooking(c *gin.Context, prof models.CmsUser) {
-	body := request.AddListCaddieBuggyToBooking{}
+func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
+	body := request.CreateFlightBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
-		controllers.BadRequest(c, bindErr.Error())
+		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
@@ -81,24 +81,35 @@ func (_ *CCourseOperating) AddListCaddieBuggyToBooking(c *gin.Context, prof mode
 		return
 	}
 
-	listError := []error{}
+	// Check các bag ok hết mới tạo flight
 
+	listError := []error{}
 	for _, v := range body.ListData {
-		errB, booking := controllers.AddCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
+		errB, _ := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
 		if errB == nil {
-			errUdp := booking.Update()
-			if errUdp != nil {
-				listError = append(listError, errUdp)
-			}
+			// errUdp := booking.Update()
+			// if errUdp != nil {
+			// 	listError = append(listError, errUdp)
+			// }
 		} else {
 			listError = append(listError, errB)
 		}
 	}
 
 	if len(listError) > 0 {
-		controllers.BadRequest(c, listError)
+		errRes := response_message.ErrorResponseDataV2{
+			StatusCode:  400,
+			ErrorDetail: listError,
+		}
+		badRequest(c, errRes)
 		return
 	}
 
-	controllers.OkRes(c)
+	// Create flight
+	// flight := model_gostarter.Flight{
+	// 	PartnerUid: body.PartnerUid,
+	// 	CourseUid:  body.CourseUid,
+	// }
+
+	okRes(c)
 }
