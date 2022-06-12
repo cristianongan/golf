@@ -90,6 +90,7 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 		return
 	}
 
+	//Caddie
 	caddieInfo := model_booking.BookingCaddie{}
 	caddieData, _ := json.Marshal(caddie)
 	json.Unmarshal(caddieData, &caddieInfo)
@@ -97,6 +98,7 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 	booking.CaddieInfo = caddieInfo
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
 
+	//Buggy
 	buggyInfo := model_booking.BookingBuggy{}
 	buggyData, _ := json.Marshal(buggy)
 	json.Unmarshal(buggyData, &buggyInfo)
