@@ -119,4 +119,10 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 */
 func (_ *CCourseOperating) AddListCaddieBuggyToBooking(c *gin.Context, prof models.CmsUser) {
 
+	body := request.AddCaddieBuggyToBooking{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		controllers.BadRequest(c, bindErr.Error())
+		return
+	}
+
 }
