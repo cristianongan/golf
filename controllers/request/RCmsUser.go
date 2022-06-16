@@ -6,6 +6,7 @@ type CreateCmsUserBody struct {
 	Email      string `json:"email"`
 	Phone      string `json:"phone"`
 	PartnerUid string `json:"partner_uid" binding:"required"`
+	CourseUid  string `json:"course_uid"`
 }
 
 type LoginBody struct {

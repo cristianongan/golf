@@ -191,6 +191,7 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context) {
 		Email:      body.Email,
 		Phone:      body.Phone,
 		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
 	}
 
 	errCreate := cmsUser.Create()
