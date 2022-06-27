@@ -7,6 +7,7 @@ import (
 	"start/controllers/response"
 	"start/models"
 	"start/utils/response_message"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,6 +19,25 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		log.Print("CreateCaddie BindJSON error")
 		response_message.BadRequest(c, "")
+		return
+	}
+
+	if body.CourseUid == "" {
+		response_message.BadRequest(c, "Course Uid not empty")
+		return
+	}
+
+	if body.PartnerUid == "" {
+		response_message.BadRequest(c, "Partner Uid not empty")
+		return
+	}
+
+	partnerRequest := models.Partner{}
+	partnerRequest.Uid = body.PartnerUid
+	partnerErrFind := partnerRequest.FindFirst()
+	if partnerErrFind != nil {
+		log.Print("partnerRequest")
+		response_message.BadRequest(c, partnerErrFind.Error())
 		return
 	}
 
@@ -203,7 +223,7 @@ func (_ *CCaddie) GetCaddieDetail(c *gin.Context, prof models.CmsUser) {
 TODO: chuyen ve id
 */
 func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
-	caddieIdStr := c.Param("uid")
+	caddieIdStr := c.Param("id")
 
 	if caddieIdStr == "" {
 		response_message.BadRequest(c, errors.New("id not valid").Error())
@@ -211,7 +231,7 @@ func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
 	}
 
 	caddieRequest := models.Caddie{}
-	// caddieRequest.Uid = caddieIdStr
+	caddieRequest.Id, _ = strconv.ParseInt(caddieIdStr, 10, 64)
 	errF := caddieRequest.FindFirst()
 
 	if errF != nil {
