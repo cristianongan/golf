@@ -60,6 +60,7 @@ type Booking struct {
 	NoteOfBooking string `json:"note_of_booking" gorm:"type:varchar(500)"` // Note of Booking
 	LockerNo      string `json:"locker_no" gorm:"type:varchar(100)"`       // Locker mã số tủ gửi đồ
 	ReportNo      string `json:"report_no" gorm:"type:varchar(200)"`       // Report No
+	CancelNote    string `json:"cancel_note" gorm:"type:varchar(300)"`     // Cancel note
 
 	CmsUser    string `json:"cms_user" gorm:"type:varchar(100)"`     // Cms User
 	CmsUserLog string `json:"cms_user_log" gorm:"type:varchar(200)"` // Cms User Log
@@ -518,7 +519,7 @@ func (item *Booking) IsDuplicated(checkTeeTime, checkBag bool) (bool, error) {
 			TeeType:     item.TeeType,
 		}
 
-		errFind := booking.FindFirst()
+		errFind := booking.FindFirstNotCancel()
 		if errFind == nil || booking.Uid != "" {
 			return true, errors.New("Duplicated TeeTime")
 		}
@@ -572,6 +573,13 @@ func (item *Booking) FindFirst() error {
 	return db.Where(item).First(item).Error
 }
 
+func (item *Booking) FindFirstNotCancel() error {
+	db := datasources.GetDatabase()
+	db = db.Where(item)
+	db = db.Not("check_in_out_status = ?", constants.CHECK_IN_OUT_STATUS_CANCEL)
+	return db.Where(item).First(item).Error
+}
+
 func (item *Booking) Count() (int64, error) {
 	db := datasources.GetDatabase().Model(Booking{})
 	total := int64(0)
@@ -612,6 +620,7 @@ func (item *Booking) FindList(page models.Page, from, to int64) ([]Booking, int6
 
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
+		db = db.Not("check_in_out_status = ?", constants.CHECK_IN_OUT_STATUS_CANCEL)
 	}
 
 	db.Count(&total)

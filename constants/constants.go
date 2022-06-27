@@ -18,9 +18,10 @@ const (
  Check in out status
 */
 const (
-	CHECK_IN_OUT_STATUS_IN   = "IN"
-	CHECK_IN_OUT_STATUS_OUT  = "OUT"
-	CHECK_IN_OUT_STATUS_INIT = "INIT"
+	CHECK_IN_OUT_STATUS_IN     = "IN"
+	CHECK_IN_OUT_STATUS_OUT    = "OUT"
+	CHECK_IN_OUT_STATUS_INIT   = "INIT"
+	CHECK_IN_OUT_STATUS_CANCEL = "CANCEL" // Cancel booking
 )
 
 /*

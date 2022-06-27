@@ -194,6 +194,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/booking/list/add-sub-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingForAddSubBag)) // List booking for add sub bag
 			cmsApiAuthorized.GET("/booking/sub-bag-detail/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetSubBagDetail))         // Get Sub bag detail
 			cmsApiAuthorized.POST("/booking/other-paid/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddOtherPaid))                // Add Other Paid
+			cmsApiAuthorized.POST("/booking/cancel", middlewares.AuthorizedCmsUserHandler(cBooking.CancelBooking))                       // Cancel booking
 
 			/// =================== BagsNote ===================
 			cBagsNote := new(controllers.CBagsNote)
