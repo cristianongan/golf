@@ -29,7 +29,6 @@ func (_ *CBuggyDiary) CreateBuggyDiary(c *gin.Context, prof models.CmsUser) {
 	}
 
 	buggyRequest := models.Buggy{}
-	buggyRequest.Number = body.BuggyNumber
 	buggyRequest.CourseUid = body.CourseId
 	errExist := buggyRequest.FindFirst()
 

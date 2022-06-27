@@ -30,26 +30,8 @@ type Caddie struct {
 }
 
 type CaddieResponse struct {
-	ModelId
-	PartnerUid    string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid     string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Code          string `json:"code" gorm:"type:varchar(256);index"`        // Id Caddie vận hành
-	Name          string `json:"name"`
-	Sex           bool   `json:"sex"`
-	BirthDay      int64  `json:"birth_day"`
-	WorkingStatus string `json:"working_status"`
-	Group         string `json:"group"`
-	StartedDate   int64  `json:"started_date"`
-	IdHr          string `json:"id_hr"`
-	Phone         string `json:"phone"`
-	Email         string `json:"email"`
-	IdentityCard  string `json:"identity_card"`
-	IssuedBy      string `json:"issued_by"`
-	ExpiredDate   int64  `json:"expired_date"`
-	PlaceOfOrigin string `json:"place_of_origin"`
-	Address       string `json:"address"`
-	Level         string `json:"level"`
-	Note          string `json:"note"`
+	Caddie
+	Booking int64 `json:"booking"`
 }
 
 func (item *Caddie) Create() error {
@@ -93,6 +75,24 @@ func (item *Caddie) Update() error {
 func (item *Caddie) FindFirst() error {
 	db := datasources.GetDatabase()
 	return db.Where(item).First(item).Error
+}
+
+func (item *Caddie) FindCaddieDetail() (CaddieResponse, error) {
+	total := int64(0)
+	var caddieObj Caddie
+	db := datasources.GetDatabase().Model(Caddie{})
+	db.Where(item).Find(&caddieObj)
+
+	db = db.Where("caddies.id = ?", item.Id)
+	db = db.Joins("JOIN bookings ON bookings.caddie_id = caddies.id")
+	db = db.Count(&total)
+
+	caddieResponse := CaddieResponse{
+		Caddie:  caddieObj,
+		Booking: total,
+	}
+
+	return caddieResponse, db.Error
 }
 
 func (item *Caddie) Count() (int64, error) {

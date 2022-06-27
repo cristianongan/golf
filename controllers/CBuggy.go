@@ -21,20 +21,29 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 	}
 
 	courseRequest := models.Course{}
-	courseRequest.Uid = body.CourseId
+	courseRequest.Uid = body.CourseUid
 	errFind := courseRequest.FindFirst()
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
 	}
 
+	partnerRequest := models.Partner{}
+	partnerRequest.Uid = body.PartnerUid
+	partnerErrFind := partnerRequest.FindFirst()
+	if partnerErrFind != nil {
+		response_message.BadRequest(c, partnerErrFind.Error())
+		return
+	}
+
 	buggyRequest := models.Buggy{}
-	buggyRequest.Number = body.Number
-	buggyRequest.CourseUid = body.CourseId
+	buggyRequest.CourseUid = body.CourseUid
+	buggyRequest.PartnerUid = body.PartnerUid
+	buggyRequest.Code = body.Code // Id Buggy vận hành
 	errExist := buggyRequest.FindFirst()
 
 	if errExist == nil && buggyRequest.ModelId.Id > 0 {
-		response_message.BadRequest(c, "Buggy number existed in course")
+		response_message.BadRequest(c, "Code existed in course")
 		return
 	}
 
@@ -42,11 +51,16 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 		Status: constants.STATUS_ENABLE,
 	}
 	buggy := models.Buggy{
-		ModelId:   base,
-		CourseUid: body.CourseId,
-		Number:    body.Number,
-		Origin:    body.Origin,
-		Note:      body.Note,
+		ModelId:         base,
+		Code:            body.Code,
+		CourseUid:       body.CourseUid,
+		PartnerUid:      body.PartnerUid,
+		Origin:          body.Origin,
+		Note:            body.Note,
+		BuggyForVip:     body.BuggyForVip,
+		MaintenanceFrom: body.MaintenanceFrom,
+		MaintenanceTo:   body.MaintenanceTo,
+		BuggyStatus:     body.BuggyStatus,
 	}
 
 	err := buggy.Create()
@@ -73,8 +87,20 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 
 	buggyRequest := models.Buggy{}
 
-	if form.CourseId != "" {
-		buggyRequest.CourseUid = form.CourseId
+	if form.Code != nil {
+		buggyRequest.Code = *form.Code
+	} else {
+		buggyRequest.Code = ""
+	}
+
+	if form.BuggyStatus != nil {
+		buggyRequest.BuggyStatus = *form.BuggyStatus
+	} else {
+		buggyRequest.BuggyStatus = ""
+	}
+
+	if form.BuggyForVip != nil {
+		buggyRequest.BuggyForVip = *form.BuggyForVip
 	}
 
 	list, total, err := buggyRequest.FindList(page)

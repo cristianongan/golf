@@ -210,13 +210,13 @@ func (_ *CCaddie) GetCaddieDetail(c *gin.Context, prof models.CmsUser) {
 
 	caddieRequest := models.Caddie{}
 	caddieRequest.Id, _ = strconv.ParseInt(caddieIdStr, 10, 64)
-	errF := caddieRequest.FindFirst()
+	caddieDetail, errF := caddieRequest.FindCaddieDetail()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	okResponse(c, caddieRequest)
+	okResponse(c, caddieDetail)
 }
 
 /*
@@ -252,7 +252,7 @@ func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
 TODO: chuyen ve id
 */
 func (_ *CCaddie) UpdateCaddie(c *gin.Context, prof models.CmsUser) {
-	// caddieIdStr := c.Param("uid")
+	caddieIdStr := c.Param("id")
 
 	var body request.UpdateCaddieBody
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -260,8 +260,13 @@ func (_ *CCaddie) UpdateCaddie(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if caddieIdStr == "" {
+		response_message.BadRequest(c, errors.New("id not valid").Error())
+		return
+	}
+
 	caddieRequest := models.Caddie{}
-	// caddieRequest.Uid = caddieIdStr
+	caddieRequest.Id, _ = strconv.ParseInt(caddieIdStr, 10, 64)
 
 	errF := caddieRequest.FindFirst()
 	if errF != nil {

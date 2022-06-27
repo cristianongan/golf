@@ -10,22 +10,25 @@ import (
 
 type Buggy struct {
 	ModelId
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Code       string `json:"code" gorm:"type:varchar(256);index"`        // Id Buddy vận hành
-	Number     int    `json:"number" gorm:"type:int"`
-	Origin     string `json:"origin" gorm:"type:varchar(200)"`
-	Note       string `json:"note" gorm:"type:varchar(200)"`
+	PartnerUid      string  `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid       string  `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Code            string  `json:"code" gorm:"type:varchar(256);index"`        // Id Buddy vận hành
+	Origin          string  `json:"origin" gorm:"type:varchar(200)"`
+	Note            string  `json:"note" gorm:"type:varchar(200)"`
+	BuggyForVip     bool    `json:"buggy_for_vip"`
+	WarrantyPeriod  float64 `json:"warranty_period"`
+	MaintenanceFrom int64   `json:"maintenance_from"`
+	MaintenanceTo   int64   `json:"maintenance_to"`
+	BuggyStatus     string  `json:"buggy_status"`
 }
 
 type BuggyResponse struct {
 	ModelId
-	PartnerUid string `json:"partner_uid"` // Hang Golf
-	CourseUid  string `json:"course_uid"`  // San Golf
-	Code       string `json:"code"`        // Id Buddy vận hành
-	Number     int    `json:"number"`
-	Origin     string `json:"origin"`
-	Note       string `json:"note"`
+	CourseUid string `json:"course_uid"` // San Golf
+	Code      string `json:"code"`       // Id Buddy vận hành
+	Number    int    `json:"number"`
+	Origin    string `json:"origin"`
+	Note      string `json:"note"`
 }
 
 func (item *Buggy) Create() error {
@@ -76,6 +79,17 @@ func (item *Buggy) FindList(page Page) ([]Buggy, int64, error) {
 
 	db := datasources.GetDatabase().Model(Buggy{})
 	db = db.Where(item)
+
+	if item.Code != "" {
+		db = db.Where("code = ?", item.Code)
+	}
+	if item.BuggyStatus != "" {
+		db = db.Where("buggy_status = ?", item.BuggyStatus)
+	}
+	if item.BuggyForVip == true {
+		db = db.Where("buggy_for_vip = ?", item.BuggyForVip)
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
