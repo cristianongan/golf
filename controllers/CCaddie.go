@@ -201,7 +201,7 @@ func (_ *CCaddie) GetCaddieList(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCaddie) GetCaddieDetail(c *gin.Context, prof models.CmsUser) {
-	caddieIdStr := c.Param("uid")
+	caddieIdStr := c.Param("id")
 
 	if caddieIdStr == "" {
 		response_message.BadRequest(c, errors.New("id not valid").Error())
@@ -209,7 +209,7 @@ func (_ *CCaddie) GetCaddieDetail(c *gin.Context, prof models.CmsUser) {
 	}
 
 	caddieRequest := models.Caddie{}
-	// caddieRequest.Uid = caddieIdStr
+	caddieRequest.Id, _ = strconv.ParseInt(caddieIdStr, 10, 64)
 	errF := caddieRequest.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
