@@ -123,3 +123,7 @@ type AddOtherPaidBody struct {
 	BookingBaseBody
 	OtherPaids utils.ListOtherPaid `json:"other_paids"`
 }
+
+type CancelBookingBody struct {
+	BookingBaseBody
+}

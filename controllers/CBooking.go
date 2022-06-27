@@ -917,3 +917,40 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 
 	okResponse(c, booking)
 }
+
+/*
+	Cancel Booking
+	- check chưa check in mới
+*/
+func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
+	body := request.CancelBookingBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	errF := booking.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	if booking.CheckInOutStatus != constants.CHECK_IN_OUT_STATUS_INIT {
+		response_message.InternalServerError(c, "This booking did check in")
+		return
+	}
+
+	booking.CheckInOutStatus = constants.CHECK_IN_OUT_STATUS_CANCEL
+	booking.CancelNote = body.Note
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+
+	errUdp := booking.Update()
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, booking)
+}
