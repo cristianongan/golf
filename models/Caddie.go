@@ -109,6 +109,11 @@ func (item *Caddie) FindList(page Page) ([]Caddie, int64, error) {
 	total := int64(0)
 
 	db := datasources.GetDatabase().Model(Caddie{})
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
 	db = db.Where(item)
 	db.Count(&total)
 

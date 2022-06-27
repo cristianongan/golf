@@ -24,13 +24,12 @@ type CreateCaddieBody struct {
 
 type GetListCaddieForm struct {
 	PageRequest
-	CourseId string `form:"course_id" json:"course_id"`
+	CourseId string `form:"course_uid" json:"course_uid"`
 }
 
 type UpdateCaddieBody struct {
 	Code          string  `json:"code"` // id caddie
-	CaddieId      *string `json:"caddie_num"`
-	CourseId      *string `json:"course_id"`
+	CourseId      *string `json:"course_uid"`
 	Name          *string `json:"name"`
 	Sex           *bool   `json:"sex"`
 	BirthDay      *int64  `json:"birth_day"`
