@@ -13,12 +13,13 @@ import (
 // Flight
 type Flight struct {
 	models.ModelId
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Tee        int    `json:"tee"`                                        // Tee
-	TeeOff     string `json:"tee_off" gorm:"type:varchar(30)"`            //
-	Turn       string `json:"turn" gorm:"type:varchar(30)"`               //
-	End        string `json:"end" gorm:"type:varchar(30)"`                //
+	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Tee         int    `json:"tee"`                                        // Tee
+	TeeOff      string `json:"tee_off" gorm:"type:varchar(30)"`            //
+	Turn        string `json:"turn" gorm:"type:varchar(30)"`               //
+	End         string `json:"end" gorm:"type:varchar(30)"`                //
+	DateDisplay string `json:"date_display" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
 }
 
 func (item *Flight) Create() error {

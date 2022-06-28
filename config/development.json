@@ -32,10 +32,10 @@
     },
     "minio":{
         "endpoint":"minio.vntaxi.net",
-        "bucket": "delivery-local",
+        "bucket": "golf-staging",
         "access_key":"H69hpW0j0wanZrmtBCJwUh7jurTTuKQgINziWHH9Kxk0",
         "secret_key":"1eWZBv0VqTmSgFfW2KNJ18vXhJdNJP5tsaCokq1AZjs0",
-        "ssl":true,
+        "ssl":false,
         "get_data_host": "https://minio.vntaxi.net/"
     }
 

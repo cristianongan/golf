@@ -15,7 +15,7 @@ func Init() {
 	// cron.CronStart()
 	// cron.InitCronJobCallApi()
 
-	//datasources.MinioConnect()
+	datasources.MinioConnect()
 
 	datasources.MySqlConnect()
 	MigrateDb()

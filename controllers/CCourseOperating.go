@@ -1,11 +1,15 @@
 package controllers
 
 import (
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/models"
 	model_booking "start/models/booking"
+	model_gostarter "start/models/go-starter"
+	"start/utils"
 	"start/utils/response_message"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -50,6 +54,7 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 		return
 	}
 
+	// Check can add
 	errB, booking := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode)
 	if errB != nil {
 		response_message.InternalServerError(c, errB.Error())
@@ -82,15 +87,14 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Check các bag ok hết mới tạo flight
-
+	// TODO:
+	// Check Caddie, Buggy đang trong flight
 	listError := []error{}
+	listBooking := []model_booking.Booking{}
 	for _, v := range body.ListData {
-		errB, _ := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
+		errB, bookingTemp := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
 		if errB == nil {
-			// errUdp := booking.Update()
-			// if errUdp != nil {
-			// 	listError = append(listError, errUdp)
-			// }
+			listBooking = append(listBooking, bookingTemp)
 		} else {
 			listError = append(listError, errB)
 		}
@@ -106,10 +110,46 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Create flight
-	// flight := model_gostarter.Flight{
-	// 	PartnerUid: body.PartnerUid,
-	// 	CourseUid:  body.CourseUid,
-	// }
+	flight := model_gostarter.Flight{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		Tee:        body.Tee,
+		TeeOff:     body.TeeOff,
+	}
+
+	// Date display
+	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	if errDate == nil {
+		flight.DateDisplay = dateDisplay
+	} else {
+		log.Println("booking date display err ", errDate.Error())
+	}
+
+	errCF := flight.Create()
+	if errCF != nil {
+		response_message.InternalServerError(c, errCF.Error())
+		return
+	}
+
+	// Udp flight for Booking
+	for _, b := range listBooking {
+		b.FlightId = flight.Id
+		errUdp := b.Update()
+		if errUdp != nil {
+			log.Println("CreateFlight err ", errUdp.Error())
+		}
+	}
 
 	okRes(c)
+}
+
+/*
+	Out Caddie
+*/
+func (_ *CCourseOperating) OutCaddie(c *gin.Context, prof models.CmsUser) {
+	body := request.CreateFlightBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
 }
