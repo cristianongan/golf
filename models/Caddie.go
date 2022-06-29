@@ -115,8 +115,24 @@ func (item *Caddie) FindList(page Page) ([]Caddie, int64, error) {
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
-
-	db = db.Where(item)
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.Name != "" {
+		db = db.Where("name LIKE ?", "%"+item.Name+"%")
+	}
+	if item.WorkingStatus != "" {
+		db = db.Where("working_status = ?", item.WorkingStatus)
+	}
+	if item.Code != "" {
+		db = db.Where("code = ?", item.Code)
+	}
+	if item.Level != "" {
+		db = db.Where("level = ?", item.Level)
+	}
+	if item.Phone != "" {
+		db = db.Where("phone = ?", item.Phone)
+	}
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

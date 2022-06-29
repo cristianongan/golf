@@ -25,7 +25,13 @@ type CreateCaddieBody struct {
 
 type GetListCaddieForm struct {
 	PageRequest
-	CourseId string `form:"course_uid" json:"course_uid"`
+	CourseId      *string `form:"course_uid" json:"course_uid"`
+	PartnerUid    *string `form:"partner_uid" json:"partner_uid"`
+	WorkingStatus *string `form:"working_status" json:"working_status"`
+	Level         *string `form:"level" json:"level"`
+	Name          *string `form:"name" json:"name"`
+	Code          *string `form:"code" json:"code"`
+	Phone         *string `form:"phone" json:"phone"`
 }
 
 type UpdateCaddieBody struct {

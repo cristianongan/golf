@@ -183,8 +183,27 @@ func (_ *CCaddie) GetCaddieList(c *gin.Context, prof models.CmsUser) {
 
 	caddieRequest := models.Caddie{}
 
-	if form.CourseId != "" {
-		caddieRequest.CourseUid = form.CourseId
+	if form.CourseId != nil {
+		caddieRequest.CourseUid = *form.CourseId
+	}
+	if form.Level != nil {
+		caddieRequest.Level = *form.Level
+	}
+	if form.Phone != nil {
+		caddieRequest.Phone = *form.Phone
+	}
+	if form.Name != nil {
+		print(*form.Name)
+		caddieRequest.Name = *form.Name
+	}
+	if form.Code != nil {
+		caddieRequest.Code = *form.Code
+	}
+	if form.WorkingStatus != nil {
+		caddieRequest.WorkingStatus = *form.WorkingStatus
+	}
+	if form.PartnerUid != nil {
+		caddieRequest.PartnerUid = *form.PartnerUid
 	}
 
 	list, total, err := caddieRequest.FindList(page)
