@@ -20,7 +20,7 @@ type CustomerUser struct {
 	Name        string `json:"name" gorm:"type:varchar(256);index"`        // Ten KH
 	Dob         int64  `json:"dob"`                                        // Ngay sinh
 	Sex         int    `json:"sex"`                                        // giới tính
-	Avatar      string `json:"avatar" gorm:"type:varchar(150)"`            // ảnh đại diện
+	Avatar      string `json:"avatar" gorm:"type:varchar(200)"`            // ảnh đại diện
 	Nationality string `json:"nationality" gorm:"type:varchar(100)"`       // Quốc gia
 	Phone       string `json:"phone" gorm:"type:varchar(20);index"`        // So dien thoai
 	CellPhone   string `json:"cell_phone" gorm:"type:varchar(20)"`         // So dien thoai

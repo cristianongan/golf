@@ -399,9 +399,9 @@ func cloneToBuggyBooking(buggy models.Buggy) model_booking.BookingBuggy {
 /*
 	Add Caddie, Buggy To Booking
 */
-func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode, buggyCode string) (error, model_booking.Booking) {
+func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode, buggyCode string) (error, model_booking.Booking, models.Caddie, models.Buggy) {
 	if partnerUid == "" || courseUid == "" || bookingDate == "" || bag == "" {
-		return errors.New(constants.API_ERR_INVALID_BODY_DATA), model_booking.Booking{}
+		return errors.New(constants.API_ERR_INVALID_BODY_DATA), model_booking.Booking{}, models.Caddie{}, models.Buggy{}
 	}
 
 	// Get booking
@@ -414,7 +414,7 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 
 	err := booking.FindFirst()
 	if err != nil {
-		return errors.New("Không "), booking
+		return errors.New("Không "), booking, models.Caddie{}, models.Buggy{}
 	}
 
 	//Check caddie
@@ -426,8 +426,14 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 	}
 	errFC := caddie.FindFirst()
 	if errFC != nil {
-		return errFC, booking
+		return errFC, booking, caddie, models.Buggy{}
 	}
+
+	// Caddie đang trên sân rồi
+	if caddie.IsInCourse {
+		return errors.New("Caddie in course"), booking, caddie, models.Buggy{}
+	}
+
 	//Check buggy
 	buggy := models.Buggy{
 		PartnerUid: partnerUid,
@@ -436,7 +442,7 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 	}
 	errFB := buggy.FindFirst()
 	if errFC != nil {
-		return errFB, booking
+		return errFB, booking, caddie, buggy
 	}
 
 	//Caddie
@@ -448,5 +454,27 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 	booking.BuggyId = buggy.Id
 	booking.BuggyInfo = cloneToBuggyBooking(buggy)
 
-	return nil, booking
+	return nil, booking, caddie, buggy
+}
+
+/*
+	Out caddie
+*/
+func udpOutCaddieBooking(booking model_booking.Booking) error {
+	// Get Caddie
+	caddie := models.Caddie{}
+	caddie.Id = booking.CaddieId
+	err := caddie.FindFirst()
+	if err != nil {
+		return err
+	}
+	caddie.IsInCourse = false
+	errUdp := caddie.Update()
+	if errUdp != nil {
+		return errUdp
+	}
+	// Udp booking
+	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_OUT
+
+	return nil
 }

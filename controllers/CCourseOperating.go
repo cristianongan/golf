@@ -55,7 +55,7 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 	}
 
 	// Check can add
-	errB, booking := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode)
+	errB, booking, _, _ := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode)
 	if errB != nil {
 		response_message.InternalServerError(c, errB.Error())
 		return
@@ -91,10 +91,14 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	// Check Caddie, Buggy đang trong flight
 	listError := []error{}
 	listBooking := []model_booking.Booking{}
+	listCaddie := []models.Caddie{}
+	listBuggy := []models.Buggy{}
 	for _, v := range body.ListData {
-		errB, bookingTemp := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
+		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
 		if errB == nil {
 			listBooking = append(listBooking, bookingTemp)
+			listCaddie = append(listCaddie, caddieTemp)
+			listBuggy = append(listBuggy, buggyTemp)
 		} else {
 			listError = append(listError, errB)
 		}
@@ -136,7 +140,16 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		b.FlightId = flight.Id
 		errUdp := b.Update()
 		if errUdp != nil {
-			log.Println("CreateFlight err ", errUdp.Error())
+			log.Println("CreateFlight err flight ", errUdp.Error())
+		}
+	}
+
+	// Update caddie status
+	for _, ca := range listCaddie {
+		ca.IsInCourse = true
+		errUdp := ca.Update()
+		if errUdp != nil {
+			log.Println("CreateFlight err udp caddie ", errUdp.Error())
 		}
 	}
 
@@ -145,11 +158,40 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 
 /*
 	Out Caddie
+	- Không remove flight để undo book
+	- Check flight để
 */
 func (_ *CCourseOperating) OutCaddie(c *gin.Context, prof models.CmsUser) {
-	body := request.CreateFlightBody{}
+	body := request.OutCaddieBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	errF := booking.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	errOut := udpOutCaddieBooking(booking)
+	if errOut != nil {
+		response_message.InternalServerError(c, errOut.Error())
+		return
+	}
+
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	booking.CaddieHoles = body.CaddieHoles
+	errUdp := booking.Update()
+	if errUdp != nil {
+		response_message.InternalServerError(c, errOut.Error())
+		return
+	}
+
+	// TODO: handle message caddie out
+	// Udp message
+
+	okResponse(c, booking)
 }

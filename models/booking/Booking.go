@@ -67,9 +67,10 @@ type Booking struct {
 
 	// TODO
 	// Caddie Id
-	CaddieStatus string        `json:"caddie_status" gorm:"type:varchar(50);index"` // Caddie status
+	CaddieStatus string        `json:"caddie_status" gorm:"type:varchar(50);index"` // Caddie status: IN/OUT/INIT
 	CaddieId     int64         `json:"caddie_id" gorm:"index"`
 	CaddieInfo   BookingCaddie `json:"caddie_info,omitempty" gorm:"type:json"` // Caddie Info
+	CaddieHoles  int           `json:"caddie_holes"`                           // Lưu lại
 
 	// Buggy Id
 	BuggyId   int64        `json:"buggy_id" gorm:"index"`
