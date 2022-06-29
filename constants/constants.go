@@ -1,6 +1,11 @@
 package constants
 
 const (
+	STATUS_IN  = "IN"
+	STATUS_OUT = "OUT"
+)
+
+const (
 	GORM_API_LOG_RECORD_NOT_FOUND = "record not found"
 )
 

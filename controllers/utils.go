@@ -9,6 +9,7 @@ import (
 	"start/controllers/request"
 	"start/models"
 	model_booking "start/models/booking"
+	model_gostarter "start/models/go-starter"
 	"start/utils"
 	"strings"
 
@@ -477,4 +478,14 @@ func udpOutCaddieBooking(booking model_booking.Booking) error {
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_OUT
 
 	return nil
+}
+
+/*
+	add Caddie In Out Note
+*/
+func addCaddieInOutNote(caddieInOut model_gostarter.CaddieInOutNote) {
+	err := caddieInOut.Create()
+	if err != nil {
+		log.Println("err addCaddieInOutNote", err.Error())
+	}
 }

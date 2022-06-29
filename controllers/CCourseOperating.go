@@ -176,6 +176,8 @@ func (_ *CCourseOperating) OutCaddie(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	caddieId := booking.CaddieId
+
 	errOut := udpOutCaddieBooking(booking)
 	if errOut != nil {
 		response_message.InternalServerError(c, errOut.Error())
@@ -190,8 +192,49 @@ func (_ *CCourseOperating) OutCaddie(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// TODO: handle message caddie out
-	// Udp message
+	// Udp Note
+	caddieInOutNote := model_gostarter.CaddieInOutNote{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		BookingUid: booking.Uid,
+		CaddieId:   caddieId,
+		Type:       constants.STATUS_OUT,
+		Note:       body.Note,
+	}
+	go addCaddieInOutNote(caddieInOutNote)
 
 	okResponse(c, booking)
+}
+
+/*
+	TODO:
+	Undo Out Caddie
+	Check caddie lúc này có đang trên sân k
+*/
+func (_ *CCourseOperating) UndoOutCaddie(c *gin.Context, prof models.CmsUser) {
+	body := request.OutCaddieBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	errF := booking.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	// Upd booking
+
+	// Udp note
+
+}
+
+/*
+	Out All Flight
+*/
+func (_ *CCourseOperating) OutAllFlight(c *gin.Context, prof models.CmsUser) {
+
 }
