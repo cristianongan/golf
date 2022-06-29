@@ -67,6 +67,7 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 		PartnerUid:    body.PartnerUid,
 		CourseUid:     body.CourseUid,
 		Name:          body.Name,
+		Avatar:        body.Avatar,
 		Phone:         body.Phone,
 		Address:       body.Address,
 		Sex:           body.Sex,
@@ -340,5 +341,8 @@ func assignCaddieUpdate(caddieRequest *models.Caddie, body request.UpdateCaddieB
 	}
 	if body.IsInCourse != nil {
 		caddieRequest.IsInCourse = *body.IsInCourse
+	}
+	if body.Avatar != nil {
+		caddieRequest.Avatar = *body.Avatar
 	}
 }
