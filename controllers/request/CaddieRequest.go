@@ -5,6 +5,7 @@ type CreateCaddieBody struct {
 	CourseUid     string `json:"course_uid"`
 	PartnerUid    string `json:"partner_uid"`
 	Name          string `json:"name"`
+	Avatar        string `json:"avatar"`
 	Sex           bool   `json:"sex"`
 	BirthDay      int64  `json:"birth_day"`
 	WorkingStatus string `json:"working_status"`
@@ -31,6 +32,7 @@ type UpdateCaddieBody struct {
 	Code          string  `json:"code"` // id caddie
 	CourseId      *string `json:"course_uid"`
 	Name          *string `json:"name"`
+	Avatar        *string `json:"avatar"`
 	Sex           *bool   `json:"sex"`
 	BirthDay      *int64  `json:"birth_day"`
 	WorkingStatus *string `json:"working_status"`

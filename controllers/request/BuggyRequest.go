@@ -28,4 +28,6 @@ type UpdateBuggyBody struct {
 	MaintenanceFrom *int64   `json:"maintenance_from"`
 	MaintenanceTo   *int64   `json:"maintenance_to"`
 	BuggyStatus     *string  `json:"buggy_status"`
+	CourseUid       *string  `json:"course_uid"`
+	PartnerUid      *string  `json:"partner_uid"`
 }

@@ -166,7 +166,32 @@ func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
+	if body.CourseUid != nil {
+		courseRequest := models.Course{}
+		courseRequest.Uid = *body.CourseUid
+		errFind := courseRequest.FindFirst()
+		if errFind != nil {
+			response_message.BadRequest(c, "course_uid not found")
+			return
+		}
+	}
 
+	if body.PartnerUid != nil {
+		partnerRequest := models.Partner{}
+		partnerRequest.Uid = *body.PartnerUid
+		partnerErrFind := partnerRequest.FindFirst()
+		if partnerErrFind != nil {
+			response_message.BadRequest(c, "partner_uid not found")
+			return
+		}
+	}
+
+	if body.CourseUid != nil {
+		buggyRequest.CourseUid = *body.CourseUid
+	}
+	if body.PartnerUid != nil {
+		buggyRequest.PartnerUid = *body.PartnerUid
+	}
 	if body.Origin != nil {
 		buggyRequest.Origin = *body.Origin
 	}

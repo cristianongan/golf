@@ -13,20 +13,21 @@ type Caddie struct {
 	Code          string `json:"code" gorm:"type:varchar(256);index"`        // Id Caddie vận hành
 	Name          string `json:"name" gorm:"type:varchar(120)"`
 	Sex           bool   `json:"sex"`
-	IsInCourse    bool   `json:"is_in_course"`
+	Avatar        string `json:"avatar" gorm:"type:varchar(256);index"` // San Golf
+	IsInCourse    bool   `json:"is_in_course"`                          // Caddie có đang trên sân không
 	BirthDay      int64  `json:"birth_day"`
-	WorkingStatus string `json:"working_status" gorm:"type:varchar(20)"`
-	Group         string `json:"group" gorm:"type:varchar(20)"`
-	StartedDate   int64  `json:"started_date"`
+	WorkingStatus string `json:"working_status" gorm:"type:varchar(20)"` // Trạng thái làm việc của Caddie: FullTime, Partime, Nghỉ...
+	Group         string `json:"group" gorm:"type:varchar(20)"`          // Caddie thuộc nhóm nào
+	StartedDate   int64  `json:"started_date"`                           // Ngày bắt đầu làm việc của Caddie
 	IdHr          string `json:"id_hr" gorm:"type:varchar(100)"`
 	Phone         string `json:"phone" gorm:"type:varchar(20)"`
 	Email         string `json:"email" gorm:"type:varchar(100)"`
-	IdentityCard  string `json:"identity_card" gorm:"type:varchar(20)"`
-	IssuedBy      string `json:"issued_by" gorm:"type:varchar(200)"`
-	ExpiredDate   int64  `json:"expired_date"`
-	PlaceOfOrigin string `json:"place_of_origin" gorm:"type:varchar(200)"`
-	Address       string `json:"address" gorm:"type:varchar(200)"`
-	Level         string `json:"level" gorm:"type:varchar(40)"`
+	IdentityCard  string `json:"identity_card" gorm:"type:varchar(20)"`    // Số CMT/CCCD của caddie
+	IssuedBy      string `json:"issued_by" gorm:"type:varchar(200)"`       // Nơi cấp CMT/CCCD
+	ExpiredDate   int64  `json:"expired_date"`                             // Ngày hết hạn của CMT/CCCD
+	PlaceOfOrigin string `json:"place_of_origin" gorm:"type:varchar(200)"` //Quê quán
+	Address       string `json:"address" gorm:"type:varchar(200)"`         // Địa chỉ của Caddie
+	Level         string `json:"level" gorm:"type:varchar(40)"`            // Hạng của Caddie.(A,B,C,D)
 	Note          string `json:"note" gorm:"type:varchar(200)"`
 }
 
