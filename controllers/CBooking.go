@@ -929,6 +929,11 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if body.BookingUid == "" {
+		response_message.BadRequest(c, "Booking Uid not empty")
+		return
+	}
+
 	booking := model_booking.Booking{}
 	booking.Uid = body.BookingUid
 	errF := booking.FindFirst()

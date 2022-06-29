@@ -54,6 +54,10 @@ func NewRouter() *gin.Engine {
 			groupApi.POST("/user/login", cCmsUser.Login)
 			groupApi.POST("/user", cCmsUser.CreateCmsUser)
 
+			/// =================== Upload Image =====================
+			cUpload := new(controllers.CUpload)
+			groupApi.POST("/upload/image", cUpload.UploadImage)
+
 			// ----------------------------------------------------------
 			// ================== authorized api ===============================
 			// ================== use Middleware check jwtToken ================
@@ -226,6 +230,8 @@ func NewRouter() *gin.Engine {
 			/// =================== Course Operating ====================
 			cCourseOperating := new(controllers.CCourseOperating)
 			cmsApiAuthorized.GET("/course-operating/booking/list-for-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetListBookingCaddieOnCourse))
+			cmsApiAuthorized.POST("/course-operating/booking/add-caddie-buggy", middlewares.AuthorizedCmsUserHandler(cCourseOperating.AddCaddieBuggyToBooking))
+			cmsApiAuthorized.POST("/course-operating/flight/create", middlewares.AuthorizedCmsUserHandler(cCourseOperating.CreateFlight))
 
 			/// =================== Buggy =====================
 			cBuggy := new(controllers.CBuggy)

@@ -22,6 +22,8 @@ type CreateFlightBody struct {
 	BookingDate string                 `json:"booking_date"`
 	ListData    []CaddieBuggyToBooking `json:"list_data"`
 	Note        string                 `json:"note"`
+	Tee         int                    `json:"tee"`     // Tee
+	TeeOff      string                 `json:"tee_off"` // Tee Off
 }
 
 type CaddieBuggyToBooking struct {
