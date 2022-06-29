@@ -46,4 +46,5 @@ type UpdateCaddieBody struct {
 	Level         *string `json:"level"`
 	Address       *string `json:"address"`
 	Note          *string `json:"note"`
+	IsInCourse    *bool   `json:"is_in_course"`
 }

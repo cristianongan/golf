@@ -13,6 +13,7 @@ type Caddie struct {
 	Code          string `json:"code" gorm:"type:varchar(256);index"`        // Id Caddie vận hành
 	Name          string `json:"name" gorm:"type:varchar(120)"`
 	Sex           bool   `json:"sex"`
+	IsInCourse    bool   `json:"is_in_course"`
 	BirthDay      int64  `json:"birth_day"`
 	WorkingStatus string `json:"working_status" gorm:"type:varchar(20)"`
 	Group         string `json:"group" gorm:"type:varchar(20)"`

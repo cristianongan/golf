@@ -82,6 +82,7 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 		PlaceOfOrigin: body.PlaceOfOrigin,
 		Email:         body.Email,
 		IdHr:          body.IdHr,
+		IsInCourse:    false,
 	}
 
 	err := Caddie.Create()
@@ -336,5 +337,8 @@ func assignCaddieUpdate(caddieRequest *models.Caddie, body request.UpdateCaddieB
 	}
 	if body.Email != nil {
 		caddieRequest.Note = *body.Email
+	}
+	if body.IsInCourse != nil {
+		caddieRequest.IsInCourse = *body.IsInCourse
 	}
 }

@@ -173,6 +173,21 @@ func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
 	if body.Note != nil {
 		buggyRequest.Note = *body.Note
 	}
+	if body.BuggyStatus != nil {
+		buggyRequest.BuggyStatus = *body.BuggyStatus
+	}
+	if body.BuggyForVip != nil {
+		buggyRequest.BuggyForVip = *body.BuggyForVip
+	}
+	if body.MaintenanceFrom != nil {
+		buggyRequest.MaintenanceFrom = *body.MaintenanceFrom
+	}
+	if body.MaintenanceTo != nil {
+		buggyRequest.MaintenanceTo = *body.MaintenanceTo
+	}
+	if body.WarrantyPeriod != nil {
+		buggyRequest.WarrantyPeriod = *body.WarrantyPeriod
+	}
 
 	err := buggyRequest.Update()
 	if err != nil {

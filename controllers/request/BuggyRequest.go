@@ -21,6 +21,11 @@ type GetListBuggyForm struct {
 }
 
 type UpdateBuggyBody struct {
-	Origin *string `json:"origin"`
-	Note   *string `json:"note"`
+	Origin          *string  `json:"origin"`
+	Note            *string  `json:"note"`
+	BuggyForVip     *bool    `json:"buggy_for_vip"`
+	WarrantyPeriod  *float64 `json:"warranty_period"`
+	MaintenanceFrom *int64   `json:"maintenance_from"`
+	MaintenanceTo   *int64   `json:"maintenance_to"`
+	BuggyStatus     *string  `json:"buggy_status"`
 }
