@@ -31,3 +31,10 @@ type CaddieBuggyToBooking struct {
 	CaddieCode string `json:"caddie_code"`
 	BuggyCode  string `json:"buggy_code"`
 }
+
+type OutCaddieBody struct {
+	BookingUid  string `json:"booking_uid" binding:"required"`
+	CaddieHoles int    `json:"caddie_holes"`
+	GuestHoles  int    `json:"guest_holes"`
+	Message     string `json:"message"`
+}

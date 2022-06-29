@@ -232,6 +232,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/course-operating/booking/list-for-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetListBookingCaddieOnCourse))
 			cmsApiAuthorized.POST("/course-operating/booking/add-caddie-buggy", middlewares.AuthorizedCmsUserHandler(cCourseOperating.AddCaddieBuggyToBooking))
 			cmsApiAuthorized.POST("/course-operating/flight/create", middlewares.AuthorizedCmsUserHandler(cCourseOperating.CreateFlight))
+			cmsApiAuthorized.POST("/course-operating/caddie/out", middlewares.AuthorizedCmsUserHandler(cCourseOperating.OutCaddie))
 
 			/// =================== Buggy =====================
 			cBuggy := new(controllers.CBuggy)
