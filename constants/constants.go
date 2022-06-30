@@ -1,8 +1,9 @@
 package constants
 
 const (
-	STATUS_IN  = "IN"
-	STATUS_OUT = "OUT"
+	STATUS_DELETE = "DELETE"
+	STATUS_IN     = "IN"
+	STATUS_OUT    = "OUT"
 )
 
 const (

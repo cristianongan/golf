@@ -311,14 +311,7 @@ func (_ *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Out Caddie cũ
-	caddieOld := models.Caddie{}
-	caddieOld.Id = booking.CaddieId
-	errCD := caddieOld.FindFirst()
-	caddieOld.IsInCourse = false
-	errCD = caddieOld.Update()
-	if errCD != nil {
-		log.Println("NeedMoreCaddie errCD", errCD.Error())
-	}
+	udpCaddieOut(booking.CaddieId)
 
 	// Gán Caddie mới
 	booking.CaddieId = caddieNew.Id
@@ -326,12 +319,75 @@ func (_ *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof models.CmsUser) {
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
 	booking.CaddieHoles = body.CaddieHoles
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
-	booking.CaddieHoles = body.CaddieHoles
 	errUdp := booking.Update()
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
+
+	okResponse(c, booking)
+}
+
+/*
+	Delete Attach caddie
+	- Trường hợp khách đã ghép Flight  (Đã gán caddie vs Buggy) --> Delete Attach Caddie sẽ out khách ra khỏi filght và xóa caddie và Buggy đã gán.
+	(Khách không bị cho vào danh sách out mà trở về trạng thái trước khi ghép)
+	- Trường hợp chưa ghép Flight (Đã gán Caddie và Buugy) --> Delete Attach Caddie sẽ xóa caddie và buggy đã gán với khách
+*/
+func (_ *CCourseOperating) DeleteAttachCaddie(c *gin.Context, prof models.CmsUser) {
+	body := request.OutCaddieBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// Check booking
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	errF := booking.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	caddieId := booking.CaddieId
+
+	// out caddie
+	udpCaddieOut(caddieId)
+
+	//
+	//Caddie
+	booking.CaddieId = 0
+	booking.CaddieInfo = cloneToCaddieBooking(models.Caddie{})
+	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
+	booking.CaddieHoles = 0
+
+	//Buggy
+	booking.BuggyId = 0
+	booking.BuggyInfo = cloneToBuggyBooking(models.Buggy{})
+
+	//Flight
+	if booking.FlightId > 0 {
+		booking.FlightId = 0
+	}
+
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	errUdp := booking.Update()
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	// Udp Note
+	caddieInOutNote := model_gostarter.CaddieInOutNote{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		BookingUid: booking.Uid,
+		CaddieId:   caddieId,
+		Type:       constants.STATUS_DELETE,
+		Note:       body.Note,
+	}
+	go addCaddieInOutNote(caddieInOutNote)
 
 	okResponse(c, booking)
 }

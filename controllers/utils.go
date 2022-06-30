@@ -463,21 +463,30 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 */
 func udpOutCaddieBooking(booking model_booking.Booking) error {
 	// Get Caddie
-	caddie := models.Caddie{}
-	caddie.Id = booking.CaddieId
-	err := caddie.FindFirst()
-	if err != nil {
-		return err
-	}
-	caddie.IsInCourse = false
-	errUdp := caddie.Update()
-	if errUdp != nil {
-		return errUdp
+	errCd := udpCaddieOut(booking.CaddieId)
+	if errCd != nil {
+		return errCd
 	}
 	// Udp booking
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_OUT
 
 	return nil
+}
+
+/*
+ Update caddie is in course is false
+*/
+func udpCaddieOut(caddieId int64) error {
+	// Get Caddie
+	caddie := models.Caddie{}
+	caddie.Id = caddieId
+	err := caddie.FindFirst()
+	caddie.IsInCourse = false
+	err = caddie.Update()
+	if err != nil {
+		log.Println("udpCaddieOut err", err.Error())
+	}
+	return err
 }
 
 /*
