@@ -35,11 +35,11 @@ func (_ *CGolfService) GetGolfServiceForReception(c *gin.Context, prof models.Cm
 	if form.Type == constants.GOLF_SERVICE_RENTAL {
 		// Get in rental
 		rentalR := model_service.Rental{
-			PartnerUid: form.PartnerUid,
-			CourseUid:  form.CourseUid,
-			Type:       form.Type,
-			Code:       form.Code,
-			Name:       form.Name,
+			PartnerUid:  form.PartnerUid,
+			CourseUid:   form.CourseUid,
+			Type:        form.Type,
+			Code:        form.Code,
+			EnglishName: form.Name,
 		}
 
 		list, total, errRentalR := rentalR.FindList(page)

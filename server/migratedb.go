@@ -66,6 +66,7 @@ func MigrateDb() {
 		// ------- Service ------
 		db.AutoMigrate(&model_service.Kiosk{})
 		db.AutoMigrate(&model_service.Rental{})
+		db.AutoMigrate(&model_service.FoodBeverage{})
 		db.AutoMigrate(&model_service.Proshop{})
 		db.AutoMigrate(&model_service.Restaurent{})
 

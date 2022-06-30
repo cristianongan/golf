@@ -267,6 +267,18 @@ func NewRouter() *gin.Engine {
 			/// =================== CGolf Service: Rental, Proshop, Restaurent, Kiosk =====================
 			cGolfService := new(controllers.CGolfService)
 			cmsApiAuthorized.GET("/golf-service/list/reception", middlewares.AuthorizedCmsUserHandler(cGolfService.GetGolfServiceForReception))
+			/// =================== Rental =====================
+			cRental := new(controllers.CRental)
+			cmsApiAuthorized.POST("/rental", middlewares.AuthorizedCmsUserHandler(cRental.CreateRental))
+			cmsApiAuthorized.GET("/rental/list", middlewares.AuthorizedCmsUserHandler(cRental.GetListRental))
+			cmsApiAuthorized.PUT("/rental/:id", middlewares.AuthorizedCmsUserHandler(cRental.UpdateRental))
+			cmsApiAuthorized.DELETE("/rental/:id", middlewares.AuthorizedCmsUserHandler(cRental.DeleteRental))
+			/// =================== Rental =====================
+			cFoodBeverage := new(controllers.CFoodBeverage)
+			cmsApiAuthorized.POST("/f&b", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.CreateFoodBeverage))
+			cmsApiAuthorized.GET("/f&b/list", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.GetListFoodBeverage))
+			cmsApiAuthorized.PUT("/f&b/:id", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.UpdateFoodBeverage))
+			cmsApiAuthorized.DELETE("/f&b/:id", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.DeleteFoodBeverage))
 		}
 
 		// ----------------------------------------------------------

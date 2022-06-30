@@ -5,7 +5,6 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -13,38 +12,23 @@ import (
 // Rental
 type Rental struct {
 	models.ModelId
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Name       string `json:"name" gorm:"type:varchar(256)"`              // Tên
-	Type       string `json:"type" gorm:"type:varchar(50)"`               // Loại rental, kiosk, proshop,...
-	Code       string `json:"code" gorm:"type:varchar(100)"`
-	GroupId    int64  `json:"group_id" gorm:"index"`
-	GroupCode  string `json:"group_code" gorm:"type:varchar(100);index"`
-	GroupName  string `json:"group_name" gorm:"type:varchar(256)"`
-	Unit       string `json:"unit" gorm:"type:varchar(100);index"`
-	Price      int64  `json:"price"`
-}
-
-func (item *Rental) IsValidated() bool {
-	if item.Name == "" {
-		return false
-	}
-	if item.PartnerUid == "" {
-		return false
-	}
-	if item.CourseUid == "" {
-		return false
-	}
-	if item.Type == "" {
-		return false
-	}
-	if item.Code == "" {
-		return false
-	}
-	if item.GroupId <= 0 {
-		return false
-	}
-	return true
+	PartnerUid   string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid    string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	EnglishName  string `json:"english_name" gorm:"type:varchar(256)"`      // Tên Tiếng Anh
+	RenPos       string `json:"ren_pos" gorm:"type:varchar(100)"`
+	VieName      string `json:"vietnamese_name" gorm:"type:varchar(256)"` // Tên Tiếng Anh
+	Type         string `json:"type" gorm:"type:varchar(50)"`             // Loại rental, kiosk, proshop,...
+	Code         string `json:"code" gorm:"type:varchar(100)"`
+	GroupId      int64  `json:"group_id" gorm:"index"`
+	GroupCode    string `json:"group_code" gorm:"type:varchar(100);index"`
+	GroupName    string `json:"group_name" gorm:"type:varchar(256)"`
+	Unit         string `json:"unit" gorm:"type:varchar(100)"`
+	Price        int64  `json:"price"`
+	ByHoles      bool   `json:"by_holes"`
+	ForPos       bool   `json:"for_pos"`
+	OnlyForRen   bool   `json:"only_for_ren"`
+	RentalStatus string `json:"rental_status" gorm:"type:varchar(100)"`
+	InputUser    string `json:"input_user" gorm:"type:varchar(100)"`
 }
 
 func (item *Rental) Create() error {
@@ -98,14 +82,14 @@ func (item *Rental) FindList(page models.Page) ([]Rental, int64, error) {
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
-	if item.Name != "" {
-		db = db.Where("name LIKE ?", "%"+item.Name+"%")
+	if item.EnglishName != "" {
+		db = db.Where("english_name LIKE ?", "%"+item.EnglishName+"%")
+	}
+	if item.VieName != "" {
+		db = db.Where("vie_name LIKE ?", "%"+item.VieName+"%")
 	}
 	if item.GroupCode != "" {
 		db = db.Where("group_code = ?", item.GroupCode)
-	}
-	if item.GroupId > 0 {
-		db = db.Where("group_id = ?", strconv.FormatInt(item.GroupId, 10))
 	}
 	if item.Code != "" {
 		db = db.Where("code = ?", item.Code)
