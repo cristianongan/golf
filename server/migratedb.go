@@ -62,6 +62,7 @@ func MigrateDb() {
 
 		// ------- GO --------
 		db.AutoMigrate(&model_gostarter.Flight{})
+		db.AutoMigrate(&model_gostarter.CaddieInOutNote{})
 
 		// ------- Service ------
 		db.AutoMigrate(&model_service.Kiosk{})
