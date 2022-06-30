@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"log"
 	"start/constants"
 	"start/controllers/request"
@@ -233,8 +234,104 @@ func (_ *CCourseOperating) UndoOutCaddie(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
-	Out All Flight
+	Out All Caddie In a Flight
+	Lấy tất cả các booking - bag trong Flight
 */
-func (_ *CCourseOperating) OutAllFlight(c *gin.Context, prof models.CmsUser) {
+func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
+	body := request.OutAllFlightBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
 
+	//Get list bookings trong Flight
+	bookingR := model_booking.Booking{
+		FlightId: body.FlightId,
+	}
+	bookings, err := bookingR.FindListInFlight()
+	if err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	//Udp các booking
+	for _, booking := range bookings {
+		errOut := udpOutCaddieBooking(booking)
+		if errOut == nil {
+			booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+			booking.CaddieHoles = body.CaddieHoles
+			errUdp := booking.Update()
+			if errUdp != nil {
+				log.Println("OutAllFlight err book udp ", errUdp.Error())
+			}
+		} else {
+			log.Println("OutAllFlight err out caddie ", errOut.Error())
+		}
+	}
+
+	okRes(c)
+}
+
+/*
+	Need more caddie
+	Đổi Caddie
+	Out caddie cũ và gán Caddie mới cho Bag
+*/
+func (_ *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof models.CmsUser) {
+	body := request.NeedMoreCaddieBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+	// Get Booking detail
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	errF := booking.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	// Check Caddie mới
+	caddieNew := models.Caddie{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		Code:       body.CaddieCode,
+	}
+	errFC := caddieNew.FindFirst()
+	if errFC != nil {
+		response_message.BadRequest(c, errFC.Error())
+		return
+	}
+
+	// Caddie đang trên sân rồi
+	if caddieNew.IsInCourse {
+		response_message.BadRequest(c, errors.New("Caddie new is in course").Error())
+		return
+	}
+
+	// Out Caddie cũ
+	caddieOld := models.Caddie{}
+	caddieOld.Id = booking.CaddieId
+	errCD := caddieOld.FindFirst()
+	caddieOld.IsInCourse = false
+	errCD = caddieOld.Update()
+	if errCD != nil {
+		log.Println("NeedMoreCaddie errCD", errCD.Error())
+	}
+
+	// Gán Caddie mới
+	booking.CaddieId = caddieNew.Id
+	booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
+	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+	booking.CaddieHoles = body.CaddieHoles
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	booking.CaddieHoles = body.CaddieHoles
+	errUdp := booking.Update()
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, booking)
 }

@@ -233,6 +233,9 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/course-operating/booking/add-caddie-buggy", middlewares.AuthorizedCmsUserHandler(cCourseOperating.AddCaddieBuggyToBooking))
 			cmsApiAuthorized.POST("/course-operating/flight/create", middlewares.AuthorizedCmsUserHandler(cCourseOperating.CreateFlight))
 			cmsApiAuthorized.POST("/course-operating/caddie/out", middlewares.AuthorizedCmsUserHandler(cCourseOperating.OutCaddie))
+			cmsApiAuthorized.POST("/course-operating/caddie/undo", middlewares.AuthorizedCmsUserHandler(cCourseOperating.UndoOutCaddie))
+			cmsApiAuthorized.POST("/course-operating/caddie/out-all-in-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.OutAllInFlight))
+			cmsApiAuthorized.POST("/course-operating/caddie/need-more", middlewares.AuthorizedCmsUserHandler(cCourseOperating.NeedMoreCaddie)) // Đổi caddie
 
 			/// =================== Buggy =====================
 			cBuggy := new(controllers.CBuggy)
