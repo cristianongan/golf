@@ -154,7 +154,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	okRes(c)
+	okResponse(c, flight)
 }
 
 /*
