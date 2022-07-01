@@ -1,6 +1,7 @@
 package model_gostarter
 
 import (
+	"log"
 	"start/constants"
 	"start/datasources"
 	"start/models"
@@ -80,6 +81,33 @@ func (item *Flight) FindList(page models.Page, from, to int64) ([]Flight, int64,
 		db = page.Setup(db).Find(&list)
 	}
 	return list, total, db.Error
+}
+
+func (item *Flight) FindListAll() ([]Flight, error) {
+	db := datasources.GetDatabase().Model(Flight{})
+	list := []Flight{}
+	status := item.ModelId.Status
+	item.ModelId.Status = ""
+	// db = db.Where(item)
+	if status != "" {
+		db = db.Where("status in (?)", strings.Split(status, ","))
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.DateDisplay != "" {
+		db = db.Where("date_display = ?", item.DateDisplay)
+	}
+
+	db.Find(&list)
+	err := db.Error
+	if err != nil {
+		log.Println("Flight FindListAll err ", err.Error())
+	}
+	return list, err
 }
 
 func (item *Flight) Delete() error {
