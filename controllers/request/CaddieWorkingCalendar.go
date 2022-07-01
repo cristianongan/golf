@@ -12,7 +12,7 @@ type CreateCaddieWorkingCalendarBody struct {
 
 type GetCaddieWorkingCalendarList struct {
 	PageRequest
-	ApplyDate string `json:"apply_date"`
+	ApplyDate string `form:"apply_date"`
 }
 
 type UpdateCaddieWorkingCalendar struct {

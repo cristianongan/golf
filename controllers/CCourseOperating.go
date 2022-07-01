@@ -28,6 +28,8 @@ func (_ *CCourseOperating) GetListBookingCaddieOnCourse(c *gin.Context, prof mod
 		return
 	}
 
+	// TODO: filter by date
+
 	bookingR := model_booking.Booking{
 		PartnerUid:  form.PartnerUid,
 		CourseUid:   form.CourseUid,
@@ -82,13 +84,14 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// TODO: validate max item in list
+
 	if len(body.ListData) == 0 {
 		response_message.BadRequest(c, "List Data empty")
 		return
 	}
 
 	// Check các bag ok hết mới tạo flight
-	// TODO:
 	// Check Caddie, Buggy đang trong flight
 	listError := []error{}
 	listBooking := []model_booking.Booking{}
@@ -179,7 +182,7 @@ func (_ *CCourseOperating) OutCaddie(c *gin.Context, prof models.CmsUser) {
 
 	caddieId := booking.CaddieId
 
-	errOut := udpOutCaddieBooking(booking)
+	errOut := udpOutCaddieBooking(&booking)
 	if errOut != nil {
 		response_message.InternalServerError(c, errOut.Error())
 		return
@@ -256,7 +259,7 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 
 	//Udp các booking
 	for _, booking := range bookings {
-		errOut := udpOutCaddieBooking(booking)
+		errOut := udpOutCaddieBooking(&booking)
 		if errOut == nil {
 			booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 			booking.CaddieHoles = body.CaddieHoles
@@ -264,6 +267,19 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 			if errUdp != nil {
 				log.Println("OutAllFlight err book udp ", errUdp.Error())
 			}
+
+			// update caddie in out note
+			caddieInOutNote := model_gostarter.CaddieInOutNote{
+				PartnerUid: booking.PartnerUid,
+				CourseUid:  booking.CourseUid,
+				BookingUid: booking.Uid,
+				CaddieId:   booking.CaddieId,
+				Type:       constants.STATUS_OUT,
+				Hole:       body.CaddieHoles,
+				Note:       body.Note,
+			}
+
+			go addCaddieInOutNote(caddieInOutNote)
 		} else {
 			log.Println("OutAllFlight err out caddie ", errOut.Error())
 		}
@@ -310,6 +326,10 @@ func (_ *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// TODO: validate available_status
+
+	// TODO: validate caddie_holes
+
 	// Out Caddie cũ
 	udpCaddieOut(booking.CaddieId)
 
@@ -317,13 +337,25 @@ func (_ *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof models.CmsUser) {
 	booking.CaddieId = caddieNew.Id
 	booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
-	booking.CaddieHoles = body.CaddieHoles
+	booking.CaddieHoles = booking.Hole - body.CaddieHoles
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 	errUdp := booking.Update()
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
+
+	caddieInOutNote := model_gostarter.CaddieInOutNote{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		BookingUid: booking.Uid,
+		CaddieId:   booking.CaddieId,
+		Type:       constants.STATUS_OUT,
+		Hole:       body.CaddieHoles,
+		Note:       body.Note,
+	}
+
+	go addCaddieInOutNote(caddieInOutNote)
 
 	okResponse(c, booking)
 }

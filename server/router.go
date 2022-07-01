@@ -239,6 +239,19 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/course-operating/caddie/delete-attach", middlewares.AuthorizedCmsUserHandler(cCourseOperating.DeleteAttachCaddie)) // Xoá caddie, buggy, flight
 			cmsApiAuthorized.GET("/course-operating/starting-sheet", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetStartingSheet))          // Get for starting sheet
 
+			/// =================== + More Course Operating ===================
+			//cmsApiAuthorized.POST("/course-operating/change-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.ChangeCaddie))
+			//cmsApiAuthorized.POST("/course-operating/change-buggy", middlewares.AuthorizedCmsUserHandler(cCourseOperating.ChangeBuggy))
+			//cmsApiAuthorized.POST("/course-operating/edit-holes-of-caddies", middlewares.AuthorizedCmsUserHandler(cCourseOperating.EditHolesOfCaddies))
+			//cmsApiAuthorized.POST("/course-operating/add-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.AddBagToFlight))
+
+			/// =================== + More Course Operating ===================
+			//cmsApiAuthorized.GET("/course-operating/flight/list", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetFlight))
+			//cmsApiAuthorized.POST("/course-operating/move-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.MoveBagToFlight))
+
+			/// =================== Golf Bag ===================
+			//cmsApiAuthorized.GET("/course-operating/golf-bag", middlewares.AuthorizedCmsUserHandler())
+
 			/// =================== Buggy =====================
 			cBuggy := new(controllers.CBuggy)
 			cmsApiAuthorized.POST("/buggy", middlewares.AuthorizedCmsUserHandler(cBuggy.CreateBuggy))

@@ -31,6 +31,8 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 		return
 	}
 
+	// TODO: validate row_time + apply_date + caddie_column + caddie_row
+
 	applyDate, _ := time.Parse("2006-01-02", body.ApplyDate)
 
 	rowTime := strings.Split(body.RowTime, ":")

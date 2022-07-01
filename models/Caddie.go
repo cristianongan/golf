@@ -29,6 +29,7 @@ type Caddie struct {
 	Address       string `json:"address" gorm:"type:varchar(200)"`         // Địa chỉ của Caddie
 	Level         string `json:"level" gorm:"type:varchar(40)"`            // Hạng của Caddie.(A,B,C,D)
 	Note          string `json:"note" gorm:"type:varchar(200)"`
+	// TODO: AvailableStatus
 }
 
 type CaddieResponse struct {

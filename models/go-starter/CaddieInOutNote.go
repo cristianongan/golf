@@ -17,7 +17,8 @@ type CaddieInOutNote struct {
 	BookingUid string `json:"booking_uid" gorm:"type:varchar(50);index"`  // Ex: Booking Uid
 	CaddieId   int64  `json:"caddie_id" gorm:"index"`                     // Caddie Id
 	Note       string `json:"note" gorm:"type:varchar(500)"`              // note
-	Type       string `json:"type" gorm:"type:varchar(50);index"`         // Type: IN(undo), OUT
+	Type       string `json:"type" gorm:"type:varchar(50);index"`         // Type: IN(undo), OUT, CHANGE
+	Hole       int    `json:"hole" gorm:"type:bigint"`
 }
 
 func (item *CaddieInOutNote) Create() error {

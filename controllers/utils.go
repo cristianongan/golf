@@ -401,9 +401,10 @@ func cloneToBuggyBooking(buggy models.Buggy) model_booking.BookingBuggy {
 	Add Caddie, Buggy To Booking
 */
 func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode, buggyCode string) (error, model_booking.Booking, models.Caddie, models.Buggy) {
-	if partnerUid == "" || courseUid == "" || bookingDate == "" || bag == "" {
-		return errors.New(constants.API_ERR_INVALID_BODY_DATA), model_booking.Booking{}, models.Caddie{}, models.Buggy{}
-	}
+	//if partnerUid == "" || courseUid == "" || bookingDate == "" || bag == "" {
+	//	return errors.New(constants.API_ERR_INVALID_BODY_DATA), model_booking.Booking{}, models.Caddie{}, models.Buggy{}
+	//}
+	// -> COMMENT REASON: duplicate validate
 
 	// Get booking
 	booking := model_booking.Booking{
@@ -415,11 +416,10 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 
 	err := booking.FindFirst()
 	if err != nil {
-		return errors.New("Không "), booking, models.Caddie{}, models.Buggy{}
+		return err, booking, models.Caddie{}, models.Buggy{}
 	}
 
 	//Check caddie
-	//TODO: check caddie avaible
 	caddie := models.Caddie{
 		PartnerUid: partnerUid,
 		CourseUid:  courseUid,
@@ -430,6 +430,7 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 		return errFC, booking, caddie, models.Buggy{}
 	}
 
+	// TODO: validate caddie by available_status
 	// Caddie đang trên sân rồi
 	if caddie.IsInCourse {
 		return errors.New("Caddie in course"), booking, caddie, models.Buggy{}
@@ -446,6 +447,8 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 		return errFB, booking, caddie, buggy
 	}
 
+	// TODO: validate buggy by available_status
+
 	//Caddie
 	booking.CaddieId = caddie.Id
 	booking.CaddieInfo = cloneToCaddieBooking(caddie)
@@ -461,7 +464,7 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 /*
 	Out caddie
 */
-func udpOutCaddieBooking(booking model_booking.Booking) error {
+func udpOutCaddieBooking(booking *model_booking.Booking) error {
 	// Get Caddie
 	errCd := udpCaddieOut(booking.CaddieId)
 	if errCd != nil {
@@ -469,6 +472,8 @@ func udpOutCaddieBooking(booking model_booking.Booking) error {
 	}
 	// Udp booking
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_OUT
+
+	booking.CheckInOutStatus = constants.CHECK_IN_OUT_STATUS_TIMEOUT
 
 	return nil
 }
