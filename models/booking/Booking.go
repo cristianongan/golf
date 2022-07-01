@@ -780,9 +780,7 @@ func (item *Booking) FindForFlightAll() []BookingForFlightRes {
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
-	if item.FlightId > 0 {
-		db = db.Where("flight_id = ?", item.FlightId)
-	}
+	db = db.Where("flight_id > ?", 0)
 
 	db.Find(&list)
 	err := db.Error
