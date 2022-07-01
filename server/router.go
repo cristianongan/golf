@@ -269,6 +269,48 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/caddie-working-time/list", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.GetCaddieWorkingTimeDetail))
 			cmsApiAuthorized.PUT("/caddie-working-time/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.UpdateCaddieWorkingTime))
 			cmsApiAuthorized.DELETE("/caddie-working-time/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.DeleteCaddieWorkingTime))
+
+			/// =================== Caddie Evaluation ===================
+			cCaddieEvaluation := new(controllers.CCaddieEvaluation)
+			cmsApiAuthorized.POST("/caddie-evaluation", middlewares.AuthorizedCmsUserHandler(cCaddieEvaluation.CreateCaddieEvaluation))
+			cmsApiAuthorized.GET("/caddie-evaluation", middlewares.AuthorizedCmsUserHandler(cCaddieEvaluation.GetCaddieEvaluationList))
+			cmsApiAuthorized.PUT("/caddie-evaluation/:id", middlewares.AuthorizedCmsUserHandler(cCaddieEvaluation.UpdateCaddieEvaluation))
+
+			/// =================== Recent Caddie Booking ===================
+			cCaddieBookingList := new(controllers.CCaddieBookingList)
+			cmsApiAuthorized.GET("/caddie-booking", middlewares.AuthorizedCmsUserHandler(cCaddieBookingList.GetCaddieBookingList))
+			cmsApiAuthorized.GET("/caddie-booking/agency", middlewares.AuthorizedCmsUserHandler(cCaddieBookingList.GetAgencyBookingList))
+			cmsApiAuthorized.GET("/caddie-booking/cancel", middlewares.AuthorizedCmsUserHandler(cCaddieBookingList.GetCancelBookingList))
+
+			/// =================== Caddie Calendar ===================
+			cCaddieCalendar := new(controllers.CCaddieCalendar)
+			cmsApiAuthorized.POST("/caddie-calendar", middlewares.AuthorizedCmsUserHandler(cCaddieCalendar.CreateCaddieCalendar))
+			cmsApiAuthorized.GET("/caddie-calendar", middlewares.AuthorizedCmsUserHandler(cCaddieCalendar.GetCaddieCalendarList))
+			cmsApiAuthorized.PUT("/caddie-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieCalendar.UpdateCaddieCalendar))
+
+			/// =================== Caddie Working Calendar ===================
+			cCaddieWorkingCalendar := new(controllers.CCaddieWorkingCalendar)
+			cmsApiAuthorized.POST("/caddie-working-calendar", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.CreateCaddieWorkingCalendar))
+			cmsApiAuthorized.GET("/caddie-working-calendar", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetCaddieWorkingCalendarList))
+			cmsApiAuthorized.PUT("/caddie-working-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.UpdateCaddieWorkingCalendar))
+
+			/// =================== Buggy Used Statistic ===================
+			cBuggyUsedList := new(controllers.CBuggyUsedList)
+			cmsApiAuthorized.GET("/buggy-used-list", middlewares.AuthorizedCmsUserHandler(cBuggyUsedList.GetBuggyUsedList))
+
+			// =================== Buggy Statistic ===================
+			cBuggyList := new(controllers.CBuggyList)
+			cmsApiAuthorized.GET("/buggy-list", middlewares.AuthorizedCmsUserHandler(cBuggyList.GetBuggyList))
+
+			// =================== Buggy In Course ===================
+			cBuggyInCourse := new(controllers.CBuggyInCourse)
+			cmsApiAuthorized.GET("/buggy-in-course", middlewares.AuthorizedCmsUserHandler(cBuggyInCourse.GetBuggyInCourse))
+
+			// =================== Buggy Calendar ===================
+			cBuggyCalendar := new(controllers.CBuggyCalendar)
+			cmsApiAuthorized.GET("/buggy-calendar", middlewares.AuthorizedCmsUserHandler(cBuggyCalendar.GetBuggyCalendar))
+
+			///
 			/// =================== CGolf Service: Rental, Proshop, Restaurent, Kiosk =====================
 			cGolfService := new(controllers.CGolfService)
 			cmsApiAuthorized.GET("/golf-service/list/reception", middlewares.AuthorizedCmsUserHandler(cGolfService.GetGolfServiceForReception))
