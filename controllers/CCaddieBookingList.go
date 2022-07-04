@@ -1,13 +1,14 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils/response_message"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CCaddieBookingList struct{}
@@ -71,7 +72,7 @@ func (_ *CCaddieBookingList) GetAgencyBookingList(c *gin.Context, prof models.Cm
 	bookings := model_booking.BookingList{}
 
 	bookings.BookingDate = bookingDate.Format("02/01/2006")
-	bookings.IsAgency = "1"
+	bookings.IsAgency = "0"
 
 	db, total, err := bookings.FindBookingListWithSelect(page)
 

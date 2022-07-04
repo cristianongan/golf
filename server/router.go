@@ -332,6 +332,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/proshop/list", middlewares.AuthorizedCmsUserHandler(cProshop.GetListProshop))
 			cmsApiAuthorized.PUT("/proshop/:id", middlewares.AuthorizedCmsUserHandler(cProshop.UpdateProshop))
 			cmsApiAuthorized.DELETE("/proshop/:id", middlewares.AuthorizedCmsUserHandler(cProshop.DeleteProshop))
+			/// =================== Group Services =====================
+			cGroupServices := new(controllers.CGroupServices)
+			cmsApiAuthorized.POST("/group-services", middlewares.AuthorizedCmsUserHandler(cGroupServices.CreateGroupServices))
+			cmsApiAuthorized.GET("/group-services/list", middlewares.AuthorizedCmsUserHandler(cGroupServices.GetGroupServicesList))
 		}
 
 		// ----------------------------------------------------------

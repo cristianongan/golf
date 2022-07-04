@@ -27,12 +27,11 @@ type CreateProshopBody struct {
 
 type GetListProshopForm struct {
 	PageRequest
-	PartnerUid         *string `form:"partner_uid" json:"partner_uid"`
-	CourseUid          *string `form:"course_uid" json:"course_uid"`
-	EnglishName        *string `form:"english_name" json:"english_name"`
-	VieName            *string `form:"vietnamese_name" json:"vietnamese_name"`
-	GroupId            *string `form:"group_id" json:"group_code"`
-	FoodBeverageStatus *string `form:"rental_status" json:"rental_status"`
+	PartnerUid  *string `form:"partner_uid" json:"partner_uid"`
+	CourseUid   *string `form:"course_uid" json:"course_uid"`
+	EnglishName *string `form:"english_name" json:"english_name"`
+	VieName     *string `form:"vietnamese_name" json:"vietnamese_name"`
+	GroupId     *string `form:"group_id" json:"group_code"`
 }
 
 type UpdateProshopBody struct {
