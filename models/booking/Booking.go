@@ -95,24 +95,66 @@ type Booking struct {
 	InitType string `json:"init_type" gorm:"type:varchar(50);index"` // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
 }
 
+type BookingForFlightRes struct {
+	models.Model
+	PartnerUid string `json:"partner_uid"` // Hang Golf
+	CourseUid  string `json:"course_uid"`  // San Golf
+
+	BookingDate string `json:"booking_date"` // Ex: 06/11/2022
+
+	Bag            string `json:"bag"`              // Golf Bag
+	Hole           int    `json:"hole"`             // Số hố
+	GuestStyle     string `json:"guest_style" `     // Guest Style
+	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
+
+	CustomerName string `json:"customer_name"` // Tên khách hàng
+
+	CheckInOutStatus string `json:"check_in_out_status" gorm:"type:varchar(50);index"` // Check In Out status
+	CheckInTime      int64  `json:"check_in_time"`                                     // Time Check In
+	CheckOutTime     int64  `json:"check_out_time"`                                    // Time Check Out
+	TeeType          string `json:"tee_type" gorm:"type:varchar(50);index"`            // 1, 1A, 1B, 1C, 10, 10A, 10B
+	TeePath          string `json:"tee_path" gorm:"type:varchar(50);index"`            // MORNING, NOON, NIGHT
+	TurnTime         string `json:"turn_time" gorm:"type:varchar(30)"`                 // Ex: 16:26
+	TeeTime          string `json:"tee_time" gorm:"type:varchar(30)"`                  // Ex: 16:26 Tee time là thời gian tee off dự kiến
+	TeeOffTime       string `json:"tee_off_time" gorm:"type:varchar(30)"`              // Ex: 16:26 Là thời gian thực tế phát bóng
+	RowIndex         int    `json:"row_index"`                                         // index trong Flight
+
+	// Caddie Id
+	CaddieStatus string        `json:"caddie_status" ` // Caddie status: IN/OUT/INIT
+	CaddieId     int64         `json:"caddie_id" `
+	CaddieInfo   BookingCaddie `json:"caddie_info,omitempty" ` // Caddie Info
+	CaddieHoles  int           `json:"caddie_holes"`           // Lưu lại
+
+	// Buggy Id
+	BuggyId   int64        `json:"buggy_id" `
+	BuggyInfo BookingBuggy `json:"buggy_info,omitempty" ` // Buggy Info
+
+	// Flight Id
+	FlightId int64 `json:"flight_id" `
+
+	// Agency Id
+	AgencyId   int64         `json:"agency_id" `
+	AgencyInfo BookingAgency `json:"agency_info" `
+}
+
 type BookingForSubBag struct {
 	models.Model
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	PartnerUid string `json:"partner_uid" ` // Hang Golf
+	CourseUid  string `json:"course_uid" `  // San Golf
 
-	BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
+	BookingDate string `json:"booking_date" ` // Ex: 06/11/2022
 
-	Bag            string `json:"bag" gorm:"type:varchar(100);index"`         // Golf Bag
-	Hole           int    `json:"hole"`                                       // Số hố
-	GuestStyle     string `json:"guest_style" gorm:"type:varchar(200);index"` // Guest Style
-	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Guest Style Name
+	Bag            string `json:"bag" `              // Golf Bag
+	Hole           int    `json:"hole"`              // Số hố
+	GuestStyle     string `json:"guest_style" `      // Guest Style
+	GuestStyleName string `json:"guest_style_name" ` // Guest Style Name
 
-	CustomerName string `json:"customer_name" gorm:"type:varchar(256)"` // Tên khách hàng
+	CustomerName string `json:"customer_name" ` // Tên khách hàng
 	// Subs bags
-	SubBags utils.ListSubBag `json:"sub_bags,omitempty" gorm:"type:json"` // List Sub Bags
+	SubBags utils.ListSubBag `json:"sub_bags,omitempty" ` // List Sub Bags
 
 	// Main bags
-	MainBags utils.ListSubBag `json:"main_bags,omitempty" gorm:"type:json"` // List Main Bags, thêm main bag sẽ thanh toán những cái gì
+	MainBags utils.ListSubBag `json:"main_bags,omitempty" ` // List Main Bags, thêm main bag sẽ thanh toán những cái gì
 }
 
 type CustomerInfo struct {
@@ -712,5 +754,38 @@ func (item *Booking) FindForCaddieOnCourse() []Booking {
 	db = db.Not("caddie_status = ?", constants.BOOKING_CADDIE_STATUS_OUT)
 
 	db.Find(&list)
+	return list
+}
+
+/*
+	Get List for Flight Data
+*/
+func (item *Booking) FindForFlightAll() []BookingForFlightRes {
+	db := datasources.GetDatabase().Table("bookings")
+	list := []BookingForFlightRes{}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.BookingDate == "" {
+		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		if errDate == nil {
+			item.BookingDate = dateDisplay
+		} else {
+			log.Println("FindForCaddieOnCourse BookingDate err ", errDate.Error())
+		}
+	}
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+	db = db.Where("flight_id > ?", 0)
+
+	db.Find(&list)
+	err := db.Error
+	if err != nil {
+		log.Println("Booking FindForFlightAll err ", err.Error())
+	}
 	return list
 }

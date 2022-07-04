@@ -391,3 +391,48 @@ func (_ *CCourseOperating) DeleteAttachCaddie(c *gin.Context, prof models.CmsUse
 
 	okResponse(c, booking)
 }
+
+/*
+	Get data for starting sheet display
+*/
+func (_ *CCourseOperating) GetStartingSheet(c *gin.Context, prof models.CmsUser) {
+	form := request.GetStartingSheetForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.BookingDate == "" {
+		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		if errDate == nil {
+			form.BookingDate = dateDisplay
+		} else {
+			log.Println("GetStartingSheet display err ", errDate.Error())
+		}
+	}
+
+	//Get Flight Data
+	flightR := model_gostarter.Flight{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		DateDisplay: form.BookingDate,
+	}
+
+	listFlight, _ := flightR.FindListAll()
+
+	//Get Booking data
+	bookingR := model_booking.Booking{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: form.BookingDate,
+	}
+
+	listBooking := bookingR.FindForFlightAll()
+
+	res := map[string]interface{}{
+		"flight_data":  listFlight,
+		"booking_data": listBooking,
+	}
+
+	okResponse(c, res)
+}
