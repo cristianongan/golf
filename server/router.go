@@ -319,12 +319,18 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/rental/list", middlewares.AuthorizedCmsUserHandler(cRental.GetListRental))
 			cmsApiAuthorized.PUT("/rental/:id", middlewares.AuthorizedCmsUserHandler(cRental.UpdateRental))
 			cmsApiAuthorized.DELETE("/rental/:id", middlewares.AuthorizedCmsUserHandler(cRental.DeleteRental))
-			/// =================== Rental =====================
+			/// =================== F&B =====================
 			cFoodBeverage := new(controllers.CFoodBeverage)
 			cmsApiAuthorized.POST("/f&b", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.CreateFoodBeverage))
 			cmsApiAuthorized.GET("/f&b/list", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.GetListFoodBeverage))
 			cmsApiAuthorized.PUT("/f&b/:id", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.UpdateFoodBeverage))
 			cmsApiAuthorized.DELETE("/f&b/:id", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.DeleteFoodBeverage))
+			/// =================== Proshop =====================
+			cProshop := new(controllers.CProshop)
+			cmsApiAuthorized.POST("/proshop", middlewares.AuthorizedCmsUserHandler(cProshop.CreateProshop))
+			cmsApiAuthorized.GET("/proshop/list", middlewares.AuthorizedCmsUserHandler(cProshop.GetListProshop))
+			cmsApiAuthorized.PUT("/proshop/:id", middlewares.AuthorizedCmsUserHandler(cProshop.UpdateProshop))
+			cmsApiAuthorized.DELETE("/proshop/:id", middlewares.AuthorizedCmsUserHandler(cProshop.DeleteProshop))
 		}
 
 		// ----------------------------------------------------------

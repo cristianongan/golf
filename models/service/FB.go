@@ -14,7 +14,7 @@ type FoodBeverage struct {
 	models.ModelId
 	PartnerUid    string  `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid     string  `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	GroupId       int64   `json:"group_id" gorm:"index"`
+	GroupId       string  `json:"group_id" gorm:"index"`
 	GroupName     string  `json:"group_name" gorm:"type:varchar(256)"`
 	FBCode        string  `json:"fb_code" gorm:"type:varchar(100)"`
 	EnglishName   string  `json:"english_name" gorm:"type:varchar(256)"`    // Tên Tiếng Anh

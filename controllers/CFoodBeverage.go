@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"start/controllers/request"
 	"start/models"
 	model_service "start/models/service"
@@ -34,7 +33,6 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 	partnerRequest.Uid = body.PartnerUid
 	partnerErrFind := partnerRequest.FindFirst()
 	if partnerErrFind != nil {
-		log.Print("partnerRequest")
 		response_message.BadRequest(c, partnerErrFind.Error())
 		return
 	}
@@ -43,7 +41,6 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 	courseRequest.Uid = body.CourseUid
 	errFind := courseRequest.FindFirst()
 	if errFind != nil {
-		log.Print("courseRequest")
 		response_message.BadRequest(c, errFind.Error())
 		return
 	}
@@ -55,7 +52,6 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 	errExist := foodBeverageRequest.FindFirst()
 
 	if errExist == nil {
-		log.Print("caddieRequest")
 		response_message.BadRequest(c, "F&B Id existed")
 		return
 	}
@@ -86,7 +82,6 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 
 	err := service.Create()
 	if err != nil {
-		log.Print("Caddie.Create()")
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
@@ -129,16 +124,11 @@ func (_ *CFoodBeverage) GetListFoodBeverage(c *gin.Context, prof models.CmsUser)
 	} else {
 		rentalR.VieName = ""
 	}
-	// if form.GroupCode != nil {
-	// 	rentalR.GroupCode = *form.GroupCode
-	// } else {
-	// 	rentalR.GroupCode = ""
-	// }
-	// if form.RentalStatus != nil {
-	// 	rentalR.RentalStatus = *form.RentalStatus
-	// } else {
-	// 	rentalR.RentalStatus = ""
-	// }
+	if form.GroupId != nil {
+		rentalR.GroupId = *form.GroupId
+	} else {
+		rentalR.GroupId = ""
+	}
 
 	list, total, err := rentalR.FindList(page)
 	if err != nil {

@@ -3,7 +3,7 @@ package request
 type CreateFoodBeverageBody struct {
 	PartnerUid    string  `json:"partner_uid"`
 	CourseUid     string  `json:"course_uid"`
-	GroupId       int64   `json:"group_id"`
+	GroupId       string  `json:"group_id"`
 	GroupName     string  `json:"group_name"`
 	FBCode        string  `json:"fb_code"`
 	EnglishName   string  `json:"english_name"`
@@ -30,7 +30,7 @@ type GetListFoodBeverageForm struct {
 	CourseUid          *string `form:"course_uid" json:"course_uid"`
 	EnglishName        *string `form:"english_name" json:"english_name"`
 	VieName            *string `form:"vietnamese_name" json:"vietnamese_name"`
-	GroupCode          *string `form:"group_code" json:"group_code"`
+	GroupId            *string `form:"group_id" json:"group_id"`
 	FoodBeverageStatus *string `form:"rental_status" json:"rental_status"`
 }
 

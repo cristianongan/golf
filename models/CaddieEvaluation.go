@@ -1,10 +1,11 @@
 package models
 
 import (
-	"gorm.io/datatypes"
 	"start/constants"
 	"start/datasources"
 	"time"
+
+	"gorm.io/datatypes"
 )
 
 // TODO: add gorm_type

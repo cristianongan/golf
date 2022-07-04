@@ -2,11 +2,12 @@ package model_booking
 
 import (
 	"fmt"
-	"gorm.io/gorm"
 	"start/datasources"
 	"start/models"
 	"strconv"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type BookingList struct {

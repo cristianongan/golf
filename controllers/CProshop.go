@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"start/controllers/request"
 	"start/models"
 	model_service "start/models/service"
@@ -11,10 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type CRental struct{}
+type CProshop struct{}
 
-func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
-	body := request.CreateRentalBody{}
+func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
+	body := request.CreateProshopBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
@@ -46,48 +45,49 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	rentalRequest := model_service.Rental{}
-	rentalRequest.CourseUid = body.CourseUid
-	rentalRequest.PartnerUid = body.PartnerUid
-	rentalRequest.Code = body.Code
-	errExist := rentalRequest.FindFirst()
+	ProshopRequest := model_service.Proshop{}
+	ProshopRequest.CourseUid = body.CourseUid
+	ProshopRequest.PartnerUid = body.PartnerUid
+	ProshopRequest.ProCode = body.ProCode
+	errExist := ProshopRequest.FindFirst()
 
 	if errExist == nil {
-		response_message.BadRequest(c, "Rental Id existed in course")
+		response_message.BadRequest(c, "F&B Id existed")
 		return
 	}
 
-	rental := model_service.Rental{
-		Code:         body.Code,
-		PartnerUid:   body.PartnerUid,
-		CourseUid:    body.CourseUid,
-		EnglishName:  body.EnglishName,
-		RenPos:       body.RenPos,
-		VieName:      body.VieName,
-		GroupId:      body.GroupId,
-		GroupCode:    body.GroupCode,
-		GroupName:    body.GroupName,
-		Unit:         body.Unit,
-		Price:        body.Price,
-		ByHoles:      body.ByHoles,
-		ForPos:       body.ForPos,
-		OnlyForRen:   body.OnlyForRen,
-		RentalStatus: body.RentalStatus,
-		InputUser:    body.InputUser,
+	service := model_service.Proshop{
+		PartnerUid:  body.PartnerUid,
+		GroupId:     body.GroupId,
+		CourseUid:   body.CourseUid,
+		GroupName:   body.GroupName,
+		ProCode:     body.ProCode,
+		EnglishName: body.EnglishName,
+		VieName:     body.VieName,
+		Unit:        body.Unit,
+		Price:       body.Price,
+		NetCost:     body.NetCost,
+		CostPrice:   body.CostPrice,
+		Barcode:     body.Barcode,
+		AccountCode: body.AccountCode,
+		Note:        body.Note,
+		ForKiosk:    body.ForKiosk,
+		IsInventory: body.IsInventory,
+		Brand:       body.Brand,
+		UserUpdate:  body.UserUpdate,
 	}
 
-	err := rental.Create()
+	err := service.Create()
 	if err != nil {
-		log.Print("Caddie.Create()")
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
-	okResponse(c, rental)
+	okResponse(c, service)
 }
 
-func (_ *CRental) GetListRental(c *gin.Context, prof models.CmsUser) {
-	form := request.GetListRentalForm{}
+func (_ *CProshop) GetListProshop(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListProshopForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
@@ -100,39 +100,34 @@ func (_ *CRental) GetListRental(c *gin.Context, prof models.CmsUser) {
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	rentalR := model_service.Rental{}
+	ProshopR := model_service.Proshop{}
 	if form.PartnerUid != nil {
-		rentalR.PartnerUid = *form.PartnerUid
+		ProshopR.PartnerUid = *form.PartnerUid
 	} else {
-		rentalR.PartnerUid = ""
+		ProshopR.PartnerUid = ""
 	}
 	if form.CourseUid != nil {
-		rentalR.CourseUid = *form.CourseUid
+		ProshopR.CourseUid = *form.CourseUid
 	} else {
-		rentalR.CourseUid = ""
+		ProshopR.CourseUid = ""
 	}
 	if form.EnglishName != nil {
-		rentalR.EnglishName = *form.EnglishName
+		ProshopR.EnglishName = *form.EnglishName
 	} else {
-		rentalR.EnglishName = ""
+		ProshopR.EnglishName = ""
 	}
 	if form.VieName != nil {
-		rentalR.VieName = *form.VieName
+		ProshopR.VieName = *form.VieName
 	} else {
-		rentalR.VieName = ""
+		ProshopR.VieName = ""
 	}
-	if form.GroupCode != nil {
-		rentalR.GroupCode = *form.GroupCode
+	if form.GroupId != nil {
+		ProshopR.GroupId = *form.GroupId
 	} else {
-		rentalR.GroupCode = ""
-	}
-	if form.RentalStatus != nil {
-		rentalR.RentalStatus = *form.RentalStatus
-	} else {
-		rentalR.RentalStatus = ""
+		ProshopR.GroupId = ""
 	}
 
-	list, total, err := rentalR.FindList(page)
+	list, total, err := ProshopR.FindList(page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -146,23 +141,23 @@ func (_ *CRental) GetListRental(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, res)
 }
 
-func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
-	rentalIdStr := c.Param("id")
-	rentalId, errId := strconv.ParseInt(rentalIdStr, 10, 64)
+func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
+	ProshopIdStr := c.Param("id")
+	ProshopId, errId := strconv.ParseInt(ProshopIdStr, 10, 64)
 	if errId != nil {
 		response_message.BadRequest(c, errId.Error())
 		return
 	}
 
-	partner := model_service.Rental{}
-	partner.Id = rentalId
+	partner := model_service.Proshop{}
+	partner.Id = ProshopId
 	errF := partner.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	body := request.UpdateRentalBody{}
+	body := request.UpdateProshopBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
@@ -174,21 +169,21 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 	if body.VieName != nil {
 		partner.VieName = *body.VieName
 	}
-	if body.RentalStatus != nil {
-		partner.RentalStatus = *body.RentalStatus
-	}
-	if body.ByHoles != nil {
-		partner.ByHoles = *body.ByHoles
-	}
-	if body.ForPos != nil {
-		partner.ForPos = *body.ForPos
-	}
-	if body.EnglishName != nil {
-		partner.OnlyForRen = *body.OnlyForRen
-	}
-	if body.Price != nil {
-		partner.Price = *body.Price
-	}
+	// if body.ProshopStatus != nil {
+	// 	partner.ProshopStatus = *body.ProshopStatus
+	// }
+	// if body.ByHoles != nil {
+	// 	partner.ByHoles = *body.ByHoles
+	// }
+	// if body.ForPos != nil {
+	// 	partner.ForPos = *body.ForPos
+	// }
+	// if body.EnglishName != nil {
+	// 	partner.OnlyForRen = *body.OnlyForRen
+	// }
+	// if body.Price != nil {
+	// 	partner.Price = *body.Price
+	// }
 
 	errUdp := partner.Update()
 	if errUdp != nil {
@@ -199,23 +194,23 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, partner)
 }
 
-func (_ *CRental) DeleteRental(c *gin.Context, prof models.CmsUser) {
-	rentalIdStr := c.Param("id")
-	rentalId, errId := strconv.ParseInt(rentalIdStr, 10, 64)
+func (_ *CProshop) DeleteProshop(c *gin.Context, prof models.CmsUser) {
+	fbIdStr := c.Param("id")
+	fbId, errId := strconv.ParseInt(fbIdStr, 10, 64)
 	if errId != nil {
 		response_message.BadRequest(c, errId.Error())
 		return
 	}
 
-	rental := model_service.Rental{}
-	rental.Id = rentalId
-	errF := rental.FindFirst()
+	fbModel := model_service.Proshop{}
+	fbModel.Id = fbId
+	errF := fbModel.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := rental.Delete()
+	errDel := fbModel.Delete()
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

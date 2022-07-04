@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"log"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
@@ -17,7 +16,6 @@ type CCaddie struct{}
 func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 	var body request.CreateCaddieBody
 	if bindErr := c.BindJSON(&body); bindErr != nil {
-		log.Print("CreateCaddie BindJSON error")
 		response_message.BadRequest(c, "")
 		return
 	}
@@ -36,7 +34,6 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 	partnerRequest.Uid = body.PartnerUid
 	partnerErrFind := partnerRequest.FindFirst()
 	if partnerErrFind != nil {
-		log.Print("partnerRequest")
 		response_message.BadRequest(c, partnerErrFind.Error())
 		return
 	}
@@ -45,7 +42,6 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 	courseRequest.Uid = body.CourseUid
 	errFind := courseRequest.FindFirst()
 	if errFind != nil {
-		log.Print("courseRequest")
 		response_message.BadRequest(c, errFind.Error())
 		return
 	}
@@ -57,7 +53,6 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 	errExist := caddieRequest.FindFirst()
 
 	if errExist == nil {
-		log.Print("caddieRequest")
 		response_message.BadRequest(c, "Caddie Id existed in course")
 		return
 	}
@@ -88,7 +83,6 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 
 	err := Caddie.Create()
 	if err != nil {
-		log.Print("Caddie.Create()")
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
@@ -98,13 +92,11 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 func (_ *CCaddie) CreateCaddieBatch(c *gin.Context, prof models.CmsUser) {
 	var body []request.CreateCaddieBody
 	if bindErr := c.BindJSON(&body); bindErr != nil {
-		log.Print("CreateCaddieBatch BindJSON error")
 		response_message.BadRequest(c, "")
 		return
 	}
 
 	if len(body) < 1 {
-		log.Print("CreateCaddieBatch len(body) error")
 		response_message.BadRequest(c, "empty body")
 		return
 	}
