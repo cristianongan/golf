@@ -38,15 +38,15 @@ type Booking struct {
 	CustomerUid  string       `json:"customer_uid" gorm:"type:varchar(256);index"` // Uid khách hàng
 	CustomerInfo CustomerInfo `json:"customer_info,omitempty" gorm:"type:json"`    // Customer Info
 
-	CheckInOutStatus string `json:"check_in_out_status" gorm:"type:varchar(50);index"` // Check In Out status
-	CheckInTime      int64  `json:"check_in_time"`                                     // Time Check In
-	CheckOutTime     int64  `json:"check_out_time"`                                    // Time Check Out
-	TeeType          string `json:"tee_type" gorm:"type:varchar(50);index"`            // 1, 1A, 1B, 1C, 10, 10A, 10B
-	TeePath          string `json:"tee_path" gorm:"type:varchar(50);index"`            // MORNING, NOON, NIGHT
-	TurnTime         string `json:"turn_time" gorm:"type:varchar(30)"`                 // Ex: 16:26
-	TeeTime          string `json:"tee_time" gorm:"type:varchar(30)"`                  // Ex: 16:26 Tee time là thời gian tee off dự kiến
-	TeeOffTime       string `json:"tee_off_time" gorm:"type:varchar(30)"`              // Ex: 16:26 Là thời gian thực tế phát bóng
-	RowIndex         int    `json:"row_index"`                                         // index trong Flight
+	BagStatus    string `json:"bag_status" gorm:"type:varchar(50);index"` // Bag status
+	CheckInTime  int64  `json:"check_in_time"`                            // Time Check In
+	CheckOutTime int64  `json:"check_out_time"`                           // Time Check Out
+	TeeType      string `json:"tee_type" gorm:"type:varchar(50);index"`   // 1, 1A, 1B, 1C, 10, 10A, 10B
+	TeePath      string `json:"tee_path" gorm:"type:varchar(50);index"`   // MORNING, NOON, NIGHT
+	TurnTime     string `json:"turn_time" gorm:"type:varchar(30)"`        // Ex: 16:26
+	TeeTime      string `json:"tee_time" gorm:"type:varchar(30)"`         // Ex: 16:26 Tee time là thời gian tee off dự kiến
+	TeeOffTime   string `json:"tee_off_time" gorm:"type:varchar(30)"`     // Ex: 16:26 Là thời gian thực tế phát bóng
+	RowIndex     int    `json:"row_index"`                                // index trong Flight
 
 	CurrentBagPrice  BookingCurrentBagPriceDetail  `json:"current_bag_price,omitempty" gorm:"type:json"`  // Thông tin phí++: Tính toán lại phí Service items, Tiền cho Subbag
 	ListGolfFee      ListBookingGolfFee            `json:"list_golf_fee,omitempty" gorm:"type:json"`      // Thông tin List Golf Fee, Main Bag, Sub Bag
@@ -109,15 +109,15 @@ type BookingForFlightRes struct {
 
 	CustomerName string `json:"customer_name"` // Tên khách hàng
 
-	CheckInOutStatus string `json:"check_in_out_status" gorm:"type:varchar(50);index"` // Check In Out status
-	CheckInTime      int64  `json:"check_in_time"`                                     // Time Check In
-	CheckOutTime     int64  `json:"check_out_time"`                                    // Time Check Out
-	TeeType          string `json:"tee_type" gorm:"type:varchar(50);index"`            // 1, 1A, 1B, 1C, 10, 10A, 10B
-	TeePath          string `json:"tee_path" gorm:"type:varchar(50);index"`            // MORNING, NOON, NIGHT
-	TurnTime         string `json:"turn_time" gorm:"type:varchar(30)"`                 // Ex: 16:26
-	TeeTime          string `json:"tee_time" gorm:"type:varchar(30)"`                  // Ex: 16:26 Tee time là thời gian tee off dự kiến
-	TeeOffTime       string `json:"tee_off_time" gorm:"type:varchar(30)"`              // Ex: 16:26 Là thời gian thực tế phát bóng
-	RowIndex         int    `json:"row_index"`                                         // index trong Flight
+	BagStatus    string `json:"bag_status" gorm:"type:varchar(50);index"` // Check In Out status
+	CheckInTime  int64  `json:"check_in_time"`                            // Time Check In
+	CheckOutTime int64  `json:"check_out_time"`                           // Time Check Out
+	TeeType      string `json:"tee_type" gorm:"type:varchar(50);index"`   // 1, 1A, 1B, 1C, 10, 10A, 10B
+	TeePath      string `json:"tee_path" gorm:"type:varchar(50);index"`   // MORNING, NOON, NIGHT
+	TurnTime     string `json:"turn_time" gorm:"type:varchar(30)"`        // Ex: 16:26
+	TeeTime      string `json:"tee_time" gorm:"type:varchar(30)"`         // Ex: 16:26 Tee time là thời gian tee off dự kiến
+	TeeOffTime   string `json:"tee_off_time" gorm:"type:varchar(30)"`     // Ex: 16:26 Là thời gian thực tế phát bóng
+	RowIndex     int    `json:"row_index"`                                // index trong Flight
 
 	// Caddie Id
 	CaddieStatus string        `json:"caddie_status" ` // Caddie status: IN/OUT/INIT
@@ -619,7 +619,7 @@ func (item *Booking) FindFirst() error {
 func (item *Booking) FindFirstNotCancel() error {
 	db := datasources.GetDatabase()
 	db = db.Where(item)
-	db = db.Not("check_in_out_status = ?", constants.CHECK_IN_OUT_STATUS_CANCEL)
+	db = db.Not("bag_status = ?", constants.CHECK_IN_OUT_STATUS_CANCEL)
 	return db.Where(item).First(item).Error
 }
 
@@ -663,7 +663,7 @@ func (item *Booking) FindList(page models.Page, from int64, to int64) ([]Booking
 
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
-		db = db.Not("check_in_out_status = ?", constants.CHECK_IN_OUT_STATUS_CANCEL)
+		db = db.Not("bag_status = ?", constants.CHECK_IN_OUT_STATUS_CANCEL)
 	}
 
 	db.Count(&total)
@@ -688,8 +688,8 @@ func (item *Booking) FindListForSubBag() ([]BookingForSubBag, error) {
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
-	if item.CheckInOutStatus != "" {
-		db = db.Where("check_in_out_status = ?", item.CheckInOutStatus)
+	if item.BagStatus != "" {
+		db = db.Where("bag_status = ?", item.BagStatus)
 	}
 
 	if item.BookingDate != "" {
@@ -750,7 +750,7 @@ func (item *Booking) FindForCaddieOnCourse() []Booking {
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
-	db = db.Where("check_in_out_status = ?", constants.CHECK_IN_OUT_STATUS_IN)
+	db = db.Where("bag_status = ?", constants.CHECK_IN_OUT_STATUS_IN)
 	db = db.Not("caddie_status = ?", constants.BOOKING_CADDIE_STATUS_OUT)
 
 	db.Find(&list)
