@@ -27,6 +27,7 @@ type BookingList struct {
 	Month       string
 	IsToday     string
 	BookingUid  string
+	IsFlight    string
 }
 
 func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {

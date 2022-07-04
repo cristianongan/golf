@@ -189,12 +189,12 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	// Check In Out
 	if body.IsCheckIn {
 		// Tạo booking check in luôn
-		booking.BagStatus = constants.CHECK_IN_OUT_STATUS_IN
+		booking.BagStatus = constants.BAG_STATUS_IN
 		booking.InitType = constants.BOOKING_INIT_TYPE_CHECKIN
 		booking.CheckInTime = checkInTime
 	} else {
 		// Tạo booking
-		booking.BagStatus = constants.CHECK_IN_OUT_STATUS_INIT
+		booking.BagStatus = constants.BAG_STATUS_INIT
 		booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
 	}
 
@@ -497,7 +497,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	booking.CmsUser = prof.UserName
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 	booking.CheckInTime = time.Now().Unix()
-	booking.BagStatus = constants.CHECK_IN_OUT_STATUS_IN
+	booking.BagStatus = constants.BAG_STATUS_IN
 
 	errUdp := booking.Update()
 	if errUdp != nil {
@@ -784,7 +784,7 @@ func (_ *CBooking) GetListBookingForAddSubBag(c *gin.Context, prof models.CmsUse
 	bookingR := model_booking.Booking{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
-		BagStatus:  constants.CHECK_IN_OUT_STATUS_IN,
+		BagStatus:  constants.BAG_STATUS_IN,
 	}
 	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 	if errDate == nil {
@@ -942,12 +942,12 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if booking.BagStatus != constants.CHECK_IN_OUT_STATUS_INIT {
+	if booking.BagStatus != constants.BAG_STATUS_INIT {
 		response_message.InternalServerError(c, "This booking did check in")
 		return
 	}
 
-	booking.BagStatus = constants.CHECK_IN_OUT_STATUS_CANCEL
+	booking.BagStatus = constants.BAG_STATUS_CANCEL
 	booking.CancelNote = body.Note
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 

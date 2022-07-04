@@ -473,7 +473,7 @@ func udpOutCaddieBooking(booking *model_booking.Booking) error {
 	// Udp booking
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_OUT
 
-	booking.CheckInOutStatus = constants.CHECK_IN_OUT_STATUS_TIMEOUT
+	booking.BagStatus = constants.BAG_STATUS_TIMEOUT
 
 	return nil
 }

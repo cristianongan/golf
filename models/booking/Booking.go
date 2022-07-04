@@ -619,7 +619,7 @@ func (item *Booking) FindFirst() error {
 func (item *Booking) FindFirstNotCancel() error {
 	db := datasources.GetDatabase()
 	db = db.Where(item)
-	db = db.Not("bag_status = ?", constants.CHECK_IN_OUT_STATUS_CANCEL)
+	db = db.Not("bag_status = ?", constants.BAG_STATUS_CANCEL)
 	return db.Where(item).First(item).Error
 }
 
@@ -663,7 +663,7 @@ func (item *Booking) FindList(page models.Page, from int64, to int64) ([]Booking
 
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
-		db = db.Not("bag_status = ?", constants.CHECK_IN_OUT_STATUS_CANCEL)
+		db = db.Not("bag_status = ?", constants.BAG_STATUS_CANCEL)
 	}
 
 	db.Count(&total)
@@ -750,7 +750,7 @@ func (item *Booking) FindForCaddieOnCourse() []Booking {
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
-	db = db.Where("bag_status = ?", constants.CHECK_IN_OUT_STATUS_IN)
+	db = db.Where("bag_status = ?", constants.BAG_STATUS_IN)
 	db = db.Not("caddie_status = ?", constants.BOOKING_CADDIE_STATUS_OUT)
 
 	db.Find(&list)

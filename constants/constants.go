@@ -21,15 +21,15 @@ const (
 )
 
 /*
- Check in out status
+ Bag status
 */
 const (
-	CHECK_IN_OUT_STATUS_IN        = "IN"
-	CHECK_IN_OUT_STATUS_OUT       = "OUT"
-	CHECK_IN_OUT_STATUS_INIT      = "INIT"
-	CHECK_IN_OUT_STATUS_CANCEL    = "CANCEL" // Cancel booking
-	CHECK_IN_OUT_STATUS_TIMEOUT   = "TIMEOUT"
-	CHECK_In_OUT_STATUS_IN_COURSE = "IN_COURSE"
+	BAG_STATUS_IN        = "IN"
+	BAG_STATUS_OUT       = "OUT"
+	BAG_STATUS_INIT      = "INIT"
+	BAG_STATUS_CANCEL    = "CANCEL" // Cancel booking
+	BAG_STATUS_TIMEOUT   = "TIMEOUT"
+	BAG_STATUS_IN_COURSE = "IN_COURSE"
 )
 
 /*
