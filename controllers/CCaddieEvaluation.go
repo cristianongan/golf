@@ -15,7 +15,7 @@ import (
 
 type CCaddieEvaluation struct{}
 
-func validateBooking(c *gin.Context, bookingUid string, caddieUid string, caddieCode string) (model_booking.Booking, error) {
+func (_ *CCaddieEvaluation) validateBooking(c *gin.Context, bookingUid string, caddieUid string, caddieCode string) (model_booking.Booking, error) {
 	bookingList := model_booking.BookingList{}
 	bookingList.BookingUid = bookingUid
 	bookingList.CaddieUid = caddieUid
@@ -24,7 +24,7 @@ func validateBooking(c *gin.Context, bookingUid string, caddieUid string, caddie
 	return bookingList.FindFirst()
 }
 
-func (_ *CCaddieEvaluation) CreateCaddieEvaluation(c *gin.Context, prof models.CmsUser) {
+func (cCaddieEvaluation *CCaddieEvaluation) CreateCaddieEvaluation(c *gin.Context, prof models.CmsUser) {
 	var body request.CreateCaddieEvaluationBody
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("CreateCaddieEvaluation BindJSON error")
@@ -33,7 +33,7 @@ func (_ *CCaddieEvaluation) CreateCaddieEvaluation(c *gin.Context, prof models.C
 	}
 
 	// validate booking_uid, caddie_uid, caddie_code
-	booking, err := validateBooking(c, body.BookingUid, body.CaddieUid, body.CaddieCode)
+	booking, err := cCaddieEvaluation.validateBooking(c, body.BookingUid, body.CaddieUid, body.CaddieCode)
 	if err != nil {
 		response_message.BadRequest(c, err.Error())
 		return

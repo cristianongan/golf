@@ -468,3 +468,110 @@ func (_ *CCourseOperating) GetStartingSheet(c *gin.Context, prof models.CmsUser)
 
 	okResponse(c, res)
 }
+
+func (_ CCourseOperating) validateBooking(bookindUid string) (model_booking.Booking, error) {
+	booking := model_booking.Booking{}
+	booking.Uid = bookindUid
+	if err := booking.FindFirst(); err != nil {
+		return booking, err
+	}
+
+	return booking, nil
+}
+
+func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof models.CmsUser) {
+	body := request.ChangeCaddieBody{}
+	if err := c.Bind(&body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate booking_uid
+	booking, err := cCourseOperating.validateBooking(body.BookingUid)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	// validate caddie_code
+	caddieNew := models.Caddie{}
+	caddieNew.CourseUid = prof.CourseUid
+	caddieNew.Code = body.CaddieCode
+	if err := caddieNew.FindFirst(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	if caddieNew.IsInCourse {
+		response_message.BadRequest(c, errors.New("Caddie new is in course").Error())
+		return
+	}
+
+	// TODO: validate available_status
+
+	if err := udpCaddieOut(booking.CaddieId); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	// set new caddie
+	booking.CaddieId = caddieNew.Id
+	booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
+	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+
+	if err := booking.Update(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okResponse(c, booking)
+}
+
+func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models.CmsUser) {
+	body := request.ChangeBuggyBody{}
+	if err := c.Bind(&body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	booking, err := cCourseOperating.validateBooking(body.BookingUid)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	// validate buggy_code
+	buggyNew := models.Buggy{}
+	buggyNew.CourseUid = prof.CourseUid
+	buggyNew.Code = body.BuggyCode
+	if err := buggyNew.FindFirst(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	//if buggyNew.IsInCourse {
+	//	response_message.BadRequest(c, errors.New("Buggy new is in course").Error())
+	//	return
+	//}
+
+	// TODO: validate available_status
+
+	if err := udpBuggyOut(booking.BuggyId); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	// set new buggy
+	booking.BuggyId = buggyNew.Id
+	booking.BuggyInfo = cloneToBuggyBooking(buggyNew)
+	//booking.BuggyStatus
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+
+	if err := booking.Update(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okResponse(c, booking)
+}

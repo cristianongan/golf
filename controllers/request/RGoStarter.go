@@ -59,3 +59,17 @@ type GetStartingSheetForm struct {
 	CourseUid   string `form:"course_uid" binding:"required"`
 	BookingDate string `form:"booking_date"`
 }
+
+type ChangeCaddieBody struct {
+	BookingUid string `json:"booking_uid"`
+	CaddieCode string `json:"caddie_code"`
+	Reason     string `json:"reason"`
+	Note       string `json:"note"`
+}
+
+type ChangeBuggyBody struct {
+	BookingUid string `json:"booking_uid"`
+	BuggyCode  string `json:"buggy_code"`
+	Reason     string `json:"reason"`
+	Note       string `json:"note"`
+}

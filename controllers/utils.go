@@ -503,3 +503,14 @@ func addCaddieInOutNote(caddieInOut model_gostarter.CaddieInOutNote) {
 		log.Println("err addCaddieInOutNote", err.Error())
 	}
 }
+
+func udpBuggyOut(buggyId int64) error {
+	buggy := models.Buggy{}
+	buggy.Id = buggyId
+	err := buggy.FindFirst()
+	//buggy.IsInCourse = false
+	if err := buggy.Update(); err != nil {
+		log.Println("udpCaddieOut err", err.Error())
+	}
+	return err
+}

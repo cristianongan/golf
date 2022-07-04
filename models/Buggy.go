@@ -20,6 +20,7 @@ type Buggy struct {
 	MaintenanceFrom int64   `json:"maintenance_from"`
 	MaintenanceTo   int64   `json:"maintenance_to"`
 	BuggyStatus     string  `json:"buggy_status"`
+	IsInCourse      bool    `json:"is_in_course"`
 	// TODO: AvailableStatus
 }
 

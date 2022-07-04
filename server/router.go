@@ -240,8 +240,8 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/course-operating/starting-sheet", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetStartingSheet))          // Get for starting sheet
 
 			/// =================== + More Course Operating ===================
-			//cmsApiAuthorized.POST("/course-operating/change-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.ChangeCaddie))
-			//cmsApiAuthorized.POST("/course-operating/change-buggy", middlewares.AuthorizedCmsUserHandler(cCourseOperating.ChangeBuggy))
+			cmsApiAuthorized.POST("/course-operating/change-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.ChangeCaddie))
+			cmsApiAuthorized.POST("/course-operating/change-buggy", middlewares.AuthorizedCmsUserHandler(cCourseOperating.ChangeBuggy))
 			//cmsApiAuthorized.POST("/course-operating/edit-holes-of-caddies", middlewares.AuthorizedCmsUserHandler(cCourseOperating.EditHolesOfCaddies))
 			//cmsApiAuthorized.POST("/course-operating/add-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.AddBagToFlight))
 
