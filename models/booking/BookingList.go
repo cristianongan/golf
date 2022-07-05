@@ -28,6 +28,7 @@ type BookingList struct {
 	IsToday     string
 	BookingUid  string
 	IsFlight    string
+	BagStatus   string
 }
 
 func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
@@ -86,6 +87,10 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 
 	if item.GolfBag != "" {
 		db = db.Where("bag = ?", item.GolfBag)
+	}
+
+	if item.BagStatus != "" {
+		db = db.Where("bag_status = ?", item.BagStatus)
 	}
 
 	return db
