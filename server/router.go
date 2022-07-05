@@ -350,6 +350,7 @@ func NewRouter() *gin.Engine {
 			cGroupServices := new(controllers.CGroupServices)
 			cmsApiAuthorized.POST("/group-services", middlewares.AuthorizedCmsUserHandler(cGroupServices.CreateGroupServices))
 			cmsApiAuthorized.GET("/group-services/list", middlewares.AuthorizedCmsUserHandler(cGroupServices.GetGroupServicesList))
+			cmsApiAuthorized.DELETE("/group-services/:id", middlewares.AuthorizedCmsUserHandler(cGroupServices.DeleteServices))
 		}
 
 		// ----------------------------------------------------------

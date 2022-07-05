@@ -10,13 +10,18 @@ import (
 
 type GroupServices struct {
 	models.ModelId
-	GroupCode   string `json:"group_code" gorm:"type:varchar(100)"`   // Mã Group
-	GroupName   string `json:"group_name" gorm:"type:varchar(256)"`   // Tên Group
-	DetailGroup string `json:"detail_group" gorm:"type:varchar(256)"` // Tên Group
-	Type        string `json:"type" gorm:"type:varchar(100)"`         // Loại service, kiosk, proshop.
+	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	GroupCode   string `json:"group_code" gorm:"type:varchar(100)"`        // Mã Group
+	GroupName   string `json:"group_name" gorm:"type:varchar(256)"`        // Tên Group
+	DetailGroup string `json:"detail_group" gorm:"type:varchar(256)"`      // Tên Group
+	Type        string `json:"type" gorm:"type:varchar(100)"`              // Loại service, kiosk, proshop.
 }
 
 type GroupServicesResponse struct {
+	Id          int64  `json:"id"`
+	PartnerUid  string `json:"partner_uid"`
+	CourseUid   string `json:"course_uid"`
 	GroupCode   string `json:"group_code"`
 	GroupName   string `json:"group_name"`
 	Type        string `json:"type"`
