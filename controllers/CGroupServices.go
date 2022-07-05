@@ -29,6 +29,7 @@ func (_ *CGroupServices) CreateGroupServices(c *gin.Context, prof models.CmsUser
 	}
 	groupServices.GroupName = body.GroupName
 	groupServices.Type = body.Type
+	groupServices.DetailGroup = body.DetailGroup
 
 	errC := groupServices.Create()
 

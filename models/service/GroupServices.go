@@ -10,9 +10,17 @@ import (
 
 type GroupServices struct {
 	models.ModelId
-	GroupCode string `json:"group_code" gorm:"type:varchar(100)"`  // Mã Group
-	GroupName string `json:"partner_uid" gorm:"type:varchar(256)"` // Tên Group
-	Type      string `json:"type" gorm:"type:varchar(100)"`        // Loại services Rental, f&b, Proshop.
+	GroupCode   string `json:"group_code" gorm:"type:varchar(100)"`   // Mã Group
+	GroupName   string `json:"group_name" gorm:"type:varchar(256)"`   // Tên Group
+	DetailGroup string `json:"detail_group" gorm:"type:varchar(256)"` // Tên Group
+	Type        string `json:"type" gorm:"type:varchar(100)"`         // Loại service, kiosk, proshop.
+}
+
+type GroupServicesResponse struct {
+	GroupCode   string `json:"group_code"`
+	GroupName   string `json:"group_name"`
+	Type        string `json:"type"`
+	DetailGroup string `json:"detail_group"`
 }
 
 func (item *GroupServices) Create() error {
@@ -50,9 +58,9 @@ func (item *GroupServices) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *GroupServices) FindList(page models.Page) ([]GroupServices, int64, error) {
+func (item *GroupServices) FindList(page models.Page) ([]GroupServicesResponse, int64, error) {
 	db := datasources.GetDatabase().Model(GroupServices{})
-	list := []GroupServices{}
+	list := []GroupServicesResponse{}
 	total := int64(0)
 	db = db.Where(item)
 	db.Count(&total)
