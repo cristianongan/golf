@@ -5,6 +5,7 @@ import (
 	"log"
 	"start/constants"
 	"start/controllers/request"
+	"start/controllers/response"
 	"start/models"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
@@ -479,6 +480,16 @@ func (_ CCourseOperating) validateBooking(bookindUid string) (model_booking.Book
 	return booking, nil
 }
 
+func (_ CCourseOperating) validateCaddie(courseUid string, caddieCode string) (models.Caddie, error) {
+	caddieNew := models.Caddie{}
+	caddieNew.CourseUid = courseUid
+	caddieNew.Code = caddieCode
+	if err := caddieNew.FindFirst(); err != nil {
+		return caddieNew, err
+	}
+	return caddieNew, nil
+}
+
 func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof models.CmsUser) {
 	body := request.ChangeCaddieBody{}
 	if err := c.Bind(&body); err != nil {
@@ -494,10 +505,8 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 	}
 
 	// validate caddie_code
-	caddieNew := models.Caddie{}
-	caddieNew.CourseUid = prof.CourseUid
-	caddieNew.Code = body.CaddieCode
-	if err := caddieNew.FindFirst(); err != nil {
+	caddieNew, err := cCourseOperating.validateCaddie(prof.CourseUid, body.CaddieCode)
+	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
@@ -567,6 +576,171 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 	booking.BuggyInfo = cloneToBuggyBooking(buggyNew)
 	//booking.BuggyStatus
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+
+	if err := booking.Update(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okResponse(c, booking)
+}
+
+func (cCourseOperating CCourseOperating) EditHolesOfCaddie(c *gin.Context, prof models.CmsUser) {
+	body := request.EditHolesOfCaddiesBody{}
+	if err := c.Bind(&body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate booking_uid
+	booking, err := cCourseOperating.validateBooking(body.BookingUid)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	// validate caddie_code
+	caddie, err := cCourseOperating.validateCaddie(prof.CourseUid, body.CaddieCode)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	if caddie.Id != booking.CaddieId {
+		response_message.InternalServerError(c, "Booking uid and caddie code do not match")
+		return
+	}
+
+	booking.CaddieHoles = body.Hole
+
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+
+	if err := booking.Update(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okResponse(c, booking)
+}
+
+func (_ CCourseOperating) validateFlight(flightId int64) (model_gostarter.Flight, error) {
+	flight := model_gostarter.Flight{}
+	flight.Id = flightId
+	if err := flight.FindFirst(); err != nil {
+		return flight, err
+	}
+
+	return flight, nil
+}
+
+func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof models.CmsUser) {
+	body := request.AddBagToFlightBody{}
+	if err := c.Bind(&body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate booking_uid
+	booking, err := cCourseOperating.validateBooking(body.BookingUid)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	// validate golf_bag
+	if booking.Bag != body.GolfBag {
+		response_message.InternalServerError(c, "Booking uid and golf bag do not match")
+		return
+	}
+
+	// validate flight_id
+	_, err = cCourseOperating.validateFlight(body.FlightId)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	// TODO: validate max list
+
+	booking.FlightId = body.FlightId
+
+	if err := booking.Update(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okResponse(c, booking)
+}
+
+func (_ CCourseOperating) GetFlight(c *gin.Context, prof models.CmsUser) {
+	query := request.GetFlightList{}
+	if err := c.Bind(&query); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   query.PageRequest.Limit,
+		Page:    query.PageRequest.Page,
+		SortBy:  query.PageRequest.SortBy,
+		SortDir: query.PageRequest.SortDir,
+	}
+
+	bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
+
+	bookings := model_booking.BookingList{}
+
+	bookings.BookingDate = bookingDate.Format("02/01/2006")
+	bookings.BagStatus = query.BagStatus
+	bookings.IsFlight = "1"
+
+	db, total, err := bookings.FindBookingListWithSelect(page)
+
+	var list []response.FlightResponse
+	db.Find(&list)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	c.JSON(200, res)
+}
+
+func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof models.CmsUser) {
+	body := request.MoveBagToFlightBody{}
+	if err := c.Bind(&body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate booking_uid
+	booking, err := cCourseOperating.validateBooking(body.BookingUid)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	// validate golf_bag
+	if booking.Bag != body.GolfBag {
+		response_message.InternalServerError(c, "Booking uid and golf bag do not match")
+		return
+	}
+
+	// validate flight_id
+	_, err = cCourseOperating.validateFlight(body.FlightId)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	// TODO: validate max list
+
+	booking.FlightId = body.FlightId
 
 	if err := booking.Update(); err != nil {
 		response_message.InternalServerError(c, err.Error())

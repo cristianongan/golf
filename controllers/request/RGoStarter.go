@@ -73,3 +73,27 @@ type ChangeBuggyBody struct {
 	Reason     string `json:"reason"`
 	Note       string `json:"note"`
 }
+
+type EditHolesOfCaddiesBody struct {
+	BookingUid string `json:"booking_uid"`
+	CaddieCode string `json:"caddie_code"`
+	Hole       int    `json:"hole"`
+}
+
+type AddBagToFlightBody struct {
+	BookingUid string `json:"booking_uid"`
+	GolfBag    string `json:"golf_bag"`
+	FlightId   int64  `json:"flight_id"`
+}
+
+type GetFlightList struct {
+	PageRequest
+	BookingDate string `form:"booking_date"`
+	BagStatus   string `form:"bag_status"`
+}
+
+type MoveBagToFlightBody struct {
+	BookingUid string `json:"booking_uid"`
+	GolfBag    string `json:"golf_bag"`
+	FlightId   int64  `json:"flight_id"`
+}
