@@ -30,9 +30,10 @@ type FoodBeverage struct {
 	ForKiosk      bool    `json:"for_kiosk"`
 	OpenFB        float64 `json:"open_fb"`
 	AloneKiosk    string  `json:"alone_kiosk" gorm:"type:varchar(100)"`
-	InMenuSet     bool    `json:"in_menu_set"`    // Món trong combo
-	IsInventory   bool    `json:"is_inventory"`   // Có trong kho
-	InternalPrice float64 `json:"internal_price"` // Giá nội bộ là giá dành cho nhân viên ăn uống và sử dụng
+	InMenuSet     bool    `json:"in_menu_set"`                   // Món trong combo
+	IsInventory   bool    `json:"is_inventory"`                  // Có trong kho
+	InternalPrice float64 `json:"internal_price"`                // Giá nội bộ là giá dành cho nhân viên ăn uống và sử dụng
+	Name          string  `json:"name" gorm:"type:varchar(256)"` // Tên
 }
 
 func (item *FoodBeverage) Create() error {

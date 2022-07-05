@@ -27,6 +27,7 @@ func (_ *CConfig) GetConfig(c *gin.Context, prof models.CmsUser) {
 	resp := map[string]interface{}{
 		"nationality":        constants.NATIONAL_LIST,
 		"booking_other_paid": otherPaid,
+		"units":              constants.UNIT_LIST,
 	}
 
 	okResponse(c, resp)

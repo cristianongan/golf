@@ -127,3 +127,11 @@ type AddOtherPaidBody struct {
 type CancelBookingBody struct {
 	BookingBaseBody
 }
+
+type MovingBookingBody struct {
+	BookUidList *[]string `json:"booking_uid_list"`
+	BookingDate *string   `json:"booking_date"`
+	TeeType     *string   `json:"tee_type"`
+	TeeTime     *string   `json:"tee_time"`
+	Hole        *int      `json:"hole"`
+}

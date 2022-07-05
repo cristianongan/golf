@@ -959,3 +959,63 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 
 	okResponse(c, booking)
 }
+
+/*
+	Moving Booking
+	- check chưa check-in mới moving dc
+*/
+func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
+	body := request.MovingBookingBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if body.BookUidList != nil && len(*body.BookUidList) == 0 {
+		response_message.BadRequest(c, "Booking invalid empty")
+		return
+	}
+
+	for _, BookingUid := range *body.BookUidList {
+		if BookingUid == "" {
+			response_message.BadRequest(c, "Booking Uid not empty")
+			return
+		}
+
+		booking := model_booking.Booking{}
+		booking.Uid = BookingUid
+		errF := booking.FindFirst()
+		if errF != nil {
+			response_message.InternalServerError(c, errF.Error())
+			return
+		}
+
+		if booking.BagStatus != constants.BAG_STATUS_INIT {
+			response_message.InternalServerError(c, booking.Uid+"did check in")
+			return
+		}
+		booking.TeeTime = *body.TeeTime
+		booking.TeeType = *body.TeeType
+		booking.Hole = *body.Hole
+		booking.BookingDate = *body.BookingDate
+
+		//Check duplicated
+		isDuplicated, errDupli := booking.IsDuplicated(true, false)
+		if isDuplicated {
+			if errDupli != nil {
+				response_message.DuplicateRecord(c, errDupli.Error())
+				return
+			}
+			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+			return
+		}
+
+		errUdp := booking.Update()
+		if errUdp != nil {
+			response_message.InternalServerError(c, errUdp.Error())
+			return
+		}
+	}
+
+	okRes(c)
+}

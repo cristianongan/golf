@@ -57,6 +57,14 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	name := "" // tên default của proshop
+
+	if body.EnglishName != "" {
+		name = body.EnglishName
+	} else {
+		name = body.VieName
+	}
+
 	rental := model_service.Rental{
 		Code:         body.Code,
 		PartnerUid:   body.PartnerUid,
@@ -74,6 +82,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 		OnlyForRen:   body.OnlyForRen,
 		RentalStatus: body.RentalStatus,
 		InputUser:    body.InputUser,
+		Name:         name,
 	}
 
 	err := rental.Create()

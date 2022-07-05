@@ -29,6 +29,7 @@ type Rental struct {
 	OnlyForRen   bool   `json:"only_for_ren"`
 	RentalStatus string `json:"rental_status" gorm:"type:varchar(100)"`
 	InputUser    string `json:"input_user" gorm:"type:varchar(100)"`
+	Name         string `json:"name" gorm:"type:varchar(256)"` // Tên
 }
 
 func (item *Rental) Create() error {
