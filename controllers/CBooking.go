@@ -920,7 +920,7 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 
 /*
 	Cancel Booking
-	- check chưa check in mới
+	- check chưa check-in mới cancel dc
 */
 func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 	body := request.CancelBookingBody{}
