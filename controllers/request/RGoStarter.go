@@ -89,7 +89,6 @@ type AddBagToFlightBody struct {
 type GetFlightList struct {
 	PageRequest
 	BookingDate string `form:"booking_date"`
-	BagStatus   string `form:"bag_status"`
 }
 
 type MoveBagToFlightBody struct {

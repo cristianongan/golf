@@ -1,26 +1,43 @@
 package model_gostarter
 
 import (
+	"github.com/pkg/errors"
 	"log"
 	"start/constants"
 	"start/datasources"
 	"start/models"
+	model_booking "start/models/booking"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // Flight
 type Flight struct {
 	models.ModelId
-	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Tee         int    `json:"tee"`                                        // Tee
-	TeeOff      string `json:"tee_off" gorm:"type:varchar(30)"`            //
-	Turn        string `json:"turn" gorm:"type:varchar(30)"`               //
-	End         string `json:"end" gorm:"type:varchar(30)"`                //
-	DateDisplay string `json:"date_display" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
+	PartnerUid  string    `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid   string    `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Tee         int       `json:"tee"`                                        // Tee
+	TeeOff      string    `json:"tee_off" gorm:"type:varchar(30)"`            //
+	Turn        string    `json:"turn" gorm:"type:varchar(30)"`               //
+	End         string    `json:"end" gorm:"type:varchar(30)"`                //
+	DateDisplay string    `json:"date_display" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
+	Bookings    []Booking `json:"bookings"`
+}
+
+type Booking BookingForFlight
+
+type BookingForFlight struct {
+	models.Model
+	PartnerUid   string                      `json:"partner_uid,omitempty"`
+	CourseUid    string                      `json:"course_uid,omitempty"`
+	BookingDate  string                      `json:"booking_date,omitempty"`
+	Bag          string                      `json:"bag,omitempty"`
+	CustomerName string                      `json:"customer_name,omitempty"`
+	CustomerUid  string                      `json:"customer_uid,omitempty"`
+	CustomerInfo model_booking.CustomerInfo  `json:"customer_info,omitempty"`
+	CaddieId     int64                       `json:"caddie_id,omitempty"`
+	CaddieInfo   model_booking.BookingCaddie `json:"caddie_info,omitempty"`
+	FlightId     int64                       `json:"flight_id"`
 }
 
 func (item *Flight) Create() error {

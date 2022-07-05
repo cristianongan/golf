@@ -251,7 +251,7 @@ func NewRouter() *gin.Engine {
 
 			/// =================== Golf Bag ===================
 			cGolfBag := new(controllers.CGolfBag)
-			cmsApiAuthorized.GET("/golf-bag", middlewares.AuthorizedCmsUserHandler(cGolfBag.GetGolfBag))
+			cmsApiAuthorized.GET("/golf-bag/list", middlewares.AuthorizedCmsUserHandler(cGolfBag.GetGolfBag))
 
 			/// =================== Buggy =====================
 			cBuggy := new(controllers.CBuggy)

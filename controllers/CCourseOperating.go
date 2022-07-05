@@ -623,8 +623,9 @@ func (cCourseOperating CCourseOperating) EditHolesOfCaddie(c *gin.Context, prof 
 	okResponse(c, booking)
 }
 
-func (_ CCourseOperating) validateFlight(flightId int64) (model_gostarter.Flight, error) {
+func (_ CCourseOperating) validateFlight(courseUid string, flightId int64) (model_gostarter.Flight, error) {
 	flight := model_gostarter.Flight{}
+	flight.CourseUid = courseUid
 	flight.Id = flightId
 	if err := flight.FindFirst(); err != nil {
 		return flight, err
@@ -654,7 +655,7 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 	}
 
 	// validate flight_id
-	_, err = cCourseOperating.validateFlight(body.FlightId)
+	_, err = cCourseOperating.validateFlight(prof.CourseUid, body.FlightId)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -688,16 +689,11 @@ func (_ CCourseOperating) GetFlight(c *gin.Context, prof models.CmsUser) {
 
 	bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
 
-	bookings := model_booking.BookingList{}
+	flights := model_gostarter.FlightList{}
 
-	bookings.BookingDate = bookingDate.Format("02/01/2006")
-	bookings.BagStatus = query.BagStatus
-	bookings.IsFlight = "1"
+	flights.BookingDate = bookingDate.Format("02/01/2006")
 
-	db, total, err := bookings.FindBookingListWithSelect(page)
-
-	var list []response.FlightResponse
-	db.Find(&list)
+	list, total, err := flights.FindFlightList(page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -732,7 +728,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	}
 
 	// validate flight_id
-	_, err = cCourseOperating.validateFlight(body.FlightId)
+	_, err = cCourseOperating.validateFlight(prof.CourseUid, body.FlightId)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
