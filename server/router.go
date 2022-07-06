@@ -129,6 +129,9 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/customer-user/:uid", middlewares.AuthorizedCmsUserHandler(cCustomerUser.GetCustomerUserDetail))
 			cmsApiAuthorized.POST("/customer-user/agency-delete", middlewares.AuthorizedCmsUserHandler(cCustomerUser.DeleteAgencyCustomerUser))
 
+			/// =================== Birthday Management ===================
+			cmsApiAuthorized.GET("/birthday-management", middlewares.AuthorizedCmsUserHandler(cCustomerUser.GetBirthday))
+
 			/// =================== Table Prices =====================
 			cTablePrice := new(controllers.CTablePrice)
 			cmsApiAuthorized.POST("/table-price", middlewares.AuthorizedCmsUserHandler(cTablePrice.CreateTablePrice))

@@ -93,6 +93,21 @@ type Booking struct {
 	SubBagNote   string           `json:"sub_bag_note" gorm:"type:varchar(500)"`      // Note of SubBag
 
 	InitType string `json:"init_type" gorm:"type:varchar(50);index"` // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
+
+	CaddieInOut []CaddieInOutNote `json:"caddie_in_out"`
+}
+
+type CaddieInOutNote CaddieInOutNoteForBooking
+
+type CaddieInOutNoteForBooking struct {
+	models.ModelId
+	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	BookingUid string `json:"booking_uid" gorm:"type:varchar(50);index"`  // Ex: Booking Uid
+	CaddieId   int64  `json:"caddie_id" gorm:"index"`                     // Caddie Id
+	Note       string `json:"note" gorm:"type:varchar(500)"`              // note
+	Type       string `json:"type" gorm:"type:varchar(50);index"`         // Type: IN(undo), OUT, CHANGE
+	Hole       int    `json:"hole" gorm:"type:bigint"`
 }
 
 type BookingForFlightRes struct {
@@ -739,21 +754,21 @@ func (item *Booking) FindForCaddieOnCourse() []Booking {
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
-	if item.BookingDate == "" {
-		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-		if errDate == nil {
-			item.BookingDate = dateDisplay
-		} else {
-			log.Println("FindForCaddieOnCourse BookingDate err ", errDate.Error())
-		}
-	}
+	//if item.BookingDate == "" {
+	//	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	//	if errDate == nil {
+	//		item.BookingDate = dateDisplay
+	//	} else {
+	//		log.Println("FindForCaddieOnCourse BookingDate err ", errDate.Error())
+	//	}
+	//}
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
 	db = db.Where("bag_status = ?", constants.BAG_STATUS_IN)
 	db = db.Not("caddie_status = ?", constants.BOOKING_CADDIE_STATUS_OUT)
 
-	db.Find(&list)
+	db.Preload("CaddieInOut").Find(&list)
 	return list
 }
 

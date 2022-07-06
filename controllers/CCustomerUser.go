@@ -3,13 +3,13 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/gin-gonic/gin"
 	"log"
 	"start/constants"
 	"start/controllers/request"
+	"start/controllers/response"
 	"start/models"
 	"start/utils/response_message"
-
-	"github.com/gin-gonic/gin"
 )
 
 type CCustomerUser struct{}
@@ -277,4 +277,38 @@ func (_ *CCustomerUser) DeleteAgencyCustomerUser(c *gin.Context, prof models.Cms
 	}
 
 	okRes(c)
+}
+
+func (_ CCustomerUser) GetBirthday(c *gin.Context, prof models.CmsUser) {
+	query := request.GetBirthdayList{}
+	if err := c.Bind(&query); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   query.PageRequest.Limit,
+		Page:    query.PageRequest.Page,
+		SortBy:  query.PageRequest.SortBy,
+		SortDir: query.PageRequest.SortDir,
+	}
+
+	customer := models.CustomerUserList{}
+	customer.CourseUid = prof.CourseUid
+	customer.FromBirthDate = query.FromDate
+	customer.ToBirthDate = query.ToDate
+
+	list, total, err := customer.FindCustomerList(page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	c.JSON(200, res)
 }
