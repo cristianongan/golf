@@ -66,6 +66,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 	}
 
 	rental := model_service.Rental{
+		RentalId:    body.RentalId,
 		SystemCode:  body.SystemCode,
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,
@@ -81,6 +82,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 		InputUser:   body.InputUser,
 		Name:        name,
 	}
+	rental.Status = body.Status
 
 	err := rental.Create()
 	if err != nil {
@@ -155,9 +157,9 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	partner := model_service.Rental{}
-	partner.Id = rentalId
-	errF := partner.FindFirst()
+	rental := model_service.Rental{}
+	rental.Id = rentalId
+	errF := rental.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -170,31 +172,49 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.EnglishName != nil {
-		partner.EnglishName = *body.EnglishName
+		rental.EnglishName = *body.EnglishName
 	}
 	if body.VieName != nil {
-		partner.VieName = *body.VieName
+		rental.VieName = *body.VieName
 	}
-	if body.ByHoles != nil {
-		partner.ByHoles = *body.ByHoles
+	if body.GroupCode != nil {
+		rental.GroupCode = *body.GroupCode
 	}
-	if body.ForPos != nil {
-		partner.ForPos = *body.ForPos
+	if body.SystemCode != nil {
+		rental.SystemCode = *body.SystemCode
 	}
-	if body.EnglishName != nil {
-		partner.OnlyForRen = *body.OnlyForRen
+	if body.Unit != nil {
+		rental.Unit = *body.Unit
+	}
+	if body.RenPos != nil {
+		rental.RenPos = *body.RenPos
 	}
 	if body.Price != nil {
-		partner.Price = *body.Price
+		rental.Price = *body.Price
+	}
+	if body.ByHoles != nil {
+		rental.ByHoles = *body.ByHoles
+	}
+	if body.ForPos != nil {
+		rental.ForPos = *body.ForPos
+	}
+	if body.OnlyForRen != nil {
+		rental.OnlyForRen = *body.OnlyForRen
+	}
+	if body.Status != nil {
+		rental.Status = *body.Status
+	}
+	if body.InputUser != nil {
+		rental.InputUser = *body.InputUser
 	}
 
-	errUdp := partner.Update()
+	errUdp := rental.Update()
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
 
-	okResponse(c, partner)
+	okResponse(c, rental)
 }
 
 func (_ *CRental) DeleteRental(c *gin.Context, prof models.CmsUser) {

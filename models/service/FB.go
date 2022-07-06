@@ -30,8 +30,9 @@ type FoodBeverage struct {
 	AloneKiosk    string  `json:"alone_kiosk" gorm:"type:varchar(100)"`
 	ForKiosk      bool    `json:"for_kiosk"`
 	OpenFB        bool    `json:"open_fb"`
-	InMenuSet     bool    `json:"in_menu_set"`                   // Món trong combo
-	IsInventory   bool    `json:"is_inventory"`                  // Có trong kho
+	InMenuSet     bool    `json:"in_menu_set"`  // Món trong combo
+	IsInventory   bool    `json:"is_inventory"` // Có trong kho
+	IsKitchen     bool    `json:"is_kitchen"`
 	Name          string  `json:"name" gorm:"type:varchar(256)"` // Tên
 }
 

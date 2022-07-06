@@ -85,8 +85,10 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		InMenuSet:     body.InMenuSet,
 		IsInventory:   body.IsInventory,
 		InternalPrice: body.InternalPrice,
+		IsKitchen:     body.IsKitchen,
 		Name:          name,
 	}
+	service.Status = body.Status
 
 	err := service.Create()
 	if err != nil {
@@ -179,24 +181,63 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
-	foodBeverage.GroupCode = body.GroupCode
-	foodBeverage.EnglishName = body.EnglishName
-	foodBeverage.VieName = body.VieName
-	foodBeverage.Unit = body.Unit
-	foodBeverage.Price = body.Price
-	foodBeverage.NetCost = body.NetCost
-	foodBeverage.CostPrice = body.CostPrice
-	foodBeverage.InternalPrice = body.InternalPrice
-	foodBeverage.BarBeerPrice = body.BarBeerPrice
-	foodBeverage.Barcode = body.Barcode
-	foodBeverage.AccountCode = body.AccountCode
-	foodBeverage.AloneKiosk = body.AloneKiosk
-	foodBeverage.Note = body.Note
-	foodBeverage.Status = body.Status
-	foodBeverage.ForKiosk = body.ForKiosk
-	foodBeverage.OpenFB = body.OpenFB
-	foodBeverage.InMenuSet = body.InMenuSet
-	foodBeverage.IsInventory = body.IsInventory
+	if body.GroupCode != nil {
+		foodBeverage.GroupCode = *body.GroupCode
+	}
+	if body.EnglishName != nil {
+		foodBeverage.EnglishName = *body.EnglishName
+	}
+	if body.VieName != nil {
+		foodBeverage.VieName = *body.VieName
+	}
+	if body.Unit != nil {
+		foodBeverage.Unit = *body.Unit
+	}
+	if body.Price != nil {
+		foodBeverage.Price = *body.Price
+	}
+	if body.NetCost != nil {
+		foodBeverage.NetCost = *body.NetCost
+	}
+	if body.CostPrice != nil {
+		foodBeverage.CostPrice = *body.CostPrice
+	}
+	if body.InternalPrice != nil {
+		foodBeverage.InternalPrice = *body.InternalPrice
+	}
+	if body.BarBeerPrice != nil {
+		foodBeverage.CostPrice = *body.BarBeerPrice
+	}
+	if body.Barcode != nil {
+		foodBeverage.Barcode = *body.Barcode
+	}
+	if body.AccountCode != nil {
+		foodBeverage.AccountCode = *body.AccountCode
+	}
+	if body.AloneKiosk != nil {
+		foodBeverage.AloneKiosk = *body.AloneKiosk
+	}
+	if body.Note != nil {
+		foodBeverage.AccountCode = *body.Note
+	}
+	if body.Status != nil {
+		foodBeverage.Status = *body.Status
+	}
+	if body.ForKiosk != nil {
+		foodBeverage.ForKiosk = *body.ForKiosk
+	}
+	if body.OpenFB != nil {
+		foodBeverage.OpenFB = *body.OpenFB
+	}
+	if body.InMenuSet != nil {
+		foodBeverage.InMenuSet = *body.InMenuSet
+	}
+	if body.IsInventory != nil {
+		foodBeverage.IsInventory = *body.IsInventory
+	}
+	if body.IsKitchen != nil {
+		foodBeverage.IsKitchen = *body.IsKitchen
+	}
 
 	errUdp := foodBeverage.Update()
 	if errUdp != nil {

@@ -21,6 +21,7 @@ type CreateFoodBeverageBody struct {
 	InMenuSet     bool    `json:"in_menu_set"`
 	IsInventory   bool    `json:"is_inventory"`
 	InternalPrice float64 `json:"internal_price"`
+	IsKitchen     bool    `json:"is_kitchen"`
 	Status        string  `json:"status"`
 }
 
@@ -35,22 +36,23 @@ type GetListFoodBeverageForm struct {
 }
 
 type UpdateFoodBeverageBody struct {
-	GroupCode     string  `json:"group_code"`
-	EnglishName   string  `json:"english_name"`
-	VieName       string  `json:"vietnamese_name"`
-	Unit          string  `json:"unit"`
-	Price         float64 `json:"price"`
-	NetCost       float64 `json:"net_cost"`
-	CostPrice     float64 `json:"cost_price"`
-	BarBeerPrice  float64 `json:"bar_beer_price"`
-	InternalPrice float64 `json:"internal_price"`
-	Barcode       string  `json:"barcode"`
-	AccountCode   string  `json:"account_code"`
-	Note          string  `json:"note"`
-	Status        string  `json:"status"`
-	AloneKiosk    string  `json:"alone_kiosk"`
-	ForKiosk      bool    `json:"for_kiosk"`
-	OpenFB        bool    `json:"open_fb"`
-	InMenuSet     bool    `json:"in_menu_set"`
-	IsInventory   bool    `json:"is_inventory"`
+	GroupCode     *string  `json:"group_code"`
+	EnglishName   *string  `json:"english_name"`
+	VieName       *string  `json:"vietnamese_name"`
+	Unit          *string  `json:"unit"`
+	Price         *float64 `json:"price"`
+	NetCost       *float64 `json:"net_cost"`
+	CostPrice     *float64 `json:"cost_price"`
+	BarBeerPrice  *float64 `json:"bar_beer_price"`
+	InternalPrice *float64 `json:"internal_price"`
+	Barcode       *string  `json:"barcode"`
+	AccountCode   *string  `json:"account_code"`
+	Note          *string  `json:"note"`
+	Status        *string  `json:"status"`
+	AloneKiosk    *string  `json:"alone_kiosk"`
+	ForKiosk      *bool    `json:"for_kiosk"`
+	OpenFB        *bool    `json:"open_fb"`
+	InMenuSet     *bool    `json:"in_menu_set"`
+	IsInventory   *bool    `json:"is_inventory"`
+	IsKitchen     *bool    `json:"is_kitchen"`
 }

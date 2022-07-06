@@ -12,6 +12,7 @@ import (
 // Rental
 type Rental struct {
 	models.ModelId
+	RentalId    string `json:"rental_id" gorm:"type:varchar(100);index"`
 	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	EnglishName string `json:"english_name" gorm:"type:varchar(256)"`      // Tên Tiếng Anh
