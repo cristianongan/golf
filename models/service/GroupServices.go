@@ -57,7 +57,22 @@ func (item *GroupServices) FindList(page models.Page) ([]GroupServices, int64, e
 	db := datasources.GetDatabase().Model(GroupServices{})
 	list := []GroupServices{}
 	total := int64(0)
-	db = db.Where(item)
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.GroupName != "" {
+		db = db.Where("group_name LIKE ?", "%"+item.GroupName+"%")
+	}
+	if item.GroupCode != "" {
+		db = db.Where("group_code = ?", item.GroupCode)
+	}
+	if item.Type != "" {
+		db = db.Where("type = ?", item.Type)
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
