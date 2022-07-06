@@ -38,6 +38,8 @@ func (_ *CGroupServices) CreateGroupServices(c *gin.Context, prof models.CmsUser
 
 	groupServices := model_service.GroupServices{}
 	groupServices.GroupCode = body.GroupCode
+	groupServices.CourseUid = body.CourseUid
+	groupServices.PartnerUid = body.PartnerUid
 	//Check Exits
 	errFind := groupServices.FindFirst()
 	if errFind == nil {
@@ -45,8 +47,6 @@ func (_ *CGroupServices) CreateGroupServices(c *gin.Context, prof models.CmsUser
 		return
 	}
 	groupServices.GroupName = body.GroupName
-	groupServices.PartnerUid = body.GroupName
-	groupServices.CourseUid = body.CourseUid
 	groupServices.Type = body.Type
 	groupServices.DetailGroup = body.DetailGroup
 
@@ -91,6 +91,18 @@ func (_ *CGroupServices) GetGroupServicesList(c *gin.Context, prof models.CmsUse
 		groupServices.Type = *form.Type
 	} else {
 		groupServices.Type = ""
+	}
+
+	if form.PartnerUid != nil {
+		groupServices.PartnerUid = *form.PartnerUid
+	} else {
+		groupServices.PartnerUid = ""
+	}
+
+	if form.CourseUid != nil {
+		groupServices.CourseUid = *form.CourseUid
+	} else {
+		groupServices.CourseUid = ""
 	}
 
 	list, total, err := groupServices.FindList(page)

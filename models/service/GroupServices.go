@@ -18,16 +18,6 @@ type GroupServices struct {
 	Type        string `json:"type" gorm:"type:varchar(100)"`              // Loại service, kiosk, proshop.
 }
 
-type GroupServicesResponse struct {
-	Id          int64  `json:"id"`
-	PartnerUid  string `json:"partner_uid"`
-	CourseUid   string `json:"course_uid"`
-	GroupCode   string `json:"group_code"`
-	GroupName   string `json:"group_name"`
-	Type        string `json:"type"`
-	DetailGroup string `json:"detail_group"`
-}
-
 func (item *GroupServices) Create() error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
@@ -63,9 +53,9 @@ func (item *GroupServices) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *GroupServices) FindList(page models.Page) ([]GroupServicesResponse, int64, error) {
+func (item *GroupServices) FindList(page models.Page) ([]GroupServices, int64, error) {
 	db := datasources.GetDatabase().Model(GroupServices{})
-	list := []GroupServicesResponse{}
+	list := []GroupServices{}
 	total := int64(0)
 	db = db.Where(item)
 	db.Count(&total)
