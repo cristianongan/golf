@@ -71,6 +71,17 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 		return
 	}
 
+	// Udp Note
+	caddieInOutNote := model_gostarter.CaddieInOutNote{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		BookingUid: booking.Uid,
+		CaddieId:   booking.CaddieId,
+		Type:       constants.STATUS_IN,
+		Note:       "",
+	}
+	go addCaddieInOutNote(caddieInOutNote)
+
 	okResponse(c, booking)
 }
 
@@ -104,6 +115,18 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 			listBooking = append(listBooking, bookingTemp)
 			listCaddie = append(listCaddie, caddieTemp)
 			listBuggy = append(listBuggy, buggyTemp)
+
+			// Udp Note
+			caddieInOutNote := model_gostarter.CaddieInOutNote{
+				PartnerUid: prof.PartnerUid,
+				CourseUid:  prof.CourseUid,
+				BookingUid: bookingTemp.Uid,
+				CaddieId:   bookingTemp.CaddieId,
+				Type:       constants.STATUS_IN,
+				Note:       "",
+			}
+
+			go addCaddieInOutNote(caddieInOutNote)
 		} else {
 			listError = append(listError, errB)
 		}
