@@ -16,3 +16,9 @@ type GetListCustomerUserForm struct {
 type DeleteAgencyCustomerUser struct {
 	CusUserUids utils.ListString `json:"cus_user_uids"`
 }
+
+type GetBirthdayList struct {
+	PageRequest
+	FromDate string `form:"from_date"`
+	ToDate   string `form:"to_date"`
+}
