@@ -66,9 +66,8 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 
 	service := model_service.FoodBeverage{
 		PartnerUid:    body.PartnerUid,
-		GroupId:       body.GroupId,
 		CourseUid:     body.CourseUid,
-		GroupName:     body.GroupName,
+		GroupCode:     body.GroupCode,
 		FBCode:        body.FBCode,
 		EnglishName:   body.EnglishName,
 		VieName:       body.VieName,
@@ -133,10 +132,15 @@ func (_ *CFoodBeverage) GetListFoodBeverage(c *gin.Context, prof models.CmsUser)
 	} else {
 		rentalR.VieName = ""
 	}
-	if form.GroupId != nil {
-		rentalR.GroupId = *form.GroupId
+	if form.GroupCode != nil {
+		rentalR.GroupCode = *form.GroupCode
 	} else {
-		rentalR.GroupId = ""
+		rentalR.GroupCode = ""
+	}
+	if form.Status != nil {
+		rentalR.Status = *form.Status
+	} else {
+		rentalR.Status = ""
 	}
 
 	list, total, err := rentalR.FindList(page)
@@ -161,49 +165,46 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
-	partner := model_service.Rental{}
-	partner.Id = rentalId
-	errF := partner.FindFirst()
+	foodBeverage := model_service.FoodBeverage{}
+	foodBeverage.Id = rentalId
+	errF := foodBeverage.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	body := request.UpdateRentalBody{}
+	body := request.UpdateFoodBeverageBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
-	if body.EnglishName != nil {
-		partner.EnglishName = *body.EnglishName
-	}
-	if body.VieName != nil {
-		partner.VieName = *body.VieName
-	}
-	if body.RentalStatus != nil {
-		partner.RentalStatus = *body.RentalStatus
-	}
-	if body.ByHoles != nil {
-		partner.ByHoles = *body.ByHoles
-	}
-	if body.ForPos != nil {
-		partner.ForPos = *body.ForPos
-	}
-	if body.EnglishName != nil {
-		partner.OnlyForRen = *body.OnlyForRen
-	}
-	if body.Price != nil {
-		partner.Price = *body.Price
-	}
+	foodBeverage.GroupCode = body.GroupCode
+	foodBeverage.EnglishName = body.EnglishName
+	foodBeverage.VieName = body.VieName
+	foodBeverage.Unit = body.Unit
+	foodBeverage.Price = body.Price
+	foodBeverage.NetCost = body.NetCost
+	foodBeverage.CostPrice = body.CostPrice
+	foodBeverage.InternalPrice = body.InternalPrice
+	foodBeverage.BarBeerPrice = body.BarBeerPrice
+	foodBeverage.Barcode = body.Barcode
+	foodBeverage.AccountCode = body.AccountCode
+	foodBeverage.AloneKiosk = body.AloneKiosk
+	foodBeverage.Note = body.Note
+	foodBeverage.Status = body.Status
+	foodBeverage.ForKiosk = body.ForKiosk
+	foodBeverage.OpenFB = body.OpenFB
+	foodBeverage.InMenuSet = body.InMenuSet
+	foodBeverage.IsInventory = body.IsInventory
 
-	errUdp := partner.Update()
+	errUdp := foodBeverage.Update()
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
 
-	okResponse(c, partner)
+	okResponse(c, foodBeverage)
 }
 
 func (_ *CFoodBeverage) DeleteFoodBeverage(c *gin.Context, prof models.CmsUser) {

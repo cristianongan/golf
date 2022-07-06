@@ -6,7 +6,7 @@ type CreateRentalBody struct {
 	EnglishName  string `json:"english_name"`                             // Tên Tiếng Anh
 	VieName      string `json:"vietnamese_name" gorm:"type:varchar(256)"` // Tên Tiếng Anh
 	RenPos       string `json:"ren_pos" gorm:"type:varchar(100)"`
-	Code         string `json:"code" gorm:"type:varchar(100)"`
+	SystemCode   string `json:"system_code" gorm:"type:varchar(100)"`
 	GroupId      int64  `json:"group_id" gorm:"index"`
 	GroupCode    string `json:"group_code" gorm:"type:varchar(100);index"`
 	GroupName    string `json:"group_name" gorm:"type:varchar(256)"`

@@ -14,25 +14,24 @@ type FoodBeverage struct {
 	models.ModelId
 	PartnerUid    string  `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid     string  `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	GroupId       string  `json:"group_id" gorm:"index"`
-	GroupName     string  `json:"group_name" gorm:"type:varchar(256)"`
 	FBCode        string  `json:"fb_code" gorm:"type:varchar(100)"`
 	EnglishName   string  `json:"english_name" gorm:"type:varchar(256)"`    // Tên Tiếng Anh
 	VieName       string  `json:"vietnamese_name" gorm:"type:varchar(256)"` // Tên Tiếng Anh
+	Barcode       string  `json:"barcode"`
+	AccountCode   string  `json:"account_code" gorm:"type:varchar(100)"` // Mã liên kết với Account kế toán
+	GroupCode     string  `json:"group_code" gorm:"type:varchar(100);index"`
 	Unit          string  `json:"unit" gorm:"type:varchar(100)"`
 	Price         float64 `json:"price"`
 	NetCost       float64 `json:"net_cost" gorm:"type:varchar(100)"` // Net cost tự tính từ Cost Price ko bao gồm 10% VAT
 	CostPrice     float64 `json:"cost_price"`
-	Barcode       string  `json:"barcode"`
-	AccountCode   string  `json:"account_code" gorm:"type:varchar(100)"` // Mã liên kết với Account kế toán
 	BarBeerPrice  float64 `json:"bar_beer_price"`
+	InternalPrice float64 `json:"internal_price"` // Giá nội bộ là giá dành cho nhân viên ăn uống và sử dụng
 	Note          string  `json:"note" gorm:"type:varchar(256)"`
-	ForKiosk      bool    `json:"for_kiosk"`
-	OpenFB        float64 `json:"open_fb"`
 	AloneKiosk    string  `json:"alone_kiosk" gorm:"type:varchar(100)"`
+	ForKiosk      bool    `json:"for_kiosk"`
+	OpenFB        bool    `json:"open_fb"`
 	InMenuSet     bool    `json:"in_menu_set"`                   // Món trong combo
 	IsInventory   bool    `json:"is_inventory"`                  // Có trong kho
-	InternalPrice float64 `json:"internal_price"`                // Giá nội bộ là giá dành cho nhân viên ăn uống và sử dụng
 	Name          string  `json:"name" gorm:"type:varchar(256)"` // Tên
 }
 

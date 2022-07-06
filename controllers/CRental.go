@@ -49,7 +49,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 	rentalRequest := model_service.Rental{}
 	rentalRequest.CourseUid = body.CourseUid
 	rentalRequest.PartnerUid = body.PartnerUid
-	rentalRequest.Code = body.Code
+	rentalRequest.SystemCode = body.SystemCode
 	errExist := rentalRequest.FindFirst()
 
 	if errExist == nil {
@@ -66,23 +66,20 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 	}
 
 	rental := model_service.Rental{
-		Code:         body.Code,
-		PartnerUid:   body.PartnerUid,
-		CourseUid:    body.CourseUid,
-		EnglishName:  body.EnglishName,
-		RenPos:       body.RenPos,
-		VieName:      body.VieName,
-		GroupId:      body.GroupId,
-		GroupCode:    body.GroupCode,
-		GroupName:    body.GroupName,
-		Unit:         body.Unit,
-		Price:        body.Price,
-		ByHoles:      body.ByHoles,
-		ForPos:       body.ForPos,
-		OnlyForRen:   body.OnlyForRen,
-		RentalStatus: body.RentalStatus,
-		InputUser:    body.InputUser,
-		Name:         name,
+		SystemCode:  body.SystemCode,
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		EnglishName: body.EnglishName,
+		RenPos:      body.RenPos,
+		VieName:     body.VieName,
+		GroupCode:   body.GroupCode,
+		Unit:        body.Unit,
+		Price:       body.Price,
+		ByHoles:     body.ByHoles,
+		ForPos:      body.ForPos,
+		OnlyForRen:  body.OnlyForRen,
+		InputUser:   body.InputUser,
+		Name:        name,
 	}
 
 	err := rental.Create()
@@ -135,11 +132,6 @@ func (_ *CRental) GetListRental(c *gin.Context, prof models.CmsUser) {
 	} else {
 		rentalR.GroupCode = ""
 	}
-	if form.RentalStatus != nil {
-		rentalR.RentalStatus = *form.RentalStatus
-	} else {
-		rentalR.RentalStatus = ""
-	}
 
 	list, total, err := rentalR.FindList(page)
 	if err != nil {
@@ -182,9 +174,6 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 	}
 	if body.VieName != nil {
 		partner.VieName = *body.VieName
-	}
-	if body.RentalStatus != nil {
-		partner.RentalStatus = *body.RentalStatus
 	}
 	if body.ByHoles != nil {
 		partner.ByHoles = *body.ByHoles

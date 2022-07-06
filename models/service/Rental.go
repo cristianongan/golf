@@ -12,24 +12,21 @@ import (
 // Rental
 type Rental struct {
 	models.ModelId
-	PartnerUid   string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid    string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	EnglishName  string `json:"english_name" gorm:"type:varchar(256)"`      // Tên Tiếng Anh
-	RenPos       string `json:"ren_pos" gorm:"type:varchar(100)"`
-	VieName      string `json:"vietnamese_name" gorm:"type:varchar(256)"` // Tên Tiếng Anh
-	Type         string `json:"type" gorm:"type:varchar(50)"`             // Loại rental, kiosk, proshop,...
-	Code         string `json:"code" gorm:"type:varchar(100)"`
-	GroupId      int64  `json:"group_id" gorm:"index"`
-	GroupCode    string `json:"group_code" gorm:"type:varchar(100);index"`
-	GroupName    string `json:"group_name" gorm:"type:varchar(256)"`
-	Unit         string `json:"unit" gorm:"type:varchar(100)"`
-	Price        int64  `json:"price"`
-	ByHoles      bool   `json:"by_holes"`
-	ForPos       bool   `json:"for_pos"`
-	OnlyForRen   bool   `json:"only_for_ren"`
-	RentalStatus string `json:"rental_status" gorm:"type:varchar(100)"`
-	InputUser    string `json:"input_user" gorm:"type:varchar(100)"`
-	Name         string `json:"name" gorm:"type:varchar(256)"` // Tên
+	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	EnglishName string `json:"english_name" gorm:"type:varchar(256)"`      // Tên Tiếng Anh
+	RenPos      string `json:"ren_pos" gorm:"type:varchar(100)"`
+	VieName     string `json:"vietnamese_name" gorm:"type:varchar(256)"` // Tên Tiếng Anh
+	Type        string `json:"type" gorm:"type:varchar(50)"`             // Loại rental, kiosk, proshop,...
+	SystemCode  string `json:"system_code" gorm:"type:varchar(100)"`
+	GroupCode   string `json:"group_code" gorm:"type:varchar(100);index"`
+	Unit        string `json:"unit" gorm:"type:varchar(100)"`
+	Price       int64  `json:"price"`
+	ByHoles     bool   `json:"by_holes"`
+	ForPos      bool   `json:"for_pos"`
+	OnlyForRen  bool   `json:"only_for_ren"`
+	InputUser   string `json:"input_user" gorm:"type:varchar(100)"`
+	Name        string `json:"name" gorm:"type:varchar(256)"` // Tên
 }
 
 func (item *Rental) Create() error {
@@ -92,8 +89,8 @@ func (item *Rental) FindList(page models.Page) ([]Rental, int64, error) {
 	if item.GroupCode != "" {
 		db = db.Where("group_code = ?", item.GroupCode)
 	}
-	if item.Code != "" {
-		db = db.Where("code = ?", item.Code)
+	if item.SystemCode != "" {
+		db = db.Where("code = ?", item.SystemCode)
 	}
 
 	db.Count(&total)

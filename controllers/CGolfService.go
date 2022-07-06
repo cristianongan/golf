@@ -38,7 +38,7 @@ func (_ *CGolfService) GetGolfServiceForReception(c *gin.Context, prof models.Cm
 			PartnerUid:  form.PartnerUid,
 			CourseUid:   form.CourseUid,
 			Type:        form.Type,
-			Code:        form.Code,
+			SystemCode:  form.Code,
 			EnglishName: form.Name,
 		}
 
