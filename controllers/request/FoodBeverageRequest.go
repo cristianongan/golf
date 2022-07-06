@@ -35,7 +35,7 @@ type GetListFoodBeverageForm struct {
 }
 
 type UpdateFoodBeverageBody struct {
-	GroupCode     string  `json:"group_name"`
+	GroupCode     string  `json:"group_code"`
 	EnglishName   string  `json:"english_name"`
 	VieName       string  `json:"vietnamese_name"`
 	Unit          string  `json:"unit"`
