@@ -169,6 +169,9 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 	if body.Status != "" {
 		golfFee.Status = body.Status
 	}
+	if body.CustomerType != "" {
+		golfFee.CustomerType = body.CustomerType
+	}
 
 	golfFee.Dow = body.Dow
 	golfFee.GreenFee = body.GreenFee
@@ -180,6 +183,7 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.PaidType = body.PaidType
 	golfFee.Idx = body.Idx
 	golfFee.AccDebit = body.AccDebit
+
 	golfFee.UpdateUserName = prof.UserName
 
 	errUdp := golfFee.Update()
