@@ -40,6 +40,7 @@ type GuestStyle struct {
 	TablePriceId   int64  `json:"table_price_id"`   // Id Bang gia
 	GuestStyleName string `json:"guest_style_name"` // Ten Guest style
 	GuestStyle     string `json:"guest_style"`      // Guest style
+	CustomerType   string `json:"customer_type"`    // Loại khách hàng
 }
 
 func (item *GolfFee) Create() error {
