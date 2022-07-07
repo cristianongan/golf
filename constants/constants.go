@@ -24,12 +24,13 @@ const (
  Bag status
 */
 const (
-	BAG_STATUS_IN        = "IN"        // Đã check in
-	BAG_STATUS_OUT       = "OUT"       // Đã check out
-	BAG_STATUS_INIT      = "INIT"      // Tạo Booking xong
-	BAG_STATUS_CANCEL    = "CANCEL"    // Cancel booking
-	BAG_STATUS_TIMEOUT   = "TIMEOUT"   // Đã checkin và out caddie
-	BAG_STATUS_IN_COURSE = "IN_COURSE" // đã checkin và ghép Flight
+	BAG_STATUS_IN            = "IN"            // Đã check in( = Waiting ở doc)
+	BAG_STATUS_OUT           = "OUT"           // Đã check out
+	BAG_STATUS_INIT          = "INIT"          // Tạo Booking xong( = Booking ở doc)
+	BAG_STATUS_CANCEL        = "CANCEL"        // Cancel booking
+	BAG_STATUS_TIMEOUT       = "TIMEOUT"       // Đã checkin và out caddie
+	BAG_STATUS_IN_COURSE     = "IN_COURSE"     // Đã checkin và ghép Flight
+	BAG_STATUS_GUEST_NO_SHOW = "GUEST_NO_SHOW" // Khách đặt booking nhưng không đến
 )
 
 /*
