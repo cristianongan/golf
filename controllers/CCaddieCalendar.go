@@ -34,7 +34,7 @@ func (_ *CCaddieCalendar) CreateCaddieCalendar(c *gin.Context, prof models.CmsUs
 
 	// validate apply_date duplicate
 	caddieCalendarList := models.CaddieCalendarList{}
-	caddieCalendarList.ApplyDate = datatypes.Date(applyDate)
+	caddieCalendarList.ApplyDate = applyDate.Format("2006-01-02")
 	if _, err := caddieCalendarList.FindFirst(); err == nil {
 		response_message.BadRequest(c, "record duplicate")
 		return

@@ -34,6 +34,10 @@ func (item *CaddieCalendarList) FindList(page Page) ([]CaddieCalendar, int64, er
 		db = db.Where("DATE_FORMAT(apply_date, '%Y-%m') = ?", item.Month)
 	}
 
+	if item.ApplyDate != "" {
+		db = db.Where("apply_date = ?", item.ApplyDate)
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
