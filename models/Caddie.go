@@ -30,6 +30,7 @@ type Caddie struct {
 	Level         string `json:"level" gorm:"type:varchar(40)"`            // Hạng của Caddie.(A,B,C,D)
 	Note          string `json:"note" gorm:"type:varchar(200)"`
 	// TODO: AvailableStatus
+	CaddieCalendar []CaddieCalendar `json:"caddie_calendar" gorm:"foreignKey:caddie_uid"`
 }
 
 type CaddieResponse struct {

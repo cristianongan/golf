@@ -12,7 +12,7 @@ type GetCaddieCalendarList struct {
 	PageRequest
 	CaddieName string `form:"caddie_name"`
 	CaddieCode string `form:"caddie_code"`
-	Month      string `form:"month"`
+	Month      string `form:"month" validate:"required"`
 }
 
 type UpdateCaddieCalendarBody struct {

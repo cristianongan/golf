@@ -76,14 +76,22 @@ func (_ *CCaddieCalendar) GetCaddieCalendarList(c *gin.Context, prof models.CmsU
 		SortDir: query.PageRequest.SortDir,
 	}
 
-	caddieCalendar := models.CaddieCalendarList{}
+	//caddieCalendar := models.CaddieCalendarList{}
+	//
+	//caddieCalendar.CourseUid = prof.CourseUid
+	//caddieCalendar.CaddieName = query.CaddieName
+	//caddieCalendar.CaddieCode = query.CaddieCode
+	//caddieCalendar.Month = query.Month
+	//
+	//list, total, err := caddieCalendar.FindList(page)
 
-	caddieCalendar.CourseUid = prof.CourseUid
-	caddieCalendar.CaddieName = query.CaddieName
-	caddieCalendar.CaddieCode = query.CaddieCode
-	caddieCalendar.Month = query.Month
+	caddie := models.CaddieList{}
+	caddie.CourseUid = prof.CourseUid
+	caddie.CaddieName = query.CaddieName
+	caddie.CaddieCode = query.CaddieCode
+	caddie.Month = query.Month
 
-	list, total, err := caddieCalendar.FindList(page)
+	list, total, err := caddie.FindList(page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
