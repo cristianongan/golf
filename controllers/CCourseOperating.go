@@ -513,12 +513,17 @@ func (_ CCourseOperating) validateBooking(bookindUid string) (model_booking.Book
 }
 
 func (_ CCourseOperating) validateCaddie(courseUid string, caddieCode string) (models.Caddie, error) {
-	caddieNew := models.Caddie{}
-	caddieNew.CourseUid = courseUid
-	caddieNew.Code = caddieCode
-	if err := caddieNew.FindFirst(); err != nil {
+	caddieList := models.CaddieList{}
+	caddieList.CourseUid = courseUid
+	caddieList.CaddieCode = caddieCode
+	caddieList.WorkingStatus = constants.CADDIE_WORKING_STATUS_ACTIVE
+	caddieList.InCurrentStatus = []string{constants.CADDIE_CURRENT_STATUS_READY, constants.CADDIE_CURRENT_STATUS_FINISH}
+	caddieNew, err := caddieList.FindFirst()
+
+	if err != nil {
 		return caddieNew, err
 	}
+
 	return caddieNew, nil
 }
 
