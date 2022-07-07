@@ -99,7 +99,7 @@ func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, pr
 }
 
 func (_ *CCaddieWorkingCalendar) UpdateCaddieWorkingCalendar(c *gin.Context, prof models.CmsUser) {
-	var body request.UpdateCaddieWorkingCalendar
+	var body request.UpdateCaddieWorkingCalendarBody
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("UpdateCaddieWorkingCalendar BindJSON error")
 		response_message.BadRequest(c, "")

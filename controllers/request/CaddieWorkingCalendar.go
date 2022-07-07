@@ -15,7 +15,7 @@ type GetCaddieWorkingCalendarList struct {
 	ApplyDate string `form:"apply_date"`
 }
 
-type UpdateCaddieWorkingCalendar struct {
+type UpdateCaddieWorkingCalendarBody struct {
 	CaddieColumn string `json:"caddie_column" validate:"required"`
 	CaddieRow    string `json:"caddie_row" validate:"required"`
 	RowTime      string `json:"row_time" validate:"required"`
