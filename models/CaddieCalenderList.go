@@ -1,7 +1,6 @@
 package models
 
 import (
-	"gorm.io/datatypes"
 	"start/datasources"
 )
 
@@ -10,7 +9,7 @@ type CaddieCalendarList struct {
 	CaddieName string
 	CaddieCode string
 	Month      string
-	ApplyDate  datatypes.Date
+	ApplyDate  string
 }
 
 func (item *CaddieCalendarList) FindList(page Page) ([]CaddieCalendar, int64, error) {
@@ -33,6 +32,10 @@ func (item *CaddieCalendarList) FindList(page Page) ([]CaddieCalendar, int64, er
 
 	if item.Month != "" {
 		db = db.Where("DATE_FORMAT(apply_date, '%Y-%m') = ?", item.Month)
+	}
+
+	if item.ApplyDate != "" {
+		db = db.Where("apply_date = ?", item.ApplyDate)
 	}
 
 	db.Count(&total)

@@ -34,7 +34,7 @@ func (_ *CCaddieCalendar) CreateCaddieCalendar(c *gin.Context, prof models.CmsUs
 
 	// validate apply_date duplicate
 	caddieCalendarList := models.CaddieCalendarList{}
-	caddieCalendarList.ApplyDate = datatypes.Date(applyDate)
+	caddieCalendarList.ApplyDate = applyDate.Format("2006-01-02")
 	if _, err := caddieCalendarList.FindFirst(); err == nil {
 		response_message.BadRequest(c, "record duplicate")
 		return
@@ -76,14 +76,22 @@ func (_ *CCaddieCalendar) GetCaddieCalendarList(c *gin.Context, prof models.CmsU
 		SortDir: query.PageRequest.SortDir,
 	}
 
-	caddieCalendar := models.CaddieCalendarList{}
+	//caddieCalendar := models.CaddieCalendarList{}
+	//
+	//caddieCalendar.CourseUid = prof.CourseUid
+	//caddieCalendar.CaddieName = query.CaddieName
+	//caddieCalendar.CaddieCode = query.CaddieCode
+	//caddieCalendar.Month = query.Month
+	//
+	//list, total, err := caddieCalendar.FindList(page)
 
-	caddieCalendar.CourseUid = query.CourseUid
-	caddieCalendar.CaddieName = query.CaddieName
-	caddieCalendar.CaddieCode = query.CaddieCode
-	caddieCalendar.Month = query.Month
+	caddie := models.CaddieList{}
+	caddie.CourseUid = prof.CourseUid
+	caddie.CaddieName = query.CaddieName
+	caddie.CaddieCode = query.CaddieCode
+	caddie.Month = query.Month
 
-	list, total, err := caddieCalendar.FindList(page)
+	list, total, err := caddie.FindList(page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -99,7 +107,7 @@ func (_ *CCaddieCalendar) GetCaddieCalendarList(c *gin.Context, prof models.CmsU
 }
 
 func (_ *CCaddieCalendar) UpdateCaddieCalendar(c *gin.Context, prof models.CmsUser) {
-	var body request.UpdateCaddieCalendar
+	var body request.UpdateCaddieCalendarBody
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("UpdateCaddieCalendar BindJSON error")
 		response_message.BadRequest(c, "")
