@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"log"
 	"start/constants"
 	"start/controllers/request"
@@ -59,7 +58,7 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 	}
 
 	// Check can add
-	errB, booking, _, _ := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode)
+	errB, booking, caddie, _ := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode)
 	if errB != nil {
 		response_message.InternalServerError(c, errB.Error())
 		return
@@ -68,6 +67,13 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 	errUdp := booking.Update()
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	// Update caddie_current_status
+	caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+	if err := caddie.Update(); err != nil {
+		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
@@ -80,6 +86,7 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 		Type:       constants.STATUS_IN,
 		Note:       "",
 	}
+
 	go addCaddieInOutNote(caddieInOutNote)
 
 	okResponse(c, booking)
@@ -115,6 +122,14 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 			listBooking = append(listBooking, bookingTemp)
 			listCaddie = append(listCaddie, caddieTemp)
 			listBuggy = append(listBuggy, buggyTemp)
+
+			// Update caddie_current_status
+			caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+			caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
+			if err := caddieTemp.Update(); err != nil {
+				response_message.InternalServerError(c, err.Error())
+				return
+			}
 
 			// Udp Note
 			caddieInOutNote := model_gostarter.CaddieInOutNote{
@@ -174,7 +189,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 
 	// Update caddie status
 	for _, ca := range listCaddie {
-		ca.IsInCourse = true
+		//ca.IsInCourse = true
 		errUdp := ca.Update()
 		if errUdp != nil {
 			log.Println("CreateFlight err udp caddie ", errUdp.Error())
@@ -344,13 +359,7 @@ func (_ *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// Caddie đang trên sân rồi
-	if caddieNew.IsInCourse {
-		response_message.BadRequest(c, errors.New("Caddie new is in course").Error())
-		return
-	}
-
-	// TODO: validate available_status
+	// TODO: validate current_status
 
 	// TODO: validate caddie_holes
 
@@ -534,12 +543,7 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 		return
 	}
 
-	if caddieNew.IsInCourse {
-		response_message.BadRequest(c, errors.New("Caddie new is in course").Error())
-		return
-	}
-
-	// TODO: validate available_status
+	// TODO: validate current_status
 
 	if err := udpCaddieOut(booking.CaddieId); err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -582,12 +586,7 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		return
 	}
 
-	//if buggyNew.IsInCourse {
-	//	response_message.BadRequest(c, errors.New("Buggy new is in course").Error())
-	//	return
-	//}
-
-	// TODO: validate available_status
+	// TODO: validate current_status
 
 	if err := udpBuggyOut(booking.BuggyId); err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -689,6 +688,21 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 	booking.FlightId = body.FlightId
 
 	if err := booking.Update(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	// Update caddie_current_status
+	caddie := models.Caddie{}
+	caddie.Id = booking.CaddieId
+	if err := caddie.FindFirst(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+	caddie.CurrentRound = caddie.CurrentRound + 1
+	if err := caddie.Update(); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
