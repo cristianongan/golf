@@ -102,7 +102,9 @@ func (item *FoodBeverage) FindList(page models.Page) ([]FoodBeverageResponse, in
 		db = db.Where("food_beverages.fb_code = ?", item.FBCode)
 	}
 
-	db = db.Joins("JOIN group_services ON food_beverages.group_code = group_services.group_code")
+	db = db.Joins("JOIN group_services ON food_beverages.group_code = group_services.group_code AND " +
+		"food_beverages.partner_uid = group_services.partner_uid AND " +
+		"food_beverages.course_uid = group_services.course_uid")
 	db = db.Select("food_beverages.*, group_services.group_name")
 	db.Count(&total)
 

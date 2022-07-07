@@ -99,7 +99,9 @@ func (item *Rental) FindList(page models.Page) ([]RentalResponse, int64, error) 
 		db = db.Where("rentals.system_code = ?", item.SystemCode)
 	}
 
-	db = db.Joins("JOIN group_services ON rentals.group_code = group_services.group_code")
+	db = db.Joins("JOIN group_services ON rentals.group_code = group_services.group_code AND " +
+		"rentals.partner_uid = group_services.partner_uid AND " +
+		"rentals.course_uid = group_services.course_uid")
 	db = db.Select("rentals.*, group_services.group_name")
 	db.Count(&total)
 

@@ -205,9 +205,6 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 	if body.InternalPrice != nil {
 		foodBeverage.InternalPrice = *body.InternalPrice
 	}
-	if body.BarBeerPrice != nil {
-		foodBeverage.CostPrice = *body.BarBeerPrice
-	}
 	if body.Barcode != nil {
 		foodBeverage.Barcode = *body.Barcode
 	}
@@ -218,7 +215,7 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		foodBeverage.AloneKiosk = *body.AloneKiosk
 	}
 	if body.Note != nil {
-		foodBeverage.AccountCode = *body.Note
+		foodBeverage.Note = *body.Note
 	}
 	if body.Status != nil {
 		foodBeverage.Status = *body.Status

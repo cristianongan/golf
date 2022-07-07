@@ -211,9 +211,6 @@ func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
 	if body.Barcode != nil {
 		proshop.Barcode = *body.Barcode
 	}
-	if body.Barcode != nil {
-		proshop.Barcode = *body.Barcode
-	}
 	if body.Brand != nil {
 		proshop.Brand = *body.Brand
 	}

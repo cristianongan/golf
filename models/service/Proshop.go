@@ -104,7 +104,9 @@ func (item *ProshopRequest) FindList(page models.Page) ([]ProshopRequest, int64,
 		db = db.Where("proshops.group_name = ?", item.GroupName)
 	}
 
-	db = db.Joins("JOIN group_services ON proshops.group_code = group_services.group_code")
+	db = db.Joins("JOIN group_services ON proshops.group_code = group_services.group_code AND " +
+		"proshops.partner_uid = group_services.partner_uid AND " +
+		"proshops.course_uid = group_services.course_uid")
 	db = db.Select("proshops.*, group_services.group_name")
 	db.Count(&total)
 
