@@ -30,6 +30,14 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	servicesRequest := model_service.GroupServices{}
+	servicesRequest.GroupCode = body.GroupCode
+	servicesErrFind := servicesRequest.FindFirst()
+	if servicesErrFind != nil {
+		response_message.BadRequest(c, servicesErrFind.Error())
+		return
+	}
+
 	partnerRequest := models.Partner{}
 	partnerRequest.Uid = body.PartnerUid
 	partnerErrFind := partnerRequest.FindFirst()

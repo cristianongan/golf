@@ -29,6 +29,14 @@ func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	servicesRequest := model_service.GroupServices{}
+	servicesRequest.GroupCode = body.GroupCode
+	servicesErrFind := servicesRequest.FindFirst()
+	if servicesErrFind != nil {
+		response_message.BadRequest(c, servicesErrFind.Error())
+		return
+	}
+
 	partnerRequest := models.Partner{}
 	partnerRequest.Uid = body.PartnerUid
 	partnerErrFind := partnerRequest.FindFirst()
@@ -48,7 +56,7 @@ func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
 	ProshopRequest := model_service.Proshop{}
 	ProshopRequest.CourseUid = body.CourseUid
 	ProshopRequest.PartnerUid = body.PartnerUid
-	ProshopRequest.ProCode = body.ProCode
+	ProshopRequest.ProShopId = body.ProshopId
 	errExist := ProshopRequest.FindFirst()
 
 	if errExist == nil {
@@ -65,25 +73,27 @@ func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
 	}
 
 	service := model_service.Proshop{
-		PartnerUid:  body.PartnerUid,
-		GroupId:     body.GroupId,
-		CourseUid:   body.CourseUid,
-		GroupName:   body.GroupName,
-		ProCode:     body.ProCode,
-		EnglishName: body.EnglishName,
-		VieName:     body.VieName,
-		Unit:        body.Unit,
-		Price:       body.Price,
-		NetCost:     body.NetCost,
-		CostPrice:   body.CostPrice,
-		Barcode:     body.Barcode,
-		AccountCode: body.AccountCode,
-		Note:        body.Note,
-		ForKiosk:    body.ForKiosk,
-		IsInventory: body.IsInventory,
-		Brand:       body.Brand,
-		UserUpdate:  body.UserUpdate,
-		Name:        name,
+		ProShopId:     body.ProshopId,
+		PartnerUid:    body.PartnerUid,
+		CourseUid:     body.CourseUid,
+		GroupCode:     body.GroupCode,
+		EnglishName:   body.EnglishName,
+		VieName:       body.VieName,
+		Unit:          body.Unit,
+		Price:         body.Price,
+		NetCost:       body.NetCost,
+		CostPrice:     body.CostPrice,
+		Barcode:       body.Barcode,
+		AccountCode:   body.AccountCode,
+		Note:          body.Note,
+		ForKiosk:      body.ForKiosk,
+		IsInventory:   body.IsInventory,
+		IsDeposit:     body.IsDeposit,
+		Brand:         body.Brand,
+		UserUpdate:    body.UserUpdate,
+		Name:          name,
+		ProPrice:      body.ProPrice,
+		PeopleDeposit: body.PeopleDeposit,
 	}
 
 	err := service.Create()
@@ -109,7 +119,7 @@ func (_ *CProshop) GetListProshop(c *gin.Context, prof models.CmsUser) {
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	ProshopR := model_service.Proshop{}
+	ProshopR := model_service.ProshopRequest{}
 	if form.PartnerUid != nil {
 		ProshopR.PartnerUid = *form.PartnerUid
 	} else {
@@ -130,10 +140,15 @@ func (_ *CProshop) GetListProshop(c *gin.Context, prof models.CmsUser) {
 	} else {
 		ProshopR.VieName = ""
 	}
-	if form.GroupId != nil {
-		ProshopR.GroupId = *form.GroupId
+	if form.GroupCode != nil {
+		ProshopR.GroupCode = *form.GroupCode
 	} else {
-		ProshopR.GroupId = ""
+		ProshopR.GroupCode = ""
+	}
+	if form.GroupName != nil {
+		ProshopR.GroupName = *form.GroupCode
+	} else {
+		ProshopR.GroupName = ""
 	}
 
 	list, total, err := ProshopR.FindList(page)
@@ -158,9 +173,9 @@ func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	partner := model_service.Proshop{}
-	partner.Id = ProshopId
-	errF := partner.FindFirst()
+	proshop := model_service.Proshop{}
+	proshop.Id = ProshopId
+	errF := proshop.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -172,35 +187,65 @@ func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if body.GroupCode != nil {
+		proshop.GroupCode = *body.GroupCode
+	}
 	if body.EnglishName != nil {
-		partner.EnglishName = *body.EnglishName
+		proshop.EnglishName = *body.EnglishName
 	}
 	if body.VieName != nil {
-		partner.VieName = *body.VieName
+		proshop.VieName = *body.VieName
 	}
-	// if body.ProshopStatus != nil {
-	// 	partner.ProshopStatus = *body.ProshopStatus
-	// }
-	// if body.ByHoles != nil {
-	// 	partner.ByHoles = *body.ByHoles
-	// }
-	// if body.ForPos != nil {
-	// 	partner.ForPos = *body.ForPos
-	// }
-	// if body.EnglishName != nil {
-	// 	partner.OnlyForRen = *body.OnlyForRen
-	// }
-	// if body.Price != nil {
-	// 	partner.Price = *body.Price
-	// }
+	if body.Unit != nil {
+		proshop.Unit = *body.Unit
+	}
+	if body.Price != nil {
+		proshop.Price = *body.Price
+	}
+	if body.NetCost != nil {
+		proshop.NetCost = *body.NetCost
+	}
+	if body.CostPrice != nil {
+		proshop.CostPrice = *body.CostPrice
+	}
+	if body.Barcode != nil {
+		proshop.Barcode = *body.Barcode
+	}
+	if body.Barcode != nil {
+		proshop.Barcode = *body.Barcode
+	}
+	if body.Brand != nil {
+		proshop.Brand = *body.Brand
+	}
+	if body.PeopleDeposit != nil {
+		proshop.PeopleDeposit = *body.PeopleDeposit
+	}
+	if body.AccountCode != nil {
+		proshop.AccountCode = *body.AccountCode
+	}
+	if body.Note != nil {
+		proshop.AccountCode = *body.Note
+	}
+	if body.ForKiosk != nil {
+		proshop.ForKiosk = *body.ForKiosk
+	}
+	if body.ProPrice != nil {
+		proshop.ProPrice = *body.ProPrice
+	}
+	if body.IsDeposit != nil {
+		proshop.IsDeposit = *body.IsDeposit
+	}
+	if body.IsInventory != nil {
+		proshop.IsInventory = *body.IsInventory
+	}
 
-	errUdp := partner.Update()
+	errUdp := proshop.Update()
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
 
-	okResponse(c, partner)
+	okResponse(c, proshop)
 }
 
 func (_ *CProshop) DeleteProshop(c *gin.Context, prof models.CmsUser) {

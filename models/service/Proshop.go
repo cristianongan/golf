@@ -12,28 +12,32 @@ import (
 // Proshop
 type Proshop struct {
 	models.ModelId
-	PartnerUid  string  `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid   string  `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	GroupId     string  `json:"group_id"`
-	Brand       string  `json:"brand"`
-	GroupName   string  `json:"group_name" gorm:"type:varchar(256)"`
-	ProCode     string  `json:"pro_code" gorm:"type:varchar(100)"`
-	EnglishName string  `json:"english_name" gorm:"type:varchar(256)"`    // Tên Tiếng Anh
-	VieName     string  `json:"vietnamese_name" gorm:"type:varchar(256)"` // Tên Tiếng Anh
-	Unit        string  `json:"unit" gorm:"type:varchar(100)"`
-	Price       float64 `json:"price"`
-	NetCost     float64 `json:"net_cost" gorm:"type:varchar(100)"` // Net cost tự tính từ Cost Price ko bao gồm 10% VAT
-	CostPrice   float64 `json:"cost_price"`
-	Barcode     string  `json:"barcode"`
-	AccountCode string  `json:"account_code" gorm:"type:varchar(100)"` // Mã liên kết với Account kế toán
-	Note        string  `json:"note" gorm:"type:varchar(256)"`
-	ForKiosk    bool    `json:"for_kiosk"`
-	ProPrice    float64 `json:"pro_price"`
-	IsInventory bool    `json:"is_inventory"`                 // Có trong kho
-	Type        string  `json:"type" gorm:"type:varchar(50)"` // Loại rental, kiosk, proshop,...
-	Code        string  `json:"code" gorm:"type:varchar(100)"`
-	Name        string  `json:"name" gorm:"type:varchar(256)"`        // Tên
-	UserUpdate  string  `json:"user_update" gorm:"type:varchar(256)"` // Tên
+	ProShopId     string  `json:"proshop_id" gorm:"type:varchar(100)"`
+	PartnerUid    string  `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid     string  `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	GroupCode     string  `json:"group_code" gorm:"type:varchar(100)"`
+	EnglishName   string  `json:"english_name" gorm:"type:varchar(256)"`
+	VieName       string  `json:"vietnamese_name" gorm:"type:varchar(256)"`
+	Brand         string  `json:"brand" gorm:"type:varchar(100)"`
+	Barcode       string  `json:"barcode" gorm:"type:varchar(100)"`
+	AccountCode   string  `json:"account_code" gorm:"type:varchar(100)"` // Mã liên kết với Account kế toán
+	Price         float64 `json:"price"`
+	Unit          string  `json:"unit" gorm:"type:varchar(100)"`
+	Note          string  `json:"note" gorm:"type:varchar(256)"`
+	NetCost       float64 `json:"net_cost" gorm:"type:varchar(100)"` // Net cost tự tính từ Cost Price ko bao gồm 10% VAT
+	CostPrice     float64 `json:"cost_price"`
+	ProPrice      float64 `json:"pro_price"`
+	PeopleDeposit string  `json:"people_deposit" gorm:"type:varchar(100)"`
+	ForKiosk      bool    `json:"for_kiosk"`
+	IsDeposit     bool    `json:"is_deposit"`
+	IsInventory   bool    `json:"is_inventory"`                         // Có trong kho
+	Name          string  `json:"name" gorm:"type:varchar(256)"`        // Tên sp default
+	UserUpdate    string  `json:"user_update" gorm:"type:varchar(256)"` // Người update cuối cùng
+}
+
+type ProshopRequest struct {
+	Proshop
+	GroupName string `json:"group_name"`
 }
 
 func (item *Proshop) Create() error {
@@ -71,7 +75,7 @@ func (item *Proshop) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *Proshop) FindList(page models.Page) ([]Proshop, int64, error) {
+func (item *ProshopRequest) FindList(page models.Page) ([]Proshop, int64, error) {
 	db := datasources.GetDatabase().Model(Proshop{})
 	list := []Proshop{}
 	total := int64(0)
@@ -93,11 +97,11 @@ func (item *Proshop) FindList(page models.Page) ([]Proshop, int64, error) {
 	if item.VieName != "" {
 		db = db.Where("vie_name LIKE ?", "%"+item.VieName+"%")
 	}
-	if item.ProCode != "" {
-		db = db.Where("pro_code = ?", item.ProCode)
+	if item.ProShopId != "" {
+		db = db.Where("proshop_id = ?", item.ProShopId)
 	}
-	if item.GroupId != "" {
-		db = db.Where("group_id = ?", item.GroupId)
+	if item.GroupName != "" {
+		db = db.Where("group_name = ?", item.GroupName)
 	}
 
 	db.Count(&total)

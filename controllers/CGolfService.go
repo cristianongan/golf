@@ -58,13 +58,10 @@ func (_ *CGolfService) GetGolfServiceForReception(c *gin.Context, prof models.Cm
 		return
 	} else if form.Type == constants.GOLF_SERVICE_PROSHOP {
 		// Get in proshop
-		proshopR := model_service.Proshop{
-			PartnerUid: form.PartnerUid,
-			CourseUid:  form.CourseUid,
-			Type:       form.Type,
-			Code:       form.Code,
-			Name:       form.Name,
-		}
+		proshopR := model_service.ProshopRequest{}
+		proshopR.PartnerUid = form.PartnerUid
+		proshopR.CourseUid = form.CourseUid
+		proshopR.Name = form.Name
 
 		list, total, errProshopR := proshopR.FindList(page)
 
