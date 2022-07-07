@@ -10,13 +10,12 @@ type CreateCaddieCalendarBody struct {
 
 type GetCaddieCalendarList struct {
 	PageRequest
-	CourseUid  string `form:"course_uid"`
 	CaddieName string `form:"caddie_name"`
 	CaddieCode string `form:"caddie_code"`
 	Month      string `form:"month"`
 }
 
-type UpdateCaddieCalendar struct {
+type UpdateCaddieCalendarBody struct {
 	CaddieUid  string `json:"caddie_uid" validate:"required"`
 	Title      string `json:"title"`
 	DayOffType string `json:"day_off_type"`

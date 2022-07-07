@@ -1,7 +1,6 @@
 package models
 
 import (
-	"gorm.io/datatypes"
 	"start/datasources"
 )
 
@@ -10,7 +9,7 @@ type CaddieCalendarList struct {
 	CaddieName string
 	CaddieCode string
 	Month      string
-	ApplyDate  datatypes.Date
+	ApplyDate  string
 }
 
 func (item *CaddieCalendarList) FindList(page Page) ([]CaddieCalendar, int64, error) {

@@ -94,7 +94,7 @@ type Booking struct {
 
 	InitType string `json:"init_type" gorm:"type:varchar(50);index"` // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
 
-	CaddieInOut []CaddieInOutNote `json:"caddie_in_out"`
+	CaddieInOut []CaddieInOutNote `json:"caddie_in_out" gorm:"-"`
 }
 
 type CaddieInOutNote CaddieInOutNoteForBooking

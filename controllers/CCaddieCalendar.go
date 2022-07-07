@@ -78,7 +78,7 @@ func (_ *CCaddieCalendar) GetCaddieCalendarList(c *gin.Context, prof models.CmsU
 
 	caddieCalendar := models.CaddieCalendarList{}
 
-	caddieCalendar.CourseUid = query.CourseUid
+	caddieCalendar.CourseUid = prof.CourseUid
 	caddieCalendar.CaddieName = query.CaddieName
 	caddieCalendar.CaddieCode = query.CaddieCode
 	caddieCalendar.Month = query.Month
@@ -99,7 +99,7 @@ func (_ *CCaddieCalendar) GetCaddieCalendarList(c *gin.Context, prof models.CmsU
 }
 
 func (_ *CCaddieCalendar) UpdateCaddieCalendar(c *gin.Context, prof models.CmsUser) {
-	var body request.UpdateCaddieCalendar
+	var body request.UpdateCaddieCalendarBody
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("UpdateCaddieCalendar BindJSON error")
 		response_message.BadRequest(c, "")
