@@ -78,25 +78,25 @@ func (item *Rental) FindList(page models.Page) ([]RentalResponse, int64, error) 
 	item.ModelId.Status = ""
 
 	if status != "" {
-		db = db.Where("status in (?)", strings.Split(status, ","))
+		db = db.Where("rentals.status in (?)", strings.Split(status, ","))
 	}
 	if item.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", item.PartnerUid)
+		db = db.Where("rentals.partner_uid = ?", item.PartnerUid)
 	}
 	if item.CourseUid != "" {
-		db = db.Where("course_uid = ?", item.CourseUid)
+		db = db.Where("rentals.course_uid = ?", item.CourseUid)
 	}
 	if item.EnglishName != "" {
-		db = db.Where("english_name LIKE ?", "%"+item.EnglishName+"%")
+		db = db.Where("rentals.english_name LIKE ?", "%"+item.EnglishName+"%")
 	}
 	if item.VieName != "" {
-		db = db.Where("vie_name LIKE ?", "%"+item.VieName+"%")
+		db = db.Where("rentals.vie_name LIKE ?", "%"+item.VieName+"%")
 	}
 	if item.GroupCode != "" {
-		db = db.Where("group_code = ?", item.GroupCode)
+		db = db.Where("rentals.group_code = ?", item.GroupCode)
 	}
 	if item.SystemCode != "" {
-		db = db.Where("system_code = ?", item.SystemCode)
+		db = db.Where("rentals.system_code = ?", item.SystemCode)
 	}
 
 	db = db.Joins("JOIN group_services ON rentals.group_code = group_services.group_code")

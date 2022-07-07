@@ -84,22 +84,22 @@ func (item *FoodBeverage) FindList(page models.Page) ([]FoodBeverageResponse, in
 	item.ModelId.Status = ""
 
 	if status != "" {
-		db = db.Where("status in (?)", strings.Split(status, ","))
+		db = db.Where("food_beverages.status in (?)", strings.Split(status, ","))
 	}
 	if item.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", item.PartnerUid)
+		db = db.Where("food_beverages.partner_uid = ?", item.PartnerUid)
 	}
 	if item.CourseUid != "" {
-		db = db.Where("course_uid = ?", item.CourseUid)
+		db = db.Where("food_beverages.course_uid = ?", item.CourseUid)
 	}
 	if item.EnglishName != "" {
-		db = db.Where("english_name LIKE ?", "%"+item.EnglishName+"%")
+		db = db.Where("food_beverages.english_name LIKE ?", "%"+item.EnglishName+"%")
 	}
 	if item.VieName != "" {
-		db = db.Where("vie_name LIKE ?", "%"+item.VieName+"%")
+		db = db.Where("food_beverages.vie_name LIKE ?", "%"+item.VieName+"%")
 	}
 	if item.FBCode != "" {
-		db = db.Where("fb_code = ?", item.FBCode)
+		db = db.Where("food_beverages.fb_code = ?", item.FBCode)
 	}
 
 	db = db.Joins("JOIN group_services ON food_beverages.group_code = group_services.group_code")
