@@ -33,7 +33,12 @@ type FoodBeverage struct {
 	InMenuSet     bool    `json:"in_menu_set"`  // Món trong combo
 	IsInventory   bool    `json:"is_inventory"` // Có trong kho
 	IsKitchen     bool    `json:"is_kitchen"`
-	Name          string  `json:"name" gorm:"type:varchar(256)"` // Tên
+	Name          string  `json:"name" gorm:"type:varchar(256)"`        // Tên
+	UserUpdate    string  `json:"user_update" gorm:"type:varchar(256)"` // Người update cuối cùng
+}
+type FoodBeverageResponse struct {
+	FoodBeverage
+	GroupName string `json:"group_name"`
 }
 
 func (item *FoodBeverage) Create() error {
@@ -71,9 +76,9 @@ func (item *FoodBeverage) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *FoodBeverage) FindList(page models.Page) ([]FoodBeverage, int64, error) {
+func (item *FoodBeverage) FindList(page models.Page) ([]FoodBeverageResponse, int64, error) {
 	db := datasources.GetDatabase().Model(FoodBeverage{})
-	list := []FoodBeverage{}
+	list := []FoodBeverageResponse{}
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
@@ -97,6 +102,8 @@ func (item *FoodBeverage) FindList(page models.Page) ([]FoodBeverage, int64, err
 		db = db.Where("fb_code = ?", item.FBCode)
 	}
 
+	db = db.Joins("JOIN group_services ON food_beverages.group_code = group_services.group_code")
+	db = db.Select("food_beverages.*, group_services.group_name")
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

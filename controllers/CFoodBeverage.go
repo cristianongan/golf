@@ -238,6 +238,9 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 	if body.IsKitchen != nil {
 		foodBeverage.IsKitchen = *body.IsKitchen
 	}
+	if body.UserUpdate != nil {
+		foodBeverage.UserUpdate = *body.UserUpdate
+	}
 
 	errUdp := foodBeverage.Update()
 	if errUdp != nil {

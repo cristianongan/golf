@@ -30,6 +30,11 @@ type Rental struct {
 	Name        string `json:"name" gorm:"type:varchar(256)"` // Tên
 }
 
+type RentalResponse struct {
+	Rental
+	GroupName string `json:"group_name"`
+}
+
 func (item *Rental) Create() error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
@@ -65,9 +70,9 @@ func (item *Rental) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *Rental) FindList(page models.Page) ([]Rental, int64, error) {
+func (item *Rental) FindList(page models.Page) ([]RentalResponse, int64, error) {
 	db := datasources.GetDatabase().Model(Rental{})
-	list := []Rental{}
+	list := []RentalResponse{}
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
@@ -91,9 +96,11 @@ func (item *Rental) FindList(page models.Page) ([]Rental, int64, error) {
 		db = db.Where("group_code = ?", item.GroupCode)
 	}
 	if item.SystemCode != "" {
-		db = db.Where("code = ?", item.SystemCode)
+		db = db.Where("system_code = ?", item.SystemCode)
 	}
 
+	db = db.Joins("JOIN group_services ON rentals.group_code = group_services.group_code")
+	db = db.Select("rentals.*, group_services.group_name")
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

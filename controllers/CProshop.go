@@ -238,6 +238,9 @@ func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
 	if body.IsInventory != nil {
 		proshop.IsInventory = *body.IsInventory
 	}
+	if body.UserUpdate != nil {
+		proshop.UserUpdate = *body.UserUpdate
+	}
 
 	errUdp := proshop.Update()
 	if errUdp != nil {

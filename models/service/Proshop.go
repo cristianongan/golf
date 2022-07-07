@@ -75,35 +75,37 @@ func (item *Proshop) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *ProshopRequest) FindList(page models.Page) ([]Proshop, int64, error) {
+func (item *ProshopRequest) FindList(page models.Page) ([]ProshopRequest, int64, error) {
 	db := datasources.GetDatabase().Model(Proshop{})
-	list := []Proshop{}
+	list := []ProshopRequest{}
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
 
 	if status != "" {
-		db = db.Where("status in (?)", strings.Split(status, ","))
+		db = db.Where("proshops.status in (?)", strings.Split(status, ","))
 	}
 	if item.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", item.PartnerUid)
+		db = db.Where("proshops.partner_uid = ?", item.PartnerUid)
 	}
 	if item.CourseUid != "" {
-		db = db.Where("course_uid = ?", item.CourseUid)
+		db = db.Where("proshops.course_uid = ?", item.CourseUid)
 	}
 	if item.EnglishName != "" {
-		db = db.Where("english_name LIKE ?", "%"+item.EnglishName+"%")
+		db = db.Where("proshops.english_name LIKE ?", "%"+item.EnglishName+"%")
 	}
 	if item.VieName != "" {
-		db = db.Where("vie_name LIKE ?", "%"+item.VieName+"%")
+		db = db.Where("proshops.vie_name LIKE ?", "%"+item.VieName+"%")
 	}
 	if item.ProShopId != "" {
-		db = db.Where("proshop_id = ?", item.ProShopId)
+		db = db.Where("proshops.proshop_id = ?", item.ProShopId)
 	}
 	if item.GroupName != "" {
-		db = db.Where("group_name = ?", item.GroupName)
+		db = db.Where("proshops.group_name = ?", item.GroupName)
 	}
 
+	db = db.Joins("JOIN group_services ON proshops.group_code = group_services.group_code")
+	db = db.Select("proshops.*, group_services.group_name")
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

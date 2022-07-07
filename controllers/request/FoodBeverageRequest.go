@@ -55,4 +55,5 @@ type UpdateFoodBeverageBody struct {
 	InMenuSet     *bool    `json:"in_menu_set"`
 	IsInventory   *bool    `json:"is_inventory"`
 	IsKitchen     *bool    `json:"is_kitchen"`
+	UserUpdate    *string  `json:"user_update"`
 }
