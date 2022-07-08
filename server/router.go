@@ -204,6 +204,9 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/booking/cancel", middlewares.AuthorizedCmsUserHandler(cBooking.CancelBooking))                       // Cancel booking
 			cmsApiAuthorized.POST("/booking/moving", middlewares.AuthorizedCmsUserHandler(cBooking.MovingBooking))                       // Moving booking
 
+			/// =================== Checkout ===================
+			cmsApiAuthorized.POST("/booking/checkout", middlewares.AuthorizedCmsUserHandler(cBooking.Checkout))
+
 			/// =================== BagsNote ===================
 			cBagsNote := new(controllers.CBagsNote)
 			cmsApiAuthorized.GET("/bags-note/list", middlewares.AuthorizedCmsUserHandler(cBagsNote.GetListBagsNote))
@@ -252,9 +255,6 @@ func NewRouter() *gin.Engine {
 			/// =================== + More Course Operating ===================
 			cmsApiAuthorized.GET("/course-operating/flight/list", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetFlight))
 			cmsApiAuthorized.POST("/course-operating/move-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.MoveBagToFlight))
-
-			/// =================== Checkout ===================
-			cmsApiAuthorized.POST("/course-operating/checkout", middlewares.AuthorizedCmsUserHandler(cCourseOperating.Checkout))
 
 			/// =================== Golf Bag ===================
 			cGolfBag := new(controllers.CGolfBag)

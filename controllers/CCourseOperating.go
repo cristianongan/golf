@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/go-playground/validator/v10"
 	"log"
 	"start/constants"
 	"start/controllers/request"
@@ -781,45 +780,6 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 
 	booking.FlightId = body.FlightId
 
-	if err := booking.Update(); err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
-
-	okResponse(c, booking)
-}
-
-func (cCourseOperating *CCourseOperating) Checkout(c *gin.Context, prof models.CmsUser) {
-	body := request.CheckoutBody{}
-	if err := c.BindJSON(&body); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
-
-	validate := validator.New()
-	if err := validate.Struct(body); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
-
-	// validate booking_uid
-	booking, err := cCourseOperating.validateBooking(body.BookingUid)
-	if err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
-
-	if booking.Bag != body.GolfBag {
-		response_message.InternalServerError(c, "Booking uid and golf bag do not match")
-		return
-	}
-
-	if booking.CustomerUid != body.CustomerUid {
-		response_message.InternalServerError(c, "Booking uid and customer uid do not match")
-		return
-	}
-
-	booking.BagStatus = constants.BAG_STATUS_OUT
 	if err := booking.Update(); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
