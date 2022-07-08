@@ -253,6 +253,9 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/course-operating/flight/list", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetFlight))
 			cmsApiAuthorized.POST("/course-operating/move-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.MoveBagToFlight))
 
+			/// =================== Checkout ===================
+			cmsApiAuthorized.POST("/course-operating/checkout", middlewares.AuthorizedCmsUserHandler(cCourseOperating.Checkout))
+
 			/// =================== Golf Bag ===================
 			cGolfBag := new(controllers.CGolfBag)
 			cmsApiAuthorized.GET("/golf-bag/list", middlewares.AuthorizedCmsUserHandler(cGolfBag.GetGolfBag))
