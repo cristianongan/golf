@@ -5,6 +5,7 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"strings"
 	"time"
 )
@@ -12,31 +13,18 @@ import (
 // FbPromotionSet
 type FbPromotionSet struct {
 	models.ModelId
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	GroupCode  string `json:"group_code" gorm:"type:varchar(100);index"`
-	SetName    string `json:"set_name"`
-	Discount   int64  `json:"discount"`
-	Note       string `json:"note"`
-	FBList     string `json:"fb_list"`
-	InputUser  string `json:"input_user" gorm:"type:varchar(100)"`
+	PartnerUid string           `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid  string           `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	GroupCode  string           `json:"group_code" gorm:"type:varchar(100);index"`
+	SetName    string           `json:"set_name"`
+	Discount   int64            `json:"discount"`
+	Note       string           `json:"note"`
+	FBList     utils.ListString `json:"fb_list,omitempty" gorm:"type:json"`
+	InputUser  string           `json:"input_user" gorm:"type:varchar(100)"`
 }
 type FBPromotionSetResponse struct {
 	FbPromotionSet
 	GroupName string `json:"group_name"`
-}
-type FBPromotionSetResponseFE struct {
-	Id         int64    `json:"id"`
-	Status     string   `json:"status"`
-	PartnerUid string   `json:"partner_uid"` // Hang Golf
-	CourseUid  string   `json:"course_uid"`  // San Golf
-	GroupCode  string   `json:"group_code"`
-	SetName    string   `json:"set_name"`
-	Discount   int64    `json:"discount"`
-	Note       string   `json:"note"`
-	FBList     []string `json:"fb_list"`
-	InputUser  string   `json:"input_user"`
-	GroupName  string   `json:"group_name"`
 }
 
 func (item *FbPromotionSet) Create() error {
@@ -74,7 +62,7 @@ func (item *FbPromotionSet) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *FbPromotionSet) FindList(page models.Page) ([]FBPromotionSetResponseFE, int64, error) {
+func (item *FbPromotionSet) FindList(page models.Page) ([]FBPromotionSetResponse, int64, error) {
 	db := datasources.GetDatabase().Model(FbPromotionSet{})
 	list := []FBPromotionSetResponse{}
 	total := int64(0)
@@ -107,24 +95,7 @@ func (item *FbPromotionSet) FindList(page models.Page) ([]FBPromotionSetResponse
 		db = page.Setup(db).Find(&list)
 	}
 
-	listPromotion := []FBPromotionSetResponseFE{}
-	for _, v := range list {
-		pro := FBPromotionSetResponseFE{
-			Id:         v.Id,
-			Status:     v.Status,
-			PartnerUid: v.PartnerUid,
-			CourseUid:  v.CourseUid,
-			SetName:    v.SetName,
-			GroupCode:  v.GroupCode,
-			Discount:   v.Discount,
-			Note:       v.Note,
-			InputUser:  v.InputUser,
-			GroupName:  v.GroupName,
-			FBList:     strings.Split(v.FBList, ","),
-		}
-		listPromotion = append(listPromotion, pro)
-	}
-	return listPromotion, total, db.Error
+	return list, total, db.Error
 }
 
 func (item *FbPromotionSet) Delete() error {

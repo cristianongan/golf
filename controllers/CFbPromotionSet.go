@@ -8,7 +8,6 @@ import (
 	model_service "start/models/service"
 	"start/utils/response_message"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -73,7 +72,7 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 		SetName:    body.SetName,
 		Discount:   body.Discount,
 		Note:       body.Note,
-		FBList:     strings.Join(body.FBList, ", "),
+		FBList:     body.FBList,
 		InputUser:  body.InputUser,
 	}
 	promotionSet.Status = body.Status
@@ -176,7 +175,7 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 		promotionSetR.Status = *body.Status
 	}
 	if body.FBList != nil {
-		promotionSetR.FBList = strings.Join(*body.FBList, ", ")
+		promotionSetR.FBList = *body.FBList
 	}
 
 	err := promotionSetR.Update()
