@@ -7,6 +7,7 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils/response_message"
+	"time"
 )
 
 type CGolfBag struct{}
@@ -25,9 +26,12 @@ func (_ CGolfBag) GetGolfBag(c *gin.Context, prof models.CmsUser) {
 		SortDir: query.PageRequest.SortDir,
 	}
 
+	bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
+
 	bookings := model_booking.BookingList{}
 
 	bookings.IsFlight = query.IsFlight
+	bookings.BookingDate = bookingDate.Format("02/01/2006")
 
 	// add course_uid
 	bookings.CourseUid = prof.CourseUid

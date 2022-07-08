@@ -93,6 +93,15 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 		db = db.Where("bag_status = ?", item.BagStatus)
 	}
 
+	if item.IsFlight != "" {
+		isFlight, _ := strconv.ParseInt(item.IsAgency, 10, 8)
+		if isFlight == 1 {
+			db = db.Where("flight_uid <> ?", 0)
+		} else if isFlight == 0 {
+			db = db.Where("flight_uid = ?", 0)
+		}
+	}
+
 	return db
 }
 
