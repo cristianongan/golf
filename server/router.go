@@ -344,6 +344,12 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/f&b/list", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.GetListFoodBeverage))
 			cmsApiAuthorized.PUT("/f&b/:id", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.UpdateFoodBeverage))
 			cmsApiAuthorized.DELETE("/f&b/:id", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.DeleteFoodBeverage))
+			/// =================== F&B =====================
+			cFbPromotionSet := new(controllers.CFbPromotionSet)
+			cmsApiAuthorized.POST("/fb-promotion", middlewares.AuthorizedCmsUserHandler(cFbPromotionSet.CreateFoodBeveragePromotionSet))
+			cmsApiAuthorized.GET("/fb-promotion/list", middlewares.AuthorizedCmsUserHandler(cFbPromotionSet.GetListFoodBeveragepRomotionSet))
+			cmsApiAuthorized.PUT("/fb-promotion/:id", middlewares.AuthorizedCmsUserHandler(cFbPromotionSet.UpdatePromotionSet))
+			cmsApiAuthorized.DELETE("/fb-promotion/:id", middlewares.AuthorizedCmsUserHandler(cFbPromotionSet.DeleteFoodBeveragePromotionSet))
 			/// =================== Proshop =====================
 			cProshop := new(controllers.CProshop)
 			cmsApiAuthorized.POST("/proshop", middlewares.AuthorizedCmsUserHandler(cProshop.CreateProshop))

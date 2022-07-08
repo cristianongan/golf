@@ -29,6 +29,19 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	if body.GroupCode == "" {
+		response_message.BadRequest(c, "Group Code not empty")
+		return
+	}
+
+	servicesRequest := model_service.GroupServices{}
+	servicesRequest.GroupCode = body.GroupCode
+	servicesErrFind := servicesRequest.FindFirst()
+	if servicesErrFind != nil {
+		response_message.BadRequest(c, servicesErrFind.Error())
+		return
+	}
+
 	partnerRequest := models.Partner{}
 	partnerRequest.Uid = body.PartnerUid
 	partnerErrFind := partnerRequest.FindFirst()
@@ -39,9 +52,9 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 
 	courseRequest := models.Course{}
 	courseRequest.Uid = body.CourseUid
-	errFind := courseRequest.FindFirst()
-	if errFind != nil {
-		response_message.BadRequest(c, errFind.Error())
+	errCourseFind := courseRequest.FindFirst()
+	if errCourseFind != nil {
+		response_message.BadRequest(c, errCourseFind.Error())
 		return
 	}
 

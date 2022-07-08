@@ -29,6 +29,11 @@ func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if body.GroupCode == "" {
+		response_message.BadRequest(c, "Group Code not empty")
+		return
+	}
+
 	servicesRequest := model_service.GroupServices{}
 	servicesRequest.GroupCode = body.GroupCode
 	servicesErrFind := servicesRequest.FindFirst()
