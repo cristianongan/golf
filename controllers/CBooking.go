@@ -8,6 +8,7 @@ import (
 	"start/controllers/request"
 	"start/models"
 	model_booking "start/models/booking"
+	model_gostarter "start/models/go-starter"
 	"start/utils"
 	"start/utils/response_message"
 	"time"
@@ -310,11 +311,26 @@ func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, res)
 }
 
+func (_ CBooking) validateCaddie(courseUid string, caddieCode string) (models.Caddie, error) {
+	caddieList := models.CaddieList{}
+	caddieList.CourseUid = courseUid
+	caddieList.CaddieCode = caddieCode
+	caddieList.WorkingStatus = constants.CADDIE_WORKING_STATUS_ACTIVE
+	caddieList.InCurrentStatus = []string{constants.CADDIE_CURRENT_STATUS_READY, constants.CADDIE_CURRENT_STATUS_FINISH}
+	caddieNew, err := caddieList.FindFirst()
+
+	if err != nil {
+		return caddieNew, err
+	}
+
+	return caddieNew, nil
+}
+
 /*
  Cập nhật booking
  Thêm Service item
 */
-func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
+func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	bookingIdStr := c.Param("uid")
 	if bookingIdStr == "" {
 		response_message.BadRequest(c, errors.New("uid not valid").Error())
@@ -329,10 +345,21 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	body := model_booking.Booking{}
+	body := request.UpdateBooking{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
+	}
+
+	// validate caddie_code
+	var caddie models.Caddie
+	var err error
+	if body.CaddieCode != "" {
+		caddie, err = cBooking.validateCaddie(prof.CourseUid, body.CaddieCode)
+		if err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
 	}
 
 	// Không udp lại Bag
@@ -394,6 +421,34 @@ func (_ *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	if body.NoteOfBooking != "" && body.NoteOfBooking != booking.NoteOfBooking {
 		booking.NoteOfBooking = body.NoteOfBooking
 		go createBagsNoteNoteOfBooking(booking)
+	}
+
+	// Update caddie
+	if body.CaddieCode != "" {
+		booking.CaddieId = caddie.Id
+		booking.CaddieInfo = cloneToCaddieBooking(caddie)
+		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+
+		// Update caddie_current_status
+		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+		caddie.CurrentRound = caddie.CurrentRound + 1
+
+		if err := caddie.Update(); err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
+
+		// Udp Note
+		caddieInOutNote := model_gostarter.CaddieInOutNote{
+			PartnerUid: prof.PartnerUid,
+			CourseUid:  prof.CourseUid,
+			BookingUid: booking.Uid,
+			CaddieId:   booking.CaddieId,
+			Type:       constants.STATUS_IN,
+			Note:       "",
+		}
+
+		go addCaddieInOutNote(caddieInOutNote)
 	}
 
 	// Udp Log Tracking
