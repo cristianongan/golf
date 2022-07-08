@@ -49,9 +49,28 @@ func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *CaddieList) FindFirst() (Caddie, error) {
+func (item CaddieList) FindFirst() (Caddie, error) {
 	var result Caddie
-	db := datasources.GetDatabase()
-	err := db.Where(item).First(&result).Error
+	db := datasources.GetDatabase().Model(Caddie{})
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.CaddieName != "" {
+		db = db.Where("name LIKE ?", "%"+item.CaddieName+"%")
+	}
+
+	if item.CaddieCode != "" {
+		db = db.Where("code = ?", item.CaddieCode)
+		item.CaddieCode = ""
+	}
+
+	if len(item.InCurrentStatus) > 0 {
+		db = db.Where("current_status IN ?", item.InCurrentStatus)
+	}
+
+	err := db.First(&result).Error
+
 	return result, err
 }
