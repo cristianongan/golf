@@ -315,8 +315,6 @@ func (_ CBooking) validateCaddie(courseUid string, caddieCode string) (models.Ca
 	caddieList := models.CaddieList{}
 	caddieList.CourseUid = courseUid
 	caddieList.CaddieCode = caddieCode
-	caddieList.WorkingStatus = constants.CADDIE_WORKING_STATUS_ACTIVE
-	caddieList.InCurrentStatus = []string{constants.CADDIE_CURRENT_STATUS_READY, constants.CADDIE_CURRENT_STATUS_FINISH}
 	caddieNew, err := caddieList.FindFirst()
 
 	if err != nil {
@@ -428,15 +426,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CaddieId = caddie.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddie)
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
-
-		// Update caddie_current_status
-		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
-		caddie.CurrentRound = caddie.CurrentRound + 1
-
-		if err := caddie.Update(); err != nil {
-			response_message.InternalServerError(c, err.Error())
-			return
-		}
 
 		// Udp Note
 		caddieInOutNote := model_gostarter.CaddieInOutNote{
@@ -1115,11 +1104,6 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 
 	if booking.Bag != body.GolfBag {
 		response_message.InternalServerError(c, "Booking uid and golf bag do not match")
-		return
-	}
-
-	if booking.CustomerUid != body.CustomerUid {
-		response_message.InternalServerError(c, "Booking uid and customer uid do not match")
 		return
 	}
 

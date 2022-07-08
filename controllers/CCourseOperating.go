@@ -590,8 +590,12 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 	}
 
 	// Update caddie_current_status
-	caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
-	caddieNew.CurrentRound = caddieNew.CurrentRound + 1
+	if booking.FlightId != 0 {
+		caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+		caddieNew.CurrentRound = caddieNew.CurrentRound + 1
+	} else {
+		caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+	}
 
 	if err := caddieNew.Update(); err != nil {
 		response_message.InternalServerError(c, err.Error())
