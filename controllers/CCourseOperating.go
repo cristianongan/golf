@@ -70,24 +70,26 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 		return
 	}
 
-	// Update caddie_current_status
-	caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
-	if err := caddie.Update(); err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
+	if body.CaddieCode != "" {
+		// Update caddie_current_status
+		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+		if err := caddie.Update(); err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
 
-	// Udp Note
-	caddieInOutNote := model_gostarter.CaddieInOutNote{
-		PartnerUid: booking.PartnerUid,
-		CourseUid:  booking.CourseUid,
-		BookingUid: booking.Uid,
-		CaddieId:   booking.CaddieId,
-		Type:       constants.STATUS_IN,
-		Note:       "",
-	}
+		// Udp Note
+		caddieInOutNote := model_gostarter.CaddieInOutNote{
+			PartnerUid: booking.PartnerUid,
+			CourseUid:  booking.CourseUid,
+			BookingUid: booking.Uid,
+			CaddieId:   booking.CaddieId,
+			Type:       constants.STATUS_IN,
+			Note:       "",
+		}
 
-	go addCaddieInOutNote(caddieInOutNote)
+		go addCaddieInOutNote(caddieInOutNote)
+	}
 
 	okResponse(c, booking)
 }

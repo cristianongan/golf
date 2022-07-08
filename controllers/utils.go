@@ -419,39 +419,39 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 	}
 
 	//Check caddie
-	caddie := models.Caddie{
-		PartnerUid: partnerUid,
-		CourseUid:  courseUid,
-		Code:       caddieCode,
-	}
-	errFC := caddie.FindFirst()
-	if errFC != nil {
-		return errFC, booking, caddie, models.Buggy{}
+	var caddie models.Caddie
+	if caddieCode != "" {
+		caddie = models.Caddie{
+			PartnerUid: partnerUid,
+			CourseUid:  courseUid,
+			Code:       caddieCode,
+		}
+		errFC := caddie.FindFirst()
+		if errFC != nil {
+			return errFC, booking, caddie, models.Buggy{}
+		}
+		booking.CaddieId = caddie.Id
+		booking.CaddieInfo = cloneToCaddieBooking(caddie)
+		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
 	}
 
 	// TODO: validate current_status
 
 	//Check buggy
-	buggy := models.Buggy{
-		PartnerUid: partnerUid,
-		CourseUid:  courseUid,
-		Code:       buggyCode,
+	var buggy models.Buggy
+	if buggyCode != "" {
+		buggy = models.Buggy{
+			PartnerUid: partnerUid,
+			CourseUid:  courseUid,
+			Code:       buggyCode,
+		}
+		errFB := buggy.FindFirst()
+		if errFB != nil {
+			return errFB, booking, caddie, buggy
+		}
+		booking.BuggyId = buggy.Id
+		booking.BuggyInfo = cloneToBuggyBooking(buggy)
 	}
-	errFB := buggy.FindFirst()
-	if errFC != nil {
-		return errFB, booking, caddie, buggy
-	}
-
-	// TODO: validate buggy by available_status
-
-	//Caddie
-	booking.CaddieId = caddie.Id
-	booking.CaddieInfo = cloneToCaddieBooking(caddie)
-	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
-
-	//Buggy
-	booking.BuggyId = buggy.Id
-	booking.BuggyInfo = cloneToBuggyBooking(buggy)
 
 	return nil, booking, caddie, buggy
 }
