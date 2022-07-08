@@ -23,11 +23,22 @@ type CBooking struct{}
 /*
  Tạo Booking từ TeeSheet
 */
-func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
+func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	body := request.CreateBookingBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
+	}
+
+	// validate caddie_code
+	var caddie models.Caddie
+	var err error
+	if body.CaddieCode != "" {
+		caddie, err = cBooking.validateCaddie(prof.CourseUid, body.CaddieCode)
+		if err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
 	}
 
 	booking := model_booking.Booking{
@@ -201,6 +212,25 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
+
+	// Update caddie
+	if body.CaddieCode != "" {
+		booking.CaddieId = caddie.Id
+		booking.CaddieInfo = cloneToCaddieBooking(caddie)
+		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+
+		// Udp Note
+		caddieInOutNote := model_gostarter.CaddieInOutNote{
+			PartnerUid: prof.PartnerUid,
+			CourseUid:  prof.CourseUid,
+			BookingUid: booking.Uid,
+			CaddieId:   booking.CaddieId,
+			Type:       constants.STATUS_IN,
+			Note:       "",
+		}
+
+		go addCaddieInOutNote(caddieInOutNote)
+	}
 
 	errC := booking.Create(bUid)
 
