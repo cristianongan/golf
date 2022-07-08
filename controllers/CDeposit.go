@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"gorm.io/datatypes"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -17,6 +18,12 @@ func (_ *CDeposit) CreateDeposit(c *gin.Context, prof models.CmsUser) {
 	var body request.CreateDepositBody
 	if err := c.BindJSON(&body); err != nil {
 		response_message.BadRequest(c, "")
+		return
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(body); err != nil {
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
@@ -101,9 +108,22 @@ func (_ *CDeposit) UpdateDeposit(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	validate := validator.New()
+	if err := validate.Struct(body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
 	// validate deposit_uid
 	deposit := models.Deposit{}
+	deposit.CustomerUid = body.CustomerUid
 	deposit.Id, _ = strconv.ParseInt(c.Param("id"), 10, 64)
+
+	if err := deposit.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
 	deposit.PaymentType = body.PaymentType
 	deposit.TmCurrency = body.TmCurrency
 	deposit.TmRate = body.TmRate
@@ -116,7 +136,7 @@ func (_ *CDeposit) UpdateDeposit(c *gin.Context, prof models.CmsUser) {
 	deposit.TotalAmount = deposit.TmTotalAmount + deposit.TcTotalAmount
 	deposit.Note = body.Note
 
-	if err := deposit.Create(); err != nil {
+	if err := deposit.Update(); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}

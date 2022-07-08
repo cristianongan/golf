@@ -40,7 +40,14 @@ func (item *Deposit) Create() error {
 	return db.Create(item).Error
 }
 
-//func (item *Deposit) FindFirst() error {
-//	db := datasources.GetDatabase()
-//	return db.Where(item).First(item).Error
-//}
+func (item *Deposit) FindFirst() error {
+	db := datasources.GetDatabase()
+	return db.Where(item).First(item).Error
+}
+
+func (item *Deposit) Update() error {
+	item.ModelId.UpdatedAt = time.Now().Unix()
+
+	db := datasources.GetDatabase()
+	return db.Save(item).Error
+}
