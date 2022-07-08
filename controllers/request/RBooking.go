@@ -139,5 +139,5 @@ type MovingBookingBody struct {
 
 type UpdateBooking struct {
 	model_booking.Booking
-	CaddieCode string
+	CaddieCode string `json:"caddie_code"`
 }
