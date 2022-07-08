@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"github.com/go-playground/validator/v10"
 	"log"
 	"start/constants"
 	"start/controllers/request"
@@ -506,12 +507,6 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, booking)
-}
-
-/*
-  Check out: c
-*/
-func (_ *CBooking) CheckOut(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
@@ -1031,4 +1026,53 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okRes(c)
+}
+
+func (_ CBooking) validateBooking(bookindUid string) (model_booking.Booking, error) {
+	booking := model_booking.Booking{}
+	booking.Uid = bookindUid
+	if err := booking.FindFirst(); err != nil {
+		return booking, err
+	}
+
+	return booking, nil
+}
+
+func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
+	body := request.CheckoutBody{}
+	if err := c.BindJSON(&body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate booking_uid
+	booking, err := cBooking.validateBooking(body.BookingUid)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	if booking.Bag != body.GolfBag {
+		response_message.InternalServerError(c, "Booking uid and golf bag do not match")
+		return
+	}
+
+	if booking.CustomerUid != body.CustomerUid {
+		response_message.InternalServerError(c, "Booking uid and customer uid do not match")
+		return
+	}
+
+	booking.BagStatus = constants.BAG_STATUS_OUT
+	if err := booking.Update(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okResponse(c, booking)
 }

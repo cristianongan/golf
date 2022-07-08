@@ -6,10 +6,12 @@ import (
 )
 
 type CaddieList struct {
-	CourseUid  string
-	CaddieName string
-	CaddieCode string
-	Month      string
+	CourseUid       string
+	CaddieName      string
+	CaddieCode      string
+	Month           string
+	WorkingStatus   string
+	InCurrentStatus []string
 }
 
 func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
@@ -30,6 +32,10 @@ func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
 		db = db.Where("code = ?", item.CaddieCode)
 	}
 
+	if len(item.InCurrentStatus) > 0 {
+		db = db.Where("current_status IN ?", item.InCurrentStatus)
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
@@ -41,4 +47,11 @@ func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
 	}
 
 	return list, total, db.Error
+}
+
+func (item *CaddieList) FindFirst() (Caddie, error) {
+	var result Caddie
+	db := datasources.GetDatabase()
+	err := db.Where(item).First(&result).Error
+	return result, err
 }

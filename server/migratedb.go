@@ -73,6 +73,9 @@ func MigrateDb() {
 		db.AutoMigrate(&model_service.Proshop{})
 		db.AutoMigrate(&model_service.Restaurent{})
 
+		// ------- Deposit -------
+		db.AutoMigrate(&models.Deposit{})
+
 		log.Println("migrated db")
 	}
 }

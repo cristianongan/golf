@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"errors"
 	"log"
 	"net/http"
 	"start/constants"
@@ -430,11 +429,7 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 		return errFC, booking, caddie, models.Buggy{}
 	}
 
-	// TODO: validate caddie by available_status
-	// Caddie đang trên sân rồi
-	if caddie.IsInCourse {
-		return errors.New("Caddie in course"), booking, caddie, models.Buggy{}
-	}
+	// TODO: validate current_status
 
 	//Check buggy
 	buggy := models.Buggy{
@@ -486,7 +481,12 @@ func udpCaddieOut(caddieId int64) error {
 	caddie := models.Caddie{}
 	caddie.Id = caddieId
 	err := caddie.FindFirst()
-	caddie.IsInCourse = false
+	//caddie.IsInCourse = false
+	if caddie.CurrentRound == 0 {
+		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
+	} else {
+		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
+	}
 	err = caddie.Update()
 	if err != nil {
 		log.Println("udpCaddieOut err", err.Error())
@@ -510,7 +510,7 @@ func udpBuggyOut(buggyId int64) error {
 	err := buggy.FindFirst()
 	//buggy.IsInCourse = false
 	if err := buggy.Update(); err != nil {
-		log.Println("udpCaddieOut err", err.Error())
+		log.Println("udpBuggyOut err", err.Error())
 	}
 	return err
 }

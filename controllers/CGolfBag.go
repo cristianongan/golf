@@ -1,12 +1,13 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils/response_message"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CGolfBag struct{}
@@ -25,9 +26,12 @@ func (_ CGolfBag) GetGolfBag(c *gin.Context, prof models.CmsUser) {
 		SortDir: query.PageRequest.SortDir,
 	}
 
+	// bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
+
 	bookings := model_booking.BookingList{}
 
 	bookings.IsFlight = query.IsFlight
+	bookings.BookingDate = query.BookingDate
 
 	// add course_uid
 	bookings.CourseUid = prof.CourseUid
