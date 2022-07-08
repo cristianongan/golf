@@ -3,6 +3,7 @@ package request
 import (
 	"database/sql/driver"
 	"encoding/json"
+	model_booking "start/models/booking"
 	"start/utils"
 )
 
@@ -134,4 +135,9 @@ type MovingBookingBody struct {
 	TeeType     *string   `json:"tee_type"`
 	TeeTime     *string   `json:"tee_time"`
 	Hole        *int      `json:"hole"`
+}
+
+type UpdateBooking struct {
+	model_booking.Booking
+	CaddieCode string
 }
