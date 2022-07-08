@@ -23,11 +23,22 @@ type CBooking struct{}
 /*
  Tạo Booking từ TeeSheet
 */
-func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
+func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	body := request.CreateBookingBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
+	}
+
+	// validate caddie_code
+	var caddie models.Caddie
+	var err error
+	if body.CaddieCode != "" {
+		caddie, err = cBooking.validateCaddie(prof.CourseUid, body.CaddieCode)
+		if err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
 	}
 
 	booking := model_booking.Booking{
@@ -202,6 +213,25 @@ func (_ *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
 
+	// Update caddie
+	if body.CaddieCode != "" {
+		booking.CaddieId = caddie.Id
+		booking.CaddieInfo = cloneToCaddieBooking(caddie)
+		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+
+		// Udp Note
+		caddieInOutNote := model_gostarter.CaddieInOutNote{
+			PartnerUid: prof.PartnerUid,
+			CourseUid:  prof.CourseUid,
+			BookingUid: booking.Uid,
+			CaddieId:   booking.CaddieId,
+			Type:       constants.STATUS_IN,
+			Note:       "",
+		}
+
+		go addCaddieInOutNote(caddieInOutNote)
+	}
+
 	errC := booking.Create(bUid)
 
 	if errC != nil {
@@ -315,8 +345,6 @@ func (_ CBooking) validateCaddie(courseUid string, caddieCode string) (models.Ca
 	caddieList := models.CaddieList{}
 	caddieList.CourseUid = courseUid
 	caddieList.CaddieCode = caddieCode
-	caddieList.WorkingStatus = constants.CADDIE_WORKING_STATUS_ACTIVE
-	caddieList.InCurrentStatus = []string{constants.CADDIE_CURRENT_STATUS_READY, constants.CADDIE_CURRENT_STATUS_FINISH}
 	caddieNew, err := caddieList.FindFirst()
 
 	if err != nil {
@@ -428,15 +456,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CaddieId = caddie.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddie)
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
-
-		// Update caddie_current_status
-		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
-		caddie.CurrentRound = caddie.CurrentRound + 1
-
-		if err := caddie.Update(); err != nil {
-			response_message.InternalServerError(c, err.Error())
-			return
-		}
 
 		// Udp Note
 		caddieInOutNote := model_gostarter.CaddieInOutNote{
@@ -1115,11 +1134,6 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 
 	if booking.Bag != body.GolfBag {
 		response_message.InternalServerError(c, "Booking uid and golf bag do not match")
-		return
-	}
-
-	if booking.CustomerUid != body.CustomerUid {
-		response_message.InternalServerError(c, "Booking uid and customer uid do not match")
 		return
 	}
 

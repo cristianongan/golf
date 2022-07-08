@@ -368,6 +368,18 @@ func (_ *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof models.CmsUser) {
 	// Out Caddie cũ
 	udpCaddieOut(booking.CaddieId)
 
+	caddieOutNote := model_gostarter.CaddieInOutNote{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		BookingUid: booking.Uid,
+		CaddieId:   booking.CaddieId,
+		Type:       constants.STATUS_OUT,
+		Hole:       body.CaddieHoles,
+		Note:       body.Note,
+	}
+
+	go addCaddieInOutNote(caddieOutNote)
+
 	// Gán Caddie mới
 	booking.CaddieId = caddieNew.Id
 	booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
@@ -389,7 +401,7 @@ func (_ *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	caddieInOutNote := model_gostarter.CaddieInOutNote{
+	caddieInNote := model_gostarter.CaddieInOutNote{
 		PartnerUid: booking.PartnerUid,
 		CourseUid:  booking.CourseUid,
 		BookingUid: booking.Uid,
@@ -399,7 +411,7 @@ func (_ *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof models.CmsUser) {
 		Note:       body.Note,
 	}
 
-	go addCaddieInOutNote(caddieInOutNote)
+	go addCaddieInOutNote(caddieInNote)
 
 	okResponse(c, booking)
 }
@@ -429,7 +441,10 @@ func (_ *CCourseOperating) DeleteAttachCaddie(c *gin.Context, prof models.CmsUse
 	caddieId := booking.CaddieId
 
 	// out caddie
-	udpCaddieOut(caddieId)
+	if err := udpCaddieOut(caddieId); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
 
 	//
 	//Caddie
@@ -460,7 +475,7 @@ func (_ *CCourseOperating) DeleteAttachCaddie(c *gin.Context, prof models.CmsUse
 		CourseUid:  booking.CourseUid,
 		BookingUid: booking.Uid,
 		CaddieId:   caddieId,
-		Type:       constants.STATUS_DELETE,
+		Type:       constants.STATUS_OUT,
 		Note:       body.Note,
 	}
 	go addCaddieInOutNote(caddieInOutNote)
@@ -590,8 +605,12 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 	}
 
 	// Update caddie_current_status
-	caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
-	caddieNew.CurrentRound = caddieNew.CurrentRound + 1
+	if booking.FlightId != 0 {
+		caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+		caddieNew.CurrentRound = caddieNew.CurrentRound + 1
+	} else {
+		caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+	}
 
 	if err := caddieNew.Update(); err != nil {
 		response_message.InternalServerError(c, err.Error())

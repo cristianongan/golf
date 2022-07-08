@@ -98,7 +98,6 @@ type MoveBagToFlightBody struct {
 }
 
 type CheckoutBody struct {
-	BookingUid  string `json:"booking_uid" validate:"required"`
-	GolfBag     string `json:"golf_bag" validate:"required"`
-	CustomerUid string `json:"customer_uid" validate:"required"`
+	BookingUid string `json:"booking_uid" validate:"required"`
+	GolfBag    string `json:"golf_bag" validate:"required"`
 }

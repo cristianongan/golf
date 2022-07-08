@@ -59,6 +59,7 @@ type CreateBookingBody struct {
 	//Agency
 	AgencyId    int64  `json:"agency_id"`
 	CustomerUid string `json:"customer_uid"`
+	CaddieCode  string `json:"caddie_code"`
 }
 
 type BookingBaseBody struct {
@@ -139,5 +140,5 @@ type MovingBookingBody struct {
 
 type UpdateBooking struct {
 	model_booking.Booking
-	CaddieCode string
+	CaddieCode string `json:"caddie_code"`
 }
