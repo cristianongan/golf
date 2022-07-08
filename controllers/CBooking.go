@@ -510,12 +510,6 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
-  Check out: c
-*/
-func (_ *CBooking) CheckOut(c *gin.Context, prof models.CmsUser) {
-}
-
-/*
  Add Sub bag to Booking
 */
 func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
