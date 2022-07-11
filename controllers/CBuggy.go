@@ -103,6 +103,18 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 		buggyRequest.BuggyForVip = *form.BuggyForVip
 	}
 
+	if form.CourseUid != nil {
+		buggyRequest.CourseUid = *form.CourseUid
+	} else {
+		buggyRequest.CourseUid = ""
+	}
+
+	if form.PartnerUid != nil {
+		buggyRequest.PartnerUid = *form.PartnerUid
+	} else {
+		buggyRequest.PartnerUid = ""
+	}
+
 	list, total, err := buggyRequest.FindList(page)
 
 	if err != nil {

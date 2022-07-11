@@ -91,6 +91,12 @@ func (item *Buggy) FindList(page Page) ([]Buggy, int64, error) {
 	if item.BuggyForVip == true {
 		db = db.Where("buggy_for_vip = ?", item.BuggyForVip)
 	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
 
 	db.Count(&total)
 
