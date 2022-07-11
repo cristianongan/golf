@@ -62,7 +62,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 	rentalRequest := model_service.Rental{}
 	rentalRequest.CourseUid = body.CourseUid
 	rentalRequest.PartnerUid = body.PartnerUid
-	rentalRequest.SystemCode = body.SystemCode
+	rentalRequest.RentalId = body.RentalId
 	errExist := rentalRequest.FindFirst()
 
 	if errExist == nil {
