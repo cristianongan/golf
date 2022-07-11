@@ -71,7 +71,7 @@ type BookingBaseBody struct {
 // Thêm service item vào booking
 type AddServiceItemToBooking struct {
 	BookingBaseBody
-	ServiceItems utils.ListBookingServiceItems `json:"service_items"`
+	ServiceItems model_booking.ListBookingServiceItems `json:"service_items"`
 }
 
 // GO: Ghép flight

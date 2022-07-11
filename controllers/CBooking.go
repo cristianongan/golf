@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"github.com/go-playground/validator/v10"
 	"log"
 	"start/constants"
 	"start/controllers/request"
@@ -14,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
 
@@ -425,6 +425,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	//Update service items
 	booking.ListServiceItems = body.ListServiceItems
 
+	//Update service items cho table booking_service_items
+	// cBooking.UpdateBookServiceList(body.ListServiceItems)
+
 	// Tính lại giá
 	booking.UpdatePriceDetailCurrentBag()
 	booking.UpdateMushPay()
@@ -481,6 +484,43 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, booking)
+}
+
+/*
+ update book service list
+*/
+
+func (_ *CBooking) UpdateBookServiceList(serviceList model_booking.ListBookingServiceItems) {
+	for _, v := range serviceList {
+		bookingServiceItem := model_booking.BookingServiceItem{
+			BookingUid: v.BookingUid,
+			GroupCode:  v.GroupCode,
+			Bag:        v.Bag,
+		}
+
+		errFind := bookingServiceItem.FindFirst()
+		bookingServiceItemUpdate := model_booking.BookingServiceItem{
+			BookingUid:    v.BookingUid,
+			GroupCode:     v.GroupCode,
+			PlayerName:    v.PlayerName,
+			Bag:           v.Bag,
+			Type:          v.Type,
+			Order:         v.Order,
+			Name:          v.Name,
+			Quality:       v.Quality,
+			UnitPrice:     v.UnitPrice,
+			DiscountType:  v.DiscountType,
+			DiscountValue: v.DiscountValue,
+			Amount:        v.Amount,
+			Input:         v.Input,
+		}
+		if errFind == nil {
+			bookingServiceItemUpdate.ModelId = bookingServiceItem.ModelId
+			bookingServiceItemUpdate.Update()
+		} else {
+			bookingServiceItem.Create()
+		}
+	}
 }
 
 /*
@@ -616,7 +656,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		booking.SubBags = utils.ListSubBag{}
 	}
 	if booking.ListServiceItems == nil {
-		booking.ListServiceItems = utils.ListBookingServiceItems{}
+		booking.ListServiceItems = model_booking.ListBookingServiceItems{}
 	}
 
 	// Check lại SubBag
@@ -747,7 +787,7 @@ func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 			}
 			booking.ListGolfFee = listGolfFees
 			// remove list service items
-			listServiceItems := utils.ListBookingServiceItems{}
+			listServiceItems := model_booking.ListBookingServiceItems{}
 			for _, v1 := range booking.ListServiceItems {
 				if v1.BookingUid != v.BookingUid {
 					listServiceItems = append(listServiceItems, v1)
@@ -950,7 +990,7 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 
 	// list service items
 	// Remove cái cũ
-	listServiceItems := utils.ListBookingServiceItems{}
+	listServiceItems := model_booking.ListBookingServiceItems{}
 	for _, v := range booking.ListServiceItems {
 		if v.Type != constants.BOOKING_OTHER_FEE {
 			listServiceItems = append(listServiceItems, v)
@@ -959,7 +999,7 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 
 	// add cái mới
 	for _, v := range body.OtherPaids {
-		serviceItem := utils.BookingServiceItem{
+		serviceItem := model_booking.BookingServiceItem{
 			Type:       constants.BOOKING_OTHER_FEE,
 			Amount:     v.Amount,
 			Name:       v.Reason,

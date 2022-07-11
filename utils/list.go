@@ -27,17 +27,6 @@ func (item ListSubBag) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
-// ------- List Booking service ---------
-type ListBookingServiceItems []BookingServiceItem
-
-func (item *ListBookingServiceItems) Scan(v interface{}) error {
-	return json.Unmarshal(v.([]byte), item)
-}
-
-func (item ListBookingServiceItems) Value() (driver.Value, error) {
-	return json.Marshal(&item)
-}
-
 // ------- List Int64 -------
 
 type ListInt64 []int64

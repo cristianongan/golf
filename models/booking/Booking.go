@@ -48,12 +48,12 @@ type Booking struct {
 	TeeOffTime   string `json:"tee_off_time" gorm:"type:varchar(30)"`     // Ex: 16:26 Là thời gian thực tế phát bóng
 	RowIndex     int    `json:"row_index"`                                // index trong Flight
 
-	CurrentBagPrice  BookingCurrentBagPriceDetail  `json:"current_bag_price,omitempty" gorm:"type:json"`  // Thông tin phí++: Tính toán lại phí Service items, Tiền cho Subbag
-	ListGolfFee      ListBookingGolfFee            `json:"list_golf_fee,omitempty" gorm:"type:json"`      // Thông tin List Golf Fee, Main Bag, Sub Bag
-	ListServiceItems utils.ListBookingServiceItems `json:"list_service_items,omitempty" gorm:"type:json"` // List service item: rental, proshop, restaurant, kiosk
-	MushPayInfo      BookingMushPay                `json:"mush_pay_info,omitempty" gorm:"type:json"`      // Mush Pay info
-	Rounds           ListBookingRound              `json:"rounds,omitempty" gorm:"type:json"`             // List Rounds: Sẽ sinh golf Fee với List GolfFee
-	OtherPaids       utils.ListOtherPaid           `json:"other_paids,omitempty" gorm:"type:json"`        // Other Paids
+	CurrentBagPrice  BookingCurrentBagPriceDetail `json:"current_bag_price,omitempty" gorm:"type:json"`  // Thông tin phí++: Tính toán lại phí Service items, Tiền cho Subbag
+	ListGolfFee      ListBookingGolfFee           `json:"list_golf_fee,omitempty" gorm:"type:json"`      // Thông tin List Golf Fee, Main Bag, Sub Bag
+	ListServiceItems ListBookingServiceItems      `json:"list_service_items,omitempty" gorm:"type:json"` // List service item: rental, proshop, restaurant, kiosk
+	MushPayInfo      BookingMushPay               `json:"mush_pay_info,omitempty" gorm:"type:json"`      // Mush Pay info
+	Rounds           ListBookingRound             `json:"rounds,omitempty" gorm:"type:json"`             // List Rounds: Sẽ sinh golf Fee với List GolfFee
+	OtherPaids       utils.ListOtherPaid          `json:"other_paids,omitempty" gorm:"type:json"`        // Other Paids
 
 	// Note          string `json:"note" gorm:"type:varchar(500)"`            // Note
 	NoteOfBag     string `json:"note_of_bag" gorm:"type:varchar(500)"`     // Note of Bag
@@ -380,7 +380,7 @@ func (item *Booking) UpdateBookingMainBag() error {
 
 	// Udp list service items
 	if mainBagBooking.ListServiceItems == nil {
-		mainBagBooking.ListServiceItems = utils.ListBookingServiceItems{}
+		mainBagBooking.ListServiceItems = ListBookingServiceItems{}
 	}
 
 	if item.ListServiceItems != nil && len(item.ListServiceItems) > 0 {
