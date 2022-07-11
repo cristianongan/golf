@@ -41,3 +41,7 @@ func (item *CaddieCalendar) Update() error {
 	db := datasources.GetDatabase()
 	return db.Save(item).Error
 }
+
+func (item *CaddieCalendar) Delete() error {
+	return datasources.GetDatabase().Delete(item).Error
+}

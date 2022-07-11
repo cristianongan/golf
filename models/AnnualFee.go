@@ -202,7 +202,8 @@ func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, int64, err
 		member_cards.valid_date as mc_valid_date, 
 		member_cards.exp_date as mc_exp_date, 
 		member_cards.owner_uid as owner_uid, 
-		member_cards.mc_type_id as mc_type_id
+		member_cards.mc_type_id as mc_type_id,
+		member_cards.card_id as mc_card_id
 		from member_cards WHERE member_cards.partner_uid = `
 
 	queryStr = queryStr + `"` + item.PartnerUid + `"`

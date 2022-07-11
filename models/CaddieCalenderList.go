@@ -6,6 +6,7 @@ import (
 
 type CaddieCalendarList struct {
 	CourseUid  string
+	CaddieUid  string
 	CaddieName string
 	CaddieCode string
 	Month      string
@@ -20,6 +21,10 @@ func (item *CaddieCalendarList) FindList(page Page) ([]CaddieCalendar, int64, er
 
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.CaddieUid != "" {
+		db = db.Where("caddie_uid = ?", item.CaddieUid)
 	}
 
 	if item.CaddieName != "" {
@@ -51,4 +56,22 @@ func (item *CaddieCalendarList) FindFirst() (CaddieCalendar, error) {
 	db := datasources.GetDatabase().Model(CaddieCalendar{})
 	err := db.Where(item).First(&result).Error
 	return result, err
+}
+
+func (item *CaddieCalendarList) Delete() error {
+	db := datasources.GetDatabase().Model(CaddieCalendar{})
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.CaddieUid != "" {
+		db = db.Where("caddie_uid = ?", item.CaddieUid)
+	}
+
+	if item.Month != "" {
+		db = db.Where("DATE_FORMAT(apply_date, '%Y-%m') = ?", item.Month)
+	}
+
+	return db.Delete(&CaddieCalendar{}).Error
 }
