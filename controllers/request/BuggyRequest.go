@@ -18,6 +18,8 @@ type GetListBuggyForm struct {
 	Code        *string `form:"buggy_uid" json:"buggy_uid"`
 	BuggyStatus *string `form:"buggy_status" json:"buggy_status"`
 	BuggyForVip *bool   `form:"buggy_for_vip" json:"buggy_for_vip"`
+	CourseUid   *string `form:"course_uid" json:"course_uid"`
+	PartnerUid  *string `form:"partner_uid" json:"partner_uid"`
 }
 
 type UpdateBuggyBody struct {
