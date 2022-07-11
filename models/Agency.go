@@ -25,6 +25,7 @@ type Agency struct {
 	PrimaryContactFirst  AgencyContact  `json:"primary_contact_first,omitempty" gorm:"type:json"`
 	PrimaryContactSecond AgencyContact  `json:"primary_contact_second,omitempty" gorm:"type:json"`
 	ContractDetail       AgencyContract `json:"contract_detail,omitempty" gorm:"type:json"`
+	Avatar               string         `json:"avatar" gorm:"type:varchar(256)"`
 }
 
 type AgencyContact struct {
