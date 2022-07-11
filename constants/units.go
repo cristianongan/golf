@@ -3,7 +3,7 @@ package constants
 var UNIT_LIST = []map[string]interface{}{
 	{
 		"type":  "SERVICE",
-		"units": []string{"bộ", "box", "cái", "gói", "lượt", "pax", "set", "xe"},
+		"units": []string{"bộ", "box", "cái", "gói", "lượt", "pax", "set", "xe", "bóng", "đôi", "chiếc"},
 	},
 	{
 		"type":  "PROSHOP",
