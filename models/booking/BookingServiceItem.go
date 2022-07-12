@@ -73,7 +73,7 @@ func (item *BookingServiceItem) Update() error {
 
 func (item *BookingServiceItem) FindFirst() error {
 	db := datasources.GetDatabase()
-	return db.Where(item).First(&item).Error
+	return db.Where(item).First(item).Error
 }
 
 func (item *BookingServiceItem) Count() (int64, error) {

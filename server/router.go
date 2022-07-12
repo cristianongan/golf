@@ -340,30 +340,35 @@ func NewRouter() *gin.Engine {
 			/// =================== CGolf Service: Rental, Proshop, Restaurent, Kiosk =====================
 			cGolfService := new(controllers.CGolfService)
 			cmsApiAuthorized.GET("/golf-service/list/reception", middlewares.AuthorizedCmsUserHandler(cGolfService.GetGolfServiceForReception))
+
 			/// =================== Rental =====================
 			cRental := new(controllers.CRental)
 			cmsApiAuthorized.POST("/rental", middlewares.AuthorizedCmsUserHandler(cRental.CreateRental))
 			cmsApiAuthorized.GET("/rental/list", middlewares.AuthorizedCmsUserHandler(cRental.GetListRental))
 			cmsApiAuthorized.PUT("/rental/:id", middlewares.AuthorizedCmsUserHandler(cRental.UpdateRental))
 			cmsApiAuthorized.DELETE("/rental/:id", middlewares.AuthorizedCmsUserHandler(cRental.DeleteRental))
+
 			/// =================== F&B =====================
 			cFoodBeverage := new(controllers.CFoodBeverage)
 			cmsApiAuthorized.POST("/f&b", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.CreateFoodBeverage))
 			cmsApiAuthorized.GET("/f&b/list", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.GetListFoodBeverage))
 			cmsApiAuthorized.PUT("/f&b/:id", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.UpdateFoodBeverage))
 			cmsApiAuthorized.DELETE("/f&b/:id", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.DeleteFoodBeverage))
+
 			/// =================== F&B =====================
 			cFbPromotionSet := new(controllers.CFbPromotionSet)
 			cmsApiAuthorized.POST("/fb-promotion", middlewares.AuthorizedCmsUserHandler(cFbPromotionSet.CreateFoodBeveragePromotionSet))
 			cmsApiAuthorized.GET("/fb-promotion/list", middlewares.AuthorizedCmsUserHandler(cFbPromotionSet.GetListFoodBeveragepRomotionSet))
 			cmsApiAuthorized.PUT("/fb-promotion/:id", middlewares.AuthorizedCmsUserHandler(cFbPromotionSet.UpdatePromotionSet))
 			cmsApiAuthorized.DELETE("/fb-promotion/:id", middlewares.AuthorizedCmsUserHandler(cFbPromotionSet.DeleteFoodBeveragePromotionSet))
+
 			/// =================== Proshop =====================
 			cProshop := new(controllers.CProshop)
 			cmsApiAuthorized.POST("/proshop", middlewares.AuthorizedCmsUserHandler(cProshop.CreateProshop))
 			cmsApiAuthorized.GET("/proshop/list", middlewares.AuthorizedCmsUserHandler(cProshop.GetListProshop))
 			cmsApiAuthorized.PUT("/proshop/:id", middlewares.AuthorizedCmsUserHandler(cProshop.UpdateProshop))
 			cmsApiAuthorized.DELETE("/proshop/:id", middlewares.AuthorizedCmsUserHandler(cProshop.DeleteProshop))
+
 			/// =================== Group Services =====================
 			cGroupServices := new(controllers.CGroupServices)
 			cmsApiAuthorized.POST("/group-services", middlewares.AuthorizedCmsUserHandler(cGroupServices.CreateGroupServices))
@@ -375,6 +380,11 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/deposit", middlewares.AuthorizedCmsUserHandler(cDeposit.CreateDeposit))
 			cmsApiAuthorized.GET("/deposit/list", middlewares.AuthorizedCmsUserHandler(cDeposit.GetDeposit))
 			cmsApiAuthorized.PUT("/deposit/:id", middlewares.AuthorizedCmsUserHandler(cDeposit.UpdateDeposit))
+
+			/// =================== Teet Time Settings ===================
+			cTeeTimeSettings := new(controllers.CTeeTimeSettings)
+			cmsApiAuthorized.POST("/tee-time", middlewares.AuthorizedCmsUserHandler(cTeeTimeSettings.CreateTeeTimeSettings))
+			cmsApiAuthorized.GET("/tee-time/list", middlewares.AuthorizedCmsUserHandler(cTeeTimeSettings.GetTeeTimeSettings))
 		}
 
 		// ----------------------------------------------------------

@@ -57,6 +57,21 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 
 	// TODO: check kho tea time trong ngày đó còn trống mới cho đặt
 
+	// check trạng thái Tee Time
+	if booking.TeeTime != "" {
+		teeTime := models.TeeTimeSettings{}
+		teeTime.TeeTime = booking.TeeTime
+		errFind := teeTime.FindFirst()
+		if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_LOCKED) {
+			response_message.BadRequest(c, "Tee Time đã bị khóa")
+			return
+		}
+		if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_DELETED) {
+			response_message.BadRequest(c, "Tee Time đã bị xóa")
+			return
+		}
+	}
+
 	if body.Bag != "" {
 		booking.Bag = body.Bag
 	}
