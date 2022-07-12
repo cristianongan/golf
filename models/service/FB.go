@@ -101,6 +101,9 @@ func (item *FoodBeverage) FindList(page models.Page) ([]FoodBeverageResponse, in
 	if item.FBCode != "" {
 		db = db.Where("food_beverages.fb_code = ?", item.FBCode)
 	}
+	if item.GroupCode != "" {
+		db = db.Where("food_beverages.group_code = ?", item.GroupCode)
+	}
 
 	db = db.Joins("JOIN group_services ON food_beverages.group_code = group_services.group_code AND " +
 		"food_beverages.partner_uid = group_services.partner_uid AND " +
