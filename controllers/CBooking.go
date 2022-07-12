@@ -17,7 +17,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// test CICD
 type CBooking struct{}
 
 /// --------- Booking ----------
