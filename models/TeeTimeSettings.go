@@ -14,7 +14,7 @@ type TeeTimeSettings struct {
 	PartnerUid    string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng Golf
 	CourseUid     string `json:"course_uid" gorm:"type:varchar(256);index"`  // Sân Golf
 	TeeTime       string `json:"tee_time" gorm:"type:varchar(100);index"`
-	TeeTimeStatus string `json:"tee_time_status" gorm:"type:varchar(100)"`
+	TeeTimeStatus string `json:"tee_time_status" gorm:"type:varchar(100)"` // Trạng thái Tee Time: LOCKED, UNLOCK, DELETED
 	Note          string `json:"note"`
 }
 

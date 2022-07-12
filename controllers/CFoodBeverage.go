@@ -126,39 +126,42 @@ func (_ *CFoodBeverage) GetListFoodBeverage(c *gin.Context, prof models.CmsUser)
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	rentalR := model_service.FoodBeverage{}
+	fbR := model_service.FoodBeverageRequest{}
 	if form.PartnerUid != nil {
-		rentalR.PartnerUid = *form.PartnerUid
+		fbR.PartnerUid = *form.PartnerUid
 	} else {
-		rentalR.PartnerUid = ""
+		fbR.PartnerUid = ""
 	}
 	if form.CourseUid != nil {
-		rentalR.CourseUid = *form.CourseUid
+		fbR.CourseUid = *form.CourseUid
 	} else {
-		rentalR.CourseUid = ""
+		fbR.CourseUid = ""
 	}
 	if form.EnglishName != nil {
-		rentalR.EnglishName = *form.EnglishName
+		fbR.EnglishName = *form.EnglishName
 	} else {
-		rentalR.EnglishName = ""
+		fbR.EnglishName = ""
 	}
 	if form.VieName != nil {
-		rentalR.VieName = *form.VieName
+		fbR.VieName = *form.VieName
 	} else {
-		rentalR.VieName = ""
+		fbR.VieName = ""
 	}
 	if form.GroupCode != nil {
-		rentalR.GroupCode = *form.GroupCode
+		fbR.GroupCode = *form.GroupCode
 	} else {
-		rentalR.GroupCode = ""
+		fbR.GroupCode = ""
 	}
 	if form.Status != nil {
-		rentalR.Status = *form.Status
+		fbR.Status = *form.Status
 	} else {
-		rentalR.Status = ""
+		fbR.Status = ""
+	}
+	if len(form.FBCodeList) != 0 {
+		fbR.FBCodeList = form.FBCodeList
 	}
 
-	list, total, err := rentalR.FindList(page)
+	list, total, err := fbR.FindList(page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

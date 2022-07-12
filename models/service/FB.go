@@ -40,6 +40,11 @@ type FoodBeverageResponse struct {
 	FoodBeverage
 	GroupName string `json:"group_name"`
 }
+type FoodBeverageRequest struct {
+	FoodBeverage
+	GroupName  string   `json:"group_name"`
+	FBCodeList []string `form:"fb_code_list"`
+}
 
 func (item *FoodBeverage) Create() error {
 	now := time.Now()
@@ -76,7 +81,7 @@ func (item *FoodBeverage) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *FoodBeverage) FindList(page models.Page) ([]FoodBeverageResponse, int64, error) {
+func (item *FoodBeverageRequest) FindList(page models.Page) ([]FoodBeverageResponse, int64, error) {
 	db := datasources.GetDatabase().Model(FoodBeverage{})
 	list := []FoodBeverageResponse{}
 	total := int64(0)
@@ -103,6 +108,9 @@ func (item *FoodBeverage) FindList(page models.Page) ([]FoodBeverageResponse, in
 	}
 	if item.GroupCode != "" {
 		db = db.Where("food_beverages.group_code = ?", item.GroupCode)
+	}
+	if len(item.FBCodeList) != 0 {
+		db = db.Debug().Where("food_beverages.fb_code IN (?)", item.FBCodeList)
 	}
 
 	db = db.Joins("JOIN group_services ON food_beverages.group_code = group_services.group_code AND " +
