@@ -6,6 +6,7 @@ import (
 	model_service "start/models/service"
 	"start/utils/response_message"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -157,8 +158,8 @@ func (_ *CFoodBeverage) GetListFoodBeverage(c *gin.Context, prof models.CmsUser)
 	} else {
 		fbR.Status = ""
 	}
-	if len(form.FBCodeList) != 0 {
-		fbR.FBCodeList = form.FBCodeList
+	if form.FBCodeList != nil {
+		fbR.FBCodeList = strings.Split(*form.FBCodeList, ",")
 	}
 
 	list, total, err := fbR.FindList(page)
