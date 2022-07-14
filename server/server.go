@@ -26,6 +26,12 @@ func Init() {
 	// elasticsearch.ElasticSearchInit()
 
 	r := NewRouter()
+
+	routers := r.Routes()
+
+	// Init authority
+	initAuthority(routers)
+
 	log.Println("Server is running ...", "listen", config.GetString("backend_port"))
 	r.Run(config.GetString("backend_port"))
 }
