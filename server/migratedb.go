@@ -89,7 +89,7 @@ func MigrateDb() {
 		db.AutoMigrate(&models.CaddieWorkingCalendar{})
 
 		// ------- System Activity Log -------
-		db.AutoMigrate(&logger.SystemActivityLog{})
+		db.AutoMigrate(&logger.ActivityLog{})
 
 		log.Println("migrated db")
 	}
