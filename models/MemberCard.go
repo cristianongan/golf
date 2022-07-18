@@ -211,7 +211,7 @@ func (item *MemberCard) FindList(page Page, playerName string) ([]map[string]int
 		queryStr = queryStr + " and member_cards.status = " + `"` + item.Status + `"`
 	}
 	if item.CardId != "" {
-		queryStr = queryStr + " and member_cards.card_id = " + `"` + item.CardId + `"`
+		queryStr = queryStr + " and member_cards.card_id LIKE " + `"%` + item.CardId + `%"`
 	}
 	if item.McTypeId > 0 {
 		queryStr = queryStr + " and member_cards.mc_type_id = " + strconv.Itoa(int(item.McTypeId))

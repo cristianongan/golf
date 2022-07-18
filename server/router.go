@@ -314,7 +314,8 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/caddie-calendar", middlewares.AuthorizedCmsUserHandler(cCaddieCalendar.CreateCaddieCalendar))
 			cmsApiAuthorized.GET("/caddie-calendar", middlewares.AuthorizedCmsUserHandler(cCaddieCalendar.GetCaddieCalendarList))
 			cmsApiAuthorized.PUT("/caddie-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieCalendar.UpdateCaddieCalendar))
-			cmsApiAuthorized.POST("/caddie-calendar/delete", middlewares.AuthorizedCmsUserHandler(cCaddieCalendar.DeleteCaddieCalendar))
+			cmsApiAuthorized.POST("/caddie-calendar/delete-month", middlewares.AuthorizedCmsUserHandler(cCaddieCalendar.DeleteMonthCaddieCalendar))
+			cmsApiAuthorized.POST("/caddie-calendar/delete-date", middlewares.AuthorizedCmsUserHandler(cCaddieCalendar.DeleteDateCaddieCalendar))
 
 			/// =================== Caddie Working Calendar ===================
 			cCaddieWorkingCalendar := new(controllers.CCaddieWorkingCalendar)
