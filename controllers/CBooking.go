@@ -46,15 +46,18 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	if body.TeeTime != "" {
 		teeTime := models.TeeTimeSettings{}
 		teeTime.TeeTime = body.TeeTime
+		teeTime.CourseUid = body.CourseUid
+		teeTime.PartnerUid = body.PartnerUid
+		teeTime.DateTime = body.BookingDate
 		errFind := teeTime.FindFirst()
 		if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_LOCKED) {
 			response_message.BadRequest(c, "Tee Time đã bị khóa")
 			return
 		}
-		if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_DELETED) {
-			response_message.BadRequest(c, "Tee Time đã bị xóa")
-			return
-		}
+		// if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_DELETED) {
+		// 	response_message.BadRequest(c, "Tee Time đã bị xóa")
+		// 	return
+		// }
 	}
 
 	booking := model_booking.Booking{
