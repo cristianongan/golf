@@ -1,10 +1,11 @@
 package server
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/harranali/authority"
 	"log"
 	"start/datasources"
+
+	"github.com/gin-gonic/gin"
+	"github.com/harranali/authority"
 )
 
 func createPermissions(auth *authority.Authority, routers gin.RoutesInfo) {

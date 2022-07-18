@@ -19,13 +19,6 @@ func (_ *CTeeTimeSettings) CreateTeeTimeSettings(c *gin.Context, prof models.Cms
 		return
 	}
 
-	teeTimeSetting := models.TeeTimeSettings{
-		TeeTime:    body.TeeTime,
-		CourseUid:  body.CourseUid,
-		PartnerUid: body.PartnerUid,
-	}
-
-	errFind := teeTimeSetting.FindFirst()
 	teeTimeStatusList := []string{constants.TEE_TIME_LOCKED, constants.STATUS_DELETE, constants.TEE_TIME_UNLOCK}
 
 	if !checkStringInArray(teeTimeStatusList, body.TeeTimeStatus) {
@@ -33,6 +26,14 @@ func (_ *CTeeTimeSettings) CreateTeeTimeSettings(c *gin.Context, prof models.Cms
 		return
 	}
 
+	teeTimeSetting := models.TeeTimeSettings{
+		TeeTime:    body.TeeTime,
+		DateTime:   body.DateTime,
+		CourseUid:  body.CourseUid,
+		PartnerUid: body.PartnerUid,
+	}
+
+	errFind := teeTimeSetting.FindFirst()
 	teeTimeSetting.TeeTimeStatus = body.TeeTimeStatus
 	teeTimeSetting.Note = body.Note
 
@@ -75,8 +76,8 @@ func (_ *CTeeTimeSettings) GetTeeTimeSettings(c *gin.Context, prof models.CmsUse
 		teeTimeSetting.TeeTimeStatus = query.TeeTimeStatus
 	}
 
-	if query.DateTime != 0 {
-		teeTimeSetting.CreatedAt = query.DateTime
+	if query.DateTime != "" {
+		teeTimeSetting.DateTime = query.DateTime
 	}
 
 	list, total, err := teeTimeSetting.FindList(page)

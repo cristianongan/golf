@@ -15,6 +15,7 @@ type TeeTimeSettings struct {
 	CourseUid     string `json:"course_uid" gorm:"type:varchar(256);index"`  // Sân Golf
 	TeeTime       string `json:"tee_time" gorm:"type:varchar(100);index"`
 	TeeTimeStatus string `json:"tee_time_status" gorm:"type:varchar(100)"` // Trạng thái Tee Time: LOCKED, UNLOCK, DELETED
+	DateTime      string `json:"date_time" gorm:"type:varchar(100)"`       // Ngày mà user update Tee Time
 	Note          string `json:"note"`
 }
 
@@ -72,7 +73,7 @@ func (item *TeeTimeSettings) FindList(page Page) ([]TeeTimeSettings, int64, erro
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
 	if item.CreatedAt != 0 {
-		db = db.Where("created_at = ?", item.CreatedAt)
+		db = db.Where("date_time = ?", item.DateTime)
 	}
 
 	db.Count(&total)
