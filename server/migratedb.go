@@ -4,6 +4,7 @@ import (
 	"log"
 	"start/config"
 	"start/datasources"
+	"start/logger"
 	"start/models"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
@@ -77,6 +78,18 @@ func MigrateDb() {
 
 		// ------- Deposit -------
 		db.AutoMigrate(&models.Deposit{})
+
+		// ------- Caddie Calendar -------
+		db.AutoMigrate(&models.CaddieCalendar{})
+
+		// ------- Caddie Evaluation -------
+		db.AutoMigrate(&models.CaddieEvaluation{})
+
+		// ------- Caddie Working Calendar -------
+		db.AutoMigrate(&models.CaddieWorkingCalendar{})
+
+		// ------- System Activity Log -------
+		db.AutoMigrate(&logger.ActivityLog{})
 
 		log.Println("migrated db")
 	}

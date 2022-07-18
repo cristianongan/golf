@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"github.com/harranali/authority"
 	"start/constants"
 	"start/datasources"
 	"strings"
@@ -24,14 +25,25 @@ type CmsUser struct {
 	Password string `json:"-" gorm:"type:varchar(256)"`
 	LoggedIn bool   `json:"logged_in"`
 
-	Email      string `json:"email" gorm:"type:varchar(100)"`
-	Phone      string `json:"phone" gorm:"type:varchar(20)"`
-	Dob        int64  `json:"dob"`
-	Position   string `json:"position" gorm:"type:varchar(100)"`   // chức vụ
-	Sex        int    `json:"sex"`                                 // gioi tinh
-	Department string `json:"department" gorm:"type:varchar(100)"` // Đơn vị
-	Role       string `json:"role" gorm:"type:varchar(100)"`       // Quyền hạn
+	Email       string         `json:"email" gorm:"type:varchar(100)"`
+	Phone       string         `json:"phone" gorm:"type:varchar(20)"`
+	Dob         int64          `json:"dob"`
+	Position    string         `json:"position" gorm:"type:varchar(100)"`   // chức vụ
+	Sex         int            `json:"sex"`                                 // gioi tinh
+	Department  string         `json:"department" gorm:"type:varchar(100)"` // Đơn vị
+	Role        string         `json:"role" gorm:"type:varchar(100)"`       // Quyền hạn
+	AuthorityId uint           `json:"authority_id"`
+	UserRoles   []AuthUserRole `gorm:"foreignKey:UserID;references:AuthorityId"`
 }
+
+type AuthUserRole struct {
+	ID     uint
+	UserID uint
+	RoleID uint
+	Role   AuthRole `gorm:"foreignKey:RoleID"`
+}
+
+type AuthRole authority.Role
 
 type CmsUserResponse struct {
 	Model
@@ -86,7 +98,7 @@ func (item *CmsUser) Update() error {
 
 func (item *CmsUser) FindFirst() error {
 	db := datasources.GetDatabase()
-	return db.Where(item).First(item).Error
+	return db.Preload("UserRoles.Role").Where(item).First(item).Error
 }
 
 func (item *CmsUser) Count() (int64, error) {

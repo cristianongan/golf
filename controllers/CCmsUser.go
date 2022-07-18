@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"log"
+	"math/rand"
 	"start/auth"
 	"start/config"
 	"start/constants"
@@ -185,13 +186,16 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context) {
 		return
 	}
 
+	rand.Seed(time.Now().UnixNano())
+
 	cmsUser := models.CmsUser{
-		UserName:   body.UserName,
-		FullName:   body.FullName,
-		Email:      body.Email,
-		Phone:      body.Phone,
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
+		UserName:    body.UserName,
+		FullName:    body.FullName,
+		Email:       body.Email,
+		Phone:       body.Phone,
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		AuthorityId: uint(rand.Intn(999999999-100000000+1) + 100000000),
 	}
 
 	errCreate := cmsUser.Create()

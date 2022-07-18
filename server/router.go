@@ -61,7 +61,9 @@ func NewRouter() *gin.Engine {
 			// ----------------------------------------------------------
 			// ================== authorized api ===============================
 			// ================== use Middleware check jwtToken ================
+			// Add authority middleware
 			cmsApiAuthorized := groupApi.Use(middlewares.CmsUserJWTAuth)
+			//.Use(middlewares.AuthorityMiddleware())
 
 			/// =================== Config ====================
 			cConfig := new(controllers.CConfig)
@@ -385,6 +387,16 @@ func NewRouter() *gin.Engine {
 			cTeeTimeSettings := new(controllers.CTeeTimeSettings)
 			cmsApiAuthorized.POST("/tee-time", middlewares.AuthorizedCmsUserHandler(cTeeTimeSettings.CreateTeeTimeSettings))
 			cmsApiAuthorized.GET("/tee-time/list", middlewares.AuthorizedCmsUserHandler(cTeeTimeSettings.GetTeeTimeSettings))
+
+			/// =================== Authority ===================
+			cAuthority := new(controllers.CAuthority)
+			cmsApiAuthorized.POST("/roles/assign", middlewares.AuthorizedCmsUserHandler(cAuthority.AssignRoles))
+			cmsApiAuthorized.POST("/roles/revoke", middlewares.AuthorizedCmsUserHandler(cAuthority.RevokeRoles))
+			cmsApiAuthorized.POST("/group-roles/create", middlewares.AuthorizedCmsUserHandler(cAuthority.CreateGroupRole))
+			cmsApiAuthorized.POST("/group-roles/delete", middlewares.AuthorizedCmsUserHandler(cAuthority.DeleteGroupRole))
+			cmsApiAuthorized.POST("/group-roles/assign", middlewares.AuthorizedCmsUserHandler(cAuthority.AssignGroupRole))
+			cmsApiAuthorized.GET("/roles/list", middlewares.AuthorizedCmsUserHandler(cAuthority.GetRoles))
+			cmsApiAuthorized.GET("/group-roles/list", middlewares.AuthorizedCmsUserHandler(cAuthority.GetGroupRoles))
 		}
 
 		// ----------------------------------------------------------
