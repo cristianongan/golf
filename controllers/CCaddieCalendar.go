@@ -171,11 +171,11 @@ func (_ *CCaddieCalendar) UpdateCaddieCalendar(c *gin.Context, prof models.CmsUs
 	okRes(c)
 }
 
-func (_ *CCaddieCalendar) DeleteCaddieCalendar(c *gin.Context, prof models.CmsUser) {
-	var body request.DeleteCaddieCalendarBody
+func (_ *CCaddieCalendar) DeleteMonthCaddieCalendar(c *gin.Context, prof models.CmsUser) {
+	var body request.DeleteMonthCaddieCalendarBody
 
 	if err := c.BindJSON(&body); err != nil {
-		log.Print("DeleteCaddieCalendar BindJSON error")
+		log.Print("DeleteMonthCaddieCalendar BindJSON error")
 		response_message.BadRequest(c, "")
 		return
 	}
@@ -197,6 +197,41 @@ func (_ *CCaddieCalendar) DeleteCaddieCalendar(c *gin.Context, prof models.CmsUs
 			response_message.InternalServerError(c, err.Error())
 			return
 		}
+	}
+
+	okRes(c)
+}
+
+func (_ *CCaddieCalendar) DeleteDateCaddieCalendar(c *gin.Context, prof models.CmsUser) {
+	var body request.DeleteDateCaddieCalendarBody
+
+	if err := c.BindJSON(&body); err != nil {
+		log.Print("DeleteDateCaddieCalendar BindJSON error")
+		response_message.BadRequest(c, "")
+		return
+	}
+
+	validate := validator.New()
+
+	if err := validate.Struct(&body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	applyDate, _ := time.Parse("2006-01-02", body.Date)
+
+	caddieCalendar := models.CaddieCalendar{}
+	caddieCalendar.CourseUid = prof.CourseUid
+	caddieCalendar.CaddieUid = strconv.FormatInt(body.CaddieUid, 10)
+	caddieCalendar.ApplyDate = datatypes.Date(applyDate)
+	if err := caddieCalendar.FindFirst(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	if err := caddieCalendar.Delete(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
 	}
 
 	okRes(c)

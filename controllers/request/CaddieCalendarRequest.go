@@ -24,7 +24,12 @@ type UpdateCaddieCalendarBody struct {
 	Note       string `json:"note"`
 }
 
-type DeleteCaddieCalendarBody struct {
+type DeleteMonthCaddieCalendarBody struct {
 	CaddieUidList []int64 `json:"caddie_uid_list" validate:"required"`
 	Month         string  `json:"month" validate:"required"`
+}
+
+type DeleteDateCaddieCalendarBody struct {
+	CaddieUid int64  `json:"caddie_uid" validate:"required"`
+	Date      string `json:"date" validate:"required"`
 }
