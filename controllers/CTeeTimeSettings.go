@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
@@ -25,6 +26,13 @@ func (_ *CTeeTimeSettings) CreateTeeTimeSettings(c *gin.Context, prof models.Cms
 	}
 
 	errFind := teeTimeSetting.FindFirst()
+	teeTimeStatusList := []string{constants.TEE_TIME_LOCKED, constants.STATUS_DELETE, constants.TEE_TIME_UNLOCK}
+
+	if !checkStringInArray(teeTimeStatusList, body.TeeTimeStatus) {
+		response_message.BadRequest(c, "Tee Time Status incorrect")
+		return
+	}
+
 	teeTimeSetting.TeeTimeStatus = body.TeeTimeStatus
 	teeTimeSetting.Note = body.Note
 
@@ -65,6 +73,10 @@ func (_ *CTeeTimeSettings) GetTeeTimeSettings(c *gin.Context, prof models.CmsUse
 
 	if query.TeeTimeStatus != "" {
 		teeTimeSetting.TeeTimeStatus = query.TeeTimeStatus
+	}
+
+	if query.DateTime != 0 {
+		teeTimeSetting.CreatedAt = query.DateTime
 	}
 
 	list, total, err := teeTimeSetting.FindList(page)

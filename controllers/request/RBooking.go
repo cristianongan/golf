@@ -131,11 +131,11 @@ type CancelBookingBody struct {
 }
 
 type MovingBookingBody struct {
-	BookUidList *[]string `json:"booking_uid_list"`
-	BookingDate *string   `json:"booking_date"`
-	TeeType     *string   `json:"tee_type"`
-	TeeTime     *string   `json:"tee_time"`
-	Hole        *int      `json:"hole"`
+	BookUidList []string `json:"booking_uid_list" validate:"required"`
+	BookingDate string   `json:"booking_date" validate:"required"`
+	TeeType     string   `json:"tee_type" validate:"required"`
+	TeeTime     string   `json:"tee_time" validate:"required"`
+	Hole        int      `json:"hole"`
 }
 
 type UpdateBooking struct {

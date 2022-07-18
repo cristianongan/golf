@@ -51,6 +51,15 @@ func checkContain(array []int64, val int64) bool {
 	return false
 }
 
+func checkStringInArray(array []string, val string) bool {
+	for _, item := range array {
+		if val == item {
+			return true
+		}
+	}
+	return false
+}
+
 // ===================================================================
 type errorResponse struct {
 	Message interface{} `json:"message"`

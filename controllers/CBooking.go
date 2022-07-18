@@ -1096,17 +1096,17 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.BookUidList != nil && len(*body.BookUidList) == 0 {
+	if len(body.BookUidList) == 0 {
 		response_message.BadRequest(c, "Booking invalid empty")
 		return
 	}
 
-	if len(*body.BookUidList) > 4 {
+	if len(body.BookUidList) > 4 {
 		response_message.BadRequest(c, "The number of Bookings cannot exceed 4")
 		return
 	}
 
-	for _, BookingUid := range *body.BookUidList {
+	for _, BookingUid := range body.BookUidList {
 		if BookingUid == "" {
 			response_message.BadRequest(c, "Booking Uid not empty")
 			return
@@ -1124,14 +1124,14 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.InternalServerError(c, booking.Uid+" did check in")
 			return
 		}
-		if body.TeeTime != nil {
-			booking.TeeTime = *body.TeeTime
+		if body.TeeTime != "" {
+			booking.TeeTime = body.TeeTime
 		}
-		if body.TeeType != nil {
-			booking.TeeType = *body.TeeType
+		if body.TeeType != "" {
+			booking.TeeType = body.TeeType
 		}
-		if body.BookingDate != nil {
-			booking.BookingDate = *body.BookingDate
+		if body.BookingDate != "" {
+			booking.BookingDate = body.BookingDate
 		}
 
 		//Check duplicated
@@ -1144,8 +1144,8 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 			return
 		}
-		if body.Hole != nil {
-			booking.Hole = *body.Hole
+		if body.Hole != 0 {
+			booking.Hole = body.Hole
 		}
 
 		errUdp := booking.Update()

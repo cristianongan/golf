@@ -71,6 +71,9 @@ func (item *TeeTimeSettings) FindList(page Page) ([]TeeTimeSettings, int64, erro
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+	if item.CreatedAt != 0 {
+		db = db.Where("created_at = ?", item.CreatedAt)
+	}
 
 	db.Count(&total)
 

@@ -13,4 +13,5 @@ type GetListTeeTimeSettings struct {
 	CourseUid     string `form:"course_uid"`
 	TeeTime       string `form:"tee_time"`
 	TeeTimeStatus string `form:"tee_time_status"`
+	DateTime      int64  `form:"date_time"`
 }

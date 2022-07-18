@@ -110,7 +110,7 @@ func (item *FoodBeverageRequest) FindList(page models.Page) ([]FoodBeverageRespo
 		db = db.Where("food_beverages.group_code = ?", item.GroupCode)
 	}
 	if len(item.FBCodeList) != 0 {
-		db = db.Debug().Where("food_beverages.fb_code IN (?)", item.FBCodeList)
+		db = db.Where("food_beverages.fb_code IN (?)", item.FBCodeList)
 	}
 
 	db = db.Joins("JOIN group_services ON food_beverages.group_code = group_services.group_code AND " +

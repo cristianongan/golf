@@ -128,38 +128,14 @@ func (_ *CFoodBeverage) GetListFoodBeverage(c *gin.Context, prof models.CmsUser)
 	}
 
 	fbR := model_service.FoodBeverageRequest{}
-	if form.PartnerUid != nil {
-		fbR.PartnerUid = *form.PartnerUid
-	} else {
-		fbR.PartnerUid = ""
-	}
-	if form.CourseUid != nil {
-		fbR.CourseUid = *form.CourseUid
-	} else {
-		fbR.CourseUid = ""
-	}
-	if form.EnglishName != nil {
-		fbR.EnglishName = *form.EnglishName
-	} else {
-		fbR.EnglishName = ""
-	}
-	if form.VieName != nil {
-		fbR.VieName = *form.VieName
-	} else {
-		fbR.VieName = ""
-	}
-	if form.GroupCode != nil {
-		fbR.GroupCode = *form.GroupCode
-	} else {
-		fbR.GroupCode = ""
-	}
-	if form.Status != nil {
-		fbR.Status = *form.Status
-	} else {
-		fbR.Status = ""
-	}
-	if form.FBCodeList != nil {
-		fbR.FBCodeList = strings.Split(*form.FBCodeList, ",")
+	fbR.PartnerUid = form.PartnerUid
+	fbR.CourseUid = form.CourseUid
+	fbR.EnglishName = form.EnglishName
+	fbR.VieName = form.VieName
+	fbR.GroupCode = form.GroupCode
+	fbR.Status = form.Status
+	if form.FBCodeList != "" {
+		fbR.FBCodeList = strings.Split(form.FBCodeList, ",")
 	}
 
 	list, total, err := fbR.FindList(page)
@@ -198,44 +174,44 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
-	if body.GroupCode != nil {
-		foodBeverage.GroupCode = *body.GroupCode
+	if body.GroupCode != "" {
+		foodBeverage.GroupCode = body.GroupCode
 	}
-	if body.EnglishName != nil {
-		foodBeverage.EnglishName = *body.EnglishName
+	if body.EnglishName != "" {
+		foodBeverage.EnglishName = body.EnglishName
 	}
-	if body.VieName != nil {
-		foodBeverage.VieName = *body.VieName
+	if body.VieName != "" {
+		foodBeverage.VieName = body.VieName
 	}
-	if body.Unit != nil {
-		foodBeverage.Unit = *body.Unit
+	if body.Unit != "" {
+		foodBeverage.Unit = body.Unit
 	}
-	if body.Price != nil {
-		foodBeverage.Price = *body.Price
+	if body.Price > 0 {
+		foodBeverage.Price = body.Price
 	}
-	if body.NetCost != nil {
-		foodBeverage.NetCost = *body.NetCost
+	if body.NetCost > 0 {
+		foodBeverage.NetCost = body.NetCost
 	}
-	if body.CostPrice != nil {
-		foodBeverage.CostPrice = *body.CostPrice
+	if body.CostPrice > 0 {
+		foodBeverage.CostPrice = body.CostPrice
 	}
-	if body.InternalPrice != nil {
-		foodBeverage.InternalPrice = *body.InternalPrice
+	if body.InternalPrice > 0 {
+		foodBeverage.InternalPrice = body.InternalPrice
 	}
-	if body.Barcode != nil {
-		foodBeverage.Barcode = *body.Barcode
+	if body.Barcode != "" {
+		foodBeverage.Barcode = body.Barcode
 	}
-	if body.AccountCode != nil {
-		foodBeverage.AccountCode = *body.AccountCode
+	if body.AccountCode != "" {
+		foodBeverage.AccountCode = body.AccountCode
 	}
-	if body.AloneKiosk != nil {
-		foodBeverage.AloneKiosk = *body.AloneKiosk
+	if body.AloneKiosk != "" {
+		foodBeverage.AloneKiosk = body.AloneKiosk
 	}
-	if body.Note != nil {
-		foodBeverage.Note = *body.Note
+	if body.Note != "" {
+		foodBeverage.Note = body.Note
 	}
-	if body.Status != nil {
-		foodBeverage.Status = *body.Status
+	if body.Status != "" {
+		foodBeverage.Status = body.Status
 	}
 	if body.ForKiosk != nil {
 		foodBeverage.ForKiosk = *body.ForKiosk
@@ -251,9 +227,6 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 	}
 	if body.IsKitchen != nil {
 		foodBeverage.IsKitchen = *body.IsKitchen
-	}
-	if body.UserUpdate != nil {
-		foodBeverage.UserUpdate = *body.UserUpdate
 	}
 
 	errUdp := foodBeverage.Update()
