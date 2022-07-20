@@ -114,11 +114,11 @@ type CheckInBody struct {
 	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
 }
 
-type AddRoundBody struct {
-	BookingBaseBody
-	MemberCardId string `json:"member_card_id"`
-	GuestStyle   string `json:"guest_style"`
-}
+//type AddRoundBody struct {
+//	BookingBaseBody
+//	MemberCardId string `json:"member_card_id"`
+//	GuestStyle   string `json:"guest_style"`
+//}
 
 // ------ Other Paid --------
 type AddOtherPaidBody struct {
