@@ -5,12 +5,14 @@ go 1.18
 require (
 	github.com/bsm/redislock v0.7.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/ez4o/go-try v0.0.0-20220112183612-d8fdc3957b34
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/validator/v10 v10.11.0
 	github.com/go-redis/redis/v8 v8.1.0
 	github.com/golang/glog v0.0.0-20210429001901-424d2337a529
 	github.com/google/uuid v1.2.0
 	github.com/harranali/authority v1.1.0
+	github.com/ivpusic/golog v0.0.0-20170608213328-28640bee649f
 	github.com/leekchan/accounting v1.0.0
 	github.com/minio/minio-go/v7 v7.0.12
 	github.com/pkg/errors v0.9.1
@@ -39,7 +41,6 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/ivpusic/go-clicolor v0.0.0-20150828210804-23f0b77f328a // indirect
-	github.com/ivpusic/golog v0.0.0-20170608213328-28640bee649f // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.4 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect

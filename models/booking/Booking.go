@@ -205,7 +205,7 @@ func (item CustomerInfo) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
-// Booking Mush Pay
+// Booking Mush Pay (Must Pay)
 type BookingMushPay struct {
 	MushPay          int64 `json:"mush_pay"`
 	TotalGolfFee     int64 `json:"total_golf_fee"`
