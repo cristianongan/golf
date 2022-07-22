@@ -125,36 +125,12 @@ func (_ *CProshop) GetListProshop(c *gin.Context, prof models.CmsUser) {
 	}
 
 	ProshopR := model_service.ProshopRequest{}
-	if form.PartnerUid != nil {
-		ProshopR.PartnerUid = *form.PartnerUid
-	} else {
-		ProshopR.PartnerUid = ""
-	}
-	if form.CourseUid != nil {
-		ProshopR.CourseUid = *form.CourseUid
-	} else {
-		ProshopR.CourseUid = ""
-	}
-	if form.EnglishName != nil {
-		ProshopR.EnglishName = *form.EnglishName
-	} else {
-		ProshopR.EnglishName = ""
-	}
-	if form.VieName != nil {
-		ProshopR.VieName = *form.VieName
-	} else {
-		ProshopR.VieName = ""
-	}
-	if form.GroupCode != nil {
-		ProshopR.GroupCode = *form.GroupCode
-	} else {
-		ProshopR.GroupCode = ""
-	}
-	if form.GroupName != nil {
-		ProshopR.GroupName = *form.GroupCode
-	} else {
-		ProshopR.GroupName = ""
-	}
+	ProshopR.PartnerUid = form.PartnerUid
+	ProshopR.CourseUid = form.CourseUid
+	ProshopR.EnglishName = form.EnglishName
+	ProshopR.VieName = form.VieName
+	ProshopR.GroupCode = form.GroupCode
+	ProshopR.GroupName = form.GroupName
 
 	list, total, err := ProshopR.FindList(page)
 	if err != nil {

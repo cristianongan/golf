@@ -1,10 +1,11 @@
 package request
 
 type CreateFoodBeverageBody struct {
-	PartnerUid    string  `json:"partner_uid"`
-	CourseUid     string  `json:"course_uid"`
-	GroupCode     string  `json:"group_code"`
-	FBCode        string  `json:"fb_code"`
+	PartnerUid    string  `json:"partner_uid" binding:"required"`
+	CourseUid     string  `json:"course_uid" binding:"required"`
+	GroupCode     string  `json:"group_code" binding:"required"`
+	FBCode        string  `json:"fb_code" binding:"required"`
+	AccountCode   string  `json:"account_code" binding:"required"`
 	EnglishName   string  `json:"english_name"`
 	VieName       string  `json:"vietnamese_name"`
 	Unit          string  `json:"unit"`
@@ -12,7 +13,6 @@ type CreateFoodBeverageBody struct {
 	NetCost       float64 `json:"net_cost"`
 	CostPrice     float64 `json:"cost_price"`
 	Barcode       string  `json:"barcode"`
-	AccountCode   string  `json:"account_code"`
 	BarBeerPrice  float64 `json:"bar_beer_price"`
 	Note          string  `json:"note"`
 	ForKiosk      bool    `json:"for_kiosk"`

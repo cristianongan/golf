@@ -315,3 +315,8 @@ func GetFeeFromListFee(feeList ListGolfHoleFee, hole int) int64 {
 
 	return fee
 }
+
+func IsDateValue(stringDate string) bool {
+	_, err := time.Parse("01/02/2006", stringDate)
+	return err == nil
+}

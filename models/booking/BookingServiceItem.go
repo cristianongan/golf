@@ -15,6 +15,7 @@ import (
 type BookingServiceItem struct {
 	models.ModelId
 	ItemId        int64  `json:"item_id"`     // Id item
+	ServiceId     string `json:"service_id"`  // uid service
 	BookingUid    string `json:"booking_uid"` // Uid booking
 	PlayerName    string `json:"player_name"` // Tên người chơi
 	Bag           string `json:"bag"`         // Golf Bag
@@ -96,6 +97,9 @@ func (item *BookingServiceItem) FindList(page models.Page) ([]BookingServiceItem
 	}
 	if item.GroupCode != "" {
 		db = db.Where("group_code = ?", item.GroupCode)
+	}
+	if item.ServiceId != "" {
+		db = db.Where("service_id = ?", item.ItemId)
 	}
 
 	db.Count(&total)

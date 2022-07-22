@@ -122,31 +122,11 @@ func (_ *CRental) GetListRental(c *gin.Context, prof models.CmsUser) {
 	}
 
 	rentalR := model_service.Rental{}
-	if form.PartnerUid != nil {
-		rentalR.PartnerUid = *form.PartnerUid
-	} else {
-		rentalR.PartnerUid = ""
-	}
-	if form.CourseUid != nil {
-		rentalR.CourseUid = *form.CourseUid
-	} else {
-		rentalR.CourseUid = ""
-	}
-	if form.EnglishName != nil {
-		rentalR.EnglishName = *form.EnglishName
-	} else {
-		rentalR.EnglishName = ""
-	}
-	if form.VieName != nil {
-		rentalR.VieName = *form.VieName
-	} else {
-		rentalR.VieName = ""
-	}
-	if form.GroupCode != nil {
-		rentalR.GroupCode = *form.GroupCode
-	} else {
-		rentalR.GroupCode = ""
-	}
+	rentalR.PartnerUid = form.PartnerUid
+	rentalR.CourseUid = form.CourseUid
+	rentalR.EnglishName = form.EnglishName
+	rentalR.VieName = form.VieName
+	rentalR.GroupCode = form.GroupCode
 
 	list, total, err := rentalR.FindList(page)
 	if err != nil {
@@ -184,23 +164,23 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.EnglishName != nil {
-		rental.EnglishName = *body.EnglishName
+	if body.EnglishName != "" {
+		rental.EnglishName = body.EnglishName
 	}
-	if body.VieName != nil {
-		rental.VieName = *body.VieName
+	if body.VieName != "" {
+		rental.VieName = body.VieName
 	}
-	if body.GroupCode != nil {
-		rental.GroupCode = *body.GroupCode
+	if body.GroupCode != "" {
+		rental.GroupCode = body.GroupCode
 	}
-	if body.SystemCode != nil {
-		rental.SystemCode = *body.SystemCode
+	if body.SystemCode != "" {
+		rental.SystemCode = body.SystemCode
 	}
-	if body.Unit != nil {
-		rental.Unit = *body.Unit
+	if body.Unit != "" {
+		rental.Unit = body.Unit
 	}
-	if body.RenPos != nil {
-		rental.RenPos = *body.RenPos
+	if body.RenPos != "" {
+		rental.RenPos = body.RenPos
 	}
 	if body.Price != nil {
 		rental.Price = *body.Price
@@ -214,11 +194,11 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 	if body.OnlyForRen != nil {
 		rental.OnlyForRen = *body.OnlyForRen
 	}
-	if body.Status != nil {
-		rental.Status = *body.Status
+	if body.Status != "" {
+		rental.Status = body.Status
 	}
-	if body.InputUser != nil {
-		rental.InputUser = *body.InputUser
+	if body.InputUser != "" {
+		rental.InputUser = body.InputUser
 	}
 
 	errUdp := rental.Update()
