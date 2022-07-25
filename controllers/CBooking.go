@@ -10,6 +10,7 @@ import (
 	model_gostarter "start/models/go-starter"
 	"start/utils"
 	"start/utils/response_message"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +18,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// test CICD
 type CBooking struct{}
 
 /// --------- Booking ----------
@@ -60,6 +60,13 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		// }
 	}
 
+	teePartList := []string{"MORNING", "NOON", "NIGHT"}
+
+	if !checkStringInArray(teePartList, body.TeePath) {
+		response_message.BadRequest(c, "Tee Part not in (MORNING, NOON, NIGHT)")
+		return
+	}
+
 	booking := model_booking.Booking{
 		PartnerUid: body.PartnerUid,
 		CourseUid:  body.CourseUid,
@@ -80,7 +87,12 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.BookingDate != "" {
-		booking.BookingDate = body.BookingDate
+		if utils.IsDateValue(body.BookingDate) {
+			booking.BookingDate = body.BookingDate
+		} else {
+			response_message.BadRequest(c, "BookingDate format not match dd/mm/yyyy")
+			return
+		}
 	} else {
 		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 		if errDate == nil {
@@ -133,7 +145,12 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 			body.GuestStyle = memberCard.GetGuestStyle()
 		}
 	} else {
-		booking.CustomerName = body.CustomerName
+		if strings.TrimSpace(body.CustomerName) != "" {
+			booking.CustomerName = body.CustomerName
+		} else {
+			response_message.BadRequest(c, "CustomerName not empty")
+			return
+		}
 	}
 
 	//Agency id
@@ -521,6 +538,7 @@ func (_ *CBooking) UpdateBookServiceList(serviceList model_booking.ListBookingSe
 		bookingServiceItemUpdate := model_booking.BookingServiceItem{
 			BookingUid:    v.BookingUid,
 			GroupCode:     v.GroupCode,
+			ServiceId:     v.ServiceId,
 			PlayerName:    v.PlayerName,
 			Bag:           v.Bag,
 			Type:          v.Type,
