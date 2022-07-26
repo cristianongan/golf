@@ -727,6 +727,10 @@ func (item *Booking) FindListForSubBag() ([]BookingForSubBag, error) {
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
 
+	if item.BookingCode != "" {
+		db = db.Where("booking_code = ?", item.BookingCode)
+	}
+
 	db.Find(&list)
 
 	return list, db.Error

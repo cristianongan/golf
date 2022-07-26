@@ -360,6 +360,7 @@ func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 		PartnerUid:  form.PartnerUid,
 		CourseUid:   form.CourseUid,
 		BookingDate: form.BookingDate,
+		BookingCode: form.BookingCode,
 	}
 	list, total, err := bookingR.FindList(page, form.From, form.To)
 	if err != nil {

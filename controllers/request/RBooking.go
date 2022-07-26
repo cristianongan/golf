@@ -29,6 +29,7 @@ type GetListBookingForm struct {
 	From        int64  `form:"from"`
 	To          int64  `form:"to"`
 	BookingDate string `form:"booking_date"`
+	BookingCode string `form:"booking_code"`
 }
 
 // Tạo Tee booking
