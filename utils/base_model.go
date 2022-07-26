@@ -21,6 +21,17 @@ type CountStruct struct {
 	Count int64 `json:"count"`
 }
 
+type BookingRestaurant struct {
+	Enable       bool  `json:"enable"`
+	NumberPeople int64 `json:"number_people"`
+}
+
+type BookingRental struct {
+	Enable        bool  `json:"enable"`
+	GolfSetNumber int64 `json:"golf_set_number"`
+	BuggyNumber   int64 `json:"buggy_number"`
+}
+
 // Other Fee
 type ListOtherPaid []OtherPaidBody
 
@@ -35,4 +46,20 @@ func (item ListOtherPaid) Value() (driver.Value, error) {
 type OtherPaidBody struct {
 	Reason string `json:"reason"`
 	Amount int64  `json:"amount"`
+}
+
+func (item *BookingRestaurant) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item BookingRestaurant) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
+func (item *BookingRental) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item BookingRental) Value() (driver.Value, error) {
+	return json.Marshal(&item)
 }

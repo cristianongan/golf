@@ -57,9 +57,11 @@ type CreateBookingBody struct {
 	IsCheckIn     bool   `json:"is_check_in"`
 
 	//Agency
-	AgencyId    int64  `json:"agency_id"`
-	CustomerUid string `json:"customer_uid"`
-	CaddieCode  string `json:"caddie_code"`
+	AgencyId          int64                   `json:"agency_id"`
+	CustomerUid       string                  `json:"customer_uid"`
+	CaddieCode        string                  `json:"caddie_code"`
+	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant"`
+	BookingRetal      utils.BookingRental     `json:"booking_retal"`
 }
 
 type CreateBatchBookingBody struct {
