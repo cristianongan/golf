@@ -99,7 +99,7 @@ func (item *BookingServiceItem) FindList(page models.Page) ([]BookingServiceItem
 		db = db.Where("group_code = ?", item.GroupCode)
 	}
 	if item.ServiceId != "" {
-		db = db.Where("service_id = ?", item.ItemId)
+		db = db.Where("service_id = ?", item.ServiceId)
 	}
 
 	db.Count(&total)
