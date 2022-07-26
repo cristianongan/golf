@@ -10,6 +10,7 @@ import (
 	model_gostarter "start/models/go-starter"
 	"start/utils"
 	"start/utils/response_message"
+	"strconv"
 	"strings"
 	"time"
 
@@ -87,12 +88,7 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.BookingDate != "" {
-		if utils.IsDateValue(body.BookingDate) {
-			booking.BookingDate = body.BookingDate
-		} else {
-			response_message.BadRequest(c, "BookingDate format not match dd/mm/yyyy")
-			return
-		}
+		booking.BookingDate = body.BookingDate
 	} else {
 		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 		if errDate == nil {
@@ -1221,4 +1217,254 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, booking)
+}
+
+func (cBooking *CBooking) CreateBatchBooking(c *gin.Context, prof models.CmsUser) {
+	bodyRequest := request.CreateBatchBookingBody{}
+	if bindErr := c.ShouldBind(&bodyRequest); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	bookingCode := strconv.FormatInt(time.Now().Unix(), 10)
+	for _, body := range bodyRequest.BookingList {
+		// validate caddie_code
+		var caddie models.Caddie
+		var err error
+		if body.CaddieCode != "" {
+			caddie, err = cBooking.validateCaddie(prof.CourseUid, body.CaddieCode)
+			if err != nil {
+				response_message.InternalServerError(c, err.Error())
+				return
+			}
+		}
+
+		// check trạng thái Tee Time
+		if body.TeeTime != "" {
+			teeTime := models.TeeTimeSettings{}
+			teeTime.TeeTime = body.TeeTime
+			teeTime.CourseUid = body.CourseUid
+			teeTime.PartnerUid = body.PartnerUid
+			teeTime.DateTime = body.BookingDate
+			errFind := teeTime.FindFirst()
+			if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_LOCKED) {
+				response_message.BadRequest(c, "Tee Time đã bị khóa")
+				return
+			}
+			// if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_DELETED) {
+			// 	response_message.BadRequest(c, "Tee Time đã bị xóa")
+			// 	return
+			// }
+		}
+
+		teePartList := []string{"MORNING", "NOON", "NIGHT"}
+
+		if !checkStringInArray(teePartList, body.TeePath) {
+			response_message.BadRequest(c, "Tee Part not in (MORNING, NOON, NIGHT)")
+			return
+		}
+
+		booking := model_booking.Booking{
+			PartnerUid:  body.PartnerUid,
+			CourseUid:   body.CourseUid,
+			TeeType:     body.TeeType,
+			TeePath:     body.TeePath,
+			TeeTime:     body.TeeTime,
+			TeeOffTime:  body.TeeTime,
+			TurnTime:    body.TurnTime,
+			RowIndex:    body.RowIndex,
+			CmsUser:     prof.UserName,
+			Hole:        body.Hole,
+			BookingCode: bookingCode,
+		}
+
+		// TODO: check kho tea time trong ngày đó còn trống mới cho đặt
+
+		if body.Bag != "" {
+			booking.Bag = body.Bag
+		}
+
+		if body.BookingDate != "" {
+			booking.BookingDate = body.BookingDate
+		} else {
+			dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+			if errDate == nil {
+				booking.BookingDate = dateDisplay
+			} else {
+				log.Println("booking date display err ", errDate.Error())
+			}
+		}
+
+		//Check duplicated
+		isDuplicated, errDupli := booking.IsDuplicated(true, true)
+		if isDuplicated {
+			if errDupli != nil {
+				response_message.DuplicateRecord(c, errDupli.Error())
+				return
+			}
+			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+			return
+		}
+
+		// Member Card
+		// Check xem booking guest hay booking member
+		if body.MemberCardUid != "" {
+			// Get Member Card
+			memberCard := models.MemberCard{}
+			memberCard.Uid = body.MemberCardUid
+			errFind := memberCard.FindFirst()
+			if errFind != nil {
+				response_message.BadRequest(c, errFind.Error())
+				return
+			}
+			// Get Owner
+			owner, errOwner := memberCard.GetOwner()
+			if errOwner != nil {
+				response_message.BadRequest(c, errOwner.Error())
+				return
+			}
+			booking.MemberCardUid = body.MemberCardUid
+			booking.CardId = memberCard.CardId
+			booking.CustomerName = owner.Name
+			booking.CustomerUid = owner.Uid
+			booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
+			if memberCard.PriceCode == 1 {
+				// TODO: Giá riêng không theo guest style
+			} else {
+				// Lấy theo GuestStyle
+				body.GuestStyle = memberCard.GetGuestStyle()
+			}
+		} else {
+			if strings.TrimSpace(body.CustomerName) != "" {
+				booking.CustomerName = body.CustomerName
+			} else {
+				response_message.BadRequest(c, "CustomerName not empty")
+				return
+			}
+		}
+
+		//Agency id
+		if body.AgencyId > 0 {
+			agency := models.Agency{}
+			agency.Id = body.AgencyId
+			errFindAgency := agency.FindFirst()
+			if errFindAgency != nil || agency.Id == 0 {
+				response_message.BadRequest(c, "agency"+errFindAgency.Error())
+				return
+			}
+
+			agencyBooking := cloneToAgencyBooking(agency)
+
+			booking.AgencyInfo = agencyBooking
+			body.GuestStyle = agency.GuestStyle
+			//TODO: check giá đặc biệt của agency
+
+		}
+
+		// Có thông tin khách hàng
+		/*
+			Chọn khách hàng từ agency
+		*/
+		if body.CustomerUid != "" {
+			//check customer
+			customer := models.CustomerUser{}
+			customer.Uid = body.CustomerUid
+			errFindCus := customer.FindFirst()
+			if errFindCus != nil || customer.Uid == "" {
+				response_message.BadRequest(c, "customer"+errFindCus.Error())
+				return
+			}
+
+			booking.CustomerName = customer.Name
+			booking.CustomerInfo = cloneToCustomerBooking(customer)
+			booking.CustomerUid = body.CustomerUid
+		}
+
+		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+
+		// Booking Uid
+		bookingUid := uuid.New()
+		bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
+
+		// Checkin Time
+		checkInTime := time.Now().Unix()
+
+		// GuestStyle
+		if body.GuestStyle != "" {
+			//Guest style
+			golfFeeModel := models.GolfFee{
+				PartnerUid: body.PartnerUid,
+				CourseUid:  body.CourseUid,
+				GuestStyle: body.GuestStyle,
+			}
+			// Lấy phí bởi Guest style với ngày tạo
+			golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay()
+			if errFindGF != nil {
+				response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+				return
+			}
+			booking.GuestStyle = body.GuestStyle
+			booking.GuestStyleName = golfFee.GuestStyleName
+
+			// List Booking GolfFee
+			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(bUid, body, golfFee)
+			booking.ListGolfFee = listBookingGolfFee
+
+			// Current Bag Price Detail
+			currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
+			currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
+			currentBagPriceDetail.UpdateAmount()
+			booking.CurrentBagPrice = currentBagPriceDetail
+
+			// MushPayInfo
+			mushPayInfo := initBookingMushPayInfo(booking)
+			booking.MushPayInfo = mushPayInfo
+
+			// Rounds: Init First
+			listRounds := initListRound(booking, bookingGolfFee, checkInTime)
+			booking.Rounds = listRounds
+		}
+
+		// Check In Out
+		if body.IsCheckIn {
+			// Tạo booking check in luôn
+			booking.BagStatus = constants.BAG_STATUS_IN
+			booking.InitType = constants.BOOKING_INIT_TYPE_CHECKIN
+			booking.CheckInTime = checkInTime
+		} else {
+			// Tạo booking
+			booking.BagStatus = constants.BAG_STATUS_INIT
+			booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
+		}
+
+		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
+
+		// Update caddie
+		if body.CaddieCode != "" {
+			booking.CaddieId = caddie.Id
+			booking.CaddieInfo = cloneToCaddieBooking(caddie)
+			booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+
+			// Udp Note
+			caddieInOutNote := model_gostarter.CaddieInOutNote{
+				PartnerUid: prof.PartnerUid,
+				CourseUid:  prof.CourseUid,
+				BookingUid: booking.Uid,
+				CaddieId:   booking.CaddieId,
+				Type:       constants.STATUS_IN,
+				Note:       "",
+			}
+
+			go addCaddieInOutNote(caddieInOutNote)
+		}
+
+		errC := booking.Create(bUid)
+
+		if errC != nil {
+			response_message.InternalServerError(c, errC.Error())
+			return
+		}
+
+	}
+	okRes(c)
 }

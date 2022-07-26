@@ -62,6 +62,20 @@ type CreateBookingBody struct {
 	CaddieCode  string `json:"caddie_code"`
 }
 
+type CreateBatchBookingBody struct {
+	BookingList ListCreateBookingBody `json:"booking_list"`
+}
+
+type ListCreateBookingBody []CreateBookingBody
+
+func (item *ListCreateBookingBody) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListCreateBookingBody) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
 type BookingBaseBody struct {
 	BookingUid string `json:"booking_uid"`
 	CmsUser    string `json:"cms_user"`

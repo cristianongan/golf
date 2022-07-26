@@ -95,6 +95,7 @@ type Booking struct {
 	InitType string `json:"init_type" gorm:"type:varchar(50);index"` // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
 
 	CaddieInOut []CaddieInOutNote `json:"caddie_in_out" gorm:"migration"`
+	BookingCode string            `json:"booking_code" gorm:"type:varchar(100);index"` // cho case tạo nhiều booking có cùng booking code
 }
 
 type CaddieInOutNote CaddieInOutNoteForBooking
@@ -575,6 +576,7 @@ func (item *Booking) IsDuplicated(checkTeeTime, checkBag bool) (bool, error) {
 			BookingDate: item.BookingDate,
 			RowIndex:    item.RowIndex,
 			TeeType:     item.TeeType,
+			BookingCode: item.BookingCode,
 		}
 
 		errFind := booking.FindFirstNotCancel()
@@ -624,6 +626,19 @@ func (item *Booking) Update() error {
 		return errUpdate
 	}
 	return nil
+}
+
+func (item *Booking) CreateBatch(bookings []Booking) error {
+	now := time.Now()
+	for i := range bookings {
+		c := &bookings[i]
+		c.Model.CreatedAt = now.Unix()
+		c.Model.UpdatedAt = now.Unix()
+		c.Model.Status = constants.STATUS_ENABLE
+	}
+
+	db := datasources.GetDatabase()
+	return db.CreateInBatches(bookings, 100).Error
 }
 
 func (item *Booking) FindFirst() error {
