@@ -34,9 +34,11 @@ type Booking struct {
 	MemberCardUid string `json:"member_card_uid" gorm:"type:varchar(100);index"` // MemberCard Uid, Uid object trong Database
 
 	// Thêm customer info
-	CustomerName string       `json:"customer_name" gorm:"type:varchar(256)"`      // Tên khách hàng
-	CustomerUid  string       `json:"customer_uid" gorm:"type:varchar(256);index"` // Uid khách hàng
-	CustomerInfo CustomerInfo `json:"customer_info,omitempty" gorm:"type:json"`    // Customer Info
+	CustomerBookingName  string       `json:"customer_booking_name" gorm:"type:varchar(256)"`  // Tên khách hàng đặt booking
+	CustomerBookingPhone string       `json:"customer_booking_phone" gorm:"type:varchar(100)"` // SDT khách hàng đặt booking
+	CustomerName         string       `json:"customer_name" gorm:"type:varchar(256)"`          // Tên khách hàng
+	CustomerUid          string       `json:"customer_uid" gorm:"type:varchar(256);index"`     // Uid khách hàng
+	CustomerInfo         CustomerInfo `json:"customer_info,omitempty" gorm:"type:json"`        // Customer Info
 
 	BagStatus    string `json:"bag_status" gorm:"type:varchar(50);index"` // Bag status
 	CheckInTime  int64  `json:"check_in_time"`                            // Time Check In

@@ -49,9 +49,11 @@ type CreateBookingBody struct {
 	RowIndex    int    `json:"row_index"`                      // index trong Flight
 
 	// Guest booking
-	GuestStyle     string `json:"guest_style"`      // Guest Style
-	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
-	CustomerName   string `json:"customer_name"`    // Tên khách hàng
+	GuestStyle           string `json:"guest_style"`            // Guest Style
+	GuestStyleName       string `json:"guest_style_name"`       // Guest Style Name
+	CustomerName         string `json:"customer_name"`          // Tên khách hàng
+	CustomerBookingName  string `json:"customer_booking_name"`  // Tên khách hàng đặt booking
+	CustomerBookingPhone string `json:"customer_booking_phone"` // SDT khách hàng đặt booking
 
 	// Member Card
 	MemberCardUid string `json:"member_card_uid"`

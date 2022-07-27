@@ -265,7 +265,8 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 
 		go addCaddieInOutNote(caddieInOutNote)
 	}
-
+	booking.CustomerBookingName = booking.CustomerName
+	booking.CustomerBookingPhone = booking.CustomerInfo.Phone
 	errC := booking.Create(bUid)
 
 	if errC != nil {
@@ -1268,19 +1269,21 @@ func (cBooking *CBooking) CreateBatchBooking(c *gin.Context, prof models.CmsUser
 		}
 
 		booking := model_booking.Booking{
-			PartnerUid:        body.PartnerUid,
-			CourseUid:         body.CourseUid,
-			TeeType:           body.TeeType,
-			TeePath:           body.TeePath,
-			TeeTime:           body.TeeTime,
-			TeeOffTime:        body.TeeTime,
-			TurnTime:          body.TurnTime,
-			RowIndex:          body.RowIndex,
-			CmsUser:           prof.UserName,
-			Hole:              body.Hole,
-			BookingCode:       bookingCode,
-			BookingRestaurant: body.BookingRestaurant,
-			BookingRetal:      body.BookingRetal,
+			PartnerUid:           body.PartnerUid,
+			CourseUid:            body.CourseUid,
+			TeeType:              body.TeeType,
+			TeePath:              body.TeePath,
+			TeeTime:              body.TeeTime,
+			TeeOffTime:           body.TeeTime,
+			TurnTime:             body.TurnTime,
+			RowIndex:             body.RowIndex,
+			CmsUser:              prof.UserName,
+			Hole:                 body.Hole,
+			BookingCode:          bookingCode,
+			BookingRestaurant:    body.BookingRestaurant,
+			BookingRetal:         body.BookingRetal,
+			CustomerBookingName:  body.CustomerBookingName,
+			CustomerBookingPhone: body.CustomerBookingPhone,
 		}
 
 		// TODO: check kho tea time trong ngày đó còn trống mới cho đặt
