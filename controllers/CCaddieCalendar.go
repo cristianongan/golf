@@ -1,10 +1,8 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
-	"gorm.io/datatypes"
 	"log"
+	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
@@ -12,6 +10,10 @@ import (
 	"start/utils/response_message"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"gorm.io/datatypes"
 )
 
 type CCaddieCalendar struct{}
@@ -72,6 +74,9 @@ func (_ *CCaddieCalendar) CreateCaddieCalendar(c *gin.Context, prof models.CmsUs
 			caddieCalendarList := models.CaddieCalendarList{}
 			caddieCalendarList.ApplyDate = applyDate.Format("2006-01-02")
 			caddieCalendarList.CaddieCode = caddie.Code
+			if body.DayOffType != constants.DAY_OFF_TYPE_SICK {
+				caddieCalendarList.DayOffType = body.DayOffType
+			}
 			if _, err := caddieCalendarList.FindFirst(); err == nil {
 				response_message.BadRequest(c, "record duplicate"+" ["+applyDate.Format("2006-01-02")+"]")
 				return
@@ -224,6 +229,9 @@ func (_ *CCaddieCalendar) DeleteDateCaddieCalendar(c *gin.Context, prof models.C
 	caddieCalendar.CourseUid = prof.CourseUid
 	caddieCalendar.CaddieUid = strconv.FormatInt(body.CaddieUid, 10)
 	caddieCalendar.ApplyDate = datatypes.Date(applyDate)
+	if body.DayOffType != constants.DAY_OFF_TYPE_SICK {
+		caddieCalendar.DayOffType = body.DayOffType
+	}
 	if err := caddieCalendar.FindFirst(); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

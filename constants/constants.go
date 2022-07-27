@@ -105,6 +105,15 @@ const (
 	GOLF_SERVICE_KIOSK      = "KIOSK"
 )
 
+/*
+  Các dịch vụ của sân Golf: thuê đồ, shop, nhà hàng...
+*/
+const (
+	DAY_OFF_TYPE_AFTERNOON = "H_AFTERNOON"
+	DAY_OFF_TYPE_MORNING   = "H_MORNING"
+	DAY_OFF_TYPE_SICK      = "SICK"
+)
+
 const BOOKING_OTHER_FEE = "OTHER_FEE"
 
 const FEE_SEPARATE_CHAR = "/"

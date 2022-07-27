@@ -30,6 +30,7 @@ type DeleteMonthCaddieCalendarBody struct {
 }
 
 type DeleteDateCaddieCalendarBody struct {
-	CaddieUid int64  `json:"caddie_uid" validate:"required"`
-	Date      string `json:"date" validate:"required"`
+	CaddieUid  int64  `json:"caddie_uid" validate:"required"`
+	Date       string `json:"date" validate:"required"`
+	DayOffType string `json:"day_off_type"`
 }

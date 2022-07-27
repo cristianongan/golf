@@ -11,6 +11,7 @@ type CaddieCalendarList struct {
 	CaddieCode string
 	Month      string
 	ApplyDate  string
+	DayOffType string
 }
 
 func (item *CaddieCalendarList) FindList(page Page) ([]CaddieCalendar, int64, error) {
