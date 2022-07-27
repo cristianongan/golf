@@ -229,7 +229,7 @@ func (_ *CCaddieCalendar) DeleteDateCaddieCalendar(c *gin.Context, prof models.C
 	caddieCalendar.CourseUid = prof.CourseUid
 	caddieCalendar.CaddieUid = strconv.FormatInt(body.CaddieUid, 10)
 	caddieCalendar.ApplyDate = datatypes.Date(applyDate)
-	if body.DayOffType != constants.DAY_OFF_TYPE_SICK {
+	if body.DayOffType != "" && body.DayOffType != constants.DAY_OFF_TYPE_SICK {
 		caddieCalendar.DayOffType = body.DayOffType
 	}
 	if err := caddieCalendar.FindFirst(); err != nil {
