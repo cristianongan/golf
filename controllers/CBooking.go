@@ -458,6 +458,63 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.ReportNo = body.ReportNo
 	}
 
+	if body.CustomerBookingName != "" {
+		booking.CustomerBookingName = body.CustomerBookingName
+	}
+
+	if body.CustomerBookingPhone != "" {
+		booking.CustomerBookingPhone = body.CustomerBookingPhone
+	}
+
+	//Agency id
+	if body.AgencyId > 0 {
+		agency := models.Agency{}
+		agency.Id = body.AgencyId
+		errFindAgency := agency.FindFirst()
+		if errFindAgency != nil || agency.Id == 0 {
+			response_message.BadRequest(c, "agency"+errFindAgency.Error())
+			return
+		}
+
+		agencyBooking := cloneToAgencyBooking(agency)
+
+		booking.AgencyInfo = agencyBooking
+		body.GuestStyle = agency.GuestStyle
+		//TODO: check giá đặc biệt của agency
+
+	}
+
+	if body.MemberCardUid != "" {
+		// Get Member Card
+		memberCard := models.MemberCard{}
+		memberCard.Uid = body.MemberCardUid
+		errFind := memberCard.FindFirst()
+		if errFind != nil {
+			response_message.BadRequest(c, errFind.Error())
+			return
+		}
+
+		// Get Owner
+		owner, errOwner := memberCard.GetOwner()
+		if errOwner != nil {
+			response_message.BadRequest(c, errOwner.Error())
+			return
+		}
+
+		booking.MemberCardUid = body.MemberCardUid
+		booking.CardId = memberCard.CardId
+		booking.CustomerName = owner.Name
+		booking.CustomerUid = owner.Uid
+		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
+		if memberCard.PriceCode == 1 {
+			// TODO: Giá riêng không theo guest style
+
+		} else {
+			// Lấy theo GuestStyle
+			body.GuestStyle = memberCard.GetGuestStyle()
+		}
+	}
+
 	//Update service items
 	booking.ListServiceItems = body.ListServiceItems
 
