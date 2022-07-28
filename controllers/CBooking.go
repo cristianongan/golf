@@ -417,7 +417,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if booking.InitType == constants.BOOKING_INIT_TYPE_WAITING {
+	if body.InitType == constants.BOOKING_INIT_TYPE_WAITING {
 		booking.BagStatus = constants.BAG_STATUS_INIT
 		booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
 	}
