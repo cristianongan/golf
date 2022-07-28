@@ -767,7 +767,7 @@ func (item *Booking) Delete() error {
 	return datasources.GetDatabase().Delete(item).Error
 }
 
-func (item *Booking) FindForCaddieOnCourse() []Booking {
+func (item *Booking) FindForCaddieOnCourse(InFlight string) []Booking {
 	db := datasources.GetDatabase().Model(Booking{})
 	list := []Booking{}
 	if item.PartnerUid != "" {
@@ -784,13 +784,29 @@ func (item *Booking) FindForCaddieOnCourse() []Booking {
 	//		log.Println("FindForCaddieOnCourse BookingDate err ", errDate.Error())
 	//	}
 	//}
+	if item.BuggyId != 0 {
+		db = db.Where("buggy_id = ?", item.BuggyId)
+	}
+	if item.CaddieId != 0 {
+		db = db.Where("caddie_id = ?", item.CaddieId)
+	}
+	if item.Bag != "" {
+		db = db.Where("bag = ?", item.Bag)
+	}
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
 	db = db.Where("bag_status = ?", constants.BAG_STATUS_IN)
 	db = db.Not("caddie_status = ?", constants.BOOKING_CADDIE_STATUS_OUT)
+	if InFlight != "" {
+		if InFlight == "0" {
+			db = db.Not("flight_id > ?", 0)
+		} else {
+			db = db.Where("flight_id > ?", 0)
+		}
+	}
 
-	db.Preload("CaddieInOut").Find(&list)
+	db.Find(&list)
 	return list
 }
 

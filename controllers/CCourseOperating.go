@@ -34,9 +34,12 @@ func (_ *CCourseOperating) GetListBookingCaddieOnCourse(c *gin.Context, prof mod
 		PartnerUid:  form.PartnerUid,
 		CourseUid:   form.CourseUid,
 		BookingDate: form.BookingDate,
+		BuggyId:     form.BuggyId,
+		CaddieId:    form.CaddieId,
+		Bag:         form.Bag,
 	}
 
-	list := bookingR.FindForCaddieOnCourse()
+	list := bookingR.FindForCaddieOnCourse(form.InFlight)
 
 	okResponse(c, list)
 }
