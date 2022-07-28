@@ -32,6 +32,7 @@ const (
 const (
 	BOOKING_INIT_TYPE_BOOKING = "BOOKING"
 	BOOKING_INIT_TYPE_CHECKIN = "CHECKIN"
+	BOOKING_INIT_TYPE_WAITING = "WAITING"
 )
 
 /*
@@ -45,6 +46,7 @@ const (
 	BAG_STATUS_TIMEOUT       = "TIMEOUT"       // Đã checkin và out caddie
 	BAG_STATUS_IN_COURSE     = "IN_COURSE"     // Đã checkin và ghép Flight
 	BAG_STATUS_GUEST_NO_SHOW = "GUEST_NO_SHOW" // Khách đặt booking nhưng không đến
+	BAG_STATUS_WAITING       = "WAITING"       // Khách đặt booking nhưng đang chờ
 )
 
 /*

@@ -699,6 +699,10 @@ func (item *Booking) FindList(page models.Page, from int64, to int64) ([]Booking
 		db = db.Not("bag_status = ?", constants.BAG_STATUS_CANCEL)
 	}
 
+	if item.InitType != "" {
+		db = db.Where("init_type = ?", item.InitType)
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

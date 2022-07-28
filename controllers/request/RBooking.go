@@ -30,6 +30,7 @@ type GetListBookingForm struct {
 	To          int64  `form:"to"`
 	BookingDate string `form:"booking_date"`
 	BookingCode string `form:"booking_code"`
+	InitType    string `form:"init_type"`
 }
 
 // Tạo Tee booking
@@ -69,6 +70,7 @@ type CreateBookingBody struct {
 
 type CreateBatchBookingBody struct {
 	BookingList ListCreateBookingBody `json:"booking_list"`
+	IsWaiting   bool                  `json:"is_waiting"` // booking ở trạng thái chờ
 }
 
 type ListCreateBookingBody []CreateBookingBody
