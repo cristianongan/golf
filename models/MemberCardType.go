@@ -22,6 +22,8 @@ type MemberCardType struct {
 	WeekendTakeGuest   string `json:"weekend_take_guest" gorm:"type:varchar(100)"`    // Weekend take guest ???
 	PlayTimesOnMonth   int    `json:"play_times_on_month"`                            // Số lần chơi trên tháng
 	Type               string `json:"type" gorm:"type:varchar(100);index"`            // Type: Friendly, InsideMember, OutsideMember, Promotion...
+	PlayTimeOnYear     int    `json:"play_times_on_year"`                             // Số lần chơi trong năm
+	AnnualType         string `json:"annual_type" gorm:"type:varchar(100)"`           // loại thường niên: không giới hạn, chơi có giới hạn, thẻ ngủ.
 }
 
 func (item *MemberCardType) IsValidated() bool {
@@ -38,6 +40,9 @@ func (item *MemberCardType) IsValidated() bool {
 		return false
 	}
 	if item.GuestStyle == "" {
+		return false
+	}
+	if item.AnnualType == "" {
 		return false
 	}
 	return true
