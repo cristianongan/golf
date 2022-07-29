@@ -30,6 +30,10 @@ func (_ *CBookingSource) CreateBookingSource(c *gin.Context, prof models.CmsUser
 		NumberOfDays:      body.NumberOfDays,
 	}
 
+	if body.Status != "" {
+		bookingSource.Status = body.Status
+	}
+
 	err := bookingSource.Create()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -125,7 +129,9 @@ func (_ *CBookingSource) UpdateBookingSource(c *gin.Context, prof models.CmsUser
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
-
+	if body.Status != "" {
+		bookingSourceRequest.Status = body.Status
+	}
 	if body.BookingSourceName != "" {
 		bookingSourceRequest.BookingSourceName = body.BookingSourceName
 	}
