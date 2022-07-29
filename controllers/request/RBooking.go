@@ -30,7 +30,6 @@ type GetListBookingForm struct {
 	To          int64  `form:"to"`
 	BookingDate string `form:"booking_date"`
 	BookingCode string `form:"booking_code"`
-	InitType    string `form:"init_type"`
 }
 
 // Tạo Tee booking
@@ -66,6 +65,7 @@ type CreateBookingBody struct {
 	CaddieCode        string                  `json:"caddie_code"`
 	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant"`
 	BookingRetal      utils.BookingRental     `json:"booking_retal"`
+	BookingCode       string                  `form:"booking_code"`
 }
 
 type CreateBatchBookingBody struct {

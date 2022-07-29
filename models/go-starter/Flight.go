@@ -1,7 +1,6 @@
 package model_gostarter
 
 import (
-	"github.com/pkg/errors"
 	"log"
 	"start/constants"
 	"start/datasources"
@@ -9,6 +8,8 @@ import (
 	model_booking "start/models/booking"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 // Flight
@@ -28,16 +29,25 @@ type Booking BookingForFlight
 
 type BookingForFlight struct {
 	models.Model
-	PartnerUid   string                      `json:"partner_uid,omitempty"`
-	CourseUid    string                      `json:"course_uid,omitempty"`
-	BookingDate  string                      `json:"booking_date,omitempty"`
-	Bag          string                      `json:"bag,omitempty"`
-	CustomerName string                      `json:"customer_name,omitempty"`
-	CustomerUid  string                      `json:"customer_uid,omitempty"`
-	CustomerInfo model_booking.CustomerInfo  `json:"customer_info,omitempty"`
-	CaddieId     int64                       `json:"caddie_id,omitempty"`
-	CaddieInfo   model_booking.BookingCaddie `json:"caddie_info,omitempty"`
-	FlightId     int64                       `json:"flight_id"`
+	PartnerUid     string                      `json:"partner_uid,omitempty"`
+	CourseUid      string                      `json:"course_uid,omitempty"`
+	BookingDate    string                      `json:"booking_date,omitempty"`
+	Bag            string                      `json:"bag,omitempty"`
+	Hole           int                         `json:"hole"` // Số hố
+	CustomerName   string                      `json:"customer_name,omitempty"`
+	CustomerUid    string                      `json:"customer_uid,omitempty"`
+	CustomerInfo   model_booking.CustomerInfo  `json:"customer_info,omitempty"`
+	CaddieId       int64                       `json:"caddie_id,omitempty"`
+	CaddieInfo     model_booking.BookingCaddie `json:"caddie_info,omitempty"`
+	FlightId       int64                       `json:"flight_id"`
+	CheckOutTime   int64                       `json:"check_out_time,omitempty"`
+	CheckInTime    int64                       `json:"check_in_time,omitempty"`
+	CardId         string                      `json:"card_id,omitempty"`
+	MemberCardUid  string                      `json:"member_card_uid,omitempty"`
+	AgencyId       int64                       `json:"agency_id,omitempty"`
+	AgencyInfo     model_booking.BookingAgency `json:"agency_info,omitempty"`
+	GuestStyle     string                      `json:"guest_style,omitempty"`
+	GuestStyleName string                      `json:"guest_style_name,omitempty"`
 }
 
 func (item *Flight) Create() error {
