@@ -417,6 +417,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/booking-waiting/list", middlewares.AuthorizedCmsUserHandler(cBookingWaiting.GetBookingWaitingList))
 			cmsApiAuthorized.PUT("/booking-waiting/:id", middlewares.AuthorizedCmsUserHandler(cBookingWaiting.UpdateBookingWaiting))
 			cmsApiAuthorized.DELETE("/booking-waiting/:id", middlewares.AuthorizedCmsUserHandler(cBookingWaiting.DeleteBookingWaiting))
+
+			/// =================== Booking Source =====================
+			cBookingSource := new(controllers.CBookingSource)
+			cmsApiAuthorized.POST("/booking-source", middlewares.AuthorizedCmsUserHandler(cBookingSource.CreateBookingSource))
+			cmsApiAuthorized.GET("/booking-source/list", middlewares.AuthorizedCmsUserHandler(cBookingSource.GetBookingSourceList))
+			cmsApiAuthorized.PUT("/booking-source/:id", middlewares.AuthorizedCmsUserHandler(cBookingSource.UpdateBookingSource))
+			cmsApiAuthorized.DELETE("/booking-source/:id", middlewares.AuthorizedCmsUserHandler(cBookingSource.DeleteBookingSource))
 		}
 
 		// ----------------------------------------------------------

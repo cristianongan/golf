@@ -67,7 +67,7 @@ func (item *BookingSource) FindList(page models.Page) ([]BookingSource, int64, e
 		db = db.Where("status = ?", item.Status)
 	}
 	if item.BookingSourceName != "" {
-		db = db.Where("booking_source_name = ?", item.BookingSourceName)
+		db = db.Where("booking_source_name LIKE ?", "%"+item.BookingSourceName+"%")
 	}
 	db.Count(&total)
 
