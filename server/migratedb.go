@@ -91,6 +91,9 @@ func MigrateDb() {
 		// ------- System Activity Log -------
 		db.AutoMigrate(&logger.ActivityLog{})
 
+		// ------- Tranfer Card -------
+		db.AutoMigrate(&models.TranferCard{})
+
 		log.Println("migrated db")
 	}
 }
