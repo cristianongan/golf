@@ -405,6 +405,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/group-roles/assign", middlewares.AuthorizedCmsUserHandler(cAuthority.AssignGroupRole))
 			cmsApiAuthorized.GET("/roles/list", middlewares.AuthorizedCmsUserHandler(cAuthority.GetRoles))
 			cmsApiAuthorized.GET("/group-roles/list", middlewares.AuthorizedCmsUserHandler(cAuthority.GetGroupRoles))
+
+			/// =================== Booking Waiting =====================
+			cBookingWaiting := new(controllers.CBookingWaiting)
+			cmsApiAuthorized.POST("/booking-waiting", middlewares.AuthorizedCmsUserHandler(cBookingWaiting.CreateBookingWaiting))
+			cmsApiAuthorized.GET("/booking-waiting/list", middlewares.AuthorizedCmsUserHandler(cBookingWaiting.GetBookingWaitingList))
+			cmsApiAuthorized.PUT("/booking-waiting/:id", middlewares.AuthorizedCmsUserHandler(cBookingWaiting.UpdateBookingWaiting))
+			cmsApiAuthorized.DELETE("/booking-waiting/:id", middlewares.AuthorizedCmsUserHandler(cBookingWaiting.DeleteBookingWaiting))
 		}
 
 		// ----------------------------------------------------------

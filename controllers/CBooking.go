@@ -89,6 +89,10 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.Bag = body.Bag
 	}
 
+	if body.BookingCode != "" {
+		booking.BookingCode = body.BookingCode
+	}
+
 	if body.BookingDate != "" {
 		booking.BookingDate = body.BookingDate
 	} else {
@@ -362,7 +366,6 @@ func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 		CourseUid:   form.CourseUid,
 		BookingDate: form.BookingDate,
 		BookingCode: form.BookingCode,
-		InitType:    form.InitType,
 	}
 
 	list, total, err := bookingR.FindList(page, form.From, form.To)
@@ -415,11 +418,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
-	}
-
-	if body.InitType == constants.BOOKING_INIT_TYPE_WAITING {
-		booking.BagStatus = constants.BAG_STATUS_INIT
-		booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
 	}
 
 	// validate caddie_code
@@ -1505,13 +1503,8 @@ func (cBooking *CBooking) CreateBatchBooking(c *gin.Context, prof models.CmsUser
 			booking.CheckInTime = checkInTime
 		} else {
 			// Tạo booking
-			if bodyRequest.IsWaiting {
-				booking.BagStatus = constants.BAG_STATUS_WAITING
-				booking.InitType = constants.BOOKING_INIT_TYPE_WAITING
-			} else {
-				booking.BagStatus = constants.BAG_STATUS_INIT
-				booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
-			}
+			booking.BagStatus = constants.BAG_STATUS_INIT
+			booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
 		}
 
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
