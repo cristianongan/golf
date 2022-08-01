@@ -101,30 +101,6 @@ func (_ *CGolfService) GetGolfServiceForReception(c *gin.Context, prof models.Cm
 
 		okResponse(c, res)
 		return
-	} else if form.Type == constants.GOLF_SERVICE_KIOSK {
-		// Get in kiosk
-		kioskR := model_service.Kiosk{
-			PartnerUid: form.PartnerUid,
-			CourseUid:  form.CourseUid,
-			Type:       form.Type,
-			Code:       form.Code,
-			Name:       form.Name,
-		}
-
-		list, total, errKioskR := kioskR.FindList(page)
-
-		if errKioskR != nil {
-			response_message.InternalServerError(c, errKioskR.Error())
-			return
-		}
-
-		res := map[string]interface{}{
-			"total": total,
-			"data":  list,
-		}
-
-		okResponse(c, res)
-		return
 	}
 
 	response_message.BadRequest(c, "type invalid")

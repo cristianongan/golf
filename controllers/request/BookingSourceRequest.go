@@ -11,7 +11,7 @@ type UpdateBookingSource struct {
 	NormalDay         *bool            `json:"normal_day"`
 	Weekend           *bool            `json:"week_end"`
 	NumberOfDays      int64            `json:"number_of_days"`
-	Status            string           `form:"status"`
+	Status            string           `json:"status"`
 }
 type GetListBookingSource struct {
 	PageRequest

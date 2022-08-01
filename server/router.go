@@ -385,6 +385,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/proshop/:id", middlewares.AuthorizedCmsUserHandler(cProshop.UpdateProshop))
 			cmsApiAuthorized.DELETE("/proshop/:id", middlewares.AuthorizedCmsUserHandler(cProshop.DeleteProshop))
 
+			/// =================== Kiosk =====================
+			cKiosk := new(controllers.CKiosk)
+			cmsApiAuthorized.POST("/kiosk", middlewares.AuthorizedCmsUserHandler(cKiosk.CreateKiosk))
+			cmsApiAuthorized.GET("/kiosk/list", middlewares.AuthorizedCmsUserHandler(cKiosk.GetListKiosk))
+			cmsApiAuthorized.PUT("/kiosk/:id", middlewares.AuthorizedCmsUserHandler(cKiosk.UpdateKiosk))
+			cmsApiAuthorized.DELETE("/kiosk/:id", middlewares.AuthorizedCmsUserHandler(cKiosk.DeleteKiosk))
+
 			/// =================== Group Services =====================
 			cGroupServices := new(controllers.CGroupServices)
 			cmsApiAuthorized.POST("/group-services", middlewares.AuthorizedCmsUserHandler(cGroupServices.CreateGroupServices))
