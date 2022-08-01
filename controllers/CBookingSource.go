@@ -24,6 +24,7 @@ func (_ *CBookingSource) CreateBookingSource(c *gin.Context, prof models.CmsUser
 		PartnerUid:        body.PartnerUid,
 		CourseUid:         body.CourseUid,
 		BookingSourceName: body.BookingSourceName,
+		AgencyId:          body.AgencyId,
 		IsPart1TeeType:    body.IsPart1TeeType,
 		IsPart2TeeType:    body.IsPart2TeeType,
 		IsPart3TeeType:    body.IsPart3TeeType,
