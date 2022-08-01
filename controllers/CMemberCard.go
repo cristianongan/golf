@@ -68,6 +68,7 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 	memberCard.CaddieFee = body.CaddieFee
 	memberCard.BuggyFee = body.BuggyFee
 	memberCard.AdjustPlayCount = body.AdjustPlayCount
+	memberCard.Float = body.Float
 
 	errC := memberCard.Create()
 
@@ -154,6 +155,9 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 	memberCard.StartPrecial = body.StartPrecial
 	memberCard.EndPrecial = body.EndPrecial
 	memberCard.AdjustPlayCount = body.AdjustPlayCount
+	memberCard.Float = body.Float
+	memberCard.PromotionCode = body.PromotionCode
+	memberCard.UserEdit = body.UserEdit
 
 	errUdp := memberCard.Update()
 	if errUdp != nil {
