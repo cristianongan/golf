@@ -14,11 +14,12 @@ import (
 // Đại lý
 type Agency struct {
 	ModelId
-	PartnerUid           string         `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid            string         `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	AgencyId             string         `json:"agency_id" gorm:"type:varchar(100);index"`   // Id Agency
-	ShortName            string         `json:"short_name" gorm:"type:varchar(256)"`        // Ten ngắn Dai ly
-	Category             string         `json:"category" gorm:"type:varchar(256);index"`    // Category
+	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	AgencyId   string `json:"agency_id" gorm:"type:varchar(100);index"`   // Id Agency
+	ShortName  string `json:"short_name" gorm:"type:varchar(256)"`        // Ten ngắn Dai ly
+	// Category             string         `json:"category" gorm:"type:varchar(256);index"`    // Category
+	Type                 string         `json:"type" gorm:"type:varchar(256);index"`        // AGENCY / OTA / COMPANY
 	GuestStyle           string         `json:"guest_style" gorm:"type:varchar(256);index"` // Guest Style
 	Name                 string         `json:"name" gorm:"type:varchar(500)"`              // Ten Dai ly
 	Province             string         `json:"province" gorm:"type:varchar(100)"`          //
