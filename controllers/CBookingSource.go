@@ -24,7 +24,9 @@ func (_ *CBookingSource) CreateBookingSource(c *gin.Context, prof models.CmsUser
 		PartnerUid:        body.PartnerUid,
 		CourseUid:         body.CourseUid,
 		BookingSourceName: body.BookingSourceName,
-		TeeTime:           body.TeeTime,
+		IsPart1TeeType:    body.IsPart1TeeType,
+		IsPart2TeeType:    body.IsPart2TeeType,
+		IsPart3TeeType:    body.IsPart3TeeType,
 		NormalDay:         body.NormalDay,
 		Weekend:           body.Weekend,
 		NumberOfDays:      body.NumberOfDays,
@@ -135,8 +137,14 @@ func (_ *CBookingSource) UpdateBookingSource(c *gin.Context, prof models.CmsUser
 	if body.BookingSourceName != "" {
 		bookingSourceRequest.BookingSourceName = body.BookingSourceName
 	}
-	if len(body.TeeTime) != 0 {
-		bookingSourceRequest.TeeTime = body.TeeTime
+	if body.IsPart1TeeType != nil {
+		bookingSourceRequest.IsPart1TeeType = *body.IsPart1TeeType
+	}
+	if body.IsPart2TeeType != nil {
+		bookingSourceRequest.IsPart2TeeType = *body.IsPart2TeeType
+	}
+	if body.IsPart3TeeType != nil {
+		bookingSourceRequest.IsPart3TeeType = *body.IsPart3TeeType
 	}
 	if body.NormalDay != nil {
 		bookingSourceRequest.NormalDay = *body.NormalDay

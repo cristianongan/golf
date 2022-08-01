@@ -32,6 +32,11 @@ func GetCurrentDay() string {
 	return currentDayStr
 }
 
+func GetCurrentDay1() string {
+	currentDayStr, _ := GetDateFromTimestampWithFormat(time.Now().Unix(), constants.DATE_FORMAT_1)
+	return currentDayStr
+}
+
 func HashCodeUuid(uid string) string {
 	return NumberToString(uuid.MustParse(uid).ID())
 }
