@@ -29,6 +29,7 @@ func MigrateDb() {
 		db.AutoMigrate(&models.CustomerUser{})
 		db.AutoMigrate(&models.CustomerType{})
 		db.AutoMigrate(&models.TeeTimeSettings{})
+		db.AutoMigrate(&models.TeeTypeClose{})
 
 		// ----- Agency ------
 		db.AutoMigrate(&models.Agency{})

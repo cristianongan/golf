@@ -432,6 +432,12 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/booking-source/list", middlewares.AuthorizedCmsUserHandler(cBookingSource.GetBookingSourceList))
 			cmsApiAuthorized.PUT("/booking-source/:id", middlewares.AuthorizedCmsUserHandler(cBookingSource.UpdateBookingSource))
 			cmsApiAuthorized.DELETE("/booking-source/:id", middlewares.AuthorizedCmsUserHandler(cBookingSource.DeleteBookingSource))
+
+			/// =================== Close Tee Type =====================
+			cTeeTypeClose := new(controllers.CTeeTypeClose)
+			cmsApiAuthorized.POST("/tee-type-close", middlewares.AuthorizedCmsUserHandler(cTeeTypeClose.CreateTeeTypeClose))
+			cmsApiAuthorized.GET("/tee-type-close/list", middlewares.AuthorizedCmsUserHandler(cTeeTypeClose.GetTeeTypeClose))
+			cmsApiAuthorized.DELETE("/tee-type-close/:id", middlewares.AuthorizedCmsUserHandler(cTeeTypeClose.DeleteTeeTypeClose))
 		}
 
 		// ----------------------------------------------------------
