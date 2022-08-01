@@ -30,7 +30,7 @@ type MemberCard struct {
 	ReasonUnactive  string `json:"reason_unactive" gorm:"type:varchar(500)"`   // Ghi chu khi Unactive
 	Locker          string `json:"locker" gorm:"type:varchar(100)"`            // Mã số tủ gửi đồ
 	AdjustPlayCount int    `json:"adjust_play_count" gorm:"type:varchar(100)"` // Trước đó đã chơi bao nhiêu lần
-	Float           bool   `json:"float"`                                      // Thẻ không định danh
+	Float           int64  `json:"float"`                                      // Thẻ không định danh
 	PromotionCode   string `json:"promotion_code" gorm:"type:varchar(100)"`    // mã giảm giá
 	UserEdit        string `json:"user_edit" gorm:"type:varchar(150)"`         // user cập nhật
 
@@ -45,19 +45,22 @@ type MemberCard struct {
 
 type MemberCardDetailRes struct {
 	Model
-	PartnerUid      string `json:"partner_uid"`       // Hang Golf
-	CourseUid       string `json:"course_uid"`        // San Golf
-	OwnerUid        string `json:"owner_uid"`         // Uid chủ sở hữu
-	CardId          string `json:"card_id"`           // Id thẻ
-	Type            string `json:"type"`              // Loại thẻ - > Lấy từ MemberCardType.Type = Base Type
-	McType          string `json:"mc_type"`           // Member Card Type = Member Type
-	McTypeId        int64  `json:"mc_type_id"`        // Member Card Type id
-	ValidDate       int64  `json:"valid_date"`        // Hieu luc tu ngay
-	ExpDate         int64  `json:"exp_date"`          // Het hieu luc tu ngay
-	ChipCode        string `json:"chip_code"`         // Sân tập cho bán chip, là mã thẻ đọc bằng máy đọc thẻ
-	Note            string `json:"note"`              // Ghi chu them
-	Locker          string `json:"locker"`            // Mã số tủ gửi đồ
-	AdjustPlayCount int    `json:"adjust_play_count"` // Trước đó đã chơi bao nhiêu lần
+	PartnerUid      string `json:"partner_uid"`                             // Hang Golf
+	CourseUid       string `json:"course_uid"`                              // San Golf
+	OwnerUid        string `json:"owner_uid"`                               // Uid chủ sở hữu
+	CardId          string `json:"card_id"`                                 // Id thẻ
+	Type            string `json:"type"`                                    // Loại thẻ - > Lấy từ MemberCardType.Type = Base Type
+	McType          string `json:"mc_type"`                                 // Member Card Type = Member Type
+	McTypeId        int64  `json:"mc_type_id"`                              // Member Card Type id
+	ValidDate       int64  `json:"valid_date"`                              // Hieu luc tu ngay
+	ExpDate         int64  `json:"exp_date"`                                // Het hieu luc tu ngay
+	ChipCode        string `json:"chip_code"`                               // Sân tập cho bán chip, là mã thẻ đọc bằng máy đọc thẻ
+	Note            string `json:"note"`                                    // Ghi chu them
+	Locker          string `json:"locker"`                                  // Mã số tủ gửi đồ
+	AdjustPlayCount int    `json:"adjust_play_count"`                       // Trước đó đã chơi bao nhiêu lần
+	Float           int64  `json:"float"`                                   // Thẻ không định danh
+	PromotionCode   string `json:"promotion_code" gorm:"type:varchar(100)"` // mã giảm giá
+	UserEdit        string `json:"user_edit" gorm:"type:varchar(150)"`      // user cập nhật
 
 	PriceCode int64 `json:"price_code"` // Check cái này có thì tính theo giá riêng -> theo cuộc họp suggest nên bỏ - Ko bỏ dc
 	GreenFee  int64 `json:"green_fee"`  // Phí sân cỏ
