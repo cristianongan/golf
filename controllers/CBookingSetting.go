@@ -358,7 +358,7 @@ func (_ *CBookingSetting) GetListBookingSettingOnDate(c *gin.Context, prof model
 
 	if form.OnDate != "" {
 		// Lấy ngày hiện tại
-		fromInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT, form.OnDate)
+		fromInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, form.OnDate)
 		from = fromInt
 		to = from + 24*60*60
 	}
