@@ -13,6 +13,7 @@ type BookingSource struct {
 	models.ModelId
 	PartnerUid        string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid         string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	AgencyId          string `json:"agency_id" gorm:"type:varchar(100)"`
 	BookingSourceName string `json:"booking_source_name"`
 	IsPart1TeeType    bool   `json:"is_part1_tee_type"`
 	IsPart2TeeType    bool   `json:"is_part2_tee_type"`
