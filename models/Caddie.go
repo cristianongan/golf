@@ -34,6 +34,7 @@ type Caddie struct {
 	RdStatus       string           `json:"rd_status" gorm:"type:varchar(128)"`
 	DutyStatus     string           `json:"duty_status" gorm:"type:varchar(128)"`
 	CaddieCalendar []CaddieCalendar `json:"caddie_calendar" gorm:"foreignKey:caddie_uid"`
+	GroupId        int64            `json:"group_id" gorm:"default:0"`
 }
 
 type CaddieResponse struct {

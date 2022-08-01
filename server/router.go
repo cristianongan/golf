@@ -336,6 +336,18 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/caddie-working-calendar", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetCaddieWorkingCalendarList))
 			cmsApiAuthorized.PUT("/caddie-working-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.UpdateCaddieWorkingCalendar))
 
+			/// =================== Caddie Groups ===================
+			cCaddieGroup := new(controllers.CCaddieGroup)
+			cmsApiAuthorized.GET("/caddie-groups", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.GetCaddieGroupList))
+			cmsApiAuthorized.POST("/caddie-groups", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.CreateCaddieGroup))
+			cmsApiAuthorized.POST("/caddie-groups/add-caddies", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.AddCaddieToGroup))
+			cmsApiAuthorized.DELETE("/caddie-groups/:id", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.DeleteCaddieGroup))
+
+			/// =================== Caddie Working Schedule ===================
+			cCaddieWorkingSchedule := new(controllers.CCaddieWorkingSchedule)
+			cmsApiAuthorized.GET("/caddie-working-schedule", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingSchedule.GetCaddieWorkingScheduleList))
+			cmsApiAuthorized.POST("/caddie-working-schedule", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingSchedule.CreateCaddieWorkingSchedule))
+
 			/// =================== Buggy Used Statistic ===================
 			cBuggyUsedList := new(controllers.CBuggyUsedList)
 			cmsApiAuthorized.GET("/buggy-used-list", middlewares.AuthorizedCmsUserHandler(cBuggyUsedList.GetBuggyUsedList))
