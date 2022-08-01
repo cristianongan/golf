@@ -1,0 +1,162 @@
+package controllers
+
+import (
+	"errors"
+	"start/controllers/request"
+	"start/models"
+	model_service "start/models/service"
+	"start/utils/response_message"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+)
+
+type CKiosk struct{}
+
+func (_ *CKiosk) GetListKiosk(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListKioskForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	kioskR := model_service.Kiosk{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+
+	if form.KioskName != "" {
+		kioskR.KioskName = form.KioskName
+	}
+
+	if form.Status != "" {
+		kioskR.Status = form.Status
+	}
+
+	list, total, err := kioskR.FindList(page)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
+func (_ *CKiosk) CreateKiosk(c *gin.Context, prof models.CmsUser) {
+	body := model_service.Kiosk{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	if body.PartnerUid == "" || body.CourseUid == "" {
+		response_message.BadRequest(c, "data not valid")
+		return
+	}
+
+	kiosk := model_service.Kiosk{}
+	kiosk.PartnerUid = body.PartnerUid
+	kiosk.CourseUid = body.CourseUid
+	kiosk.KioskName = body.KioskName
+	kiosk.ServiceType = body.ServiceType
+	kiosk.KioskType = body.KioskType
+
+	// Check duplicated
+	errF := kiosk.FindFirst()
+	if errF == nil || kiosk.Id > 0 {
+		response_message.BadRequest(c, errF.Error())
+		return
+	}
+
+	kiosk.Status = body.Status
+
+	errC := kiosk.Create()
+
+	if errC != nil {
+		response_message.InternalServerError(c, errC.Error())
+		return
+	}
+
+	okResponse(c, kiosk)
+}
+
+func (_ *CKiosk) UpdateKiosk(c *gin.Context, prof models.CmsUser) {
+	kioskIdStr := c.Param("id")
+	kioskId, err := strconv.ParseInt(kioskIdStr, 10, 64) // Nếu uid là int64 mới cần convert
+	if err != nil && kioskId == 0 {
+		response_message.BadRequest(c, errors.New("id not valid").Error())
+		return
+	}
+
+	kiosk := model_service.Kiosk{}
+	kiosk.Id = kioskId
+	errF := kiosk.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	body := model_service.Kiosk{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if body.KioskName != "" {
+		kiosk.KioskName = body.KioskName
+	}
+	if body.Status != "" {
+		kiosk.Status = body.Status
+	}
+	if body.KioskType != "" {
+		kiosk.KioskType = body.KioskType
+	}
+	if body.ServiceType != "" {
+		kiosk.ServiceType = body.ServiceType
+	}
+
+	errUdp := kiosk.Update()
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, kiosk)
+}
+
+func (_ *CKiosk) DeleteKiosk(c *gin.Context, prof models.CmsUser) {
+	kioskIdStr := c.Param("id")
+	kioskId, err := strconv.ParseInt(kioskIdStr, 10, 64) // Nếu uid là int64 mới cần convert
+	if err != nil && kioskId == 0 {
+		response_message.BadRequest(c, errors.New("id not valid").Error())
+		return
+	}
+
+	kiosk := model_service.Kiosk{}
+	kiosk.Id = kioskId
+	errF := kiosk.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	errDel := kiosk.Delete()
+	if errDel != nil {
+		response_message.InternalServerError(c, errDel.Error())
+		return
+	}
+
+	okRes(c)
+}

@@ -62,7 +62,6 @@ func (item *BookingSource) FindList(page models.Page) ([]BookingSource, int64, e
 	list := []BookingSource{}
 	total := int64(0)
 	status := item.ModelId.Status
-	item.ModelId.Status = ""
 	db = db.Where(item)
 	if status != "" {
 		db = db.Where("status = ?", item.Status)
