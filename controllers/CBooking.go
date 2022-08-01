@@ -89,9 +89,8 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.Bag = body.Bag
 	}
 
-	if body.BookingCode != "" {
-		booking.BookingCode = body.BookingCode
-	}
+	bookingCode := strconv.FormatInt(time.Now().Unix(), 10)
+	booking.BookingCode = bookingCode
 
 	if body.BookingDate != "" {
 		booking.BookingDate = body.BookingDate
@@ -369,6 +368,37 @@ func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	list, total, err := bookingR.FindList(page, form.From, form.To)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
+/*
+ Danh sách booking tee time
+*/
+func (_ *CBooking) GetListBookingTeeTime(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListBookingTeeTimeForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	bookingR := model_booking.Booking{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: form.BookingDate,
+		TeeTime:     form.TeeTime,
+	}
+
+	list, total, err := bookingR.FindBookingTeeTimeList()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

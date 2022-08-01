@@ -235,6 +235,35 @@ type BookingGolfFee struct {
 	GreenFee   int64  `json:"green_fee"`
 }
 
+type BookingTeeResponse struct {
+	PartnerUid     string `json:"partner_uid"`
+	CourseUid      string `json:"course_uid"`
+	BookingDate    string `json:"booking_date"`
+	TeeType        string `json:"tee_type"`
+	TeePath        string `json:"tee_path"`
+	TurnTime       string `json:"turn_time"`
+	TeeTime        string `json:"tee_time"`
+	TeeOffTime     string `json:"tee_off_time"`
+	Bag            string `json:"bag"`
+	Hole           int    `json:"hole"`
+	GuestStyle     string `json:"guest_style"`
+	GuestStyleName string `json:"guest_style_name"`
+
+	// MemberCard
+	CardId        string `json:"card_id"`
+	MemberCardUid string `json:"member_card_uid"`
+
+	// Thêm customer info
+	CustomerBookingName  string                  `json:"customer_booking_name"`
+	CustomerBookingPhone string                  `json:"customer_booking_phone"`
+	CaddieId             int64                   `json:"caddie_id"`
+	AgencyId             int64                   `json:"agency_id"`
+	BookingCode          string                  `json:"booking_code"`
+	BookingRestaurant    utils.BookingRestaurant `json:"booking_restaurant,omitempty"`
+	BookingRetal         utils.BookingRental     `json:"booking_retal,omitempty"`
+	Count                int64                   `json:"count"`
+}
+
 type ListBookingGolfFee []BookingGolfFee
 
 func (item *ListBookingGolfFee) Scan(v interface{}) error {
@@ -704,6 +733,32 @@ func (item *Booking) FindList(page models.Page, from int64, to int64) ([]Booking
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)
 	}
+	return list, total, db.Error
+}
+
+func (item *Booking) FindBookingTeeTimeList() ([]BookingTeeResponse, int64, error) {
+	db := datasources.GetDatabase().Model(Booking{})
+	list := []BookingTeeResponse{}
+	total := int64(0)
+	item.Model.Status = ""
+	db = db.Where(item)
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+	if item.TeeTime != "" {
+		db = db.Where("tee_time = ?", item.TeeTime)
+	}
+	db.Select("partner_uid,course_uid,booking_date,tee_type,tee_path,turn_time,tee_time,tee_off_time,hole,guest_style,guest_style_name,booking_code, COUNT(booking_code) as count").Group("booking_code")
+
+	db.Count(&total)
+	db.Find(&list)
+
 	return list, total, db.Error
 }
 

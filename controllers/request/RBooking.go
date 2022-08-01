@@ -32,6 +32,14 @@ type GetListBookingForm struct {
 	BookingCode string `form:"booking_code"`
 }
 
+type GetListBookingTeeTimeForm struct {
+	PageRequest
+	PartnerUid  string `form:"partner_uid"`
+	CourseUid   string `form:"course_uid"`
+	BookingDate string `form:"booking_date"`
+	TeeTime     string `form:"tee_time"`
+}
+
 // Tạo Tee booking
 // Guest Booking
 // Member Booking

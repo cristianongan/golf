@@ -211,6 +211,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/booking/other-paid/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddOtherPaid))                // Add Other Paid
 			cmsApiAuthorized.POST("/booking/cancel", middlewares.AuthorizedCmsUserHandler(cBooking.CancelBooking))                       // Cancel booking
 			cmsApiAuthorized.POST("/booking/moving", middlewares.AuthorizedCmsUserHandler(cBooking.MovingBooking))                       // Moving booking
+			cmsApiAuthorized.GET("/booking-tee-time/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingTeeTime))         // Moving booking
 
 			/// =================== Booking Service Item ===================
 			cBookingServiceItem := new(controllers.CBookingServiceItem)
