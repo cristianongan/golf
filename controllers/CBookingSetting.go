@@ -350,7 +350,7 @@ func (_ *CBookingSetting) GetListBookingSettingOnDate(c *gin.Context, prof model
 
 	if form.OnDate == "" {
 		log.Println("on-date empty", form)
-		form.OnDate = utils.GetCurrentDay()
+		form.OnDate = utils.GetCurrentDay1()
 	}
 
 	from := int64(0)
