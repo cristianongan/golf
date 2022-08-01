@@ -21,7 +21,7 @@ type TranferCard struct {
 	BillNumber  string `json:"bill_number" gorm:"type:varchar(100)"`         // So bill
 	BillDate    int64  `json:"bill_date"`                                    // ngay tao bill
 	Amount      int64  `json:"amount"`                                       // phi chuyen doi the
-	TranferDate int64  `json:"tranfer" gorm:"index"`                         // ngay tranfer card
+	TranferDate int64  `json:"tranfer_date" gorm:"index"`                    // ngay tranfer card
 	InputUser   string `json:"input_user" gorm:"type:varchar(200)"`          // nguoi nhap
 	Note        string `json:"note" gorm:"type:varchar(500)"`                // Ghi chu them
 }
