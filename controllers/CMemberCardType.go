@@ -122,7 +122,7 @@ func (_ *CMemberCardType) UpdateMemberCardType(c *gin.Context, prof models.CmsUs
 	memberCardType.PlayTimeOnYear = body.PlayTimeOnYear
 	memberCardType.Status = body.Status
 	memberCardType.Type = body.Type
-	memberCardType.AnnualType = body.Type
+	memberCardType.AnnualType = body.AnnualType
 
 	errUdp := memberCardType.Update()
 	if errUdp != nil {
