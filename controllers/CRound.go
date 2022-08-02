@@ -299,6 +299,7 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 		})
 
 		newRound, err := cRound.createRound(booking, totalHoles)
+		newRound.Index = 0
 		if err != nil {
 			try.ThrowOnError(err)
 		}
