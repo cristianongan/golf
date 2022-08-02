@@ -233,6 +233,7 @@ type BookingGolfFee struct {
 	CaddieFee  int64  `json:"caddie_fee"`
 	BuggyFee   int64  `json:"buggy_fee"`
 	GreenFee   int64  `json:"green_fee"`
+	RoundIndex int    `json:"round_index"`
 }
 
 type BookingTeeResponse struct {
