@@ -140,17 +140,8 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 			RoundIndex: newRound.Index,
 		}
 
+		// update list_golf_fee
 		booking.ListGolfFee = append(booking.ListGolfFee, newRoundGolfFee)
-
-		// // update list_golf_fee
-		// currentGolfFee := slices.Find(booking.ListGolfFee, func(item model_booking.BookingGolfFee) bool {
-		// 	return item.BookingUid == booking.Uid
-		// })
-
-		// booking.ListGolfFee, err = cRound.updateListGolfFee(booking, &currentGolfFee)
-		// if err != nil {
-		// 	try.ThrowOnError(err)
-		// }
 
 		// update current_bag_price
 		booking.CurrentBagPrice, err = cRound.updateCurrentBagPrice(booking, newRoundGolfFee.CaddieFee+newRoundGolfFee.BuggyFee+newRoundGolfFee.GreenFee)
@@ -237,17 +228,8 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 			RoundIndex: newRound.Index,
 		}
 
+		// update list_golf_fee
 		booking.ListGolfFee = append(booking.ListGolfFee, newRoundGolfFee)
-
-		// // update list_golf_fee
-		// currentGolfFee := slices.Find(booking.ListGolfFee, func(item model_booking.BookingGolfFee) bool {
-		// 	return item.BookingUid == booking.Uid
-		// })
-
-		// booking.ListGolfFee, err = cRound.updateListGolfFee(booking, &currentGolfFee)
-		// if err != nil {
-		// 	try.ThrowOnError(err)
-		// }
 
 		// update current_bag_price
 		booking.CurrentBagPrice, err = cRound.updateCurrentBagPrice(booking, newRoundGolfFee.CaddieFee+newRoundGolfFee.BuggyFee+newRoundGolfFee.GreenFee)
@@ -341,15 +323,8 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 			}
 		}
 
-		// update list_golf_fee
-		// currentGolfFee := slices.Find(booking.ListGolfFee, func(item model_booking.BookingGolfFee) bool {
-		// 	return item.BookingUid == booking.Uid
-		// })
-
-		// booking.ListGolfFee, err = cRound.updateListGolfFee(booking, &currentGolfFee)
-		// if err != nil {
-		// 	try.ThrowOnError(err)
-		// }
+		// Udp golf fee
+		booking.ListGolfFee = listGolfFeeTemp
 
 		// update current_bag_price
 		booking.CurrentBagPrice, err = cRound.updateCurrentBagPrice(booking, newRoundGolfFee.CaddieFee+newRoundGolfFee.BuggyFee+newRoundGolfFee.GreenFee)
