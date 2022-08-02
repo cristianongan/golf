@@ -103,6 +103,10 @@ func MigrateDb() {
 		// ------- Tranfer Card -------
 		db.AutoMigrate(&models.TranferCard{})
 
+		// ------- Caddie Fee Setting -------
+		db.AutoMigrate(&models.CaddieFeeSetting{})
+		db.AutoMigrate(&models.CaddieFeeSettingGroup{})
+
 		log.Println("migrated db")
 	}
 }
