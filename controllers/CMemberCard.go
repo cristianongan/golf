@@ -62,6 +62,8 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 	memberCard.Note = body.Note
 	memberCard.ReasonUnactive = body.ReasonUnactive
 	memberCard.ChipCode = body.ChipCode
+	memberCard.StartPrecial = body.StartPrecial
+	memberCard.EndPrecial = body.EndPrecial
 
 	memberCard.PriceCode = body.PriceCode
 	memberCard.GreenFee = body.GreenFee

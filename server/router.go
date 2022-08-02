@@ -336,6 +336,18 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/caddie-working-calendar", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetCaddieWorkingCalendarList))
 			cmsApiAuthorized.PUT("/caddie-working-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.UpdateCaddieWorkingCalendar))
 
+			/// =================== Caddie Fee Setting ===================
+			cCaddieFeeSetting := new(controllers.CCaddieFeeSetting)
+			cmsApiAuthorized.POST("/caddie-fee/setting/group", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.CreateCaddieFeeSettingGroup))
+			cmsApiAuthorized.GET("/caddie-fee/setting/group/list", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.GetListCaddieFeeSettingGroup))
+			cmsApiAuthorized.PUT("/caddie-fee/setting/group/:id", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.UpdateCaddieFeeSettingGroup))
+			cmsApiAuthorized.DELETE("/caddie-fee/setting/group/:id", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.DeleteCaddieFeeSettingGroup))
+
+			cmsApiAuthorized.POST("/caddie-fee/setting", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.CreateCaddieFeeSetting))
+			cmsApiAuthorized.GET("/caddie-fee/setting/list", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.GetListCaddieFeeSetting))
+			cmsApiAuthorized.PUT("/caddie-fee/setting/:id", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.UpdateCaddieFeeSetting))
+			cmsApiAuthorized.DELETE("/caddie-fee/setting/:id", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.DeleteCaddieFeeSetting))
+
 			/// =================== Buggy Used Statistic ===================
 			cBuggyUsedList := new(controllers.CBuggyUsedList)
 			cmsApiAuthorized.GET("/buggy-used-list", middlewares.AuthorizedCmsUserHandler(cBuggyUsedList.GetBuggyUsedList))
