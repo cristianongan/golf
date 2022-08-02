@@ -60,7 +60,9 @@ func (_ *CKiosk) GetListKiosk(c *gin.Context, prof models.CmsUser) {
 			Data: []model_service.Kiosk{},
 		}
 		for _, data := range list {
-			kioskItem.Data = append(kioskItem.Data, data)
+			if data.KioskType == typeD {
+				kioskItem.Data = append(kioskItem.Data, data)
+			}
 		}
 		kioskList = append(kioskList, kioskItem)
 	}
