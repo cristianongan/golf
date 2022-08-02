@@ -516,12 +516,13 @@ func (_ *CCourseOperating) GetStartingSheet(c *gin.Context, prof models.CmsUser)
 
 	//Get Booking data
 	bookingR := model_booking.Booking{
-		PartnerUid:  form.PartnerUid,
-		CourseUid:   form.CourseUid,
-		BookingDate: form.BookingDate,
+		PartnerUid:   form.PartnerUid,
+		CourseUid:    form.CourseUid,
+		BookingDate:  form.BookingDate,
+		CustomerName: form.CustomerName,
 	}
 
-	listBooking := bookingR.FindForFlightAll()
+	listBooking := bookingR.FindForFlightAll(form.CaddieCode, form.CaddieName, form.NumberPeopleInFlight)
 
 	res := map[string]interface{}{
 		"flight_data":  listFlight,

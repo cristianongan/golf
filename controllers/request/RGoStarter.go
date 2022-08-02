@@ -59,9 +59,14 @@ type NeedMoreCaddieBody struct {
 }
 
 type GetStartingSheetForm struct {
-	PartnerUid  string `form:"partner_uid" binding:"required"`
-	CourseUid   string `form:"course_uid" binding:"required"`
-	BookingDate string `form:"booking_date"`
+	PartnerUid           string `form:"partner_uid" binding:"required"`
+	CourseUid            string `form:"course_uid" binding:"required"`
+	BookingDate          string `form:"booking_date"`
+	Bag                  string `form:"bag"`
+	CaddieCode           string `form:"caddie_code"`
+	CaddieName           string `form:"caddie_name"`
+	CustomerName         string `form:"customer_name"`
+	NumberPeopleInFlight *int64 `form:"number_people"`
 }
 
 type ChangeCaddieBody struct {
