@@ -200,6 +200,7 @@ func getInitListGolfFeeForBooking(uid string, body request.CreateBookingBody, go
 	bookingGolfFee.BookingUid = uid
 	bookingGolfFee.Bag = body.Bag
 	bookingGolfFee.PlayerName = body.CustomerName
+	bookingGolfFee.RoundIndex = 0
 
 	bookingGolfFee.CaddieFee = utils.GetFeeFromListFee(golfFee.CaddieFee, body.Hole)
 	bookingGolfFee.BuggyFee = utils.GetFeeFromListFee(golfFee.BuggyFee, body.Hole)
@@ -250,6 +251,7 @@ func initListRound(booking model_booking.Booking, bookingGolfFee model_booking.B
 	round.MemberCardUid = booking.MemberCardUid
 	round.TeeOffTime = checkInTime
 	round.Pax = 1
+	round.Index = 0
 
 	listRounds := model_booking.ListBookingRound{}
 	listRounds = append(listRounds, round)

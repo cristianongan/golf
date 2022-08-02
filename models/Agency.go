@@ -160,6 +160,9 @@ func (item *Agency) FindList(page Page) ([]Agency, int64, error) {
 	if item.AgencyId != "" {
 		db = db.Where("agency_id = ?", item.AgencyId)
 	}
+	if item.Type != "" {
+		db = db.Where("type = ?", item.Type)
+	}
 
 	db.Count(&total)
 

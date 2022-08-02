@@ -233,6 +233,7 @@ type BookingGolfFee struct {
 	CaddieFee  int64  `json:"caddie_fee"`
 	BuggyFee   int64  `json:"buggy_fee"`
 	GreenFee   int64  `json:"green_fee"`
+	RoundIndex int    `json:"round_index"`
 }
 
 type BookingTeeResponse struct {
@@ -704,7 +705,7 @@ func (item *Booking) FindList(page models.Page, from int64, to int64) ([]Booking
 	total := int64(0)
 	status := item.Model.Status
 	item.Model.Status = ""
-	db = db.Where(item)
+	// db = db.Where(item)
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
@@ -713,6 +714,10 @@ func (item *Booking) FindList(page models.Page, from int64, to int64) ([]Booking
 	}
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.AgencyId > 0 {
+		db = db.Where("agency_id = ?", item.AgencyId)
 	}
 
 	//Search With Time
