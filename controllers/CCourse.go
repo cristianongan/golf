@@ -82,6 +82,15 @@ func (_ *CCourse) GetListCourse(c *gin.Context, prof models.CmsUser) {
 	courseR := models.Course{
 		PartnerUid: form.PartnerUid,
 	}
+
+	if form.Name != "" {
+		courseR.Name = form.Name
+	}
+
+	if form.Status != "" {
+		courseR.Status = form.Status
+	}
+
 	list, total, err := courseR.FindList(page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

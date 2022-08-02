@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"start/constants"
 	"start/controllers/request"
 	"start/models"
 	model_service "start/models/service"
@@ -12,6 +13,10 @@ import (
 )
 
 type CKiosk struct{}
+type KioskResponse struct {
+	Type string                `json:"kiosk_type"`
+	Data []model_service.Kiosk `json:"data"`
+}
 
 func (_ *CKiosk) GetListKiosk(c *gin.Context, prof models.CmsUser) {
 	form := request.GetListKioskForm{}
@@ -40,18 +45,27 @@ func (_ *CKiosk) GetListKiosk(c *gin.Context, prof models.CmsUser) {
 		kioskR.Status = form.Status
 	}
 
-	list, total, err := kioskR.FindList(page)
+	list, _, err := kioskR.FindList(page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
-	res := map[string]interface{}{
-		"total": total,
-		"data":  list,
+	typeList := []string{constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.MINI_R_SETTING, constants.DRIVING_SETTING, constants.RENTAL_SETTING, constants.PROSHOP_SETTING}
+	kioskList := []KioskResponse{}
+
+	for _, typeD := range typeList {
+		kioskItem := KioskResponse{
+			Type: typeD,
+			Data: []model_service.Kiosk{},
+		}
+		for _, data := range list {
+			kioskItem.Data = append(kioskItem.Data, data)
+		}
+		kioskList = append(kioskList, kioskItem)
 	}
 
-	okResponse(c, res)
+	okResponse(c, kioskList)
 }
 
 func (_ *CKiosk) CreateKiosk(c *gin.Context, prof models.CmsUser) {
