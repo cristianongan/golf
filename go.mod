@@ -54,6 +54,7 @@ require (
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/nleeper/goment v1.4.4 // indirect
 	github.com/pelletier/go-toml v1.9.3 // indirect
 	github.com/rs/cors v1.8.1 // indirect
 	github.com/rs/xid v1.2.1 // indirect
@@ -65,6 +66,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
+	github.com/tkuchiki/go-timezone v0.2.0 // indirect
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ugorji/go/codec v1.2.6 // indirect
 	go.opentelemetry.io/otel v0.11.0 // indirect

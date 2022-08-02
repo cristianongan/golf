@@ -244,10 +244,11 @@ func (_ *CGolfFee) GetListGuestStyle(c *gin.Context, prof models.CmsUser) {
 	}
 
 	golfFeeR := models.GolfFee{
-		PartnerUid:   form.PartnerUid,
-		CourseUid:    form.CourseUid,
-		TablePriceId: tablePrice.Id,
-		CustomerType: form.CustomerType,
+		PartnerUid:       form.PartnerUid,
+		CourseUid:        form.CourseUid,
+		TablePriceId:     tablePrice.Id,
+		CustomerType:     form.CustomerType,
+		CustomerCategory: form.CustomerCategory,
 	}
 	golfFeeR.Status = constants.STATUS_ENABLE
 	guestStyles := golfFeeR.GetGuestStyleList()

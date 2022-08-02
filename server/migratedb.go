@@ -29,6 +29,7 @@ func MigrateDb() {
 		db.AutoMigrate(&models.CustomerUser{})
 		db.AutoMigrate(&models.CustomerType{})
 		db.AutoMigrate(&models.TeeTimeSettings{})
+		db.AutoMigrate(&models.TeeTypeClose{})
 
 		// ----- Agency ------
 		db.AutoMigrate(&models.Agency{})
@@ -89,6 +90,12 @@ func MigrateDb() {
 
 		// ------- Caddie Working Calendar -------
 		db.AutoMigrate(&models.CaddieWorkingCalendar{})
+
+		// ------- Caddie Group -------
+		db.AutoMigrate(&models.CaddieGroup{})
+
+		// ------- Caddie Working Schedule -------
+		db.AutoMigrate(&models.CaddieWorkingSchedule{})
 
 		// ------- System Activity Log -------
 		db.AutoMigrate(&logger.ActivityLog{})

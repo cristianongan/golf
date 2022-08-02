@@ -15,6 +15,8 @@ type CreateCourseBody struct {
 type GetListCourseForm struct {
 	PageRequest
 	PartnerUid string `form:"partner_uid"`
+	Name       string `form:"name"`
+	Status     string `form:"status"`
 }
 
 type UpdateCourseBody struct {

@@ -108,8 +108,8 @@ func (_ *CAgency) UpdateAgency(c *gin.Context, prof models.CmsUser) {
 	if body.ShortName != "" {
 		agency.ShortName = body.ShortName
 	}
-	if body.Category != "" {
-		agency.Category = body.Category
+	if body.Type != "" {
+		agency.Type = body.Type
 	}
 	if body.GuestStyle != "" {
 		agency.GuestStyle = body.GuestStyle

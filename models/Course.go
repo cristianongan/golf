@@ -62,11 +62,12 @@ func (item *Course) FindList(page Page) ([]Course, int64, error) {
 	list := []Course{}
 	total := int64(0)
 	status := item.Status
-	item.Status = ""
-	db = db.Where(item)
 
 	if status != "" {
 		db = db.Where("status IN (?)", strings.Split(status, ","))
+	}
+	if item.Name != "" {
+		db = db.Where("name LIKE ?", "%"+item.Name+"%")
 	}
 	db.Count(&total)
 

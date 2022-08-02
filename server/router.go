@@ -347,6 +347,17 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/caddie-fee/setting/list", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.GetListCaddieFeeSetting))
 			cmsApiAuthorized.PUT("/caddie-fee/setting/:id", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.UpdateCaddieFeeSetting))
 			cmsApiAuthorized.DELETE("/caddie-fee/setting/:id", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.DeleteCaddieFeeSetting))
+			/// =================== Caddie Groups ===================
+			cCaddieGroup := new(controllers.CCaddieGroup)
+			cmsApiAuthorized.GET("/caddie-groups", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.GetCaddieGroupList))
+			cmsApiAuthorized.POST("/caddie-groups", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.CreateCaddieGroup))
+			cmsApiAuthorized.POST("/caddie-groups/add-caddies", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.AddCaddieToGroup))
+			cmsApiAuthorized.DELETE("/caddie-groups/:id", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.DeleteCaddieGroup))
+
+			/// =================== Caddie Working Schedule ===================
+			cCaddieWorkingSchedule := new(controllers.CCaddieWorkingSchedule)
+			cmsApiAuthorized.GET("/caddie-working-schedule", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingSchedule.GetCaddieWorkingScheduleList))
+			cmsApiAuthorized.POST("/caddie-working-schedule", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingSchedule.CreateCaddieWorkingSchedule))
 
 			/// =================== Buggy Used Statistic ===================
 			cBuggyUsedList := new(controllers.CBuggyUsedList)
@@ -444,6 +455,12 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/booking-source/list", middlewares.AuthorizedCmsUserHandler(cBookingSource.GetBookingSourceList))
 			cmsApiAuthorized.PUT("/booking-source/:id", middlewares.AuthorizedCmsUserHandler(cBookingSource.UpdateBookingSource))
 			cmsApiAuthorized.DELETE("/booking-source/:id", middlewares.AuthorizedCmsUserHandler(cBookingSource.DeleteBookingSource))
+
+			/// =================== Close Tee Type =====================
+			cTeeTypeClose := new(controllers.CTeeTypeClose)
+			cmsApiAuthorized.POST("/tee-type-close", middlewares.AuthorizedCmsUserHandler(cTeeTypeClose.CreateTeeTypeClose))
+			cmsApiAuthorized.GET("/tee-type-close/list", middlewares.AuthorizedCmsUserHandler(cTeeTypeClose.GetTeeTypeClose))
+			cmsApiAuthorized.DELETE("/tee-type-close/:id", middlewares.AuthorizedCmsUserHandler(cTeeTypeClose.DeleteTeeTypeClose))
 		}
 
 		// ----------------------------------------------------------

@@ -106,6 +106,18 @@ const (
 )
 
 /*
+  Các loại KIOSK
+*/
+const (
+	KIOSK_SETTING   = "KIOSK"
+	MINI_B_SETTING  = "MINI_B"
+	MINI_R_SETTING  = "MINI_R"
+	DRIVING_SETTING = "DRIVING"
+	RENTAL_SETTING  = "RENTAL"
+	PROSHOP_SETTING = "PROSHOP"
+)
+
+/*
   Các dịch vụ của sân Golf: thuê đồ, shop, nhà hàng...
 */
 const (
