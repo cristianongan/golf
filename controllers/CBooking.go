@@ -5,12 +5,12 @@ import (
 	"log"
 	"start/constants"
 	"start/controllers/request"
+	"start/controllers/response"
 	"start/models"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
 	"start/utils"
 	"start/utils/response_message"
-	"strconv"
 	"strings"
 	"time"
 
@@ -88,9 +88,6 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	if body.Bag != "" {
 		booking.Bag = body.Bag
 	}
-
-	bookingCode := strconv.FormatInt(time.Now().Unix(), 10)
-	booking.BookingCode = bookingCode
 
 	if body.BookingDate != "" {
 		booking.BookingDate = body.BookingDate
@@ -268,8 +265,21 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 
 		go addCaddieInOutNote(caddieInOutNote)
 	}
-	booking.CustomerBookingName = booking.CustomerName
-	booking.CustomerBookingPhone = booking.CustomerInfo.Phone
+	if body.CustomerBookingName != "" {
+		booking.CustomerBookingName = body.CustomerBookingName
+	} else {
+		booking.CustomerBookingName = booking.CustomerName
+	}
+
+	if body.CustomerBookingPhone != "" {
+		booking.CustomerBookingPhone = body.CustomerBookingPhone
+	} else {
+		booking.CustomerBookingPhone = booking.CustomerInfo.Phone
+	}
+
+	bookingCode := utils.HashCodeUuid(bookingUid.String())
+	booking.BookingCode = bookingCode
+
 	errC := booking.Create(bUid)
 
 	if errC != nil {
@@ -377,6 +387,58 @@ func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 	res := map[string]interface{}{
 		"total": total,
 		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
+/*
+ Danh sách booking với select
+*/
+func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	bookings := model_booking.BookingList{}
+	bookings.PartnerUid = form.PartnerUid
+	bookings.CourseUid = form.CourseUid
+	bookings.BookingDate = form.BookingDate
+	bookings.GolfBag = form.Bag
+	bookings.BookingCode = form.BookingCode
+	bookings.InitType = form.InitType
+	bookings.IsAgency = form.IsAgency
+	bookings.AgencyId = form.AgencyId
+	bookings.Status = form.Status
+	bookings.FromDate = form.FromDate
+	bookings.ToDate = form.ToDate
+	bookings.IsToday = form.IsToday
+	bookings.BookingUid = form.BookingUid
+	bookings.IsFlight = form.IsFlight
+	bookings.BagStatus = form.BagStatus
+	bookings.HaveBag = form.HaveBag
+
+	var list []model_booking.Booking
+	db, total, err := bookings.FindBookingListWithSelect(page)
+	db.Find(&list)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
 	}
 
 	okResponse(c, res)
@@ -1322,8 +1384,7 @@ func (cBooking *CBooking) CreateBatchBooking(c *gin.Context, prof models.CmsUser
 		badRequest(c, bindErr.Error())
 		return
 	}
-
-	bookingCode := strconv.FormatInt(time.Now().Unix(), 10)
+	bookingCode := utils.HashCodeUuid(uuid.New().String())
 	for _, body := range bodyRequest.BookingList {
 		// validate caddie_code
 		var caddie models.Caddie

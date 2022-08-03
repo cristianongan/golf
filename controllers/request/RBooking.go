@@ -33,6 +33,27 @@ type GetListBookingForm struct {
 	AgencyId    int64  `form:"agency_id"`
 }
 
+type GetListBookingWithSelectForm struct {
+	PageRequest
+	PartnerUid  string  `form:"partner_uid"`
+	CourseUid   string  `form:"course_uid"`
+	Bag         string  `form:"bag"`
+	BookingDate string  `form:"booking_date"`
+	BookingCode string  `form:"booking_code"`
+	InitType    string  `form:"init_type"`
+	AgencyId    int64   `form:"agency_id"`
+	IsAgency    string  `form:"is_agency"`
+	Status      string  `form:"status"`
+	FromDate    string  `form:"from_date"`
+	ToDate      string  `form:"to_date"`
+	GolfBag     string  `form:"golf_bag"`
+	IsToday     string  `form:"is_today"`
+	BookingUid  string  `form:"booking_uid"`
+	IsFlight    string  `form:"is_flight"`
+	BagStatus   string  `form:"bag_status"`
+	HaveBag     *string `form:"have_bag"`
+}
+
 type GetListBookingTeeTimeForm struct {
 	PageRequest
 	PartnerUid  string `form:"partner_uid"`
