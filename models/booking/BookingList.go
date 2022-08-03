@@ -29,6 +29,7 @@ type BookingList struct {
 	BookingUid  string
 	IsFlight    string
 	BagStatus   string
+	HasBuggy    string
 }
 
 func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
@@ -94,11 +95,20 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 	}
 
 	if item.IsFlight != "" {
-		isFlight, _ := strconv.ParseInt(item.IsAgency, 10, 8)
+		isFlight, _ := strconv.ParseInt(item.IsFlight, 10, 64)
 		if isFlight == 1 {
-			db = db.Where("flight_uid <> ?", 0)
+			db = db.Where("flight_id <> ?", 0)
 		} else if isFlight == 0 {
-			db = db.Where("flight_uid = ?", 0)
+			db = db.Where("flight_id = ?", 0)
+		}
+	}
+
+	if item.HasBuggy != "" {
+		hasBuggy, _ := strconv.ParseInt(item.HasBuggy, 10, 64)
+		if hasBuggy == 1 {
+			db = db.Where("buggy_id <> ?", 0)
+		} else if hasBuggy == 0 {
+			db = db.Where("buggy_id = ?", 0)
 		}
 	}
 
