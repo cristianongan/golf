@@ -96,6 +96,7 @@ type CreateBookingBody struct {
 	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant"`
 	BookingRetal      utils.BookingRental     `json:"booking_retal"`
 	BookingCode       string                  `form:"booking_code"`
+	BookingSourceId   string                  `json:"booking_source_id"`
 }
 
 type CreateBatchBookingBody struct {

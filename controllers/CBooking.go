@@ -11,6 +11,7 @@ import (
 	model_gostarter "start/models/go-starter"
 	"start/utils"
 	"start/utils/response_message"
+	"strconv"
 	"strings"
 	"time"
 
@@ -59,6 +60,15 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		// 	response_message.BadRequest(c, "Tee Time đã bị xóa")
 		// 	return
 		// }
+	}
+
+	//check Booking Source with date time rule
+	if body.BookingSourceId != "" {
+		errorTime := cBooking.validateTimeRuleInBookingSource(body.BookingSourceId, c, body.BookingDate)
+		if errorTime != nil {
+			response_message.BadRequest(c, errorTime.Error())
+			return
+		}
 	}
 
 	teePartList := []string{"MORNING", "NOON", "NIGHT"}
@@ -288,6 +298,28 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, booking)
+}
+func (_ CBooking) validateTimeRuleInBookingSource(BookingSourceId string, c *gin.Context, BookingDate string) error {
+	bookingSourceId, err := strconv.ParseInt(BookingSourceId, 10, 64)
+	if err != nil {
+		return err
+	}
+	bookingSource := model_booking.BookingSource{}
+	bookingSource.Id = bookingSourceId
+	errF := bookingSource.FindFirst()
+	if errF != nil {
+		return errors.New("BookingSource not found")
+	}
+	currentDInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, utils.GetCurrentDay1())
+	lastDInt := currentDInt + bookingSource.NumberOfDays*24*60*60
+
+	bookingDateInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, BookingDate)
+
+	if bookingDateInt >= currentDInt && bookingDateInt <= lastDInt {
+		return nil
+	}
+
+	return errors.New("BookingDate không nằm trong ngày quy định của Booking Source")
 }
 
 /*
@@ -575,7 +607,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 
 		agencyBooking := cloneToAgencyBooking(agency)
-
+		booking.AgencyId = body.AgencyId
 		booking.AgencyInfo = agencyBooking
 		body.GuestStyle = agency.GuestStyle
 		//TODO: check giá đặc biệt của agency
@@ -611,6 +643,17 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			// Lấy theo GuestStyle
 			body.GuestStyle = memberCard.GetGuestStyle()
 		}
+	} else {
+		if body.CustomerName != "" {
+			booking.CustomerName = body.CustomerName
+		}
+	}
+
+	//Find Booking Code
+	list, _ := booking.FindListWithBookingCode()
+	if len(list) == 1 {
+		booking.CustomerBookingName = booking.CustomerName
+		booking.CustomerBookingPhone = booking.CustomerInfo.Phone
 	}
 
 	//Update service items

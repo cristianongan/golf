@@ -100,6 +100,7 @@ type Booking struct {
 	BookingCode       string                  `json:"booking_code" gorm:"type:varchar(100);index"` // cho case tạo nhiều booking có cùng booking code
 	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant,omitempty" gorm:"type:json"`
 	BookingRetal      utils.BookingRental     `json:"booking_retal,omitempty" gorm:"type:json"`
+	BookingSourceId   string                  `json:"booking_source_id" gorm:"type:varchar(50)"`
 }
 
 type CaddieInOutNote CaddieInOutNoteForBooking
@@ -800,6 +801,16 @@ func (item *Booking) FindListForSubBag() ([]BookingForSubBag, error) {
 
 	db.Find(&list)
 
+	return list, db.Error
+}
+
+func (item *Booking) FindListWithBookingCode() ([]Booking, error) {
+	db := datasources.GetDatabase().Table("bookings")
+	list := []Booking{}
+	if item.BookingCode != "" {
+		db = db.Where("booking_code = ?", item.BookingCode)
+	}
+	db.Find(&list)
 	return list, db.Error
 }
 
