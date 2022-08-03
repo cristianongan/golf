@@ -505,15 +505,6 @@ func (_ *CCourseOperating) GetStartingSheet(c *gin.Context, prof models.CmsUser)
 		}
 	}
 
-	//Get Flight Data
-	flightR := model_gostarter.Flight{
-		PartnerUid:  form.PartnerUid,
-		CourseUid:   form.CourseUid,
-		DateDisplay: form.BookingDate,
-	}
-
-	listFlight, _ := flightR.FindListAll()
-
 	//Get Booking data
 	bookingR := model_booking.Booking{
 		PartnerUid:   form.PartnerUid,
@@ -524,12 +515,7 @@ func (_ *CCourseOperating) GetStartingSheet(c *gin.Context, prof models.CmsUser)
 
 	listBooking := bookingR.FindForFlightAll(form.CaddieCode, form.CaddieName, form.NumberPeopleInFlight)
 
-	res := map[string]interface{}{
-		"flight_data":  listFlight,
-		"booking_data": listBooking,
-	}
-
-	okResponse(c, res)
+	okResponse(c, listBooking)
 }
 
 func (_ CCourseOperating) validateBooking(bookindUid string) (model_booking.Booking, error) {

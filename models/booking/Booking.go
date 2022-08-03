@@ -907,6 +907,11 @@ func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numb
 	if caddieCode != "" {
 		db = db.Where("caddie_info->'$.code' = ?", caddieCode)
 	}
+
+	if item.CustomerName != "" {
+		db = db.Where("customer_name = ?", item.CustomerName)
+	}
+
 	db = db.Where("flight_id > ?", 0)
 
 	if numberPeopleInFlight != nil {
@@ -920,7 +925,7 @@ func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numb
 		db.Where("flight_id in (?) ", listFlightWithNumberPeople)
 	}
 
-	db.Debug().Find(&list)
+	db.Find(&list)
 	err := db.Error
 	if err != nil {
 		log.Println("Booking FindForFlightAll err ", err.Error())
