@@ -878,10 +878,11 @@ func (item *Booking) FindForCaddieOnCourse(InFlight string) []Booking {
 /*
 	Get List for Flight Data
 */
-func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numberPeopleInFlight *int64) []BookingForFlightRes {
+func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numberPeopleInFlight *int64, page models.Page) []BookingForFlightRes {
 	db := datasources.GetDatabase().Table("bookings")
 	list := []BookingForFlightRes{}
 	listFlightWithNumberPeople := []int64{}
+	total := int64(0)
 
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
@@ -889,14 +890,7 @@ func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numb
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
-	if item.BookingDate == "" {
-		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-		if errDate == nil {
-			item.BookingDate = dateDisplay
-		} else {
-			log.Println("FindForCaddieOnCourse BookingDate err ", errDate.Error())
-		}
-	}
+
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
@@ -924,8 +918,12 @@ func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numb
 		}
 		db.Where("flight_id in (?) ", listFlightWithNumberPeople)
 	}
+	db.Count(&total)
 
-	db.Find(&list)
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
 	err := db.Error
 	if err != nil {
 		log.Println("Booking FindForFlightAll err ", err.Error())

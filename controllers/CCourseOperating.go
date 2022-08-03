@@ -496,13 +496,11 @@ func (_ *CCourseOperating) GetStartingSheet(c *gin.Context, prof models.CmsUser)
 		return
 	}
 
-	if form.BookingDate == "" {
-		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-		if errDate == nil {
-			form.BookingDate = dateDisplay
-		} else {
-			log.Println("GetStartingSheet display err ", errDate.Error())
-		}
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
 	}
 
 	//Get Booking data
@@ -513,7 +511,7 @@ func (_ *CCourseOperating) GetStartingSheet(c *gin.Context, prof models.CmsUser)
 		CustomerName: form.CustomerName,
 	}
 
-	listBooking := bookingR.FindForFlightAll(form.CaddieCode, form.CaddieName, form.NumberPeopleInFlight)
+	listBooking := bookingR.FindForFlightAll(form.CaddieCode, form.CaddieName, form.NumberPeopleInFlight, page)
 
 	okResponse(c, listBooking)
 }
