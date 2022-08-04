@@ -722,8 +722,8 @@ func (item *Booking) FindList(page models.Page, from int64, to int64) ([]Booking
 		db = db.Where("agency_id = ?", item.AgencyId)
 	}
 
-	if item.InitType != "" {
-		db = db.Where("init_type = ?", item.InitType)
+	if item.BagStatus != "" {
+		db = db.Where("bag_status = ?", item.BagStatus)
 	}
 
 	//Search With Time
