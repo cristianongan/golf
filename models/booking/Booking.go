@@ -727,7 +727,11 @@ func (item *Booking) FindList(page models.Page, from int64, to int64) ([]Booking
 	}
 
 	if item.CustomerName != "" {
-		db = db.Where("customer_name = ?", item.CustomerName)
+		db = db.Where("customer_name LIKE ?", "%"+item.CustomerName+"%")
+	}
+
+	if item.Bag != "" {
+		db = db.Where("bag LIKE ?", "%"+item.Bag+"%")
 	}
 
 	//Search With Time
