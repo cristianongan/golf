@@ -1,10 +1,7 @@
 package controllers
 
 import (
-	"github.com/ez4o/go-try"
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
-	"github.com/twharmon/slices"
+	"errors"
 	"log"
 	"start/controllers/request"
 	"start/models"
@@ -12,6 +9,11 @@ import (
 	"start/utils"
 	"start/utils/response_message"
 	"time"
+
+	"github.com/ez4o/go-try"
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/twharmon/slices"
 )
 
 type CRound struct{}
@@ -47,29 +49,32 @@ func (_ CRound) createRound(booking model_booking.Booking, newHole int) (model_b
 	round.MemberCardUid = booking.MemberCardUid
 	round.TeeOffTime = booking.CheckInTime
 	round.Pax = 1
+	if booking.Rounds != nil {
+		round.Index = len(booking.Rounds) + 1
+	}
 
 	return round, nil
 }
 
-func (_ CRound) updateListGolfFee(booking model_booking.Booking, currentGolfFee *model_booking.BookingGolfFee) (model_booking.ListBookingGolfFee, error) {
-	currentGolfFee.CaddieFee = slices.Reduce(booking.Rounds, func(prev int64, item model_booking.BookingRound) int64 {
-		return prev + item.CaddieFee
-	})
+// func (_ CRound) updateListGolfFee(booking model_booking.Booking, currentGolfFee *model_booking.BookingGolfFee) (model_booking.ListBookingGolfFee, error) {
+// 	currentGolfFee.CaddieFee = slices.Reduce(booking.Rounds, func(prev int64, item model_booking.BookingRound) int64 {
+// 		return prev + item.CaddieFee
+// 	})
 
-	currentGolfFee.BuggyFee = slices.Reduce(booking.Rounds, func(prev int64, item model_booking.BookingRound) int64 {
-		return prev + item.BuggyFee
-	})
+// 	currentGolfFee.BuggyFee = slices.Reduce(booking.Rounds, func(prev int64, item model_booking.BookingRound) int64 {
+// 		return prev + item.BuggyFee
+// 	})
 
-	currentGolfFee.GreenFee = slices.Reduce(booking.Rounds, func(prev int64, item model_booking.BookingRound) int64 {
-		return prev + item.GreenFee
-	})
+// 	currentGolfFee.GreenFee = slices.Reduce(booking.Rounds, func(prev int64, item model_booking.BookingRound) int64 {
+// 		return prev + item.GreenFee
+// 	})
 
-	return slices.Splice(booking.ListGolfFee, 0, 1, *currentGolfFee), nil
-}
+// 	return slices.Splice(booking.ListGolfFee, 0, 1, *currentGolfFee), nil
+// }
 
 func (_ CRound) updateCurrentBagPrice(booking model_booking.Booking, golfFee int64) (model_booking.BookingCurrentBagPriceDetail, error) {
 	currentBagPriceDetail := booking.CurrentBagPrice
-	currentBagPriceDetail.GolfFee = golfFee
+	currentBagPriceDetail.GolfFee += golfFee
 	currentBagPriceDetail.UpdateAmount()
 
 	return currentBagPriceDetail, nil
@@ -123,18 +128,23 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 
 		booking.Rounds = append(booking.Rounds, newRound)
 
-		// update list_golf_fee
-		currentGolfFee := slices.Find(booking.ListGolfFee, func(item model_booking.BookingGolfFee) bool {
-			return item.BookingUid == booking.Uid
-		})
-
-		booking.ListGolfFee, err = cRound.updateListGolfFee(booking, &currentGolfFee)
-		if err != nil {
-			try.ThrowOnError(err)
+		// Golf fee for this Round
+		// Thêm golf Fee cho Round mới
+		newRoundGolfFee := model_booking.BookingGolfFee{
+			BookingUid: booking.Uid,
+			PlayerName: booking.CustomerName,
+			Bag:        booking.Bag,
+			CaddieFee:  newRound.CaddieFee,
+			BuggyFee:   newRound.BuggyFee,
+			GreenFee:   newRound.GreenFee,
+			RoundIndex: newRound.Index,
 		}
 
+		// update list_golf_fee
+		booking.ListGolfFee = append(booking.ListGolfFee, newRoundGolfFee)
+
 		// update current_bag_price
-		booking.CurrentBagPrice, err = cRound.updateCurrentBagPrice(booking, currentGolfFee.CaddieFee+currentGolfFee.BuggyFee+currentGolfFee.GreenFee)
+		booking.CurrentBagPrice, err = cRound.updateCurrentBagPrice(booking, newRoundGolfFee.CaddieFee+newRoundGolfFee.BuggyFee+newRoundGolfFee.GreenFee)
 		if err != nil {
 			try.ThrowOnError(err)
 		}
@@ -196,26 +206,33 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 
 	try.Try(func() {
 		currentRound := booking.Rounds[body.RoundIndex]
-		if currentRound.Hole > 9 {
-			newRound := currentRound
-			newRound.Hole = int(body.Hole)
-			currentRound.Hole = currentRound.Hole - newRound.Hole
-			booking.Rounds[body.RoundIndex] = currentRound
-			booking.Rounds = append(booking.Rounds, newRound)
+		if currentRound.Hole <= 9 {
+			try.ThrowOnError(errors.New("Hole invalid for split"))
+			return
+		}
+		newRound := currentRound
+		newRound.Hole = int(body.Hole)
+		newRound.Index = len(booking.Rounds) + 1
+		currentRound.Hole = currentRound.Hole - newRound.Hole
+		booking.Rounds[body.RoundIndex] = currentRound
+		booking.Rounds = append(booking.Rounds, newRound)
+
+		// Thêm golf Fee cho Round mới
+		newRoundGolfFee := model_booking.BookingGolfFee{
+			BookingUid: booking.Uid,
+			PlayerName: booking.CustomerName,
+			Bag:        booking.Bag,
+			CaddieFee:  newRound.CaddieFee,
+			BuggyFee:   newRound.BuggyFee,
+			GreenFee:   newRound.GreenFee,
+			RoundIndex: newRound.Index,
 		}
 
 		// update list_golf_fee
-		currentGolfFee := slices.Find(booking.ListGolfFee, func(item model_booking.BookingGolfFee) bool {
-			return item.BookingUid == booking.Uid
-		})
-
-		booking.ListGolfFee, err = cRound.updateListGolfFee(booking, &currentGolfFee)
-		if err != nil {
-			try.ThrowOnError(err)
-		}
+		booking.ListGolfFee = append(booking.ListGolfFee, newRoundGolfFee)
 
 		// update current_bag_price
-		booking.CurrentBagPrice, err = cRound.updateCurrentBagPrice(booking, currentGolfFee.CaddieFee+currentGolfFee.BuggyFee+currentGolfFee.GreenFee)
+		booking.CurrentBagPrice, err = cRound.updateCurrentBagPrice(booking, newRoundGolfFee.CaddieFee+newRoundGolfFee.BuggyFee+newRoundGolfFee.GreenFee)
 		if err != nil {
 			try.ThrowOnError(err)
 		}
@@ -282,24 +299,36 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 		})
 
 		newRound, err := cRound.createRound(booking, totalHoles)
+		newRound.Index = 0
 		if err != nil {
 			try.ThrowOnError(err)
 		}
 
 		booking.Rounds = append(model_booking.ListBookingRound{}, newRound)
 
-		// update list_golf_fee
-		currentGolfFee := slices.Find(booking.ListGolfFee, func(item model_booking.BookingGolfFee) bool {
-			return item.BookingUid == booking.Uid
-		})
-
-		booking.ListGolfFee, err = cRound.updateListGolfFee(booking, &currentGolfFee)
-		if err != nil {
-			try.ThrowOnError(err)
+		newRoundGolfFee := model_booking.BookingGolfFee{
+			BookingUid: booking.Uid,
+			PlayerName: booking.CustomerName,
+			Bag:        booking.Bag,
+			CaddieFee:  newRound.CaddieFee,
+			BuggyFee:   newRound.BuggyFee,
+			GreenFee:   newRound.GreenFee,
+			RoundIndex: newRound.Index,
 		}
 
+		listGolfFeeTemp := model_booking.ListBookingGolfFee{}
+		listGolfFeeTemp = append(listGolfFeeTemp, newRoundGolfFee)
+		for i, v := range booking.ListGolfFee {
+			if i > 0 && v.BookingUid != booking.Uid {
+				listGolfFeeTemp = append(listGolfFeeTemp, v)
+			}
+		}
+
+		// Udp golf fee
+		booking.ListGolfFee = listGolfFeeTemp
+
 		// update current_bag_price
-		booking.CurrentBagPrice, err = cRound.updateCurrentBagPrice(booking, currentGolfFee.CaddieFee+currentGolfFee.BuggyFee+currentGolfFee.GreenFee)
+		booking.CurrentBagPrice, err = cRound.updateCurrentBagPrice(booking, newRoundGolfFee.CaddieFee+newRoundGolfFee.BuggyFee+newRoundGolfFee.GreenFee)
 		if err != nil {
 			try.ThrowOnError(err)
 		}

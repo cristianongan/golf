@@ -7,6 +7,7 @@ type GetListAgencyForm struct {
 	CourseUid  string `form:"course_uid"`
 	Name       string `form:"name"`
 	AgencyId   string `form:"agency_id"`
+	Type       string `form:"type"`
 }
 
 type GetListAgencySpecialPriceForm struct {

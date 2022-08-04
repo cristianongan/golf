@@ -88,14 +88,6 @@ func (_ *CKiosk) CreateKiosk(c *gin.Context, prof models.CmsUser) {
 	kiosk.KioskName = body.KioskName
 	kiosk.ServiceType = body.ServiceType
 	kiosk.KioskType = body.KioskType
-
-	// Check duplicated
-	errF := kiosk.FindFirst()
-	if errF == nil || kiosk.Id > 0 {
-		response_message.BadRequest(c, errF.Error())
-		return
-	}
-
 	kiosk.Status = body.Status
 
 	errC := kiosk.Create()

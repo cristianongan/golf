@@ -57,6 +57,7 @@ func (_ *CAgency) GetListAgency(c *gin.Context, prof models.CmsUser) {
 		CourseUid:  form.CourseUid,
 		Name:       form.Name,
 		AgencyId:   form.AgencyId,
+		Type:       form.Type,
 	}
 	agencyR.Status = form.Status
 	list, total, err := agencyR.FindList(page)

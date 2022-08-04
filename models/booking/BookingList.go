@@ -11,12 +11,15 @@ import (
 )
 
 type BookingList struct {
+	PartnerUid  string
 	CourseUid   string
+	BookingCode string
 	BookingDate string
 	CaddieUid   string
 	CaddieName  string
 	CaddieCode  string
 	InitType    string
+	AgencyId    int64
 	IsAgency    string
 	Status      string
 	FromDate    string
@@ -29,6 +32,8 @@ type BookingList struct {
 	BookingUid  string
 	IsFlight    string
 	BagStatus   string
+	HaveBag     *string
+	HasBuggy    string
 }
 
 func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
@@ -93,12 +98,37 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 		db = db.Where("bag_status = ?", item.BagStatus)
 	}
 
+	if item.BookingCode != "" {
+		db = db.Where("booking_code = ?", item.BookingCode)
+	}
+
+	if item.AgencyId > 0 {
+		db = db.Where("agency_id = ?", item.AgencyId)
+	}
+
+	if item.HaveBag != nil {
+		if *item.HaveBag == "1" {
+			db = db.Where("bag <> ?", "")
+		} else {
+			db = db.Where("bag = ?", "")
+		}
+	}
+
 	if item.IsFlight != "" {
-		isFlight, _ := strconv.ParseInt(item.IsAgency, 10, 8)
+		isFlight, _ := strconv.ParseInt(item.IsFlight, 10, 64)
 		if isFlight == 1 {
-			db = db.Where("flight_uid <> ?", 0)
+			db = db.Where("flight_id <> ?", 0)
 		} else if isFlight == 0 {
-			db = db.Where("flight_uid = ?", 0)
+			db = db.Where("flight_id = ?", 0)
+		}
+	}
+
+	if item.HasBuggy != "" {
+		hasBuggy, _ := strconv.ParseInt(item.HasBuggy, 10, 64)
+		if hasBuggy == 1 {
+			db = db.Where("buggy_id <> ?", 0)
+		} else if hasBuggy == 0 {
+			db = db.Where("buggy_id = ?", 0)
 		}
 	}
 

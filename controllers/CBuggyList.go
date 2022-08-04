@@ -7,6 +7,7 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils/response_message"
+	"strconv"
 )
 
 type CBuggyList struct{}
@@ -30,6 +31,8 @@ func (_ *CBuggyList) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 	bookings.FromDate = query.FromDate
 	bookings.ToDate = query.ToDate
 	bookings.BuggyCode = query.BuggyCode
+	bookings.IsFlight = strconv.FormatInt(1, 10)
+	bookings.HasBuggy = strconv.FormatInt(1, 10)
 
 	// add course_uid
 	bookings.CourseUid = prof.CourseUid
@@ -39,6 +42,15 @@ func (_ *CBuggyList) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 	var list []response.BuggyListResponse
 	db.Find(&list)
 
+	result := make(map[int64]map[string][]response.BuggyListResponse)
+
+	for _, booking := range list {
+		if result[booking.FlightId] == nil {
+			result[booking.FlightId] = make(map[string][]response.BuggyListResponse)
+		}
+		result[booking.FlightId][booking.BuggyId] = append(result[booking.FlightId][booking.BuggyId], booking)
+	}
+
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -46,7 +58,7 @@ func (_ *CBuggyList) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 
 	res := response.PageResponse{
 		Total: total,
-		Data:  list,
+		Data:  result,
 	}
 
 	c.JSON(200, res)

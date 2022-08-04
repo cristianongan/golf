@@ -100,6 +100,7 @@ type Booking struct {
 	BookingCode       string                  `json:"booking_code" gorm:"type:varchar(100);index"` // cho case tạo nhiều booking có cùng booking code
 	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant,omitempty" gorm:"type:json"`
 	BookingRetal      utils.BookingRental     `json:"booking_retal,omitempty" gorm:"type:json"`
+	BookingSourceId   string                  `json:"booking_source_id" gorm:"type:varchar(50)"`
 }
 
 type CaddieInOutNote CaddieInOutNoteForBooking
@@ -233,6 +234,7 @@ type BookingGolfFee struct {
 	CaddieFee  int64  `json:"caddie_fee"`
 	BuggyFee   int64  `json:"buggy_fee"`
 	GreenFee   int64  `json:"green_fee"`
+	RoundIndex int    `json:"round_index"`
 }
 
 type BookingTeeResponse struct {
@@ -376,6 +378,11 @@ func (item *BookingBuggy) Scan(v interface{}) error {
 
 func (item BookingBuggy) Value() (driver.Value, error) {
 	return json.Marshal(&item)
+}
+
+type NumberPeopleInFlight struct {
+	FlightId int64 `json:"flight_id"`
+	Total    int64 `json:"total"`
 }
 
 // -------- Booking Logic --------
@@ -798,6 +805,16 @@ func (item *Booking) FindListForSubBag() ([]BookingForSubBag, error) {
 	return list, db.Error
 }
 
+func (item *Booking) FindListWithBookingCode() ([]Booking, error) {
+	db := datasources.GetDatabase().Table("bookings")
+	list := []Booking{}
+	if item.BookingCode != "" {
+		db = db.Where("booking_code = ?", item.BookingCode)
+	}
+	db.Find(&list)
+	return list, db.Error
+}
+
 /*
 	Find bookings in Flight
 */
@@ -873,29 +890,52 @@ func (item *Booking) FindForCaddieOnCourse(InFlight string) []Booking {
 /*
 	Get List for Flight Data
 */
-func (item *Booking) FindForFlightAll() []BookingForFlightRes {
+func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numberPeopleInFlight *int64, page models.Page) []BookingForFlightRes {
 	db := datasources.GetDatabase().Table("bookings")
 	list := []BookingForFlightRes{}
+	listFlightWithNumberPeople := []int64{}
+	total := int64(0)
+
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
-	if item.BookingDate == "" {
-		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-		if errDate == nil {
-			item.BookingDate = dateDisplay
-		} else {
-			log.Println("FindForCaddieOnCourse BookingDate err ", errDate.Error())
-		}
-	}
+
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
+	if caddieName != "" {
+		db = db.Where("caddie_info->'$.name' LIKE ?", "%"+caddieName+"%")
+	}
+
+	if caddieCode != "" {
+		db = db.Where("caddie_info->'$.code' = ?", caddieCode)
+	}
+
+	if item.CustomerName != "" {
+		db = db.Where("customer_name = ?", item.CustomerName)
+	}
+
 	db = db.Where("flight_id > ?", 0)
 
-	db.Find(&list)
+	if numberPeopleInFlight != nil {
+		listFlightR := []NumberPeopleInFlight{}
+		db2 := datasources.GetDatabase().Table("bookings")
+		db2.Select("COUNT(flight_id) as total,flight_id").Group("flight_id").Having("COUNT(flight_id) = ?", *numberPeopleInFlight)
+		db2.Find(&listFlightR)
+		for _, item := range listFlightR {
+			listFlightWithNumberPeople = append(listFlightWithNumberPeople, item.FlightId)
+		}
+		db.Where("flight_id in (?) ", listFlightWithNumberPeople)
+	}
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
 	err := db.Error
 	if err != nil {
 		log.Println("Booking FindForFlightAll err ", err.Error())

@@ -496,39 +496,24 @@ func (_ *CCourseOperating) GetStartingSheet(c *gin.Context, prof models.CmsUser)
 		return
 	}
 
-	if form.BookingDate == "" {
-		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-		if errDate == nil {
-			form.BookingDate = dateDisplay
-		} else {
-			log.Println("GetStartingSheet display err ", errDate.Error())
-		}
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
 	}
-
-	//Get Flight Data
-	flightR := model_gostarter.Flight{
-		PartnerUid:  form.PartnerUid,
-		CourseUid:   form.CourseUid,
-		DateDisplay: form.BookingDate,
-	}
-
-	listFlight, _ := flightR.FindListAll()
 
 	//Get Booking data
 	bookingR := model_booking.Booking{
-		PartnerUid:  form.PartnerUid,
-		CourseUid:   form.CourseUid,
-		BookingDate: form.BookingDate,
+		PartnerUid:   form.PartnerUid,
+		CourseUid:    form.CourseUid,
+		BookingDate:  form.BookingDate,
+		CustomerName: form.CustomerName,
 	}
 
-	listBooking := bookingR.FindForFlightAll()
+	listBooking := bookingR.FindForFlightAll(form.CaddieCode, form.CaddieName, form.NumberPeopleInFlight, page)
 
-	res := map[string]interface{}{
-		"flight_data":  listFlight,
-		"booking_data": listBooking,
-	}
-
-	okResponse(c, res)
+	okResponse(c, listBooking)
 }
 
 func (_ CCourseOperating) validateBooking(bookindUid string) (model_booking.Booking, error) {

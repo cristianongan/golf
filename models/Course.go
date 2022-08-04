@@ -69,6 +69,9 @@ func (item *Course) FindList(page Page) ([]Course, int64, error) {
 	if item.Name != "" {
 		db = db.Where("name LIKE ?", "%"+item.Name+"%")
 	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
