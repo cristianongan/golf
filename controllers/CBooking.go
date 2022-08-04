@@ -403,12 +403,13 @@ func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	bookingR := model_booking.Booking{
-		PartnerUid:  form.PartnerUid,
-		CourseUid:   form.CourseUid,
-		BookingDate: form.BookingDate,
-		BookingCode: form.BookingCode,
-		AgencyId:    form.AgencyId,
-		BagStatus:   form.BagStatus,
+		PartnerUid:   form.PartnerUid,
+		CourseUid:    form.CourseUid,
+		BookingDate:  form.BookingDate,
+		BookingCode:  form.BookingCode,
+		AgencyId:     form.AgencyId,
+		BagStatus:    form.BagStatus,
+		CustomerName: form.PlayerName,
 	}
 
 	list, total, err := bookingR.FindList(page, form.From, form.To)

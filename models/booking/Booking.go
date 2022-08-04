@@ -726,6 +726,10 @@ func (item *Booking) FindList(page models.Page, from int64, to int64) ([]Booking
 		db = db.Where("bag_status = ?", item.BagStatus)
 	}
 
+	if item.CustomerName != "" {
+		db = db.Where("customer_name = ?", item.CustomerName)
+	}
+
 	//Search With Time
 	if from > 0 && to > 0 {
 		db = db.Where("created_at between " + strconv.FormatInt(from, 10) + " and " + strconv.FormatInt(to, 10) + " ")
