@@ -13,4 +13,5 @@ type CreateKioskForm struct {
 	KioskName   string `json:"kiosk_name"`
 	ServiceType string `json:"service_type"`
 	KioskType   string `json:"kiosk_type"`
+	Status      string `json:"status"`
 }

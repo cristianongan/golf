@@ -64,10 +64,18 @@ func (item *BookingWaiting) FindList(page models.Page) ([]BookingWaiting, int64,
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
-	db = db.Where(item)
+
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+	if item.BookingTime != "" {
+		db = db.Where("booking_time = ?", item.BookingTime)
+	}
+
+	if item.PlayerName != "" {
+		db = db.Where("player_name LIKE ?", "%"+item.PlayerName+"%")
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

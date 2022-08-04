@@ -116,7 +116,7 @@ func (_ *CKiosk) UpdateKiosk(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	body := model_service.Kiosk{}
+	body := request.CreateKioskForm{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return

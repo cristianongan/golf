@@ -463,6 +463,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/tee-type-close", middlewares.AuthorizedCmsUserHandler(cTeeTypeClose.CreateTeeTypeClose))
 			cmsApiAuthorized.GET("/tee-type-close/list", middlewares.AuthorizedCmsUserHandler(cTeeTypeClose.GetTeeTypeClose))
 			cmsApiAuthorized.DELETE("/tee-type-close/:id", middlewares.AuthorizedCmsUserHandler(cTeeTypeClose.DeleteTeeTypeClose))
+
+			/// =================== Holiday =====================
+			cHoliday := new(controllers.CHoliday)
+			cmsApiAuthorized.POST("/holiday", middlewares.AuthorizedCmsUserHandler(cHoliday.CreateHoliday))
+			cmsApiAuthorized.GET("/holiday/list", middlewares.AuthorizedCmsUserHandler(cHoliday.GetListHoliday))
+			cmsApiAuthorized.DELETE("/holiday/:id", middlewares.AuthorizedCmsUserHandler(cHoliday.UpdateHoliday))
+			cmsApiAuthorized.PUT("/holiday/:id", middlewares.AuthorizedCmsUserHandler(cHoliday.DeleteHoliday))
 		}
 
 		// ----------------------------------------------------------
