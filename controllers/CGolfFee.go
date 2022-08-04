@@ -262,8 +262,8 @@ func (_ *CGolfFee) GetGolfFeeByGuestStyle(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if form.PartnerUid == "" {
-		response_message.BadRequest(c, "partner uid invalid")
+	if form.PartnerUid == "" || form.GuestStyle == "" {
+		response_message.BadRequest(c, "data invalid")
 		return
 	}
 
