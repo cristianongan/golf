@@ -6,6 +6,7 @@ import (
 	"start/datasources"
 	"start/utils"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -80,6 +81,31 @@ func (item *AgencySpecialPrice) Update() error {
 func (item *AgencySpecialPrice) FindFirst() error {
 	db := datasources.GetDatabase()
 	return db.Where(item).First(item).Error
+}
+
+func (item *AgencySpecialPrice) FindListByAgencyId() ([]AgencySpecialPrice, int64, error) {
+	db := datasources.GetDatabase().Model(AgencySpecialPrice{})
+	list := []AgencySpecialPrice{}
+	total := int64(0)
+	status := item.ModelId.Status
+	item.ModelId.Status = ""
+	if status != "" {
+		db = db.Where("status in (?)", strings.Split(status, ","))
+	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.AgencyId > 0 {
+		db = db.Where("agency_id = ?", item.AgencyId)
+	}
+
+	db.Count(&total)
+	db.Find(&list)
+	return list, total, db.Error
 }
 
 func (item *AgencySpecialPrice) FindList(page Page, agencyIdStr string) ([]map[string]interface{}, int64, error) {
