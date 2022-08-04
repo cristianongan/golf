@@ -408,6 +408,7 @@ func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 		BookingDate: form.BookingDate,
 		BookingCode: form.BookingCode,
 		AgencyId:    form.AgencyId,
+		InitType:    form.InitType,
 	}
 
 	list, total, err := bookingR.FindList(page, form.From, form.To)
