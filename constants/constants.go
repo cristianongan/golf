@@ -74,10 +74,22 @@ const (
 	Member Card Base Type
 */
 const (
-	MEMBER_CARD_BASE_TYPE_FRIENDLY       = "FRIENDLY"
-	MEMBER_CARD_BASE_TYPE_INSIDE_MEMBER  = "INSIDE_MEMBER"
-	MEMBER_CARD_BASE_TYPE_OUTSIDE_MEMBER = "OUTSIDE_MEMBER"
-	MEMBER_CARD_BASE_TYPE_PROMOTION      = "PROMOTION"
+	MEMBER_CARD_BASE_TYPE_SHORT_TERM = "SHORT_TERM" // ngắn hạn
+	MEMBER_CARD_BASE_TYPE_LONG_TERM  = "LONG_TERM"  // dài hạn
+	MEMBER_CARD_BASE_TYPE_VIP        = "VIP"        // vip
+	MEMBER_CARD_BASE_TYPE_FOREIGN    = "FOREIGN"    // nước ngoài
+)
+
+/*
+	Annual Type:
+	Không giới hạn
+	Chơi có giới hạn
+	Thẻ ngủ
+*/
+const (
+	ANNUAL_TYPE_LIMITED    = "LIMITED"    // chơi giới hạn
+	ANNUAL_TYPE_UN_LIMITED = "UN_LIMITED" // Chơi không giới hạn
+	ANNUAL_TYPE_SLEEP      = "SLEEP"      // Thẻ ngủ
 )
 
 /*
