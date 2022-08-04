@@ -15,13 +15,13 @@ type MemberCardType struct {
 	PartnerUid         string `json:"partner_uid" gorm:"type:varchar(100);index"`     // Hang Golf
 	CourseUid          string `json:"course_uid" gorm:"type:varchar(256);index"`      // San Golf
 	Name               string `json:"name" gorm:"type:varchar(256)"`                  // Ten Loai Member Card
-	GuestStyle         string `json:"guest_style" gorm:"index"`                       // Guest Style ???
-	GuestStyleOffGuest string `json:"guest_style_off_guest" gorm:"type:varchar(100)"` // Guest Style Off guest ???
+	GuestStyle         string `json:"guest_style" gorm:"index"`                       // Guest Style
+	GuestStyleOffGuest string `json:"guest_style_off_guest" gorm:"type:varchar(100)"` // 2, 2B:2345: Mã 2 được đi toàn bộ các ngày, Mã 2B được đi vào ngày thứ 2,3,4,5
 	PromotGuestStyle   string `json:"promot_guest_style" gorm:"type:varchar(100)"`    // Promot guest style ???
-	NormalDayTakeGuest string `json:"normal_day_take_guest" gorm:"type:varchar(100)"` // Normal day take guest ???
-	WeekendTakeGuest   string `json:"weekend_take_guest" gorm:"type:varchar(100)"`    // Weekend take guest ???
+	NormalDayTakeGuest string `json:"normal_day_take_guest" gorm:"type:varchar(100)"` // Số lượt khách ngày thường loại thẻ này dc đưa số khách tới
+	WeekendTakeGuest   string `json:"weekend_take_guest" gorm:"type:varchar(100)"`    // Số lượt khách cuối tuần loại thẻ này dc đưa số khách tới
 	PlayTimesOnMonth   int    `json:"play_times_on_month"`                            // Số lần chơi trên tháng
-	Type               string `json:"type" gorm:"type:varchar(100);index"`            // Type: Friendly, InsideMember, OutsideMember, Promotion...
+	Type               string `json:"type" gorm:"type:varchar(100);index"`            // Type: SHORT_TERM, LONG_TERM, VIP, FOREIGN
 	PlayTimeOnYear     int    `json:"play_times_on_year"`                             // Số lần chơi trong năm
 	AnnualType         string `json:"annual_type" gorm:"type:varchar(100)"`           // loại thường niên: không giới hạn, chơi có giới hạn, thẻ ngủ.
 }

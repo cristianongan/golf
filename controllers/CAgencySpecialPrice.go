@@ -59,6 +59,22 @@ func (_ *CAgencySpecialPrice) GetListAgencySpecialPrice(c *gin.Context, prof mod
 	}
 	agencyR.AgencyId = form.AgencyId
 	agencyR.Status = form.Status
+
+	if agencyR.AgencyId > 0 {
+		list, total, err := agencyR.FindListByAgencyId()
+		if err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
+
+		res := map[string]interface{}{
+			"total": total,
+			"data":  list,
+		}
+
+		okResponse(c, res)
+	}
+
 	list, total, err := agencyR.FindList(page, form.AgencyIdStr)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
