@@ -19,8 +19,15 @@ func (_ *CBookingSource) CreateBookingSource(c *gin.Context, prof models.CmsUser
 		response_message.BadRequest(c, "")
 		return
 	}
-
 	bookingSource := model_booking.BookingSource{
+		AgencyId: body.AgencyId,
+	}
+	error := bookingSource.FindFirst()
+	if error == nil {
+		response_message.BadRequest(c, "Agency trong Booking Source đã tồn tại!")
+		return
+	}
+	bookingSource = model_booking.BookingSource{
 		PartnerUid:        body.PartnerUid,
 		CourseUid:         body.CourseUid,
 		BookingSourceName: body.BookingSourceName,
@@ -155,6 +162,9 @@ func (_ *CBookingSource) UpdateBookingSource(c *gin.Context, prof models.CmsUser
 	}
 	if body.NumberOfDays != 0 {
 		bookingSourceRequest.NumberOfDays = body.NumberOfDays
+	}
+	if body.AgencyId != "" {
+		bookingSourceRequest.AgencyId = body.AgencyId
 	}
 
 	err := bookingSourceRequest.Update()

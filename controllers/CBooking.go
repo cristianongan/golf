@@ -64,7 +64,13 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 
 	//check Booking Source with date time rule
 	if body.BookingSourceId != "" {
-		errorTime := cBooking.validateTimeRuleInBookingSource(body.BookingSourceId, c, body.BookingDate)
+		bookingSourceId, err := strconv.ParseInt(body.BookingSourceId, 10, 64)
+		if err != nil {
+			response_message.BadRequest(c, "BookingSource không tồn tại")
+		}
+		bookingSource := model_booking.BookingSource{}
+		bookingSource.Id = bookingSourceId
+		errorTime := bookingSource.ValidateTimeRuleInBookingSource(body.BookingDate)
 		if errorTime != nil {
 			response_message.BadRequest(c, errorTime.Error())
 			return
@@ -298,28 +304,6 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, booking)
-}
-func (_ CBooking) validateTimeRuleInBookingSource(BookingSourceId string, c *gin.Context, BookingDate string) error {
-	bookingSourceId, err := strconv.ParseInt(BookingSourceId, 10, 64)
-	if err != nil {
-		return err
-	}
-	bookingSource := model_booking.BookingSource{}
-	bookingSource.Id = bookingSourceId
-	errF := bookingSource.FindFirst()
-	if errF != nil {
-		return errors.New("BookingSource not found")
-	}
-	currentDInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, utils.GetCurrentDay1())
-	lastDInt := currentDInt + bookingSource.NumberOfDays*24*60*60
-
-	bookingDateInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, BookingDate)
-
-	if bookingDateInt >= currentDInt && bookingDateInt <= lastDInt {
-		return nil
-	}
-
-	return errors.New("BookingDate không nằm trong ngày quy định của Booking Source")
 }
 
 /*

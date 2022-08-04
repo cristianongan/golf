@@ -4,6 +4,7 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"time"
 
 	"github.com/pkg/errors"
@@ -21,6 +22,35 @@ type BookingSource struct {
 	NormalDay         bool   `json:"normal_day"`
 	Weekend           bool   `json:"week_end"`
 	NumberOfDays      int64  `json:"number_of_days"`
+}
+
+func (item *BookingSource) ValidateTimeRuleInBookingSource(BookingDate string) error {
+	errF := item.FindFirst()
+	if errF != nil {
+		return errors.New("BookingSource not found")
+	}
+	currentDInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, utils.GetCurrentDay1())
+	lastDInt := currentDInt + item.NumberOfDays*24*60*60
+
+	bookingDateInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, BookingDate)
+
+	checkTimeRule := bookingDateInt >= currentDInt && bookingDateInt <= lastDInt
+
+	if item.NormalDay && item.Weekend {
+		if checkTimeRule {
+			return nil
+		}
+	} else if item.NormalDay && !item.Weekend {
+		if !utils.IsWeekend(bookingDateInt) && checkTimeRule {
+			return nil
+		}
+	} else if !item.NormalDay && item.Weekend {
+		if utils.IsWeekend(bookingDateInt) && checkTimeRule {
+			return nil
+		}
+	}
+
+	return errors.New("BookingDate không nằm trong ngày quy định của Booking Source")
 }
 
 func (item *BookingSource) Create() error {

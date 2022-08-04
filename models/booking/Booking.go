@@ -919,7 +919,7 @@ func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numb
 
 	db = db.Where("flight_id > ?", 0)
 
-	if numberPeopleInFlight != nil {
+	if numberPeopleInFlight != nil && *numberPeopleInFlight > 0 {
 		listFlightR := []NumberPeopleInFlight{}
 		db2 := datasources.GetDatabase().Table("bookings")
 		db2.Select("COUNT(flight_id) as total,flight_id").Group("flight_id").Having("COUNT(flight_id) = ?", *numberPeopleInFlight)

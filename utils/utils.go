@@ -325,3 +325,19 @@ func IsDateValue(stringDate string) bool {
 	_, err := time.Parse("01/02/2006", stringDate)
 	return err == nil
 }
+
+func IsWeekend(ti int64) bool {
+	t := time.Unix(ti, 0).Local()
+	switch t.Weekday() {
+	// case time.Friday:
+	//     h, _, _ := t.Clock()
+	//     if h >= 12+10 {
+	//         return true
+	//     }
+	case time.Saturday:
+		return true
+	case time.Sunday:
+		return true
+	}
+	return false
+}
