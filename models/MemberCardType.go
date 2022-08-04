@@ -16,7 +16,7 @@ type MemberCardType struct {
 	CourseUid          string `json:"course_uid" gorm:"type:varchar(256);index"`      // San Golf
 	Name               string `json:"name" gorm:"type:varchar(256)"`                  // Ten Loai Member Card
 	GuestStyle         string `json:"guest_style" gorm:"index"`                       // Guest Style
-	GuestStyleOffGuest string `json:"guest_style_off_guest" gorm:"type:varchar(100)"` // 2, 2B:2345: Mã 2 được đi toàn bộ các ngày, Mã 2B được đi vào ngày thứ 2,3,4,5
+	GuestStyleOffGuest string `json:"guest_style_off_guest" gorm:"type:varchar(100)"` // GuestStyle của khách đi cùng. [2, 2B:2345] (2 và 2B là guestStyle tạo ở GolfFee cho khách đi cùng chơi Golf): Mã 2 được đi toàn bộ các ngày, Mã 2B được đi vào ngày thứ 2,3,4,5
 	PromotGuestStyle   string `json:"promot_guest_style" gorm:"type:varchar(100)"`    // Promot guest style ???
 	NormalDayTakeGuest string `json:"normal_day_take_guest" gorm:"type:varchar(100)"` // Số lượt khách ngày thường loại thẻ này dc đưa số khách tới
 	WeekendTakeGuest   string `json:"weekend_take_guest" gorm:"type:varchar(100)"`    // Số lượt khách cuối tuần loại thẻ này dc đưa số khách tới

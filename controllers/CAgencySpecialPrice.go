@@ -73,6 +73,7 @@ func (_ *CAgencySpecialPrice) GetListAgencySpecialPrice(c *gin.Context, prof mod
 		}
 
 		okResponse(c, res)
+		return
 	}
 
 	list, total, err := agencyR.FindList(page, form.AgencyIdStr)
