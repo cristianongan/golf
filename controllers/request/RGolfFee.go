@@ -10,3 +10,9 @@ type GetListGolfFeeForm struct {
 	CustomerType     string `form:"customer_type"`     // GUEST, AGENCY
 	CustomerCategory string `form:"customer_category"` // CUSTOMER, AGENCY
 }
+
+type GetListGolfFeeByGuestStyleForm struct {
+	PartnerUid string `form:"partner_uid"`
+	CourseUid  string `form:"course_uid"`
+	GuestStyle string `form:"guest_style"`
+}

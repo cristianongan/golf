@@ -187,3 +187,24 @@ func (item *GolfFee) GetGuestStyleList() []GuestStyle {
 
 	return list
 }
+
+func (item *GolfFee) GetGuestStyleGolfFeeByGuestStyle() []GolfFee {
+	db := datasources.GetDatabase().Table("golf_fees")
+	list := []GolfFee{}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.GuestStyle != "" {
+		db = db.Where("guest_style = ?", item.GuestStyle)
+	}
+	if item.TablePriceId > 0 {
+		db = db.Where("table_price_id = ?", item.TablePriceId)
+	}
+
+	db.Find(&list)
+
+	return list
+}

@@ -151,6 +151,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/golf-fee", middlewares.AuthorizedCmsUserHandler(cGolfFee.CreateGolfFee))
 			cmsApiAuthorized.GET("/golf-fee/list", middlewares.AuthorizedCmsUserHandler(cGolfFee.GetListGolfFee))
 			cmsApiAuthorized.GET("/golf-fee/list/guest-style", middlewares.AuthorizedCmsUserHandler(cGolfFee.GetListGuestStyle))
+			cmsApiAuthorized.GET("/golf-fee/by-guest-style", middlewares.AuthorizedCmsUserHandler(cGolfFee.GetGolfFeeByGuestStyle))
 			cmsApiAuthorized.PUT("/golf-fee/:id", middlewares.AuthorizedCmsUserHandler(cGolfFee.UpdateGolfFee))
 			cmsApiAuthorized.DELETE("/golf-fee/:id", middlewares.AuthorizedCmsUserHandler(cGolfFee.DeleteGolfFee))
 
