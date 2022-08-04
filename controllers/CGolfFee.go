@@ -254,3 +254,36 @@ func (_ *CGolfFee) GetListGuestStyle(c *gin.Context, prof models.CmsUser) {
 	guestStyles := golfFeeR.GetGuestStyleList()
 	okResponse(c, guestStyles)
 }
+
+func (_ *CGolfFee) GetGolfFeeByGuestStyle(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListGolfFeeByGuestStyleForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.PartnerUid == "" || form.GuestStyle == "" {
+		response_message.BadRequest(c, "data invalid")
+		return
+	}
+
+	// Lấy table Price hợp lệ
+	tablePriceR := models.TablePrice{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+	tablePrice, err := tablePriceR.FindCurrentUse()
+	if err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	golfFeeR := models.GolfFee{
+		PartnerUid:   form.PartnerUid,
+		CourseUid:    form.CourseUid,
+		TablePriceId: tablePrice.Id,
+		GuestStyle:   form.GuestStyle,
+	}
+	guestStyles := golfFeeR.GetGuestStyleGolfFeeByGuestStyle()
+	okResponse(c, guestStyles)
+}

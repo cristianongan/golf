@@ -327,12 +327,13 @@ func (item ListBookingRound) Value() (driver.Value, error) {
 
 // Agency info
 type BookingAgency struct {
-	Id         int64  `json:"id"`
-	AgencyId   string `json:"agency_id"`   // Id Agency
-	ShortName  string `json:"short_name"`  // Ten ngắn Dai ly
-	Category   string `json:"category"`    // Category
-	GuestStyle string `json:"guest_style"` // Guest Style
-	Name       string `json:"name"`        // Ten Dai ly
+	Id             int64                 `json:"id"`
+	AgencyId       string                `json:"agency_id"`       // Id Agency
+	ShortName      string                `json:"short_name"`      // Ten ngắn Dai ly
+	Category       string                `json:"category"`        // Category
+	GuestStyle     string                `json:"guest_style"`     // Guest Style
+	Name           string                `json:"name"`            // Ten Dai ly
+	ContractDetail models.AgencyContract `json:"contract_detail"` // Thông tin đại lý
 }
 
 func (item *BookingAgency) Scan(v interface{}) error {
@@ -719,6 +720,18 @@ func (item *Booking) FindList(page models.Page, from int64, to int64) ([]Booking
 
 	if item.AgencyId > 0 {
 		db = db.Where("agency_id = ?", item.AgencyId)
+	}
+
+	if item.BagStatus != "" {
+		db = db.Where("bag_status = ?", item.BagStatus)
+	}
+
+	if item.CustomerName != "" {
+		db = db.Where("customer_name LIKE ?", "%"+item.CustomerName+"%")
+	}
+
+	if item.Bag != "" {
+		db = db.Where("bag LIKE ?", "%"+item.Bag+"%")
 	}
 
 	//Search With Time

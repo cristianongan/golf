@@ -31,6 +31,8 @@ type GetListBookingForm struct {
 	BookingDate string `form:"booking_date"`
 	BookingCode string `form:"booking_code"`
 	AgencyId    int64  `form:"agency_id"`
+	BagStatus   string `form:"bag_status"`
+	PlayerName  string `form:"player_name"`
 }
 
 type GetListBookingWithSelectForm struct {
