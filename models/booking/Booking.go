@@ -723,6 +723,10 @@ func (item *Booking) FindList(page models.Page, from int64, to int64) ([]Booking
 		db = db.Where("agency_id = ?", item.AgencyId)
 	}
 
+	if item.FlightId > 0 {
+		db = db.Where("flight_id = ?", item.FlightId)
+	}
+
 	if item.BagStatus != "" {
 		db = db.Where("bag_status = ?", item.BagStatus)
 	}

@@ -361,6 +361,7 @@ func NewRouter() *gin.Engine {
 			cCaddieWorkingSchedule := new(controllers.CCaddieWorkingSchedule)
 			cmsApiAuthorized.GET("/caddie-working-schedule", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingSchedule.GetCaddieWorkingScheduleList))
 			cmsApiAuthorized.POST("/caddie-working-schedule", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingSchedule.CreateCaddieWorkingSchedule))
+			cmsApiAuthorized.PUT("/caddie-working-schedule", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingSchedule.UpdateCaddieWorkingSchedule))
 
 			/// =================== Buggy Used Statistic ===================
 			cBuggyUsedList := new(controllers.CBuggyUsedList)
