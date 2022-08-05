@@ -115,7 +115,7 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 			db = db.Where("bag = ?", "")
 		}
 	}
-	
+
 	if item.IsTimeOut != "" {
 		isTimeOut, _ := strconv.ParseInt(item.IsTimeOut, 10, 64)
 		if isTimeOut == 1 {
