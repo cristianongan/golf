@@ -77,11 +77,13 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	teePartList := []string{"MORNING", "NOON", "NIGHT"}
+	if !body.IsCheckIn {
+		teePartList := []string{"MORNING", "NOON", "NIGHT"}
 
-	if !checkStringInArray(teePartList, body.TeePath) {
-		response_message.BadRequest(c, "Tee Part not in (MORNING, NOON, NIGHT)")
-		return
+		if !checkStringInArray(teePartList, body.TeePath) {
+			response_message.BadRequest(c, "Tee Part not in (MORNING, NOON, NIGHT)")
+			return
+		}
 	}
 
 	booking := model_booking.Booking{
