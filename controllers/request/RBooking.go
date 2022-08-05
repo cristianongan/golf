@@ -74,10 +74,10 @@ type CreateBookingBody struct {
 	CourseUid   string `json:"course_uid" binding:"required"`  // San Golf
 	Bag         string `json:"bag"`                            // Golf Bag
 	Hole        int    `json:"hole"`                           // Số hố
-	TeeType     string `json:"tee_type" binding:"required"`    // 1, 1A, 1B, 1C, 10, 10A, 10B
-	TeePath     string `json:"tee_path" binding:"required"`    // MORNING, NOON, NIGHT
-	TurnTime    string `json:"turn_time" binding:"required"`   // Ex: 16:26
-	TeeTime     string `json:"tee_time" binding:"required"`    // Ex: 16:26 Tee time là thời gian tee off dự kiến
+	TeeType     string `json:"tee_type"`                       // 1, 1A, 1B, 1C, 10, 10A, 10B (k required cái này vì có case checking k qua booking)
+	TeePath     string `json:"tee_path"`                       // MORNING, NOON, NIGHT (k required cái này vì có case checking k qua booking)
+	TurnTime    string `json:"turn_time"`                      // Ex: 16:26 (k required cái này vì có case checking k qua booking)
+	TeeTime     string `json:"tee_time"`                       // Ex: 16:26 Tee time là thời gian tee off dự kiến (k required cái này vì có case checking k qua booking)
 	RowIndex    int    `json:"row_index"`                      // index trong Flight
 
 	// Guest booking
