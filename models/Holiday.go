@@ -15,12 +15,15 @@ type Holiday struct {
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	Name       string `json:"name" gorm:"type:varchar(256)"`              // Ten Holiday
-	Time       string `json:"time" gorm:"type:varchar(100)"`
+	Day        string `json:"day" gorm:"type:varchar(100)"`
+	From       string `json:"from" gorm:"type:varchar(100)"`
+	To         string `json:"to" gorm:"type:varchar(100)"`
 }
 
 type HolidayResponse struct {
 	Name string `json:"name"`
-	Time string `json:"time"`
+	From string `json:"from"`
+	To   string `json:"to"`
 }
 
 func (item *Holiday) Create() error {
@@ -58,7 +61,7 @@ func (item *Holiday) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *Holiday) FindList(page Page) ([]HolidayResponse, int64, error) {
+func (item *Holiday) FindList() ([]HolidayResponse, int64, error) {
 	db := datasources.GetDatabase().Model(Holiday{})
 	list := []HolidayResponse{}
 	total := int64(0)
@@ -69,10 +72,7 @@ func (item *Holiday) FindList(page Page) ([]HolidayResponse, int64, error) {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
 	db.Count(&total)
-
-	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Find(&list)
-	}
+	db = db.Find(&list)
 	return list, total, db.Error
 }
 

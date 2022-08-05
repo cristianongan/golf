@@ -9,5 +9,7 @@ type CreateHolidayForm struct {
 	PartnerUid string `json:"partner_uid"`
 	CourseUid  string `json:"course_uid"`
 	Name       string `json:"name"`
-	Time       string `json:"time"`
+	Day        string `json:"day"`
+	From       string `json:"from"`
+	To         string `json:"to"`
 }

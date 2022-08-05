@@ -19,19 +19,12 @@ func (_ *CHoliday) GetListHoliday(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	page := models.Page{
-		Limit:   form.PageRequest.Limit,
-		Page:    form.PageRequest.Page,
-		SortBy:  form.PageRequest.SortBy,
-		SortDir: form.PageRequest.SortDir,
-	}
-
 	holidayR := models.Holiday{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
 
-	list, _, err := holidayR.FindList(page)
+	list, _, err := holidayR.FindList()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -56,7 +49,9 @@ func (_ *CHoliday) CreateHoliday(c *gin.Context, prof models.CmsUser) {
 	holiday.PartnerUid = body.PartnerUid
 	holiday.CourseUid = body.CourseUid
 	holiday.Name = body.Name
-	holiday.Time = body.Time
+	holiday.Day = body.Day
+	holiday.From = body.From
+	holiday.To = body.To
 
 	errC := holiday.Create()
 
@@ -93,8 +88,14 @@ func (_ *CHoliday) UpdateHoliday(c *gin.Context, prof models.CmsUser) {
 	if body.Name != "" {
 		holiday.Name = body.Name
 	}
-	if body.Time != "" {
-		holiday.Time = body.Time
+	if body.From != "" {
+		holiday.From = body.From
+	}
+	if body.To != "" {
+		holiday.To = body.To
+	}
+	if body.Day != "" {
+		holiday.Day = body.Day
 	}
 
 	errUdp := holiday.Update()
