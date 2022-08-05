@@ -99,11 +99,11 @@ type CreateBookingBody struct {
 	BookingRetal      utils.BookingRental     `json:"booking_retal"`
 	BookingCode       string                  `form:"booking_code"`
 	BookingSourceId   string                  `json:"booking_source_id"`
+	IsRelateBooking   bool                    `json:"is_relate_booking"`
 }
 
 type CreateBatchBookingBody struct {
 	BookingList ListCreateBookingBody `json:"booking_list"`
-	IsWaiting   bool                  `json:"is_waiting"` // booking ở trạng thái chờ
 }
 
 type ListCreateBookingBody []CreateBookingBody

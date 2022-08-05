@@ -197,8 +197,9 @@ func NewRouter() *gin.Engine {
 
 			/// =================== Booking ===================
 			cBooking := new(controllers.CBooking)
-			cmsApiAuthorized.POST("/booking", middlewares.AuthorizedCmsUserHandler(cBooking.CreateBooking))            // Tạo booking or tạo booking check in luôn
-			cmsApiAuthorized.POST("/booking/batch", middlewares.AuthorizedCmsUserHandler(cBooking.CreateBatchBooking)) // Tạo list booking
+			cmsApiAuthorized.POST("/booking", middlewares.AuthorizedCmsUserHandler(cBooking.CreateBooking))                  // Tạo booking or tạo booking check in luôn
+			cmsApiAuthorized.POST("/booking/batch", middlewares.AuthorizedCmsUserHandler(cBooking.CreateBookingTee))         // Tạo list booking
+			cmsApiAuthorized.POST("/booking/copy-booking", middlewares.AuthorizedCmsUserHandler(cBooking.CreateCopyBooking)) // Copy booking
 			cmsApiAuthorized.POST("/booking/check-in", middlewares.AuthorizedCmsUserHandler(cBooking.CheckIn))
 			cmsApiAuthorized.GET("/booking/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBooking))
 			cmsApiAuthorized.GET("/booking/list/select", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingWithSelect))

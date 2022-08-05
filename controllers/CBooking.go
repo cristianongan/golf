@@ -1368,14 +1368,46 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, booking)
 }
 
-func (cBooking *CBooking) CreateBatchBooking(c *gin.Context, prof models.CmsUser) {
+func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) {
 	bodyRequest := request.CreateBatchBookingBody{}
 	if bindErr := c.ShouldBind(&bodyRequest); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
 	}
+
 	bookingCode := utils.HashCodeUuid(uuid.New().String())
-	for _, body := range bodyRequest.BookingList {
+	for index, _ := range bodyRequest.BookingList {
+		bodyRequest.BookingList[index].BookingCode = bookingCode
+		if len(bodyRequest.BookingList) > 1 {
+			bodyRequest.BookingList[index].IsRelateBooking = true
+		}
+	}
+
+	cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+}
+
+func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser) {
+	bodyRequest := request.CreateBatchBookingBody{}
+	if bindErr := c.ShouldBind(&bodyRequest); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	bookingCode := utils.HashCodeUuid(uuid.New().String())
+	for index, data := range bodyRequest.BookingList {
+
+		if data.IsRelateBooking {
+			bodyRequest.BookingList[index].BookingCode = bookingCode
+		} else {
+			bodyRequest.BookingList[index].BookingCode = utils.HashCodeUuid(uuid.New().String())
+		}
+	}
+
+	cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+}
+
+func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser) {
+	for _, body := range bookingList {
 		// validate caddie_code
 		var caddie models.Caddie
 		var err error
@@ -1423,7 +1455,8 @@ func (cBooking *CBooking) CreateBatchBooking(c *gin.Context, prof models.CmsUser
 			RowIndex:             body.RowIndex,
 			CmsUser:              prof.UserName,
 			Hole:                 body.Hole,
-			BookingCode:          bookingCode,
+			BookingCode:          body.BookingCode,
+			IsRelateBooking:      body.IsRelateBooking,
 			BookingRestaurant:    body.BookingRestaurant,
 			BookingRetal:         body.BookingRetal,
 			CustomerBookingName:  body.CustomerBookingName,
@@ -1616,7 +1649,6 @@ func (cBooking *CBooking) CreateBatchBooking(c *gin.Context, prof models.CmsUser
 			response_message.InternalServerError(c, errC.Error())
 			return
 		}
-
 	}
 	okRes(c)
 }
