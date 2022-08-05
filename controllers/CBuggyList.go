@@ -31,6 +31,10 @@ func (_ *CBuggyList) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 	bookings.FromDate = query.FromDate
 	bookings.ToDate = query.ToDate
 	bookings.BuggyCode = query.BuggyCode
+	bookings.CaddieCode = query.CaddieCode
+	bookings.GolfBag = query.GolfBag
+	bookings.IsTimeOut = query.IsTimeOut
+
 	bookings.IsFlight = strconv.FormatInt(1, 10)
 	bookings.HasBuggy = strconv.FormatInt(1, 10)
 

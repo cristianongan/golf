@@ -2,6 +2,7 @@ package model_booking
 
 import (
 	"fmt"
+	"start/constants"
 	"start/datasources"
 	"start/models"
 	"strconv"
@@ -34,6 +35,7 @@ type BookingList struct {
 	BagStatus   string
 	HaveBag     *string
 	HasBuggy    string
+	IsTimeOut   string
 }
 
 func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
@@ -111,6 +113,15 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 			db = db.Where("bag <> ?", "")
 		} else {
 			db = db.Where("bag = ?", "")
+		}
+	}
+	
+	if item.IsTimeOut != "" {
+		isTimeOut, _ := strconv.ParseInt(item.IsTimeOut, 10, 64)
+		if isTimeOut == 1 {
+			db = db.Where("bag_status = ?", constants.BAG_STATUS_TIMEOUT)
+		} else if isTimeOut == 0 {
+			db = db.Where("bag_status <> ?", constants.BAG_STATUS_TIMEOUT).Where("bag_status <> ?", constants.BAG_STATUS_OUT)
 		}
 	}
 
