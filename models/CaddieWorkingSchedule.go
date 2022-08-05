@@ -28,6 +28,11 @@ func (item *CaddieWorkingSchedule) Create() error {
 	return db.Create(item).Error
 }
 
+func (item *CaddieWorkingSchedule) FindFirst() error {
+	db := datasources.GetDatabase()
+	return db.Where(item).First(item).Error
+}
+
 func (item *CaddieWorkingSchedule) FindList(page Page) ([]CaddieWorkingSchedule, int64, error) {
 	var list []CaddieWorkingSchedule
 	total := int64(0)
@@ -52,4 +57,10 @@ func (item *CaddieWorkingSchedule) FindList(page Page) ([]CaddieWorkingSchedule,
 		db = page.Setup(db).Find(&list)
 	}
 	return list, total, db.Error
+}
+
+func (item *CaddieWorkingSchedule) Update() error {
+	item.ModelId.UpdatedAt = time.Now().Unix()
+	db := datasources.GetDatabase()
+	return db.Save(item).Error
 }
