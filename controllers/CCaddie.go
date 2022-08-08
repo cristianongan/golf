@@ -172,32 +172,45 @@ func (_ *CCaddie) GetCaddieList(c *gin.Context, prof models.CmsUser) {
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	caddieRequest := models.Caddie{}
+	caddie := models.CaddieList{}
 
-	if form.CourseId != nil {
-		caddieRequest.CourseUid = *form.CourseId
-	}
-	if form.Level != nil {
-		caddieRequest.Level = *form.Level
-	}
-	if form.Phone != nil {
-		caddieRequest.Phone = *form.Phone
-	}
-	if form.Name != nil {
-		print(*form.Name)
-		caddieRequest.Name = *form.Name
-	}
-	if form.Code != nil {
-		caddieRequest.Code = *form.Code
-	}
-	if form.WorkingStatus != nil {
-		caddieRequest.WorkingStatus = *form.WorkingStatus
-	}
-	if form.PartnerUid != nil {
-		caddieRequest.PartnerUid = *form.PartnerUid
+	if form.CourseId != "" {
+		caddie.CourseUid = form.CourseId
 	}
 
-	list, total, err := caddieRequest.FindList(page)
+	if form.Level != "" {
+		caddie.Level = form.Level
+	}
+
+	if form.Phone != "" {
+		caddie.Phone = form.Phone
+	}
+
+	if form.Name != "" {
+		caddie.CaddieName = form.Name
+	}
+
+	if form.Code != "" {
+		caddie.CaddieCode = form.Code
+	}
+
+	if form.WorkingStatus != "" {
+		caddie.WorkingStatus = form.WorkingStatus
+	}
+
+	if form.GroupId != "" {
+		caddie.GroupId, _ = strconv.ParseInt(form.GroupId, 10, 64)
+	}
+
+	if form.IsInGroup != "" {
+		caddie.IsInGroup = form.IsInGroup
+	}
+
+	if form.IsReadyForBooking != "" {
+		caddie.IsReadyForBooking = form.IsReadyForBooking
+	}
+
+	list, total, err := caddie.FindList(page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

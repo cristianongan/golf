@@ -317,7 +317,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 }
 
 /*
- Get booking Detail With Uid
+Get booking Detail With Uid
 */
 func (_ *CBooking) GetBookingDetail(c *gin.Context, prof models.CmsUser) {
 	bookingIdStr := c.Param("uid")
@@ -338,8 +338,8 @@ func (_ *CBooking) GetBookingDetail(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
- Get booking by Bag
- Get Booking Bag trong ngày
+Get booking by Bag
+Get Booking Bag trong ngày
 */
 func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 	form := request.GetListBookingForm{}
@@ -380,7 +380,7 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
- Danh sách booking
+Danh sách booking
 */
 func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 	form := request.GetListBookingForm{}
@@ -423,7 +423,7 @@ func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
- Danh sách booking với select
+Danh sách booking với select
 */
 func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser) {
 	form := request.GetListBookingWithSelectForm{}
@@ -475,7 +475,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 }
 
 /*
- Danh sách booking tee time
+Danh sách booking tee time
 */
 func (_ *CBooking) GetListBookingTeeTime(c *gin.Context, prof models.CmsUser) {
 	form := request.GetListBookingTeeTimeForm{}
@@ -519,8 +519,8 @@ func (_ CBooking) validateCaddie(courseUid string, caddieCode string) (models.Ca
 }
 
 /*
- Cập nhật booking
- Thêm Service item
+Cập nhật booking
+Thêm Service item
 */
 func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	bookingIdStr := c.Param("uid")
@@ -757,7 +757,7 @@ func (_ *CBooking) UpdateBookServiceList(serviceList model_booking.ListBookingSe
 }
 
 /*
-  Check in
+Check in
 */
 func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	// Body request
@@ -857,7 +857,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
- Add Sub bag to Booking
+Add Sub bag to Booking
 */
 func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	// Body request
@@ -952,7 +952,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
- Edit Sub bag to Booking
+Edit Sub bag to Booking
 */
 func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	// Body request
@@ -1069,7 +1069,7 @@ func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
- Danh sách booking cho Add sub bag
+Danh sách booking cho Add sub bag
 */
 func (_ *CBooking) GetListBookingForAddSubBag(c *gin.Context, prof models.CmsUser) {
 	form := request.GetListBookingForm{}
@@ -1153,7 +1153,7 @@ func (_ *CBooking) GetSubBagDetail(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
-	Other Paid
+Other Paid
 */
 func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 	// Body request
@@ -1221,8 +1221,8 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
-	Cancel Booking
-	- check chưa check-in mới cancel dc
+Cancel Booking
+- check chưa check-in mới cancel dc
 */
 func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 	body := request.CancelBookingBody{}
@@ -1263,8 +1263,8 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
-	Moving Booking
-	- check chưa check-in mới moving dc
+Moving Booking
+- check chưa check-in mới moving dc
 */
 func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 	body := request.MovingBookingBody{}
