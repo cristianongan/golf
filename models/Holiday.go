@@ -86,9 +86,9 @@ func (item *Holiday) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *Holiday) FindList() ([]HolidayResponse, int64, error) {
+func (item *Holiday) FindList() ([]Holiday, int64, error) {
 	db := datasources.GetDatabase().Model(Holiday{})
-	list := []HolidayResponse{}
+	list := []Holiday{}
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
