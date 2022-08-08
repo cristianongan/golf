@@ -408,7 +408,7 @@ func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 		FlightId:     form.FlightId,
 	}
 
-	list, total, err := bookingR.FindList(page, form.From, form.To)
+	list, total, err := bookingR.FindList(page, form.From, form.To, form.AgencyType)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
