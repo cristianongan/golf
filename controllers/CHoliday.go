@@ -22,6 +22,7 @@ func (_ *CHoliday) GetListHoliday(c *gin.Context, prof models.CmsUser) {
 	holidayR := models.Holiday{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
+		Year:       form.Year,
 	}
 
 	list, _, err := holidayR.FindList()
@@ -40,7 +41,7 @@ func (_ *CHoliday) CreateHoliday(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.PartnerUid == "" || body.CourseUid == "" {
+	if !body.IsValidated() {
 		response_message.BadRequest(c, "data not valid")
 		return
 	}

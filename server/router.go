@@ -470,8 +470,8 @@ func NewRouter() *gin.Engine {
 			cHoliday := new(controllers.CHoliday)
 			cmsApiAuthorized.POST("/holiday", middlewares.AuthorizedCmsUserHandler(cHoliday.CreateHoliday))
 			cmsApiAuthorized.GET("/holiday/list", middlewares.AuthorizedCmsUserHandler(cHoliday.GetListHoliday))
-			cmsApiAuthorized.DELETE("/holiday/:id", middlewares.AuthorizedCmsUserHandler(cHoliday.UpdateHoliday))
-			cmsApiAuthorized.PUT("/holiday/:id", middlewares.AuthorizedCmsUserHandler(cHoliday.DeleteHoliday))
+			cmsApiAuthorized.DELETE("/holiday/:id", middlewares.AuthorizedCmsUserHandler(cHoliday.DeleteHoliday))
+			cmsApiAuthorized.PUT("/holiday/:id", middlewares.AuthorizedCmsUserHandler(cHoliday.UpdateHoliday))
 
 			/// =================== Activity Log ===================
 			cActivityLog := new(controllers.CActivityLog)

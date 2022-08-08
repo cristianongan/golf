@@ -18,7 +18,7 @@ type Holiday struct {
 	Note       string `json:"note" gorm:"type:varchar(256)"`
 	From       string `json:"from" gorm:"type:varchar(100)"`
 	To         string `json:"to" gorm:"type:varchar(100)"`
-	Year       string `json:"Year" gorm:"type:varchar(100)"`
+	Year       string `json:"year" gorm:"type:varchar(100)"`
 }
 
 type HolidayResponse struct {
@@ -26,7 +26,29 @@ type HolidayResponse struct {
 	Name string `json:"name"`
 	From string `json:"from"`
 	To   string `json:"to"`
-	Year string `json:"Year"`
+	Year string `json:"year"`
+}
+
+func (item *Holiday) IsValidated() bool {
+	if item.Name == "" {
+		return false
+	}
+	if item.PartnerUid == "" {
+		return false
+	}
+	if item.CourseUid == "" {
+		return false
+	}
+	if item.Year == "" {
+		return false
+	}
+	if item.From == "" {
+		return false
+	}
+	if item.Name == "" {
+		return false
+	}
+	return true
 }
 
 func (item *Holiday) Create() error {
@@ -70,9 +92,12 @@ func (item *Holiday) FindList() ([]HolidayResponse, int64, error) {
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
-	db = db.Where(item)
+
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
+	}
+	if item.Year != "" {
+		db = db.Where("year = ?", item.Year)
 	}
 	db.Count(&total)
 	db = db.Find(&list)
