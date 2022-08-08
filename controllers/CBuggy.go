@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"encoding/json"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/logger"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -197,7 +199,11 @@ func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 	}
+	// activity log
+	updateLogData := logger.UpdateLogData{}
+	updateLogData.Old = buggyRequest
 
+	// + update data
 	if body.CourseUid != nil {
 		buggyRequest.CourseUid = *body.CourseUid
 	}
@@ -225,12 +231,19 @@ func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
 	if body.WarrantyPeriod != nil {
 		buggyRequest.WarrantyPeriod = *body.WarrantyPeriod
 	}
+	// + END: update data
 
 	err := buggyRequest.Update()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	updateLogData.New = buggyRequest
+
+	updateLogDataJson, _ := json.Marshal(updateLogData)
+
+	logger.Log(logger.EVENT_ACTION_UPDATE, logger.EVENT_CATEOGRY_BUGGY, buggyRequest.Code, string(updateLogDataJson), prof)
 
 	okRes(c)
 }

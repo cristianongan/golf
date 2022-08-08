@@ -1,11 +1,13 @@
 package logger
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/ivpusic/golog"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"start/constants"
+	"start/datasources"
 	"start/models"
 	"time"
 )
@@ -15,15 +17,20 @@ type ActivityLog struct {
 	PartnerUid string `json:"partner_uid"`
 	CourseUid  string `json:"course_uid"`
 	UserUid    string `json:"user_uid"`
-	Action     string `json:"action"`   //customer_update_info, agency_update_info
-	Category   string `json:"category"` //customer, agency
-	Label      string `json:"label"`    //create, update, delete
-	Value      string `json:"value"`    //create_data, update_data, delete_id
+	Action     string `json:"action"`                 //customer_update_info, agency_update_info
+	Category   string `json:"category"`               //customer, agency
+	Label      string `json:"label"`                  //create, update, delete
+	Value      string `json:"value" gorm:"type:JSON"` //create_data, update_data, delete_id
 }
 
 const EVENT_CATEGORY_SYSTEM = "SYSTEM_ACTIVITY_LOG"
 const EVENT_CATEGORY_CUSTOMER = "CUSTOMER_ACTIVITY_LOG"
 const EVENT_CATEGORY_AGENCY = "AGENCY_ACTIVITY_LOG"
+const EVENT_CATEOGRY_BUGGY = "BUGGY_ACTIVITY_LOG"
+
+const EVENT_ACTION_UPDATE = "UPDATE"
+const EVENT_ACTION_CREATE = "CREATE"
+const EVENT_ACTIOn_DELETE = "DELETE"
 
 type ActivityMysqlAppender struct {
 	db *gorm.DB
@@ -41,7 +48,7 @@ func (activityMysql ActivityMysqlAppender) Append(activityGoLog golog.Log) {
 
 	now := time.Now()
 
-	systemActivityLog := ActivityLog{
+	activityLog := ActivityLog{
 		ModelId: models.ModelId{
 			CreatedAt: now.Unix(),
 			UpdatedAt: now.Unix(),
@@ -56,7 +63,7 @@ func (activityMysql ActivityMysqlAppender) Append(activityGoLog golog.Log) {
 		Value:      activityGoLogData0["value"],
 	}
 
-	if err := activityMysql.db.Create(&systemActivityLog).Error; err != nil {
+	if err := activityMysql.db.Create(&activityLog).Error; err != nil {
 		panic(err.Error())
 	}
 }
@@ -81,4 +88,47 @@ func ActivityMysql(cnf golog.Conf) *ActivityMysqlAppender {
 	return &ActivityMysqlAppender{
 		db: db,
 	}
+}
+
+func Log(action string, category string, label string, value string, prof models.CmsUser) {
+	activityLogData := map[string]string{
+		"partner_uid": prof.PartnerUid,
+		"course_uid":  prof.CourseUid,
+		"user_uid":    prof.Uid,
+		"action":      action,
+		"category":    category,
+		"label":       label,
+		"value":       value,
+	}
+
+	activityLogDataJson, _ := json.Marshal(activityLogData)
+
+	activityLogger := GetActivityMysqlLogger()
+	activityLogger.Info(fmt.Sprintln("["+prof.CourseUid+"] ["+category+"] ["+action+"]", string(activityLogDataJson)), activityLogData)
+}
+
+func (item *ActivityLog) FindList(page models.Page) ([]ActivityLog, int64, error) {
+	var list []ActivityLog
+	total := int64(0)
+
+	db := datasources.GetDatabase().Model(ActivityLog{})
+
+	if item.Category != "" {
+		db = db.Where("category = ?", item.Category)
+	}
+
+	if item.Label != "" {
+		db = db.Where("label = ?", item.Label)
+	}
+
+	if item.Action != "" {
+		db = db.Where("action = ?", item.Action)
+	}
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+	return list, total, db.Error
 }
