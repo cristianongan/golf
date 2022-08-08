@@ -1381,9 +1381,6 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 	bookingCode := utils.HashCodeUuid(uuid.New().String())
 	for index, _ := range bodyRequest.BookingList {
 		bodyRequest.BookingList[index].BookingCode = bookingCode
-		if len(bodyRequest.BookingList) > 1 {
-			bodyRequest.BookingList[index].IsRelateBooking = true
-		}
 	}
 
 	cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
@@ -1396,13 +1393,20 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 		return
 	}
 
-	bookingCode := utils.HashCodeUuid(uuid.New().String())
-	for index, data := range bodyRequest.BookingList {
+	for indexTarget, target := range bodyRequest.BookingList {
+		if !bodyRequest.BookingList[indexTarget].BookMark {
+			bookingCode := utils.HashCodeUuid(uuid.New().String())
+			bodyRequest.BookingList[indexTarget].BookingCode = bookingCode
+			bodyRequest.BookingList[indexTarget].BookMark = true
 
-		if data.IsRelateBooking {
-			bodyRequest.BookingList[index].BookingCode = bookingCode
-		} else {
-			bodyRequest.BookingList[index].BookingCode = utils.HashCodeUuid(uuid.New().String())
+			if target.BookingCode != "" {
+				for index, data := range bodyRequest.BookingList {
+					if data.BookingCode == target.BookingCode {
+						bodyRequest.BookingList[index].BookingCode = bookingCode
+						bodyRequest.BookingList[index].BookMark = true
+					}
+				}
+			}
 		}
 	}
 
@@ -1459,7 +1463,6 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 			CmsUser:              prof.UserName,
 			Hole:                 body.Hole,
 			BookingCode:          body.BookingCode,
-			IsRelateBooking:      body.IsRelateBooking,
 			BookingRestaurant:    body.BookingRestaurant,
 			BookingRetal:         body.BookingRetal,
 			CustomerBookingName:  body.CustomerBookingName,

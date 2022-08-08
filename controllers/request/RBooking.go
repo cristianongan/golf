@@ -98,9 +98,9 @@ type CreateBookingBody struct {
 	CaddieCode        string                  `json:"caddie_code"`
 	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant"`
 	BookingRetal      utils.BookingRental     `json:"booking_retal"`
-	BookingCode       string                  `form:"booking_code"`
+	BookingCode       string                  `json:"booking_code"`
 	BookingSourceId   string                  `json:"booking_source_id"`
-	IsRelateBooking   bool                    `json:"is_relate_booking"`
+	BookMark          bool
 }
 
 type CreateBatchBookingBody struct {

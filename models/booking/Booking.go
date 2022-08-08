@@ -98,7 +98,6 @@ type Booking struct {
 
 	CaddieInOut       []CaddieInOutNote       `json:"caddie_in_out" gorm:"migration"`
 	BookingCode       string                  `json:"booking_code" gorm:"type:varchar(100);index"` // cho case tạo nhiều booking có cùng booking code
-	IsRelateBooking   bool                    `json:"is_relate_booking"`
 	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant,omitempty" gorm:"type:json"`
 	BookingRetal      utils.BookingRental     `json:"booking_retal,omitempty" gorm:"type:json"`
 	BookingSourceId   string                  `json:"booking_source_id" gorm:"type:varchar(50)"`

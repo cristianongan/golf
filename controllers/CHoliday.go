@@ -49,7 +49,8 @@ func (_ *CHoliday) CreateHoliday(c *gin.Context, prof models.CmsUser) {
 	holiday.PartnerUid = body.PartnerUid
 	holiday.CourseUid = body.CourseUid
 	holiday.Name = body.Name
-	holiday.Day = body.Day
+	holiday.Note = body.Note
+	holiday.Year = body.Year
 	holiday.From = body.From
 	holiday.To = body.To
 
@@ -94,8 +95,11 @@ func (_ *CHoliday) UpdateHoliday(c *gin.Context, prof models.CmsUser) {
 	if body.To != "" {
 		holiday.To = body.To
 	}
-	if body.Day != "" {
-		holiday.Day = body.Day
+	if body.Note != "" {
+		holiday.Note = body.Note
+	}
+	if body.Year != "" {
+		holiday.Year = body.Year
 	}
 
 	errUdp := holiday.Update()
