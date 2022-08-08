@@ -4,7 +4,7 @@ type GetListHolidayForm struct {
 	PageRequest
 	PartnerUid string `form:"partner_uid"`
 	CourseUid  string `form:"course_uid"`
-	Year       string `form:"Year"`
+	Year       string `form:"year"`
 }
 type CreateHolidayForm struct {
 	PartnerUid string `json:"partner_uid"`
@@ -13,5 +13,5 @@ type CreateHolidayForm struct {
 	Name       string `json:"name"`
 	From       string `json:"from"`
 	To         string `json:"to"`
-	Year       string `json:"Year"`
+	Year       string `json:"year"`
 }
