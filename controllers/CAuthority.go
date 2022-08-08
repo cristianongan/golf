@@ -275,21 +275,6 @@ func (_ CAuthority) GetRoles(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	//activityLogData := map[string]string{
-	//	"partner_uid": prof.PartnerUid,
-	//	"course_uid":  prof.CourseUid,
-	//	"user_uid":    prof.Uid,
-	//	"action":      "test",
-	//	"category":    logger.EVENT_CATEGORY_CUSTOMER,
-	//	"label":       "test",
-	//	"value":       "test",
-	//}
-	//
-	//activityLogDataJson, _ := json.Marshal(activityLogData)
-	//
-	//activityLogger := logger.GetActivityMysqlLogger()
-	//activityLogger.Info(fmt.Sprintln("["+logger.EVENT_CATEGORY_CUSTOMER+"]", string(activityLogDataJson)), systemActivityLogData)
-
 	//page := models.Page{
 	//	Limit:   query.PageRequest.Limit,
 	//	Page:    query.PageRequest.Page,
