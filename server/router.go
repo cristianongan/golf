@@ -350,12 +350,14 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/caddie-fee/setting/list", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.GetListCaddieFeeSetting))
 			cmsApiAuthorized.PUT("/caddie-fee/setting/:id", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.UpdateCaddieFeeSetting))
 			cmsApiAuthorized.DELETE("/caddie-fee/setting/:id", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.DeleteCaddieFeeSetting))
+
 			/// =================== Caddie Groups ===================
 			cCaddieGroup := new(controllers.CCaddieGroup)
 			cmsApiAuthorized.GET("/caddie-groups", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.GetCaddieGroupList))
 			cmsApiAuthorized.POST("/caddie-groups", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.CreateCaddieGroup))
 			cmsApiAuthorized.POST("/caddie-groups/add-caddies", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.AddCaddieToGroup))
 			cmsApiAuthorized.DELETE("/caddie-groups/:id", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.DeleteCaddieGroup))
+			cmsApiAuthorized.POST("/caddie-groups/move-caddies", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.MoveCaddieToGroup))
 
 			/// =================== Caddie Working Schedule ===================
 			cCaddieWorkingSchedule := new(controllers.CCaddieWorkingSchedule)

@@ -84,6 +84,7 @@ func (_ CCaddieGroup) AddCaddieToGroup(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// validate caddie_group
 	caddieGroup := models.CaddieGroup{
 		Code:       body.GroupCode,
 		PartnerUid: prof.PartnerUid,
@@ -131,7 +132,7 @@ func (_ CCaddieGroup) DeleteCaddieGroup(c *gin.Context, prof models.CmsUser) {
 	}
 
 	hasError := false
-	
+
 	for _, caddie := range list {
 		caddie.GroupId = 0
 		if err := caddie.Update(); err != nil {
@@ -151,6 +152,47 @@ func (_ CCaddieGroup) DeleteCaddieGroup(c *gin.Context, prof models.CmsUser) {
 	if err := caddieGroup.Delete(); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
+	}
+
+	okRes(c)
+}
+
+func (_ CCaddieGroup) MoveCaddieToGroup(c *gin.Context, prof models.CmsUser) {
+	var body request.MoveCaddieToGroupBody
+	if err := c.BindJSON(&body); err != nil {
+		log.Print("MoveCaddieToGroup BindJSON error")
+		response_message.BadRequest(c, "")
+		return
+	}
+
+	// validate caddie_group
+	caddieGroup := models.CaddieGroup{
+		Code:       body.GroupCode,
+		PartnerUid: prof.PartnerUid,
+		CourseUid:  prof.CourseUid,
+	}
+
+	if err := caddieGroup.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	caddieList := models.CaddieList{}
+	caddieList.PartnerUid = prof.PartnerUid
+	caddieList.CourseUid = prof.CourseUid
+	caddieList.CaddieCodeList = body.CaddieList
+	list, err := caddieList.FindListWithoutPage()
+
+	if err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	for _, item := range list {
+		item.GroupId = caddieGroup.Id
+		if err := item.Update(); err != nil {
+			continue
+		}
 	}
 
 	okRes(c)
