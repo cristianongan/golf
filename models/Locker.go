@@ -4,7 +4,6 @@ import (
 	"start/constants"
 	"start/datasources"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -62,12 +61,7 @@ func (item *Locker) FindList(page Page, from, to int64, isFullDay bool) ([]Locke
 	db := datasources.GetDatabase().Model(Locker{})
 	list := []Locker{}
 	total := int64(0)
-	status := item.Status
-	item.Status = ""
 
-	if status != "" {
-		db = db.Where("status in (?)", strings.Split(status, ","))
-	}
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
@@ -96,6 +90,7 @@ func (item *Locker) FindList(page Page, from, to int64, isFullDay bool) ([]Locke
 	db.Count(&total)
 
 	if isFullDay {
+		db.Order("created_at desc")
 		db.Find(&list)
 		return list, total, db.Error
 	}
