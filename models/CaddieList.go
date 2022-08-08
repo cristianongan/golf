@@ -1,24 +1,26 @@
 package models
 
 import (
+	"start/constants"
 	"start/datasources"
 	"strconv"
 	"time"
 )
 
 type CaddieList struct {
-	PartnerUid      string
-	CourseUid       string
-	CaddieName      string
-	CaddieCode      string
-	Month           string
-	WorkingStatus   string
-	InCurrentStatus []string
-	CaddieCodeList  []string
-	GroupId         int64
-	Level           string
-	Phone           string
-	IsInGroup       string
+	PartnerUid        string
+	CourseUid         string
+	CaddieName        string
+	CaddieCode        string
+	Month             string
+	WorkingStatus     string
+	InCurrentStatus   []string
+	CaddieCodeList    []string
+	GroupId           int64
+	Level             string
+	Phone             string
+	IsInGroup         string
+	IsReadyForBooking string
 }
 
 func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
@@ -69,6 +71,15 @@ func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
 			db = db.Where("group_id <> ?", 0)
 		} else if isInGroup == 0 {
 			db = db.Where("group_id = ?", 0)
+		}
+	}
+
+	if item.IsReadyForBooking != "" {
+		isReadyForBooking, _ := strconv.ParseInt(item.IsReadyForBooking, 10, 8)
+		if isReadyForBooking == 1 {
+			db = db.Where("working_status = ?", constants.CADDIE_WORKING_STATUS_ACTIVE).Where("current_status <> ?", constants.CADDIE_CURRENT_STATUS_WORKING_ONLY).Where("current_status <> ?", constants.CADDIE_CURRENT_STATUS_JOB)
+		} else if isReadyForBooking == 0 {
+			db = db.Where("working_status = ?", constants.CADDIE_WORKING_STATUS_INACTIVE).Or("current_status = ?", constants.CADDIE_CURRENT_STATUS_WORKING_ONLY).Or("current_status = ?", constants.CADDIE_CURRENT_STATUS_JOB)
 		}
 	}
 
