@@ -702,7 +702,7 @@ func (item *Booking) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *Booking) FindList(page models.Page, from int64, to int64) ([]Booking, int64, error) {
+func (item *Booking) FindList(page models.Page, from int64, to int64, agencyType string) ([]Booking, int64, error) {
 	db := datasources.GetDatabase().Model(Booking{})
 	list := []Booking{}
 	total := int64(0)
@@ -737,6 +737,10 @@ func (item *Booking) FindList(page models.Page, from int64, to int64) ([]Booking
 
 	if item.Bag != "" {
 		db = db.Where("bag LIKE ?", "%"+item.Bag+"%")
+	}
+
+	if agencyType != "" {
+		db = db.Where("agency_info->'$.type' LIKE ?", "%"+agencyType+"%")
 	}
 
 	//Search With Time
