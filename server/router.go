@@ -495,6 +495,12 @@ func NewRouter() *gin.Engine {
 		// 	cronApi.POST("/check-cron", cCron.CheckCron)
 		// 	cronApi.POST("/backup-order", cCron.BackupOrder)
 		// }
+
+		cronApi := routerApi.Group("cron-job")
+		{
+			cCron := new(controllers.CCron)
+			cronApi.GET("/create-caddie-working-calendar", cCron.CreateCaddieWorkingCalendar)
+		}
 	}
 
 	todoRouter := router.Group(moduleName)

@@ -16,12 +16,10 @@ import (
 // Thẻ thành viên
 type MemberCard struct {
 	Model
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	OwnerUid   string `json:"owner_uid" gorm:"type:varchar(100);index"`   // Uid chủ sở hữu
-	CardId     string `json:"card_id" gorm:"type:varchar(100);index"`     // Id thẻ
-	// Type            string `json:"type" gorm:"type:varchar(100);index"`        // Loại thẻ - > Lấy từ MemberCardType.Type = Base Type
-	// McType          string `json:"mc_type" gorm:"type:varchar(100);index"` // Member Card Type = Member Type
+	PartnerUid      string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid       string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	OwnerUid        string `json:"owner_uid" gorm:"type:varchar(100);index"`   // Uid chủ sở hữu
+	CardId          string `json:"card_id" gorm:"type:varchar(100);index"`     // Id thẻ
 	McTypeId        int64  `json:"mc_type_id" gorm:"index"`                    // Member Card Type id
 	ValidDate       int64  `json:"valid_date" gorm:"index"`                    // Hieu luc tu ngay
 	ExpDate         int64  `json:"exp_date" gorm:"index"`                      // Het hieu luc tu ngay
@@ -41,6 +39,9 @@ type MemberCard struct {
 
 	StartPrecial int64 `json:"start_precial"` // Khoảng TG được dùng giá riêng
 	EndPrecial   int64 `json:"end_precial"`   // Khoảng TG được dùng giá riêng
+
+	TotalGuestOfDay int `json:"total_guest_of_day"` // Số khách đi cùng trong ngày
+	TotalPlayOfYear int `json:"total_play_of_year"` // Số lần đã chơi trong năm
 }
 
 type MemberCardDetailRes struct {
@@ -69,6 +70,9 @@ type MemberCardDetailRes struct {
 
 	StartPrecial int64 `json:"start_precial"` // Khoảng TG được dùng giá riêng
 	EndPrecial   int64 `json:"end_precial"`   // Khoảng TG được dùng giá riêng
+
+	TotalGuestOfDay int `json:"total_guest_of_day"` // Số khách đi cùng trong ngày
+	TotalPlayOfYear int `json:"total_play_of_year"` // Số lần đã chơi trong năm
 
 	//MemberCardType Info
 	MemberCardTypeInfo MemberCardType `json:"member_card_type_info"`
@@ -171,6 +175,15 @@ func (item *MemberCard) Update() error {
 func (item *MemberCard) FindFirst() error {
 	db := datasources.GetDatabase()
 	return db.Where(item).First(item).Error
+}
+
+func (item *MemberCard) FindFirstWithMemberCardType() (error, error, MemberCardType) {
+	db := datasources.GetDatabase()
+	err1 := db.Where(item).First(item).Error
+	memberCardType := MemberCardType{}
+	memberCardType.Id = item.McTypeId
+	err2 := memberCardType.FindFirst()
+	return err1, err2, memberCardType
 }
 
 func (item *MemberCard) Count() (int64, error) {

@@ -564,3 +564,26 @@ func createLocker(booking model_booking.Booking) {
 		}
 	}
 }
+
+/*
+	Check ngày của guest
+	guest_style_of_guest
+	- ngày dc đi:
+	2,2B:2345 :
+	GS = GuestStyle
+	Mô tả - GS 2 đc đi tất cả các ngày trong tuần, GS 2B dc đi các thứ 2345
+
+	- Số lượng Guest dc đi trong ngày của member card đó
+	+ Check ngày thường(normal_day_take_guest): Ex: 7,3: ý nghĩa ngày thường mã 2 dc đưa 7 khách, mã 2B dc đưa 3 khách
+	+ Check ngày cuối tuần(weekend_take_guest): Ex 3: Ý nghĩa cuối tuần mã 3 được đưa 2 khách, Mã 2B không được đưa khách nào
+
+*/
+// func checkMemberCardGuestOfDay(memberCard models.MemberCard, memberCardType models.MemberCardType, guestStyle string) bool {
+
+// 	// Parse guest_style_of_guest
+
+// 	if memberCard.TotalGuestOfDay >= memberCardType.NormalDayTakeGuest {
+
+// 	}
+
+// }

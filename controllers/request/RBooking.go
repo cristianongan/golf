@@ -81,7 +81,7 @@ type CancelAllBookingBody struct {
 // Member Booking
 type CreateBookingBody struct {
 	BookingDate string `json:"booking_date"`                   // dd/mm/yyyy
-	CmsUser     string `json:"cms_user"`                       // Acc Operator Tạo
+	CmsUser     string `json:"cms_user"`                       // Acc Operator Tạo (Bỏ lấy theo token)
 	PartnerUid  string `json:"partner_uid" binding:"required"` // Hang Golf
 	CourseUid   string `json:"course_uid" binding:"required"`  // San Golf
 	Bag         string `json:"bag"`                            // Golf Bag
@@ -102,6 +102,8 @@ type CreateBookingBody struct {
 	// Member Card
 	MemberCardUid string `json:"member_card_uid"`
 	IsCheckIn     bool   `json:"is_check_in"`
+
+	MemberUidOfGuest string `json:"member_uid_of_guest"` // Member của Guest đến chơi cùng
 
 	//Agency
 	AgencyId          int64                   `json:"agency_id"`

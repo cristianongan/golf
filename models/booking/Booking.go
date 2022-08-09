@@ -100,7 +100,9 @@ type Booking struct {
 	BookingCode       string                  `json:"booking_code" gorm:"type:varchar(100);index"` // cho case tạo nhiều booking có cùng booking code
 	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant,omitempty" gorm:"type:json"`
 	BookingRetal      utils.BookingRental     `json:"booking_retal,omitempty" gorm:"type:json"`
-	BookingSourceId   string                  `json:"booking_source_id" gorm:"type:varchar(50)"`
+	BookingSourceId   string                  `json:"booking_source_id" gorm:"type:varchar(50);index"`
+
+	MemberUidOfGuest string `json:"member_uid_of_guest" gorm:"type:varchar(50);index"` // Member của Guest đến chơi cùng
 }
 
 type CaddieInOutNote CaddieInOutNoteForBooking
@@ -741,6 +743,10 @@ func (item *Booking) FindList(page models.Page, from int64, to int64, agencyType
 
 	if agencyType != "" {
 		db = db.Where("agency_info->'$.type' LIKE ?", "%"+agencyType+"%")
+	}
+
+	if item.BookingCode != "" {
+		db = db.Where("booking_code = ?", item.BookingCode)
 	}
 
 	//Search With Time

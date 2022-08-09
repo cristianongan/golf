@@ -35,7 +35,7 @@ func (_ *CMemberCardType) CreateMemberCardType(c *gin.Context, prof models.CmsUs
 	memberCardType.CourseUid = body.CourseUid
 
 	memberCardType.GuestStyle = body.GuestStyle
-	memberCardType.GuestStyleOffGuest = body.GuestStyleOffGuest
+	memberCardType.GuestStyleOfGuest = body.GuestStyleOfGuest
 	memberCardType.PromotGuestStyle = body.PromotGuestStyle
 	memberCardType.NormalDayTakeGuest = body.NormalDayTakeGuest
 	memberCardType.WeekendTakeGuest = body.WeekendTakeGuest
@@ -115,7 +115,7 @@ func (_ *CMemberCardType) UpdateMemberCardType(c *gin.Context, prof models.CmsUs
 		memberCardType.Name = body.Name
 	}
 	memberCardType.GuestStyle = body.GuestStyle
-	memberCardType.GuestStyleOffGuest = body.GuestStyleOffGuest
+	memberCardType.GuestStyleOfGuest = body.GuestStyleOfGuest
 	memberCardType.PromotGuestStyle = body.PromotGuestStyle
 	memberCardType.NormalDayTakeGuest = body.NormalDayTakeGuest
 	memberCardType.WeekendTakeGuest = body.WeekendTakeGuest
