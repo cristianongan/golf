@@ -3,13 +3,14 @@ package logger
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ivpusic/golog"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 	"start/constants"
 	"start/datasources"
 	"start/models"
 	"time"
+
+	"github.com/ivpusic/golog"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type ActivityLog struct {
@@ -95,6 +96,7 @@ func Log(action string, category string, label string, value string, prof models
 		"partner_uid": prof.PartnerUid,
 		"course_uid":  prof.CourseUid,
 		"user_uid":    prof.Uid,
+		"user_name":   prof.FullName,
 		"action":      action,
 		"category":    category,
 		"label":       label,
