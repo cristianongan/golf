@@ -15,15 +15,40 @@ type Holiday struct {
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	Name       string `json:"name" gorm:"type:varchar(256)"`              // Ten Holiday
-	Day        string `json:"day" gorm:"type:varchar(100)"`
+	Note       string `json:"note" gorm:"type:varchar(256)"`
 	From       string `json:"from" gorm:"type:varchar(100)"`
 	To         string `json:"to" gorm:"type:varchar(100)"`
+	Year       string `json:"year" gorm:"type:varchar(100)"`
 }
 
 type HolidayResponse struct {
+	Note string `json:"note"`
 	Name string `json:"name"`
 	From string `json:"from"`
 	To   string `json:"to"`
+	Year string `json:"year"`
+}
+
+func (item *Holiday) IsValidated() bool {
+	if item.Name == "" {
+		return false
+	}
+	if item.PartnerUid == "" {
+		return false
+	}
+	if item.CourseUid == "" {
+		return false
+	}
+	if item.Year == "" {
+		return false
+	}
+	if item.From == "" {
+		return false
+	}
+	if item.Name == "" {
+		return false
+	}
+	return true
 }
 
 func (item *Holiday) Create() error {
@@ -61,15 +86,18 @@ func (item *Holiday) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *Holiday) FindList() ([]HolidayResponse, int64, error) {
+func (item *Holiday) FindList() ([]Holiday, int64, error) {
 	db := datasources.GetDatabase().Model(Holiday{})
-	list := []HolidayResponse{}
+	list := []Holiday{}
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
-	db = db.Where(item)
+
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
+	}
+	if item.Year != "" {
+		db = db.Where("year = ?", item.Year)
 	}
 	db.Count(&total)
 	db = db.Find(&list)

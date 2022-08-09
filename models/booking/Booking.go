@@ -328,6 +328,7 @@ func (item ListBookingRound) Value() (driver.Value, error) {
 // Agency info
 type BookingAgency struct {
 	Id             int64                 `json:"id"`
+	Type           string                `json:"type"`
 	AgencyId       string                `json:"agency_id"`       // Id Agency
 	ShortName      string                `json:"short_name"`      // Ten ngắn Dai ly
 	Category       string                `json:"category"`        // Category
@@ -701,7 +702,7 @@ func (item *Booking) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *Booking) FindList(page models.Page, from int64, to int64) ([]Booking, int64, error) {
+func (item *Booking) FindList(page models.Page, from int64, to int64, agencyType string) ([]Booking, int64, error) {
 	db := datasources.GetDatabase().Model(Booking{})
 	list := []Booking{}
 	total := int64(0)
@@ -736,6 +737,10 @@ func (item *Booking) FindList(page models.Page, from int64, to int64) ([]Booking
 
 	if item.Bag != "" {
 		db = db.Where("bag LIKE ?", "%"+item.Bag+"%")
+	}
+
+	if agencyType != "" {
+		db = db.Where("agency_info->'$.type' LIKE ?", "%"+agencyType+"%")
 	}
 
 	//Search With Time
@@ -832,7 +837,7 @@ func (item *Booking) FindListWithBookingCode() ([]Booking, error) {
 }
 
 /*
-	Find bookings in Flight
+Find bookings in Flight
 */
 func (item *Booking) FindListInFlight() ([]Booking, error) {
 	db := datasources.GetDatabase().Table("bookings")
@@ -904,7 +909,7 @@ func (item *Booking) FindForCaddieOnCourse(InFlight string) []Booking {
 }
 
 /*
-	Get List for Flight Data
+Get List for Flight Data
 */
 func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numberPeopleInFlight *int64, page models.Page) []BookingForFlightRes {
 	db := datasources.GetDatabase().Table("bookings")

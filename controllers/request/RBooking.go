@@ -34,6 +34,7 @@ type GetListBookingForm struct {
 	BagStatus   string `form:"bag_status"`
 	PlayerName  string `form:"player_name"`
 	FlightId    int64  `form:"flight_id"`
+	AgencyType  string `form:"agency_type"`
 }
 
 type GetListBookingWithSelectForm struct {
@@ -98,13 +99,13 @@ type CreateBookingBody struct {
 	CaddieCode        string                  `json:"caddie_code"`
 	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant"`
 	BookingRetal      utils.BookingRental     `json:"booking_retal"`
-	BookingCode       string                  `form:"booking_code"`
+	BookingCode       string                  `json:"booking_code"`
 	BookingSourceId   string                  `json:"booking_source_id"`
+	BookMark          bool
 }
 
 type CreateBatchBookingBody struct {
 	BookingList ListCreateBookingBody `json:"booking_list"`
-	IsWaiting   bool                  `json:"is_waiting"` // booking ở trạng thái chờ
 }
 
 type ListCreateBookingBody []CreateBookingBody

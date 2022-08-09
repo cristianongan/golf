@@ -13,3 +13,8 @@ type AddCaddieToGroupBody struct {
 type GetCaddieGroupList struct {
 	PageRequest
 }
+
+type MoveCaddieToGroupBody struct {
+	GroupCode  string   `json:"group_code" validate:"required"`
+	CaddieList []string `json:"caddie_list"`
+}

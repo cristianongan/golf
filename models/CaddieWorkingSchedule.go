@@ -37,26 +37,29 @@ func (item *CaddieWorkingSchedule) FindList(page Page) ([]CaddieWorkingSchedule,
 	var list []CaddieWorkingSchedule
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(CaddieWorkingSchedule{})
+	db1 := datasources.GetDatabase().Model(CaddieWorkingSchedule{})
+	db2 := datasources.GetDatabase().Model(CaddieWorkingSchedule{})
 
 	if item.WeekId != "" {
-		db.Where("week_id = ?", item.WeekId)
+		db1 = db1.Where("week_id = ?", item.WeekId)
 	}
 
 	if item.CourseUid != "" {
-		db = db.Where("course_uid = ?", item.CourseUid)
+		db1 = db1.Where("course_uid = ?", item.CourseUid)
 	}
 
 	if item.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", item.PartnerUid)
+		db1 = db1.Where("partner_uid = ?", item.PartnerUid)
 	}
 
-	db.Count(&total)
+	query := db1.Select("MAX(id) as id_latest").Group("caddie_group_code, apply_date")
+
+	db2.Joins("JOIN (?) q ON caddie_working_schedules.id = q.id_latest", query).Debug().Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Find(&list)
+		db2 = page.Setup(db2).Find(&list)
 	}
-	return list, total, db.Error
+	return list, total, db2.Error
 }
 
 func (item *CaddieWorkingSchedule) Update() error {

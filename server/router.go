@@ -197,8 +197,9 @@ func NewRouter() *gin.Engine {
 
 			/// =================== Booking ===================
 			cBooking := new(controllers.CBooking)
-			cmsApiAuthorized.POST("/booking", middlewares.AuthorizedCmsUserHandler(cBooking.CreateBooking))            // Tạo booking or tạo booking check in luôn
-			cmsApiAuthorized.POST("/booking/batch", middlewares.AuthorizedCmsUserHandler(cBooking.CreateBatchBooking)) // Tạo list booking
+			cmsApiAuthorized.POST("/booking", middlewares.AuthorizedCmsUserHandler(cBooking.CreateBooking))                  // Tạo booking or tạo booking check in luôn
+			cmsApiAuthorized.POST("/booking/batch", middlewares.AuthorizedCmsUserHandler(cBooking.CreateBookingTee))         // Tạo list booking
+			cmsApiAuthorized.POST("/booking/copy-booking", middlewares.AuthorizedCmsUserHandler(cBooking.CreateCopyBooking)) // Copy booking
 			cmsApiAuthorized.POST("/booking/check-in", middlewares.AuthorizedCmsUserHandler(cBooking.CheckIn))
 			cmsApiAuthorized.GET("/booking/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBooking))
 			cmsApiAuthorized.GET("/booking/list/select", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingWithSelect))
@@ -349,12 +350,14 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/caddie-fee/setting/list", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.GetListCaddieFeeSetting))
 			cmsApiAuthorized.PUT("/caddie-fee/setting/:id", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.UpdateCaddieFeeSetting))
 			cmsApiAuthorized.DELETE("/caddie-fee/setting/:id", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.DeleteCaddieFeeSetting))
+
 			/// =================== Caddie Groups ===================
 			cCaddieGroup := new(controllers.CCaddieGroup)
 			cmsApiAuthorized.GET("/caddie-groups", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.GetCaddieGroupList))
 			cmsApiAuthorized.POST("/caddie-groups", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.CreateCaddieGroup))
 			cmsApiAuthorized.POST("/caddie-groups/add-caddies", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.AddCaddieToGroup))
 			cmsApiAuthorized.DELETE("/caddie-groups/:id", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.DeleteCaddieGroup))
+			cmsApiAuthorized.POST("/caddie-groups/move-caddies", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.MoveCaddieToGroup))
 
 			/// =================== Caddie Working Schedule ===================
 			cCaddieWorkingSchedule := new(controllers.CCaddieWorkingSchedule)
@@ -469,8 +472,16 @@ func NewRouter() *gin.Engine {
 			cHoliday := new(controllers.CHoliday)
 			cmsApiAuthorized.POST("/holiday", middlewares.AuthorizedCmsUserHandler(cHoliday.CreateHoliday))
 			cmsApiAuthorized.GET("/holiday/list", middlewares.AuthorizedCmsUserHandler(cHoliday.GetListHoliday))
-			cmsApiAuthorized.DELETE("/holiday/:id", middlewares.AuthorizedCmsUserHandler(cHoliday.UpdateHoliday))
-			cmsApiAuthorized.PUT("/holiday/:id", middlewares.AuthorizedCmsUserHandler(cHoliday.DeleteHoliday))
+			cmsApiAuthorized.DELETE("/holiday/:id", middlewares.AuthorizedCmsUserHandler(cHoliday.DeleteHoliday))
+			cmsApiAuthorized.PUT("/holiday/:id", middlewares.AuthorizedCmsUserHandler(cHoliday.UpdateHoliday))
+
+			/// =================== Activity Log ===================
+			cActivityLog := new(controllers.CActivityLog)
+			cmsApiAuthorized.GET("/activity-logs", middlewares.AuthorizedCmsUserHandler(cActivityLog.GetLog))
+
+			/// =================== Locker ===================
+			cLocker := new(controllers.CLocker)
+			cmsApiAuthorized.GET("/locker/list", middlewares.AuthorizedCmsUserHandler(cLocker.GetListLocker))
 		}
 
 		// ----------------------------------------------------------

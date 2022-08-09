@@ -191,8 +191,8 @@ func getBookingCmsUserLog(cmsUser string, timeDo int64) string {
 }
 
 /*
-  Tính golf fee cho tạo đơn có guest style
-	Là phần tử đầu của list golfFee
+	  Tính golf fee cho tạo đơn có guest style
+		Là phần tử đầu của list golfFee
 */
 func getInitListGolfFeeForBooking(uid string, body request.CreateBookingBody, golfFee models.GolfFee) (model_booking.ListBookingGolfFee, model_booking.BookingGolfFee) {
 	listBookingGolfFee := model_booking.ListBookingGolfFee{}
@@ -239,7 +239,7 @@ func updateMainBagForSubBag(body request.AddSubBagToBooking, mainBag string, cus
 }
 
 /*
-	Init List Round
+Init List Round
 */
 func initListRound(booking model_booking.Booking, bookingGolfFee model_booking.BookingGolfFee, checkInTime int64) model_booking.ListBookingRound {
 	round := model_booking.BookingRound{}
@@ -259,7 +259,7 @@ func initListRound(booking model_booking.Booking, bookingGolfFee model_booking.B
 }
 
 /*
- Init Booking MushPayInfo
+Init Booking MushPayInfo
 */
 func initBookingMushPayInfo(booking model_booking.Booking) model_booking.BookingMushPay {
 	mushPayInfo := model_booking.BookingMushPay{}
@@ -289,7 +289,7 @@ func checkCheckSubBagDupli(bookingUid string, booking model_booking.Booking) boo
 }
 
 /*
-	Create bags note: Note of Bag
+Create bags note: Note of Bag
 */
 func createBagsNoteNoteOfBag(booking model_booking.Booking) {
 	if booking.NoteOfBag == "" {
@@ -313,7 +313,7 @@ func createBagsNoteNoteOfBag(booking model_booking.Booking) {
 }
 
 /*
-	Create bags note: Note of Booking
+Create bags note: Note of Booking
 */
 func createBagsNoteNoteOfBooking(booking model_booking.Booking) {
 	if booking.NoteOfBooking == "" {
@@ -408,7 +408,7 @@ func cloneToBuggyBooking(buggy models.Buggy) model_booking.BookingBuggy {
 }
 
 /*
-	Add Caddie, Buggy To Booking
+Add Caddie, Buggy To Booking
 */
 func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode, buggyCode string) (error, model_booking.Booking, models.Caddie, models.Buggy) {
 	//if partnerUid == "" || courseUid == "" || bookingDate == "" || bag == "" {
@@ -468,7 +468,7 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 }
 
 /*
-	Out caddie
+Out caddie
 */
 func udpOutCaddieBooking(booking *model_booking.Booking) error {
 	// Get Caddie
@@ -485,7 +485,7 @@ func udpOutCaddieBooking(booking *model_booking.Booking) error {
 }
 
 /*
- Update caddie is in course is false
+Update caddie is in course is false
 */
 func udpCaddieOut(caddieId int64) error {
 	// Get Caddie
@@ -506,7 +506,7 @@ func udpCaddieOut(caddieId int64) error {
 }
 
 /*
-	add Caddie In Out Note
+add Caddie In Out Note
 */
 func addCaddieInOutNote(caddieInOut model_gostarter.CaddieInOutNote) {
 	err := caddieInOut.Create()
@@ -524,4 +524,43 @@ func udpBuggyOut(buggyId int64) error {
 		log.Println("udpBuggyOut err", err.Error())
 	}
 	return err
+}
+
+/*
+Create Locker: Locker for list
+*/
+func createLocker(booking model_booking.Booking) {
+	if booking.LockerNo == "" {
+		return
+	}
+
+	locker := models.Locker{
+		BookingUid: booking.Uid,
+	}
+
+	// check tồn tại
+	errF := locker.FindFirst()
+	if errF != nil || locker.Id <= 0 {
+		// Tạo mới
+		locker.CourseUid = booking.CourseUid
+		locker.PartnerUid = booking.PartnerUid
+		locker.GolfBag = booking.Bag
+		locker.PlayerName = booking.CustomerName
+		locker.Locker = booking.LockerNo
+
+		errC := locker.Create()
+		if errC != nil {
+			log.Println("createLocker errC", errC.Error())
+		}
+		return
+	}
+
+	if booking.LockerNo != "" && locker.Locker != booking.LockerNo {
+		locker.PlayerName = booking.CustomerName
+		locker.Locker = booking.LockerNo
+		errU := locker.Update()
+		if errU != nil {
+			log.Println("createLocker errU", errU.Error())
+		}
+	}
 }
