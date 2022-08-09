@@ -8,19 +8,20 @@ import (
 )
 
 type CaddieList struct {
-	PartnerUid        string
-	CourseUid         string
-	CaddieName        string
-	CaddieCode        string
-	Month             string
-	WorkingStatus     string
-	InCurrentStatus   []string
-	CaddieCodeList    []string
-	GroupId           int64
-	Level             string
-	Phone             string
-	IsInGroup         string
-	IsReadyForBooking string
+	PartnerUid            string
+	CourseUid             string
+	CaddieName            string
+	CaddieCode            string
+	Month                 string
+	WorkingStatus         string
+	InCurrentStatus       []string
+	CaddieCodeList        []string
+	GroupId               int64
+	OrderByGroupIndexDesc bool
+	Level                 string
+	Phone                 string
+	IsInGroup             string
+	IsReadyForBooking     string
 }
 
 func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
@@ -115,6 +116,10 @@ func (item CaddieList) FindListWithoutPage() ([]Caddie, error) {
 
 	if item.GroupId != 0 {
 		db = db.Where("group_id = ?", item.GroupId)
+	}
+
+	if item.OrderByGroupIndexDesc {
+		db = db.Order("group_index desc")
 	}
 
 	err := db.Find(&list).Error
