@@ -80,6 +80,8 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 		IdHr:          body.IdHr,
 	}
 
+	Caddie.GroupId, _ = strconv.ParseInt(body.Group, 10, 8)
+
 	err := Caddie.Create()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
