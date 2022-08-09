@@ -180,6 +180,8 @@ type CheckInBody struct {
 
 	GuestStyle     string `json:"guest_style"`      // Guest Style
 	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
+
+	MemberUidOfGuest string `json:"member_uid_of_guest"` // Member của Guest đến chơi cùng
 }
 
 //type AddRoundBody struct {

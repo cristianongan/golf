@@ -5,6 +5,22 @@ import (
 	"encoding/json"
 )
 
+// ------- List Gs Of Guest ---------
+type ListGsOfGuest []GsOfGuest
+
+type GsOfGuest struct {
+	GuestStyle string `json:"guest_style"`
+	Dow        string `json:"dow"`
+}
+
+func (item *ListGsOfGuest) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListGsOfGuest) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
 // ------- List Golf Hole ---------
 type ListGolfHoleFee []GolfHoleFee
 
