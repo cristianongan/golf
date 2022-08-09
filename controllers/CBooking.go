@@ -1387,7 +1387,7 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 	}
 
 	bookingCode := utils.HashCodeUuid(uuid.New().String())
-	for index, _ := range bodyRequest.BookingList {
+	for index := range bodyRequest.BookingList {
 		bodyRequest.BookingList[index].BookingCode = bookingCode
 	}
 
@@ -1424,6 +1424,48 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser) {
 	for _, body := range bookingList {
 		cBooking.CreateBookingCommon(body, c, prof)
+	}
+	okRes(c)
+}
+func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
+	form := request.CancelAllBookingBody{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	bookingR := model_booking.BookingList{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: form.BookingDate,
+		TeeTime:     form.TeeTime,
+		BookingCode: form.BookingCode,
+	}
+
+	db, err := bookingR.FindAllBookingList()
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+
+	for _, booking := range list {
+		if booking.BagStatus != constants.BAG_STATUS_INIT {
+			response_message.InternalServerError(c, "Booking:"+booking.BookingDate+" did check in")
+			return
+		}
+
+		booking.BagStatus = constants.BAG_STATUS_CANCEL
+		booking.CancelNote = form.Reason
+		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+
+		errUdp := booking.Update()
+		if errUdp != nil {
+			response_message.InternalServerError(c, errUdp.Error())
+			return
+		}
 	}
 	okRes(c)
 }

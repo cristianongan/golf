@@ -35,6 +35,7 @@ type GetListBookingForm struct {
 	PlayerName  string `form:"player_name"`
 	FlightId    int64  `form:"flight_id"`
 	AgencyType  string `form:"agency_type"`
+	TeeTime     string `form:"tee_time"`
 }
 
 type GetListBookingWithSelectForm struct {
@@ -64,6 +65,15 @@ type GetListBookingTeeTimeForm struct {
 	CourseUid   string `form:"course_uid"`
 	BookingDate string `form:"booking_date"`
 	TeeTime     string `form:"tee_time"`
+}
+
+type CancelAllBookingBody struct {
+	PartnerUid  string `form:"partner_uid" json:"partner_uid"`
+	CourseUid   string `form:"course_uid" json:"course_uid"`
+	BookingDate string `form:"booking_date" json:"booking_date"`
+	BookingCode string `form:"booking_code" json:"booking_code"`
+	TeeTime     string `form:"tee_time" json:"tee_time"`
+	Reason      string `form:"reason" json:"reason"`
 }
 
 // Tạo Tee booking
