@@ -108,7 +108,7 @@ func (item *AgencySpecialPrice) FindListByAgencyId() ([]AgencySpecialPrice, int6
 	return list, total, db.Error
 }
 
-func (item *AgencySpecialPrice) FindList(page Page, agencyIdStr string) ([]map[string]interface{}, int64, error) {
+func (item *AgencySpecialPrice) FindList(page Page, agencyIdStr, agencyName string) ([]map[string]interface{}, int64, error) {
 	db := datasources.GetDatabase().Table("agency_special_prices")
 	list := []map[string]interface{}{}
 	total := int64(0)
@@ -135,6 +135,9 @@ func (item *AgencySpecialPrice) FindList(page Page, agencyIdStr string) ([]map[s
 	if agencyIdStr != "" {
 		queryStr = queryStr + " WHERE tb1.agency_id_str = " + `"` + agencyIdStr + `"`
 	}
+	// if agencyName != "" {
+	// 	queryStr = queryStr + " WHERE tb1.agency_name = " + `"` + agencyName + `"`
+	// }
 
 	// queryStr = queryStr + ") af on tb0.uid = af.member_card_uid) tb1 "
 
