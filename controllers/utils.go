@@ -550,6 +550,7 @@ func createLocker(booking model_booking.Booking) {
 		locker.PlayerName = booking.CustomerName
 		locker.Locker = booking.LockerNo
 		locker.GuestStyle = booking.GuestStyle
+		locker.GuestStyleName = booking.GuestStyleName
 
 		errC := locker.Create()
 		if errC != nil {

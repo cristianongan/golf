@@ -12,13 +12,14 @@ import (
 // Locker
 type Locker struct {
 	ModelId
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	GolfBag    string `json:"golf_bag" gorm:"type:varchar(200)"`
-	BookingUid string `json:"booking_uid" gorm:"type:varchar(50);index"`
-	Locker     string `json:"locker" gorm:"type:varchar(500)"`
-	PlayerName string `json:"player_name" gorm:"type:varchar(256)"`
-	GuestStyle string `json:"guest_style" gorm:"type:varchar(256);index"`
+	PartnerUid     string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid      string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	GolfBag        string `json:"golf_bag" gorm:"type:varchar(200)"`
+	BookingUid     string `json:"booking_uid" gorm:"type:varchar(50);index"`
+	Locker         string `json:"locker" gorm:"type:varchar(500)"`
+	PlayerName     string `json:"player_name" gorm:"type:varchar(256)"`
+	GuestStyle     string `json:"guest_style" gorm:"type:varchar(256);index"`
+	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`
 }
 
 // ======= CRUD ===========
