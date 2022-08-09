@@ -127,6 +127,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		Hole:              body.Hole,
 		BookingRestaurant: body.BookingRestaurant,
 		BookingRetal:      body.BookingRetal,
+		BookingCode:       body.BookingCode,
 	}
 
 	// TODO: check kho tea time trong ngày đó còn trống mới cho đặt
@@ -323,8 +324,10 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.CustomerBookingPhone = booking.CustomerInfo.Phone
 	}
 
-	bookingCode := utils.HashCodeUuid(bookingUid.String())
-	booking.BookingCode = bookingCode
+	if body.BookingCode == "" {
+		bookingCode := utils.HashCodeUuid(bookingUid.String())
+		booking.BookingCode = bookingCode
+	}
 
 	errC := booking.Create(bUid)
 
@@ -1438,15 +1441,20 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 			}
 		}
 	}
-
 	cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
 }
 
 func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser) {
+	list := []model_booking.Booking{}
 	for _, body := range bookingList {
-		cBooking.CreateBookingCommon(body, c, prof)
+		booking := cBooking.CreateBookingCommon(body, c, prof)
+		if booking != nil {
+			list = append(list, *booking)
+		} else {
+			return
+		}
 	}
-	okRes(c)
+	okResponse(c, list)
 }
 func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 	form := request.CancelAllBookingBody{}
