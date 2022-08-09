@@ -18,6 +18,7 @@ type Locker struct {
 	BookingUid string `json:"booking_uid" gorm:"type:varchar(50);index"`
 	Locker     string `json:"locker" gorm:"type:varchar(500)"`
 	PlayerName string `json:"player_name" gorm:"type:varchar(256)"`
+	GuestStyle string `json:"guest_style" gorm:"type:varchar(256);index"`
 }
 
 // ======= CRUD ===========

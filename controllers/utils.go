@@ -549,6 +549,7 @@ func createLocker(booking model_booking.Booking) {
 		locker.GolfBag = booking.Bag
 		locker.PlayerName = booking.CustomerName
 		locker.Locker = booking.LockerNo
+		locker.GuestStyle = booking.GuestStyle
 
 		errC := locker.Create()
 		if errC != nil {
