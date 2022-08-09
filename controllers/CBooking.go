@@ -856,11 +856,6 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.UpdateBagGolfFee()
 	}
 
-	if body.Locker != "" {
-		booking.LockerNo = body.Locker
-		go createLocker(booking)
-	}
-
 	if body.Hole > 0 {
 		booking.Hole = body.Hole
 	}
@@ -904,6 +899,11 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		checkInTime := time.Now().Unix()
 		listRounds := initListRound(booking, bookingGolfFee, checkInTime)
 		booking.Rounds = listRounds
+	}
+
+	if body.Locker != "" {
+		booking.LockerNo = body.Locker
+		go createLocker(booking)
 	}
 
 	booking.CmsUser = prof.UserName
