@@ -745,6 +745,10 @@ func (item *Booking) FindList(page models.Page, from int64, to int64, agencyType
 		db = db.Where("agency_info->'$.type' LIKE ?", "%"+agencyType+"%")
 	}
 
+	if item.BookingCode != "" {
+		db = db.Where("booking_code = ?", item.BookingCode)
+	}
+
 	//Search With Time
 	if from > 0 && to > 0 {
 		db = db.Where("created_at between " + strconv.FormatInt(from, 10) + " and " + strconv.FormatInt(to, 10) + " ")
