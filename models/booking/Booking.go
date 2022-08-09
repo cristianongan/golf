@@ -48,7 +48,7 @@ type Booking struct {
 	TurnTime     string `json:"turn_time" gorm:"type:varchar(30)"`        // Ex: 16:26
 	TeeTime      string `json:"tee_time" gorm:"type:varchar(30)"`         // Ex: 16:26 Tee time là thời gian tee off dự kiến
 	TeeOffTime   string `json:"tee_off_time" gorm:"type:varchar(30)"`     // Ex: 16:26 Là thời gian thực tế phát bóng
-	RowIndex     int    `json:"row_index"`                                // index trong Flight
+	RowIndex     *int   `json:"row_index"`                                // index trong Flight
 
 	CurrentBagPrice  BookingCurrentBagPriceDetail `json:"current_bag_price,omitempty" gorm:"type:json"`  // Thông tin phí++: Tính toán lại phí Service items, Tiền cho Subbag
 	ListGolfFee      ListBookingGolfFee           `json:"list_golf_fee,omitempty" gorm:"type:json"`      // Thông tin List Golf Fee, Main Bag, Sub Bag

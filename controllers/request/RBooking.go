@@ -90,7 +90,7 @@ type CreateBookingBody struct {
 	TeePath     string `json:"tee_path"`                       // MORNING, NOON, NIGHT (k required cái này vì có case checking k qua booking)
 	TurnTime    string `json:"turn_time"`                      // Ex: 16:26 (k required cái này vì có case checking k qua booking)
 	TeeTime     string `json:"tee_time"`                       // Ex: 16:26 Tee time là thời gian tee off dự kiến (k required cái này vì có case checking k qua booking)
-	RowIndex    int    `json:"row_index"`                      // index trong Flight
+	RowIndex    *int   `json:"row_index"`                      // index trong Flight
 
 	// Guest booking
 	GuestStyle           string `json:"guest_style"`            // Guest Style
@@ -201,6 +201,7 @@ type MovingBookingBody struct {
 	BookingDate string   `json:"booking_date" validate:"required"`
 	TeeType     string   `json:"tee_type" validate:"required"`
 	TeeTime     string   `json:"tee_time" validate:"required"`
+	TeePath     string   `json:"tee_path" validate:"required"`
 	Hole        int      `json:"hole"`
 }
 
