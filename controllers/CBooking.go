@@ -43,32 +43,6 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 
 func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *gin.Context, prof models.CmsUser) *model_booking.Booking {
 
-	// Check Guest of member, check member có còn slot đi cùng không
-	var memberCard models.MemberCard
-	if body.MemberUidOfGuest != "" && body.GuestStyle != "" {
-		memberCard = models.MemberCard{}
-		memberCard.Uid = body.MemberUidOfGuest
-		errM1, errM2, memberCardType := memberCard.FindFirstWithMemberCardType()
-		if errM1 != nil {
-			response_message.InternalServerError(c, errM1.Error())
-			return nil
-		}
-		if errM2 != nil {
-			response_message.InternalServerError(c, errM2.Error())
-			return nil
-		}
-
-		// Check còn slot
-		isOk, errCheckMember := checkMemberCardGuestOfDay(memberCard, memberCardType, body.GuestStyle, time.Now())
-		if !isOk {
-			response_message.InternalServerError(c, errCheckMember.Error())
-			return nil
-		}
-
-		totalTemp := memberCard.TotalGuestOfDay
-		memberCard.TotalGuestOfDay = totalTemp + 1
-	}
-
 	// validate caddie_code
 	var caddie models.Caddie
 	var err error
@@ -136,6 +110,33 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		BookingRestaurant: body.BookingRestaurant,
 		BookingRetal:      body.BookingRetal,
 		BookingCode:       body.BookingCode,
+	}
+
+	// Check Guest of member, check member có còn slot đi cùng không
+	var memberCard models.MemberCard
+	if body.MemberUidOfGuest != "" && body.GuestStyle != "" {
+		memberCard = models.MemberCard{}
+		memberCard.Uid = body.MemberUidOfGuest
+		errM1, errM2, memberCardType := memberCard.FindFirstWithMemberCardType()
+		if errM1 != nil {
+			response_message.InternalServerError(c, errM1.Error())
+			return nil
+		}
+		if errM2 != nil {
+			response_message.InternalServerError(c, errM2.Error())
+			return nil
+		}
+
+		// Check còn slot
+		isOk, errCheckMember := checkMemberCardGuestOfDay(memberCard, memberCardType, body.GuestStyle, time.Now())
+		if !isOk {
+			response_message.InternalServerError(c, errCheckMember.Error())
+			return nil
+		}
+
+		totalTemp := memberCard.TotalGuestOfDay
+		memberCard.TotalGuestOfDay = totalTemp + 1
+		booking.MemberUidOfGuest = body.MemberUidOfGuest
 	}
 
 	// TODO: check kho tea time trong ngày đó còn trống mới cho đặt
@@ -834,6 +835,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 		totalTemp := memberCard.TotalGuestOfDay
 		memberCard.TotalGuestOfDay = totalTemp + 1
+		booking.MemberUidOfGuest = body.MemberUidOfGuest
 	}
 
 	booking.Hole = body.Hole
