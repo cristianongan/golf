@@ -42,6 +42,25 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 }
 
 func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *gin.Context, prof models.CmsUser) *model_booking.Booking {
+
+	// Check Guest of member, check member có còn slot đi cùng không
+	if body.MemberUidOfGuest != "" {
+		memberCard := models.MemberCard{}
+		memberCard.Uid = body.MemberCardUid
+		errM1, errM2, _ := memberCard.FindFirstWithMemberCardType()
+		if errM1 != nil {
+			response_message.InternalServerError(c, errM1.Error())
+			return nil
+		}
+		if errM2 != nil {
+			response_message.InternalServerError(c, errM2.Error())
+			return nil
+		}
+		// if memberCard.TotalGuestOfDay >= memberCardType.NormalDayTakeGuest
+		// totalTemp := memberCard.TotalGuestOfDay
+		// memberCard.TotalGuestOfDay = totalTemp + 1
+	}
+
 	// validate caddie_code
 	var caddie models.Caddie
 	var err error
