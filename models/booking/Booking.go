@@ -103,6 +103,8 @@ type Booking struct {
 	BookingSourceId   string                  `json:"booking_source_id" gorm:"type:varchar(50);index"`
 
 	MemberUidOfGuest string `json:"member_uid_of_guest" gorm:"type:varchar(50);index"` // Member của Guest đến chơi cùng
+
+	HasBookCaddie bool `json:"has_book_caddie" gorm:"default:0"`
 }
 
 type CaddieInOutNote CaddieInOutNoteForBooking

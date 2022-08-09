@@ -12,34 +12,40 @@ import (
 )
 
 type BookingList struct {
-	PartnerUid  string
-	CourseUid   string
-	BookingCode string
-	BookingDate string
-	CaddieUid   string
-	CaddieName  string
-	CaddieCode  string
-	InitType    string
-	AgencyId    int64
-	IsAgency    string
-	Status      string
-	FromDate    string
-	ToDate      string
-	BuggyUid    string
-	BuggyCode   string
-	GolfBag     string
-	Month       string
-	IsToday     string
-	BookingUid  string
-	IsFlight    string
-	BagStatus   string
-	HaveBag     *string
-	TeeTime     string
-	HasBuggy    string
-	IsTimeOut   string
+	PartnerUid    string
+	CourseUid     string
+	BookingCode   string
+	BookingDate   string
+	CaddieUid     string
+	CaddieName    string
+	CaddieCode    string
+	InitType      string
+	AgencyId      int64
+	IsAgency      string
+	Status        string
+	FromDate      string
+	ToDate        string
+	BuggyUid      string
+	BuggyCode     string
+	GolfBag       string
+	Month         string
+	IsToday       string
+	BookingUid    string
+	IsFlight      string
+	BagStatus     string
+	HaveBag       *string
+	TeeTime       string
+	HasBuggy      string
+	IsTimeOut     string
+	HasBookCaddie string
+	HasCaddie     string
 }
 
 func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
@@ -145,6 +151,20 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 			db = db.Where("buggy_id <> ?", 0)
 		} else if hasBuggy == 0 {
 			db = db.Where("buggy_id = ?", 0)
+		}
+	}
+
+	if item.HasBookCaddie != "" {
+		hasBookCaddie, _ := strconv.ParseInt(item.HasBookCaddie, 10, 64)
+		db = db.Where("has_book_caddie = ?", hasBookCaddie)
+	}
+
+	if item.HasCaddie != "" {
+		hasCaddie, _ := strconv.ParseInt(item.HasCaddie, 10, 64)
+		if hasCaddie == 1 {
+			db = db.Where("caddie_id <> ?", 0)
+		} else if hasCaddie == 0 {
+			db = db.Where("caddie_id = ?", 0)
 		}
 	}
 
