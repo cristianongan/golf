@@ -34,11 +34,31 @@ func (_ *CCaddieBookingList) GetCaddieBookingList(c *gin.Context, prof models.Cm
 	bookings.BookingDate = bookingDate.Format("02/01/2006")
 	bookings.CaddieName = query.CaddieName
 	bookings.CaddieCode = query.CaddieCode
+	bookings.PartnerUid = prof.PartnerUid
+	bookings.CourseUid = prof.CourseUid
+	bookings.HasBookCaddie = "1"
+	bookings.HasCaddie = "1"
 
 	db, total, err := bookings.FindBookingListWithSelect(page)
 
 	var list []response.CaddieBookingResponse
 	db.Find(&list)
+
+	var result map[string]map[string]int
+
+	result = make(map[string]map[string]int)
+
+	for _, item := range list {
+		if result[item.CaddieId] == nil {
+			result[item.CaddieId] = make(map[string]int)
+		}
+		result[item.CaddieId]["total_booking"] = result[item.CaddieId]["total_booking"] + 1
+		if item.AgencyId != 0 {
+			result[item.CaddieId]["total_agent_booking"] = result[item.CaddieId]["total_agent_booking"] + 1
+		} else {
+			result[item.CaddieId]["total_customer_booking"] = result[item.CaddieId]["total_customer_booking"] + 1
+		}
+	}
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -47,7 +67,7 @@ func (_ *CCaddieBookingList) GetCaddieBookingList(c *gin.Context, prof models.Cm
 
 	res := response.PageResponse{
 		Total: total,
-		Data:  list,
+		Data:  result,
 	}
 
 	c.JSON(200, res)
@@ -73,6 +93,8 @@ func (_ *CCaddieBookingList) GetAgencyBookingList(c *gin.Context, prof models.Cm
 
 	bookings.BookingDate = bookingDate.Format("02/01/2006")
 	bookings.IsAgency = "0"
+	bookings.PartnerUid = prof.PartnerUid
+	bookings.CourseUid = prof.CourseUid
 
 	db, total, err := bookings.FindBookingListWithSelect(page)
 
@@ -113,6 +135,8 @@ func (_ *CCaddieBookingList) GetCancelBookingList(c *gin.Context, prof models.Cm
 
 	bookings.BookingDate = bookingDate.Format("02/01/2006")
 	bookings.Status = CANCEL
+	bookings.PartnerUid = prof.PartnerUid
+	bookings.CourseUid = prof.CourseUid
 
 	db, total, err := bookings.FindBookingListWithSelect(page)
 
