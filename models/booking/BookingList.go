@@ -34,6 +34,7 @@ type BookingList struct {
 	IsFlight    string
 	BagStatus   string
 	HaveBag     *string
+	TeeTime     string
 	HasBuggy    string
 	IsTimeOut   string
 }
@@ -70,6 +71,10 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 
 	if item.BuggyCode != "" {
 		db = db.Where("buggy_info->'$.code' = ?", item.BuggyCode)
+	}
+
+	if item.TeeTime != "" {
+		db = db.Where("tee_time = ?", item.TeeTime)
 	}
 
 	if item.Month != "" {
@@ -177,6 +182,14 @@ func (item *BookingList) FindBookingListWithSelect(page models.Page) (*gorm.DB, 
 	}
 
 	return db, total, db.Error
+}
+
+func (item *BookingList) FindAllBookingList() (*gorm.DB, error) {
+	db := datasources.GetDatabase().Model(Booking{})
+
+	db = addFilter(db, item)
+
+	return db, db.Error
 }
 
 func (item *BookingList) FindFirst() (Booking, error) {

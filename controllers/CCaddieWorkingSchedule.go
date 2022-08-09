@@ -64,12 +64,13 @@ func (_ *CCaddieWorkingSchedule) CreateCaddieWorkingSchedule(c *gin.Context, pro
 
 		for _, applyDayOff := range item.ApplyDayOffList {
 			applyDate, _ := time.Parse("2006-01-02", applyDayOff.ApplyDate)
+			applyDate2 := datatypes.Date(applyDate)
 			caddieWorkingSchedule := models.CaddieWorkingSchedule{
 				CaddieGroupName: caddieGroup.Name,
 				CaddieGroupCode: caddieGroup.Code,
 				WeekId:          item.WeekId,
-				ApplyDate:       datatypes.Date(applyDate),
-				IsDayOff:        applyDayOff.IsDayOff,
+				ApplyDate:       &(applyDate2),
+				IsDayOff:        &applyDayOff.IsDayOff,
 				PartnerUid:      prof.PartnerUid,
 				CourseUid:       prof.CourseUid,
 			}
@@ -169,6 +170,7 @@ func (_ *CCaddieWorkingSchedule) UpdateCaddieWorkingSchedule(c *gin.Context, pro
 
 	for _, applyDayOff := range body.ApplyDayOffList {
 		applyDate, _ := time.Parse("2006-01-02", applyDayOff.ApplyDate)
+		applyDate2 := datatypes.Date(applyDate)
 		//
 		//caddieWorkingSchedule := models.CaddieWorkingSchedule{
 		//	CaddieGroupName: caddieGroup.Name,
@@ -183,14 +185,14 @@ func (_ *CCaddieWorkingSchedule) UpdateCaddieWorkingSchedule(c *gin.Context, pro
 		caddieWorkingSchedule := models.CaddieWorkingSchedule{
 			CaddieGroupCode: caddieGroup.Code,
 			WeekId:          body.WeekId,
-			ApplyDate:       datatypes.Date(applyDate),
+			ApplyDate:       &applyDate2,
 		}
 
 		if err := caddieWorkingSchedule.FindFirst(); err != nil {
 
 		}
 
-		caddieWorkingSchedule.IsDayOff = applyDayOff.IsDayOff
+		caddieWorkingSchedule.IsDayOff = &applyDayOff.IsDayOff
 
 		if err := caddieWorkingSchedule.Update(); err != nil {
 			response_message.InternalServerError(c, err.Error())

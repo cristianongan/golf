@@ -48,6 +48,9 @@ func (item *CaddieFeeSetting) IsValidated() bool {
 	if item.Fee == 0 {
 		return false
 	}
+	if item.GroupId == 0 {
+		return false
+	}
 	if item.Type == "" {
 		return false
 	}

@@ -213,6 +213,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/booking/sub-bag-detail/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetSubBagDetail))         // Get Sub bag detail
 			cmsApiAuthorized.POST("/booking/other-paid/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddOtherPaid))                // Add Other Paid
 			cmsApiAuthorized.POST("/booking/cancel", middlewares.AuthorizedCmsUserHandler(cBooking.CancelBooking))                       // Cancel booking
+			cmsApiAuthorized.POST("/booking/cancel/all", middlewares.AuthorizedCmsUserHandler(cBooking.CancelAllBooking))                // Cancel booking
 			cmsApiAuthorized.POST("/booking/moving", middlewares.AuthorizedCmsUserHandler(cBooking.MovingBooking))                       // Moving booking
 			cmsApiAuthorized.GET("/booking-tee-time/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingTeeTime))         // Moving booking
 
@@ -494,6 +495,12 @@ func NewRouter() *gin.Engine {
 		// 	cronApi.POST("/check-cron", cCron.CheckCron)
 		// 	cronApi.POST("/backup-order", cCron.BackupOrder)
 		// }
+
+		cronApi := routerApi.Group("cron-job")
+		{
+			cCron := new(controllers.CCron)
+			cronApi.GET("/create-caddie-working-calendar", cCron.CreateCaddieWorkingCalendar)
+		}
 	}
 
 	todoRouter := router.Group(moduleName)

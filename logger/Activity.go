@@ -3,13 +3,14 @@ package logger
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ivpusic/golog"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 	"start/constants"
 	"start/datasources"
 	"start/models"
 	"time"
+
+	"github.com/ivpusic/golog"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type ActivityLog struct {
@@ -17,6 +18,7 @@ type ActivityLog struct {
 	PartnerUid string `json:"partner_uid"`
 	CourseUid  string `json:"course_uid"`
 	UserUid    string `json:"user_uid"`
+	UserName   string `json:"user_name"`              //customer name
 	Action     string `json:"action"`                 //customer_update_info, agency_update_info
 	Category   string `json:"category"`               //customer, agency
 	Label      string `json:"label"`                  //create, update, delete
@@ -57,6 +59,7 @@ func (activityMysql ActivityMysqlAppender) Append(activityGoLog golog.Log) {
 		PartnerUid: activityGoLogData0["partner_uid"],
 		CourseUid:  activityGoLogData0["course_uid"],
 		UserUid:    activityGoLogData0["user_uid"],
+		UserName:   activityGoLogData0["user_name"],
 		Action:     activityGoLogData0["action"],
 		Category:   activityGoLogData0["category"],
 		Label:      activityGoLogData0["label"],
@@ -95,6 +98,7 @@ func Log(action string, category string, label string, value string, prof models
 		"partner_uid": prof.PartnerUid,
 		"course_uid":  prof.CourseUid,
 		"user_uid":    prof.Uid,
+		"user_name":   prof.FullName,
 		"action":      action,
 		"category":    category,
 		"label":       label,
