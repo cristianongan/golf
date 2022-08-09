@@ -580,6 +580,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	if body.LockerNo == "" {
 		booking.LockerNo = body.LockerNo
+		go createLocker(booking)
 	}
 
 	if body.ReportNo == "" {
@@ -795,6 +796,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	if body.Locker != "" {
 		booking.LockerNo = body.Locker
+		go createLocker(booking)
 	}
 
 	if body.Hole > 0 {

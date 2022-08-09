@@ -23,7 +23,7 @@ type MemberCardType struct {
 	PlayTimesOnMonth   int    `json:"play_times_on_month"`                            // Số lần chơi trên tháng
 	Type               string `json:"type" gorm:"type:varchar(100);index"`            // Type: SHORT_TERM, LONG_TERM, VIP, FOREIGN
 	PlayTimeOnYear     int    `json:"play_times_on_year"`                             // Số lần chơi trong năm
-	AnnualType         string `json:"annual_type" gorm:"type:varchar(100)"`           // loại thường niên: không giới hạn, chơi có giới hạn, thẻ ngủ.
+	AnnualType         string `json:"annual_type" gorm:"type:varchar(100)"`           // loại thường niên: UN_LIMITED (không giới hạn), LIMITED (chơi có giới hạn), SLEEP (thẻ ngủ).
 }
 
 func (item *MemberCardType) IsValidated() bool {

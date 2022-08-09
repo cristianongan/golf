@@ -110,6 +110,9 @@ func MigrateDb() {
 		// ------- Holiday -------
 		db.AutoMigrate(&models.Holiday{})
 
+		// ------- Locker -------
+		db.AutoMigrate(&models.Locker{})
+
 		log.Println("migrated db")
 	}
 }
