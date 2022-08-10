@@ -27,11 +27,21 @@ func (_ *CCaddieBookingList) GetCaddieBookingList(c *gin.Context, prof models.Cm
 		SortDir: query.PageRequest.SortDir,
 	}
 
-	bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
-
 	bookings := model_booking.BookingList{}
 
-	bookings.BookingDate = bookingDate.Format("02/01/2006")
+	if query.BookingDate != "" {
+		bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
+		bookings.BookingDate = bookingDate.Format("02/01/2006")
+	}
+
+	if query.FromDate != "" {
+		bookings.FromDate = query.FromDate
+	}
+
+	if query.ToDate != "" {
+		bookings.ToDate = query.ToDate
+	}
+
 	bookings.CaddieName = query.CaddieName
 	bookings.CaddieCode = query.CaddieCode
 	bookings.PartnerUid = prof.PartnerUid
