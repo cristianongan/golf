@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
+	"math"
+	"start/constants"
 	"start/models"
+	"strconv"
 	"time"
 )
 
@@ -80,6 +83,29 @@ func (_ CCron) CreateCaddieWorkingCalendar(c *gin.Context) {
 	resultJson, _ := json.Marshal(result)
 
 	fmt.Println("[DEBUG]", string(resultJson))
+
+	// set caddie_working_calendars
+	lengthResult := len(result)
+
+	for i := 0; i < lengthResult; i++ {
+		caddieWorkingCalendar := models.CaddieWorkingCalendar{}
+		caddieWorkingCalendar.CaddieUid = strconv.FormatInt(result[i].Id, 10)
+		caddieWorkingCalendar.CaddieCode = result[i].Code
+		caddieWorkingCalendar.PartnerUid = result[i].PartnerUid
+		caddieWorkingCalendar.CourseUid = result[i].CourseUid
+		caddieWorkingCalendar.CaddieLabel = constants.CADDIE_WORKING_CALENDAR_LABEL_READY
+		if ((i + 1) % 10) != 0 {
+			caddieWorkingCalendar.CaddieColumn = (i + 1) % 10
+		} else {
+			caddieWorkingCalendar.CaddieColumn = 10
+		}
+		caddieWorkingCalendar.CaddieRow = "H" + strconv.FormatInt(int64(math.Round(float64(i+1)/float64(10))), 10)
+		caddieWorkingCalendar.ApplyDate = datatypes.Date(time.Now())
+
+		if err := caddieWorkingCalendar.Create(); err != nil {
+			fmt.Println("[CRON_JOB] [CREATE_CADDIE_WORKING_CALENDAR] [ERROR]", err.Error())
+		}
+	}
 
 	okRes(c)
 }
