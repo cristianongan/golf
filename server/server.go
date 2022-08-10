@@ -2,12 +2,15 @@ package server
 
 import (
 	"fmt"
-	"github.com/robfig/cron/v3"
 	"log"
 	"start/config"
 	"start/datasources"
 	"start/logger"
 	"time"
+
+	ccron "start/cron"
+
+	"github.com/robfig/cron/v3"
 	// "start/datasources/aws"
 	// "start/datasources/elasticsearch"
 )
@@ -16,7 +19,7 @@ func Init() {
 	log.Println("server init")
 
 	config := config.GetConfig()
-	// cron.CronStart()
+	ccron.CronStart()
 	// cron.InitCronJobCallApi()
 
 	datasources.MinioConnect()
