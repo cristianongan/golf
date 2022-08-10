@@ -6,10 +6,13 @@ import (
 )
 
 type FlightList struct {
-	BookingDate string
+	PartnerUid           string
+	CourseUid            string
+	BookingDate          string
+	PeopleNumberInFlight *int
 }
 
-func (item *FlightList) FindFlightList(page models.Page) ([]Flight, int64, error) {
+func (item *FlightList) FindFlightList(page models.Page) ([]Flight, error) {
 	var list []Flight
 	total := int64(0)
 
@@ -19,11 +22,29 @@ func (item *FlightList) FindFlightList(page models.Page) ([]Flight, int64, error
 		db = db.Where("date_display = ?", item.BookingDate)
 	}
 
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Preload("Bookings").Find(&list)
 	}
 
-	return list, total, db.Error
+	if item.PeopleNumberInFlight != nil {
+		listResponse := []Flight{}
+		for _, data := range list {
+			if len(data.Bookings) == *item.PeopleNumberInFlight {
+				listResponse = append(listResponse, data)
+			}
+		}
+		return listResponse, db.Error
+	}
+
+	return list, db.Error
 }

@@ -44,10 +44,7 @@ func (item ListBookingServiceItems) Value() (driver.Value, error) {
 
 func (item *BookingServiceItem) IsDuplicated() bool {
 	errFind := item.FindFirst()
-	if errFind == nil {
-		return true
-	}
-	return false
+	return errFind == nil
 }
 
 func (item *BookingServiceItem) Create() error {

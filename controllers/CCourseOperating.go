@@ -4,12 +4,12 @@ import (
 	"log"
 	"start/constants"
 	"start/controllers/request"
-	"start/controllers/response"
 	"start/models"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
 	"start/utils"
 	"start/utils/response_message"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -168,6 +168,8 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		Tee:        body.Tee,
 		TeeOff:     body.TeeOff,
 	}
+
+	flight.GroupName = strconv.Itoa(body.Tee) + "-" + body.TeeOff
 
 	// Date display
 	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
@@ -780,24 +782,36 @@ func (_ CCourseOperating) GetFlight(c *gin.Context, prof models.CmsUser) {
 		SortDir: query.PageRequest.SortDir,
 	}
 
-	bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
-
 	flights := model_gostarter.FlightList{}
 
-	flights.BookingDate = bookingDate.Format("02/01/2006")
+	if query.BookingDate != "" {
+		bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
+		flights.BookingDate = bookingDate.Format("02/01/2006")
+	}
 
-	list, total, err := flights.FindFlightList(page)
+	if query.PeopleNumberInFlight != nil {
+		flights.PeopleNumberInFlight = query.PeopleNumberInFlight
+	}
+
+	if query.PartnerUid != "" {
+		flights.PartnerUid = query.PartnerUid
+	}
+
+	if query.CourseUid != "" {
+		flights.CourseUid = query.CourseUid
+	}
+
+	list, err := flights.FindFlightList(page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 	}
 
-	res := response.PageResponse{
-		Total: total,
-		Data:  list,
-	}
+	// res := response.PageResponse{
+	// 	Data: list,
+	// }
 
-	c.JSON(200, res)
+	c.JSON(200, list)
 }
 
 func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof models.CmsUser) {
