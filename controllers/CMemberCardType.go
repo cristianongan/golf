@@ -225,6 +225,8 @@ func (_ *CMemberCardType) AddMcTypeAnnualFee(c *gin.Context, prof models.CmsUser
 		return
 	}
 
+	updateAnnualFeeToMcType(body.Year, body.McTypeId, body.Fee)
+
 	okResponse(c, mcAnnualFee)
 }
 
@@ -271,6 +273,8 @@ func (_ *CMemberCardType) UdpMcTypeAnnualFee(c *gin.Context, prof models.CmsUser
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
+
+	updateAnnualFeeToMcType(mcAnnualFee.Year, body.Id, body.Fee)
 
 	okResponse(c, mcAnnualFee)
 }

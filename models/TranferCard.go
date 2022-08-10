@@ -85,7 +85,9 @@ func (item *TranferCard) FindList(page Page, playerName string) ([]map[string]in
 
 	if playerName != "" {
 		queryStr = queryStr + " where "
-		queryStr = queryStr + " tb1.owner_name LIKE " + `"%` + playerName + `%"`
+		queryStr = queryStr + " tb1.owner_name LIKE " + `"%` + playerName + `%" `
+		queryStr = queryStr + " or "
+		queryStr = queryStr + " tb1.owner_name_old LIKE " + `"%` + playerName + `%" `
 	}
 
 	// var countReturn CountStruct
