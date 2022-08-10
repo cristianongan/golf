@@ -42,6 +42,21 @@ type CustomerUser struct {
 	Note     string `json:"note" gorm:"type:varchar(500)"`    // Ghi chu them
 }
 
+func (item *CustomerUser) IsDuplicated() bool {
+	cusTemp := CustomerUser{
+		PartnerUid: item.PartnerUid,
+		CourseUid:  item.CourseUid,
+		Phone:      item.Phone,
+	}
+
+	errF := cusTemp.FindFirst()
+	if errF != nil || cusTemp.Uid == "" {
+		return false
+	}
+
+	return true
+}
+
 func (item *CustomerUser) Create() error {
 	uid := uuid.New()
 	now := time.Now()

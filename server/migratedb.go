@@ -42,6 +42,7 @@ func MigrateDb() {
 		db.AutoMigrate(&models.HolePriceFormula{})
 		db.AutoMigrate(&models.AnnualFee{})
 		db.AutoMigrate(&models.AnnualFeePay{})
+		db.AutoMigrate(&models.McTypeAnnualFee{})
 
 		// ----- Booking -----
 		db.AutoMigrate(&model_booking.Booking{})

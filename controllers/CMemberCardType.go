@@ -202,3 +202,79 @@ func (_ *CMemberCardType) GetFeeByHole(c *gin.Context, prof models.CmsUser) {
 
 	okResponse(c, bookingGolfFee)
 }
+
+// ---- Annual Fee for Member Card Type ----
+func (_ *CMemberCardType) AddMcTypeAnnualFee(c *gin.Context, prof models.CmsUser) {
+	body := request.AddMcAnnualFeeBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	mcAnnualFee := models.McTypeAnnualFee{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		McTypeId:   body.McTypeId,
+		Year:       body.Year,
+		Fee:        body.Fee,
+	}
+
+	errC := mcAnnualFee.Create()
+	if errC != nil {
+		response_message.InternalServerError(c, errC.Error())
+		return
+	}
+
+	updateAnnualFeeToMcType(body.Year, body.McTypeId, body.Fee)
+
+	okResponse(c, mcAnnualFee)
+}
+
+func (_ *CMemberCardType) GetListMcTypeAnnualFee(c *gin.Context, prof models.CmsUser) {
+	form := request.GetMcTypeAnnualFeeForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	mcTypeAnnualFee := models.McTypeAnnualFee{
+		McTypeId: form.McTypeId,
+	}
+
+	list, err := mcTypeAnnualFee.FindByMcTypeId()
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okResponse(c, list)
+}
+
+func (_ *CMemberCardType) UdpMcTypeAnnualFee(c *gin.Context, prof models.CmsUser) {
+	body := request.UdpMcAnnualFeeBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	mcAnnualFee := models.McTypeAnnualFee{}
+	mcAnnualFee.Id = body.Id
+
+	errFind := mcAnnualFee.FindFirst()
+	if errFind != nil || mcAnnualFee.Id <= 0 {
+		response_message.InternalServerError(c, errFind.Error())
+		return
+	}
+
+	mcAnnualFee.Fee = body.Fee
+
+	errUdp := mcAnnualFee.Update()
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	updateAnnualFeeToMcType(mcAnnualFee.Year, body.Id, body.Fee)
+
+	okResponse(c, mcAnnualFee)
+}

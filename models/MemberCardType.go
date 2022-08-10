@@ -27,6 +27,7 @@ type MemberCardType struct {
 	Type               string `json:"type" gorm:"type:varchar(100);index"`            // Type: SHORT_TERM, LONG_TERM, VIP, FOREIGN
 	PlayTimeOnYear     int    `json:"play_times_on_year"`                             // Số lần chơi trong năm
 	AnnualType         string `json:"annual_type" gorm:"type:varchar(100)"`           // loại thường niên: UN_LIMITED (không giới hạn), LIMITED (chơi có giới hạn), SLEEP (thẻ ngủ).
+	CurrentAnnualFee   int64  `json:"current_annual_fee"`                             // Current Annual Fee
 }
 
 func (item *MemberCardType) ParseNormalDayTakeGuest() []int {

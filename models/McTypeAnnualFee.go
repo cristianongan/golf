@@ -15,9 +15,8 @@ type McTypeAnnualFee struct {
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	McTypeId   int64  `json:"mc_type_id" gorm:"index"`                    // Member Card Type id
-
-	// Name         string `json:"name" gorm:"type:varchar(256)"`              // Ten Group Fee
-	// CategoryType string `json:"category_type" gorm:"type:varchar(100)"`     // Category Type
+	Year       int    `json:"year" gorm:"index"`
+	Fee        int64  `json:"fee"`
 }
 
 func (item *McTypeAnnualFee) Create() error {
@@ -53,6 +52,16 @@ func (item *McTypeAnnualFee) Count() (int64, error) {
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
+}
+
+func (item *McTypeAnnualFee) FindByMcTypeId() ([]McTypeAnnualFee, error) {
+	db := datasources.GetDatabase().Model(McTypeAnnualFee{})
+	list := []McTypeAnnualFee{}
+	db = db.Where("mc_type_id = ?", item.McTypeId)
+
+	db.Find(&list)
+
+	return list, db.Error
 }
 
 func (item *McTypeAnnualFee) FindList(page Page) ([]McTypeAnnualFee, int64, error) {

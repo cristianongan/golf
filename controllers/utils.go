@@ -670,3 +670,20 @@ func handleCheckMemberCardOfGuest(memberUidOfGuest, guestStyle string) (error, m
 
 	return nil, memberCard, customer.Name
 }
+
+func updateAnnualFeeToMcType(yearInt int, mcTypeId, fee int64) {
+	if time.Now().Year() == yearInt {
+		mcType := models.MemberCardType{}
+		mcType.Id = mcTypeId
+		errFMCType := mcType.FindFirst()
+		if errFMCType == nil {
+			if mcType.CurrentAnnualFee != fee {
+				mcType.CurrentAnnualFee = fee
+				errMcTUdp := mcType.Update()
+				if errMcTUdp != nil {
+					log.Println("updateAnnualFeeToMcType errMcTUdp", errMcTUdp.Error())
+				}
+			}
+		}
+	}
+}
