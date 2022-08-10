@@ -637,7 +637,7 @@ func updateMemberCard(memberCard models.MemberCard) {
 /*
  Handle MemberCard for Booking
 */
-func handleBookingForMemberCard(memberUidOfGuest, guestStyle string) (error, models.MemberCard, string) {
+func handleCheckMemberCardOfGuest(memberUidOfGuest, guestStyle string) (error, models.MemberCard, string) {
 	var memberCard models.MemberCard
 	memberCard = models.MemberCard{}
 	memberCard.Uid = memberUidOfGuest

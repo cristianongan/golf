@@ -117,7 +117,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	if body.MemberUidOfGuest != "" && body.GuestStyle != "" {
 		var errCheckMember error
 		customerName := ""
-		errCheckMember, memberCard, customerName = handleBookingForMemberCard(body.MemberUidOfGuest, body.GuestStyle)
+		errCheckMember, memberCard, customerName = handleCheckMemberCardOfGuest(body.MemberUidOfGuest, body.GuestStyle)
 		if errCheckMember != nil {
 			response_message.InternalServerError(c, errCheckMember.Error())
 			return nil
@@ -812,7 +812,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	if body.MemberUidOfGuest != "" && body.GuestStyle != "" {
 		var errCheckMember error
 		customerName := ""
-		errCheckMember, memberCard, customerName = handleBookingForMemberCard(body.MemberUidOfGuest, body.GuestStyle)
+		errCheckMember, memberCard, customerName = handleCheckMemberCardOfGuest(body.MemberUidOfGuest, body.GuestStyle)
 		if errCheckMember != nil {
 			response_message.InternalServerError(c, errCheckMember.Error())
 			return
