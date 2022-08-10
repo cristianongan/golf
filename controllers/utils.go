@@ -633,3 +633,40 @@ func updateMemberCard(memberCard models.MemberCard) {
 		log.Println("updateMemberCard errUdp", errUdp.Error())
 	}
 }
+
+/*
+ Handle MemberCard for Booking
+*/
+func handleBookingForMemberCard(memberUidOfGuest, guestStyle string) (error, models.MemberCard, string) {
+	var memberCard models.MemberCard
+	memberCard = models.MemberCard{}
+	memberCard.Uid = memberUidOfGuest
+	errM1, errM2, memberCardType := memberCard.FindFirstWithMemberCardType()
+	if errM1 != nil {
+		return errM1, memberCard, ""
+	}
+	if errM2 != nil {
+		return errM2, memberCard, ""
+	}
+
+	// Check còn slot
+	isOk, errCheckMember := checkMemberCardGuestOfDay(memberCard, memberCardType, guestStyle, time.Now())
+	if !isOk {
+		if errCheckMember == nil {
+			errCheckMember = errors.New("not ok")
+		}
+		return errCheckMember, memberCard, ""
+	}
+
+	totalTemp := memberCard.TotalGuestOfDay
+	memberCard.TotalGuestOfDay = totalTemp + 1
+
+	customer := models.CustomerUser{}
+	customer.Uid = memberCard.OwnerUid
+	errFC := customer.FindFirst()
+	if errFC != nil {
+		log.Println("handleBookingForMemberCard err", errFC.Error())
+	}
+
+	return nil, memberCard, customer.Name
+}

@@ -115,28 +115,16 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	// Check Guest of member, check member có còn slot đi cùng không
 	var memberCard models.MemberCard
 	if body.MemberUidOfGuest != "" && body.GuestStyle != "" {
-		memberCard = models.MemberCard{}
-		memberCard.Uid = body.MemberUidOfGuest
-		errM1, errM2, memberCardType := memberCard.FindFirstWithMemberCardType()
-		if errM1 != nil {
-			response_message.InternalServerError(c, errM1.Error())
-			return nil
-		}
-		if errM2 != nil {
-			response_message.InternalServerError(c, errM2.Error())
-			return nil
-		}
-
-		// Check còn slot
-		isOk, errCheckMember := checkMemberCardGuestOfDay(memberCard, memberCardType, body.GuestStyle, time.Now())
-		if !isOk {
+		var errCheckMember error
+		customerName := ""
+		errCheckMember, memberCard, customerName = handleBookingForMemberCard(body.MemberUidOfGuest, body.GuestStyle)
+		if errCheckMember != nil {
 			response_message.InternalServerError(c, errCheckMember.Error())
 			return nil
+		} else {
+			booking.MemberUidOfGuest = body.MemberUidOfGuest
+			booking.MemberNameOfGuest = customerName
 		}
-
-		totalTemp := memberCard.TotalGuestOfDay
-		memberCard.TotalGuestOfDay = totalTemp + 1
-		booking.MemberUidOfGuest = body.MemberUidOfGuest
 	}
 
 	// TODO: check kho tea time trong ngày đó còn trống mới cho đặt
@@ -817,30 +805,19 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Check Guest of member, check member có còn slot đi cùng không
 	var memberCard models.MemberCard
 	if body.MemberUidOfGuest != "" && body.GuestStyle != "" {
-		memberCard = models.MemberCard{}
-		memberCard.Uid = body.MemberUidOfGuest
-		errM1, errM2, memberCardType := memberCard.FindFirstWithMemberCardType()
-		if errM1 != nil {
-			response_message.InternalServerError(c, errM1.Error())
-			return
-		}
-		if errM2 != nil {
-			response_message.InternalServerError(c, errM2.Error())
-			return
-		}
-
-		// Check còn slot
-		isOk, errCheckMember := checkMemberCardGuestOfDay(memberCard, memberCardType, body.GuestStyle, time.Now())
-		if !isOk {
+		var errCheckMember error
+		customerName := ""
+		errCheckMember, memberCard, customerName = handleBookingForMemberCard(body.MemberUidOfGuest, body.GuestStyle)
+		if errCheckMember != nil {
 			response_message.InternalServerError(c, errCheckMember.Error())
 			return
+		} else {
+			booking.MemberUidOfGuest = body.MemberUidOfGuest
+			booking.MemberNameOfGuest = customerName
 		}
-
-		totalTemp := memberCard.TotalGuestOfDay
-		memberCard.TotalGuestOfDay = totalTemp + 1
-		booking.MemberUidOfGuest = body.MemberUidOfGuest
 	}
 
 	booking.Hole = body.Hole
