@@ -67,11 +67,6 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 		return
 	}
 
-	// Set has_book_caddie
-	if booking.BagStatus == constants.BAG_STATUS_INIT {
-		booking.HasBookCaddie = true
-	}
-
 	errUdp := booking.Update()
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())

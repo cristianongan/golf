@@ -729,6 +729,11 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CaddieInfo = cloneToCaddieBooking(caddie)
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
 
+		// Set has_book_caddie
+		if booking.BagStatus == constants.BAG_STATUS_INIT {
+			booking.HasBookCaddie = true
+		}
+
 		// Udp Note
 		caddieInOutNote := model_gostarter.CaddieInOutNote{
 			PartnerUid: prof.PartnerUid,
