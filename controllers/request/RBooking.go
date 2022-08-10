@@ -42,7 +42,6 @@ type GetListBookingWithSelectForm struct {
 	PageRequest
 	PartnerUid    string  `form:"partner_uid"`
 	CourseUid     string  `form:"course_uid"`
-	Bag           string  `form:"bag"`
 	BookingDate   string  `form:"booking_date"`
 	BookingCode   string  `form:"booking_code"`
 	InitType      string  `form:"init_type"`

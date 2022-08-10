@@ -479,7 +479,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.PartnerUid = form.PartnerUid
 	bookings.CourseUid = form.CourseUid
 	bookings.BookingDate = form.BookingDate
-	bookings.GolfBag = form.Bag
+	bookings.GolfBag = form.GolfBag
 	bookings.BookingCode = form.BookingCode
 	bookings.InitType = form.InitType
 	bookings.IsAgency = form.IsAgency
