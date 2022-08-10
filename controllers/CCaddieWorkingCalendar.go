@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
 	"log"
+	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
@@ -48,7 +49,7 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 		CaddieCode:   caddie.Code,
 		PartnerUid:   prof.PartnerUid,
 		CourseUid:    prof.CourseUid,
-		CaddieLabel:  body.CaddieLabel,
+		CaddieLabel:  constants.CADDIE_WORKING_CALENDAR_LABEL_READY,
 		CaddieColumn: int(caddieColumn),
 		CaddieRow:    body.CaddieRow,
 		RowTime:      datatypes.NewTime(int(rowTimeHour), int(rowTimeMinute), 0, 0),
