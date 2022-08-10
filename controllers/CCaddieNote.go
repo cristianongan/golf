@@ -22,11 +22,9 @@ func (_ *CCaddieNote) CreateCaddieNote(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	caddieRequest := models.Caddie{}
-	// caddieRequest.Uid = body.CaddieId
-	errExist := caddieRequest.FindFirst()
-
-	if errExist != nil {
+	caddie := models.Caddie{}
+	caddie.Id = body.CaddieId
+	if err := caddie.FindFirst(); err != nil {
 		response_message.BadRequest(c, "Caddie number did not exist in course")
 		return
 	}
@@ -35,11 +33,13 @@ func (_ *CCaddieNote) CreateCaddieNote(c *gin.Context, prof models.CmsUser) {
 		Status: constants.STATUS_ENABLE,
 	}
 	caddieNote := models.CaddieNote{
-		ModelId: base,
-		// CaddieId: caddieRequest.Uid,
-		Type:   body.Type,
-		Note:   body.Note,
-		AtDate: body.AtDate,
+		ModelId:    base,
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		CaddieId:   body.CaddieId,
+		Type:       body.Type,
+		Note:       body.Note,
+		AtDate:     body.AtDate,
 	}
 
 	err := caddieNote.Create()
