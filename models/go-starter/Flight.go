@@ -23,6 +23,7 @@ type Flight struct {
 	End         string    `json:"end" gorm:"type:varchar(30)"`                //
 	DateDisplay string    `json:"date_display" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
 	Bookings    []Booking `json:"bookings"`
+	GroupName   string    `json:"group_name" gorm:"type:varchar(100)"`
 }
 
 type Booking BookingForFlight
