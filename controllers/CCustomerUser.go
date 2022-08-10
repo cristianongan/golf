@@ -3,13 +3,14 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/gin-gonic/gin"
 	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
 	"start/utils/response_message"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CCustomerUser struct{}
@@ -129,6 +130,19 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
+
+	body.PartnerUid = customerUser.PartnerUid
+	body.CourseUid = customerUser.CourseUid
+	if body.IsDuplicated() {
+		response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
+		return
+	}
+
+	if body.Phone != "" {
+		customerUser.Phone = body.Phone
+	}
+
+	customerUser.CellPhone = body.CellPhone
 
 	if body.Status != "" {
 		customerUser.Status = body.Status
