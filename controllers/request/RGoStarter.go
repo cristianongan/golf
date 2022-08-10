@@ -104,6 +104,9 @@ type GetFlightList struct {
 	PartnerUid           string `form:"partner_uid"`
 	CourseUid            string `form:"course_uid"`
 	GolfBag              string `form:"bag"`
+	CaddieName           string `form:"caddie_name"`
+	PlayerName           string `form:"player_name"`
+	CaddieCode           string `form:"caddie_code"`
 }
 
 type MoveBagToFlightBody struct {
