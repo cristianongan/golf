@@ -793,6 +793,14 @@ func (_ CCourseOperating) GetFlight(c *gin.Context, prof models.CmsUser) {
 		flights.PeopleNumberInFlight = query.PeopleNumberInFlight
 	}
 
+	if query.PartnerUid != "" {
+		flights.PartnerUid = query.PartnerUid
+	}
+
+	if query.CourseUid != "" {
+		flights.CourseUid = query.CourseUid
+	}
+
 	list, err := flights.FindFlightList(page)
 
 	if err != nil {

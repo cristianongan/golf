@@ -101,6 +101,8 @@ type GetFlightList struct {
 	PageRequest
 	BookingDate          string `form:"booking_date"`
 	PeopleNumberInFlight *int   `form:"people_number_in_flight"`
+	PartnerUid           string `form:"partner_uid"`
+	CourseUid            string `form:"course_uid"`
 }
 
 type MoveBagToFlightBody struct {

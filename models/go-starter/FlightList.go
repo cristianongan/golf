@@ -6,6 +6,8 @@ import (
 )
 
 type FlightList struct {
+	PartnerUid           string
+	CourseUid            string
 	BookingDate          string
 	PeopleNumberInFlight *int
 }
@@ -18,6 +20,14 @@ func (item *FlightList) FindFlightList(page models.Page) ([]Flight, error) {
 
 	if item.BookingDate != "" {
 		db = db.Where("date_display = ?", item.BookingDate)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
 
 	db.Count(&total)
