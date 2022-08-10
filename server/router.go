@@ -122,6 +122,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/member-card-type/:id", middlewares.AuthorizedCmsUserHandler(cMemberCardType.UpdateMemberCardType))
 			cmsApiAuthorized.DELETE("/member-card-type/:id", middlewares.AuthorizedCmsUserHandler(cMemberCardType.DeleteMemberCardType))
 
+			cmsApiAuthorized.POST("/member-card-type/annual-fee/add", middlewares.AuthorizedCmsUserHandler(cMemberCardType.AddMcTypeAnnualFee))
+			cmsApiAuthorized.POST("/member-card-type/annual-fee/update", middlewares.AuthorizedCmsUserHandler(cMemberCardType.UdpMcTypeAnnualFee))
+			cmsApiAuthorized.GET("/member-card-type/annual-fee/list", middlewares.AuthorizedCmsUserHandler(cMemberCardType.GetListMcTypeAnnualFee))
+
 			/// =================== Customer Users =====================
 			cCustomerUser := new(controllers.CCustomerUser)
 			cmsApiAuthorized.POST("/customer-user", middlewares.AuthorizedCmsUserHandler(cCustomerUser.CreateCustomerUser))
