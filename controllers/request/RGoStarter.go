@@ -103,6 +103,7 @@ type GetFlightList struct {
 	PeopleNumberInFlight *int   `form:"people_number_in_flight"`
 	PartnerUid           string `form:"partner_uid"`
 	CourseUid            string `form:"course_uid"`
+	GolfBag              string `form:"bag"`
 }
 
 type MoveBagToFlightBody struct {

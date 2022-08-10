@@ -3,12 +3,17 @@ package model_gostarter
 import (
 	"start/datasources"
 	"start/models"
+	// "gorm.io/gorm"
 )
 
 type FlightList struct {
 	PartnerUid           string
 	CourseUid            string
 	BookingDate          string
+	GolfBag              string
+	CaddieName           string
+	PlayerName           string
+	CaddieCode           string
 	PeopleNumberInFlight *int
 }
 
@@ -33,7 +38,21 @@ func (item *FlightList) FindFlightList(page models.Page) ([]Flight, error) {
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Preload("Bookings").Find(&list)
+		db = db.Preload("Bookings").Joins("INNER JOIN bookings ON bookings.flight_id = flights.id")
+
+		if item.GolfBag != "" {
+			db = db.Where("bookings.bag = ?", item.GolfBag)
+		}
+
+		if item.CaddieName != "" {
+			db = db.Where("caddie_info->'$.name' LIKE ?", "%"+item.CaddieName+"%")
+		}
+
+		if item.CaddieCode != "" {
+			db = db.Where("caddie_info->'$.code' = ?", item.CaddieCode)
+		}
+
+		db = page.Setup(db).Find(&list)
 	}
 
 	if item.PeopleNumberInFlight != nil {
