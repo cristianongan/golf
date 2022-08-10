@@ -27,18 +27,68 @@ func (_ *CCaddieBookingList) GetCaddieBookingList(c *gin.Context, prof models.Cm
 		SortDir: query.PageRequest.SortDir,
 	}
 
-	bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
-
 	bookings := model_booking.BookingList{}
 
-	bookings.BookingDate = bookingDate.Format("02/01/2006")
+	if query.BookingDate != "" {
+		bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
+		bookings.BookingDate = bookingDate.Format("02/01/2006")
+	}
+
+	if query.FromDate != "" {
+		bookings.FromDate = query.FromDate
+	}
+
+	if query.ToDate != "" {
+		bookings.ToDate = query.ToDate
+	}
+
 	bookings.CaddieName = query.CaddieName
 	bookings.CaddieCode = query.CaddieCode
+	bookings.PartnerUid = prof.PartnerUid
+	bookings.CourseUid = prof.CourseUid
+	bookings.HasBookCaddie = "1"
+	bookings.HasCaddie = "1"
 
 	db, total, err := bookings.FindBookingListWithSelect(page)
 
 	var list []response.CaddieBookingResponse
 	db.Find(&list)
+
+	var result map[int64]map[string]interface{}
+
+	result = make(map[int64]map[string]interface{})
+
+	for _, item := range list {
+		if result[item.CaddieId] == nil {
+			result[item.CaddieId] = make(map[string]interface{})
+			caddie := models.Caddie{}
+			caddie.Id = item.CaddieId
+			if err := caddie.FindFirst(); err == nil {
+				result[item.CaddieId]["caddie_info"] = caddie
+			}
+		}
+		if result[item.CaddieId]["total_booking"] == nil {
+			result[item.CaddieId]["total_booking"] = 0
+		}
+		if result[item.CaddieId]["total_agent_booking"] == nil {
+			result[item.CaddieId]["total_agent_booking"] = 0
+		}
+		if result[item.CaddieId]["total_customer_booking"] == nil {
+			result[item.CaddieId]["total_customer_booking"] = 0
+		}
+		if totalBooking, ok := result[item.CaddieId]["total_booking"].(int); ok {
+			result[item.CaddieId]["total_booking"] = totalBooking + 1
+		}
+		if item.AgencyId != 0 {
+			if totalAgencyBooking, ok := result[item.CaddieId]["total_agent_booking"].(int); ok {
+				result[item.CaddieId]["total_agent_booking"] = totalAgencyBooking + 1
+			}
+		} else {
+			if totalCustomerBooking, ok := result[item.CaddieId]["total_customer_booking"].(int); ok {
+				result[item.CaddieId]["total_customer_booking"] = totalCustomerBooking + 1
+			}
+		}
+	}
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -47,7 +97,7 @@ func (_ *CCaddieBookingList) GetCaddieBookingList(c *gin.Context, prof models.Cm
 
 	res := response.PageResponse{
 		Total: total,
-		Data:  list,
+		Data:  result,
 	}
 
 	c.JSON(200, res)
@@ -73,6 +123,8 @@ func (_ *CCaddieBookingList) GetAgencyBookingList(c *gin.Context, prof models.Cm
 
 	bookings.BookingDate = bookingDate.Format("02/01/2006")
 	bookings.IsAgency = "0"
+	bookings.PartnerUid = prof.PartnerUid
+	bookings.CourseUid = prof.CourseUid
 
 	db, total, err := bookings.FindBookingListWithSelect(page)
 
@@ -113,6 +165,8 @@ func (_ *CCaddieBookingList) GetCancelBookingList(c *gin.Context, prof models.Cm
 
 	bookings.BookingDate = bookingDate.Format("02/01/2006")
 	bookings.Status = CANCEL
+	bookings.PartnerUid = prof.PartnerUid
+	bookings.CourseUid = prof.CourseUid
 
 	db, total, err := bookings.FindBookingListWithSelect(page)
 

@@ -1,8 +1,11 @@
 package models
 
 import (
+	"log"
 	"start/constants"
 	"start/datasources"
+	"start/utils"
+	"strconv"
 	"strings"
 	"time"
 
@@ -24,6 +27,90 @@ type MemberCardType struct {
 	Type               string `json:"type" gorm:"type:varchar(100);index"`            // Type: SHORT_TERM, LONG_TERM, VIP, FOREIGN
 	PlayTimeOnYear     int    `json:"play_times_on_year"`                             // Số lần chơi trong năm
 	AnnualType         string `json:"annual_type" gorm:"type:varchar(100)"`           // loại thường niên: UN_LIMITED (không giới hạn), LIMITED (chơi có giới hạn), SLEEP (thẻ ngủ).
+}
+
+func (item *MemberCardType) ParseNormalDayTakeGuest() []int {
+	listPlay := []int{}
+
+	if strings.Contains(item.NormalDayTakeGuest, ",") {
+		listTemp := strings.Split(item.NormalDayTakeGuest, ",")
+		for _, v := range listTemp {
+			i, err := strconv.Atoi(v)
+			if err != nil {
+				log.Println("NormalDayTakeGuest err", err.Error())
+			} else {
+				listPlay = append(listPlay, i)
+			}
+		}
+	} else {
+		i, err := strconv.Atoi(item.NormalDayTakeGuest)
+		if err != nil {
+			log.Println("NormalDayTakeGuest err", err.Error())
+		} else {
+			listPlay = append(listPlay, i)
+		}
+	}
+
+	return listPlay
+}
+
+func (item *MemberCardType) ParseWeekendTakeGuest() []int {
+	listPlay := []int{}
+
+	if strings.Contains(item.WeekendTakeGuest, ",") {
+		listTemp := strings.Split(item.WeekendTakeGuest, ",")
+		for _, v := range listTemp {
+			i, err := strconv.Atoi(v)
+			if err != nil {
+				log.Println("ParseWeekendTakeGuest err", err.Error())
+			} else {
+				listPlay = append(listPlay, i)
+			}
+		}
+	} else {
+		i, err := strconv.Atoi(item.WeekendTakeGuest)
+		if err != nil {
+			log.Println("ParseWeekendTakeGuest err", err.Error())
+		} else {
+			listPlay = append(listPlay, i)
+		}
+	}
+
+	return listPlay
+}
+
+func (item *MemberCardType) ParseGsOfGuest() utils.ListGsOfGuest {
+	listGs := utils.ListGsOfGuest{}
+
+	gsTrimSpace := strings.TrimSpace(item.GuestStyleOfGuest) // TrimWhite Space
+	gsLast := strings.ReplaceAll(gsTrimSpace, " ", "")       // replace white space
+
+	if strings.Contains(gsLast, ",") {
+		listTemp := strings.Split(gsLast, ",")
+		for _, v := range listTemp {
+			if v != "" {
+				if strings.Contains(v, ":") {
+					listTemp1 := strings.Split(v, ":")
+					if len(listTemp1) > 1 {
+						gsTemp := utils.GsOfGuest{
+							GuestStyle: listTemp1[0],
+							Dow:        listTemp1[1],
+						}
+						listGs = append(listGs, gsTemp)
+					}
+
+				} else {
+					gsTemp := utils.GsOfGuest{
+						GuestStyle: v,
+						Dow:        "",
+					}
+					listGs = append(listGs, gsTemp)
+				}
+			}
+		}
+	}
+
+	return listGs
 }
 
 func (item *MemberCardType) IsValidated() bool {

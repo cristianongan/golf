@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"start/constants"
@@ -11,6 +12,7 @@ import (
 	model_gostarter "start/models/go-starter"
 	"start/utils"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -547,6 +549,8 @@ func createLocker(booking model_booking.Booking) {
 		locker.GolfBag = booking.Bag
 		locker.PlayerName = booking.CustomerName
 		locker.Locker = booking.LockerNo
+		locker.GuestStyle = booking.GuestStyle
+		locker.GuestStyleName = booking.GuestStyleName
 
 		errC := locker.Create()
 		if errC != nil {
@@ -578,12 +582,54 @@ func createLocker(booking model_booking.Booking) {
 	+ Check ngày cuối tuần(weekend_take_guest): Ex 3: Ý nghĩa cuối tuần mã 3 được đưa 2 khách, Mã 2B không được đưa khách nào
 
 */
-// func checkMemberCardGuestOfDay(memberCard models.MemberCard, memberCardType models.MemberCardType, guestStyle string) bool {
+func checkMemberCardGuestOfDay(memberCard models.MemberCard, memberCardType models.MemberCardType, guestStyle string, createdTime time.Time) (bool, error) {
+	// Parse guest_style_of_guest
+	// 2, 2B:2345 -> to List
+	listGsOfGuest := memberCardType.ParseGsOfGuest()
 
-// 	// Parse guest_style_of_guest
+	if len(listGsOfGuest) == 0 {
+		return true, nil
+	}
 
-// 	if memberCard.TotalGuestOfDay >= memberCardType.NormalDayTakeGuest {
+	isOk := true
+	var err error
 
-// 	}
+	for i, v := range listGsOfGuest {
+		// Check GuestStyle có không
+		if v.GuestStyle == guestStyle {
+			if v.Dow != "" {
+				if utils.CheckDow(v.Dow, createdTime) {
+					// Ngày hợp lệ
+					listTotal := []int{}
+					if utils.IsWeekend(createdTime.Unix()) {
+						// Check nếu cuối tuần
+						listTotal = memberCardType.ParseWeekendTakeGuest()
+					} else {
+						listTotal = memberCardType.ParseNormalDayTakeGuest()
+					}
+					if i < len(listTotal) {
+						if memberCard.TotalGuestOfDay >= listTotal[i] {
+							isOk = false
+							err = errors.New("Qua so lan choi trong ngay")
+						}
+					}
+				} else {
+					isOk = false
+					err = errors.New("Ngay khong cho phep")
+				}
+			} else {
+				// ok tất cả các ngày
+			}
+		}
 
-// }
+	}
+
+	return isOk, err
+}
+
+func updateMemberCard(memberCard models.MemberCard) {
+	errUdp := memberCard.Update()
+	if errUdp != nil {
+		log.Println("updateMemberCard errUdp", errUdp.Error())
+	}
+}

@@ -43,24 +43,6 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 
 func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *gin.Context, prof models.CmsUser) *model_booking.Booking {
 
-	// Check Guest of member, check member có còn slot đi cùng không
-	if body.MemberUidOfGuest != "" {
-		memberCard := models.MemberCard{}
-		memberCard.Uid = body.MemberCardUid
-		errM1, errM2, _ := memberCard.FindFirstWithMemberCardType()
-		if errM1 != nil {
-			response_message.InternalServerError(c, errM1.Error())
-			return nil
-		}
-		if errM2 != nil {
-			response_message.InternalServerError(c, errM2.Error())
-			return nil
-		}
-		// if memberCard.TotalGuestOfDay >= memberCardType.NormalDayTakeGuest
-		// totalTemp := memberCard.TotalGuestOfDay
-		// memberCard.TotalGuestOfDay = totalTemp + 1
-	}
-
 	// validate caddie_code
 	var caddie models.Caddie
 	var err error
@@ -128,6 +110,33 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		BookingRestaurant: body.BookingRestaurant,
 		BookingRetal:      body.BookingRetal,
 		BookingCode:       body.BookingCode,
+	}
+
+	// Check Guest of member, check member có còn slot đi cùng không
+	var memberCard models.MemberCard
+	if body.MemberUidOfGuest != "" && body.GuestStyle != "" {
+		memberCard = models.MemberCard{}
+		memberCard.Uid = body.MemberUidOfGuest
+		errM1, errM2, memberCardType := memberCard.FindFirstWithMemberCardType()
+		if errM1 != nil {
+			response_message.InternalServerError(c, errM1.Error())
+			return nil
+		}
+		if errM2 != nil {
+			response_message.InternalServerError(c, errM2.Error())
+			return nil
+		}
+
+		// Check còn slot
+		isOk, errCheckMember := checkMemberCardGuestOfDay(memberCard, memberCardType, body.GuestStyle, time.Now())
+		if !isOk {
+			response_message.InternalServerError(c, errCheckMember.Error())
+			return nil
+		}
+
+		totalTemp := memberCard.TotalGuestOfDay
+		memberCard.TotalGuestOfDay = totalTemp + 1
+		booking.MemberUidOfGuest = body.MemberUidOfGuest
 	}
 
 	// TODO: check kho tea time trong ngày đó còn trống mới cho đặt
@@ -335,6 +344,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		response_message.InternalServerError(c, errC.Error())
 		return nil
 	}
+
+	if body.MemberUidOfGuest != "" && body.GuestStyle != "" && memberCard.Uid != "" {
+		go updateMemberCard(memberCard)
+	}
+
 	return &booking
 }
 
@@ -478,6 +492,8 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.IsFlight = form.IsFlight
 	bookings.BagStatus = form.BagStatus
 	bookings.HaveBag = form.HaveBag
+	bookings.CaddieCode = form.CaddieCode
+	bookings.HasBookCaddie = form.HasBookCaddie
 
 	var list []model_booking.Booking
 	db, total, err := bookings.FindBookingListWithSelect(page)
@@ -715,6 +731,11 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CaddieInfo = cloneToCaddieBooking(caddie)
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
 
+		// Set has_book_caddie
+		if booking.BagStatus == constants.BAG_STATUS_INIT {
+			booking.HasBookCaddie = true
+		}
+
 		// Udp Note
 		caddieInOutNote := model_gostarter.CaddieInOutNote{
 			PartnerUid: prof.PartnerUid,
@@ -798,6 +819,32 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	var memberCard models.MemberCard
+	if body.MemberUidOfGuest != "" && body.GuestStyle != "" {
+		memberCard = models.MemberCard{}
+		memberCard.Uid = body.MemberUidOfGuest
+		errM1, errM2, memberCardType := memberCard.FindFirstWithMemberCardType()
+		if errM1 != nil {
+			response_message.InternalServerError(c, errM1.Error())
+			return
+		}
+		if errM2 != nil {
+			response_message.InternalServerError(c, errM2.Error())
+			return
+		}
+
+		// Check còn slot
+		isOk, errCheckMember := checkMemberCardGuestOfDay(memberCard, memberCardType, body.GuestStyle, time.Now())
+		if !isOk {
+			response_message.InternalServerError(c, errCheckMember.Error())
+			return
+		}
+
+		totalTemp := memberCard.TotalGuestOfDay
+		memberCard.TotalGuestOfDay = totalTemp + 1
+		booking.MemberUidOfGuest = body.MemberUidOfGuest
+	}
+
 	booking.Hole = body.Hole
 
 	if body.Bag != "" {
@@ -814,11 +861,6 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		}
 		// Cập nhật lại info Bag
 		booking.UpdateBagGolfFee()
-	}
-
-	if body.Locker != "" {
-		booking.LockerNo = body.Locker
-		go createLocker(booking)
 	}
 
 	if body.Hole > 0 {
@@ -866,6 +908,11 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.Rounds = listRounds
 	}
 
+	if body.Locker != "" {
+		booking.LockerNo = body.Locker
+		go createLocker(booking)
+	}
+
 	booking.CmsUser = prof.UserName
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 	booking.CheckInTime = time.Now().Unix()
@@ -875,6 +922,10 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
+	}
+
+	if body.MemberUidOfGuest != "" && body.GuestStyle != "" && memberCard.Uid != "" {
+		go updateMemberCard(memberCard)
 	}
 
 	okResponse(c, booking)
