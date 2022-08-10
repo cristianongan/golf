@@ -10,20 +10,12 @@ import (
 
 type CaddieNote struct {
 	ModelId
-	CaddieId string `json:"caddie_id" gorm:"type:varchar(100);index"`
-	AtDate   int64  `json:"at_date"`
-	Type     string `json:"type" gorm:"type:varchar(40)"`
-	Note     string `json:"note" gorm:"type:varchar(200)"`
-}
-
-type CaddieNoteResponse struct {
-	ModelId
-	CaddieId   string `json:"caddie_id"`
-	CaddieName string `json:"caddie_name"`
-	Phone      string `json:"phone"`
+	CourseUid  string `json:"course_uid" gorm:"size:256"`
+	PartnerUid string `json:"partner_uid" gorm:"size:256"`
+	CaddieId   int64  `json:"caddie_id"`
 	AtDate     int64  `json:"at_date"`
-	Type       string `json:"type"`
-	Note       string `json:"note"`
+	Type       string `json:"type" gorm:"type:varchar(40)"`
+	Note       string `json:"note" gorm:"type:varchar(200)"`
 }
 
 func (item *CaddieNote) Create() error {
@@ -68,8 +60,8 @@ func (item *CaddieNote) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *CaddieNote) FindList(page Page, from int64, to int64) ([]CaddieNoteResponse, int64, error) {
-	var list []CaddieNoteResponse
+func (item *CaddieNote) FindList(page Page, from int64, to int64) ([]CaddieNote, int64, error) {
+	var list []CaddieNote
 	total := int64(0)
 
 	db := datasources.GetDatabase().Model(CaddieNote{})
@@ -84,7 +76,7 @@ func (item *CaddieNote) FindList(page Page, from int64, to int64) ([]CaddieNoteR
 		db = db.Where("caddie_notes.at_date < ?", to)
 	}
 
-	db = db.Joins("JOIN caddies ON caddie_notes.caddie_id = caddies.uid")
+	db = db.Joins("JOIN caddies ON caddie_notes.caddie_id = caddies.id")
 	db = db.Select("caddie_notes.id, caddie_notes.created_at, caddie_notes.updated_at, " +
 		"caddie_notes.status, caddie_notes.caddie_id, caddies.name AS caddie_name, caddies.phone as phone, " +
 		"caddie_notes.at_date, caddie_notes.type, caddie_notes.note")
