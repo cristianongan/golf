@@ -133,7 +133,7 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 
 	body.PartnerUid = customerUser.PartnerUid
 	body.CourseUid = customerUser.CourseUid
-	if body.IsDuplicated() {
+	if body.Phone != customerUser.Phone && body.IsDuplicated() {
 		response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
