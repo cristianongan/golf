@@ -49,6 +49,7 @@ type BookingForFlight struct {
 	AgencyInfo     model_booking.BookingAgency `json:"agency_info,omitempty"`
 	GuestStyle     string                      `json:"guest_style,omitempty"`
 	GuestStyleName string                      `json:"guest_style_name,omitempty"`
+	TimeOutFlight  int64                       `json:"time_out_flight,omitempty"`
 }
 
 func (item *Flight) Create() error {
