@@ -105,7 +105,8 @@ type Booking struct {
 	MemberUidOfGuest  string `json:"member_uid_of_guest" gorm:"type:varchar(50);index"` // Member của Guest đến chơi cùng
 	MemberNameOfGuest string `json:"member_name_of_guest" gorm:"type:varchar(200)"`     // Member của Guest đến chơi cùng
 
-	HasBookCaddie bool `json:"has_book_caddie" gorm:"default:0"`
+	HasBookCaddie bool  `json:"has_book_caddie" gorm:"default:0"`
+	TimeOutFlight int64 `json:"time_out_flight,omitempty"`
 }
 
 type CaddieInOutNote CaddieInOutNoteForBooking
@@ -860,6 +861,9 @@ func (item *Booking) FindListInFlight() ([]Booking, error) {
 	}
 	if item.FlightId > 0 {
 		db = db.Where("flight_id = ?", item.FlightId)
+	}
+	if item.Bag != "" {
+		db = db.Where("bag = ?", item.Bag)
 	}
 
 	db.Find(&list)

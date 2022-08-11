@@ -306,11 +306,13 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Udp các booking
+	timeOutFlight := time.Now().Unix()
 	for _, booking := range bookings {
 		errOut := udpOutCaddieBooking(&booking)
 		if errOut == nil {
 			booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 			booking.CaddieHoles = body.CaddieHoles
+			booking.TimeOutFlight = timeOutFlight
 			errUdp := booking.Update()
 			if errUdp != nil {
 				log.Println("OutAllFlight err book udp ", errUdp.Error())
@@ -331,6 +333,61 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 		} else {
 			log.Println("OutAllFlight err out caddie ", errOut.Error())
 		}
+	}
+
+	okRes(c)
+}
+
+/*
+	Simple Out Caddie In a Flight
+*/
+func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) {
+	body := request.SimpleOutFlightBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	//Get booking trong Flight
+	bookingR := model_booking.Booking{
+		FlightId: body.FlightId,
+		Bag:      body.Bag,
+	}
+	bookingResponse, err := bookingR.FindListInFlight()
+	if err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	if len(bookingResponse) == 0 {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+	booking := bookingResponse[0]
+	errOut := udpOutCaddieBooking(&booking)
+	if errOut == nil {
+		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+		booking.CaddieHoles = body.CaddieHoles
+		booking.TimeOutFlight = time.Now().Unix()
+		errUdp := booking.Update()
+		if errUdp != nil {
+			log.Println("OutAllFlight err book udp ", errUdp.Error())
+		}
+
+		// update caddie in out note
+		caddieInOutNote := model_gostarter.CaddieInOutNote{
+			PartnerUid: booking.PartnerUid,
+			CourseUid:  booking.CourseUid,
+			BookingUid: booking.Uid,
+			CaddieId:   booking.CaddieId,
+			Type:       constants.STATUS_OUT,
+			Hole:       body.CaddieHoles,
+			Note:       body.Note,
+		}
+
+		go addCaddieInOutNote(caddieInOutNote)
+	} else {
+		log.Println("OutAllFlight err out caddie ", errOut.Error())
 	}
 
 	okRes(c)
