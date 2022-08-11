@@ -22,6 +22,7 @@ type CaddieList struct {
 	Phone                 string
 	IsInGroup             string
 	IsReadyForBooking     string
+	ContractStatus        string
 }
 
 func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
@@ -66,6 +67,10 @@ func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
 		db = db.Where("group_id = ?", item.GroupId)
 	}
 
+	if item.ContractStatus != "" {
+		db = db.Where("contract_status = ?", item.ContractStatus)
+	}
+
 	if item.IsInGroup != "" {
 		isInGroup, _ := strconv.ParseInt(item.IsInGroup, 10, 8)
 		if isInGroup == 1 {
@@ -90,7 +95,7 @@ func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
 		if item.Month != "" {
 			db = page.Setup(db).Preload("CaddieCalendar", "DATE_FORMAT(apply_date, '%Y-%m') = ?", item.Month).Find(&list)
 		} else {
-			db = page.Setup(db).Preload("CaddieCalendar", "DATE_FORMAT(apply_date, '%Y-%m') = ?", time.Now().Format("2006-01")).Find(&list)
+			db = page.Setup(db).Preload("CaddieCalendar", "DATE_FORMAT(apply_date, '%Y-%m') = ?", time.Now().Format("2006-01")).Preload("GroupInfo").Find(&list)
 		}
 	}
 
