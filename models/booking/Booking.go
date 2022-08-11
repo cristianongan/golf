@@ -109,6 +109,26 @@ type Booking struct {
 	TimeOutFlight int64 `json:"time_out_flight,omitempty"`
 }
 
+type BookingSubBags struct {
+	models.Model
+	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+
+	BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
+
+	Bag            string `json:"bag" gorm:"type:varchar(100);index"`         // Golf Bag
+	Hole           int    `json:"hole"`                                       // Số hố
+	GuestStyle     string `json:"guest_style" gorm:"type:varchar(200);index"` // Guest Style
+	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Guest Style Name
+
+	// Subs bags
+	SubBags utils.ListSubBag `json:"sub_bags,omitempty" gorm:"type:json"` // List Sub Bags
+
+	// Main bags
+	MainBags utils.ListSubBag `json:"main_bags,omitempty" gorm:"type:json"` // List Main Bags, thêm main bag sẽ thanh toán những cái gì
+
+}
+
 type CaddieInOutNote CaddieInOutNoteForBooking
 
 type CaddieInOutNoteForBooking struct {
@@ -706,6 +726,19 @@ func (item *Booking) Count() (int64, error) {
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
+}
+
+func (item *Booking) FindAll(bookingDate string) ([]Booking, error) {
+	db := datasources.GetDatabase().Model(Booking{})
+	list := []Booking{}
+
+	if bookingDate != "" {
+		db = db.Where("booking_date = ?", bookingDate)
+		db = db.Not("bag_status = ?", constants.BAG_STATUS_CANCEL)
+	}
+
+	db.Find(&list)
+	return list, db.Error
 }
 
 func (item *Booking) FindList(page models.Page, from int64, to int64, agencyType string) ([]Booking, int64, error) {

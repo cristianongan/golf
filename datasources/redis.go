@@ -70,6 +70,10 @@ func GetRedisKeyLockerResetDataMemberCard() string {
 	return config.GetEnvironmentName() + "_" + "haicv_redis_locker_reset_data_member_card"
 }
 
+func GetRedisKeyLockerReportCaddieFeeToDay() string {
+	return config.GetEnvironmentName() + "_" + "anhnq_redis_locker_report_caddie_fee_to_day"
+}
+
 //	func GetRedis() *redis.Client {
 //		return redisdb
 //	}
