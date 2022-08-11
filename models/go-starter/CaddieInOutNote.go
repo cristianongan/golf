@@ -16,8 +16,9 @@ type CaddieInOutNote struct {
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	BookingUid string `json:"booking_uid" gorm:"type:varchar(50);index"`  // Ex: Booking Uid
 	CaddieId   int64  `json:"caddie_id" gorm:"index"`                     // Caddie Id
-	Note       string `json:"note" gorm:"type:varchar(500)"`              // note
-	Type       string `json:"type" gorm:"type:varchar(50);index"`         // Type: IN(undo), OUT, CHANGE
+	CaddieCode string `json:"caddie_code" gorm:"type:varchar(256)"`
+	Note       string `json:"note" gorm:"type:varchar(500)"`      // note
+	Type       string `json:"type" gorm:"type:varchar(50);index"` // Type: IN(undo), OUT, CHANGE
 	Hole       int    `json:"hole" gorm:"type:bigint"`
 }
 
