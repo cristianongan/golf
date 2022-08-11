@@ -173,9 +173,10 @@ func (item *AnnualFee) FindListWithGroupMemberCard(page Page) ([]map[string]inte
 	return list, total, db.Error
 }
 
-func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, int64, error) {
+func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, utils.CountAnnualFeeStruct, int64, error) {
 	db := datasources.GetDatabase().Table("annual_fees")
 	list := []map[string]interface{}{}
+	var countTotalAnnualFee utils.CountAnnualFeeStruct
 	total := int64(0)
 
 	queryStr := `select * from (select * from (select * from annual_fees where annual_fees.partner_uid = ` + `"` + item.PartnerUid + `"`
@@ -229,7 +230,15 @@ func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, int64, err
 	errCount := db.Raw(strSQLCount).Scan(&countReturn).Error
 	if errCount != nil {
 		log.Println("AnnualFee err", errCount.Error())
-		return list, total, errCount
+		return list, countTotalAnnualFee, total, errCount
+	}
+
+	// Sum Total
+	strSQLCountTotalAnnualFee := " select SUM(annual_quota_amount) as total_a, SUM(pre_paid) as total_b, SUM(paid_forfeit) as total_c, SUM(paid_reduce) as total_d, SUM(last_year_debit) as total_e, SUM(total_paid) as total_g from ( " + queryStr + " ) as subTable "
+	errCountTotalAnnualFee := db.Raw(strSQLCountTotalAnnualFee).Scan(&countTotalAnnualFee).Error
+	if errCountTotalAnnualFee != nil {
+		log.Println("AnnualFee errCountTotalAnnualFee", errCountTotalAnnualFee.Error())
+		return list, countTotalAnnualFee, total, errCount
 	}
 
 	total = countReturn.Count
@@ -243,10 +252,10 @@ func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, int64, err
 	}
 	err := db.Raw(queryStr).Scan(&list).Error
 	if err != nil {
-		return list, total, err
+		return list, countTotalAnnualFee, total, err
 	}
 
-	return list, total, db.Error
+	return list, countTotalAnnualFee, total, db.Error
 }
 
 func (item *AnnualFee) Delete() error {
