@@ -186,6 +186,9 @@ func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, int64, err
 	if item.MemberCardUid != "" {
 		queryStr = queryStr + " and annual_fees.member_card_uid = " + `"` + item.MemberCardUid + `"`
 	}
+	if item.Year > 0 {
+		queryStr = queryStr + " and annual_fees.year = " + `"` + strconv.Itoa(item.Year) + `"`
+	}
 
 	queryStr = queryStr + ") tb0 "
 	queryStr = queryStr + `LEFT JOIN (select tb1.*, 
