@@ -138,13 +138,14 @@ type CaddieInOutNote CaddieInOutNoteForBooking
 
 type CaddieInOutNoteForBooking struct {
 	models.ModelId
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	BookingUid string `json:"booking_uid" gorm:"type:varchar(50);index"`  // Ex: Booking Uid
-	CaddieId   int64  `json:"caddie_id" gorm:"index"`                     // Caddie Id
-	Note       string `json:"note" gorm:"type:varchar(500)"`              // note
-	Type       string `json:"type" gorm:"type:varchar(50);index"`         // Type: IN(undo), OUT, CHANGE
-	Hole       int    `json:"hole" gorm:"type:bigint"`
+	PartnerUid string `json:"partner_uid"`
+	CourseUid  string `json:"course_uid"`
+	BookingUid string `json:"booking_uid"`
+	CaddieId   int64  `json:"caddie_id"`
+	CaddieCode string `json:"caddie_code"`
+	Note       string `json:"note"`
+	Type       string `json:"type"`
+	Hole       int    `json:"hole"`
 }
 
 type BookingForFlightRes struct {

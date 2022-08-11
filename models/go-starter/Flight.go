@@ -40,6 +40,8 @@ type BookingForFlight struct {
 	CustomerInfo   model_booking.CustomerInfo  `json:"customer_info,omitempty"`
 	CaddieId       int64                       `json:"caddie_id,omitempty"`
 	CaddieInfo     model_booking.BookingCaddie `json:"caddie_info,omitempty"`
+	BuggyId        int64                       `json:"buggy_id,omitempty"`
+	BuggyInfo      model_booking.BookingBuggy  `json:"buggy_info,omitempty"`
 	CaddieStatus   string                      `json:"caddie_status,omitempty"`
 	CaddieInOut    []CaddieInOutNote           `json:"caddie_in_out" gorm:"foreignKey:BookingUid;references:Uid"`
 	FlightId       int64                       `json:"flight_id"`
@@ -52,6 +54,8 @@ type BookingForFlight struct {
 	GuestStyle     string                      `json:"guest_style,omitempty"`
 	GuestStyleName string                      `json:"guest_style_name,omitempty"`
 	TimeOutFlight  int64                       `json:"time_out_flight,omitempty"`
+	CmsUser        string                      `json:"cms_user,omitempty"`
+	CmsUserLog     string                      `json:"cms_user_log,omitempty"`
 }
 
 func (item *Flight) Create() error {
