@@ -122,6 +122,10 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 		db = db.Where("agency_id = ?", item.AgencyId)
 	}
 
+	if item.BookingUid != "" {
+		db = db.Where("uid = ?", item.BookingUid)
+	}
+
 	if item.HaveBag != nil {
 		if *item.HaveBag == "1" {
 			db = db.Where("bag <> ?", "")

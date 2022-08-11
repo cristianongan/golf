@@ -96,7 +96,7 @@ type Booking struct {
 
 	InitType string `json:"init_type" gorm:"type:varchar(50);index"` // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
 
-	CaddieInOut       []CaddieInOutNote       `json:"caddie_in_out" gorm:"migration"`
+	CaddieInOut       []CaddieInOutNote       `json:"caddie_in_out" gorm:"foreignKey:BookingUid;references:Uid"`
 	BookingCode       string                  `json:"booking_code" gorm:"type:varchar(100);index"` // cho case tạo nhiều booking có cùng booking code
 	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant,omitempty" gorm:"type:json"`
 	BookingRetal      utils.BookingRental     `json:"booking_retal,omitempty" gorm:"type:json"`

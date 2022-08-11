@@ -40,6 +40,8 @@ type BookingForFlight struct {
 	CustomerInfo   model_booking.CustomerInfo  `json:"customer_info,omitempty"`
 	CaddieId       int64                       `json:"caddie_id,omitempty"`
 	CaddieInfo     model_booking.BookingCaddie `json:"caddie_info,omitempty"`
+	CaddieStatus   string                      `json:"caddie_status,omitempty"`
+	CaddieInOut    []CaddieInOutNote           `json:"caddie_in_out" gorm:"foreignKey:BookingUid;references:Uid"`
 	FlightId       int64                       `json:"flight_id"`
 	CheckOutTime   int64                       `json:"check_out_time,omitempty"`
 	CheckInTime    int64                       `json:"check_in_time,omitempty"`
