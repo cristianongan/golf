@@ -6,6 +6,7 @@ import (
 	"start/datasources"
 	"start/models"
 	"strconv"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -108,7 +109,8 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 	}
 
 	if item.BagStatus != "" {
-		db = db.Where("bag_status = ?", item.BagStatus)
+		status := strings.Split(item.BagStatus, ",")
+		db = db.Where("bag_status in (?)", status)
 	}
 
 	if item.BookingCode != "" {
