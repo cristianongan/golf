@@ -496,8 +496,8 @@ func (_ *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof models.CmsUser) {
 	(Khách không bị cho vào danh sách out mà trở về trạng thái trước khi ghép)
 	- Trường hợp chưa ghép Flight (Đã gán Caddie và Buugy) --> Delete Attach Caddie sẽ xóa caddie và buggy đã gán với khách
 */
-func (_ *CCourseOperating) DeleteAttachCaddie(c *gin.Context, prof models.CmsUser) {
-	body := request.OutCaddieBody{}
+func (_ *CCourseOperating) DeleteAttach(c *gin.Context, prof models.CmsUser) {
+	body := request.DeleteAttachBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
@@ -515,22 +515,25 @@ func (_ *CCourseOperating) DeleteAttachCaddie(c *gin.Context, prof models.CmsUse
 	caddieId := booking.CaddieId
 	caddieCode := booking.CaddieInfo.Code
 
-	// out caddie
-	if err := udpCaddieOut(caddieId); err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
+	if body.IsOutCaddie != nil && *body.IsOutCaddie == true {
+		// out caddie
+		if err := udpCaddieOut(caddieId); err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
+
+		//Caddie
+		booking.CaddieId = 0
+		booking.CaddieInfo = cloneToCaddieBooking(models.Caddie{})
+		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
+		booking.CaddieHoles = 0
 	}
 
-	//
-	//Caddie
-	booking.CaddieId = 0
-	booking.CaddieInfo = cloneToCaddieBooking(models.Caddie{})
-	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
-	booking.CaddieHoles = 0
-
-	//Buggy
-	booking.BuggyId = 0
-	booking.BuggyInfo = cloneToBuggyBooking(models.Buggy{})
+	if body.IsOutBuggy != nil && *body.IsOutBuggy == true {
+		//Buggy
+		booking.BuggyId = 0
+		booking.BuggyInfo = cloneToBuggyBooking(models.Buggy{})
+	}
 
 	//Flight
 	if booking.FlightId > 0 {
