@@ -4,6 +4,7 @@ import (
 	"log"
 	"start/constants"
 	"start/controllers/request"
+	"start/controllers/response"
 	"start/models"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
@@ -807,17 +808,18 @@ func (_ CCourseOperating) GetFlight(c *gin.Context, prof models.CmsUser) {
 	flights.CaddieCode = query.CaddieCode
 	flights.CustomerName = query.CustomerName
 
-	list, err := flights.FindFlightList(page)
+	list, total, err := flights.FindFlightList(page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 	}
 
-	// res := response.PageResponse{
-	// 	Data: list,
-	// }
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
 
-	c.JSON(200, list)
+	c.JSON(200, res)
 }
 
 func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof models.CmsUser) {
