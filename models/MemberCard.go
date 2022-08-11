@@ -172,6 +172,13 @@ func (item *MemberCard) Update() error {
 	return nil
 }
 
+func (item *MemberCard) FindAll() (error, []MemberCard) {
+	db := datasources.GetDatabase().Model(MemberCard{})
+	list := []MemberCard{}
+	db.Find(&list)
+	return db.Error, list
+}
+
 func (item *MemberCard) FindFirst() error {
 	db := datasources.GetDatabase()
 	return db.Where(item).First(item).Error

@@ -19,8 +19,9 @@ func Init() {
 	log.Println("server init")
 
 	config := config.GetConfig()
+
+	// --- Cron ---
 	ccron.CronStart()
-	// cron.InitCronJobCallApi()
 
 	datasources.MinioConnect()
 

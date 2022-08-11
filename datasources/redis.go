@@ -47,12 +47,12 @@ func MyRedisConnect() {
 	redisLocker = redislock.New(redisdb)
 }
 
-/// =================== Redis locker ===================
+// / =================== Redis locker ===================
 func GetLockerRedis() *redislock.Client {
 	return redisLocker
 }
 
-/// Check đạt được lock mới xử lý tiếp
+// / Check đạt được lock mới xử lý tiếp
 func GetLockerRedisObtainWith(key string, timeSecond time.Duration) bool {
 	lock, err := redisLocker.Obtain(ctx, key, timeSecond*time.Second, nil)
 	// Ko lấy được lock, return luôn
@@ -66,13 +66,14 @@ func GetLockerRedisObtainWith(key string, timeSecond time.Duration) bool {
 	return true
 }
 
-func GetRedisKeyLockerCheckOrderPayment() string {
-	return config.GetEnvironmentName() + "_" + "haicv_redis_locker_check_order_payment"
+func GetRedisKeyLockerResetDataMemberCard() string {
+	return config.GetEnvironmentName() + "_" + "haicv_redis_locker_reset_data_member_card"
 }
 
-// func GetRedis() *redis.Client {
-// 	return redisdb
-// }
+//	func GetRedis() *redis.Client {
+//		return redisdb
+//	}
+//
 // ttl : second
 func SetCache(key string, value interface{}, ttl int64) error {
 	if redisdb == nil {

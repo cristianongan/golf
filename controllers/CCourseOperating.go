@@ -802,6 +802,10 @@ func (_ CCourseOperating) GetFlight(c *gin.Context, prof models.CmsUser) {
 		flights.CourseUid = query.CourseUid
 	}
 
+	flights.GolfBag = query.GolfBag
+	flights.CaddieName = query.CaddieName
+	flights.CaddieCode = query.CaddieCode
+
 	list, err := flights.FindFlightList(page)
 
 	if err != nil {
