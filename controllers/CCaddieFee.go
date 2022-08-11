@@ -1,56 +1,71 @@
 package controllers
 
 import (
+	"start/controllers/request"
+	"start/controllers/response"
 	"start/models"
+	"start/utils/response_message"
 
 	"github.com/gin-gonic/gin"
 )
 
 type CCaddieFee struct{}
 
-func (_ *CCaddieFee) CronCreateCaddieFee(c *gin.Context, prof models.CmsUser) {
+func (_ *CCaddieFee) GetDetalListCaddieFee(c *gin.Context, prof models.CmsUser) {
+	// TODO: filter by month
 
-	// partnerRequest := models.Partner{}
-	// partnerRequest.Uid = "CHI-LINH"
-	// partnerErrFind := partnerRequest.FindFirst()
-	// if partnerErrFind != nil {
-	// 	response_message.BadRequest(c, partnerErrFind.Error())
-	// 	return
-	// }
+	query := request.GetDetailListCaddieFee{}
+	if err := c.Bind(&query); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
 
-	// courseRequest := models.Course{}
-	// courseRequest.Uid = "CHI-LINH-01"
-	// errFind := courseRequest.FindFirst()
-	// if errFind != nil {
-	// 	response_message.BadRequest(c, errFind.Error())
-	// 	return
-	// }
+	caddieFee := models.CaddieFee{}
+	caddieFee.CourseUid = query.CourseUid
+	caddieFee.PartnerUid = query.PartnerUid
+	caddieFee.CaddieCode = query.CaddieCode
 
-	// bookingRequest := model_booking.Booking{}
-	// bookingRequest.CourseUid = "CHI-LINH"
-	// bookingRequest.PartnerUid = "CHI-LINH-01"
-	// bookingRequest.BookingDate = ""
-	// listBooking, errExist := bookingRequest.FindAll(time.Now().Format("02/06/2006"))
+	list, total, err := caddieFee.FindAll(query.Month)
 
-	// if errExist == nil {
-	// 	response_message.BadRequest(c, "Caddie Id existed in course")
-	// 	return
-	// }
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
 
-	// for _, b := range listBooking {
-	// 	// b.FlightId = flight.Id
-	// 	// errUdp := b.Update()
-	// 	// if errUdp != nil {
-	// 	// 	log.Println("CreateFlight err flight ", errUdp.Error())
-	// 	// }
-	// }
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
 
-	// Caddie.GroupId, _ = strconv.ParseInt(body.Group, 10, 8)
+	c.JSON(200, res)
+}
 
-	// err := Caddie.Create()
-	// if err != nil {
-	// 	response_message.InternalServerError(c, err.Error())
-	// 	return
-	// }
-	// c.JSON(200, Caddie)
+func (_ *CCaddieFee) GetListCaddieFee(c *gin.Context, prof models.CmsUser) {
+	// TODO: filter by month
+
+	query := request.GetListCaddieFee{}
+	if err := c.Bind(&query); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	caddieFee := models.CaddieFee{}
+	caddieFee.CourseUid = query.CourseUid
+	caddieFee.PartnerUid = query.PartnerUid
+	caddieFee.CaddieCode = query.CaddieCode
+	caddieFee.CaddieName = query.CaddieName
+
+	list, total, err := caddieFee.FindAllGroupBy(query.Month)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	c.JSON(200, res)
 }
