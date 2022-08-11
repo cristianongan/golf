@@ -108,6 +108,26 @@ type Booking struct {
 	HasBookCaddie bool `json:"has_book_caddie" gorm:"default:0"`
 }
 
+type BookingSubBags struct {
+	models.Model
+	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+
+	BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
+
+	Bag            string `json:"bag" gorm:"type:varchar(100);index"`         // Golf Bag
+	Hole           int    `json:"hole"`                                       // Số hố
+	GuestStyle     string `json:"guest_style" gorm:"type:varchar(200);index"` // Guest Style
+	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Guest Style Name
+
+	// Subs bags
+	SubBags utils.ListSubBag `json:"sub_bags,omitempty" gorm:"type:json"` // List Sub Bags
+
+	// Main bags
+	MainBags utils.ListSubBag `json:"main_bags,omitempty" gorm:"type:json"` // List Main Bags, thêm main bag sẽ thanh toán những cái gì
+
+}
+
 type CaddieInOutNote CaddieInOutNoteForBooking
 
 type CaddieInOutNoteForBooking struct {
