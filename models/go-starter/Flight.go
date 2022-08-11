@@ -56,6 +56,8 @@ type BookingForFlight struct {
 	TimeOutFlight  int64                       `json:"time_out_flight,omitempty"`
 	CmsUser        string                      `json:"cms_user,omitempty"`
 	CmsUserLog     string                      `json:"cms_user_log,omitempty"`
+	NoteOfBag      string                      `json:"note_of_bag"`
+	NoteOfBooking  string                      `json:"note_of_booking"`
 }
 
 func (item *Flight) Create() error {
