@@ -303,6 +303,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			CourseUid:  prof.CourseUid,
 			BookingUid: booking.Uid,
 			CaddieId:   booking.CaddieId,
+			CaddieCode: booking.CaddieInfo.Code,
 			Type:       constants.STATUS_IN,
 			Note:       "",
 		}
@@ -731,6 +732,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			CourseUid:  prof.CourseUid,
 			BookingUid: booking.Uid,
 			CaddieId:   booking.CaddieId,
+			CaddieCode: booking.CaddieInfo.Code,
 			Type:       constants.STATUS_IN,
 			Note:       "",
 		}
