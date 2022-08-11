@@ -14,6 +14,7 @@ type FlightList struct {
 	CaddieName           string
 	PlayerName           string
 	CaddieCode           string
+	CustomerName         string
 	PeopleNumberInFlight *int
 }
 
@@ -22,36 +23,39 @@ func (item *FlightList) FindFlightList(page models.Page) ([]Flight, error) {
 	total := int64(0)
 
 	db := datasources.GetDatabase().Model(Flight{})
+	db = db.Joins("INNER JOIN bookings ON bookings.flight_id = flights.id").Group("flights.id")
 
+	if item.GolfBag != "" {
+		db = db.Where("bookings.bag = ?", item.GolfBag)
+	}
+
+	if item.CustomerName != "" {
+		db = db.Where("customer_name LIKE ?", "%"+item.CustomerName+"%")
+	}
+
+	if item.CaddieName != "" {
+		db = db.Where("caddie_info->'$.name' LIKE ?", "%"+item.CaddieName+"%")
+	}
+
+	if item.CaddieCode != "" {
+		db = db.Where("caddie_info->'$.code' = ?", item.CaddieCode)
+	}
 	if item.BookingDate != "" {
-		db = db.Where("date_display = ?", item.BookingDate)
+		db = db.Where("flights.date_display = ?", item.BookingDate)
 	}
 
 	if item.CourseUid != "" {
-		db = db.Where("course_uid = ?", item.CourseUid)
+		db = db.Where("flights.course_uid = ?", item.CourseUid)
 	}
 
 	if item.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", item.PartnerUid)
+		db = db.Where("flights.partner_uid = ?", item.PartnerUid)
 	}
 
 	db.Count(&total)
+	db = db.Preload("Bookings")
 
 	if total > 0 && int64(page.Offset()) < total {
-		db = db.Preload("Bookings").Joins("INNER JOIN bookings ON bookings.flight_id = flights.id")
-
-		if item.GolfBag != "" {
-			db = db.Where("bookings.bag = ?", item.GolfBag)
-		}
-
-		if item.CaddieName != "" {
-			db = db.Where("caddie_info->'$.name' LIKE ?", "%"+item.CaddieName+"%")
-		}
-
-		if item.CaddieCode != "" {
-			db = db.Where("caddie_info->'$.code' = ?", item.CaddieCode)
-		}
-
 		db = page.Setup(db).Find(&list)
 	}
 

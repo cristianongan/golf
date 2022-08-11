@@ -805,6 +805,7 @@ func (_ CCourseOperating) GetFlight(c *gin.Context, prof models.CmsUser) {
 	flights.GolfBag = query.GolfBag
 	flights.CaddieName = query.CaddieName
 	flights.CaddieCode = query.CaddieCode
+	flights.CustomerName = query.CustomerName
 
 	list, err := flights.FindFlightList(page)
 

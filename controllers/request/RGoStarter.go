@@ -105,7 +105,7 @@ type GetFlightList struct {
 	CourseUid            string `form:"course_uid"`
 	GolfBag              string `form:"bag"`
 	CaddieName           string `form:"caddie_name"`
-	PlayerName           string `form:"player_name"`
+	CustomerName         string `form:"customer_name"`
 	CaddieCode           string `form:"caddie_code"`
 }
 
