@@ -1030,6 +1030,8 @@ func (item *Booking) FindListForReportHaveMainBag() ([]BookingForReportMainBagSu
 	}
 	db = db.Where("booking_date = ?", item.BookingDate)
 
+	db.Order("created_at desc")
+
 	db = db.Not("main_bags is NULL")
 
 	db.Find(&list)
@@ -1048,6 +1050,8 @@ func (item *Booking) FindListForReportHaveSubBag() ([]BookingForReportMainBagSub
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 	db = db.Where("booking_date = ?", item.BookingDate)
+
+	db.Order("created_at desc")
 
 	db = db.Not("sub_bags is NULL")
 
