@@ -1527,19 +1527,3 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 	}
 	okRes(c)
 }
-
-func (_ *CBooking) GetListMainBagSubBagToDay(c *gin.Context, prof models.CmsUser) {
-	form := request.GetListBookingSettingGroupForm{}
-	if bindErr := c.ShouldBind(&form); bindErr != nil {
-		response_message.BadRequest(c, bindErr.Error())
-		return
-	}
-
-	if form.PartnerUid == "" || form.CourseUid == "" {
-		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
-		return
-	}
-
-	//Find List
-
-}

@@ -108,24 +108,29 @@ type Booking struct {
 	HasBookCaddie bool `json:"has_book_caddie" gorm:"default:0"`
 }
 
-type BookingSubBags struct {
+type BookingForReportMainBagSubBags struct {
 	models.Model
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	PartnerUid string `json:"partner_uid"` // Hang Golf
+	CourseUid  string `json:"course_uid"`  // San Golf
 
-	BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
+	BookingDate string `json:"booking_date"` // Ex: 06/11/2022
 
-	Bag            string `json:"bag" gorm:"type:varchar(100);index"`         // Golf Bag
-	Hole           int    `json:"hole"`                                       // Số hố
-	GuestStyle     string `json:"guest_style" gorm:"type:varchar(200);index"` // Guest Style
-	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Guest Style Name
+	Bag            string `json:"bag"`              // Golf Bag
+	Hole           int    `json:"hole"`             // Số hố
+	GuestStyle     string `json:"guest_style"`      // Guest Style
+	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
+
+	CheckOutTime int64  `json:"check_out_time"` // Time Check Out
+	BagStatus    string `json:"bag_status"`     // Bag status
 
 	// Subs bags
-	SubBags utils.ListSubBag `json:"sub_bags,omitempty" gorm:"type:json"` // List Sub Bags
+	SubBags utils.ListSubBag `json:"sub_bags,omitempty"` // List Sub Bags
 
 	// Main bags
-	MainBags utils.ListSubBag `json:"main_bags,omitempty" gorm:"type:json"` // List Main Bags, thêm main bag sẽ thanh toán những cái gì
+	MainBags utils.ListSubBag `json:"main_bags,omitempty"` // List Main Bags, thêm main bag sẽ thanh toán những cái gì
 
+	MushPayInfo     BookingMushPay               `json:"mush_pay_info,omitempty"` // Mush Pay info
+	CurrentBagPrice BookingCurrentBagPriceDetail `json:"current_bag_price,omitempty"`
 }
 
 type CaddieInOutNote CaddieInOutNoteForBooking
@@ -1004,4 +1009,45 @@ func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numb
 		log.Println("Booking FindForFlightAll err ", err.Error())
 	}
 	return list
+}
+
+/*
+	For report MainBag SubBag
+*/
+func (item *Booking) FindListForReportHaveMainBag() ([]BookingForReportMainBagSubBags, error) {
+	db := datasources.GetDatabase().Table("bookings")
+	list := []BookingForReportMainBagSubBags{}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	db = db.Where("booking_date = ?", item.BookingDate)
+
+	db = db.Not("main_bags is NULL")
+
+	db.Find(&list)
+
+	return list, db.Error
+}
+
+func (item *Booking) FindListForReportHaveSubBag() ([]BookingForReportMainBagSubBags, error) {
+	db := datasources.GetDatabase().Table("bookings")
+	list := []BookingForReportMainBagSubBags{}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	db = db.Where("booking_date = ?", item.BookingDate)
+
+	db = db.Not("sub_bags is NULL")
+
+	db.Find(&list)
+
+	return list, db.Error
 }

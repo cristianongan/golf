@@ -487,6 +487,11 @@ func NewRouter() *gin.Engine {
 			/// =================== Locker ===================
 			cLocker := new(controllers.CLocker)
 			cmsApiAuthorized.GET("/locker/list", middlewares.AuthorizedCmsUserHandler(cLocker.GetListLocker))
+
+			/// =================== Report ===================
+			cReport := new(controllers.CReport)
+			cmsApiAuthorized.GET("/report/main-bag-sub-bag/totay", middlewares.AuthorizedCmsUserHandler(cReport.GetListReportMainBagSubBagToDay))
+
 		}
 
 		// ----------------------------------------------------------
