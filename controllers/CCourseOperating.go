@@ -82,7 +82,7 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 		}
 
 		// Udp Note
-		caddieInOutNote := model_gostarter.CaddieInOutNote{
+		caddieInNote := model_gostarter.CaddieInOutNote{
 			PartnerUid: booking.PartnerUid,
 			CourseUid:  booking.CourseUid,
 			BookingUid: booking.Uid,
@@ -92,7 +92,7 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 			Note:       "",
 		}
 
-		go addCaddieInOutNote(caddieInOutNote)
+		go addCaddieInOutNote(caddieInNote)
 	}
 
 	okResponse(c, booking)
@@ -138,7 +138,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 			}
 
 			// Udp Note
-			caddieInOutNote := model_gostarter.CaddieInOutNote{
+			caddieInNote := model_gostarter.CaddieInOutNote{
 				PartnerUid: prof.PartnerUid,
 				CourseUid:  prof.CourseUid,
 				BookingUid: bookingTemp.Uid,
@@ -148,7 +148,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 				Note:       "",
 			}
 
-			go addCaddieInOutNote(caddieInOutNote)
+			go addCaddieInOutNote(caddieInNote)
 		} else {
 			listError = append(listError, errB)
 		}
@@ -248,16 +248,17 @@ func (_ *CCourseOperating) OutCaddie(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Udp Note
-	caddieInOutNote := model_gostarter.CaddieInOutNote{
+	caddieOutNote := model_gostarter.CaddieInOutNote{
 		PartnerUid: booking.PartnerUid,
 		CourseUid:  booking.CourseUid,
 		BookingUid: booking.Uid,
 		CaddieId:   caddieId,
 		CaddieCode: caddieCode,
 		Type:       constants.STATUS_OUT,
+		Hole:       booking.CaddieHoles,
 		Note:       body.Note,
 	}
-	go addCaddieInOutNote(caddieInOutNote)
+	go addCaddieInOutNote(caddieOutNote)
 
 	okResponse(c, booking)
 }
@@ -323,7 +324,7 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 			}
 
 			// update caddie in out note
-			caddieInOutNote := model_gostarter.CaddieInOutNote{
+			caddieOutNote := model_gostarter.CaddieInOutNote{
 				PartnerUid: booking.PartnerUid,
 				CourseUid:  booking.CourseUid,
 				BookingUid: booking.Uid,
@@ -334,7 +335,7 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 				Note:       body.Note,
 			}
 
-			go addCaddieInOutNote(caddieInOutNote)
+			go addCaddieInOutNote(caddieOutNote)
 		} else {
 			log.Println("OutAllFlight err out caddie ", errOut.Error())
 		}
@@ -380,7 +381,7 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 		}
 
 		// update caddie in out note
-		caddieInOutNote := model_gostarter.CaddieInOutNote{
+		caddieOutNote := model_gostarter.CaddieInOutNote{
 			PartnerUid: booking.PartnerUid,
 			CourseUid:  booking.CourseUid,
 			BookingUid: booking.Uid,
@@ -391,7 +392,7 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 			Note:       body.Note,
 		}
 
-		go addCaddieInOutNote(caddieInOutNote)
+		go addCaddieInOutNote(caddieOutNote)
 	} else {
 		log.Println("OutAllFlight err out caddie ", errOut.Error())
 	}
@@ -478,8 +479,8 @@ func (_ *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof models.CmsUser) {
 		BookingUid: booking.Uid,
 		CaddieId:   booking.CaddieId,
 		CaddieCode: booking.CaddieInfo.Code,
-		Type:       constants.STATUS_OUT,
-		Hole:       body.CaddieHoles,
+		Type:       constants.STATUS_IN,
+		Hole:       booking.Hole - body.CaddieHoles,
 		Note:       body.Note,
 	}
 
@@ -543,7 +544,7 @@ func (_ *CCourseOperating) DeleteAttachCaddie(c *gin.Context, prof models.CmsUse
 	}
 
 	// Udp Note
-	caddieInOutNote := model_gostarter.CaddieInOutNote{
+	caddieOutNote := model_gostarter.CaddieInOutNote{
 		PartnerUid: booking.PartnerUid,
 		CourseUid:  booking.CourseUid,
 		BookingUid: booking.Uid,
@@ -552,7 +553,7 @@ func (_ *CCourseOperating) DeleteAttachCaddie(c *gin.Context, prof models.CmsUse
 		Type:       constants.STATUS_OUT,
 		Note:       body.Note,
 	}
-	go addCaddieInOutNote(caddieInOutNote)
+	go addCaddieInOutNote(caddieOutNote)
 
 	okResponse(c, booking)
 }
@@ -647,7 +648,7 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 		BookingUid: booking.Uid,
 		CaddieId:   booking.CaddieId,
 		CaddieCode: booking.CaddieInfo.Code,
-		Type:       constants.STATUS_IN,
+		Type:       constants.STATUS_OUT,
 		Note:       "",
 	}
 
