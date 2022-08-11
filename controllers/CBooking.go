@@ -486,7 +486,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 
 	var list []model_booking.Booking
 	db, total, err := bookings.FindBookingListWithSelect(page)
-	db.Find(&list)
+	db.Preload("CaddieInOut").Find(&list)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

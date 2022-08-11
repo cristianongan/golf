@@ -53,7 +53,7 @@ func (item *FlightList) FindFlightList(page models.Page) ([]Flight, int64, error
 	}
 
 	db.Count(&total)
-	db = db.Preload("Bookings")
+	db = db.Preload("Bookings").Preload("Bookings.CaddieInOut")
 
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)
