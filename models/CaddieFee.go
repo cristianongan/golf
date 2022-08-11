@@ -18,7 +18,7 @@ type CaddieFee struct {
 	CaddieCode  string `json:"caddie_code" gorm:"type:varchar(256);index"` // caddie code
 	CaddieName  string `json:"caddie_name" gorm:"type:varchar(256)"`       // caddie name
 	BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // ngày booking
-	Hole        int64  `json:"hole"`                                       // số hố
+	Hole        int    `json:"hole"`                                       // số hố
 	Round       int64  `json:"round"`                                      // số round
 	Amount      int64  `json:"amount"`                                     // tổng số tiền
 }

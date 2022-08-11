@@ -76,6 +76,23 @@ func (item *CaddieFeeSettingGroup) FindFirst() error {
 	return db.Where(item).First(item).Error
 }
 
+func (item *CaddieFeeSettingGroup) FindFirstByDate(date int64) error {
+	db := datasources.GetDatabase()
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	db = db.Where("status = ?", constants.STATUS_ENABLE)
+	db = db.Where("from_date < " + strconv.FormatInt(date, 10) + " ")
+	db = db.Where("to_date > " + strconv.FormatInt(date, 10) + " ")
+
+	return db.Find(item).Error
+}
+
 func (item *CaddieFeeSettingGroup) Count() (int64, error) {
 	db := datasources.GetDatabase().Model(CaddieFeeSettingGroup{})
 	total := int64(0)

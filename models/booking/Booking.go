@@ -734,13 +734,13 @@ func (item *Booking) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *Booking) FindAll(bookingDate string) ([]Booking, error) {
+func (item *Booking) FindAllBookingCheckIn(bookingDate string) ([]Booking, error) {
 	db := datasources.GetDatabase().Model(Booking{})
 	list := []Booking{}
 
 	if bookingDate != "" {
 		db = db.Where("booking_date = ?", bookingDate)
-		db = db.Not("bag_status = ?", constants.BAG_STATUS_CANCEL)
+		db = db.Where("bag_status = ?", constants.BAG_STATUS_IN)
 	}
 
 	db.Find(&list)

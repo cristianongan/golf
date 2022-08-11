@@ -107,6 +107,7 @@ func MigrateDb() {
 		// ------- Caddie Fee Setting -------
 		db.AutoMigrate(&models.CaddieFeeSetting{})
 		db.AutoMigrate(&models.CaddieFeeSettingGroup{})
+		// db.AutoMigrate(&models.CaddieFee{})
 
 		// ------- Holiday -------
 		db.AutoMigrate(&models.Holiday{})
