@@ -79,13 +79,13 @@ func (_ *CReport) GetListReportMainBagSubBagToDay(c *gin.Context, prof models.Cm
 				if v.Uid == v1.MainBags[0].BookingUid {
 
 					subB := response.ReportSubBagResponse{}
-					subB.Uid = v.Uid
-					subB.Bag = v.Bag
-					subB.BagStatus = v.BagStatus
-					subB.BookingDate = v.BookingDate
-					subB.CheckOutTime = v.CheckOutTime
-					subB.MyCost = v.CurrentBagPrice.Amount
-					subB.ToBePaid = v.MushPayInfo.MushPay
+					subB.Uid = v1.Uid
+					subB.Bag = v1.Bag
+					subB.BagStatus = v1.BagStatus
+					subB.BookingDate = v1.BookingDate
+					subB.CheckOutTime = v1.CheckOutTime
+					subB.MyCost = v1.CurrentBagPrice.Amount
+					subB.ToBePaid = v1.MushPayInfo.MushPay
 
 					totalSubBag += 1
 					totalMyCost = totalMyCost + subB.MyCost
