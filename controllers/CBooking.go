@@ -482,6 +482,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.HaveBag = form.HaveBag
 	bookings.CaddieCode = form.CaddieCode
 	bookings.HasBookCaddie = form.HasBookCaddie
+	bookings.CustomerName = form.PlayerName
 
 	var list []model_booking.Booking
 	db, total, err := bookings.FindBookingListWithSelect(page)

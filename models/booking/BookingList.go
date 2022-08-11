@@ -40,6 +40,7 @@ type BookingList struct {
 	IsTimeOut     string
 	HasBookCaddie string
 	HasCaddie     string
+	CustomerName  string
 }
 
 func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
@@ -168,6 +169,10 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 		} else if hasCaddie == 0 {
 			db = db.Where("caddie_id = ?", 0)
 		}
+	}
+
+	if item.CustomerName != "" {
+		db = db.Where("customer_name LIKE ?", "%"+item.CustomerName+"%")
 	}
 
 	return db
