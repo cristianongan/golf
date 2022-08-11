@@ -18,7 +18,7 @@ type CaddieFee struct {
 	CaddieCode  string `json:"caddie_code" gorm:"type:varchar(256);index"` // caddie code
 	CaddieName  string `json:"caddie_name" gorm:"type:varchar(256)"`       // caddie name
 	BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // ngày booking
-	Hole        int64  `json:"hole"`                                       // số hố
+	Hole        int    `json:"hole"`                                       // số hố
 	Round       int64  `json:"round"`                                      // số round
 	Amount      int64  `json:"amount"`                                     // tổng số tiền
 }
@@ -73,6 +73,63 @@ func (item *CaddieFee) FindList(page Page) ([]CaddieFeeSetting, int64, error) {
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)
 	}
+	return list, total, db.Error
+}
+
+func (item *CaddieFee) FindAll(month string) ([]CaddieFeeSetting, int64, error) {
+	db := datasources.GetDatabase().Model(CaddieFeeSetting{})
+	list := []CaddieFeeSetting{}
+	total := int64(0)
+	db = db.Where(item)
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CaddieCode != "" {
+		db = db.Where("caddie_code = ?", item.CaddieCode)
+	}
+	if month != "" {
+		db = db.Where("DATE_FORMAT(booking_date, '%Y-%m') = ?", month)
+	}
+
+	db.Count(&total)
+
+	db = db.Find(&list)
+	return list, total, db.Error
+}
+
+func (item *CaddieFee) FindAllGroupBy(month string) ([]CaddieFeeSetting, int64, error) {
+	db := datasources.GetDatabase().Model(CaddieFeeSetting{})
+	list := []CaddieFeeSetting{}
+	total := int64(0)
+
+	db.Select("*, sum(amount) as total_amount")
+	db = db.Where(item)
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CaddieCode != "" {
+		db = db.Where("caddie_code = ?", item.CaddieCode)
+	}
+	if item.CaddieName != "" {
+		db = db.Where("caddie_name = ?", item.CaddieName)
+	}
+	if month != "" {
+		db = db.Where("DATE_FORMAT(booking_date, '%Y-%m') = ?", month)
+	}
+
+	db.Group("caddie_id")
+
+	db.Count(&total)
+
+	db = db.Find(&list)
 	return list, total, db.Error
 }
 

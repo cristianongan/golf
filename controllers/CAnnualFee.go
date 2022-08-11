@@ -97,15 +97,16 @@ func (_ *CAnnualFee) GetListAnnualFee(c *gin.Context, prof models.CmsUser) {
 		MemberCardUid: form.MemberCardUid,
 		Year:          form.Year,
 	}
-	list, total, err := annualFeeR.FindList(page)
+	list, totalData, total, err := annualFeeR.FindList(page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
 	res := map[string]interface{}{
-		"total": total,
-		"data":  list,
+		"total":    total,
+		"data":     list,
+		"sum_data": totalData,
 	}
 
 	okResponse(c, res)

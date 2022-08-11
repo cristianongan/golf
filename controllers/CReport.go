@@ -62,6 +62,8 @@ func (_ *CReport) GetListReportMainBagSubBagToDay(c *gin.Context, prof models.Cm
 
 	for _, v := range listHaveSubBags {
 		mainB := response.ReportMainBagResponse{}
+		mainB.PartnerUid = v.PartnerUid
+		mainB.CourseUid = v.CourseUid
 		mainB.Uid = v.Uid
 		mainB.Bag = v.Bag
 		mainB.BagStatus = v.BagStatus
@@ -79,6 +81,8 @@ func (_ *CReport) GetListReportMainBagSubBagToDay(c *gin.Context, prof models.Cm
 				if v.Uid == v1.MainBags[0].BookingUid {
 
 					subB := response.ReportSubBagResponse{}
+					subB.PartnerUid = v1.PartnerUid
+					subB.CourseUid = v1.CourseUid
 					subB.Uid = v1.Uid
 					subB.Bag = v1.Bag
 					subB.BagStatus = v1.BagStatus

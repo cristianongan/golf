@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -52,6 +53,7 @@ func (_ *CBuggyList) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 		if result[booking.FlightId] == nil {
 			result[booking.FlightId] = make(map[string][]response.BuggyListResponse)
 		}
+		fmt.Println("[DEBUG]", booking.Uid)
 		result[booking.FlightId][booking.BuggyId] = append(result[booking.FlightId][booking.BuggyId], booking)
 	}
 

@@ -61,9 +61,8 @@ type SimpleOutFlightBody struct {
 
 type NeedMoreCaddieBody struct {
 	BookingUid  string `json:"booking_uid" binding:"required"`
-	CaddieCode  string `json:"caddie_code" binding:"required"`
-	CaddieHoles int    `json:"caddie_holes"`
-	GuestHoles  int    `json:"guest_holes"`
+	CaddieCode  string `json:"new_caddie_code" binding:"required"`
+	CaddieHoles int    `json:"old_caddie_holes"`
 	Note        string `json:"note"`
 }
 

@@ -15,7 +15,7 @@ type CaddieFeeSetting struct {
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	GroupId    int64  `json:"group_id" gorm:"index"`                      // Id nhóm setting
-	Hole       int64  `json:"hole"`                                       // số hố
+	Hole       int    `json:"hole"`                                       // số hố
 	Fee        int64  `json:"fee"`                                        // phí tương ứng
 	Type       string `json:"type" gorm:"type:varchar(256)"`              // Type setting caddie fee
 }
@@ -90,6 +90,26 @@ func (item *CaddieFeeSetting) Count() (int64, error) {
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
+}
+
+func (item *CaddieFeeSetting) FindAll() ([]CaddieFeeSetting, error) {
+	db := datasources.GetDatabase().Model(CaddieFeeSetting{})
+	list := []CaddieFeeSetting{}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.GroupId != 0 {
+		db = db.Where("group_id = ?", item.GroupId)
+	}
+
+	db.Find(&list)
+	return list, db.Error
 }
 
 func (item *CaddieFeeSetting) FindList(page Page) ([]CaddieFeeSetting, int64, error) {

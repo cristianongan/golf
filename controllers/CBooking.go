@@ -298,7 +298,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
 
 		// Udp Note
-		caddieInOutNote := model_gostarter.CaddieInOutNote{
+		caddieInNote := model_gostarter.CaddieInOutNote{
 			PartnerUid: prof.PartnerUid,
 			CourseUid:  prof.CourseUid,
 			BookingUid: booking.Uid,
@@ -308,7 +308,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			Note:       "",
 		}
 
-		go addCaddieInOutNote(caddieInOutNote)
+		go addCaddieInOutNote(caddieInNote)
 	}
 	if body.CustomerBookingName != "" {
 		booking.CustomerBookingName = body.CustomerBookingName
@@ -740,7 +740,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 
 		// Udp Note
-		caddieInOutNote := model_gostarter.CaddieInOutNote{
+		caddieInNote := model_gostarter.CaddieInOutNote{
 			PartnerUid: prof.PartnerUid,
 			CourseUid:  prof.CourseUid,
 			BookingUid: booking.Uid,
@@ -750,7 +750,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			Note:       "",
 		}
 
-		go addCaddieInOutNote(caddieInOutNote)
+		go addCaddieInOutNote(caddieInNote)
 	}
 
 	// Udp Log Tracking

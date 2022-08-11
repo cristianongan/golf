@@ -357,6 +357,11 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/caddie-fee/setting/:id", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.UpdateCaddieFeeSetting))
 			cmsApiAuthorized.DELETE("/caddie-fee/setting/:id", middlewares.AuthorizedCmsUserHandler(cCaddieFeeSetting.DeleteCaddieFeeSetting))
 
+			/// =================== Caddie Fee Setting ===================
+			cCaddieFee := new(controllers.CCaddieFee)
+			cmsApiAuthorized.GET("/caddie-fee/list", middlewares.AuthorizedCmsUserHandler(cCaddieFee.GetListCaddieFee))
+			cmsApiAuthorized.GET("/caddie-fee/detail/list", middlewares.AuthorizedCmsUserHandler(cCaddieFee.GetDetalListCaddieFee))
+
 			/// =================== Caddie Groups ===================
 			cCaddieGroup := new(controllers.CCaddieGroup)
 			cmsApiAuthorized.GET("/caddie-groups", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.GetCaddieGroupList))
@@ -511,17 +516,6 @@ func NewRouter() *gin.Engine {
 			cCron := new(controllers.CCron)
 			cronApi.GET("/create-caddie-working-calendar", cCron.CreateCaddieWorkingCalendar)
 		}
-	}
-
-	todoRouter := router.Group(moduleName)
-	{
-		cTodo := new(controllers.CTodo)
-
-		todoRouter.POST("todo", cTodo.CreateTodo)
-		todoRouter.POST("todo/batch", cTodo.CreateTodoBatch)
-		todoRouter.GET("todo/list", cTodo.GetTodoList)
-		todoRouter.PUT("todo/:uid", cTodo.UpdateTodo)
-		todoRouter.DELETE("todo/:uid", cTodo.DeleteTodo)
 	}
 
 	return router
