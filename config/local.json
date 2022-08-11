@@ -5,7 +5,7 @@
     "url_root": "http://localhost:4000",
     "kibana_log": true,
     "system_log_response": true,
-    "cron_is_running": false,
+    "cron_is_running": true,
     "cron_backup_order_is_running": false,
     "cronjob_secret_key": "rdhrXPLttwCCrVubT76wdaMSCIu78xL1",
     "cronjob_page_limit": 20,

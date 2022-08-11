@@ -58,6 +58,7 @@ type GetListBookingWithSelectForm struct {
 	HaveBag       *string `form:"have_bag"`
 	CaddieCode    string  `form:"caddie_code"`
 	HasBookCaddie string  `form:"has_book_caddie"`
+	PlayerName    string  `form:"player_name"`
 }
 
 type GetListBookingTeeTimeForm struct {

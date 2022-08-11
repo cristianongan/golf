@@ -727,6 +727,19 @@ func (item *Booking) Count() (int64, error) {
 	return total, db.Error
 }
 
+func (item *Booking) FindAll(bookingDate string) ([]Booking, error) {
+	db := datasources.GetDatabase().Model(Booking{})
+	list := []Booking{}
+
+	if bookingDate != "" {
+		db = db.Where("booking_date = ?", bookingDate)
+		db = db.Not("bag_status = ?", constants.BAG_STATUS_CANCEL)
+	}
+
+	db.Find(&list)
+	return list, db.Error
+}
+
 func (item *Booking) FindList(page models.Page, from int64, to int64, agencyType string) ([]Booking, int64, error) {
 	db := datasources.GetDatabase().Model(Booking{})
 	list := []Booking{}

@@ -18,7 +18,7 @@ type FlightList struct {
 	PeopleNumberInFlight *int
 }
 
-func (item *FlightList) FindFlightList(page models.Page) ([]Flight, error) {
+func (item *FlightList) FindFlightList(page models.Page) ([]Flight, int64, error) {
 	var list []Flight
 	total := int64(0)
 
@@ -66,8 +66,8 @@ func (item *FlightList) FindFlightList(page models.Page) ([]Flight, error) {
 				listResponse = append(listResponse, data)
 			}
 		}
-		return listResponse, db.Error
+		return listResponse, total, db.Error
 	}
 
-	return list, db.Error
+	return list, total, db.Error
 }
