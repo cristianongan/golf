@@ -212,6 +212,10 @@ func (_ *CCaddie) GetCaddieList(c *gin.Context, prof models.CmsUser) {
 		caddie.IsReadyForBooking = form.IsReadyForBooking
 	}
 
+	if form.ContractStatus != "" {
+		caddie.ContractStatus = form.ContractStatus
+	}
+
 	list, total, err := caddie.FindList(page)
 
 	if err != nil {

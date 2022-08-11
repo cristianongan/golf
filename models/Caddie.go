@@ -16,7 +16,7 @@ type Caddie struct {
 	Avatar         string           `json:"avatar" gorm:"type:varchar(256);index"` // San Golf
 	BirthDay       int64            `json:"birth_day"`
 	WorkingStatus  string           `json:"working_status" gorm:"type:varchar(128)"` // Active | Inactive
-	Group          string           `json:"group" gorm:"type:varchar(20)"`           // Caddie thuộc nhóm nào
+	Group          string           `json:"group" gorm:"-"`                          // Caddie thuộc nhóm nào
 	StartedDate    int64            `json:"started_date"`                            // Ngày bắt đầu làm việc của Caddie
 	IdHr           string           `json:"id_hr" gorm:"type:varchar(100)"`
 	Phone          string           `json:"phone" gorm:"type:varchar(20)"`
@@ -36,6 +36,7 @@ type Caddie struct {
 	CaddieCalendar []CaddieCalendar `json:"caddie_calendar" gorm:"foreignKey:caddie_uid"`
 	GroupId        int64            `json:"group_id" gorm:"default:0"`
 	GroupIndex     uint64           `json:"group_index" gorm:"default:0"`
+	GroupInfo      CaddieGroup      `json:"group_info" gorm:"foreignKey:GroupId"`
 }
 
 type CaddieResponse struct {
