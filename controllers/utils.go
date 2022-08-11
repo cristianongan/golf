@@ -213,6 +213,7 @@ func getInitListGolfFeeForBooking(uid string, body request.CreateBookingBody, go
 }
 
 // Khi add sub bag vào 1 booking thì cần cập nhật lại main bag cho booking sub bag
+// Cập nhật lại giá cho SubBag
 func updateMainBagForSubBag(body request.AddSubBagToBooking, mainBag string, customerPlayer string) error {
 	var err error
 	for _, v := range body.SubBags {
