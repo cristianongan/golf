@@ -40,6 +40,7 @@ type BookingList struct {
 	IsTimeOut     string
 	HasBookCaddie string
 	HasCaddie     string
+	HasFlightInfo string
 	CustomerName  string
 }
 

@@ -59,6 +59,7 @@ type GetListBookingWithSelectForm struct {
 	CaddieCode    string  `form:"caddie_code"`
 	HasBookCaddie string  `form:"has_book_caddie"`
 	PlayerName    string  `form:"player_name"`
+	HasFlightInfo string  `form:"has_flight_info"`
 }
 
 type GetListBookingTeeTimeForm struct {

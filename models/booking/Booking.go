@@ -148,6 +148,14 @@ type CaddieInOutNoteForBooking struct {
 	Hole       int    `json:"hole"`
 }
 
+type BookingResponse struct {
+	Booking
+	TeeFlight       int    `json:"tee_flight,omitempty"`
+	TeeOffFlight    string `json:"tee_off_flight,omitempty"`
+	TurnFlight      string `json:"turn_flight,omitempty"`
+	GroupNameFlight string `json:"group_name_flight,omitempty"`
+}
+
 type BookingForFlightRes struct {
 	models.Model
 	PartnerUid string `json:"partner_uid"` // Hang Golf
