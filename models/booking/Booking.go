@@ -1018,7 +1018,7 @@ func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numb
 /*
 	For report MainBag SubBag
 */
-func (item *Booking) FindListForReportHaveMainBag() ([]BookingForReportMainBagSubBags, error) {
+func (item *Booking) FindListForReportForMainBagSubBag() ([]BookingForReportMainBagSubBags, error) {
 	db := datasources.GetDatabase().Table("bookings")
 	list := []BookingForReportMainBagSubBags{}
 
@@ -1031,29 +1031,6 @@ func (item *Booking) FindListForReportHaveMainBag() ([]BookingForReportMainBagSu
 	db = db.Where("booking_date = ?", item.BookingDate)
 
 	db.Order("created_at desc")
-
-	db = db.Not("main_bags is NULL")
-
-	db.Find(&list)
-
-	return list, db.Error
-}
-
-func (item *Booking) FindListForReportHaveSubBag() ([]BookingForReportMainBagSubBags, error) {
-	db := datasources.GetDatabase().Table("bookings")
-	list := []BookingForReportMainBagSubBags{}
-
-	if item.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", item.PartnerUid)
-	}
-	if item.CourseUid != "" {
-		db = db.Where("course_uid = ?", item.CourseUid)
-	}
-	db = db.Where("booking_date = ?", item.BookingDate)
-
-	db.Order("created_at desc")
-
-	db = db.Not("sub_bags is NULL")
 
 	db.Find(&list)
 

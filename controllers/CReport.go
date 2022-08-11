@@ -40,15 +40,19 @@ func (_ *CReport) GetListReportMainBagSubBagToDay(c *gin.Context, prof models.Cm
 		CourseUid:   form.CourseUid,
 		BookingDate: dateDisplay,
 	}
-	listHaveMainBags, _ := mainBagR.FindListForReportHaveMainBag()
+	listBook, _ := mainBagR.FindListForReportForMainBagSubBag()
+	listHaveMainBags := []model_booking.BookingForReportMainBagSubBags{}
+	listHaveSubBags := []model_booking.BookingForReportMainBagSubBags{}
 
-	//Find have SubBag List
-	subBagR := model_booking.Booking{
-		PartnerUid:  form.PartnerUid,
-		CourseUid:   form.CourseUid,
-		BookingDate: dateDisplay,
+	for _, v := range listBook {
+		if v.MainBags != nil && len(v.MainBags) > 0 {
+			listHaveMainBags = append(listHaveMainBags, v)
+		} else {
+			if v.SubBags != nil && len(v.SubBags) > 0 {
+				listHaveSubBags = append(listHaveSubBags, v)
+			}
+		}
 	}
-	listHaveSubBags, _ := subBagR.FindListForReportHaveSubBag()
 
 	totalSubBag := 0
 	totalMyCost := int64(0)
@@ -65,6 +69,10 @@ func (_ *CReport) GetListReportMainBagSubBagToDay(c *gin.Context, prof models.Cm
 		mainB.CheckOutTime = v.CheckOutTime
 		mainB.MyCost = v.CurrentBagPrice.Amount
 		mainB.ToBePaid = v.MushPayInfo.MushPay
+
+		if mainB.SubBag == nil {
+			mainB.SubBag = response.ListReportSubBagResponse{}
+		}
 
 		for _, v1 := range listHaveMainBags {
 			if v1.MainBags != nil && len(v1.MainBags) > 0 {
@@ -83,9 +91,6 @@ func (_ *CReport) GetListReportMainBagSubBagToDay(c *gin.Context, prof models.Cm
 					totalMyCost = totalMyCost + subB.MyCost
 					totalToBePaid = totalToBePaid + subB.ToBePaid
 
-					if mainB.SubBag == nil {
-						mainB.SubBag = response.ListReportSubBagResponse{}
-					}
 					mainB.SubBag = append(mainB.SubBag, subB)
 				}
 			}
