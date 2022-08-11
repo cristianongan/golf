@@ -1426,6 +1426,8 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 	}
 
 	booking.BagStatus = constants.BAG_STATUS_OUT
+	booking.CheckOutTime = time.Now().Unix()
+
 	if err := booking.Update(); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
