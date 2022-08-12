@@ -142,6 +142,9 @@ func (item *GolfFee) FindList(page Page) ([]GolfFee, int64, error) {
 	if item.TablePriceId > 0 {
 		db = db.Where("table_price_id = ?", item.TablePriceId)
 	}
+	if item.GuestStyle != "" {
+		db = db.Where("guest_style = ?", item.GuestStyle)
+	}
 
 	db.Count(&total)
 
