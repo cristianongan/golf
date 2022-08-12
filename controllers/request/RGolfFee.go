@@ -9,6 +9,8 @@ type GetListGolfFeeForm struct {
 	GroupId          int64  `form:"group_id"`
 	CustomerType     string `form:"customer_type"`     // GUEST, AGENCY
 	CustomerCategory string `form:"customer_category"` // CUSTOMER, AGENCY
+	GuestStyle       string `form:"guest_style"`
+	GuestStyleName   string `form:"guest_style_name"`
 }
 
 type GetListGolfFeeByGuestStyleForm struct {
