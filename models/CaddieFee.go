@@ -21,6 +21,7 @@ type CaddieFee struct {
 	Hole        int    `json:"hole"`                                       // số hố
 	Round       int64  `json:"round"`                                      // số round
 	Amount      int64  `json:"amount"`                                     // tổng số tiền
+	TotalAmount int64  `json:"total_amount"`                               // tông số tiền trong 1 tháng
 }
 
 func (item *CaddieFee) Create() error {
@@ -51,16 +52,16 @@ func (item *CaddieFee) FindFirst() error {
 }
 
 func (item *CaddieFee) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(CaddieFeeSetting{})
+	db := datasources.GetDatabase().Model(CaddieFee{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *CaddieFee) FindList(page Page) ([]CaddieFeeSetting, int64, error) {
-	db := datasources.GetDatabase().Model(CaddieFeeSetting{})
-	list := []CaddieFeeSetting{}
+func (item *CaddieFee) FindList(page Page) ([]CaddieFee, int64, error) {
+	db := datasources.GetDatabase().Model(CaddieFee{})
+	list := []CaddieFee{}
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
@@ -76,9 +77,9 @@ func (item *CaddieFee) FindList(page Page) ([]CaddieFeeSetting, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *CaddieFee) FindAll(month string) ([]CaddieFeeSetting, int64, error) {
-	db := datasources.GetDatabase().Model(CaddieFeeSetting{})
-	list := []CaddieFeeSetting{}
+func (item *CaddieFee) FindAll(month string) ([]CaddieFee, int64, error) {
+	db := datasources.GetDatabase().Model(CaddieFee{})
+	list := []CaddieFee{}
 	total := int64(0)
 	db = db.Where(item)
 
@@ -92,7 +93,7 @@ func (item *CaddieFee) FindAll(month string) ([]CaddieFeeSetting, int64, error) 
 		db = db.Where("caddie_code = ?", item.CaddieCode)
 	}
 	if month != "" {
-		db = db.Where("DATE_FORMAT(booking_date, '%Y-%m') = ?", month)
+		db = db.Where("DATE_FORMAT(STR_TO_DATE(booking_date, '%d/%m/%Y'), '%Y-%m') = ?", month)
 	}
 
 	db.Count(&total)
@@ -101,9 +102,9 @@ func (item *CaddieFee) FindAll(month string) ([]CaddieFeeSetting, int64, error) 
 	return list, total, db.Error
 }
 
-func (item *CaddieFee) FindAllGroupBy(month string) ([]CaddieFeeSetting, int64, error) {
-	db := datasources.GetDatabase().Model(CaddieFeeSetting{})
-	list := []CaddieFeeSetting{}
+func (item *CaddieFee) FindAllGroupBy(page Page, month string) ([]CaddieFee, int64, error) {
+	db := datasources.GetDatabase().Model(CaddieFee{})
+	list := []CaddieFee{}
 	total := int64(0)
 
 	db.Select("*, sum(amount) as total_amount")
@@ -122,12 +123,16 @@ func (item *CaddieFee) FindAllGroupBy(month string) ([]CaddieFeeSetting, int64, 
 		db = db.Where("caddie_name = ?", item.CaddieName)
 	}
 	if month != "" {
-		db = db.Where("DATE_FORMAT(booking_date, '%Y-%m') = ?", month)
+		db = db.Where("DATE_FORMAT(STR_TO_DATE(booking_date, '%d/%m/%Y'), '%Y-%m') = ?", month)
 	}
 
 	db.Group("caddie_id")
 
 	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
 
 	db = db.Find(&list)
 	return list, total, db.Error
