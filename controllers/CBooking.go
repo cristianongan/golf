@@ -187,7 +187,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.CustomerUid = owner.Uid
 		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
 		if memberCard.PriceCode == 1 {
-			// TODO: Giá riêng không theo guest style
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(bUid, body, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee)
 			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 		} else {
@@ -214,10 +213,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 
 		agencyBooking := cloneToAgencyBooking(agency)
-
 		booking.AgencyInfo = agencyBooking
 
-		//TODO: check giá đặc biệt của agency
 		agencySpecialPrice := models.AgencySpecialPrice{
 			AgencyId: agency.Id,
 		}
@@ -649,7 +646,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.AgencyId = body.AgencyId
 		booking.AgencyInfo = agencyBooking
 		body.GuestStyle = agency.GuestStyle
-		//TODO: check giá đặc biệt của agency
+		//TODO: Check khác mới udp lại,  check giá đặc biệt của agency
 
 	}
 
@@ -676,7 +673,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerUid = owner.Uid
 		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
 		if memberCard.PriceCode == 1 {
-			// TODO: Giá riêng không theo guest style
+			// TODO: Check khác mới Udp lại, Giá riêng không theo guest style
 
 		} else {
 			// Lấy theo GuestStyle

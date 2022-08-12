@@ -238,7 +238,10 @@ init MushPay
 init Rounds
 */
 func initPriceForBooking(booking *model_booking.Booking, listBookingGolfFee model_booking.ListBookingGolfFee, bookingGolfFee model_booking.BookingGolfFee, checkInTime int64) {
-	// listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(bUid, body, golfFee)
+	if booking == nil {
+		log.Println("initPriceForBooking err booking nil")
+		return
+	}
 	var bookingTemp model_booking.Booking
 	bookingTempByte, err0 := json.Marshal(booking)
 	if err0 != nil {
@@ -250,16 +253,21 @@ func initPriceForBooking(booking *model_booking.Booking, listBookingGolfFee mode
 	}
 
 	booking.ListGolfFee = listBookingGolfFee
+	bookingTemp.ListGolfFee = listBookingGolfFee
 
 	// Current Bag Price Detail
 	currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
 	currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
 	currentBagPriceDetail.UpdateAmount()
+
 	booking.CurrentBagPrice = currentBagPriceDetail
+	bookingTemp.CurrentBagPrice = currentBagPriceDetail
 
 	// MushPayInfo
 	mushPayInfo := initBookingMushPayInfo(bookingTemp)
+
 	booking.MushPayInfo = mushPayInfo
+	bookingTemp.MushPayInfo = mushPayInfo
 
 	// Rounds: Init Firsts
 	listRounds := initListRound(bookingTemp, bookingGolfFee, checkInTime)
