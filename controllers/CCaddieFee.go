@@ -12,8 +12,6 @@ import (
 type CCaddieFee struct{}
 
 func (_ *CCaddieFee) GetDetalListCaddieFee(c *gin.Context, prof models.CmsUser) {
-	// TODO: filter by month
-
 	query := request.GetDetailListCaddieFee{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -41,12 +39,17 @@ func (_ *CCaddieFee) GetDetalListCaddieFee(c *gin.Context, prof models.CmsUser) 
 }
 
 func (_ *CCaddieFee) GetListCaddieFee(c *gin.Context, prof models.CmsUser) {
-	// TODO: filter by month
-
 	query := request.GetListCaddieFee{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
+	}
+
+	page := models.Page{
+		Limit:   query.PageRequest.Limit,
+		Page:    query.PageRequest.Page,
+		SortBy:  query.PageRequest.SortBy,
+		SortDir: query.PageRequest.SortDir,
 	}
 
 	caddieFee := models.CaddieFee{}
@@ -55,7 +58,7 @@ func (_ *CCaddieFee) GetListCaddieFee(c *gin.Context, prof models.CmsUser) {
 	caddieFee.CaddieCode = query.CaddieCode
 	caddieFee.CaddieName = query.CaddieName
 
-	list, total, err := caddieFee.FindAllGroupBy(query.Month)
+	list, total, err := caddieFee.FindAllGroupBy(page, query.Month)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

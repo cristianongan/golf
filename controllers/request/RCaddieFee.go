@@ -1,11 +1,12 @@
 package request
 
 type GetListCaddieFee struct {
+	PageRequest
 	PartnerUid string `form:"partner_uid" binding:"required"`
 	CourseUid  string `form:"course_uid" binding:"required"`
 	Month      string `form:"month" binding:"required"`
-	CaddieName string `json:"Caddie_Name"`
-	CaddieCode string `json:"Caddie_Code"`
+	CaddieName string `json:"caddie_name"`
+	CaddieCode string `json:"caddie_code"`
 }
 
 type GetDetailListCaddieFee struct {
