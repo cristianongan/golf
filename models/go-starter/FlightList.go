@@ -30,16 +30,17 @@ func (item *FlightList) FindFlightList(page models.Page) ([]Flight, int64, error
 	}
 
 	if item.CustomerName != "" {
-		db = db.Where("customer_name LIKE ?", "%"+item.CustomerName+"%")
+		db = db.Where("bookings.customer_name LIKE ?", "%"+item.CustomerName+"%")
 	}
 
 	if item.CaddieName != "" {
-		db = db.Where("caddie_info->'$.name' LIKE ?", "%"+item.CaddieName+"%")
+		db = db.Where("bookings.caddie_info->'$.name' LIKE ?", "%"+item.CaddieName+"%")
 	}
 
 	if item.CaddieCode != "" {
-		db = db.Where("caddie_info->'$.code' = ?", item.CaddieCode)
+		db = db.Where("bookings.caddie_info->'$.code' = ?", item.CaddieCode)
 	}
+
 	if item.BookingDate != "" {
 		db = db.Where("flights.date_display = ?", item.BookingDate)
 	}

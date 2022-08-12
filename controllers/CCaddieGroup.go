@@ -1,13 +1,14 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CCaddieGroup struct {
@@ -27,7 +28,10 @@ func (_ CCaddieGroup) GetCaddieGroupList(c *gin.Context, prof models.CmsUser) {
 		SortDir: query.PageRequest.SortDir,
 	}
 
-	caddieGroup := models.CaddieGroup{}
+	caddieGroup := models.CaddieGroup{
+		PartnerUid: query.PartnerUid,
+		CourseUid:  query.CourseUid,
+	}
 
 	list, total, err := caddieGroup.FindList(page)
 
