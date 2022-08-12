@@ -77,32 +77,24 @@ func (_ *CGolfService) GetGolfServiceForReception(c *gin.Context, prof models.Cm
 
 		okResponse(c, res)
 		return
-	} else if form.Type == constants.GOLF_SERVICE_RESTAURANT {
-		// Get in restaurent
-		restaurentR := model_service.Restaurent{
-			PartnerUid: form.PartnerUid,
-			CourseUid:  form.CourseUid,
-			Type:       form.Type,
-			Code:       form.Code,
-			Name:       form.Name,
-		}
+	}
+	// Get in restaurent
+	restaurentR := model_service.FoodBeverageRequest{}
+	restaurentR.PartnerUid = form.PartnerUid
+	restaurentR.CourseUid = form.CourseUid
+	restaurentR.Name = form.Name
 
-		list, total, errRestaurentR := restaurentR.FindList(page)
+	list, total, errRestaurentR := restaurentR.FindList(page)
 
-		if errRestaurentR != nil {
-			response_message.InternalServerError(c, errRestaurentR.Error())
-			return
-		}
-
-		res := map[string]interface{}{
-			"total": total,
-			"data":  list,
-		}
-
-		okResponse(c, res)
+	if errRestaurentR != nil {
+		response_message.InternalServerError(c, errRestaurentR.Error())
 		return
 	}
 
-	response_message.BadRequest(c, "type invalid")
-	return
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
 }
