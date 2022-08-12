@@ -23,8 +23,8 @@ func resetDataMemberCard() {
 	memberCardR := models.MemberCard{}
 	// TODO: Udp theo lấy theo Page, sau lượng membercard lên nhiều
 	err, list := memberCardR.FindAll()
-	if err == nil {
-		log.Println("resetDataMemberCard err", err.Error())
+	if err != nil {
+		log.Println("resetDataMemberCard err or empty", err.Error())
 		return
 	}
 

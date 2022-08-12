@@ -108,6 +108,7 @@ func (item *CaddieFee) FindAllGroupBy(page Page, month string) ([]CaddieFee, int
 	total := int64(0)
 
 	db.Select("*, sum(amount) as total_amount")
+
 	db = db.Where(item)
 
 	if item.CourseUid != "" {
@@ -117,10 +118,10 @@ func (item *CaddieFee) FindAllGroupBy(page Page, month string) ([]CaddieFee, int
 		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
 	if item.CaddieCode != "" {
-		db = db.Where("caddie_code = ?", item.CaddieCode)
+		db = db.Where("caddie_code LIKE ?", "%"+item.CaddieCode+"%")
 	}
 	if item.CaddieName != "" {
-		db = db.Where("caddie_name = ?", item.CaddieName)
+		db = db.Where("caddie_name LIKE ?", "%"+item.CaddieName+"%")
 	}
 	if month != "" {
 		db = db.Where("DATE_FORMAT(STR_TO_DATE(booking_date, '%d/%m/%Y'), '%Y-%m') = ?", month)
@@ -134,7 +135,6 @@ func (item *CaddieFee) FindAllGroupBy(page Page, month string) ([]CaddieFee, int
 		db = page.Setup(db).Find(&list)
 	}
 
-	db = db.Find(&list)
 	return list, total, db.Error
 }
 

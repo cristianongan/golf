@@ -155,6 +155,13 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		return nil
 	}
 
+	// Booking Uid
+	bookingUid := uuid.New()
+	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
+
+	// Checkin Time
+	checkInTime := time.Now().Unix()
+
 	// Member Card
 	// Check xem booking guest hay booking member
 	if body.MemberCardUid != "" {
@@ -180,8 +187,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.CustomerUid = owner.Uid
 		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
 		if memberCard.PriceCode == 1 {
-			// TODO: Giá riêng không theo guest style
-
+			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(bUid, body, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee)
+			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 		} else {
 			// Lấy theo GuestStyle
 			body.GuestStyle = memberCard.GetGuestStyle()
@@ -206,18 +213,21 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 
 		agencyBooking := cloneToAgencyBooking(agency)
-
 		booking.AgencyInfo = agencyBooking
-		body.GuestStyle = agency.GuestStyle
-		//TODO: check giá đặc biệt của agency
+
 		agencySpecialPrice := models.AgencySpecialPrice{
 			AgencyId: agency.Id,
 		}
 		errFSP := agencySpecialPrice.FindFirst()
 		if errFSP == nil && agencySpecialPrice.Id > 0 {
+			// Tính lại giá
+			// List Booking GolfFee
+			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(bUid, body, agencySpecialPrice.CaddieFee, agencySpecialPrice.BuggyFee, agencySpecialPrice.GreenFee)
+			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 
+		} else {
+			body.GuestStyle = agency.GuestStyle
 		}
-
 	}
 
 	// Có thông tin khách hàng
@@ -241,13 +251,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
-	// Booking Uid
-	bookingUid := uuid.New()
-	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
-
-	// Checkin Time
-	checkInTime := time.Now().Unix()
-
 	// GuestStyle
 	if body.GuestStyle != "" {
 		//Guest style
@@ -267,21 +270,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 		// List Booking GolfFee
 		listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(bUid, body, golfFee)
-		booking.ListGolfFee = listBookingGolfFee
-
-		// Current Bag Price Detail
-		currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
-		currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
-		currentBagPriceDetail.UpdateAmount()
-		booking.CurrentBagPrice = currentBagPriceDetail
-
-		// MushPayInfo
-		mushPayInfo := initBookingMushPayInfo(booking)
-		booking.MushPayInfo = mushPayInfo
-
-		// Rounds: Init First
-		listRounds := initListRound(booking, bookingGolfFee, checkInTime)
-		booking.Rounds = listRounds
+		initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 	}
 
 	// Check In Out
@@ -657,7 +646,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.AgencyId = body.AgencyId
 		booking.AgencyInfo = agencyBooking
 		body.GuestStyle = agency.GuestStyle
-		//TODO: check giá đặc biệt của agency
+		//TODO: Check khác mới udp lại,  check giá đặc biệt của agency
 
 	}
 
@@ -684,7 +673,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerUid = owner.Uid
 		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
 		if memberCard.PriceCode == 1 {
-			// TODO: Giá riêng không theo guest style
+			// TODO: Check khác mới Udp lại, Giá riêng không theo guest style
 
 		} else {
 			// Lấy theo GuestStyle
@@ -867,6 +856,8 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.Hole = body.Hole
 	}
 
+	checkInTime := time.Now().Unix()
+
 	if body.GuestStyle != "" {
 		// Tính giá
 		golfFeeModel := models.GolfFee{
@@ -890,22 +881,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			Bag:          booking.Bag,
 		}
 		listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(booking.Uid, bodyCreate, golfFee)
-		booking.ListGolfFee = listBookingGolfFee
-
-		// Current Bag Price Detail
-		currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
-		currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
-		currentBagPriceDetail.UpdateAmount()
-		booking.CurrentBagPrice = currentBagPriceDetail
-
-		// MushPayInfo
-		mushPayInfo := initBookingMushPayInfo(booking)
-		booking.MushPayInfo = mushPayInfo
-
-		// Rounds: Init First
-		checkInTime := time.Now().Unix()
-		listRounds := initListRound(booking, bookingGolfFee, checkInTime)
-		booking.Rounds = listRounds
+		initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 	}
 
 	if body.Locker != "" {
