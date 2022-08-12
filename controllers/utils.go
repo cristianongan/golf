@@ -212,6 +212,60 @@ func getInitListGolfFeeForBooking(uid string, body request.CreateBookingBody, go
 	return listBookingGolfFee, bookingGolfFee
 }
 
+/*
+ Theo giá đặc biệt, k theo GuestStyle
+*/
+func getInitListGolfFeeWithOutGuestStyleForBooking(uid string, body request.CreateBookingBody, caddieFee, buggyFee, greenFee int64) (model_booking.ListBookingGolfFee, model_booking.BookingGolfFee) {
+	listBookingGolfFee := model_booking.ListBookingGolfFee{}
+	bookingGolfFee := model_booking.BookingGolfFee{}
+	bookingGolfFee.BookingUid = uid
+	bookingGolfFee.Bag = body.Bag
+	bookingGolfFee.PlayerName = body.CustomerName
+	bookingGolfFee.RoundIndex = 0
+
+	bookingGolfFee.CaddieFee = caddieFee
+	bookingGolfFee.BuggyFee = buggyFee
+	bookingGolfFee.GreenFee = greenFee
+
+	listBookingGolfFee = append(listBookingGolfFee, bookingGolfFee)
+	return listBookingGolfFee, bookingGolfFee
+}
+
+/* Booking Init and Update
+init price
+init Golf Fee
+init MushPay
+init Rounds
+*/
+func initPriceForBooking(booking *model_booking.Booking, listBookingGolfFee model_booking.ListBookingGolfFee, bookingGolfFee model_booking.BookingGolfFee, checkInTime int64) {
+	// listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(bUid, body, golfFee)
+	var bookingTemp model_booking.Booking
+	bookingTempByte, err0 := json.Marshal(booking)
+	if err0 != nil {
+		log.Println("initPriceForBooking err0", err0.Error())
+	}
+	err1 := json.Unmarshal(bookingTempByte, &bookingTemp)
+	if err1 != nil {
+		log.Println("initPriceForBooking err1", err1.Error())
+	}
+
+	booking.ListGolfFee = listBookingGolfFee
+
+	// Current Bag Price Detail
+	currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
+	currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
+	currentBagPriceDetail.UpdateAmount()
+	booking.CurrentBagPrice = currentBagPriceDetail
+
+	// MushPayInfo
+	mushPayInfo := initBookingMushPayInfo(bookingTemp)
+	booking.MushPayInfo = mushPayInfo
+
+	// Rounds: Init Firsts
+	listRounds := initListRound(bookingTemp, bookingGolfFee, checkInTime)
+	booking.Rounds = listRounds
+}
+
 // Khi add sub bag vào 1 booking thì cần cập nhật lại main bag cho booking sub bag
 // Cập nhật lại giá cho SubBag
 func updateMainBagForSubBag(body request.AddSubBagToBooking, mainBag string, customerPlayer string) error {
