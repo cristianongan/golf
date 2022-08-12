@@ -5,8 +5,8 @@ type GetListCaddieFee struct {
 	PartnerUid string `form:"partner_uid" binding:"required"`
 	CourseUid  string `form:"course_uid" binding:"required"`
 	Month      string `form:"month" binding:"required"`
-	CaddieName string `json:"caddie_name"`
-	CaddieCode string `json:"caddie_code"`
+	CaddieName string `form:"caddie_name"`
+	CaddieCode string `form:"caddie_code"`
 }
 
 type GetDetailListCaddieFee struct {

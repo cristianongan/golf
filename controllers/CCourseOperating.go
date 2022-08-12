@@ -10,6 +10,7 @@ import (
 	model_gostarter "start/models/go-starter"
 	"start/utils"
 	"start/utils/response_message"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -173,7 +174,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 
 	hourStr, _ := utils.GetDateFromTimestampWithFormat(time.Now().Unix(), constants.HOUR_FORMAT)
 	yearStr, _ := utils.GetDateFromTimestampWithFormat(time.Now().Unix(), "060102")
-	flight.GroupName = yearStr + "_" + body.TeeOff + "_" + hourStr
+	flight.GroupName = yearStr + "_" + strconv.Itoa(body.Tee) + "_" + hourStr
 
 	// Date display
 	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
