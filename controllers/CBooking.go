@@ -210,6 +210,13 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.AgencyInfo = agencyBooking
 		body.GuestStyle = agency.GuestStyle
 		//TODO: check giá đặc biệt của agency
+		agencySpecialPrice := models.AgencySpecialPrice{
+			AgencyId: agency.Id,
+		}
+		errFSP := agencySpecialPrice.FindFirst()
+		if errFSP == nil && agencySpecialPrice.Id > 0 {
+
+		}
 
 	}
 
