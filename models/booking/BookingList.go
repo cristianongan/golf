@@ -180,6 +180,13 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 		db = db.Where("customer_name LIKE ?", "%"+item.CustomerName+"%")
 	}
 
+	if item.HasFlightInfo != "" {
+		db = db.Joins("JOIN flights ON flights.id = bookings.flight_id")
+		db = db.Select("bookings.*, flights.tee_off as tee_off_flight," +
+			"flights.tee as tee_flight, flights.date_display as date_display_flight," +
+			"flights.group_name as group_name_flight")
+	}
+
 	return db
 }
 
