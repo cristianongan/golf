@@ -57,6 +57,24 @@ func (item *CaddieInOutNote) Count() (int64, error) {
 	return total, db.Error
 }
 
+func (item *CaddieInOutNote) FindAllCaddieInOutNotes() ([]CaddieInOutNote, error) {
+	now := time.Now().Format("02/01/2006")
+
+	from, _ := time.Parse("02/01/2006 15:04:05", now+" 17:00:00")
+
+	to, _ := time.Parse("02/01/2006 15:04:05", now+" 16:59:59")
+
+	db := datasources.GetDatabase().Model(CaddieInOutNote{})
+	list := []CaddieInOutNote{}
+
+	db = db.Where("type = ?", constants.STATUS_OUT)
+	db = db.Where("created_at >= ?", from.AddDate(0, 0, -1).Unix())
+	db = db.Where("created_at < ?", to.Unix())
+
+	db.Find(&list)
+	return list, db.Error
+}
+
 func (item *CaddieInOutNote) FindList(page models.Page, from, to int64) ([]CaddieInOutNote, int64, error) {
 	db := datasources.GetDatabase().Model(CaddieInOutNote{})
 	list := []CaddieInOutNote{}

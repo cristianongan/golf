@@ -5,10 +5,9 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
+	model_gostarter "start/models/go-starter"
 	"start/utils"
 	"time"
-
-	model_booking "start/models/booking"
 )
 
 func runReportCaddieFeeToDayJob() {
@@ -24,18 +23,18 @@ func runReportCaddieFeeToDayJob() {
 
 // Báo cáo số fee của caddie trong ngày,
 func runReportCaddieFeeToDay() {
-	//Lấy danh sách booking trong ngày
+	//Lấy danh sách caddie in out note trong ngày
 	now := time.Now().Format("02/01/2006")
 
-	bookingRequest := model_booking.Booking{}
-	listBooking, err := bookingRequest.FindAllBookingCheckIn(now)
+	caddieIONRequest := model_gostarter.CaddieInOutNote{}
+	listCaddieION, err := caddieIONRequest.FindAllCaddieInOutNotes()
 
 	if err != nil {
 		log.Println("runCreateCaddieFeeOnDay err", err.Error())
 		return
 	}
 
-	for _, v := range listBooking {
+	for _, v := range listCaddieION {
 		if v.CaddieId > 0 {
 			// get caddie fee group setting today
 			date := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, now)
@@ -69,6 +68,11 @@ func runReportCaddieFeeToDay() {
 			err = caddieFee.FindFirst()
 
 			if err != nil {
+				// find caddie name
+				caddie := models.Caddie{}
+				caddie.Id = v.CaddieId
+				err = caddie.FindFirst()
+
 				// create caddie fee
 				for _, cfs := range listCFSeting {
 					if cfs.Hole == v.Hole {
@@ -78,8 +82,8 @@ func runReportCaddieFeeToDay() {
 
 				caddieFee.PartnerUid = v.PartnerUid
 				caddieFee.CourseUid = v.CourseUid
-				caddieFee.CaddieCode = v.CaddieInfo.Code
-				caddieFee.CaddieName = v.CaddieInfo.Name
+				caddieFee.CaddieCode = v.CaddieCode
+				caddieFee.CaddieName = caddie.Name
 				caddieFee.Hole = v.Hole
 				caddieFee.Round = 1
 
@@ -97,7 +101,9 @@ func runReportCaddieFeeToDay() {
 				}
 
 				caddieFee.Hole += v.Hole
-				caddieFee.Round += 1
+				if caddieFee.Hole > 0 {
+					caddieFee.Round += 1
+				}
 
 				err = caddieFee.Update()
 				if err != nil {
