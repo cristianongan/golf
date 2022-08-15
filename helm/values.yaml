@@ -2,7 +2,7 @@ projectName: golfCms
 dockerRegistry: harbor.vntaxi.net/golf
 imageName: golf-cms
 imageTag: lastest
-rootUrl: uat-backup.caotech.xyz
+rootUrl: uat-backup.vngolf.net
 replicaCount: 3
 servicePath: golf-cms
 
