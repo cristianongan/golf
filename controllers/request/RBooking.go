@@ -40,26 +40,27 @@ type GetListBookingForm struct {
 
 type GetListBookingWithSelectForm struct {
 	PageRequest
-	PartnerUid    string  `form:"partner_uid"`
-	CourseUid     string  `form:"course_uid"`
-	BookingDate   string  `form:"booking_date"`
-	BookingCode   string  `form:"booking_code"`
-	InitType      string  `form:"init_type"`
-	AgencyId      int64   `form:"agency_id"`
-	IsAgency      string  `form:"is_agency"`
-	Status        string  `form:"status"`
-	FromDate      string  `form:"from_date"`
-	ToDate        string  `form:"to_date"`
-	GolfBag       string  `form:"golf_bag"`
-	IsToday       string  `form:"is_today"`
-	BookingUid    string  `form:"booking_uid"`
-	IsFlight      string  `form:"is_flight"`
-	BagStatus     string  `form:"bag_status"`
-	HaveBag       *string `form:"have_bag"`
-	CaddieCode    string  `form:"caddie_code"`
-	HasBookCaddie string  `form:"has_book_caddie"`
-	PlayerName    string  `form:"player_name"`
-	HasFlightInfo string  `form:"has_flight_info"`
+	PartnerUid     string  `form:"partner_uid"`
+	CourseUid      string  `form:"course_uid"`
+	BookingDate    string  `form:"booking_date"`
+	BookingCode    string  `form:"booking_code"`
+	InitType       string  `form:"init_type"`
+	AgencyId       int64   `form:"agency_id"`
+	IsAgency       string  `form:"is_agency"`
+	Status         string  `form:"status"`
+	FromDate       string  `form:"from_date"`
+	ToDate         string  `form:"to_date"`
+	GolfBag        string  `form:"golf_bag"`
+	IsToday        string  `form:"is_today"`
+	BookingUid     string  `form:"booking_uid"`
+	IsFlight       string  `form:"is_flight"`
+	BagStatus      string  `form:"bag_status"`
+	HaveBag        *string `form:"have_bag"`
+	CaddieCode     string  `form:"caddie_code"`
+	HasBookCaddie  string  `form:"has_book_caddie"`
+	PlayerName     string  `form:"player_name"`
+	HasFlightInfo  string  `form:"has_flight_info"`
+	HasCaddieInOut string  `form:"has_caddie_in_out"`
 }
 
 type GetListBookingTeeTimeForm struct {

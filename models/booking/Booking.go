@@ -110,6 +110,7 @@ type Booking struct {
 }
 
 type FlyInfoResponse struct {
+	Booking
 	TeeFlight       int    `json:"tee_flight,omitempty" gorm:"-:migration"`
 	TeeOffFlight    string `json:"tee_off_flight,omitempty" gorm:"-:migration"`
 	TurnFlight      string `json:"turn_flight,omitempty" gorm:"-:migration"`

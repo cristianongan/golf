@@ -480,9 +480,14 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.CaddieCode = form.CaddieCode
 	bookings.HasBookCaddie = form.HasBookCaddie
 	bookings.CustomerName = form.PlayerName
-	bookings.HasFlightInfo = form.HasFlightInfo
+	bookings.HasCaddieInOut = form.HasCaddieInOut
 
 	db, total, err := bookings.FindBookingListWithSelect(page)
+
+	if form.HasCaddieInOut != "" {
+		db = db.Preload("CaddieInOut")
+	}
+
 	res := response.PageResponse{}
 
 	if err != nil {
@@ -491,7 +496,66 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	}
 
 	var list []model_booking.Booking
-	// db.Preload("CaddieInOut").Find(&list)
+	db.Find(&list)
+	res = response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	okResponse(c, res)
+}
+
+/*
+Danh sách booking với thông tin flight
+*/
+func (_ *CBooking) GetListBookingWithFightInfo(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	bookings := model_booking.BookingList{}
+	bookings.PartnerUid = form.PartnerUid
+	bookings.CourseUid = form.CourseUid
+	bookings.BookingDate = form.BookingDate
+	bookings.GolfBag = form.GolfBag
+	bookings.BookingCode = form.BookingCode
+	bookings.InitType = form.InitType
+	bookings.IsAgency = form.IsAgency
+	bookings.AgencyId = form.AgencyId
+	bookings.Status = form.Status
+	bookings.FromDate = form.FromDate
+	bookings.ToDate = form.ToDate
+	bookings.IsToday = form.IsToday
+	bookings.BookingUid = form.BookingUid
+	bookings.IsFlight = form.IsFlight
+	bookings.BagStatus = form.BagStatus
+	bookings.HaveBag = form.HaveBag
+	bookings.CaddieCode = form.CaddieCode
+	bookings.HasBookCaddie = form.HasBookCaddie
+	bookings.CustomerName = form.PlayerName
+	bookings.HasFlightInfo = form.HasFlightInfo
+
+	db, total, err := bookings.FindBookingListWithSelect(page)
+	res := response.PageResponse{}
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.FlyInfoResponse
+	db = db.Joins("JOIN flights ON flights.id = bookings.flight_id")
+	db = db.Select("bookings.*, flights.tee_off as tee_off_flight," +
+		"flights.tee as tee_flight, flights.date_display as date_display_flight," +
+		"flights.group_name as group_name_flight")
 	db.Find(&list)
 	res = response.PageResponse{
 		Total: total,

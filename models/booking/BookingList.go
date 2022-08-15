@@ -13,35 +13,36 @@ import (
 )
 
 type BookingList struct {
-	PartnerUid    string
-	CourseUid     string
-	BookingCode   string
-	BookingDate   string
-	CaddieUid     string
-	CaddieName    string
-	CaddieCode    string
-	InitType      string
-	AgencyId      int64
-	IsAgency      string
-	Status        string
-	FromDate      string
-	ToDate        string
-	BuggyUid      string
-	BuggyCode     string
-	GolfBag       string
-	Month         string
-	IsToday       string
-	BookingUid    string
-	IsFlight      string
-	BagStatus     string
-	HaveBag       *string
-	TeeTime       string
-	HasBuggy      string
-	IsTimeOut     string
-	HasBookCaddie string
-	HasCaddie     string
-	HasFlightInfo string
-	CustomerName  string
+	PartnerUid     string
+	CourseUid      string
+	BookingCode    string
+	BookingDate    string
+	CaddieUid      string
+	CaddieName     string
+	CaddieCode     string
+	InitType       string
+	AgencyId       int64
+	IsAgency       string
+	Status         string
+	FromDate       string
+	ToDate         string
+	BuggyUid       string
+	BuggyCode      string
+	GolfBag        string
+	Month          string
+	IsToday        string
+	BookingUid     string
+	IsFlight       string
+	BagStatus      string
+	HaveBag        *string
+	TeeTime        string
+	HasBuggy       string
+	IsTimeOut      string
+	HasBookCaddie  string
+	HasCaddie      string
+	HasFlightInfo  string
+	HasCaddieInOut string
+	CustomerName   string
 }
 
 func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
@@ -178,13 +179,6 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 
 	if item.CustomerName != "" {
 		db = db.Where("customer_name LIKE ?", "%"+item.CustomerName+"%")
-	}
-
-	if item.HasFlightInfo != "" {
-		db = db.Joins("JOIN flights ON flights.id = bookings.flight_id")
-		db = db.Select("bookings.*, flights.tee_off as tee_off_flight," +
-			"flights.tee as tee_flight, flights.date_display as date_display_flight," +
-			"flights.group_name as group_name_flight")
 	}
 
 	return db
