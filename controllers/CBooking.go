@@ -490,22 +490,11 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 		return
 	}
 
-	if bookings.HasFlightInfo != "" {
-		var list []model_booking.BookingResponse
-		db = db.Joins("JOIN flights ON flights.id = bookings.flight_id").Select("bookings.*, flights.tee_off as tee_off_flight, flights.tee as tee_flight, flights.date_display as date_display_flight, flights.group_name as group_name_flight")
-		db.Find(&list)
-		res = response.PageResponse{
-			Total: total,
-			Data:  list,
-		}
-	} else {
-		var list []model_booking.Booking
-		db.Preload("CaddieInOut").Debug().Find(&list)
-		db.Find(&list)
-		res = response.PageResponse{
-			Total: total,
-			Data:  list,
-		}
+	var list []model_booking.Booking
+	db.Preload("CaddieInOut").Find(&list)
+	res = response.PageResponse{
+		Total: total,
+		Data:  list,
 	}
 
 	okResponse(c, res)
