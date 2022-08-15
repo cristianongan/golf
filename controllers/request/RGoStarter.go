@@ -44,6 +44,13 @@ type OutCaddieBody struct {
 	Note        string `json:"note"`
 }
 
+type DeleteAttachBody struct {
+	BookingUid  string `json:"booking_uid" binding:"required"`
+	IsOutCaddie *bool  `json:"is_out_caddie"`
+	IsOutBuggy  *bool  `json:"is_out_buggy"`
+	Note        string `json:"note"`
+}
+
 type OutAllFlightBody struct {
 	FlightId    int64  `json:"flight_id" binding:"required"`
 	CaddieHoles int    `json:"caddie_holes"`

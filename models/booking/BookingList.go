@@ -100,11 +100,11 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 	}
 
 	if item.FromDate != "" {
-		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') >= STR_TO_DATE(?, '%d/%m/%Y')", item.FromDate)
+		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') >= ?", item.FromDate)
 	}
 
 	if item.ToDate != "" {
-		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') <= STR_TO_DATE(?, '%d/%m/%Y')", item.ToDate)
+		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') <= ?", item.ToDate)
 	}
 
 	if item.GolfBag != "" {
