@@ -19,6 +19,11 @@ func (_ *CCancelBookingSetting) CreateCancelBookingSetting(c *gin.Context, prof 
 		return
 	}
 
+	if bind1Err := validatePartnerAndCourse(body.PartnerUid, body.CourseUid); bind1Err != nil {
+		response_message.BadRequest(c, bind1Err.Error())
+		return
+	}
+
 	cancelBookingSetting := model_booking.CancelBookingSetting{
 		PartnerUid: body.PartnerUid,
 		CourseUid:  body.CourseUid,
@@ -27,6 +32,7 @@ func (_ *CCancelBookingSetting) CreateCancelBookingSetting(c *gin.Context, prof 
 		TimeMin:    body.TimeMin,
 		TimeMax:    body.TimeMax,
 	}
+	cancelBookingSetting.Status = body.Status
 
 	err := cancelBookingSetting.Create()
 	if err != nil {
@@ -86,4 +92,47 @@ func (_ CCancelBookingSetting) GetCancelBookingSetting(c *gin.Context, prof mode
 
 	c.JSON(200, res)
 
+}
+func (_ *CCancelBookingSetting) UpdateCancelBookingSetting(c *gin.Context, prof models.CmsUser) {
+	idStr := c.Param("id")
+	caddieId, errId := strconv.ParseInt(idStr, 10, 64)
+	if errId != nil {
+		response_message.BadRequest(c, errId.Error())
+		return
+	}
+
+	var body model_booking.CancelBookingSetting
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	cancelBookingRequest := model_booking.CancelBookingSetting{}
+	cancelBookingRequest.Id = caddieId
+
+	errF := cancelBookingRequest.FindFirst()
+	if errF != nil {
+		response_message.BadRequest(c, errF.Error())
+		return
+	}
+	if body.PeopleFrom > 0 {
+		cancelBookingRequest.PeopleFrom = body.PeopleFrom
+	}
+	if body.PeopleTo > 0 {
+		cancelBookingRequest.PeopleTo = body.PeopleTo
+	}
+	if body.TimeMax > 0 {
+		cancelBookingRequest.TimeMax = body.TimeMax
+	}
+	if body.TimeMin > 0 {
+		cancelBookingRequest.TimeMin = body.TimeMin
+	}
+
+	err := cancelBookingRequest.Update()
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okRes(c)
 }

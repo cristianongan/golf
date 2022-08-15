@@ -217,12 +217,15 @@ func (item *BookingList) FindBookingListWithSelect(page models.Page) (*gorm.DB, 
 	return db, total, db.Error
 }
 
-func (item *BookingList) FindAllBookingList() (*gorm.DB, error) {
+func (item *BookingList) FindAllBookingList() (*gorm.DB, int64, error) {
+	total := int64(0)
 	db := datasources.GetDatabase().Model(Booking{})
 
 	db = addFilter(db, item)
 
-	return db, db.Error
+	db.Count(&total)
+
+	return db, total, db.Error
 }
 
 func (item *BookingList) FindFirst() (Booking, error) {

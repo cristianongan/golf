@@ -751,3 +751,20 @@ func updateAnnualFeeToMcType(yearInt int, mcTypeId, fee int64) {
 		}
 	}
 }
+
+func validatePartnerAndCourse(partnerUid string, courseUid string) error {
+	partnerRequest := models.Partner{}
+	partnerRequest.Uid = partnerUid
+	partnerErrFind := partnerRequest.FindFirst()
+	if partnerErrFind != nil {
+		return partnerErrFind
+	}
+
+	courseRequest := models.Course{}
+	courseRequest.Uid = courseUid
+	errCourseFind := courseRequest.FindFirst()
+	if errCourseFind != nil {
+		return errCourseFind
+	}
+	return nil
+}

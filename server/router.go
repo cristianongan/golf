@@ -499,6 +499,12 @@ func NewRouter() *gin.Engine {
 			cReport := new(controllers.CReport)
 			cmsApiAuthorized.GET("/report/main-bag-sub-bag/totay", middlewares.AuthorizedCmsUserHandler(cReport.GetListReportMainBagSubBagToDay))
 
+			/// =================== Cancel Booking Setting ===================
+			cCancelBookingSetting := new(controllers.CCancelBookingSetting)
+			cmsApiAuthorized.POST("/cancel-booking-setting", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.CreateCancelBookingSetting))
+			cmsApiAuthorized.GET("/cancel-booking-setting", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.GetCancelBookingSetting))
+			cmsApiAuthorized.PUT("/cancel-booking-setting/:id", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.UpdateCancelBookingSetting))
+			cmsApiAuthorized.DELETE("/cancel-booking-setting/:id", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.DeleteCancelBookingSetting))
 		}
 
 		// ----------------------------------------------------------
