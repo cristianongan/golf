@@ -491,7 +491,8 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	}
 
 	var list []model_booking.Booking
-	db.Preload("CaddieInOut").Find(&list)
+	// db.Preload("CaddieInOut").Find(&list)
+	db.Find(&list)
 	res = response.PageResponse{
 		Total: total,
 		Data:  list,
