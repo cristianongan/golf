@@ -502,7 +502,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Cancel Booking Setting ===================
 			cCancelBookingSetting := new(controllers.CCancelBookingSetting)
 			cmsApiAuthorized.POST("/cancel-booking-setting", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.CreateCancelBookingSetting))
-			cmsApiAuthorized.GET("/cancel-booking-setting", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.GetCancelBookingSetting))
+			cmsApiAuthorized.GET("/cancel-booking-setting/list", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.GetCancelBookingSetting))
 			cmsApiAuthorized.PUT("/cancel-booking-setting/:id", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.UpdateCancelBookingSetting))
 			cmsApiAuthorized.DELETE("/cancel-booking-setting/:id", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.DeleteCancelBookingSetting))
 		}
