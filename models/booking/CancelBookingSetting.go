@@ -16,10 +16,10 @@ type CancelBookingSetting struct {
 	models.ModelId
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	PeopleFrom int    `json:"people_from"`
-	PeopleTo   int    `json:"people_to"`
-	TimeMin    string `json:"time_min" gorm:"type:varchar(100)"`
-	TimeMax    string `json:"time_max" gorm:"type:varchar(100)"`
+	PeopleFrom int    `json:"people_from"`                                // Số người từ bao nhiêu
+	PeopleTo   int    `json:"people_to"`                                  // Đến Số người bao nhiêu
+	TimeMin    string `json:"time_min" gorm:"type:varchar(100)"`          // Thời gian min cho phép cancel vd: 120:15,...
+	TimeMax    string `json:"time_max" gorm:"type:varchar(100)"`          // Thời gian max cho phép cancel vd: 120:15,...
 }
 
 func (item *CancelBookingSetting) Create() error {

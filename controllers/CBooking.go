@@ -80,7 +80,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 		bookingSource := model_booking.BookingSource{}
 		bookingSource.Id = bookingSourceId
-		errorTime := bookingSource.ValidateTimeRuleInBookingSource(body.BookingDate)
+		errorTime := bookingSource.ValidateTimeRuleInBookingSource(body.BookingDate, body.TeePath)
 		if errorTime != nil {
 			response_message.BadRequest(c, errorTime.Error())
 			return nil
