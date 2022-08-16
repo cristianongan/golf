@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"regexp"
 	"start/controllers/response"
 	"start/models"
 	model_booking "start/models/booking"
@@ -12,10 +13,20 @@ import (
 
 type CCancelBookingSetting struct{}
 
-func (_ *CCancelBookingSetting) CreateCancelBookingSetting(c *gin.Context, prof models.CmsUser) {
+func (item *CCancelBookingSetting) CreateCancelBookingSetting(c *gin.Context, prof models.CmsUser) {
 	var body model_booking.CancelBookingSetting
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		response_message.BadRequest(c, "")
+		return
+	}
+
+	if bind1Err := validatePartnerAndCourse(body.PartnerUid, body.CourseUid); bind1Err != nil {
+		response_message.BadRequest(c, bind1Err.Error())
+		return
+	}
+
+	if !ValidateTimeInput(body.TimeMax) || !ValidateTimeInput(body.TimeMin) {
+		response_message.BadRequest(c, "Time lỗi format")
 		return
 	}
 
@@ -27,6 +38,7 @@ func (_ *CCancelBookingSetting) CreateCancelBookingSetting(c *gin.Context, prof 
 		TimeMin:    body.TimeMin,
 		TimeMax:    body.TimeMax,
 	}
+	cancelBookingSetting.Status = body.Status
 
 	err := cancelBookingSetting.Create()
 	if err != nil {
@@ -35,6 +47,12 @@ func (_ *CCancelBookingSetting) CreateCancelBookingSetting(c *gin.Context, prof 
 	}
 	c.JSON(200, cancelBookingSetting)
 }
+
+func ValidateTimeInput(time string) bool {
+	r, _ := regexp.Compile("([0-9]+)|:([0-9]+)")
+	return r.MatchString(time)
+}
+
 func (_ *CCancelBookingSetting) DeleteCancelBookingSetting(c *gin.Context, prof models.CmsUser) {
 	idRequest := c.Param("id")
 	cancelBookingSettingIdIncrement, errId := strconv.ParseInt(idRequest, 10, 64)
@@ -86,4 +104,55 @@ func (_ CCancelBookingSetting) GetCancelBookingSetting(c *gin.Context, prof mode
 
 	c.JSON(200, res)
 
+}
+func (_ *CCancelBookingSetting) UpdateCancelBookingSetting(c *gin.Context, prof models.CmsUser) {
+	idStr := c.Param("id")
+	caddieId, errId := strconv.ParseInt(idStr, 10, 64)
+	if errId != nil {
+		response_message.BadRequest(c, errId.Error())
+		return
+	}
+
+	var body model_booking.CancelBookingSetting
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	cancelBookingRequest := model_booking.CancelBookingSetting{}
+	cancelBookingRequest.Id = caddieId
+
+	errF := cancelBookingRequest.FindFirst()
+	if errF != nil {
+		response_message.BadRequest(c, errF.Error())
+		return
+	}
+	if body.PeopleFrom > 0 {
+		cancelBookingRequest.PeopleFrom = body.PeopleFrom
+	}
+	if body.PeopleTo > 0 {
+		cancelBookingRequest.PeopleTo = body.PeopleTo
+	}
+	if body.TimeMax != "" {
+		cancelBookingRequest.TimeMax = body.TimeMax
+		if !ValidateTimeInput(body.TimeMax) {
+			response_message.BadRequest(c, "TimeMax lỗi format")
+			return
+		}
+	}
+	if body.TimeMin != "" {
+		cancelBookingRequest.TimeMin = body.TimeMin
+		if !ValidateTimeInput(body.TimeMin) {
+			response_message.BadRequest(c, "TimeMin lỗi format")
+			return
+		}
+	}
+
+	err := cancelBookingRequest.Update()
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okRes(c)
 }

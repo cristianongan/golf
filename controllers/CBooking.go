@@ -214,6 +214,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 		agencyBooking := cloneToAgencyBooking(agency)
 		booking.AgencyInfo = agencyBooking
+		booking.AgencyId = body.AgencyId
 
 		agencySpecialPrice := models.AgencySpecialPrice{
 			AgencyId: agency.Id,
@@ -276,12 +277,12 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	// Check In Out
 	if body.IsCheckIn {
 		// Tạo booking check in luôn
-		booking.BagStatus = constants.BAG_STATUS_IN
+		booking.BagStatus = constants.BAG_STATUS_WAITING
 		booking.InitType = constants.BOOKING_INIT_TYPE_CHECKIN
 		booking.CheckInTime = checkInTime
 	} else {
 		// Tạo booking
-		booking.BagStatus = constants.BAG_STATUS_INIT
+		booking.BagStatus = constants.BAG_STATUS_BOOKING
 		booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
 	}
 
@@ -480,9 +481,15 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.CaddieCode = form.CaddieCode
 	bookings.HasBookCaddie = form.HasBookCaddie
 	bookings.CustomerName = form.PlayerName
-	bookings.HasFlightInfo = form.HasFlightInfo
+	bookings.HasCaddieInOut = form.HasCaddieInOut
+	bookings.FlightId = form.FlightId
 
 	db, total, err := bookings.FindBookingListWithSelect(page)
+
+	if form.HasCaddieInOut != "" {
+		db = db.Preload("CaddieInOut")
+	}
+
 	res := response.PageResponse{}
 
 	if err != nil {
@@ -491,7 +498,67 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	}
 
 	var list []model_booking.Booking
-	db.Preload("CaddieInOut").Find(&list)
+	db.Find(&list)
+	res = response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	okResponse(c, res)
+}
+
+/*
+Danh sách booking với thông tin flight
+*/
+func (_ *CBooking) GetListBookingWithFightInfo(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	bookings := model_booking.BookingList{}
+	bookings.PartnerUid = form.PartnerUid
+	bookings.CourseUid = form.CourseUid
+	bookings.BookingDate = form.BookingDate
+	bookings.GolfBag = form.GolfBag
+	bookings.BookingCode = form.BookingCode
+	bookings.InitType = form.InitType
+	bookings.IsAgency = form.IsAgency
+	bookings.AgencyId = form.AgencyId
+	bookings.Status = form.Status
+	bookings.FromDate = form.FromDate
+	bookings.ToDate = form.ToDate
+	bookings.IsToday = form.IsToday
+	bookings.BookingUid = form.BookingUid
+	bookings.IsFlight = form.IsFlight
+	bookings.BagStatus = form.BagStatus
+	bookings.HaveBag = form.HaveBag
+	bookings.CaddieCode = form.CaddieCode
+	bookings.HasBookCaddie = form.HasBookCaddie
+	bookings.CustomerName = form.PlayerName
+	bookings.HasFlightInfo = form.HasFlightInfo
+
+	db, total, err := bookings.FindBookingListWithSelect(page)
+	res := response.PageResponse{}
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.FlyInfoResponse
+	db = db.Joins("JOIN flights ON flights.id = bookings.flight_id")
+	db = db.Select("bookings.*, flights.tee_off as tee_off_flight," +
+		"flights.tee as tee_flight, flights.date_display as date_display_flight," +
+		"flights.group_name as group_name_flight")
+	db.Find(&list)
 	res = response.PageResponse{
 		Total: total,
 		Data:  list,
@@ -600,8 +667,8 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Upd Main Pay for Sub
-	if body.MainBagNoPay != nil {
-		booking.MainBagNoPay = body.MainBagNoPay
+	if body.MainBagPay != nil {
+		booking.MainBagPay = body.MainBagPay
 	}
 
 	if body.LockerNo == "" {
@@ -720,7 +787,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
 
 		// Set has_book_caddie
-		if booking.BagStatus == constants.BAG_STATUS_INIT {
+		if booking.BagStatus == constants.BAG_STATUS_BOOKING {
 			booking.HasBookCaddie = true
 		}
 
@@ -881,7 +948,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	booking.CmsUser = prof.UserName
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 	booking.CheckInTime = time.Now().Unix()
-	booking.BagStatus = constants.BAG_STATUS_IN
+	booking.BagStatus = constants.BAG_STATUS_WAITING
 
 	errUdp := booking.Update()
 	if errUdp != nil {
@@ -1126,7 +1193,7 @@ func (_ *CBooking) GetListBookingForAddSubBag(c *gin.Context, prof models.CmsUse
 	bookingR := model_booking.Booking{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
-		BagStatus:  constants.BAG_STATUS_IN,
+		BagStatus:  constants.BAG_STATUS_WAITING,
 	}
 	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 	if errDate == nil {
@@ -1284,7 +1351,14 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if booking.BagStatus != constants.BAG_STATUS_INIT {
+	// Check Time Cancel với Cancel Setting Time trong Course System
+	cancelBookingSetting := model_booking.CancelBookingSetting{}
+	if err := cancelBookingSetting.ValidateBookingCancel(booking); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	if booking.BagStatus != constants.BAG_STATUS_BOOKING {
 		response_message.InternalServerError(c, "This booking did check in")
 		return
 	}
@@ -1337,7 +1411,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
-		if booking.BagStatus != constants.BAG_STATUS_INIT {
+		if booking.BagStatus != constants.BAG_STATUS_BOOKING {
 			response_message.InternalServerError(c, booking.Uid+" did check in")
 			return
 		}
@@ -1410,7 +1484,7 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking.BagStatus = constants.BAG_STATUS_OUT
+	booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
 	booking.CheckOutTime = time.Now().Unix()
 
 	if err := booking.Update(); err != nil {
@@ -1489,7 +1563,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 		BookingCode: form.BookingCode,
 	}
 
-	db, err := bookingR.FindAllBookingList()
+	db, _, err := bookingR.FindAllBookingList()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -1499,7 +1573,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 	db.Find(&list)
 
 	for _, booking := range list {
-		if booking.BagStatus != constants.BAG_STATUS_INIT {
+		if booking.BagStatus != constants.BAG_STATUS_BOOKING {
 			response_message.InternalServerError(c, "Booking:"+booking.BookingDate+" did check in")
 			return
 		}

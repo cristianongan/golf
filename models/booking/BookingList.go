@@ -13,35 +13,37 @@ import (
 )
 
 type BookingList struct {
-	PartnerUid    string
-	CourseUid     string
-	BookingCode   string
-	BookingDate   string
-	CaddieUid     string
-	CaddieName    string
-	CaddieCode    string
-	InitType      string
-	AgencyId      int64
-	IsAgency      string
-	Status        string
-	FromDate      string
-	ToDate        string
-	BuggyUid      string
-	BuggyCode     string
-	GolfBag       string
-	Month         string
-	IsToday       string
-	BookingUid    string
-	IsFlight      string
-	BagStatus     string
-	HaveBag       *string
-	TeeTime       string
-	HasBuggy      string
-	IsTimeOut     string
-	HasBookCaddie string
-	HasCaddie     string
-	HasFlightInfo string
-	CustomerName  string
+	PartnerUid     string
+	CourseUid      string
+	BookingCode    string
+	BookingDate    string
+	CaddieUid      string
+	CaddieName     string
+	CaddieCode     string
+	InitType       string
+	AgencyId       int64
+	IsAgency       string
+	Status         string
+	FromDate       string
+	ToDate         string
+	BuggyUid       string
+	BuggyCode      string
+	GolfBag        string
+	Month          string
+	IsToday        string
+	BookingUid     string
+	IsFlight       string
+	BagStatus      string
+	HaveBag        *string
+	TeeTime        string
+	HasBuggy       string
+	IsTimeOut      string
+	HasBookCaddie  string
+	HasCaddie      string
+	HasFlightInfo  string
+	HasCaddieInOut string
+	CustomerName   string
+	FlightId       int64
 }
 
 func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
@@ -99,11 +101,11 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 	}
 
 	if item.FromDate != "" {
-		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') >= STR_TO_DATE(?, '%d/%m/%Y')", item.FromDate)
+		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') >= ?", item.FromDate)
 	}
 
 	if item.ToDate != "" {
-		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') <= STR_TO_DATE(?, '%d/%m/%Y')", item.ToDate)
+		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') <= ?", item.ToDate)
 	}
 
 	if item.GolfBag != "" {
@@ -140,7 +142,7 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 		if isTimeOut == 1 {
 			db = db.Where("bag_status = ?", constants.BAG_STATUS_TIMEOUT)
 		} else if isTimeOut == 0 {
-			db = db.Where("bag_status <> ?", constants.BAG_STATUS_TIMEOUT).Where("bag_status <> ?", constants.BAG_STATUS_OUT)
+			db = db.Where("bag_status <> ?", constants.BAG_STATUS_TIMEOUT).Where("bag_status <> ?", constants.BAG_STATUS_CHECK_OUT)
 		}
 	}
 
@@ -151,6 +153,10 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 		} else if isFlight == 0 {
 			db = db.Where("flight_id = ?", 0)
 		}
+	}
+
+	if item.FlightId > 0 {
+		db = db.Where("flight_id = ?", item.FlightId)
 	}
 
 	if item.HasBuggy != "" {
@@ -178,13 +184,6 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 
 	if item.CustomerName != "" {
 		db = db.Where("customer_name LIKE ?", "%"+item.CustomerName+"%")
-	}
-
-	if item.HasFlightInfo != "" {
-		db = db.Joins("JOIN flights ON flights.id = bookings.flight_id")
-		db = db.Select("bookings.*, flights.tee_off as tee_off_flight," +
-			"flights.tee as tee_flight, flights.date_display as date_display_flight," +
-			"flights.group_name as group_name_flight")
 	}
 
 	return db
@@ -223,12 +222,15 @@ func (item *BookingList) FindBookingListWithSelect(page models.Page) (*gorm.DB, 
 	return db, total, db.Error
 }
 
-func (item *BookingList) FindAllBookingList() (*gorm.DB, error) {
+func (item *BookingList) FindAllBookingList() (*gorm.DB, int64, error) {
+	total := int64(0)
 	db := datasources.GetDatabase().Model(Booking{})
 
 	db = addFilter(db, item)
 
-	return db, db.Error
+	db.Count(&total)
+
+	return db, total, db.Error
 }
 
 func (item *BookingList) FindFirst() (Booking, error) {

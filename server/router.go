@@ -207,6 +207,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/booking/check-in", middlewares.AuthorizedCmsUserHandler(cBooking.CheckIn))
 			cmsApiAuthorized.GET("/booking/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBooking))
 			cmsApiAuthorized.GET("/booking/list/select", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingWithSelect))
+			cmsApiAuthorized.GET("/booking/list/flight", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingWithFightInfo))
 			cmsApiAuthorized.GET("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingDetail))             // Get Booking detail by uid
 			cmsApiAuthorized.GET("/booking/by-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingByBag))            // Get booking detail by Bag
 			cmsApiAuthorized.PUT("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.UpdateBooking))                // Thêm Info..., rental, kiosk, ...
@@ -270,9 +271,9 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/course-operating/caddie/undo", middlewares.AuthorizedCmsUserHandler(cCourseOperating.UndoOutCaddie))
 			cmsApiAuthorized.POST("/course-operating/caddie/out-all-in-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.OutAllInFlight))
 			cmsApiAuthorized.POST("/course-operating/simple-out-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.SimpleOutFlight))
-			cmsApiAuthorized.POST("/course-operating/caddie/need-more", middlewares.AuthorizedCmsUserHandler(cCourseOperating.NeedMoreCaddie))         // Đổi caddie
-			cmsApiAuthorized.POST("/course-operating/caddie/delete-attach", middlewares.AuthorizedCmsUserHandler(cCourseOperating.DeleteAttachCaddie)) // Xoá caddie, buggy, flight
-			cmsApiAuthorized.GET("/course-operating/starting-sheet", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetStartingSheet))          // Get for starting sheet
+			cmsApiAuthorized.POST("/course-operating/caddie/need-more", middlewares.AuthorizedCmsUserHandler(cCourseOperating.NeedMoreCaddie))   // Đổi caddie
+			cmsApiAuthorized.POST("/course-operating/caddie/delete-attach", middlewares.AuthorizedCmsUserHandler(cCourseOperating.DeleteAttach)) // Xoá caddie, buggy, flight
+			cmsApiAuthorized.GET("/course-operating/starting-sheet", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetStartingSheet))    // Get for starting sheet
 
 			/// =================== + More Course Operating ===================
 			cmsApiAuthorized.POST("/course-operating/change-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.ChangeCaddie))
@@ -498,6 +499,12 @@ func NewRouter() *gin.Engine {
 			cReport := new(controllers.CReport)
 			cmsApiAuthorized.GET("/report/main-bag-sub-bag/totay", middlewares.AuthorizedCmsUserHandler(cReport.GetListReportMainBagSubBagToDay))
 
+			/// =================== Cancel Booking Setting ===================
+			cCancelBookingSetting := new(controllers.CCancelBookingSetting)
+			cmsApiAuthorized.POST("/cancel-booking-setting", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.CreateCancelBookingSetting))
+			cmsApiAuthorized.GET("/cancel-booking-setting/list", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.GetCancelBookingSetting))
+			cmsApiAuthorized.PUT("/cancel-booking-setting/:id", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.UpdateCancelBookingSetting))
+			cmsApiAuthorized.DELETE("/cancel-booking-setting/:id", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.DeleteCancelBookingSetting))
 		}
 
 		// ----------------------------------------------------------
