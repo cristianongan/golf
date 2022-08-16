@@ -999,6 +999,10 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		booking.ListServiceItems = model_booking.ListBookingServiceItems{}
 	}
 
+	if booking.MainBagPay == nil {
+		booking.MainBagPay = initMainBagForPay()
+	}
+
 	// Check lại SubBag
 	// Có thể udp thêm vào hoặc remove đi
 	// Check exits
