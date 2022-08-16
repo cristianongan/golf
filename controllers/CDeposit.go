@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/pkg/errors"
 	"gorm.io/datatypes"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -27,12 +28,33 @@ func (_ *CDeposit) CreateDeposit(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// validate customer_uid
-	customer := models.CustomerUser{}
-	customer.Uid = body.CustomerUid
-	if err := customer.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
+	var customer models.CustomerUser
+
+	if body.CustomerUid != "" {
+		// validate customer_uid
+		customer = models.CustomerUser{}
+		customer.Uid = body.CustomerUid
+		if err := customer.FindFirst(); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+	} else {
+		customer = models.CustomerUser{}
+		customer.PartnerUid = prof.PartnerUid
+		customer.CourseUid = prof.CourseUid
+		customer.Phone = body.CustomerPhone
+		if err := customer.FindFirst(); err == nil {
+			response_message.BadRequest(c, errors.New("phone number is exist").Error())
+			return
+		} else {
+			customer.Name = body.CustomerName
+			customer.Identify = body.CustomerIdentity
+			customer.Type = "VISITOR"
+			if err := customer.Create(); err != nil {
+				response_message.BadRequest(c, errors.New("phone number is exist").Error())
+				return
+			}
+		}
 	}
 
 	inputDate, _ := time.Parse("2006-01-02", body.InputDate)
