@@ -588,16 +588,22 @@ func (item *Booking) UpdateMushPay() {
 
 	// Sub Service Item của current Bag
 	for _, v := range item.ListServiceItems {
-		isNeedPay := true
+		isNeedPay := false
 		if len(item.MainBagPay) > 0 {
 			for _, v1 := range item.MainBagPay {
 				// TODO: Tính Fee cho sub bag fee
 				if v1 == constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS {
+					// Next Round
 				} else if v1 == constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND {
+					// First Round
 				} else if v1 == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE {
+					// Other Fee cũng nằm trong service items
+					if v1 == v.Type {
+						isNeedPay = true
+					}
 				} else {
 					if v1 == v.Type {
-						isNeedPay = false
+						isNeedPay = true
 					}
 				}
 			}
