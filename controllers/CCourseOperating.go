@@ -797,51 +797,86 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		return
 	}
 
-	// validate booking_uid
-	booking, err := cCourseOperating.validateBooking(body.BookingUid)
-	if err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
-
-	// validate golf_bag
-	if booking.Bag != body.GolfBag {
-		response_message.InternalServerError(c, "Booking uid and golf bag do not match")
-		return
-	}
-
 	// validate flight_id
-	_, err = cCourseOperating.validateFlight(prof.CourseUid, body.FlightId)
+	flight, err := cCourseOperating.validateFlight(prof.CourseUid, body.FlightId)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
-	// TODO: validate max list
+	// TODO: validate max item in list
 
-	booking.FlightId = body.FlightId
-
-	if err := booking.Update(); err != nil {
-		response_message.InternalServerError(c, err.Error())
+	if len(body.ListData) == 0 {
+		response_message.BadRequest(c, "List Data empty")
 		return
 	}
 
-	// Update caddie_current_status
-	caddie := models.Caddie{}
-	caddie.Id = booking.CaddieId
-	if err := caddie.FindFirst(); err != nil {
-		response_message.InternalServerError(c, err.Error())
+	// Check các bag ok hết mới tạo flight
+	// Check Caddie, Buggy đang trong flight
+	listError := []error{}
+	listBooking := []model_booking.Booking{}
+	listCaddie := []models.Caddie{}
+	listBuggy := []models.Buggy{}
+	for _, v := range body.ListData {
+		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(prof.PartnerUid, prof.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
+		if errB == nil {
+			listBooking = append(listBooking, bookingTemp)
+			listCaddie = append(listCaddie, caddieTemp)
+			listBuggy = append(listBuggy, buggyTemp)
+
+			// Update caddie_current_status
+			caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+			caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
+			if err := caddieTemp.Update(); err != nil {
+				response_message.InternalServerError(c, err.Error())
+				return
+			}
+
+			// Udp Note
+			caddieInNote := model_gostarter.CaddieInOutNote{
+				PartnerUid: prof.PartnerUid,
+				CourseUid:  prof.CourseUid,
+				BookingUid: bookingTemp.Uid,
+				CaddieId:   bookingTemp.CaddieId,
+				CaddieCode: bookingTemp.CaddieInfo.Code,
+				Type:       constants.STATUS_IN,
+				Note:       "",
+			}
+
+			go addCaddieInOutNote(caddieInNote)
+		} else {
+			listError = append(listError, errB)
+		}
+	}
+
+	if len(listError) > 0 {
+		errRes := response_message.ErrorResponseDataV2{
+			StatusCode:  400,
+			ErrorDetail: listError,
+		}
+		badRequest(c, errRes)
 		return
 	}
 
-	caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
-	caddie.CurrentRound = caddie.CurrentRound + 1
-	if err := caddie.Update(); err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
+	// Udp flight for Booking
+	for _, b := range listBooking {
+		b.FlightId = flight.Id
+		errUdp := b.Update()
+		if errUdp != nil {
+			log.Println("CreateFlight err flight ", errUdp.Error())
+		}
 	}
 
-	okResponse(c, booking)
+	// Update caddie status
+	for _, ca := range listCaddie {
+		//ca.IsInCourse = true
+		errUdp := ca.Update()
+		if errUdp != nil {
+			log.Println("CreateFlight err udp caddie ", errUdp.Error())
+		}
+	}
+
+	okResponse(c, flight)
 }
 
 func (_ CCourseOperating) GetFlight(c *gin.Context, prof models.CmsUser) {

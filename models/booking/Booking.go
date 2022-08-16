@@ -91,8 +91,8 @@ type Booking struct {
 	// Main bags
 	MainBags utils.ListSubBag `json:"main_bags,omitempty" gorm:"type:json"` // List Main Bags, thêm main bag sẽ thanh toán những cái gì
 	// Main bug for Pay: Mặc định thanh toán all, Nếu có trong list này thì k thanh toán
-	MainBagNoPay utils.ListString `json:"main_bag_no_pay,omitempty" gorm:"type:json"` // Main Bag không thanh toán những phần này
-	SubBagNote   string           `json:"sub_bag_note" gorm:"type:varchar(500)"`      // Note of SubBag
+	MainBagPay utils.ListString `json:"main_bag_pay,omitempty" gorm:"type:json"` // Main Bag không thanh toán những phần này ở sub bag này
+	SubBagNote string           `json:"sub_bag_note" gorm:"type:varchar(500)"`   // Note of SubBag
 
 	InitType string `json:"init_type" gorm:"type:varchar(50);index"` // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
 
@@ -589,8 +589,8 @@ func (item *Booking) UpdateMushPay() {
 	// Sub Service Item của current Bag
 	for _, v := range item.ListServiceItems {
 		isNeedPay := true
-		if len(item.MainBagNoPay) > 0 {
-			for _, v1 := range item.MainBagNoPay {
+		if len(item.MainBagPay) > 0 {
+			for _, v1 := range item.MainBagPay {
 				// TODO: Tính Fee cho sub bag fee
 				if v1 == constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS {
 				} else if v1 == constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND {
@@ -748,7 +748,7 @@ func (item *Booking) FindAllBookingCheckIn(bookingDate string) ([]Booking, error
 
 	if bookingDate != "" {
 		db = db.Where("booking_date = ?", bookingDate)
-		db = db.Where("bag_status = ?", constants.BAG_STATUS_IN)
+		db = db.Where("bag_status = ?", constants.BAG_STATUS_WAITING)
 	}
 
 	db.Find(&list)
@@ -954,7 +954,7 @@ func (item *Booking) FindForCaddieOnCourse(InFlight string) []Booking {
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
-	db = db.Where("bag_status = ?", constants.BAG_STATUS_IN)
+	db = db.Where("bag_status = ?", constants.BAG_STATUS_WAITING)
 	db = db.Not("caddie_status = ?", constants.BOOKING_CADDIE_STATUS_OUT)
 	if InFlight != "" {
 		if InFlight == "0" {
