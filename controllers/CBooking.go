@@ -1351,15 +1351,14 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// Check Time Cancel với Cancel Setting Time trong Course System
+	if booking.BagStatus != constants.BAG_STATUS_BOOKING {
+		response_message.InternalServerError(c, "This booking did check in")
+		return
+	}
+	// Kiểm tra xem đủ điều kiện cancel booking không
 	cancelBookingSetting := model_booking.CancelBookingSetting{}
 	if err := cancelBookingSetting.ValidateBookingCancel(booking); err != nil {
 		response_message.InternalServerError(c, err.Error())
-		return
-	}
-
-	if booking.BagStatus != constants.BAG_STATUS_BOOKING {
-		response_message.InternalServerError(c, "This booking did check in")
 		return
 	}
 

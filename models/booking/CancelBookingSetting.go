@@ -95,11 +95,10 @@ func (item *CancelBookingSetting) Delete() error {
 
 func (item *CancelBookingSetting) ValidateBookingCancel(booking Booking) error {
 	// Tính ra số giờ từ lúc cancel so với booking date
-	// bookingDate := booking.BookingDate
-	bookingDate := "15/08/2022"
+	bookingDate := booking.BookingDate
 	teeTime := booking.TeeTime
 	fullTimeBooking := bookingDate + " " + teeTime
-	bookingDateUnixT := utils.GetTimeStampFromLocationTime("Local", constants.DATE_FORMAT_2, fullTimeBooking)
+	bookingDateUnixT := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_2, fullTimeBooking)
 	rangeTime := time.Now().Unix() - bookingDateUnixT
 
 	// Nếu là Agency
@@ -114,7 +113,6 @@ func (item *CancelBookingSetting) ValidateBookingCancel(booking Booking) error {
 			return err
 		}
 
-		total = 26
 		cancelBookingSetting := CancelBookingSetting{
 			PeopleFrom: int(total),
 		}
@@ -150,13 +148,13 @@ func (item *CancelBookingSetting) ValidateBookingCancel(booking Booking) error {
 		if rangeTime >= timeMixUnix && rangeTime <= timeMaxUnix {
 			return nil
 		}
-		return errors.New("Booking chưa đủ điều kiện hủy.")
+		return errors.New("Booking chưa đủ thời gian hủy.")
 	}
 
 	// Hội viên muốn hủy đặt chỗ chơi golf đều phải thông báo trước 24h
 	oneDayTimeUnix := int64(24 * 3600)
 	if rangeTime < oneDayTimeUnix {
-		return errors.New("Quá thời gian cancel booking")
+		return errors.New("Booking chưa đủ thời gian hủy.")
 	}
 
 	return nil
