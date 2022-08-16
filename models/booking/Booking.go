@@ -67,7 +67,6 @@ type Booking struct {
 	CmsUser    string `json:"cms_user" gorm:"type:varchar(100)"`     // Cms User
 	CmsUserLog string `json:"cms_user_log" gorm:"type:varchar(200)"` // Cms User Log
 
-	// TODO
 	// Caddie Id
 	CaddieStatus string        `json:"caddie_status" gorm:"type:varchar(50);index"` // Caddie status: IN/OUT/INIT
 	CaddieId     int64         `json:"caddie_id" gorm:"index"`
@@ -82,7 +81,7 @@ type Booking struct {
 	FlightId int64 `json:"flight_id" gorm:"index"`
 
 	// Agency Id
-	AgencyId   int64         `json:"agency_id" gorm:"index"`
+	AgencyId   int64         `json:"agency_id" gorm:"index"` // Agency
 	AgencyInfo BookingAgency `json:"agency_info" gorm:"type:json"`
 
 	// Subs bags
