@@ -214,6 +214,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 		agencyBooking := cloneToAgencyBooking(agency)
 		booking.AgencyInfo = agencyBooking
+		booking.AgencyId = body.AgencyId
 
 		agencySpecialPrice := models.AgencySpecialPrice{
 			AgencyId: agency.Id,
