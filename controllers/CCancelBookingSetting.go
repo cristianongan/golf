@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"regexp"
 	"start/controllers/response"
 	"start/models"
 	model_booking "start/models/booking"
@@ -12,7 +13,7 @@ import (
 
 type CCancelBookingSetting struct{}
 
-func (_ *CCancelBookingSetting) CreateCancelBookingSetting(c *gin.Context, prof models.CmsUser) {
+func (item *CCancelBookingSetting) CreateCancelBookingSetting(c *gin.Context, prof models.CmsUser) {
 	var body model_booking.CancelBookingSetting
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		response_message.BadRequest(c, "")
@@ -21,6 +22,11 @@ func (_ *CCancelBookingSetting) CreateCancelBookingSetting(c *gin.Context, prof 
 
 	if bind1Err := validatePartnerAndCourse(body.PartnerUid, body.CourseUid); bind1Err != nil {
 		response_message.BadRequest(c, bind1Err.Error())
+		return
+	}
+
+	if !ValidateTimeInput(body.TimeMax) || !ValidateTimeInput(body.TimeMin) {
+		response_message.BadRequest(c, "Time lỗi format")
 		return
 	}
 
@@ -41,6 +47,12 @@ func (_ *CCancelBookingSetting) CreateCancelBookingSetting(c *gin.Context, prof 
 	}
 	c.JSON(200, cancelBookingSetting)
 }
+
+func ValidateTimeInput(time string) bool {
+	r, _ := regexp.Compile("([0-9]+)|:([0-9]+)")
+	return r.MatchString(time)
+}
+
 func (_ *CCancelBookingSetting) DeleteCancelBookingSetting(c *gin.Context, prof models.CmsUser) {
 	idRequest := c.Param("id")
 	cancelBookingSettingIdIncrement, errId := strconv.ParseInt(idRequest, 10, 64)
@@ -121,11 +133,19 @@ func (_ *CCancelBookingSetting) UpdateCancelBookingSetting(c *gin.Context, prof 
 	if body.PeopleTo > 0 {
 		cancelBookingRequest.PeopleTo = body.PeopleTo
 	}
-	if body.TimeMax > 0 {
+	if body.TimeMax != "" {
 		cancelBookingRequest.TimeMax = body.TimeMax
+		if !ValidateTimeInput(body.TimeMax) {
+			response_message.BadRequest(c, "TimeMax lỗi format")
+			return
+		}
 	}
-	if body.TimeMin > 0 {
+	if body.TimeMin != "" {
 		cancelBookingRequest.TimeMin = body.TimeMin
+		if !ValidateTimeInput(body.TimeMin) {
+			response_message.BadRequest(c, "TimeMin lỗi format")
+			return
+		}
 	}
 
 	err := cancelBookingRequest.Update()

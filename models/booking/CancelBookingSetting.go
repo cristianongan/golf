@@ -5,6 +5,7 @@ import (
 	"start/datasources"
 	"start/models"
 	"start/utils"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,8 +18,8 @@ type CancelBookingSetting struct {
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	PeopleFrom int    `json:"people_from"`
 	PeopleTo   int    `json:"people_to"`
-	TimeMin    int    `json:"time_min"`
-	TimeMax    int    `json:"time_max"`
+	TimeMin    string `json:"time_min" gorm:"type:varchar(100)"`
+	TimeMax    string `json:"time_max" gorm:"type:varchar(100)"`
 }
 
 func (item *CancelBookingSetting) Create() error {
@@ -76,11 +77,11 @@ func (item *CancelBookingSetting) FindList() ([]CancelBookingSetting, int64, err
 	}
 
 	if item.PeopleFrom > 0 {
-		db = db.Where("people_from <= ? AND (people_to = NULL OR people_to >= ?)", item.PeopleFrom, item.PeopleFrom)
+		db = db.Where("people_from <= ? AND (people_to = 0 OR people_to >= ?)", item.PeopleFrom, item.PeopleFrom)
 	}
 
 	db.Count(&total)
-	db = db.Find(&list)
+	db = db.Debug().Find(&list)
 
 	return list, total, db.Error
 }
@@ -92,26 +93,20 @@ func (item *CancelBookingSetting) Delete() error {
 	return datasources.GetDatabase().Delete(item).Error
 }
 
-func (item *CancelBookingSetting) ValidateBookingCancel(bookingUid string) error {
-	booking := Booking{}
-	booking.Uid = bookingUid
-
-	if err := booking.FindFirst(); err != nil {
-		return err
-	}
-
+func (item *CancelBookingSetting) ValidateBookingCancel(booking Booking) error {
 	// Tính ra số giờ từ lúc cancel so với booking date
-	bookingDate := booking.BookingDate
+	// bookingDate := booking.BookingDate
+	bookingDate := "15/08/2022"
 	teeTime := booking.TeeTime
 	fullTimeBooking := bookingDate + " " + teeTime
-	bookingDateUnixT := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, fullTimeBooking)
+	bookingDateUnixT := utils.GetTimeStampFromLocationTime("Local", constants.DATE_FORMAT_2, fullTimeBooking)
 	rangeTime := time.Now().Unix() - bookingDateUnixT
-	rangeHour := time.Unix(rangeTime, 0).Hour()
 
 	// Nếu là Agency
 	if booking.AgencyId > 0 {
 		bookingList := BookingList{
-			BookingUid: bookingUid,
+			AgencyId:    booking.AgencyId,
+			BookingDate: booking.BookingDate,
 		}
 
 		_, total, err := bookingList.FindAllBookingList()
@@ -119,6 +114,7 @@ func (item *CancelBookingSetting) ValidateBookingCancel(bookingUid string) error
 			return err
 		}
 
+		total = 26
 		cancelBookingSetting := CancelBookingSetting{
 			PeopleFrom: int(total),
 		}
@@ -130,19 +126,36 @@ func (item *CancelBookingSetting) ValidateBookingCancel(bookingUid string) error
 		}
 
 		if len(list) == 0 {
-			errors.New("Invalid")
+			return nil
 		}
 
 		cancelSetting := list[0]
 
-		if rangeHour >= cancelSetting.TimeMin && rangeHour <= cancelSetting.TimeMax {
+		timeMax := strings.Split(cancelSetting.TimeMax, ":")
+		timeMaxH, _ := strconv.ParseInt(timeMax[0], 10, 64)
+		timeMaxM := int64(0)
+		if len(timeMax) > 1 {
+			timeMaxM, _ = strconv.ParseInt(timeMax[1], 10, 64)
+		}
+		timeMaxUnix := timeMaxH*3600 + timeMaxM*60
+
+		timeMin := strings.Split(cancelSetting.TimeMin, ":")
+		timeMinH, _ := strconv.ParseInt(timeMin[0], 10, 64)
+		timeMinM := int64(0)
+		if len(timeMax) > 1 {
+			timeMinM, _ = strconv.ParseInt(timeMax[1], 10, 64)
+		}
+		timeMixUnix := timeMinH*3600 + timeMinM*60
+
+		if rangeTime >= timeMixUnix && rangeTime <= timeMaxUnix {
 			return nil
 		}
-		return errors.New("Time invalid")
+		return errors.New("Booking chưa đủ điều kiện hủy.")
 	}
 
 	// Hội viên muốn hủy đặt chỗ chơi golf đều phải thông báo trước 24h
-	if rangeHour < 24 {
+	oneDayTimeUnix := int64(24 * 3600)
+	if rangeTime < oneDayTimeUnix {
 		return errors.New("Quá thời gian cancel booking")
 	}
 
