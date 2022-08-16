@@ -142,7 +142,7 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 		if isTimeOut == 1 {
 			db = db.Where("bag_status = ?", constants.BAG_STATUS_TIMEOUT)
 		} else if isTimeOut == 0 {
-			db = db.Where("bag_status <> ?", constants.BAG_STATUS_TIMEOUT).Where("bag_status <> ?", constants.BAG_STATUS_OUT)
+			db = db.Where("bag_status <> ?", constants.BAG_STATUS_TIMEOUT).Where("bag_status <> ?", constants.BAG_STATUS_CHECK_OUT)
 		}
 	}
 
