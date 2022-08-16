@@ -289,6 +289,7 @@ func updateMainBagForSubBag(body request.AddSubBagToBooking, mainBag string, cus
 				PlayerName: customerPlayer,
 			}
 			booking.MainBags = append(booking.MainBags, mainBag)
+			booking.MainBagPay = initMainBagForPay()
 			booking.MushPayInfo.MushPay = 0
 			errUdp := booking.Update()
 			if errUdp != nil {
@@ -748,6 +749,8 @@ func updateAnnualFeeToMcType(yearInt int, mcTypeId, fee int64) {
 					log.Println("updateAnnualFeeToMcType errMcTUdp", errMcTUdp.Error())
 				}
 			}
+		} else {
+			log.Println("updateAnnualFeeToMcType errFMCType", errFMCType.Error())
 		}
 	}
 }
@@ -767,4 +770,19 @@ func validatePartnerAndCourse(partnerUid string, courseUid string) error {
 		return errCourseFind
 	}
 	return nil
+}
+
+/*
+  Init data main Bag For pay for booking
+*/
+func initMainBagForPay() utils.ListString {
+	listPays := utils.ListString{}
+	listPays = append(listPays, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+	listPays = append(listPays, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
+	listPays = append(listPays, constants.MAIN_BAG_FOR_PAY_SUB_RENTAL)
+	listPays = append(listPays, constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT)
+	listPays = append(listPays, constants.MAIN_BAG_FOR_PAY_SUB_KIOSK)
+	listPays = append(listPays, constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP)
+	listPays = append(listPays, constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE)
+	return listPays
 }

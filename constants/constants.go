@@ -39,7 +39,7 @@ const (
 */
 const (
 	BAG_STATUS_BOOKING       = "BOOKING"       // Tạo Booking xong: Khách đặt booking
-	BAG_STATUS_WAITING       = "WAITING"       // Waiting, Đã check in
+	BAG_STATUS_WAITING       = "WAITING"       // Waiting, Đã check in chưa ghép flight
 	BAG_STATUS_IN_COURSE     = "IN_COURSE"     // Đã checkin và ghép Flight
 	BAG_STATUS_TIMEOUT       = "TIMEOUT"       // Đã out flight(không được ghép flight nào)
 	BAG_STATUS_CHECK_OUT     = "CHECK_OUT"     // Đã check out
