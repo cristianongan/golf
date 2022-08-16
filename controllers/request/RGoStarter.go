@@ -26,7 +26,6 @@ type CreateFlightBody struct {
 	BookingDate string                 `json:"booking_date"`
 	ListData    []CaddieBuggyToBooking `json:"list_data"`
 	Note        string                 `json:"note"`
-	GroupName   string                 `json:"group_name"`
 	Tee         int                    `json:"tee"`     // Tee
 	TeeOff      string                 `json:"tee_off"` // Tee Off
 }
@@ -105,10 +104,18 @@ type EditHolesOfCaddiesBody struct {
 	Hole       int    `json:"hole"`
 }
 
+//type AddBagToFlightBody struct {
+//	BookingUid string `json:"booking_uid"`
+//	GolfBag    string `json:"golf_bag"`
+//	FlightId   int64  `json:"flight_id"`
+//	CaddieCode string `json:"caddie_code"`
+//	BuggyCode  string `json:"buggy_code"`
+//}
+
 type AddBagToFlightBody struct {
-	BookingUid string `json:"booking_uid"`
-	GolfBag    string `json:"golf_bag"`
-	FlightId   int64  `json:"flight_id"`
+	BookingDate string                 `json:"booking_date"`
+	FlightId    int64                  `json:"flight_id"`
+	ListData    []CaddieBuggyToBooking `json:"list_data"`
 }
 
 type GetFlightList struct {
