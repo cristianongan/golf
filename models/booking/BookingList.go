@@ -43,6 +43,7 @@ type BookingList struct {
 	HasFlightInfo  string
 	HasCaddieInOut string
 	CustomerName   string
+	FlightId       int64
 }
 
 func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
@@ -152,6 +153,10 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 		} else if isFlight == 0 {
 			db = db.Where("flight_id = ?", 0)
 		}
+	}
+
+	if item.FlightId > 0 {
+		db = db.Where("flight_id = ?", item.FlightId)
 	}
 
 	if item.HasBuggy != "" {
