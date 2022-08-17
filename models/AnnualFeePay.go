@@ -17,9 +17,9 @@ type AnnualFeePay struct {
 	MemberCardUid string `json:"member_card_uid" gorm:"type:varchar(100);index"` // Member Card Uid
 	Year          int    `json:"year" gorm:"index"`                              // Year
 	PaymentType   string `json:"payment_type" gorm:"type:varchar(50);index"`     // TM, CK, CC, TM+CK, TM+CC
-	BillNumber    string `json:"bill_number" gorm:"type:varchar(100)"`           //
-	Note          string `json:"note" gorm:"type:varchar(256)"`                  //
-	PayDate       string `json:"pay_date" gorm:"type:varchar(256)"`              //
+	BillNumber    string `json:"bill_number" gorm:"type:varchar(100)"`           // Hoá đơn
+	Note          string `json:"note" gorm:"type:varchar(256)"`                  // ghi chú
+	PayDate       string `json:"pay_date" gorm:"type:varchar(256)"`              // Ngày thanh toán
 	Amount        int64  `json:"amount"`                                         // Số tiền thanh toán đợt này
 	CmsUser       string `json:"cms_user" gorm:"type:varchar(100)"`              // Cms User
 }

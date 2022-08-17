@@ -29,14 +29,6 @@ func Init() {
 	// ======== Connect elasticsearch/
 	// elasticsearch.ElasticSearchInit()
 
-	// // Init Cron
-	// fmt.Println(time.Now().Format("2006/01/02 15:04:05"), ">>> [INIT_CRON]")
-	// c := cron.New(cron.WithSeconds())
-	// //c.AddFunc("* * * * * *", func() {
-	// //	fmt.Println("one second")
-	// //})
-	// c.Start()
-
 	r := NewRouter()
 
 	routers := r.Routes()

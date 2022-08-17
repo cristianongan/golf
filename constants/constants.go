@@ -29,9 +29,12 @@ const (
 	BAGS_NOTE_TYPE_BAG     = "BAG"
 )
 
+/*
+ Để phân biệt bag booking được tạo từ single book, hay từ check in lễ tân tạo booking luôn
+*/
 const (
-	BOOKING_INIT_TYPE_BOOKING = "BOOKING"
-	BOOKING_INIT_TYPE_CHECKIN = "CHECKIN"
+	BOOKING_INIT_TYPE_BOOKING = "BOOKING" // được tạo từ booking single book
+	BOOKING_INIT_TYPE_CHECKIN = "CHECKIN" // Tạo từ check in lễ tân
 )
 
 /*
@@ -49,11 +52,13 @@ const (
 
 /*
  Caddie status on booking
+ trạng thái Caddie của Booking
+ Dùng cho cả log caddie in out booking
 */
 const (
-	BOOKING_CADDIE_STATUS_IN   = "IN"
-	BOOKING_CADDIE_STATUS_OUT  = "OUT"
-	BOOKING_CADDIE_STATUS_INIT = "INIT"
+	BOOKING_CADDIE_STATUS_IN   = "IN"   // Bag đươc gán caddie
+	BOOKING_CADDIE_STATUS_OUT  = "OUT"  // Bag đã out caddie
+	BOOKING_CADDIE_STATUS_INIT = "INIT" // Bag mới khởi tạo chưa gán caddie
 )
 
 /*

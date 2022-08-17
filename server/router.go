@@ -505,6 +505,12 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/cancel-booking-setting/list", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.GetCancelBookingSetting))
 			cmsApiAuthorized.PUT("/cancel-booking-setting/:id", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.UpdateCancelBookingSetting))
 			cmsApiAuthorized.DELETE("/cancel-booking-setting/:id", middlewares.AuthorizedCmsUserHandler(cCancelBookingSetting.DeleteCancelBookingSetting))
+
+			/// =================== Kiosk Inventory ===================
+			cKioskInventory := new(controllers.CKioskInventory)
+			cmsApiAuthorized.POST("/kiosk-inventory/item", middlewares.AuthorizedCmsUserHandler(cKioskInventory.CreateItem))
+			cmsApiAuthorized.POST("/kiosk-inventory/input", middlewares.AuthorizedCmsUserHandler(cKioskInventory.InputItem))
+			cmsApiAuthorized.POST("/kiosk-inventory/output", middlewares.AuthorizedCmsUserHandler(cKioskInventory.OutputItem))
 		}
 
 		// ----------------------------------------------------------

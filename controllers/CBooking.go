@@ -80,7 +80,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 		bookingSource := model_booking.BookingSource{}
 		bookingSource.Id = bookingSourceId
-		errorTime := bookingSource.ValidateTimeRuleInBookingSource(body.BookingDate)
+		errorTime := bookingSource.ValidateTimeRuleInBookingSource(body.BookingDate, body.TeePath)
 		if errorTime != nil {
 			response_message.BadRequest(c, errorTime.Error())
 			return nil
@@ -999,6 +999,10 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		booking.ListServiceItems = model_booking.ListBookingServiceItems{}
 	}
 
+	if booking.MainBagPay == nil {
+		booking.MainBagPay = initMainBagForPay()
+	}
+
 	// Check lại SubBag
 	// Có thể udp thêm vào hoặc remove đi
 	// Check exits
@@ -1351,15 +1355,14 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// Check Time Cancel với Cancel Setting Time trong Course System
+	if booking.BagStatus != constants.BAG_STATUS_BOOKING {
+		response_message.InternalServerError(c, "This booking did check in")
+		return
+	}
+	// Kiểm tra xem đủ điều kiện cancel booking không
 	cancelBookingSetting := model_booking.CancelBookingSetting{}
 	if err := cancelBookingSetting.ValidateBookingCancel(booking); err != nil {
 		response_message.InternalServerError(c, err.Error())
-		return
-	}
-
-	if booking.BagStatus != constants.BAG_STATUS_BOOKING {
-		response_message.InternalServerError(c, "This booking did check in")
 		return
 	}
 

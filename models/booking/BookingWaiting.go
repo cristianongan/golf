@@ -13,14 +13,14 @@ import (
 
 type BookingWaiting struct {
 	models.ModelId
-	PartnerUid    string           `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid     string           `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	BookingCode   string           `json:"booking_code" gorm:"type:varchar(100);index"`
-	BookingTime   string           `json:"booking_time" gorm:"type:varchar(100)"`
-	PlayerName    string           `json:"player_name" gorm:"type:varchar(256)"`
-	PlayerContact string           `json:"player_contact" gorm:"type:varchar(256)"`
-	PeopleList    utils.ListString `json:"people_list,omitempty" gorm:"type:json"`
-	Note          string           `json:"note" gorm:"type:varchar(256)"`
+	PartnerUid    string           `json:"partner_uid" gorm:"type:varchar(100);index"`  // Hang Golf
+	CourseUid     string           `json:"course_uid" gorm:"type:varchar(256);index"`   // San Golf
+	BookingCode   string           `json:"booking_code" gorm:"type:varchar(100);index"` //
+	BookingTime   string           `json:"booking_time" gorm:"type:varchar(100)"`       // Ngày tạo booking waiting
+	PlayerName    string           `json:"player_name" gorm:"type:varchar(256)"`        // Tên người đặt booking waiting
+	PlayerContact string           `json:"player_contact" gorm:"type:varchar(256)"`     // SĐT người đặt booking waiting
+	PeopleList    utils.ListString `json:"people_list,omitempty" gorm:"type:json"`      // Danh sách người chơi
+	Note          string           `json:"note" gorm:"type:varchar(256)"`               // Ghi chú
 }
 
 func (item *BookingWaiting) Create() error {

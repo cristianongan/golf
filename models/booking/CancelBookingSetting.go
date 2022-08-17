@@ -16,10 +16,10 @@ type CancelBookingSetting struct {
 	models.ModelId
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	PeopleFrom int    `json:"people_from"`
-	PeopleTo   int    `json:"people_to"`
-	TimeMin    string `json:"time_min" gorm:"type:varchar(100)"`
-	TimeMax    string `json:"time_max" gorm:"type:varchar(100)"`
+	PeopleFrom int    `json:"people_from"`                                // Số người từ bao nhiêu
+	PeopleTo   int    `json:"people_to"`                                  // Đến Số người bao nhiêu
+	TimeMin    string `json:"time_min" gorm:"type:varchar(100)"`          // Thời gian min cho phép cancel vd: 120:15,...
+	TimeMax    string `json:"time_max" gorm:"type:varchar(100)"`          // Thời gian max cho phép cancel vd: 120:15,...
 }
 
 func (item *CancelBookingSetting) Create() error {
@@ -95,11 +95,10 @@ func (item *CancelBookingSetting) Delete() error {
 
 func (item *CancelBookingSetting) ValidateBookingCancel(booking Booking) error {
 	// Tính ra số giờ từ lúc cancel so với booking date
-	// bookingDate := booking.BookingDate
-	bookingDate := "15/08/2022"
+	bookingDate := booking.BookingDate
 	teeTime := booking.TeeTime
 	fullTimeBooking := bookingDate + " " + teeTime
-	bookingDateUnixT := utils.GetTimeStampFromLocationTime("Local", constants.DATE_FORMAT_2, fullTimeBooking)
+	bookingDateUnixT := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_2, fullTimeBooking)
 	rangeTime := time.Now().Unix() - bookingDateUnixT
 
 	// Nếu là Agency
@@ -114,7 +113,6 @@ func (item *CancelBookingSetting) ValidateBookingCancel(booking Booking) error {
 			return err
 		}
 
-		total = 26
 		cancelBookingSetting := CancelBookingSetting{
 			PeopleFrom: int(total),
 		}
@@ -150,13 +148,13 @@ func (item *CancelBookingSetting) ValidateBookingCancel(booking Booking) error {
 		if rangeTime >= timeMixUnix && rangeTime <= timeMaxUnix {
 			return nil
 		}
-		return errors.New("Booking chưa đủ điều kiện hủy.")
+		return errors.New("Booking chưa đủ thời gian hủy.")
 	}
 
 	// Hội viên muốn hủy đặt chỗ chơi golf đều phải thông báo trước 24h
 	oneDayTimeUnix := int64(24 * 3600)
 	if rangeTime < oneDayTimeUnix {
-		return errors.New("Quá thời gian cancel booking")
+		return errors.New("Booking chưa đủ thời gian hủy.")
 	}
 
 	return nil

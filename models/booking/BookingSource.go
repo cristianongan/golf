@@ -14,17 +14,17 @@ type BookingSource struct {
 	models.ModelId
 	PartnerUid        string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid         string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	AgencyId          string `json:"agency_id" gorm:"type:varchar(100)"`
-	BookingSourceName string `json:"booking_source_name"`
-	IsPart1TeeType    bool   `json:"is_part1_tee_type"`
-	IsPart2TeeType    bool   `json:"is_part2_tee_type"`
-	IsPart3TeeType    bool   `json:"is_part3_tee_type"`
-	NormalDay         bool   `json:"normal_day"`
-	Weekend           bool   `json:"week_end"`
-	NumberOfDays      int64  `json:"number_of_days"`
+	AgencyId          string `json:"agency_id" gorm:"type:varchar(100)"`         // Id của Agency
+	BookingSourceName string `json:"booking_source_name"`                        // Tên source: VNPAY,...
+	IsPart1TeeType    bool   `json:"is_part1_tee_type"`                          // Part1 enable hay ko
+	IsPart2TeeType    bool   `json:"is_part2_tee_type"`                          // Part2 enable hay ko
+	IsPart3TeeType    bool   `json:"is_part3_tee_type"`                          // Part3 enable hay ko
+	NormalDay         bool   `json:"normal_day"`                                 // Check ngày thường
+	Weekend           bool   `json:"week_end"`                                   // Check cuối tuần
+	NumberOfDays      int64  `json:"number_of_days"`                             // Số ngày cho phép booking tính từ ngày đặt booking
 }
 
-func (item *BookingSource) ValidateTimeRuleInBookingSource(BookingDate string) error {
+func (item *BookingSource) ValidateTimeRuleInBookingSource(BookingDate string, TeePart string) error {
 	errF := item.FindFirst()
 	if errF != nil {
 		return errors.New("BookingSource not found")
@@ -35,6 +35,21 @@ func (item *BookingSource) ValidateTimeRuleInBookingSource(BookingDate string) e
 	bookingDateInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, BookingDate)
 
 	checkTimeRule := bookingDateInt >= currentDInt && bookingDateInt <= lastDInt
+
+	listTeePart := []string{}
+	if item.IsPart1TeeType {
+		listTeePart = append(listTeePart, "MORNING")
+	}
+	if item.IsPart2TeeType {
+		listTeePart = append(listTeePart, "NOON")
+	}
+	if item.IsPart1TeeType {
+		listTeePart = append(listTeePart, "NIGHT")
+	}
+
+	if utils.Contains(listTeePart, TeePart) {
+		return errors.New("Tee Time đang không mở.")
+	}
 
 	if item.NormalDay && item.Weekend {
 		if checkTimeRule {

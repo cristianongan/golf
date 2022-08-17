@@ -289,7 +289,6 @@ func updateMainBagForSubBag(body request.AddSubBagToBooking, mainBag string, cus
 				PlayerName: customerPlayer,
 			}
 			booking.MainBags = append(booking.MainBags, mainBag)
-			booking.MainBagPay = initMainBagForPay()
 			booking.MushPayInfo.MushPay = 0
 			errUdp := booking.Update()
 			if errUdp != nil {
