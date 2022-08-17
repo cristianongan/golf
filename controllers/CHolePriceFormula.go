@@ -98,11 +98,11 @@ func (_ *CHolePriceFormula) UpdateHolePriceFormula(c *gin.Context, prof models.C
 		return
 	}
 
-	//Check duplicated
-	if body.IsDuplicated() {
-		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-		return
-	}
+	// //Check duplicated
+	// if body.IsDuplicated() {
+	// 	response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+	// 	return
+	// }
 
 	if body.Hole > 0 {
 		holePriceFormula.Hole = body.Hole
