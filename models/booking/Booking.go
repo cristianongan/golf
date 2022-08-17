@@ -67,7 +67,6 @@ type Booking struct {
 	CmsUser    string `json:"cms_user" gorm:"type:varchar(100)"`     // Cms User
 	CmsUserLog string `json:"cms_user_log" gorm:"type:varchar(200)"` // Cms User Log
 
-	// TODO
 	// Caddie Id
 	CaddieStatus string        `json:"caddie_status" gorm:"type:varchar(50);index"` // Caddie status: IN/OUT/INIT
 	CaddieId     int64         `json:"caddie_id" gorm:"index"`
@@ -1025,7 +1024,7 @@ func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numb
 }
 
 /*
-	For report MainBag SubBag
+For report MainBag SubBag
 */
 func (item *Booking) FindListForReportForMainBagSubBag() ([]BookingForReportMainBagSubBags, error) {
 	db := datasources.GetDatabase().Table("bookings")

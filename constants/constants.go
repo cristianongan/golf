@@ -35,7 +35,7 @@ const (
 )
 
 /*
- Bag status
+Bag status
 */
 const (
 	BAG_STATUS_IN            = "IN"            // Đã check in( = Waiting ở doc)
@@ -48,7 +48,7 @@ const (
 )
 
 /*
- Caddie status on booking
+Caddie status on booking
 */
 const (
 	BOOKING_CADDIE_STATUS_IN   = "IN"
@@ -57,7 +57,7 @@ const (
 )
 
 /*
- Main bag for Pay SUB Bag
+Main bag for Pay SUB Bag
 */
 const (
 	MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND = "FIRST_ROUND"
@@ -70,8 +70,8 @@ const (
 )
 
 /*
-	Member Card Type:
-	Member Card Base Type
+Member Card Type:
+Member Card Base Type
 */
 const (
 	MEMBER_CARD_BASE_TYPE_SHORT_TERM = "SHORT_TERM" // ngắn hạn
@@ -81,10 +81,10 @@ const (
 )
 
 /*
-	Annual Type:
-	Không giới hạn
-	Chơi có giới hạn
-	Thẻ ngủ
+Annual Type:
+Không giới hạn
+Chơi có giới hạn
+Thẻ ngủ
 */
 const (
 	ANNUAL_TYPE_LIMITED    = "LIMITED"    // chơi giới hạn
@@ -108,7 +108,7 @@ const (
 )
 
 /*
-  Các dịch vụ của sân Golf: thuê đồ, shop, nhà hàng...
+Các dịch vụ của sân Golf: thuê đồ, shop, nhà hàng...
 */
 const (
 	GOLF_SERVICE_RENTAL     = "RENTAL"
@@ -118,7 +118,7 @@ const (
 )
 
 /*
-  Các loại KIOSK
+Các loại KIOSK
 */
 const (
 	KIOSK_SETTING   = "KIOSK"
@@ -130,7 +130,7 @@ const (
 )
 
 /*
-  Các dịch vụ của sân Golf: thuê đồ, shop, nhà hàng...
+Các dịch vụ của sân Golf: thuê đồ, shop, nhà hàng...
 */
 const (
 	DAY_OFF_TYPE_AFTERNOON = "H_AFTERNOON"
@@ -191,6 +191,5 @@ const CMS_USER_PROFILE_KEY = "CMS_USER_PROFILE_KEY"
 const UNAUTHORIZED_MESSAGE = "Unauthorized"
 const UNAUTHORIZED_LOGIN_MESSAGE = "Unauthorized, please login again"
 const URL_CHECK_CRON = "cron-job/check-cron"
-const URL_CRONJOB_BACKUP_ORDER = "cron-job/backup-order"
 
 const CRONJOB_PREFIX = "CRONJOB:"
