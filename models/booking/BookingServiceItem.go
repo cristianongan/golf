@@ -31,6 +31,14 @@ type BookingServiceItem struct {
 	Input         string `json:"input"` // Note
 }
 
+// Response cho FE
+type BookingServiceItemResponse struct {
+	BookingServiceItem
+	CheckInTime  int64  `json:"check_in_time"` // Time Check In
+	Bag          string `json:"bag"`           // Golf Bag
+	CustomerName string `json:"customer_name"` // Tên khách hàng
+}
+
 // ------- List Booking service ---------
 type ListBookingServiceItems []BookingServiceItem
 
@@ -82,9 +90,9 @@ func (item *BookingServiceItem) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *BookingServiceItem) FindList(page models.Page) ([]BookingServiceItem, int64, error) {
+func (item *BookingServiceItem) FindList(page models.Page) ([]BookingServiceItemResponse, int64, error) {
 	db := datasources.GetDatabase().Model(BookingServiceItem{})
-	list := []BookingServiceItem{}
+	list := []BookingServiceItemResponse{}
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
@@ -93,12 +101,17 @@ func (item *BookingServiceItem) FindList(page models.Page) ([]BookingServiceItem
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
 	if item.GroupCode != "" {
-		db = db.Where("group_code = ?", item.GroupCode)
+		db = db.Where("booking_service_items.group_code = ?", item.GroupCode)
 	}
 	if item.ServiceId != "" {
-		db = db.Where("service_id = ?", item.ServiceId)
+		db = db.Where("booking_service_items.service_id = ?", item.ServiceId)
+	}
+	if item.Type != "" {
+		db = db.Where("booking_service_items.type = ?", item.Type)
 	}
 
+	db = db.Joins("JOIN bookings ON bookings.uid = booking_service_items.booking_uid")
+	db = db.Select("booking_service_items.*, bookings.bag, bookings.check_in_time, bookings.customer_name")
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
