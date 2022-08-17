@@ -24,36 +24,44 @@ const (
 	GORM_API_LOG_RECORD_NOT_FOUND = "record not found"
 )
 
+/*
+Bag note Type
+*/
 const (
 	BAGS_NOTE_TYPE_BOOKING = "BOOKING"
 	BAGS_NOTE_TYPE_BAG     = "BAG"
 )
 
+/*
+Để phân biệt bag booking được tạo từ single book, hay từ check in lễ tân tạo booking luôn
+*/
 const (
-	BOOKING_INIT_TYPE_BOOKING = "BOOKING"
-	BOOKING_INIT_TYPE_CHECKIN = "CHECKIN"
+	BOOKING_INIT_TYPE_BOOKING = "BOOKING" // được tạo từ booking single book
+	BOOKING_INIT_TYPE_CHECKIN = "CHECKIN" // Tạo từ check in lễ tân
 )
 
 /*
 Bag status
 */
 const (
-	BAG_STATUS_IN            = "IN"            // Đã check in( = Waiting ở doc)
-	BAG_STATUS_OUT           = "OUT"           // Đã check out
-	BAG_STATUS_INIT          = "INIT"          // Tạo Booking xong( = Booking ở doc)
-	BAG_STATUS_CANCEL        = "CANCEL"        // Cancel booking
-	BAG_STATUS_TIMEOUT       = "TIMEOUT"       // Đã checkin và out caddie
+	BAG_STATUS_BOOKING       = "BOOKING"       // Tạo Booking xong: Khách đặt booking
+	BAG_STATUS_WAITING       = "WAITING"       // Waiting, Đã check in chưa ghép flight
 	BAG_STATUS_IN_COURSE     = "IN_COURSE"     // Đã checkin và ghép Flight
+	BAG_STATUS_TIMEOUT       = "TIMEOUT"       // Đã out flight(không được ghép flight nào)
+	BAG_STATUS_CHECK_OUT     = "CHECK_OUT"     // Đã check out
+	BAG_STATUS_CANCEL        = "CANCEL"        // Cancel booking
 	BAG_STATUS_GUEST_NO_SHOW = "GUEST_NO_SHOW" // Khách đặt booking nhưng không đến
 )
 
 /*
 Caddie status on booking
+trạng thái Caddie của Booking
+Dùng cho cả log caddie in out booking
 */
 const (
-	BOOKING_CADDIE_STATUS_IN   = "IN"
-	BOOKING_CADDIE_STATUS_OUT  = "OUT"
-	BOOKING_CADDIE_STATUS_INIT = "INIT"
+	BOOKING_CADDIE_STATUS_IN   = "IN"   // Bag đươc gán caddie
+	BOOKING_CADDIE_STATUS_OUT  = "OUT"  // Bag đã out caddie
+	BOOKING_CADDIE_STATUS_INIT = "INIT" // Bag mới khởi tạo chưa gán caddie
 )
 
 /*

@@ -507,9 +507,15 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 		if errFC != nil {
 			return errFC, booking, caddie, models.Buggy{}
 		}
-		booking.CaddieId = caddie.Id
-		booking.CaddieInfo = cloneToCaddieBooking(caddie)
-		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+
+		if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY {
+			booking.CaddieId = caddie.Id
+			booking.CaddieInfo = cloneToCaddieBooking(caddie)
+			booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+			caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+		} else {
+			return errors.New("Caddie đang trong IN_COURSE"), booking, caddie, models.Buggy{}
+		}
 	}
 
 	// TODO: validate current_status
@@ -748,6 +754,40 @@ func updateAnnualFeeToMcType(yearInt int, mcTypeId, fee int64) {
 					log.Println("updateAnnualFeeToMcType errMcTUdp", errMcTUdp.Error())
 				}
 			}
+		} else {
+			log.Println("updateAnnualFeeToMcType errFMCType", errFMCType.Error())
 		}
 	}
+}
+
+func validatePartnerAndCourse(partnerUid string, courseUid string) error {
+	partnerRequest := models.Partner{}
+	partnerRequest.Uid = partnerUid
+	partnerErrFind := partnerRequest.FindFirst()
+	if partnerErrFind != nil {
+		return partnerErrFind
+	}
+
+	courseRequest := models.Course{}
+	courseRequest.Uid = courseUid
+	errCourseFind := courseRequest.FindFirst()
+	if errCourseFind != nil {
+		return errCourseFind
+	}
+	return nil
+}
+
+/*
+  Init data main Bag For pay for booking
+*/
+func initMainBagForPay() utils.ListString {
+	listPays := utils.ListString{}
+	listPays = append(listPays, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+	listPays = append(listPays, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
+	listPays = append(listPays, constants.MAIN_BAG_FOR_PAY_SUB_RENTAL)
+	listPays = append(listPays, constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT)
+	listPays = append(listPays, constants.MAIN_BAG_FOR_PAY_SUB_KIOSK)
+	listPays = append(listPays, constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP)
+	listPays = append(listPays, constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE)
+	return listPays
 }

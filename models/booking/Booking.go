@@ -81,7 +81,7 @@ type Booking struct {
 	FlightId int64 `json:"flight_id" gorm:"index"`
 
 	// Agency Id
-	AgencyId   int64         `json:"agency_id" gorm:"index"`
+	AgencyId   int64         `json:"agency_id" gorm:"index"` // Agency
 	AgencyInfo BookingAgency `json:"agency_info" gorm:"type:json"`
 
 	// Subs bags
@@ -90,8 +90,8 @@ type Booking struct {
 	// Main bags
 	MainBags utils.ListSubBag `json:"main_bags,omitempty" gorm:"type:json"` // List Main Bags, thêm main bag sẽ thanh toán những cái gì
 	// Main bug for Pay: Mặc định thanh toán all, Nếu có trong list này thì k thanh toán
-	MainBagNoPay utils.ListString `json:"main_bag_no_pay,omitempty" gorm:"type:json"` // Main Bag không thanh toán những phần này
-	SubBagNote   string           `json:"sub_bag_note" gorm:"type:varchar(500)"`      // Note of SubBag
+	MainBagPay utils.ListString `json:"main_bag_pay,omitempty" gorm:"type:json"` // Main Bag không thanh toán những phần này ở sub bag này
+	SubBagNote string           `json:"sub_bag_note" gorm:"type:varchar(500)"`   // Note of SubBag
 
 	InitType string `json:"init_type" gorm:"type:varchar(50);index"` // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
 
@@ -105,7 +105,34 @@ type Booking struct {
 	MemberNameOfGuest string `json:"member_name_of_guest" gorm:"type:varchar(200)"`     // Member của Guest đến chơi cùng
 
 	HasBookCaddie bool  `json:"has_book_caddie" gorm:"default:0"`
-	TimeOutFlight int64 `json:"time_out_flight,omitempty"`
+	TimeOutFlight int64 `json:"time_out_flight,omitempty"` // Thời gian out Flight
+}
+
+type FlyInfoResponse struct {
+	Booking
+	TeeFlight       int    `json:"tee_flight,omitempty" gorm:"-:migration"`
+	TeeOffFlight    string `json:"tee_off_flight,omitempty" gorm:"-:migration"`
+	TurnFlight      string `json:"turn_flight,omitempty" gorm:"-:migration"`
+	GroupNameFlight string `json:"group_name_flight,omitempty" gorm:"-:migration"`
+}
+
+type BookingForListServiceIems struct {
+	PartnerUid       string                  `json:"partner_uid"`  // Hang Golf
+	CourseUid        string                  `json:"course_uid"`   // San Golf
+	BookingDate      string                  `json:"booking_date"` // Ex: 06/11/2022
+	Bag              string                  `json:"bag"`          // Golf Bag
+	ListServiceItems ListBookingServiceItems `json:"list_service_items,omitempty"`
+	CheckInTime      int64                   `json:"check_in_time"`
+	CustomerName     string                  `json:"customer_name"`
+}
+type GetListBookingWithListServiceItems struct {
+	PartnerUid  string
+	CourseUid   string
+	FromDate    string
+	ToDate      string
+	GolfBag     string
+	PlayerName  string
+	ServiceType string
 }
 
 type BookingForReportMainBagSubBags struct {
@@ -145,14 +172,6 @@ type CaddieInOutNoteForBooking struct {
 	Note       string `json:"note"`
 	Type       string `json:"type"`
 	Hole       int    `json:"hole"`
-}
-
-type BookingResponse struct {
-	Booking
-	TeeFlight       int    `json:"tee_flight,omitempty"`
-	TeeOffFlight    string `json:"tee_off_flight,omitempty"`
-	TurnFlight      string `json:"turn_flight,omitempty"`
-	GroupNameFlight string `json:"group_name_flight,omitempty"`
 }
 
 type BookingForFlightRes struct {
@@ -587,16 +606,22 @@ func (item *Booking) UpdateMushPay() {
 
 	// Sub Service Item của current Bag
 	for _, v := range item.ListServiceItems {
-		isNeedPay := true
-		if len(item.MainBagNoPay) > 0 {
-			for _, v1 := range item.MainBagNoPay {
+		isNeedPay := false
+		if len(item.MainBagPay) > 0 {
+			for _, v1 := range item.MainBagPay {
 				// TODO: Tính Fee cho sub bag fee
 				if v1 == constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS {
+					// Next Round
 				} else if v1 == constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND {
+					// First Round
 				} else if v1 == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE {
+					// Other Fee cũng nằm trong service items
+					if v1 == v.Type {
+						isNeedPay = true
+					}
 				} else {
 					if v1 == v.Type {
-						isNeedPay = false
+						isNeedPay = true
 					}
 				}
 			}
@@ -747,7 +772,7 @@ func (item *Booking) FindAllBookingCheckIn(bookingDate string) ([]Booking, error
 
 	if bookingDate != "" {
 		db = db.Where("booking_date = ?", bookingDate)
-		db = db.Where("bag_status = ?", constants.BAG_STATUS_IN)
+		db = db.Where("bag_status = ?", constants.BAG_STATUS_WAITING)
 	}
 
 	db.Find(&list)
@@ -953,7 +978,7 @@ func (item *Booking) FindForCaddieOnCourse(InFlight string) []Booking {
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
-	db = db.Where("bag_status = ?", constants.BAG_STATUS_IN)
+	db = db.Where("bag_status = ?", constants.BAG_STATUS_WAITING)
 	db = db.Not("caddie_status = ?", constants.BOOKING_CADDIE_STATUS_OUT)
 	if InFlight != "" {
 		if InFlight == "0" {
@@ -1043,4 +1068,46 @@ func (item *Booking) FindListForReportForMainBagSubBag() ([]BookingForReportMain
 	db.Find(&list)
 
 	return list, db.Error
+}
+
+/*
+	For report List Service Items
+*/
+func (item *Booking) FindListServiceItems(param GetListBookingWithListServiceItems, page models.Page) ([]BookingForListServiceIems, int64, error) {
+	db := datasources.GetDatabase().Table("bookings")
+	list := []BookingForListServiceIems{}
+	total := int64(0)
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if param.FromDate != "" {
+		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') >= ?", param.FromDate)
+	}
+
+	if param.ToDate != "" {
+		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') <= ?", param.ToDate)
+	}
+
+	if param.GolfBag != "" {
+		db = db.Where("bag = ?", param.GolfBag)
+	}
+
+	if param.PlayerName != "" {
+		db = db.Where("customer_name LIKE ?", "%"+param.PlayerName+"%")
+	}
+
+	db = db.Where("JSON_SEARCH(list_service_items->'$[*].type', 'all', ?) IS NOT NULL", param.ServiceType)
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, total, db.Error
 }
