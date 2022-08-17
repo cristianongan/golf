@@ -587,6 +587,8 @@ func (_ *CBooking) GetListBookingWithListServiceItems(c *gin.Context, prof model
 
 	booking := model_booking.Booking{}
 	param := model_booking.GetListBookingWithListServiceItems{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
 		FromDate:    form.FromDate,
 		ToDate:      form.ToDate,
 		ServiceType: form.Type,

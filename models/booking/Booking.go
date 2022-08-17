@@ -126,6 +126,8 @@ type BookingForListServiceIems struct {
 	CustomerName     string                  `json:"customer_name"`
 }
 type GetListBookingWithListServiceItems struct {
+	PartnerUid  string
+	CourseUid   string
 	FromDate    string
 	ToDate      string
 	GolfBag     string
