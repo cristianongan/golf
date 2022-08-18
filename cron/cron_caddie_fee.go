@@ -75,7 +75,7 @@ func runReportCaddieFeeToDay() {
 
 				// create caddie fee
 				for _, cfs := range listCFSeting {
-					if cfs.Hole >= v.Hole {
+					if cfs.Hole >= v.Hole && v.Hole > 0 {
 						caddieFee.Amount += cfs.Fee
 						break
 					}
@@ -96,7 +96,7 @@ func runReportCaddieFeeToDay() {
 			} else {
 				// update caddie fee
 				for _, cfs := range listCFSeting {
-					if cfs.Hole >= v.Hole {
+					if cfs.Hole >= v.Hole && v.Hole > 0 {
 						caddieFee.Amount += cfs.Fee
 						break
 					}
