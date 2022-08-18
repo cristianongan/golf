@@ -7,6 +7,7 @@ import (
 	model_booking "start/models/booking"
 	"start/utils/response_message"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,38 +15,47 @@ import (
 type CCancelBookingSetting struct{}
 
 func (item *CCancelBookingSetting) CreateCancelBookingSetting(c *gin.Context, prof models.CmsUser) {
-	var body model_booking.CancelBookingSetting
-	if bindErr := c.BindJSON(&body); bindErr != nil {
+	var bodyCollection model_booking.ListCancelBookingSetting
+	if bindErr := c.BindJSON(&bodyCollection); bindErr != nil {
 		response_message.BadRequest(c, "")
 		return
 	}
 
-	if bind1Err := validatePartnerAndCourse(body.PartnerUid, body.CourseUid); bind1Err != nil {
-		response_message.BadRequest(c, bind1Err.Error())
-		return
+	list := model_booking.ListCancelBookingSetting{}
+	uniqueNumber := time.Now().UnixNano() / (1 << 50)
+
+	for _, body := range bodyCollection {
+		if bind1Err := validatePartnerAndCourse(body.PartnerUid, body.CourseUid); bind1Err != nil {
+			response_message.BadRequest(c, bind1Err.Error())
+			return
+		}
+
+		if !ValidateTimeInput(body.TimeMax) || !ValidateTimeInput(body.TimeMin) {
+			response_message.BadRequest(c, "Time lỗi format")
+			return
+		}
+
+		cancelBookingSetting := model_booking.CancelBookingSetting{
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+			PeopleFrom: body.PeopleFrom,
+			PeopleTo:   body.PeopleTo,
+			TimeMin:    body.TimeMin,
+			TimeMax:    body.TimeMax,
+			Type:       uniqueNumber,
+		}
+
+		cancelBookingSetting.Status = body.Status
+
+		err := cancelBookingSetting.Create()
+		if err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
+		list = append(list, cancelBookingSetting)
 	}
 
-	if !ValidateTimeInput(body.TimeMax) || !ValidateTimeInput(body.TimeMin) {
-		response_message.BadRequest(c, "Time lỗi format")
-		return
-	}
-
-	cancelBookingSetting := model_booking.CancelBookingSetting{
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
-		PeopleFrom: body.PeopleFrom,
-		PeopleTo:   body.PeopleTo,
-		TimeMin:    body.TimeMin,
-		TimeMax:    body.TimeMax,
-	}
-	cancelBookingSetting.Status = body.Status
-
-	err := cancelBookingSetting.Create()
-	if err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
-	c.JSON(200, cancelBookingSetting)
+	c.JSON(200, list)
 }
 
 func ValidateTimeInput(time string) bool {

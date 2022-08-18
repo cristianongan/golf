@@ -1,6 +1,8 @@
 package model_booking
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"start/constants"
 	"start/datasources"
 	"start/models"
@@ -20,6 +22,17 @@ type CancelBookingSetting struct {
 	PeopleTo   int    `json:"people_to"`                                  // Đến Số người bao nhiêu
 	TimeMin    string `json:"time_min" gorm:"type:varchar(100)"`          // Thời gian min cho phép cancel vd: 120:15,...
 	TimeMax    string `json:"time_max" gorm:"type:varchar(100)"`          // Thời gian max cho phép cancel vd: 120:15,...
+	Type       int64  `json:"type"`                                       // Xác định Setting nào cùng loại
+}
+
+type ListCancelBookingSetting []CancelBookingSetting
+
+func (item *ListCancelBookingSetting) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListCancelBookingSetting) Value() (driver.Value, error) {
+	return json.Marshal(&item)
 }
 
 func (item *CancelBookingSetting) Create() error {
@@ -128,6 +141,10 @@ func (item *CancelBookingSetting) ValidateBookingCancel(booking Booking) error {
 		}
 
 		cancelSetting := list[0]
+
+		if cancelSetting.Status == constants.STATUS_DISABLE {
+			return nil
+		}
 
 		timeMax := strings.Split(cancelSetting.TimeMax, ":")
 		timeMaxH, _ := strconv.ParseInt(timeMax[0], 10, 64)
