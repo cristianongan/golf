@@ -213,6 +213,38 @@ func getInitListGolfFeeForBooking(uid string, body request.CreateBookingBody, go
 }
 
 /*
+	Tính golf fee cho đơn thqay đổi hố
+*/
+func getInitGolfFeeForChangeHole(body request.ChangeBookingHole, golfFee models.GolfFee) model_booking.BookingGolfFee {
+	holePriceFormula := models.HolePriceFormula{}
+	holePriceFormula.Hole = body.Hole
+	err := holePriceFormula.FindFirst()
+	if err != nil {
+		log.Println("find hole price err", err.Error())
+	}
+
+	bookingGolfFee := model_booking.BookingGolfFee{}
+
+	bookingGolfFee.CaddieFee = utils.GetFeeFromListFee(golfFee.CaddieFee, body.Hole)
+	bookingGolfFee.BuggyFee = utils.GetFeeFromListFee(golfFee.BuggyFee, body.Hole)
+	bookingGolfFee.GreenFee = utils.GetFeeFromListFee(golfFee.GreenFee, body.Hole)
+
+	if body.TypeChangeHole == constants.BOOKING_STOP_BY_SELF && holePriceFormula.StopBySelf != "" {
+		bookingGolfFee.CaddieFee = utils.GetFeeWidthHolePrice(golfFee.CaddieFee, body.Hole, holePriceFormula.StopBySelf)
+		bookingGolfFee.BuggyFee = utils.GetFeeWidthHolePrice(golfFee.BuggyFee, body.Hole, holePriceFormula.StopBySelf)
+		bookingGolfFee.GreenFee = utils.GetFeeWidthHolePrice(golfFee.GreenFee, body.Hole, holePriceFormula.StopBySelf)
+	}
+
+	if body.TypeChangeHole == constants.BOOKING_STOP_BY_RAIN && holePriceFormula.StopByRain != "" {
+		bookingGolfFee.CaddieFee = utils.GetFeeWidthHolePrice(golfFee.CaddieFee, body.Hole, holePriceFormula.StopByRain)
+		bookingGolfFee.BuggyFee = utils.GetFeeWidthHolePrice(golfFee.BuggyFee, body.Hole, holePriceFormula.StopByRain)
+		bookingGolfFee.GreenFee = utils.GetFeeWidthHolePrice(golfFee.GreenFee, body.Hole, holePriceFormula.StopByRain)
+	}
+
+	return bookingGolfFee
+}
+
+/*
  Theo giá đặc biệt, k theo GuestStyle
 */
 func getInitListGolfFeeWithOutGuestStyleForBooking(uid string, body request.CreateBookingBody, caddieFee, buggyFee, greenFee int64) (model_booking.ListBookingGolfFee, model_booking.BookingGolfFee) {
@@ -272,6 +304,46 @@ func initPriceForBooking(booking *model_booking.Booking, listBookingGolfFee mode
 	// Rounds: Init Firsts
 	listRounds := initListRound(bookingTemp, bookingGolfFee, checkInTime)
 	booking.Rounds = listRounds
+}
+
+func initUpdatePriceBookingForChanegHole(booking *model_booking.Booking, bookingGolfFee model_booking.BookingGolfFee) {
+	if booking == nil {
+		log.Println("initPriceForBooking err booking nil")
+		return
+	}
+	var bookingTemp model_booking.Booking
+	bookingTempByte, err0 := json.Marshal(booking)
+	if err0 != nil {
+		log.Println("initPriceForBooking err0", err0.Error())
+	}
+	err1 := json.Unmarshal(bookingTempByte, &bookingTemp)
+	if err1 != nil {
+		log.Println("initPriceForBooking err1", err1.Error())
+	}
+
+	// update last golffee
+	booking.ListGolfFee[len(booking.ListGolfFee)-1].GreenFee = bookingGolfFee.GreenFee
+	booking.ListGolfFee[len(booking.ListGolfFee)-1].CaddieFee = bookingGolfFee.CaddieFee
+	booking.ListGolfFee[len(booking.ListGolfFee)-1].BuggyFee = bookingGolfFee.BuggyFee
+	bookingTemp.ListGolfFee = booking.ListGolfFee
+
+	// Current Bag Price Detail
+	currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
+	currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
+	currentBagPriceDetail.UpdateAmount()
+
+	booking.CurrentBagPrice = currentBagPriceDetail
+	bookingTemp.CurrentBagPrice = currentBagPriceDetail
+
+	// MushPayInfo
+	mushPayInfo := initBookingMushPayInfo(bookingTemp)
+
+	booking.MushPayInfo = mushPayInfo
+
+	// Rounds
+	booking.Rounds[len(booking.Rounds)-1].GreenFee = bookingGolfFee.GreenFee
+	booking.Rounds[len(booking.Rounds)-1].CaddieFee = bookingGolfFee.CaddieFee
+	booking.Rounds[len(booking.Rounds)-1].BuggyFee = bookingGolfFee.BuggyFee
 }
 
 // Khi add sub bag vào 1 booking thì cần cập nhật lại main bag cho booking sub bag

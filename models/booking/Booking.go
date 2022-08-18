@@ -87,6 +87,9 @@ type Booking struct {
 	// Subs bags
 	SubBags utils.ListSubBag `json:"sub_bags,omitempty" gorm:"type:json"` // List Sub Bags
 
+	// Type change hole
+	TypeChangeHole string `json:"type_change_hole" gorm:"type:varchar(300)"` // Các loại thay đổi hố
+
 	// Main bags
 	MainBags utils.ListSubBag `json:"main_bags,omitempty" gorm:"type:json"` // List Main Bags, thêm main bag sẽ thanh toán những cái gì
 	// Main bug for Pay: Mặc định thanh toán all, Nếu có trong list này thì k thanh toán
@@ -1049,7 +1052,7 @@ func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numb
 }
 
 /*
-	For report MainBag SubBag
+For report MainBag SubBag
 */
 func (item *Booking) FindListForReportForMainBagSubBag() ([]BookingForReportMainBagSubBags, error) {
 	db := datasources.GetDatabase().Table("bookings")

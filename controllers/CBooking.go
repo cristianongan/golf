@@ -1636,3 +1636,69 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 	}
 	okRes(c)
 }
+
+/*
+Update booking fee by hole price formula
+*/
+func (_ *CBooking) ChangeBookingHole(c *gin.Context, prof models.CmsUser) {
+	bookingIdStr := c.Param("uid")
+	if bookingIdStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = bookingIdStr
+	errF := booking.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	body := request.ChangeBookingHole{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// Booking Note
+	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
+		booking.NoteOfBag = body.NoteOfBag
+		go createBagsNoteNoteOfBag(booking)
+	}
+
+	// Update hole and type change hole
+	booking.Hole = body.Hole
+	booking.TypeChangeHole = constants.BOOKING_CHANGE_HOLE
+
+	if body.TypeChangeHole == constants.BOOKING_STOP_BY_RAIN {
+		booking.TypeChangeHole = constants.BOOKING_STOP_BY_RAIN
+	}
+
+	if body.TypeChangeHole == constants.BOOKING_STOP_BY_SELF {
+		booking.TypeChangeHole = constants.BOOKING_STOP_BY_SELF
+	}
+
+	// List Booking GolfFee
+	golfFeeModel := models.GolfFee{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		GuestStyle: booking.GuestStyle,
+	}
+	golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay()
+	if errFindGF != nil {
+		response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+		return
+	}
+
+	bookingGolfFee := getInitGolfFeeForChangeHole(body, golfFee)
+	initUpdatePriceBookingForChanegHole(&booking, bookingGolfFee)
+
+	errUdp := booking.Update()
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, booking)
+}

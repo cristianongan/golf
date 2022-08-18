@@ -229,3 +229,9 @@ type UpdateBooking struct {
 	model_booking.Booking
 	CaddieCode string `json:"caddie_code"`
 }
+
+type ChangeBookingHole struct {
+	Hole           int    `json:"hole" validate:"required"`
+	TypeChangeHole string `json:"type_stop"`
+	NoteOfBag      string `json:"note_of_bag" validate:"required"`
+}

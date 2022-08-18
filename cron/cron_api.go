@@ -19,15 +19,15 @@ func InitCronJobCallApi() {
 	log.Println("CronJobApi can backup order: ", config.GetCronBackupOrderRunning())
 	if config.GetCronBackupOrderRunning() {
 		log.Println("CronJobApi backup order Started")
-		c.AddFunc("@every 5m", backupOrder) /// Backup booking
+		//c.AddFunc("@every 5m", backupOrder) /// Backup booking
 	}
 
 	c.Start()
 }
 
-func backupOrder() {
-	requestCronJob("POST", constants.URL_CRONJOB_BACKUP_ORDER)
-}
+// func backupOrder() {
+// 	requestCronJob("POST", constants.URL_CRONJOB_BACKUP_ORDER)
+// }
 
 func requestCronJob(method, endpoint string) {
 	url := config.GetUrlRoot() + endpoint
