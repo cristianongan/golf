@@ -99,7 +99,7 @@ func (item *CancelBookingSetting) ValidateBookingCancel(booking Booking) error {
 	teeTime := booking.TeeTime
 	fullTimeBooking := bookingDate + " " + teeTime
 	bookingDateUnixT := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_2, fullTimeBooking)
-	rangeTime := time.Now().Unix() - bookingDateUnixT
+	rangeTime := bookingDateUnixT - time.Now().Unix()
 
 	// Nếu là Agency
 	if booking.AgencyId > 0 {

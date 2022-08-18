@@ -64,6 +64,17 @@ type GetListBookingWithSelectForm struct {
 	FlightId       int64   `form:"flight_id"`
 }
 
+type GetListBookingWithListServiceItems struct {
+	PageRequest
+	PartnerUid string `form:"partner_uid"`
+	CourseUid  string `form:"course_uid"`
+	Type       string `form:"type"`
+	FromDate   string `form:"from_date"`
+	ToDate     string `form:"to_date"`
+	GolfBag    string `form:"golf_bag"`
+	PlayerName string `form:"player_name"`
+}
+
 type GetListBookingTeeTimeForm struct {
 	PageRequest
 	PartnerUid  string `form:"partner_uid"`

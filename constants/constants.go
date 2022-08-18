@@ -24,13 +24,16 @@ const (
 	GORM_API_LOG_RECORD_NOT_FOUND = "record not found"
 )
 
+/*
+Bag note Type
+*/
 const (
 	BAGS_NOTE_TYPE_BOOKING = "BOOKING"
 	BAGS_NOTE_TYPE_BAG     = "BAG"
 )
 
 /*
- Để phân biệt bag booking được tạo từ single book, hay từ check in lễ tân tạo booking luôn
+Để phân biệt bag booking được tạo từ single book, hay từ check in lễ tân tạo booking luôn
 */
 const (
 	BOOKING_INIT_TYPE_BOOKING = "BOOKING" // được tạo từ booking single book
@@ -38,7 +41,7 @@ const (
 )
 
 /*
- Bag status
+Bag status
 */
 const (
 	BAG_STATUS_BOOKING       = "BOOKING"       // Tạo Booking xong: Khách đặt booking
@@ -51,9 +54,9 @@ const (
 )
 
 /*
- Caddie status on booking
- trạng thái Caddie của Booking
- Dùng cho cả log caddie in out booking
+Caddie status on booking
+trạng thái Caddie của Booking
+Dùng cho cả log caddie in out booking
 */
 const (
 	BOOKING_CADDIE_STATUS_IN   = "IN"   // Bag đươc gán caddie
@@ -62,7 +65,7 @@ const (
 )
 
 /*
- Main bag for Pay SUB Bag
+Main bag for Pay SUB Bag
 */
 const (
 	MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND = "FIRST_ROUND"
@@ -75,8 +78,8 @@ const (
 )
 
 /*
-	Member Card Type:
-	Member Card Base Type
+Member Card Type:
+Member Card Base Type
 */
 const (
 	MEMBER_CARD_BASE_TYPE_SHORT_TERM = "SHORT_TERM" // ngắn hạn
@@ -86,10 +89,10 @@ const (
 )
 
 /*
-	Annual Type:
-	Không giới hạn
-	Chơi có giới hạn
-	Thẻ ngủ
+Annual Type:
+Không giới hạn
+Chơi có giới hạn
+Thẻ ngủ
 */
 const (
 	ANNUAL_TYPE_LIMITED    = "LIMITED"    // chơi giới hạn
@@ -113,7 +116,7 @@ const (
 )
 
 /*
-  Các dịch vụ của sân Golf: thuê đồ, shop, nhà hàng...
+Các dịch vụ của sân Golf: thuê đồ, shop, nhà hàng...
 */
 const (
 	GOLF_SERVICE_RENTAL     = "RENTAL"
@@ -123,7 +126,7 @@ const (
 )
 
 /*
-  Các loại KIOSK
+Các loại KIOSK
 */
 const (
 	KIOSK_SETTING   = "KIOSK"
@@ -205,6 +208,5 @@ const CMS_USER_PROFILE_KEY = "CMS_USER_PROFILE_KEY"
 const UNAUTHORIZED_MESSAGE = "Unauthorized"
 const UNAUTHORIZED_LOGIN_MESSAGE = "Unauthorized, please login again"
 const URL_CHECK_CRON = "cron-job/check-cron"
-const URL_CRONJOB_BACKUP_ORDER = "cron-job/backup-order"
 
 const CRONJOB_PREFIX = "CRONJOB:"

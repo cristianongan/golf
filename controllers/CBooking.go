@@ -568,6 +568,49 @@ func (_ *CBooking) GetListBookingWithFightInfo(c *gin.Context, prof models.CmsUs
 }
 
 /*
+Danh sách Booking với thông tin service item
+*/
+
+func (_ *CBooking) GetListBookingWithListServiceItems(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListBookingWithListServiceItems{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	booking := model_booking.Booking{}
+	param := model_booking.GetListBookingWithListServiceItems{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		FromDate:    form.FromDate,
+		ToDate:      form.ToDate,
+		ServiceType: form.Type,
+		GolfBag:     form.GolfBag,
+		PlayerName:  form.PlayerName,
+	}
+	list, total, err := booking.FindListServiceItems(param, page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	okResponse(c, res)
+}
+
+/*
 Danh sách booking tee time
 */
 func (_ *CBooking) GetListBookingTeeTime(c *gin.Context, prof models.CmsUser) {

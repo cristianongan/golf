@@ -119,6 +119,25 @@ type FlyInfoResponse struct {
 	GroupNameFlight string `json:"group_name_flight,omitempty" gorm:"-:migration"`
 }
 
+type BookingForListServiceIems struct {
+	PartnerUid       string                  `json:"partner_uid"`  // Hang Golf
+	CourseUid        string                  `json:"course_uid"`   // San Golf
+	BookingDate      string                  `json:"booking_date"` // Ex: 06/11/2022
+	Bag              string                  `json:"bag"`          // Golf Bag
+	ListServiceItems ListBookingServiceItems `json:"list_service_items,omitempty"`
+	CheckInTime      int64                   `json:"check_in_time"`
+	CustomerName     string                  `json:"customer_name"`
+}
+type GetListBookingWithListServiceItems struct {
+	PartnerUid  string
+	CourseUid   string
+	FromDate    string
+	ToDate      string
+	GolfBag     string
+	PlayerName  string
+	ServiceType string
+}
+
 type BookingForReportMainBagSubBags struct {
 	models.Model
 	PartnerUid string `json:"partner_uid"` // Hang Golf
@@ -1033,7 +1052,7 @@ func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numb
 }
 
 /*
-	For report MainBag SubBag
+For report MainBag SubBag
 */
 func (item *Booking) FindListForReportForMainBagSubBag() ([]BookingForReportMainBagSubBags, error) {
 	db := datasources.GetDatabase().Table("bookings")
@@ -1052,4 +1071,46 @@ func (item *Booking) FindListForReportForMainBagSubBag() ([]BookingForReportMain
 	db.Find(&list)
 
 	return list, db.Error
+}
+
+/*
+	For report List Service Items
+*/
+func (item *Booking) FindListServiceItems(param GetListBookingWithListServiceItems, page models.Page) ([]BookingForListServiceIems, int64, error) {
+	db := datasources.GetDatabase().Table("bookings")
+	list := []BookingForListServiceIems{}
+	total := int64(0)
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if param.FromDate != "" {
+		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') >= ?", param.FromDate)
+	}
+
+	if param.ToDate != "" {
+		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') <= ?", param.ToDate)
+	}
+
+	if param.GolfBag != "" {
+		db = db.Where("bag = ?", param.GolfBag)
+	}
+
+	if param.PlayerName != "" {
+		db = db.Where("customer_name LIKE ?", "%"+param.PlayerName+"%")
+	}
+
+	db = db.Where("JSON_SEARCH(list_service_items->'$[*].type', 'all', ?) IS NOT NULL", param.ServiceType)
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, total, db.Error
 }
