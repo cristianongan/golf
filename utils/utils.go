@@ -364,14 +364,14 @@ func removeDuplicateStr(str []string) []string {
 	return list
 }
 
-func GetFeeWidthHolePrice(feeList ListGolfHoleFee) int64 {
+func GetFeeWidthHolePrice(feeList ListGolfHoleFee, hole int, formula string) int64 {
 	re := regexp.MustCompile(`(gia)\w+`)
 
-	confifFeeRaw := re.FindAllString("gia18+gia18/18*(ho-18)", -1)
+	confifFeeRaw := re.FindAllString(formula, -1)
 
 	confifFees := removeDuplicateStr(confifFeeRaw)
 
-	expression, err := govaluate.NewEvaluableExpression("gia18+gia18/18*(ho-18)")
+	expression, err := govaluate.NewEvaluableExpression(formula)
 
 	if err != nil {
 		log.Println("NewEvaluableExpression err", err.Error())
@@ -379,6 +379,8 @@ func GetFeeWidthHolePrice(feeList ListGolfHoleFee) int64 {
 	}
 
 	parameters := make(map[string]interface{}, 8)
+
+	parameters["ho"] = hole
 
 	for _, item := range confifFees {
 		hole, err := strconv.Atoi(item[3:])
