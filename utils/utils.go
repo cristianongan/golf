@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"regexp"
 	"sort"
 	"start/constants"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 	"time"
 	"unicode"
 
+	"gitee.com/mirrors/govaluate"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/transform"
 	"golang.org/x/text/unicode/norm"
@@ -348,4 +350,47 @@ func Contains[T comparable](s []T, e T) bool {
 		}
 	}
 	return false
+}
+
+func removeDuplicateStr(str []string) []string {
+	keys := make(map[string]bool)
+	list := []string{}
+	for _, item := range str {
+		if _, value := keys[item]; !value {
+			keys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
+}
+
+func GetFeeWidthHolePrice(feeList ListGolfHoleFee) int64 {
+	re := regexp.MustCompile(`(gia)\w+`)
+
+	confifFeeRaw := re.FindAllString("gia18+gia18/18*(ho-18)", -1)
+
+	confifFees := removeDuplicateStr(confifFeeRaw)
+
+	expression, err := govaluate.NewEvaluableExpression("gia18+gia18/18*(ho-18)")
+
+	if err != nil {
+		log.Println("NewEvaluableExpression err", err.Error())
+		return 0
+	}
+
+	parameters := make(map[string]interface{}, 8)
+
+	for _, item := range confifFees {
+		hole, err := strconv.Atoi(item[3:])
+		if err != nil {
+			log.Println("Convert string to int err", err.Error())
+			return 0
+		}
+
+		parameters[item] = GetFeeFromListFee(feeList, hole)
+	}
+
+	result, _ := expression.Evaluate(parameters)
+
+	return int64(result.(float64))
 }

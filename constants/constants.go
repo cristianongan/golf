@@ -135,6 +135,15 @@ const (
 )
 
 /*
+ Các loại thay đổi hố booking
+*/
+const (
+	BOOKING_STOP_BY_SELF = "STOP_BY_SELF" // Dừng do khách
+	BOOKING_STOP_BY_RAIN = "STOP_BY_RAIN" // Dừng do trời mua
+	BOOKING_CHANGE_HOLE  = ""             // Đổi hố
+)
+
+/*
   Các dịch vụ của sân Golf: thuê đồ, shop, nhà hàng...
 */
 const (
