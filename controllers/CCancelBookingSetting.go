@@ -22,7 +22,7 @@ func (item *CCancelBookingSetting) CreateCancelBookingSetting(c *gin.Context, pr
 	}
 
 	list := model_booking.ListCancelBookingSetting{}
-	uniqueNumber := time.Now().UnixNano() / (1 << 50)
+	uniqueNumber := time.Now().Unix()
 
 	for _, body := range bodyCollection {
 		if bind1Err := validatePartnerAndCourse(body.PartnerUid, body.CourseUid); bind1Err != nil {
