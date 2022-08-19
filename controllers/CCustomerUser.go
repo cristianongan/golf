@@ -95,6 +95,7 @@ func (_ *CCustomerUser) GetListCustomerUser(c *gin.Context, prof models.CmsUser)
 		CourseUid:  form.CourseUid,
 		AgencyId:   form.AgencyId,
 		Phone:      form.Phone,
+		Identify:   form.Identify,
 	}
 	list, total, err := customerUserGet.FindList(page, form.PartnerUid, form.CourseUid, form.Type, form.CustomerUid, form.Name)
 	if err != nil {

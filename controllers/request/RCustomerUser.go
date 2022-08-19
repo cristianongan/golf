@@ -11,6 +11,7 @@ type GetListCustomerUserForm struct {
 	Name        string `form:"name"`
 	AgencyId    int64  `form:"agency_id"`
 	Phone       string `form:"phone"`
+	Identify    string `form:"identify"`
 }
 
 type DeleteAgencyCustomerUser struct {
