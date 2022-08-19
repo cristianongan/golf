@@ -126,7 +126,7 @@ func (item *CustomerUser) FindList(page Page, partnerUid, courseUid, typeCus, cu
 		db = db.Where("phone LIKE ?", "%"+item.Phone+"%")
 	}
 	if item.Identify != "" {
-		db = db.Where("phone LIKE ?", "%"+item.Identify+"%")
+		db = db.Where("identify LIKE ?", "%"+item.Identify+"%")
 	}
 
 	db.Count(&total)
