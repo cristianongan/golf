@@ -61,18 +61,19 @@ func (_ *CCancelBookingSetting) DeleteCancelBookingSetting(c *gin.Context, prof 
 
 	cancelBookingSetting := model_booking.CancelBookingSetting{}
 	cancelBookingSetting.Type = cancelBookingSettingIdIncrement
-	errF := cancelBookingSetting.FindFirst()
-
+	list, _, errF := cancelBookingSetting.FindList()
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
 
-	err := cancelBookingSetting.Delete()
-	if err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
+	for _, data := range list {
+		err := data.Delete()
+		if err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
 
+		}
 	}
 	okRes(c)
 }

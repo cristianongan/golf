@@ -89,6 +89,10 @@ func (item *CancelBookingSetting) FindList() ([]CancelBookingSetting, int64, err
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 
+	if item.Type > 0 {
+		db = db.Where("type = ?", item.Type)
+	}
+
 	if item.PeopleFrom > 0 {
 		db = db.Where("people_from <= ? AND (people_to = 0 OR people_to >= ?)", item.PeopleFrom, item.PeopleFrom)
 	}
