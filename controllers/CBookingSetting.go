@@ -413,3 +413,35 @@ func (_ *CBookingSetting) GetListBookingSettingOnDate(c *gin.Context, prof model
 
 	okResponse(c, res)
 }
+func (_ *CBookingSetting) ValidateClose1ST(BookingDate string, PartnerUid string, CourseUid string) error {
+	bookingSetting := model_booking.BookingSettingGroup{
+		PartnerUid: PartnerUid,
+		CourseUid:  CourseUid,
+	}
+	from := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, BookingDate)
+	to := from + 24*60*60
+	page := models.Page{
+		Limit:   20,
+		Page:    1,
+		SortBy:  "created_at",
+		SortDir: "desc",
+	}
+	listBSG, _, errLBSG := bookingSetting.FindList(page, from, to)
+	if errLBSG != nil || len(listBSG) == 0 {
+		return nil
+	}
+	bookingSettingGroup := listBSG[0]
+	if bookingSettingGroup.Status == constants.STATUS_ENABLE {
+		teeTypeClose := models.TeeTypeClose{
+			PartnerUid:       bookingSettingGroup.PartnerUid,
+			CourseUid:        bookingSettingGroup.CourseUid,
+			BookingSettingId: bookingSettingGroup.Id,
+			DateTime:         BookingDate,
+		}
+		err := teeTypeClose.FindFirst()
+		if err == nil {
+			return errors.New("Tee 1 is closed")
+		}
+	}
+	return nil
+}

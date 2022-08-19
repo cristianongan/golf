@@ -54,9 +54,19 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 	}
 
+	// validate trường hợp đóng tee 1
+	teeList := []string{constants.TEE_TYPE_1, constants.TEE_TYPE_1A, constants.TEE_TYPE_1B, constants.TEE_TYPE_1C}
+	if utils.Contains(teeList, body.TeeType) {
+		cBookingSetting := CBookingSetting{}
+		if errors := cBookingSetting.ValidateClose1ST(body.BookingDate, body.PartnerUid, body.CourseUid); errors != nil {
+			response_message.InternalServerError(c, errors.Error())
+			return nil
+		}
+	}
+
 	// check trạng thái Tee Time
 	if body.TeeTime != "" {
-		teeTime := models.TeeTimeSettings{}
+		teeTime := models.LockTeeTime{}
 		teeTime.TeeTime = body.TeeTime
 		teeTime.CourseUid = body.CourseUid
 		teeTime.PartnerUid = body.PartnerUid

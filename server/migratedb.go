@@ -28,7 +28,7 @@ func MigrateDb() {
 		db.AutoMigrate(&models.MemberCardType{})
 		db.AutoMigrate(&models.CustomerUser{})
 		db.AutoMigrate(&models.CustomerType{})
-		db.AutoMigrate(&models.TeeTimeSettings{})
+		db.AutoMigrate(&models.LockTeeTime{})
 		db.AutoMigrate(&models.TeeTypeClose{})
 		db.AutoMigrate(&model_booking.CancelBookingSetting{})
 

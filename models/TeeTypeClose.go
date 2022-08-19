@@ -20,10 +20,7 @@ type TeeTypeClose struct {
 
 func (item *TeeTypeClose) IsDuplicated() bool {
 	errFind := item.FindFirst()
-	if errFind == nil {
-		return true
-	}
-	return false
+	return errFind == nil
 }
 
 func (item *TeeTypeClose) Create() error {
@@ -71,8 +68,17 @@ func (item *TeeTypeClose) FindList(page Page) ([]TeeTypeClose, int64, error) {
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
 	if item.CreatedAt != 0 {
 		db = db.Where("date_time = ?", item.DateTime)
+	}
+	if item.BookingSettingId != 0 {
+		db = db.Where("booking_setting_id = ?", item.BookingSettingId)
 	}
 
 	db.Count(&total)

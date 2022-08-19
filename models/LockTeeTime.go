@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type TeeTimeSettings struct {
+type LockTeeTime struct {
 	ModelId
 	PartnerUid    string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng Golf
 	CourseUid     string `json:"course_uid" gorm:"type:varchar(256);index"`  // Sân Golf
@@ -19,7 +19,7 @@ type TeeTimeSettings struct {
 	Note          string `json:"note"`
 }
 
-func (item *TeeTimeSettings) IsDuplicated() bool {
+func (item *LockTeeTime) IsDuplicated() bool {
 	errFind := item.FindFirst()
 	if errFind == nil {
 		return true
@@ -27,7 +27,7 @@ func (item *TeeTimeSettings) IsDuplicated() bool {
 	return false
 }
 
-func (item *TeeTimeSettings) Create() error {
+func (item *LockTeeTime) Create() error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -39,7 +39,7 @@ func (item *TeeTimeSettings) Create() error {
 	return db.Create(item).Error
 }
 
-func (item *TeeTimeSettings) Update() error {
+func (item *LockTeeTime) Update() error {
 	mydb := datasources.GetDatabase()
 	item.ModelId.UpdatedAt = time.Now().Unix()
 	errUpdate := mydb.Save(item).Error
@@ -49,22 +49,22 @@ func (item *TeeTimeSettings) Update() error {
 	return nil
 }
 
-func (item *TeeTimeSettings) FindFirst() error {
+func (item *LockTeeTime) FindFirst() error {
 	db := datasources.GetDatabase()
 	return db.Where(item).First(item).Error
 }
 
-func (item *TeeTimeSettings) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(TeeTimeSettings{})
+func (item *LockTeeTime) Count() (int64, error) {
+	db := datasources.GetDatabase().Model(LockTeeTime{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *TeeTimeSettings) FindList(page Page) ([]TeeTimeSettings, int64, error) {
-	db := datasources.GetDatabase().Model(TeeTimeSettings{})
-	list := []TeeTimeSettings{}
+func (item *LockTeeTime) FindList(page Page) ([]LockTeeTime, int64, error) {
+	db := datasources.GetDatabase().Model(LockTeeTime{})
+	list := []LockTeeTime{}
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
@@ -84,7 +84,7 @@ func (item *TeeTimeSettings) FindList(page Page) ([]TeeTimeSettings, int64, erro
 	return list, total, db.Error
 }
 
-func (item *TeeTimeSettings) Delete() error {
+func (item *LockTeeTime) Delete() error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}

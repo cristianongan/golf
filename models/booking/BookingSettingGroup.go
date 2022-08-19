@@ -4,6 +4,7 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -127,4 +128,37 @@ func (item *BookingSettingGroup) Delete() error {
 		return errors.New("Primary key is undefined!")
 	}
 	return datasources.GetDatabase().Delete(item).Error
+}
+
+func (item *BookingSettingGroup) ValidateClose1ST(BookingDate string) error {
+	bookingSetting := BookingSettingGroup{
+		PartnerUid: item.PartnerUid,
+		CourseUid:  item.CourseUid,
+	}
+	from := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, BookingDate)
+	to := from + 24*60*60
+	page := models.Page{
+		Limit:   20,
+		Page:    1,
+		SortBy:  "created_at",
+		SortDir: "desc",
+	}
+	println(item.PartnerUid)
+	listBSG, _, errLBSG := bookingSetting.FindList(page, from, to)
+	if errLBSG != nil || len(listBSG) == 0 {
+		return nil
+	}
+	bookingSettingGroup := listBSG[0]
+	if bookingSettingGroup.Status == constants.STATUS_ENABLE {
+		teeTypeClose := models.TeeTypeClose{
+			PartnerUid:       bookingSettingGroup.PartnerUid,
+			CourseUid:        bookingSettingGroup.CourseUid,
+			BookingSettingId: bookingSettingGroup.Id,
+			DateTime:         BookingDate,
+		}
+		if err := teeTypeClose.FindFirst(); err == nil {
+			return errors.New("Tee 1 is closed")
+		}
+	}
+	return nil
 }

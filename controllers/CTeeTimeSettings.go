@@ -26,7 +26,7 @@ func (_ *CTeeTimeSettings) CreateTeeTimeSettings(c *gin.Context, prof models.Cms
 		return
 	}
 
-	teeTimeSetting := models.TeeTimeSettings{
+	teeTimeSetting := models.LockTeeTime{
 		TeeTime:    body.TeeTime,
 		DateTime:   body.DateTime,
 		CourseUid:  body.CourseUid,
@@ -66,7 +66,7 @@ func (_ *CTeeTimeSettings) GetTeeTimeSettings(c *gin.Context, prof models.CmsUse
 		SortDir: query.PageRequest.SortDir,
 	}
 
-	teeTimeSetting := models.TeeTimeSettings{}
+	teeTimeSetting := models.LockTeeTime{}
 
 	if query.TeeTime != "" {
 		teeTimeSetting.TeeTime = query.TeeTime
