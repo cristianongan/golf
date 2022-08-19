@@ -7,7 +7,8 @@ import (
 	"start/datasources"
 	"start/models"
 	"start/utils"
-	"strconv"
+
+	// "strconv"
 	"strings"
 	"time"
 
@@ -20,8 +21,7 @@ type CancelBookingSetting struct {
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	PeopleFrom int    `json:"people_from"`                                // Số người từ bao nhiêu
 	PeopleTo   int    `json:"people_to"`                                  // Đến Số người bao nhiêu
-	TimeMin    string `json:"time_min" gorm:"type:varchar(100)"`          // Thời gian min cho phép cancel vd: 120:15,...
-	TimeMax    string `json:"time_max" gorm:"type:varchar(100)"`          // Thời gian max cho phép cancel vd: 120:15,...
+	Time       int    `json:"time"`                                       // Thời gian min cho phép cancel vd: 120:15,...
 	Type       int64  `json:"type"`                                       // Xác định Setting nào cùng loại
 }
 
@@ -146,26 +146,26 @@ func (item *CancelBookingSetting) ValidateBookingCancel(booking Booking) error {
 			return nil
 		}
 
-		timeMax := strings.Split(cancelSetting.TimeMax, ":")
-		timeMaxH, _ := strconv.ParseInt(timeMax[0], 10, 64)
-		timeMaxM := int64(0)
-		if len(timeMax) > 1 {
-			timeMaxM, _ = strconv.ParseInt(timeMax[1], 10, 64)
-		}
-		timeMaxUnix := timeMaxH*3600 + timeMaxM*60
+		// timeMax := strings.Split(cancelSetting.TimeMax, ":")
+		// timeMaxH, _ := strconv.ParseInt(timeMax[0], 10, 64)
+		// timeMaxM := int64(0)
+		// if len(timeMax) > 1 {
+		// 	timeMaxM, _ = strconv.ParseInt(timeMax[1], 10, 64)
+		// }
+		// timeMaxUnix := timeMaxH*3600 + timeMaxM*60
 
-		timeMin := strings.Split(cancelSetting.TimeMin, ":")
-		timeMinH, _ := strconv.ParseInt(timeMin[0], 10, 64)
-		timeMinM := int64(0)
-		if len(timeMax) > 1 {
-			timeMinM, _ = strconv.ParseInt(timeMax[1], 10, 64)
-		}
-		timeMixUnix := timeMinH*3600 + timeMinM*60
+		// timeMin := strings.Split(cancelSetting.TimeMin, ":")
+		// timeMinH, _ := strconv.ParseInt(timeMin[0], 10, 64)
+		// timeMinM := int64(0)
+		// if len(timeMax) > 1 {
+		// 	timeMinM, _ = strconv.ParseInt(timeMax[1], 10, 64)
+		// }
+		// timeMixUnix := timeMinH*3600 + timeMinM*60
 
-		if rangeTime >= timeMixUnix && rangeTime <= timeMaxUnix {
-			return nil
-		}
-		return errors.New("Booking chưa đủ thời gian hủy.")
+		// if rangeTime >= timeMixUnix && rangeTime <= timeMaxUnix {
+		// 	return nil
+		// }
+		// return errors.New("Booking chưa đủ thời gian hủy.")
 	}
 
 	// Hội viên muốn hủy đặt chỗ chơi golf đều phải thông báo trước 24h
