@@ -25,7 +25,7 @@ type MemberCardType struct {
 	WeekendTakeGuest   string `json:"weekend_take_guest" gorm:"type:varchar(100)"`    // Số lượt khách cuối tuần loại thẻ này dc đưa số khách tới
 	PlayTimesOnMonth   int    `json:"play_times_on_month"`                            // Số lần chơi trên tháng
 	Type               string `json:"type" gorm:"type:varchar(100);index"`            // Type: SHORT_TERM, LONG_TERM, VIP, FOREIGN
-	PlayTimeOnYear     int    `json:"play_times_on_year"`                             // Số lần chơi trong năm
+	PlayTimeOnYear     int    `json:"play_time_on_year"`                              // Số lần chơi trong năm
 	AnnualType         string `json:"annual_type" gorm:"type:varchar(100)"`           // loại thường niên: UN_LIMITED (không giới hạn), LIMITED (chơi có giới hạn), SLEEP (thẻ ngủ).
 	CurrentAnnualFee   int64  `json:"current_annual_fee"`                             // Current Annual Fee
 }
