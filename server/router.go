@@ -481,6 +481,12 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/tee-type-close/list", middlewares.AuthorizedCmsUserHandler(cTeeTypeClose.GetTeeTypeClose))
 			cmsApiAuthorized.DELETE("/tee-type-close/:id", middlewares.AuthorizedCmsUserHandler(cTeeTypeClose.DeleteTeeTypeClose))
 
+			/// =================== Unlock Turn Time =====================
+			cLockTurn := new(controllers.CLockTurn)
+			cmsApiAuthorized.POST("/lock-turn", middlewares.AuthorizedCmsUserHandler(cLockTurn.CreateLockTurn))
+			cmsApiAuthorized.GET("/lock-turn/list", middlewares.AuthorizedCmsUserHandler(cLockTurn.GetLockTurn))
+			cmsApiAuthorized.DELETE("/lock-turn/:id", middlewares.AuthorizedCmsUserHandler(cLockTurn.DeleteLockTurn))
+
 			/// =================== Holiday =====================
 			cHoliday := new(controllers.CHoliday)
 			cmsApiAuthorized.POST("/holiday", middlewares.AuthorizedCmsUserHandler(cHoliday.CreateHoliday))

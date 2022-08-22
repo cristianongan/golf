@@ -341,13 +341,28 @@ func (_ *CBookingSetting) DeleteBookingSetting(c *gin.Context, prof models.CmsUs
 }
 
 // Get booking Config của ngày
-func (_ *CBookingSetting) GetListBookingSettingOnDate(c *gin.Context, prof models.CmsUser) {
+func (item *CBookingSetting) GetListBookingSettingOnDate(c *gin.Context, prof models.CmsUser) {
 	form := request.GetListBookingSettingForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
+	list, bookingSettingGroup, errDel := item.GetSettingOnDate(form)
+	if errDel != nil {
+		response_message.InternalServerError(c, errDel.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"booking-setting-group": bookingSettingGroup,
+		"data":                  list,
+	}
+
+	okResponse(c, res)
+}
+
+func (_ *CBookingSetting) GetSettingOnDate(form request.GetListBookingSettingForm) ([]model_booking.BookingSetting, *model_booking.BookingSettingGroup, error) {
 	if form.OnDate == "" {
 		log.Println("on-date empty", form)
 		form.OnDate = utils.GetCurrentDay1()
@@ -364,8 +379,7 @@ func (_ *CBookingSetting) GetListBookingSettingOnDate(c *gin.Context, prof model
 	}
 
 	if from == 0 {
-		response_message.BadRequest(c, "from not valid")
-		return
+		return nil, nil, errors.New("Tee 1 is closed")
 	}
 
 	// Get booking Group
@@ -382,8 +396,7 @@ func (_ *CBookingSetting) GetListBookingSettingOnDate(c *gin.Context, prof model
 	}
 	listBSG, _, errLBSG := bookingSettingGroupR.FindList(page, from, to)
 	if errLBSG != nil || len(listBSG) == 0 {
-		response_message.InternalServerError(c, "Not found booking setting group")
-		return
+		return nil, nil, errors.New("Not found booking setting group")
 	}
 	bookingSettingGroup := listBSG[0]
 	bookingSettingGroupId := bookingSettingGroup.Id
@@ -402,17 +415,11 @@ func (_ *CBookingSetting) GetListBookingSettingOnDate(c *gin.Context, prof model
 	}
 	list, _, err := bookingSettingR.FindList(page1)
 	if err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
+		return nil, nil, err
 	}
-
-	res := map[string]interface{}{
-		"booking-setting-group": bookingSettingGroup,
-		"data":                  list,
-	}
-
-	okResponse(c, res)
+	return list, &bookingSettingGroup, nil
 }
+
 func (_ *CBookingSetting) ValidateClose1ST(BookingDate string, PartnerUid string, CourseUid string) error {
 	bookingSetting := model_booking.BookingSettingGroup{
 		PartnerUid: PartnerUid,
