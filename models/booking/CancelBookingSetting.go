@@ -35,6 +35,16 @@ func (item ListCancelBookingSetting) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
+func (item *CancelBookingSetting) IsValidated() bool {
+	if item.PartnerUid == "" {
+		return false
+	}
+	if item.CourseUid == "" {
+		return false
+	}
+	return true
+}
+
 func (item *CancelBookingSetting) Create() error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()

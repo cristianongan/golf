@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"start/constants"
 	"start/controllers/response"
 	"start/models"
 	model_booking "start/models/booking"
@@ -24,6 +25,10 @@ func (item *CCancelBookingSetting) CreateCancelBookingSetting(c *gin.Context, pr
 	uniqueNumber := time.Now().Unix()
 
 	for _, body := range bodyCollection {
+		if !body.IsValidated() {
+			response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
+			return
+		}
 		if bind1Err := validatePartnerAndCourse(body.PartnerUid, body.CourseUid); bind1Err != nil {
 			response_message.BadRequest(c, bind1Err.Error())
 			return
@@ -105,41 +110,31 @@ func (_ CCancelBookingSetting) GetCancelBookingSetting(c *gin.Context, prof mode
 
 }
 func (_ *CCancelBookingSetting) UpdateCancelBookingSetting(c *gin.Context, prof models.CmsUser) {
-	idStr := c.Param("id")
-	caddieId, errId := strconv.ParseInt(idStr, 10, 64)
-	if errId != nil {
-		response_message.BadRequest(c, errId.Error())
+	var bodyCollection model_booking.ListCancelBookingSetting
+	if err := c.Bind(&bodyCollection); err != nil {
+		response_message.BadRequest(c, err.Error())
 		return
 	}
+	for _, body := range bodyCollection {
+		cancelBooking := model_booking.CancelBookingSetting{}
+		cancelBooking.Id = body.Id
+		errF := cancelBooking.FindFirst()
+		if errF != nil {
+			response_message.BadRequest(c, errF.Error())
+			return
+		}
 
-	var body model_booking.CancelBookingSetting
-	if bindErr := c.ShouldBind(&body); bindErr != nil {
-		response_message.BadRequest(c, bindErr.Error())
-		return
-	}
+		cancelBooking.PartnerUid = body.PartnerUid
+		cancelBooking.CourseUid = body.CourseUid
+		cancelBooking.PeopleFrom = body.PeopleFrom
+		cancelBooking.PeopleTo = body.PeopleTo
+		cancelBooking.Time = body.Time
 
-	cancelBookingRequest := model_booking.CancelBookingSetting{}
-	cancelBookingRequest.Id = caddieId
-
-	errF := cancelBookingRequest.FindFirst()
-	if errF != nil {
-		response_message.BadRequest(c, errF.Error())
-		return
-	}
-	if body.PeopleFrom > 0 {
-		cancelBookingRequest.PeopleFrom = body.PeopleFrom
-	}
-	if body.PeopleTo > 0 {
-		cancelBookingRequest.PeopleTo = body.PeopleTo
-	}
-	if body.Time > 0 {
-		cancelBookingRequest.Time = body.Time
-	}
-
-	err := cancelBookingRequest.Update()
-	if err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
+		err := cancelBooking.Update()
+		if err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
 	}
 
 	okRes(c)
