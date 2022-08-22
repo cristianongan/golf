@@ -211,6 +211,7 @@ func (item *MemberCard) FindList(page Page, playerName string) ([]map[string]int
 	member_card_types.type as base_type,
 	member_card_types.guest_style as guest_style,
 	member_card_types.guest_style_of_guest as guest_style_of_guest,
+	member_card_types.play_times_on_year as play_times_on_year,
 	customer_users.name as owner_name,
 	customer_users.email as owner_email,
 	customer_users.address1 as owner_address1,
