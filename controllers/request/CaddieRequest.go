@@ -1,26 +1,28 @@
 package request
 
 type CreateCaddieBody struct {
-	Code          string `json:"code"` // id caddie
-	CourseUid     string `json:"course_uid"`
-	PartnerUid    string `json:"partner_uid"`
-	Name          string `json:"name"`
-	Avatar        string `json:"avatar"`
-	Sex           bool   `json:"sex"`
-	BirthDay      int64  `json:"birth_day"`
-	WorkingStatus string `json:"working_status"`
-	Group         string `json:"group"`
-	StartedDate   int64  `json:"started_date"`
-	IdHr          string `json:"id_hr"`
-	Phone         string `json:"phone"`
-	Email         string `json:"email"`
-	IdentityCard  string `json:"identity_card"`
-	IssuedBy      string `json:"issued_by"`
-	ExpiredDate   int64  `json:"expired_date"`
-	PlaceOfOrigin string `json:"place_of_origin"`
-	Address       string `json:"address"`
-	Level         string `json:"level"`
-	Note          string `json:"note"`
+	Code           string `json:"code"` // id caddie
+	CourseUid      string `json:"course_uid"`
+	PartnerUid     string `json:"partner_uid"`
+	Name           string `json:"name"`
+	Avatar         string `json:"avatar"`
+	Sex            bool   `json:"sex"`
+	BirthDay       int64  `json:"birth_day"`
+	WorkingStatus  string `json:"working_status"`
+	Group          string `json:"group"`
+	GroupId        int64  `json:"group_id"`
+	StartedDate    int64  `json:"started_date"`
+	IdHr           string `json:"id_hr"`
+	Phone          string `json:"phone"`
+	Email          string `json:"email"`
+	IdentityCard   string `json:"identity_card"`
+	IssuedBy       string `json:"issued_by"`
+	ExpiredDate    int64  `json:"expired_date"`
+	PlaceOfOrigin  string `json:"place_of_origin"`
+	Address        string `json:"address"`
+	Level          string `json:"level"`
+	ContractStatus string `json:"contract_status"`
+	Note           string `json:"note"`
 }
 
 type GetListCaddieForm struct {
