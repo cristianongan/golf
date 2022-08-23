@@ -400,7 +400,7 @@ func GetFeeWidthHolePrice(feeList ListGolfHoleFee, hole int, formula string) int
 func CalculateFeeByHole(hole int, fee int64, rateRaw string) int64 {
 	re := regexp.MustCompile(`(\d[.]\d)|(\d)+`)
 
-	index := hole / 18
+	index := (hole / 9) - 1
 	listRate := re.FindAllString(rateRaw, -1)
 
 	rate := listRate[index]
