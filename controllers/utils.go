@@ -213,7 +213,7 @@ func getInitListGolfFeeForBooking(uid string, body request.CreateBookingBody, go
 }
 
 /*
-	Tính golf fee cho đơn thqay đổi hố
+Tính golf fee cho đơn thqay đổi hố
 */
 func getInitGolfFeeForChangeHole(body request.ChangeBookingHole, golfFee models.GolfFee) model_booking.BookingGolfFee {
 	holePriceFormula := models.HolePriceFormula{}
@@ -245,9 +245,9 @@ func getInitGolfFeeForChangeHole(body request.ChangeBookingHole, golfFee models.
 }
 
 /*
- Theo giá đặc biệt, k theo GuestStyle
+Theo giá đặc biệt, k theo GuestStyle
 */
-func getInitListGolfFeeWithOutGuestStyleForBooking(uid string, body request.CreateBookingBody, caddieFee, buggyFee, greenFee int64) (model_booking.ListBookingGolfFee, model_booking.BookingGolfFee) {
+func getInitListGolfFeeWithOutGuestStyleForBooking(uid, rate string, body request.CreateBookingBody, caddieFee, buggyFee, greenFee int64) (model_booking.ListBookingGolfFee, model_booking.BookingGolfFee) {
 	listBookingGolfFee := model_booking.ListBookingGolfFee{}
 	bookingGolfFee := model_booking.BookingGolfFee{}
 	bookingGolfFee.BookingUid = uid
@@ -255,15 +255,17 @@ func getInitListGolfFeeWithOutGuestStyleForBooking(uid string, body request.Crea
 	bookingGolfFee.PlayerName = body.CustomerName
 	bookingGolfFee.RoundIndex = 0
 
-	bookingGolfFee.CaddieFee = caddieFee
-	bookingGolfFee.BuggyFee = buggyFee
-	bookingGolfFee.GreenFee = greenFee
+	bookingGolfFee.CaddieFee = utils.CalculateFeeByHole(body.Hole, caddieFee, rate)
+	bookingGolfFee.BuggyFee = utils.CalculateFeeByHole(body.Hole, buggyFee, rate)
+	bookingGolfFee.GreenFee = utils.CalculateFeeByHole(body.Hole, greenFee, rate)
 
 	listBookingGolfFee = append(listBookingGolfFee, bookingGolfFee)
 	return listBookingGolfFee, bookingGolfFee
 }
 
-/* Booking Init and Update
+/*
+	Booking Init and Update
+
 init price
 init Golf Fee
 init MushPay
@@ -712,17 +714,16 @@ func createLocker(booking model_booking.Booking) {
 }
 
 /*
-	Check ngày của guest
-	guest_style_of_guest
-	- ngày dc đi:
-	2,2B:2345 :
-	GS = GuestStyle
-	Mô tả - GS 2 đc đi tất cả các ngày trong tuần, GS 2B dc đi các thứ 2345
+Check ngày của guest
+guest_style_of_guest
+- ngày dc đi:
+2,2B:2345 :
+GS = GuestStyle
+Mô tả - GS 2 đc đi tất cả các ngày trong tuần, GS 2B dc đi các thứ 2345
 
-	- Số lượng Guest dc đi trong ngày của member card đó
-	+ Check ngày thường(normal_day_take_guest): Ex: 7,3: ý nghĩa ngày thường mã 2 dc đưa 7 khách, mã 2B dc đưa 3 khách
-	+ Check ngày cuối tuần(weekend_take_guest): Ex 3: Ý nghĩa cuối tuần mã 3 được đưa 2 khách, Mã 2B không được đưa khách nào
-
+- Số lượng Guest dc đi trong ngày của member card đó
++ Check ngày thường(normal_day_take_guest): Ex: 7,3: ý nghĩa ngày thường mã 2 dc đưa 7 khách, mã 2B dc đưa 3 khách
++ Check ngày cuối tuần(weekend_take_guest): Ex 3: Ý nghĩa cuối tuần mã 3 được đưa 2 khách, Mã 2B không được đưa khách nào
 */
 func checkMemberCardGuestOfDay(memberCard models.MemberCard, memberCardType models.MemberCardType, guestStyle string, createdTime time.Time) (bool, error) {
 	// Parse guest_style_of_guest
@@ -777,7 +778,7 @@ func updateMemberCard(memberCard models.MemberCard) {
 }
 
 /*
- Handle MemberCard for Booking
+Handle MemberCard for Booking
 */
 func handleCheckMemberCardOfGuest(memberUidOfGuest, guestStyle string) (error, models.MemberCard, string) {
 	var memberCard models.MemberCard
@@ -850,7 +851,7 @@ func validatePartnerAndCourse(partnerUid string, courseUid string) error {
 }
 
 /*
-  Init data main Bag For pay for booking
+Init data main Bag For pay for booking
 */
 func initMainBagForPay() utils.ListString {
 	listPays := utils.ListString{}

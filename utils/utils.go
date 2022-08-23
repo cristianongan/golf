@@ -396,3 +396,20 @@ func GetFeeWidthHolePrice(feeList ListGolfHoleFee, hole int, formula string) int
 
 	return int64(result.(float64))
 }
+
+func CalculateFeeByHole(hole int, fee int64, rateRaw string) int64 {
+	re := regexp.MustCompile(`(\d[.]\d)|(\d)+`)
+
+	index := hole / 18
+	listRate := re.FindAllString(rateRaw, -1)
+
+	rate := listRate[index]
+
+	parseRate, err := strconv.ParseFloat(rate, 64)
+	if err != nil {
+		log.Println("Convert string to int64 err", err.Error())
+		return fee
+	}
+
+	return int64(float64(fee) * parseRate)
+}

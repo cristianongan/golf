@@ -175,6 +175,15 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	// Member Card
 	// Check xem booking guest hay booking member
 	if body.MemberCardUid != "" {
+		// Get config course
+		course := models.Course{}
+		course.Uid = body.CourseUid
+		errCourse := course.FindFirst()
+		if errCourse != nil {
+			response_message.BadRequest(c, errCourse.Error())
+			return nil
+		}
+
 		// Get Member Card
 		memberCard := models.MemberCard{}
 		memberCard.Uid = body.MemberCardUid
@@ -197,7 +206,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.CustomerUid = owner.Uid
 		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
 		if memberCard.PriceCode == 1 {
-			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(bUid, body, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee)
+			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(bUid, course.RateGolfFee, body, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee)
 			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 		} else {
 			// Lấy theo GuestStyle
@@ -214,6 +223,15 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	//Agency id
 	if body.AgencyId > 0 {
+		// Get config course
+		course := models.Course{}
+		course.Uid = body.CourseUid
+		errCourse := course.FindFirst()
+		if errCourse != nil {
+			response_message.BadRequest(c, errCourse.Error())
+			return nil
+		}
+
 		agency := models.Agency{}
 		agency.Id = body.AgencyId
 		errFindAgency := agency.FindFirst()
@@ -233,7 +251,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		if errFSP == nil && agencySpecialPrice.Id > 0 {
 			// Tính lại giá
 			// List Booking GolfFee
-			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(bUid, body, agencySpecialPrice.CaddieFee, agencySpecialPrice.BuggyFee, agencySpecialPrice.GreenFee)
+			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(bUid, course.RateGolfFee, body, agencySpecialPrice.CaddieFee, agencySpecialPrice.BuggyFee, agencySpecialPrice.GreenFee)
 			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 
 		} else {
