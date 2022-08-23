@@ -118,6 +118,9 @@ func MigrateDb() {
 		// ------- Locker -------
 		db.AutoMigrate(&models.Locker{})
 
+		// ------- Round -------
+		db.AutoMigrate(&models.Round{})
+
 		log.Println("migrated db")
 	}
 }
