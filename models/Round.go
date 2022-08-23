@@ -11,6 +11,8 @@ import (
 // Hãng Golf
 type Round struct {
 	ModelId
+	PartnerUid    string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid     string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	CaddieFee     int64  `json:"caddie_fee"`
 	BuggyFee      int64  `json:"buggy_fee"`
 	GreenFee      int64  `json:"green_fee"`
@@ -20,8 +22,9 @@ type Round struct {
 	Pax           int    `json:"pax"`
 	TeeOffTime    int64  `json:"tee_off_time"`
 	Hole          int    `json:"hole"`
+	Index         int    `json:"index"`
 	Bag           string `json:"bag" gorm:"type:varchar(100);index"` // Golf Bag
-	BillCode      string `json:"bill_code" gorm:"type:varchar(100)"`
+	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"`
 }
 
 // ======= CRUD ===========

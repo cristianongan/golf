@@ -1,7 +1,8 @@
 package request
 
 type AddRoundBody struct {
-	BookingUid string `json:"booking_uid"`
+	BookUidList []string `json:"booking_uid_list" validate:"required"`
+	Hole        int      `json:"hole" validate:"required"`
 }
 
 type SplitRoundBody struct {
