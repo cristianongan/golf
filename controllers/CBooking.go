@@ -409,6 +409,15 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	round := models.Round{BillCode: booking.BillCode}
+	listRound, _, _ := round.FindAll()
+
+	if len(listRound) > 0 {
+		res := model_booking.ListBookingWithRound{booking, listRound}
+		okResponse(c, res)
+		return
+	}
+
 	okResponse(c, booking)
 }
 

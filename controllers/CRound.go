@@ -2,20 +2,21 @@ package controllers
 
 import (
 	"errors"
-	"log"
+	// "log"
 	"start/constants"
 	"start/controllers/request"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils"
 	"start/utils/response_message"
-	"time"
 
-	"github.com/ez4o/go-try"
+	// "time"
+
+	// "github.com/ez4o/go-try"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-	"github.com/twharmon/slices"
+	// "github.com/twharmon/slices"
 )
 
 type CRound struct{}
@@ -34,7 +35,7 @@ func (_ CRound) validateBooking(bookindUid string) (model_booking.Booking, error
 	return booking, nil
 }
 
-func (_ CRound) createRound(booking model_booking.Booking, newHole int) (models.Round, error) {
+func (_ CRound) createRound(booking model_booking.Booking, newHole int) error {
 	// golfFeeModel := models.GolfFee{
 	// 	PartnerUid: booking.PartnerUid,
 	// 	CourseUid:  booking.CourseUid,
@@ -62,7 +63,12 @@ func (_ CRound) createRound(booking model_booking.Booking, newHole int) (models.
 	round.TeeOffTime = booking.CheckInTime
 	round.Pax = 1
 
-	return round, nil
+	errCreateRound := round.Create()
+	if errCreateRound != nil {
+		return errCreateRound
+	}
+
+	return nil
 }
 
 // func (_ CRound) updateListGolfFee(booking model_booking.Booking, currentGolfFee *model_booking.BookingGolfFee) (model_booking.ListBookingGolfFee, error) {
@@ -120,30 +126,24 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 			response_message.BadRequest(c, err.Error())
 			return
 		}
+		err = cRound.createRound(booking, body.Hole)
+		if err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+
+		booking.BagStatus = constants.BAG_STATUS_WAITING
+		bookingUid := uuid.New()
+		bUid := booking.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
+		errCreateBooking := booking.Create(bUid)
+
+		if errCreateBooking != nil {
+			response_message.BadRequest(c, errCreateBooking.Error())
+			return
+		}
 	}
 
 	// create round and add round
-	newRound, err := cRound.createRound(booking, body.Hole)
-	if err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
-
-	errCreateRound := newRound.Create()
-	if errCreateRound != nil {
-		response_message.BadRequest(c, errCreateRound.Error())
-		return
-	}
-
-	booking.BagStatus = constants.BAG_STATUS_WAITING
-	bookingUid := uuid.New()
-	bUid := booking.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
-	errCreateBooking := booking.Create(bUid)
-
-	if errCreateBooking != nil {
-		response_message.BadRequest(c, errCreateBooking.Error())
-		return
-	}
 
 	// booking.Rounds = append(booking.Rounds, newRound)
 
@@ -183,186 +183,186 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, booking)
 }
 
-func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
-	var body request.SplitRoundBody
-	var booking model_booking.Booking
-	var err error
-	var hasError = false
+// func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
+// 	var body request.SplitRoundBody
+// 	var booking model_booking.Booking
+// 	var err error
+// 	var hasError = false
 
-	try.Try(func() {
-		if err := c.BindJSON(&body); err != nil {
-			log.Print("SplitRound BindJSON error")
-			try.ThrowOnError(err)
-		}
+// 	try.Try(func() {
+// 		if err := c.BindJSON(&body); err != nil {
+// 			log.Print("SplitRound BindJSON error")
+// 			try.ThrowOnError(err)
+// 		}
 
-		validate := validator.New()
+// 		validate := validator.New()
 
-		if err := validate.Struct(body); err != nil {
-			try.ThrowOnError(err)
-		}
+// 		if err := validate.Struct(body); err != nil {
+// 			try.ThrowOnError(err)
+// 		}
 
-		// validate booking_uid
-		booking, err = cRound.validateBooking(body.BookingUid)
-		if err != nil {
-			try.ThrowOnError(err)
-		}
-	}).Catch(func(e error, st *try.StackTrace) {
-		response_message.BadRequest(c, "")
-		hasError = true
-	})
+// 		// validate booking_uid
+// 		booking, err = cRound.validateBooking(body.BookingUid)
+// 		if err != nil {
+// 			try.ThrowOnError(err)
+// 		}
+// 	}).Catch(func(e error, st *try.StackTrace) {
+// 		response_message.BadRequest(c, "")
+// 		hasError = true
+// 	})
 
-	if hasError {
-		return
-	}
+// 	if hasError {
+// 		return
+// 	}
 
-	try.Try(func() {
-		currentRound := booking.Rounds[body.RoundIndex]
-		if currentRound.Hole <= 9 {
-			try.ThrowOnError(errors.New("Hole invalid for split"))
-			return
-		}
-		newRound := currentRound
-		newRound.Hole = int(body.Hole)
-		newRound.Index = len(booking.Rounds) + 1
-		currentRound.Hole = currentRound.Hole - newRound.Hole
-		booking.Rounds[body.RoundIndex] = currentRound
-		booking.Rounds = append(booking.Rounds, newRound)
+// 	try.Try(func() {
+// 		currentRound := booking.Rounds[body.RoundIndex]
+// 		if currentRound.Hole <= 9 {
+// 			try.ThrowOnError(errors.New("Hole invalid for split"))
+// 			return
+// 		}
+// 		newRound := currentRound
+// 		newRound.Hole = int(body.Hole)
+// 		newRound.Index = len(booking.Rounds) + 1
+// 		currentRound.Hole = currentRound.Hole - newRound.Hole
+// 		booking.Rounds[body.RoundIndex] = currentRound
+// 		booking.Rounds = append(booking.Rounds, newRound)
 
-		// Thêm golf Fee cho Round mới
-		newRoundGolfFee := model_booking.BookingGolfFee{
-			BookingUid: booking.Uid,
-			PlayerName: booking.CustomerName,
-			Bag:        booking.Bag,
-			CaddieFee:  newRound.CaddieFee,
-			BuggyFee:   newRound.BuggyFee,
-			GreenFee:   newRound.GreenFee,
-			RoundIndex: newRound.Index,
-		}
+// 		// Thêm golf Fee cho Round mới
+// 		newRoundGolfFee := model_booking.BookingGolfFee{
+// 			BookingUid: booking.Uid,
+// 			PlayerName: booking.CustomerName,
+// 			Bag:        booking.Bag,
+// 			CaddieFee:  newRound.CaddieFee,
+// 			BuggyFee:   newRound.BuggyFee,
+// 			GreenFee:   newRound.GreenFee,
+// 			RoundIndex: newRound.Index,
+// 		}
 
-		// update list_golf_fee
-		booking.ListGolfFee = append(booking.ListGolfFee, newRoundGolfFee)
+// 		// update list_golf_fee
+// 		booking.ListGolfFee = append(booking.ListGolfFee, newRoundGolfFee)
 
-		// update current_bag_price
-		booking.CurrentBagPrice, err = cRound.updateCurrentBagPrice(booking, newRoundGolfFee.CaddieFee+newRoundGolfFee.BuggyFee+newRoundGolfFee.GreenFee)
-		if err != nil {
-			try.ThrowOnError(err)
-		}
+// 		// update current_bag_price
+// 		booking.CurrentBagPrice, err = cRound.updateCurrentBagPrice(booking, newRoundGolfFee.CaddieFee+newRoundGolfFee.BuggyFee+newRoundGolfFee.GreenFee)
+// 		if err != nil {
+// 			try.ThrowOnError(err)
+// 		}
 
-		// update must_pay_info
-		booking.MushPayInfo, err = cRound.updateMustPayInfo(booking)
-		if err != nil {
-			try.ThrowOnError(err)
-		}
+// 		// update must_pay_info
+// 		booking.MushPayInfo, err = cRound.updateMustPayInfo(booking)
+// 		if err != nil {
+// 			try.ThrowOnError(err)
+// 		}
 
-		booking.CmsUser = prof.UserName
-		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
-		if err := booking.Update(); err != nil {
-			try.ThrowOnError(err)
-		}
-	}).Catch(func(e error, st *try.StackTrace) {
-		response_message.InternalServerError(c, err.Error())
-		return
-	})
+// 		booking.CmsUser = prof.UserName
+// 		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+// 		if err := booking.Update(); err != nil {
+// 			try.ThrowOnError(err)
+// 		}
+// 	}).Catch(func(e error, st *try.StackTrace) {
+// 		response_message.InternalServerError(c, err.Error())
+// 		return
+// 	})
 
-	if hasError {
-		return
-	}
+// 	if hasError {
+// 		return
+// 	}
 
-	okResponse(c, booking)
-}
+// 	okResponse(c, booking)
+// }
 
-func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
-	var body request.MergeRoundBody
-	var booking model_booking.Booking
-	var err error
-	var hasError = false
+// func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
+// 	var body request.MergeRoundBody
+// 	var booking model_booking.Booking
+// 	var err error
+// 	var hasError = false
 
-	try.Try(func() {
-		if err := c.BindJSON(&body); err != nil {
-			log.Print("MergeRound BindJSON error")
-			try.ThrowOnError(err)
-		}
+// 	try.Try(func() {
+// 		if err := c.BindJSON(&body); err != nil {
+// 			log.Print("MergeRound BindJSON error")
+// 			try.ThrowOnError(err)
+// 		}
 
-		validate := validator.New()
+// 		validate := validator.New()
 
-		if err := validate.Struct(body); err != nil {
-			try.ThrowOnError(err)
-		}
+// 		if err := validate.Struct(body); err != nil {
+// 			try.ThrowOnError(err)
+// 		}
 
-		// validate booking_uid
-		booking, err = cRound.validateBooking(body.BookingUid)
-		if err != nil {
-			try.ThrowOnError(err)
-		}
-	}).Catch(func(e error, st *try.StackTrace) {
-		response_message.BadRequest(c, "")
-		hasError = true
-	})
+// 		// validate booking_uid
+// 		booking, err = cRound.validateBooking(body.BookingUid)
+// 		if err != nil {
+// 			try.ThrowOnError(err)
+// 		}
+// 	}).Catch(func(e error, st *try.StackTrace) {
+// 		response_message.BadRequest(c, "")
+// 		hasError = true
+// 	})
 
-	if hasError {
-		return
-	}
+// 	if hasError {
+// 		return
+// 	}
 
-	try.Try(func() {
-		// create round
-		totalHoles := slices.Reduce(booking.Rounds, func(prev int, item model_booking.BookingRound) int {
-			return prev + item.Hole
-		})
+// 	try.Try(func() {
+// 		// create round
+// 		totalHoles := slices.Reduce(booking.Rounds, func(prev int, item model_booking.BookingRound) int {
+// 			return prev + item.Hole
+// 		})
 
-		newRound, err := cRound.createRound(booking, totalHoles)
-		newRound.Index = 0
-		if err != nil {
-			try.ThrowOnError(err)
-		}
+// 		newRound, err := cRound.createRound(booking, totalHoles)
+// 		newRound.Index = 0
+// 		if err != nil {
+// 			try.ThrowOnError(err)
+// 		}
 
-		// booking.Rounds = append(model_booking.ListBookingRound{}, newRound)
+// 		// booking.Rounds = append(model_booking.ListBookingRound{}, newRound)
 
-		newRoundGolfFee := model_booking.BookingGolfFee{
-			BookingUid: booking.Uid,
-			PlayerName: booking.CustomerName,
-			Bag:        booking.Bag,
-			CaddieFee:  newRound.CaddieFee,
-			BuggyFee:   newRound.BuggyFee,
-			GreenFee:   newRound.GreenFee,
-			RoundIndex: newRound.Index,
-		}
+// 		newRoundGolfFee := model_booking.BookingGolfFee{
+// 			BookingUid: booking.Uid,
+// 			PlayerName: booking.CustomerName,
+// 			Bag:        booking.Bag,
+// 			CaddieFee:  newRound.CaddieFee,
+// 			BuggyFee:   newRound.BuggyFee,
+// 			GreenFee:   newRound.GreenFee,
+// 			RoundIndex: newRound.Index,
+// 		}
 
-		listGolfFeeTemp := model_booking.ListBookingGolfFee{}
-		listGolfFeeTemp = append(listGolfFeeTemp, newRoundGolfFee)
-		for i, v := range booking.ListGolfFee {
-			if i > 0 && v.BookingUid != booking.Uid {
-				listGolfFeeTemp = append(listGolfFeeTemp, v)
-			}
-		}
+// 		listGolfFeeTemp := model_booking.ListBookingGolfFee{}
+// 		listGolfFeeTemp = append(listGolfFeeTemp, newRoundGolfFee)
+// 		for i, v := range booking.ListGolfFee {
+// 			if i > 0 && v.BookingUid != booking.Uid {
+// 				listGolfFeeTemp = append(listGolfFeeTemp, v)
+// 			}
+// 		}
 
-		// Udp golf fee
-		booking.ListGolfFee = listGolfFeeTemp
+// 		// Udp golf fee
+// 		booking.ListGolfFee = listGolfFeeTemp
 
-		// update current_bag_price
-		booking.CurrentBagPrice, err = cRound.updateCurrentBagPrice(booking, newRoundGolfFee.CaddieFee+newRoundGolfFee.BuggyFee+newRoundGolfFee.GreenFee)
-		if err != nil {
-			try.ThrowOnError(err)
-		}
+// 		// update current_bag_price
+// 		booking.CurrentBagPrice, err = cRound.updateCurrentBagPrice(booking, newRoundGolfFee.CaddieFee+newRoundGolfFee.BuggyFee+newRoundGolfFee.GreenFee)
+// 		if err != nil {
+// 			try.ThrowOnError(err)
+// 		}
 
-		// update must_pay_info
-		booking.MushPayInfo, err = cRound.updateMustPayInfo(booking)
-		if err != nil {
-			try.ThrowOnError(err)
-		}
+// 		// update must_pay_info
+// 		booking.MushPayInfo, err = cRound.updateMustPayInfo(booking)
+// 		if err != nil {
+// 			try.ThrowOnError(err)
+// 		}
 
-		booking.CmsUser = prof.UserName
-		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
-		if err := booking.Update(); err != nil {
-			try.ThrowOnError(err)
-		}
-	}).Catch(func(e error, st *try.StackTrace) {
-		response_message.InternalServerError(c, err.Error())
-		return
-	})
+// 		booking.CmsUser = prof.UserName
+// 		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+// 		if err := booking.Update(); err != nil {
+// 			try.ThrowOnError(err)
+// 		}
+// 	}).Catch(func(e error, st *try.StackTrace) {
+// 		response_message.InternalServerError(c, err.Error())
+// 		return
+// 	})
 
-	if hasError {
-		return
-	}
+// 	if hasError {
+// 		return
+// 	}
 
-	okResponse(c, booking)
-}
+// 	okResponse(c, booking)
+// }

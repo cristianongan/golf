@@ -56,29 +56,29 @@ func (_ *CLockTurn) CreateLockTurn(c *gin.Context, prof models.CmsUser) {
 	if course.Hole == 18 {
 
 		if body.Tee == "1" {
-			teeList = []string{"1", "10"}
+			teeList = []string{"10"}
 		} else {
-			teeList = []string{"10", "1"}
+			teeList = []string{"1"}
 		}
 	} else if course.Hole == 27 {
 
 		if body.Tee == "1A" {
-			teeList = []string{"1A", "1B", "1C"}
+			teeList = []string{"1B", "1C"}
 		} else if body.Tee == "1B" {
-			teeList = []string{"1B", "1C", "1A"}
+			teeList = []string{"1C", "1A"}
 		} else if body.Tee == "1C" {
-			teeList = []string{"1C", "1A", "1B"}
+			teeList = []string{"1A", "1B"}
 		}
 
 	} else {
 		if body.Tee == "1A" {
-			teeList = []string{"1A", "10A", "1B", "10B"}
+			teeList = []string{"10A", "1B", "10B"}
 		} else if body.Tee == "10A" {
-			teeList = []string{"10A", "1B", "10B", "1A"}
+			teeList = []string{"1B", "10B", "1A"}
 		} else if body.Tee == "1B" {
-			teeList = []string{"1B", "10B", "1A", "10A"}
+			teeList = []string{"10B", "1A", "10A"}
 		} else {
-			teeList = []string{"10B", "1A", "10A", "1B"}
+			teeList = []string{"1A", "10A", "1B"}
 		}
 	}
 

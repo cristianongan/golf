@@ -1,6 +1,8 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"start/constants"
 	"start/datasources"
@@ -25,6 +27,16 @@ type Round struct {
 	Index         int    `json:"index"`
 	Bag           string `json:"bag" gorm:"type:varchar(100);index"` // Golf Bag
 	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"`
+}
+
+type ListRound []Round
+
+func (item *ListRound) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListRound) Value() (driver.Value, error) {
+	return json.Marshal(&item)
 }
 
 // ======= CRUD ===========
@@ -80,6 +92,22 @@ func (item *Round) FindList(page Page) ([]Round, int64, error) {
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)
 	}
+	return list, total, db.Error
+}
+
+func (item *Round) FindAll() ([]Round, int64, error) {
+	db := datasources.GetDatabase().Model(Round{})
+	list := []Round{}
+	total := int64(0)
+	item.Status = ""
+
+	if item.BillCode != "" {
+		db = db.Where("bill_code = ?", item.BillCode)
+	}
+
+	db.Count(&total)
+	db = db.Find(&list)
+
 	return list, total, db.Error
 }
 

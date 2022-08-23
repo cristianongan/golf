@@ -54,8 +54,8 @@ type Booking struct {
 	ListGolfFee      ListBookingGolfFee           `json:"list_golf_fee,omitempty" gorm:"type:json"`      // Thông tin List Golf Fee, Main Bag, Sub Bag
 	ListServiceItems ListBookingServiceItems      `json:"list_service_items,omitempty" gorm:"type:json"` // List service item: rental, proshop, restaurant, kiosk
 	MushPayInfo      BookingMushPay               `json:"mush_pay_info,omitempty" gorm:"type:json"`      // Mush Pay info
-	Rounds           ListBookingRound             `json:"rounds,omitempty" gorm:"type:json"`             // List Rounds: Sẽ sinh golf Fee với List GolfFee
-	OtherPaids       utils.ListOtherPaid          `json:"other_paids,omitempty" gorm:"type:json"`        // Other Paids
+	// Rounds           ListBookingRound             `json:"rounds,omitempty" gorm:"type:json"`             // List Rounds: Sẽ sinh golf Fee với List GolfFee
+	OtherPaids utils.ListOtherPaid `json:"other_paids,omitempty" gorm:"type:json"` // Other Paids
 
 	// Note          string `json:"note" gorm:"type:varchar(500)"`            // Note
 	NoteOfBag     string `json:"note_of_bag" gorm:"type:varchar(500)"`     // Note of Bag
@@ -118,6 +118,11 @@ type FlyInfoResponse struct {
 	TeeOffFlight    string `json:"tee_off_flight,omitempty" gorm:"-:migration"`
 	TurnFlight      string `json:"turn_flight,omitempty" gorm:"-:migration"`
 	GroupNameFlight string `json:"group_name_flight,omitempty" gorm:"-:migration"`
+}
+
+type ListBookingWithRound struct {
+	Booking
+	Rounds models.ListRound `json:"rounds"`
 }
 
 type BookingForListServiceIems struct {
@@ -557,38 +562,38 @@ func (item *Booking) GetTotalGolfFee() int64 {
 	return total
 }
 
-func (item *Booking) AddRound(memberCardUid string, golfFee models.GolfFee) error {
-	lengthRound := len(item.Rounds)
+// func (item *Booking) AddRound(memberCardUid string, golfFee models.GolfFee) error {
+// 	lengthRound := len(item.Rounds)
 
-	if memberCardUid == "" {
-		// Guest
+// 	if memberCardUid == "" {
+// 		// Guest
 
-	}
+// 	}
 
-	// Member
-	memberCard := models.MemberCard{}
-	memberCard.Uid = memberCardUid
-	errFind := memberCard.FindFirst()
-	if errFind != nil {
-		return errFind
-	}
+// 	// Member
+// 	memberCard := models.MemberCard{}
+// 	memberCard.Uid = memberCardUid
+// 	errFind := memberCard.FindFirst()
+// 	if errFind != nil {
+// 		return errFind
+// 	}
 
-	bookingRound := BookingRound{
-		Index:         lengthRound + 1,
-		Hole:          item.Hole,
-		Pax:           1,
-		MemberCardId:  memberCard.CardId,
-		MemberCardUid: memberCardUid,
-		TeeOffTime:    time.Now().Unix(),
-	}
-	bookingRound.CaddieFee = utils.GetFeeFromListFee(golfFee.CaddieFee, bookingRound.Hole)
-	bookingRound.GreenFee = utils.GetFeeFromListFee(golfFee.GreenFee, bookingRound.Hole)
-	bookingRound.BuggyFee = utils.GetFeeFromListFee(golfFee.BuggyFee, bookingRound.Hole)
+// 	bookingRound := BookingRound{
+// 		Index:         lengthRound + 1,
+// 		Hole:          item.Hole,
+// 		Pax:           1,
+// 		MemberCardId:  memberCard.CardId,
+// 		MemberCardUid: memberCardUid,
+// 		TeeOffTime:    time.Now().Unix(),
+// 	}
+// 	bookingRound.CaddieFee = utils.GetFeeFromListFee(golfFee.CaddieFee, bookingRound.Hole)
+// 	bookingRound.GreenFee = utils.GetFeeFromListFee(golfFee.GreenFee, bookingRound.Hole)
+// 	bookingRound.BuggyFee = utils.GetFeeFromListFee(golfFee.BuggyFee, bookingRound.Hole)
 
-	item.Rounds = append(item.Rounds, bookingRound)
+// 	item.Rounds = append(item.Rounds, bookingRound)
 
-	return nil
-}
+// 	return nil
+// }
 
 func (item *Booking) UpdateBagGolfFee() {
 	if len(item.ListGolfFee) > 0 {

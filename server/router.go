@@ -233,8 +233,8 @@ func NewRouter() *gin.Engine {
 			/// =================== Rounds ===================
 			cRound := new(controllers.CRound)
 			cmsApiAuthorized.POST("/booking/rounds/add", middlewares.AuthorizedCmsUserHandler(cRound.AddRound))
-			cmsApiAuthorized.POST("/booking/rounds/split", middlewares.AuthorizedCmsUserHandler(cRound.SplitRound))
-			cmsApiAuthorized.POST("/booking/rounds/merge-all", middlewares.AuthorizedCmsUserHandler(cRound.MergeRound))
+			// cmsApiAuthorized.POST("/booking/rounds/split", middlewares.AuthorizedCmsUserHandler(cRound.SplitRound))
+			// cmsApiAuthorized.POST("/booking/rounds/merge-all", middlewares.AuthorizedCmsUserHandler(cRound.MergeRound))
 
 			/// =================== BagsNote ===================
 			cBagsNote := new(controllers.CBagsNote)

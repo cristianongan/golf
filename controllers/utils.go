@@ -302,8 +302,8 @@ func initPriceForBooking(booking *model_booking.Booking, listBookingGolfFee mode
 	bookingTemp.MushPayInfo = mushPayInfo
 
 	// Rounds: Init Firsts
-	listRounds := initListRound(bookingTemp, bookingGolfFee, checkInTime)
-	booking.Rounds = listRounds
+	initListRound(bookingTemp, bookingGolfFee, checkInTime)
+	// booking.Rounds = listRounds
 }
 
 func initUpdatePriceBookingForChanegHole(booking *model_booking.Booking, bookingGolfFee model_booking.BookingGolfFee) {
@@ -341,9 +341,9 @@ func initUpdatePriceBookingForChanegHole(booking *model_booking.Booking, booking
 	booking.MushPayInfo = mushPayInfo
 
 	// Rounds
-	booking.Rounds[len(booking.Rounds)-1].GreenFee = bookingGolfFee.GreenFee
-	booking.Rounds[len(booking.Rounds)-1].CaddieFee = bookingGolfFee.CaddieFee
-	booking.Rounds[len(booking.Rounds)-1].BuggyFee = bookingGolfFee.BuggyFee
+	// booking.Rounds[len(booking.Rounds)-1].GreenFee = bookingGolfFee.GreenFee
+	// booking.Rounds[len(booking.Rounds)-1].CaddieFee = bookingGolfFee.CaddieFee
+	// booking.Rounds[len(booking.Rounds)-1].BuggyFee = bookingGolfFee.BuggyFee
 }
 
 // Khi add sub bag vào 1 booking thì cần cập nhật lại main bag cho booking sub bag
@@ -379,21 +379,26 @@ func updateMainBagForSubBag(body request.AddSubBagToBooking, mainBag string, cus
 /*
 Init List Round
 */
-func initListRound(booking model_booking.Booking, bookingGolfFee model_booking.BookingGolfFee, checkInTime int64) model_booking.ListBookingRound {
-	round := model_booking.BookingRound{}
+func initListRound(booking model_booking.Booking, bookingGolfFee model_booking.BookingGolfFee, checkInTime int64) {
+	// create round and add round
+	round := models.Round{}
+	round.BillCode = booking.BillCode
+	round.Bag = booking.Bag
+	round.PartnerUid = booking.PartnerUid
+	round.CourseUid = booking.CourseUid
 	round.GuestStyle = booking.GuestStyle
 	round.BuggyFee = bookingGolfFee.BuggyFee
 	round.CaddieFee = bookingGolfFee.CaddieFee
 	round.GreenFee = bookingGolfFee.GreenFee
 	round.Hole = booking.Hole
 	round.MemberCardUid = booking.MemberCardUid
-	round.TeeOffTime = checkInTime
+	round.TeeOffTime = booking.CheckInTime
 	round.Pax = 1
-	round.Index = 0
 
-	listRounds := model_booking.ListBookingRound{}
-	listRounds = append(listRounds, round)
-	return listRounds
+	errCreateRound := round.Create()
+	if errCreateRound != nil {
+		log.Println("createBagsNote err", errCreateRound.Error())
+	}
 }
 
 /*
