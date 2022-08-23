@@ -333,6 +333,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		bookingCode := utils.HashCodeUuid(bookingUid.String())
 		booking.BookingCode = bookingCode
 	}
+	booking.BillCode = utils.HashCodeUuid(bookingUid.String())
 
 	errC := booking.Create(bUid)
 
