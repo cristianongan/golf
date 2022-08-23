@@ -72,6 +72,10 @@ func runReportCaddieFeeToDay() {
 				caddie := models.Caddie{}
 				caddie.Id = v.CaddieId
 				err = caddie.FindFirst()
+				if err != nil {
+					log.Println("find first caddie err", err.Error())
+					return
+				}
 
 				// create caddie fee
 				for _, cfs := range listCFSeting {
@@ -109,7 +113,7 @@ func runReportCaddieFeeToDay() {
 
 				err = caddieFee.Update()
 				if err != nil {
-					log.Println("Create report caddie err", err.Error())
+					log.Println("Update report caddie err", err.Error())
 					return
 				}
 			}
