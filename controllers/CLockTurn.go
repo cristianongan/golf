@@ -51,58 +51,55 @@ func (_ *CLockTurn) CreateLockTurn(c *gin.Context, prof models.CmsUser) {
 
 	listTeeTimeLock := models.ListTee{}
 	teeTimeDate, _ := utils.ConvertHourToTime(body.TeeTime)
+	teeList := []string{}
 
 	if course.Hole == 18 {
-		teeTimeLock1 := models.TeeInfo{
-			TeeTime: body.TeeTime,
-			TeeType: "1",
+
+		if body.Tee == "1" {
+			teeList = []string{"1", "10"}
+		} else {
+			teeList = []string{"10", "1"}
 		}
-
-		timeN := teeTimeDate.Add(time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(turnLength))
-		teeTime10 := strconv.Itoa(timeN.Hour()) + ":" + strconv.Itoa(timeN.Minute())
-
-		teeTimeLock10 := models.TeeInfo{
-			TeeTime: teeTime10,
-			TeeType: "10",
-		}
-
-		listTeeTimeLock = append(listTeeTimeLock, teeTimeLock1)
-		listTeeTimeLock = append(listTeeTimeLock, teeTimeLock10)
 	} else if course.Hole == 27 {
-		teeTimeLock1A := models.TeeInfo{
-			TeeTime: body.TeeTime,
-			TeeType: "1A",
+
+		if body.Tee == "1A" {
+			teeList = []string{"1A", "1B", "1C"}
+		} else if body.Tee == "1B" {
+			teeList = []string{"1B", "1C", "1A"}
+		} else if body.Tee == "1C" {
+			teeList = []string{"1C", "1A", "1B"}
 		}
 
-		t := teeTimeDate.Add(time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(turnLength))
+	} else {
+		if body.Tee == "1A" {
+			teeList = []string{"1A", "10A", "1B", "10B"}
+		} else if body.Tee == "10A" {
+			teeList = []string{"10A", "1B", "10B", "1A"}
+		} else if body.Tee == "1B" {
+			teeList = []string{"1B", "10B", "1A", "10A"}
+		} else {
+			teeList = []string{"10B", "1A", "10A", "1B"}
+		}
+	}
+
+	for index, tee := range teeList {
+		t := teeTimeDate.Add((time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(turnLength)) * time.Duration(index))
 		teeTime1B := strconv.Itoa(t.Hour()) + ":" + strconv.Itoa(t.Minute())
 
-		teeTimeLock1B := models.TeeInfo{
+		teeTimeLock := models.TeeInfo{
 			TeeTime: teeTime1B,
-			TeeType: "1B",
+			TeeType: tee,
 		}
-
-		t1 := teeTimeDate.Add((time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(turnLength)) * 2)
-		teeTime1C := strconv.Itoa(t1.Hour()) + ":" + strconv.Itoa(t1.Minute())
-
-		teeTimeLock1C := models.TeeInfo{
-			TeeTime: teeTime1C,
-			TeeType: "1C",
-		}
-
-		listTeeTimeLock = append(listTeeTimeLock, teeTimeLock1A)
-		listTeeTimeLock = append(listTeeTimeLock, teeTimeLock1B)
-		listTeeTimeLock = append(listTeeTimeLock, teeTimeLock1C)
-	} else {
-		// TODO 36 Holes
+		listTeeTimeLock = append(listTeeTimeLock, teeTimeLock)
 	}
 
 	teeTimeSetting := models.LockTurn{
-		TeeTimeLock:   listTeeTimeLock,
-		BookingDate:   body.BookingDate,
-		TeeTimeStatus: body.TeeTimeStatus,
-		CourseUid:     body.CourseUid,
-		PartnerUid:    body.PartnerUid,
+		TeeTimeLock:    listTeeTimeLock,
+		BookingDate:    body.BookingDate,
+		TurnTimeStatus: body.TurnTimeStatus,
+		Tee:            body.Tee,
+		CourseUid:      body.CourseUid,
+		PartnerUid:     body.PartnerUid,
 	}
 
 	errC := teeTimeSetting.Create()
@@ -138,6 +135,14 @@ func (_ *CLockTurn) GetLockTurn(c *gin.Context, prof models.CmsUser) {
 		lockTurn.CourseUid = query.CourseUid
 	}
 
+	if query.BookingDate != "" {
+		lockTurn.BookingDate = query.BookingDate
+	}
+
+	if query.TurnTimeStatus != "" {
+		lockTurn.TurnTimeStatus = query.TurnTimeStatus
+	}
+
 	list, total, err := lockTurn.FindList(page)
 
 	if err != nil {
@@ -152,6 +157,7 @@ func (_ *CLockTurn) GetLockTurn(c *gin.Context, prof models.CmsUser) {
 
 	c.JSON(200, res)
 }
+
 func (_ *CLockTurn) DeleteLockTurn(c *gin.Context, prof models.CmsUser) {
 	id := c.Param("id")
 	idN, err := strconv.ParseInt(id, 10, 64)

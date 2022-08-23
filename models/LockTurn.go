@@ -13,12 +13,13 @@ import (
 
 type LockTurn struct {
 	ModelId
-	PartnerUid    string  `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng Golf
-	CourseUid     string  `json:"course_uid" gorm:"type:varchar(256);index"`  // Sân Golf
-	BookingDate   string  `json:"booking_date" gorm:"type:varchar(100)"`      // Ngày Booking
-	TeeTimeLock   ListTee `json:"tee_time_lock,omitempty" gorm:"type:json"`   // Danh sách các teetime sẽ lock
-	TeeTimeStatus string  `json:"tee_time_status" gorm:"type:varchar(100)"`   // Trạng thái Tee Time: LOCKED, UNLOCK, DELETED
-	Note          string  `json:"note"`
+	PartnerUid     string  `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng Golf
+	CourseUid      string  `json:"course_uid" gorm:"type:varchar(256);index"`  // Sân Golf
+	BookingDate    string  `json:"booking_date" gorm:"type:varchar(100)"`      // Ngày Booking
+	Tee            string  `json:"tee" gorm:"type:varchar(100)"`               // Tee bắt đầu lock
+	TeeTimeLock    ListTee `json:"tee_time_lock,omitempty" gorm:"type:json"`   // Danh sách các teetime sẽ lock
+	TurnTimeStatus string  `json:"turn_time_status" gorm:"type:varchar(100)"`  // Trạng thái Tee Time: LOCKED, UNLOCK, DELETED
+	Note           string  `json:"note"`
 }
 
 type TeeInfo struct {
