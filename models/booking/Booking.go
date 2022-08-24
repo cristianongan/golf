@@ -562,39 +562,6 @@ func (item *Booking) GetTotalGolfFee() int64 {
 	return total
 }
 
-// func (item *Booking) AddRound(memberCardUid string, golfFee models.GolfFee) error {
-// 	lengthRound := len(item.Rounds)
-
-// 	if memberCardUid == "" {
-// 		// Guest
-
-// 	}
-
-// 	// Member
-// 	memberCard := models.MemberCard{}
-// 	memberCard.Uid = memberCardUid
-// 	errFind := memberCard.FindFirst()
-// 	if errFind != nil {
-// 		return errFind
-// 	}
-
-// 	bookingRound := BookingRound{
-// 		Index:         lengthRound + 1,
-// 		Hole:          item.Hole,
-// 		Pax:           1,
-// 		MemberCardId:  memberCard.CardId,
-// 		MemberCardUid: memberCardUid,
-// 		TeeOffTime:    time.Now().Unix(),
-// 	}
-// 	bookingRound.CaddieFee = utils.GetFeeFromListFee(golfFee.CaddieFee, bookingRound.Hole)
-// 	bookingRound.GreenFee = utils.GetFeeFromListFee(golfFee.GreenFee, bookingRound.Hole)
-// 	bookingRound.BuggyFee = utils.GetFeeFromListFee(golfFee.BuggyFee, bookingRound.Hole)
-
-// 	item.Rounds = append(item.Rounds, bookingRound)
-
-// 	return nil
-// }
-
 func (item *Booking) UpdateBagGolfFee() {
 	if len(item.ListGolfFee) > 0 {
 		item.ListGolfFee[0].Bag = item.Bag

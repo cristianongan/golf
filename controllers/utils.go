@@ -149,7 +149,31 @@ func checkDuplicateGolfFee(body models.GolfFee) bool {
 		log.Print("checkDuplicateGolfFee true")
 		return true
 	}
-	return false
+
+	//Check theo chi tiết ngày
+	listTempR := models.GolfFee{
+		PartnerUid:   body.PartnerUid,
+		CourseUid:    body.CourseUid,
+		GuestStyle:   body.GuestStyle,
+		TablePriceId: body.TablePriceId,
+	}
+	listTemp := listTempR.GetGuestStyleGolfFeeByGuestStyle()
+
+	listDowStr := strings.Split(body.Dow, "")
+
+	isdup := false
+	for _, v := range listTemp {
+		for _, v1 := range listDowStr {
+			if strings.Contains(v.Dow, v1) {
+				log.Print("checkDuplicateGolfFee1 true")
+				isdup = true
+				break
+			}
+		}
+
+	}
+
+	return isdup
 }
 
 func getCustomerCategoryFromCustomerType(cusType string) string {
