@@ -1,14 +1,14 @@
 package request
 
 type CreateCaddieBody struct {
-	Code           string `json:"code"` // id caddie
-	CourseUid      string `json:"course_uid"`
-	PartnerUid     string `json:"partner_uid"`
-	Name           string `json:"name"`
-	Avatar         string `json:"avatar"`
-	Sex            bool   `json:"sex"`
-	BirthDay       int64  `json:"birth_day"`
-	WorkingStatus  string `json:"working_status"`
+	Code       string `json:"code"` // id caddie
+	CourseUid  string `json:"course_uid"`
+	PartnerUid string `json:"partner_uid"`
+	Name       string `json:"name"`
+	Avatar     string `json:"avatar"`
+	Sex        bool   `json:"sex"`
+	BirthDay   int64  `json:"birth_day"`
+	//WorkingStatus string `json:"working_status"`
 	Group          string `json:"group"`
 	GroupId        int64  `json:"group_id"`
 	StartedDate    int64  `json:"started_date"`
