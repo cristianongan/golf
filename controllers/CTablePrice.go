@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"errors"
+	"start/constants"
 	"start/controllers/request"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -26,13 +28,16 @@ func (_ *CTablePrice) CreateTablePrice(c *gin.Context, prof models.CmsUser) {
 		FromDate:   body.FromDate,
 	}
 	tablePrice.Status = body.Status
+	year, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.YEAR_FORMAT, body.FromDate)
+	yearInt, _ := strconv.Atoi(year)
+	tablePrice.Year = yearInt
 	errC := tablePrice.Create()
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
 		return
 	}
 
-	// Tao các golf fee từ Old Price id
+	//TODO: Tao các golf fee từ Old Price id
 	if body.OldPriceId > 0 {
 		//Use Batch Created
 
@@ -100,6 +105,9 @@ func (_ *CTablePrice) UpdateTablePrice(c *gin.Context, prof models.CmsUser) {
 	}
 	if body.FromDate > 0 {
 		tablePrice.FromDate = body.FromDate
+		year, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.YEAR_FORMAT, body.FromDate)
+		yearInt, _ := strconv.Atoi(year)
+		tablePrice.Year = yearInt
 	}
 	if body.Status != "" {
 		tablePrice.Status = body.Status
