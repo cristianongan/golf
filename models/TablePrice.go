@@ -16,6 +16,7 @@ type TablePrice struct {
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // Sân Golf
 	Name       string `json:"name" gorm:"type:varchar(256)"`              // Tên Bảng phí
 	FromDate   int64  `json:"from_date" gorm:"index"`                     // Áp dụng phí này từ thời gian
+	Year       int    `json:"year" gorm:"index"`
 }
 
 func (item *TablePrice) Create() error {
@@ -68,6 +69,12 @@ func (item *TablePrice) FindList(page Page) ([]TablePrice, int64, error) {
 	}
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.Year > 0 {
+		db = db.Where("year = ?", item.Year)
+	}
+	if item.Name != "" {
+		db = db.Where("name LIKE ?", "%"+item.Name+"%")
 	}
 	db.Count(&total)
 

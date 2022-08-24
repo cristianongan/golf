@@ -5,111 +5,113 @@ import (
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
-	"start/utils"
+
+	// "start/utils"
 	"start/utils/response_message"
 	"strconv"
-	"strings"
-	"time"
+
+	// "strings"
+	// "time"
 
 	"github.com/gin-gonic/gin"
 )
 
 type CLockTurn struct{}
 
-func (_ *CLockTurn) CreateLockTurn(c *gin.Context, prof models.CmsUser) {
-	body := request.CreateLockTurn{}
-	if bindErr := c.ShouldBind(&body); bindErr != nil {
-		badRequest(c, bindErr.Error())
-		return
-	}
+// func (_ *CLockTurn) CreateLockTurn(c *gin.Context, prof models.CmsUser) {
+// 	body := request.CreateLockTurn{}
+// 	if bindErr := c.ShouldBind(&body); bindErr != nil {
+// 		badRequest(c, bindErr.Error())
+// 		return
+// 	}
 
-	course := models.Course{}
-	course.Uid = body.CourseUid
-	errCourse := course.FindFirst()
-	if errCourse != nil {
-		response_message.InternalServerError(c, errCourse.Error())
-		return
-	}
+// 	course := models.Course{}
+// 	course.Uid = body.CourseUid
+// 	errCourse := course.FindFirst()
+// 	if errCourse != nil {
+// 		response_message.InternalServerError(c, errCourse.Error())
+// 		return
+// 	}
 
-	form := request.GetListBookingSettingForm{
-		CourseUid:  body.CourseUid,
-		PartnerUid: body.PartnerUid,
-	}
+// 	form := request.GetListBookingSettingForm{
+// 		CourseUid:  body.CourseUid,
+// 		PartnerUid: body.PartnerUid,
+// 	}
 
-	cBookingSetting := CBookingSetting{}
-	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(form)
-	weekday := strconv.Itoa(int(time.Now().Weekday()))
-	turnTimeH := 2
-	turnLength := 0
+// 	cBookingSetting := CBookingSetting{}
+// 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(form)
+// 	weekday := strconv.Itoa(int(time.Now().Weekday()))
+// 	turnTimeH := 2
+// 	turnLength := 0
 
-	for _, data := range listSettingDetail {
-		if strings.ContainsAny(data.Dow, weekday) {
-			turnLength = data.TurnLength
-			break
-		}
-	}
+// 	for _, data := range listSettingDetail {
+// 		if strings.ContainsAny(data.Dow, weekday) {
+// 			turnLength = data.TurnLength
+// 			break
+// 		}
+// 	}
 
-	listTeeTimeLock := models.ListTee{}
-	teeTimeDate, _ := utils.ConvertHourToTime(body.TeeTime)
-	teeList := []string{}
+// 	listTeeTimeLock := models.ListTee{}
+// 	teeTimeDate, _ := utils.ConvertHourToTime(body.TeeTime)
+// 	teeList := []string{}
 
-	if course.Hole == 18 {
+// 	if course.Hole == 18 {
 
-		if body.Tee == "1" {
-			teeList = []string{"10"}
-		} else {
-			teeList = []string{"1"}
-		}
-	} else if course.Hole == 27 {
+// 		if body.Tee == "1" {
+// 			teeList = []string{"10"}
+// 		} else {
+// 			teeList = []string{"1"}
+// 		}
+// 	} else if course.Hole == 27 {
 
-		if body.Tee == "1A" {
-			teeList = []string{"1B", "1C"}
-		} else if body.Tee == "1B" {
-			teeList = []string{"1C", "1A"}
-		} else if body.Tee == "1C" {
-			teeList = []string{"1A", "1B"}
-		}
+// 		if body.Tee == "1A" {
+// 			teeList = []string{"1B", "1C"}
+// 		} else if body.Tee == "1B" {
+// 			teeList = []string{"1C", "1A"}
+// 		} else if body.Tee == "1C" {
+// 			teeList = []string{"1A", "1B"}
+// 		}
 
-	} else {
-		if body.Tee == "1A" {
-			teeList = []string{"10A", "1B", "10B"}
-		} else if body.Tee == "10A" {
-			teeList = []string{"1B", "10B", "1A"}
-		} else if body.Tee == "1B" {
-			teeList = []string{"10B", "1A", "10A"}
-		} else {
-			teeList = []string{"1A", "10A", "1B"}
-		}
-	}
+// 	} else {
+// 		if body.Tee == "1A" {
+// 			teeList = []string{"10A", "1B", "10B"}
+// 		} else if body.Tee == "10A" {
+// 			teeList = []string{"1B", "10B", "1A"}
+// 		} else if body.Tee == "1B" {
+// 			teeList = []string{"10B", "1A", "10A"}
+// 		} else {
+// 			teeList = []string{"1A", "10A", "1B"}
+// 		}
+// 	}
 
-	for index, tee := range teeList {
-		t := teeTimeDate.Add((time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(turnLength)) * time.Duration(index))
-		teeTime1B := strconv.Itoa(t.Hour()) + ":" + strconv.Itoa(t.Minute())
+// 	for index, tee := range teeList {
+// 		t := teeTimeDate.Add((time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(turnLength)) * time.Duration(index))
+// 		teeTime1B := strconv.Itoa(t.Hour()) + ":" + strconv.Itoa(t.Minute())
 
-		teeTimeLock := models.TeeInfo{
-			TeeTime: teeTime1B,
-			TeeType: tee,
-		}
-		listTeeTimeLock = append(listTeeTimeLock, teeTimeLock)
-	}
+// 		teeTimeLock := models.TeeInfo{
+// 			TeeTime: teeTime1B,
+// 			TeeType: tee,
+// 		}
+// 		listTeeTimeLock = append(listTeeTimeLock, teeTimeLock)
+// 	}
 
-	teeTimeSetting := models.LockTurn{
-		TeeTimeLock:    listTeeTimeLock,
-		BookingDate:    body.BookingDate,
-		TurnTimeStatus: body.TurnTimeStatus,
-		Tee:            body.Tee,
-		CourseUid:      body.CourseUid,
-		PartnerUid:     body.PartnerUid,
-	}
+// 	teeTimeSetting := models.LockTurn{
+// 		TeeTimeLock:    listTeeTimeLock,
+// 		BookingDate:    body.BookingDate,
+// 		TurnTimeStatus: body.TurnTimeStatus,
+// 		Tee:            body.Tee,
+// 		CourseUid:      body.CourseUid,
+// 		PartnerUid:     body.PartnerUid,
+// 	}
 
-	errC := teeTimeSetting.Create()
-	if errC != nil {
-		response_message.InternalServerError(c, errC.Error())
-		return
-	}
+// 	errC := teeTimeSetting.Create()
+// 	if errC != nil {
+// 		response_message.InternalServerError(c, errC.Error())
+// 		return
+// 	}
 
-	okResponse(c, teeTimeSetting)
-}
+// 	okResponse(c, teeTimeSetting)
+// }
 
 func (_ *CLockTurn) GetLockTurn(c *gin.Context, prof models.CmsUser) {
 	query := request.GetListLockTurn{}

@@ -483,7 +483,7 @@ func NewRouter() *gin.Engine {
 
 			/// =================== Unlock Turn Time =====================
 			cLockTurn := new(controllers.CLockTurn)
-			cmsApiAuthorized.POST("/lock-turn", middlewares.AuthorizedCmsUserHandler(cLockTurn.CreateLockTurn))
+			// cmsApiAuthorized.POST("/lock-turn", middlewares.AuthorizedCmsUserHandler(cLockTurn.CreateLockTurn))
 			cmsApiAuthorized.GET("/lock-turn/list", middlewares.AuthorizedCmsUserHandler(cLockTurn.GetLockTurn))
 			cmsApiAuthorized.DELETE("/lock-turn/:id", middlewares.AuthorizedCmsUserHandler(cLockTurn.DeleteLockTurn))
 
@@ -518,6 +518,17 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/kiosk-inventory/item", middlewares.AuthorizedCmsUserHandler(cKioskInventory.CreateItem))
 			cmsApiAuthorized.POST("/kiosk-inventory/input", middlewares.AuthorizedCmsUserHandler(cKioskInventory.InputItem))
 			cmsApiAuthorized.POST("/kiosk-inventory/output", middlewares.AuthorizedCmsUserHandler(cKioskInventory.OutputItem))
+
+			/// =================== Kiosk ===================
+			cKioskCart := new(controllers.CKioskCart)
+			/// * multiple cart
+			cmsApiAuthorized.POST("/kiosk-cart/add-item", middlewares.AuthorizedCmsUserHandler(cKioskCart.AddItemToCart))
+			cmsApiAuthorized.POST("/kiosk-cart/add-discount", middlewares.AuthorizedCmsUserHandler(cKioskCart.AddDiscountToItem))
+			cmsApiAuthorized.GET("/kiosk-cart/get-item", middlewares.AuthorizedCmsUserHandler(cKioskCart.GetItemInCart))
+			cmsApiAuthorized.POST("/kiosk-cart/update-quantity", middlewares.AuthorizedCmsUserHandler(cKioskCart.UpdateQuantityToCart))
+			cmsApiAuthorized.DELETE("/kiosk-cart/delete-item", middlewares.AuthorizedCmsUserHandler(cKioskCart.DeleteItemInCart))
+			cmsApiAuthorized.POST("/kiosk-cart/create-billing", middlewares.AuthorizedCmsUserHandler(cKioskCart.CreateBilling))
+			cmsApiAuthorized.POST("/kiosk-cart/move-item", middlewares.AuthorizedCmsUserHandler(cKioskCart.MoveItemToOtherCart))
 		}
 
 		// ----------------------------------------------------------

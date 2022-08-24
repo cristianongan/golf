@@ -45,7 +45,6 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 	errFind = nil
-
 	// Tạo Fee
 	golfFee := models.GolfFee{
 		PartnerUid:   body.PartnerUid,
