@@ -9,9 +9,11 @@ import (
 
 type InventoryItem struct {
 	models.ModelId
-	Code     string `json:"code"`
-	Name     string `json:"name"`
-	Quantity int64  `json:"quantity"`
+	Code        string `json:"code"`
+	Name        string `json:"name"`
+	Unit        string `json:"unit"`
+	Quantity    int64  `json:"quantity"`
+	StockStatus string `json:"stock_status"`
 }
 
 func (item *InventoryItem) FindFirst() error {
