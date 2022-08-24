@@ -297,7 +297,7 @@ func (_ CKioskCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	cart.BillingCode = "KIOSK-" + time.Now().Format("20060102150405")
+	cart.BillingCode = "KIOSK-BILLING-" + time.Now().Format("20060102150405")
 
 	if err := cart.Update(); err != nil {
 		response_message.InternalServerError(c, err.Error())
