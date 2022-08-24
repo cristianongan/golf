@@ -869,6 +869,12 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	// Update caddie
 	if body.CaddieCode != "" {
 		booking.CaddieId = caddie.Id
+
+		if booking.CheckDuplicatedCaddieInTeeTime() {
+			response_message.InternalServerError(c, "Caddie không được trùng trong cùng TeeTime")
+			return
+		}
+
 		booking.CaddieInfo = cloneToCaddieBooking(caddie)
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
 
