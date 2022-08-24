@@ -82,8 +82,6 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 		ContractStatus: body.ContractStatus,
 	}
 
-	Caddie.GroupId, _ = strconv.ParseInt(body.Group, 10, 8)
-
 	err := Caddie.Create()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -373,5 +371,8 @@ func assignCaddieUpdate(caddieRequest *models.Caddie, body request.UpdateCaddieB
 	}
 	if body.Avatar != nil {
 		caddieRequest.Avatar = *body.Avatar
+	}
+	if body.GroupId > 0 {
+		caddieRequest.GroupId = body.GroupId
 	}
 }
