@@ -718,6 +718,23 @@ func (item *Booking) IsDuplicated(checkTeeTime, checkBag bool) (bool, error) {
 	return false, nil
 }
 
+func (item *Booking) CheckDuplicatedCaddieInTeeTime() bool {
+	if item.TeeTime == "" {
+		return false
+	}
+
+	booking := Booking{
+		PartnerUid:  item.PartnerUid,
+		CourseUid:   item.CourseUid,
+		TeeTime:     item.TeeTime,
+		BookingDate: item.BookingDate,
+		CaddieId:    item.CaddieId,
+	}
+
+	errFind := booking.FindFirstNotCancel()
+	return errFind == nil
+}
+
 // ----------- CRUD ------------
 func (item *Booking) Create(uid string) error {
 	item.Model.Uid = uid

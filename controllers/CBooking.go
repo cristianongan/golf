@@ -76,10 +76,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			response_message.BadRequest(c, "Tee Time đã bị khóa")
 			return nil
 		}
-		// if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_DELETED) {
-		// 	response_message.BadRequest(c, "Tee Time đã bị xóa")
-		// 	return
-		// }
 	}
 
 	//check Booking Source with date time rule
@@ -319,6 +315,12 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	// Update caddie
 	if body.CaddieCode != "" {
 		booking.CaddieId = caddie.Id
+
+		if booking.CheckDuplicatedCaddieInTeeTime() {
+			response_message.InternalServerError(c, "Caddie không được trùng trong cùng TeeTime")
+			return nil
+		}
+
 		booking.CaddieInfo = cloneToCaddieBooking(caddie)
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
 
@@ -431,7 +433,10 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 	listRound, _, _ := round.FindAll()
 
 	if len(listRound) > 0 {
-		res := model_booking.ListBookingWithRound{booking, listRound}
+		res := model_booking.ListBookingWithRound{
+			Booking: booking,
+			Rounds:  listRound,
+		}
 		okResponse(c, res)
 		return
 	}
