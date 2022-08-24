@@ -63,6 +63,8 @@ func (_ *CTablePrice) GetListTablePrice(c *gin.Context, prof models.CmsUser) {
 	tablePriceR := models.TablePrice{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
+		Name:       form.TablePriceName,
+		Year:       form.Year,
 	}
 	list, total, err := tablePriceR.FindList(page)
 	if err != nil {
