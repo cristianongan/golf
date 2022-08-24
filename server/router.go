@@ -483,7 +483,7 @@ func NewRouter() *gin.Engine {
 
 			/// =================== Unlock Turn Time =====================
 			cLockTurn := new(controllers.CLockTurn)
-			cmsApiAuthorized.POST("/lock-turn", middlewares.AuthorizedCmsUserHandler(cLockTurn.CreateLockTurn))
+			// cmsApiAuthorized.POST("/lock-turn", middlewares.AuthorizedCmsUserHandler(cLockTurn.CreateLockTurn))
 			cmsApiAuthorized.GET("/lock-turn/list", middlewares.AuthorizedCmsUserHandler(cLockTurn.GetLockTurn))
 			cmsApiAuthorized.DELETE("/lock-turn/:id", middlewares.AuthorizedCmsUserHandler(cLockTurn.DeleteLockTurn))
 
