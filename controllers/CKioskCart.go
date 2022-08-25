@@ -65,9 +65,9 @@ func (_ CKioskCart) AddItemToCart(c *gin.Context, prof models.CmsUser) {
 	cart.PartnerUid = prof.PartnerUid
 	cart.CourseUid = prof.CourseUid
 	cart.GolfBag = body.GolfBag
-	cart.BookingDate = datatypes.Date(time.Now())
+	cart.BookingDate = datatypes.Date(time.Now().UTC())
 	cart.KioskCode = body.KioskCode
-	cart.BillingCode = ""
+	cart.BillingCode = "NONE"
 
 	err := cart.FindFirst()
 
@@ -131,7 +131,7 @@ func (_ CKioskCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	cart.Id = cartItem.KioskCartId
 	cart.PartnerUid = prof.PartnerUid
 	cart.CourseUid = prof.CourseUid
-	cart.BillingCode = ""
+	cart.BillingCode = "NONE"
 
 	if err := cart.FindFirst(); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -229,7 +229,7 @@ func (_ CKioskCart) UpdateQuantityToCart(c *gin.Context, prof models.CmsUser) {
 	cart.PartnerUid = prof.PartnerUid
 	cart.CourseUid = prof.CourseUid
 	cart.Id = cartItem.KioskCartId
-	cart.BillingCode = ""
+	cart.BillingCode = "NONE"
 
 	if err := cart.FindFirst(); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -271,7 +271,7 @@ func (_ CKioskCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	cart.PartnerUid = prof.PartnerUid
 	cart.CourseUid = prof.CourseUid
 	cart.Id = cartItem.KioskCartId
-	cart.BillingCode = ""
+	cart.BillingCode = "NONE"
 
 	if err := cart.FindFirst(); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -301,14 +301,12 @@ func (_ CKioskCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	bookingDate, _ := time.Parse("2006-01-02", body.BookingDate)
-
 	cart := kiosk_cart.Cart{}
 	cart.PartnerUid = prof.PartnerUid
 	cart.CourseUid = prof.CourseUid
 	cart.KioskCode = body.KioskCode
 	cart.GolfBag = body.GolfBag
-	cart.BookingDate = datatypes.Date(bookingDate)
+	cart.BookingDate = datatypes.Date(time.Now().UTC())
 
 	if err := cart.FindFirst(); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -340,12 +338,21 @@ func (_ CKioskCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// validate golf bag
+	booking := model_booking.Booking{}
+	booking.Bag = body.GolfBag
+	booking.BookingDate = time.Now().Format("02/01/2006")
+	if err := booking.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
 	// validate cart code
 	sourceCart := kiosk_cart.Cart{}
 	sourceCart.Code = body.CartCode
 	sourceCart.PartnerUid = prof.PartnerUid
 	sourceCart.CourseUid = prof.CourseUid
-	sourceCart.BillingCode = ""
+	sourceCart.BillingCode = "NONE"
 
 	if err := sourceCart.FindFirst(); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -359,7 +366,7 @@ func (_ CKioskCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	targetCart.GolfBag = body.GolfBag
 	targetCart.BookingDate = sourceCart.BookingDate
 	targetCart.KioskCode = sourceCart.KioskCode
-	targetCart.BillingCode = ""
+	targetCart.BillingCode = "NONE"
 
 	err := targetCart.FindFirst()
 
@@ -379,6 +386,8 @@ func (_ CKioskCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	for _, cartItemId := range body.CartItemIdList {
 		cartItemTemp := kiosk_cart.CartItem{}
 		cartItemTemp.Id = cartItemId
+		cartItemTemp.KioskCartId = sourceCart.Id
+		cartItemTemp.KioskCartCode = sourceCart.Code
 
 		if err := cartItemTemp.FindFirst(); err != nil {
 			continue
