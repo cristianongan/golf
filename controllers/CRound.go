@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+
 	// "log"
 	"start/constants"
 	"start/controllers/request"
@@ -55,13 +56,15 @@ func (_ CRound) createRound(booking model_booking.Booking, newHole int) error {
 	round.PartnerUid = booking.PartnerUid
 	round.CourseUid = booking.CourseUid
 	round.GuestStyle = booking.GuestStyle
-	// round.BuggyFee = utils.GetFeeFromListFee(golfFee.BuggyFee, newHole)
-	// round.CaddieFee = utils.GetFeeFromListFee(golfFee.CaddieFee, newHole)
-	// round.GreenFee = utils.GetFeeFromListFee(golfFee.GreenFee, newHole)
 	round.Hole = newHole
 	round.MemberCardUid = booking.MemberCardUid
 	round.TeeOffTime = booking.CheckInTime
 	round.Pax = 1
+	if len(booking.ListGolfFee) > 0 {
+		round.BuggyFee = booking.ListGolfFee[0].BuggyFee
+		round.CaddieFee = booking.ListGolfFee[0].CaddieFee
+		round.GreenFee = booking.ListGolfFee[0].GreenFee
+	}
 
 	errCreateRound := round.Create()
 	if errCreateRound != nil {
@@ -126,6 +129,111 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 			response_message.BadRequest(c, err.Error())
 			return
 		}
+
+		// Tạo uid cho booking mới
+		bookingUid := uuid.New()
+		bUid := booking.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
+
+		// Check giá guest style
+		if booking.GuestStyle != "" {
+			//Guest style
+			golfFeeModel := models.GolfFee{
+				PartnerUid: booking.PartnerUid,
+				CourseUid:  booking.CourseUid,
+				GuestStyle: booking.GuestStyle,
+			}
+			// Lấy phí bởi Guest style với ngày tạo
+			golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay()
+			if errFindGF != nil {
+				response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+				return
+			}
+
+			getInitListGolfFeeForAddRound(&booking, golfFee, body.Hole)
+		} else {
+			// Get config course
+			course := models.Course{}
+			course.Uid = booking.CourseUid
+			errCourse := course.FindFirst()
+			if errCourse != nil {
+				response_message.BadRequest(c, errCourse.Error())
+				return
+			}
+			// Lấy giá đặc biệt của member card
+			if booking.MemberCardUid != "" {
+				// Get Member Card
+				memberCard := models.MemberCard{}
+				memberCard.Uid = booking.MemberCardUid
+				errFind := memberCard.FindFirst()
+				if errFind != nil {
+					response_message.BadRequest(c, errFind.Error())
+					return
+				}
+
+				if memberCard.PriceCode == 1 {
+					getInitListGolfFeeWithOutGuestStyleForAddRound(&booking, course.RateGolfFee, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee, body.Hole)
+				}
+			}
+
+			// Lấy giá đặc biệt của member card
+			if booking.AgencyId > 0 {
+				agency := models.Agency{}
+				agency.Id = booking.AgencyId
+				errFindAgency := agency.FindFirst()
+				if errFindAgency != nil || agency.Id == 0 {
+					response_message.BadRequest(c, "agency"+errFindAgency.Error())
+					return
+				}
+
+				agencySpecialPrice := models.AgencySpecialPrice{
+					AgencyId: agency.Id,
+				}
+				errFSP := agencySpecialPrice.FindFirst()
+				if errFSP == nil && agencySpecialPrice.Id > 0 {
+					// Tính lại giá
+					// List Booking GolfFee
+					getInitListGolfFeeWithOutGuestStyleForAddRound(&booking, course.RateGolfFee, agencySpecialPrice.CaddieFee, agencySpecialPrice.BuggyFee, agencySpecialPrice.GreenFee, body.Hole)
+				}
+			}
+		}
+
+		if len(booking.MainBags) > 0 {
+			// Get data main bag
+			bookingMain := model_booking.Booking{}
+			bookingMain.Uid = booking.MainBags[0].BookingUid
+			if err := bookingMain.FindFirst(); err != nil {
+				return
+			}
+
+			for _, v1 := range bookingMain.MainBagPay {
+				// TODO: Tính Fee cho sub bag fee
+				if v1 == constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS {
+					for i, v2 := range bookingMain.ListGolfFee {
+						if v2.Bag == booking.Bag {
+							bookingMain.ListGolfFee[i].BuggyFee = booking.ListGolfFee[0].BuggyFee
+							bookingMain.ListGolfFee[i].CaddieFee = booking.ListGolfFee[0].CaddieFee
+							bookingMain.ListGolfFee[i].GreenFee = booking.ListGolfFee[0].GreenFee
+						}
+					}
+					// Update mush pay, current bag
+					totalPayChange := booking.ListGolfFee[0].CaddieFee + booking.ListGolfFee[0].BuggyFee + booking.ListGolfFee[0].GreenFee
+
+					bookingMain.MushPayInfo.MushPay += totalPayChange
+					bookingMain.MushPayInfo.TotalGolfFee += totalPayChange
+
+					errUpdateBooking := bookingMain.Update()
+
+					if errUpdateBooking != nil {
+						response_message.BadRequest(c, errUpdateBooking.Error())
+						return
+					}
+
+					break
+				}
+			}
+
+		}
+
 		err = cRound.createRound(booking, body.Hole)
 		if err != nil {
 			response_message.BadRequest(c, err.Error())
@@ -133,8 +241,16 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		}
 
 		booking.BagStatus = constants.BAG_STATUS_WAITING
-		bookingUid := uuid.New()
-		bUid := booking.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
+
+		//Update mush pay, current bag
+		if len(booking.ListGolfFee) > 0 {
+			totalPayChange := booking.ListGolfFee[0].CaddieFee + booking.ListGolfFee[0].BuggyFee + booking.ListGolfFee[0].GreenFee
+
+			booking.MushPayInfo.MushPay += totalPayChange
+			booking.MushPayInfo.TotalGolfFee += totalPayChange
+			booking.CurrentBagPrice.Amount += totalPayChange
+			booking.CurrentBagPrice.GolfFee += totalPayChange
+		}
 		errCreateBooking := booking.Create(bUid)
 
 		if errCreateBooking != nil {

@@ -15,8 +15,9 @@ type Kiosk struct {
 	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	KioskName   string `json:"kiosk_name" gorm:"type:varchar(256)"`        // Tên
-	ServiceType string `json:"service_type" gorm:"type:varchar(50)"`       // Loại rental, kiosk, proshop
-	KioskType   string `json:"kiosk_type" gorm:"type:varchar(50)"`         // Kiểu Kiosk (Mini Bar, Mini Restaurant,...)
+	KioskCode   string `json:"kiosk_code"`
+	ServiceType string `json:"service_type" gorm:"type:varchar(50)"` // Loại rental, kiosk, proshop
+	KioskType   string `json:"kiosk_type" gorm:"type:varchar(50)"`   // Kiểu Kiosk (Mini Bar, Mini Restaurant,...)
 }
 
 func (item *Kiosk) IsValidated() bool {
@@ -42,6 +43,7 @@ func (item *Kiosk) Create() error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
+	item.KioskCode = "KIOSK-" + time.Now().Format("20060102150405")
 	if item.ModelId.Status == "" {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}

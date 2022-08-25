@@ -236,6 +236,17 @@ func getInitListGolfFeeForBooking(uid string, body request.CreateBookingBody, go
 	return listBookingGolfFee, bookingGolfFee
 }
 
+func getInitListGolfFeeForAddRound(booking *model_booking.Booking, golfFee models.GolfFee, hole int) {
+	bookingGolfFee := booking.ListGolfFee[0]
+
+	bookingGolfFee.BookingUid = booking.Uid
+	bookingGolfFee.CaddieFee += utils.GetFeeFromListFee(golfFee.CaddieFee, hole)
+	bookingGolfFee.BuggyFee += utils.GetFeeFromListFee(golfFee.BuggyFee, hole)
+	bookingGolfFee.GreenFee += utils.GetFeeFromListFee(golfFee.GreenFee, hole)
+
+	booking.ListGolfFee[0] = bookingGolfFee
+}
+
 /*
 Tính golf fee cho đơn thqay đổi hố
 */
@@ -285,6 +296,17 @@ func getInitListGolfFeeWithOutGuestStyleForBooking(uid, rate string, body reques
 
 	listBookingGolfFee = append(listBookingGolfFee, bookingGolfFee)
 	return listBookingGolfFee, bookingGolfFee
+}
+
+func getInitListGolfFeeWithOutGuestStyleForAddRound(booking *model_booking.Booking, rate string, caddieFee, buggyFee, greenFee int64, hole int) {
+	bookingGolfFee := booking.ListGolfFee[0]
+
+	bookingGolfFee.BookingUid = booking.Uid
+	bookingGolfFee.CaddieFee += utils.CalculateFeeByHole(hole, caddieFee, rate)
+	bookingGolfFee.BuggyFee += utils.CalculateFeeByHole(hole, buggyFee, rate)
+	bookingGolfFee.GreenFee += utils.CalculateFeeByHole(hole, greenFee, rate)
+
+	booking.ListGolfFee[0] = bookingGolfFee
 }
 
 /*

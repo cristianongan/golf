@@ -8,6 +8,8 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
+	kiosk_cart "start/models/kiosk-cart"
+	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
 )
 
@@ -120,6 +122,16 @@ func MigrateDb() {
 
 		// ------- Round -------
 		db.AutoMigrate(&models.Round{})
+
+		// ------- KioskInventoryItem -------
+		db.AutoMigrate(&kiosk_inventory.InventoryItem{})
+		db.AutoMigrate(&kiosk_inventory.InventoryInputItem{})
+		db.AutoMigrate(&kiosk_inventory.InventoryOutputItem{})
+
+		// ------- KioskCart -------
+		db.AutoMigrate(&kiosk_cart.Cart{})
+		db.AutoMigrate(&kiosk_cart.CartItem{})
+
 
 		log.Println("migrated db")
 	}
