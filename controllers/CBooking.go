@@ -440,21 +440,7 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking.FindServiceItems()
-
-	res := model_booking.BagDetail{
-		Booking: booking,
-	}
-
-	// Get Rounds
-	round := models.Round{BillCode: booking.BillCode}
-	listRound, _ := round.FindAll()
-
-	if len(listRound) > 0 {
-		res.Rounds = listRound
-		okResponse(c, res)
-		return
-	}
+	res := getBagDetailFromBooking(booking)
 
 	okResponse(c, res)
 }
@@ -915,7 +901,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	okResponse(c, booking)
+	res := getBagDetailFromBooking(booking)
+
+	okResponse(c, res)
 }
 
 /*
@@ -1122,7 +1110,9 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	okResponse(c, booking)
+	res := getBagDetailFromBooking(booking)
+
+	okResponse(c, res)
 }
 
 /*
@@ -1239,7 +1229,8 @@ func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	okResponse(c, booking)
+	res := getBagDetailFromBooking(booking)
+	okResponse(c, res)
 }
 
 /*
