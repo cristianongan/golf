@@ -442,6 +442,7 @@ func initListRound(booking model_booking.Booking, bookingGolfFee model_booking.B
 	round.MemberCardUid = booking.MemberCardUid
 	round.TeeOffTime = booking.CheckInTime
 	round.Pax = 1
+	round.Index = 1
 
 	errCreateRound := round.Create()
 	if errCreateRound != nil {
