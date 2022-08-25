@@ -611,14 +611,18 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 			return errFC, booking, caddie, models.Buggy{}
 		}
 
-		if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY {
-			booking.CaddieId = caddie.Id
-			booking.CaddieInfo = cloneToCaddieBooking(caddie)
-			booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
-			caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
-		} else {
-			return errors.New("Caddie đang trong IN_COURSE"), booking, caddie, models.Buggy{}
-		}
+		booking.CaddieId = caddie.Id
+		booking.CaddieInfo = cloneToCaddieBooking(caddie)
+		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+
+		// if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY {
+		// booking.CaddieId = caddie.Id
+		// booking.CaddieInfo = cloneToCaddieBooking(caddie)
+		// booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+		// caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+		// } else {
+		// 	return errors.New("Caddie đang trong IN_COURSE"), booking, caddie, models.Buggy{}
+		// }
 	}
 
 	// TODO: validate current_status
