@@ -312,7 +312,7 @@ func getInitListGolfFeeWithOutGuestStyleForAddRound(booking *model_booking.Booki
 /*
 Update fee when action round
 */
-func updateListGolfFeeWithRound(round *models.Round, booking *model_booking.Booking) {
+func updateListGolfFeeWithRound(round *models.Round, booking *model_booking.Booking, hole int) {
 	// Check giá guest style
 	if booking.GuestStyle != "" {
 		//Guest style
@@ -328,7 +328,7 @@ func updateListGolfFeeWithRound(round *models.Round, booking *model_booking.Book
 			return
 		}
 
-		getInitListGolfFeeForAddRound(booking, golfFee, round.Hole)
+		getInitListGolfFeeForAddRound(booking, golfFee, hole)
 	} else {
 		// Get config course
 		course := models.Course{}
@@ -350,7 +350,7 @@ func updateListGolfFeeWithRound(round *models.Round, booking *model_booking.Book
 			}
 
 			if memberCard.PriceCode == 1 {
-				getInitListGolfFeeWithOutGuestStyleForAddRound(booking, course.RateGolfFee, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee, round.Hole)
+				getInitListGolfFeeWithOutGuestStyleForAddRound(booking, course.RateGolfFee, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee, hole)
 			}
 		}
 
@@ -371,7 +371,7 @@ func updateListGolfFeeWithRound(round *models.Round, booking *model_booking.Book
 			if errFSP == nil && agencySpecialPrice.Id > 0 {
 				// Tính lại giá
 				// List Booking GolfFee
-				getInitListGolfFeeWithOutGuestStyleForAddRound(booking, course.RateGolfFee, agencySpecialPrice.CaddieFee, agencySpecialPrice.BuggyFee, agencySpecialPrice.GreenFee, round.Hole)
+				getInitListGolfFeeWithOutGuestStyleForAddRound(booking, course.RateGolfFee, agencySpecialPrice.CaddieFee, agencySpecialPrice.BuggyFee, agencySpecialPrice.GreenFee, hole)
 			}
 		}
 	}
