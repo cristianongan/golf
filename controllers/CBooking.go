@@ -438,19 +438,30 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	res := model_booking.BagDetail{
+		Booking: booking,
+	}
+
+	// Get Rounds
 	round := models.Round{BillCode: booking.BillCode}
-	listRound, _, _ := round.FindAll()
+	listRound, _ := round.FindAll()
 
 	if len(listRound) > 0 {
-		res := model_booking.ListBookingWithRound{
-			Booking: booking,
-			Rounds:  listRound,
-		}
+		res.Rounds = listRound
 		okResponse(c, res)
 		return
 	}
 
-	okResponse(c, booking)
+	// Get service items
+	serviceGolfs := model_booking.BookingServiceItem{
+		BillCode: booking.BillCode,
+	}
+	listGolfService, _ := serviceGolfs.FindAll()
+	if len(listGolfService) > 0 {
+		res.ListServiceItems = listGolfService
+	}
+
+	okResponse(c, res)
 }
 
 /*
@@ -742,10 +753,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	// Không udp lại Bag
-	// if body.Bag != "" {
-	// 	booking.Bag = body.Bag
-	// }
+	// Update info khác cho service items
 	if body.ListServiceItems != nil {
 		countItems := len(body.ListServiceItems)
 		if countItems > 0 {
@@ -753,6 +761,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 				body.ListServiceItems[i].BookingUid = booking.Uid
 				body.ListServiceItems[i].PlayerName = booking.CustomerName
 				body.ListServiceItems[i].Bag = booking.Bag
+				body.ListServiceItems[i].BillCode = booking.BillCode
 			}
 		}
 	}
@@ -847,7 +856,11 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	booking.ListServiceItems = body.ListServiceItems
 
 	//Update service items cho table booking_service_items
-	// cBooking.UpdateBookServiceList(body.ListServiceItems)
+	errUdpService := updateBookServiceList(body.ListServiceItems)
+	if errUdpService != nil {
+		response_message.InternalServerError(c, errUdpService.Error())
+		return
+	}
 
 	// Tính lại giá
 	booking.UpdatePriceDetailCurrentBag()
@@ -917,44 +930,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, booking)
-}
-
-/*
- update book service list
-*/
-
-func (_ *CBooking) UpdateBookServiceList(serviceList model_booking.ListBookingServiceItems) {
-	for _, v := range serviceList {
-		bookingServiceItem := model_booking.BookingServiceItem{
-			BookingUid: v.BookingUid,
-			GroupCode:  v.GroupCode,
-			Bag:        v.Bag,
-		}
-
-		errFind := bookingServiceItem.FindFirst()
-		bookingServiceItemUpdate := model_booking.BookingServiceItem{
-			BookingUid:    v.BookingUid,
-			GroupCode:     v.GroupCode,
-			ServiceId:     v.ServiceId,
-			PlayerName:    v.PlayerName,
-			Bag:           v.Bag,
-			Type:          v.Type,
-			Order:         v.Order,
-			Name:          v.Name,
-			Quality:       v.Quality,
-			UnitPrice:     v.UnitPrice,
-			DiscountType:  v.DiscountType,
-			DiscountValue: v.DiscountValue,
-			Amount:        v.Amount,
-			Input:         v.Input,
-		}
-		if errFind == nil {
-			bookingServiceItemUpdate.ModelId = bookingServiceItem.ModelId
-			bookingServiceItemUpdate.Update()
-		} else {
-			bookingServiceItem.Create()
-		}
-	}
 }
 
 /*

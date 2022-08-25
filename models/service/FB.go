@@ -73,6 +73,12 @@ func (item *FoodBeverage) FindFirst() error {
 	return db.Where(item).First(item).Error
 }
 
+func (item *FoodBeverage) FindFirstInKiosk(kioskId int64) error {
+	db := datasources.GetDatabase()
+
+	return db.Where(item).Where("(alone_kiosk = ? OR for_kiosk = ?)", kioskId, 1).First(item).Error
+}
+
 func (item *FoodBeverage) Count() (int64, error) {
 	db := datasources.GetDatabase().Model(FoodBeverage{})
 	total := int64(0)

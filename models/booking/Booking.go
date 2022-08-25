@@ -120,9 +120,10 @@ type FlyInfoResponse struct {
 	GroupNameFlight string `json:"group_name_flight,omitempty" gorm:"-:migration"`
 }
 
-type ListBookingWithRound struct {
+type BagDetail struct {
 	Booking
-	Rounds models.ListRound `json:"rounds"`
+	Rounds           models.ListRound        `json:"rounds"`
+	ListServiceItems ListBookingServiceItems `json:"list_service_items,omitempty"`
 }
 
 type BookingForListServiceIems struct {
