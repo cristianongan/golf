@@ -16,20 +16,20 @@ import (
 type BookingServiceItem struct {
 	models.ModelId
 	ItemId        int64  `json:"item_id"  gorm:"index"`                       // Id item
-	ServiceId     string `json:"service_id"`                                  // uid service
+	ServiceId     string `json:"service_id"  gorm:"type:varchar(100)"`        // uid service
 	BookingUid    string `json:"booking_uid"  gorm:"type:varchar(100);index"` // Uid booking
-	PlayerName    string `json:"player_name"`                                 // Tên người chơi
-	Bag           string `json:"bag"`                                         // Golf Bag
-	Type          string `json:"type"`                                        // Loại rental, kiosk, proshop,...
-	Order         string `json:"order"`                                       // Có thể là mã
-	Name          string `json:"name"`
-	GroupCode     string `json:"group_code"`
+	PlayerName    string `json:"player_name" gorm:"type:varchar(256)"`        // Tên người chơi
+	Bag           string `json:"bag" gorm:"type:varchar(50)"`                 // Golf Bag
+	Type          string `json:"type" gorm:"type:varchar(50)"`                // Loại rental, kiosk, proshop,...
+	Order         string `json:"order"  gorm:"type:varchar(100)"`             // Có thể là mã
+	Name          string `json:"name" gorm:"type:varchar(256)"`
+	GroupCode     string `json:"group_code" gorm:"type:varchar(100)"`
 	Quality       int    `json:"quality"` // Số lượng
 	UnitPrice     int64  `json:"unit_price"`
-	DiscountType  string `json:"discount_type"`
+	DiscountType  string `json:"discount_type" gorm:"type:varchar(50)"`
 	DiscountValue int64  `json:"discount_value"`
 	Amount        int64  `json:"amount"`
-	Input         string `json:"input"` // Note
+	Input         string `json:"input" gorm:"type:varchar(300)"` // Note
 	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"`
 }
 

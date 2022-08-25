@@ -340,7 +340,7 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	}
 
 	round := models.Round{BillCode: booking.BillCode}
-	listRound, _, _ := round.FindAll()
+	listRound, _ := round.FindAll()
 
 	// create round
 	totalHoles := slices.Reduce(listRound, func(prev int, item models.Round) int {
