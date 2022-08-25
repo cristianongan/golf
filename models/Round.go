@@ -76,6 +76,16 @@ func (item *Round) Count() (int64, error) {
 	return total, db.Error
 }
 
+func (item *Round) CountWithBillCode() (int64, error) {
+	db := datasources.GetDatabase().Model(Round{})
+	total := int64(0)
+	if item.BillCode != "" {
+		db = db.Where("bill_code = ?", item.BillCode)
+	}
+	db = db.Count(&total)
+	return total, db.Error
+}
+
 func (item *Round) FindList(page Page) ([]Round, int64, error) {
 	db := datasources.GetDatabase().Model(Round{})
 	list := []Round{}
