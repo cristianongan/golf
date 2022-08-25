@@ -852,15 +852,15 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerBookingPhone = booking.CustomerInfo.Phone
 	}
 
-	//Update service items
-	booking.ListServiceItems = body.ListServiceItems
+	// //Update service items
+	// booking.ListServiceItems = body.ListServiceItems
 
-	//Update service items cho table booking_service_items
-	errUdpService := updateBookServiceList(body.ListServiceItems)
-	if errUdpService != nil {
-		response_message.InternalServerError(c, errUdpService.Error())
-		return
-	}
+	// //Update service items cho table booking_service_items
+	// errUdpService := updateBookServiceList(body.ListServiceItems)
+	// if errUdpService != nil {
+	// 	response_message.InternalServerError(c, errUdpService.Error())
+	// 	return
+	// }
 
 	// Tính lại giá
 	booking.UpdatePriceDetailCurrentBag()
