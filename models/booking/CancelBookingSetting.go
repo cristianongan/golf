@@ -6,7 +6,8 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
-	"start/utils"
+
+	// "start/utils"
 
 	// "strconv"
 	"strings"
@@ -121,12 +122,10 @@ func (item *CancelBookingSetting) Delete() error {
 }
 
 func (item *CancelBookingSetting) ValidateBookingCancel(booking Booking) error {
-	// Tính ra số giờ từ lúc cancel so với booking date
-	bookingDate := booking.BookingDate
-	teeTime := booking.TeeTime
-	fullTimeBooking := bookingDate + " " + teeTime
-	bookingDateUnixT := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_2, fullTimeBooking)
-	rangeTime := bookingDateUnixT - time.Now().Unix()
+	// Tính ra số giờ từ lúc cancel so với lúc tạo booking CreateAt
+	rangeTime := time.Now().Unix() - booking.CreatedAt
+	oneDayTimeUnix := int64(24 * 3600)
+	twoHourTimeUnix := int64(2 * 3600)
 
 	// Nếu là Agency
 	if booking.AgencyId > 0 {
@@ -160,32 +159,18 @@ func (item *CancelBookingSetting) ValidateBookingCancel(booking Booking) error {
 			return nil
 		}
 
-		// timeMax := strings.Split(cancelSetting.TimeMax, ":")
-		// timeMaxH, _ := strconv.ParseInt(timeMax[0], 10, 64)
-		// timeMaxM := int64(0)
-		// if len(timeMax) > 1 {
-		// 	timeMaxM, _ = strconv.ParseInt(timeMax[1], 10, 64)
-		// }
-		// timeMaxUnix := timeMaxH*3600 + timeMaxM*60
+		if rangeTime >= twoHourTimeUnix && rangeTime <= oneDayTimeUnix {
+			return errors.New("Book trước 2h và dưới 24h thì sẽ không được hủy booking.")
+		}
 
-		// timeMin := strings.Split(cancelSetting.TimeMin, ":")
-		// timeMinH, _ := strconv.ParseInt(timeMin[0], 10, 64)
-		// timeMinM := int64(0)
-		// if len(timeMax) > 1 {
-		// 	timeMinM, _ = strconv.ParseInt(timeMax[1], 10, 64)
-		// }
-		// timeMixUnix := timeMinH*3600 + timeMinM*60
-
-		// if rangeTime >= timeMixUnix && rangeTime <= timeMaxUnix {
-		// 	return nil
-		// }
-		// return errors.New("Booking chưa đủ thời gian hủy.")
+		if rangeTime > int64(cancelBookingSetting.Time) {
+			return errors.New("Booking đã quá thời gian hủy.")
+		}
 	}
 
 	// Hội viên muốn hủy đặt chỗ chơi golf đều phải thông báo trước 24h
-	oneDayTimeUnix := int64(24 * 3600)
-	if rangeTime < oneDayTimeUnix {
-		return errors.New("Booking chưa đủ thời gian hủy.")
+	if rangeTime > oneDayTimeUnix {
+		return errors.New("Booking đã quá thời gian hủy.")
 	}
 
 	return nil

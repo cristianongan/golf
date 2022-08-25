@@ -11,12 +11,13 @@ import (
 
 type LockTeeTime struct {
 	ModelId
-	PartnerUid    string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng Golf
-	CourseUid     string `json:"course_uid" gorm:"type:varchar(256);index"`  // Sân Golf
-	TeeTime       string `json:"tee_time" gorm:"type:varchar(100);index"`
-	TeeTimeStatus string `json:"tee_time_status" gorm:"type:varchar(100)"` // Trạng thái Tee Time: LOCKED, UNLOCK, DELETED
-	DateTime      string `json:"date_time" gorm:"type:varchar(100)"`       // Ngày mà user update Tee Time
-	Note          string `json:"note"`
+	PartnerUid     string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng Golf
+	CourseUid      string `json:"course_uid" gorm:"type:varchar(256);index"`  // Sân Golf
+	TeeTime        string `json:"tee_time" gorm:"type:varchar(100)"`
+	CurrentTeeTime string `json:"current_tee_time" gorm:"type:varchar(100);index"`
+	TeeTimeStatus  string `json:"tee_time_status" gorm:"type:varchar(100)"` // Trạng thái Tee Time: LOCKED, UNLOCK, DELETED
+	DateTime       string `json:"date_time" gorm:"type:varchar(100)"`       // Ngày mà user update Tee Time
+	Note           string `json:"note"`
 }
 
 func (item *LockTeeTime) IsDuplicated() bool {
@@ -62,24 +63,31 @@ func (item *LockTeeTime) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *LockTeeTime) FindList(page Page) ([]LockTeeTime, int64, error) {
+func (item *LockTeeTime) FindList(page *Page) ([]LockTeeTime, int64, error) {
 	db := datasources.GetDatabase().Model(LockTeeTime{})
 	list := []LockTeeTime{}
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
-	db = db.Where(item)
+
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
 	if item.CreatedAt != 0 {
 		db = db.Where("date_time = ?", item.DateTime)
 	}
+	if item.CurrentTeeTime != "" {
+		db = db.Where("current_tee_time = ?", item.CurrentTeeTime)
+	}
 
 	db.Count(&total)
 
-	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Find(&list)
+	if page != nil {
+		if total > 0 && int64(page.Offset()) < total {
+			db = page.Setup(db).Find(&list)
+		}
+	} else {
+		db = db.Find(&list)
 	}
 	return list, total, db.Error
 }

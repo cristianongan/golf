@@ -33,7 +33,7 @@ type DeleteItemInKioskCartBody struct {
 
 type CreateKioskBillingBody struct {
 	GolfBag     string `json:"golf_bag"`
-	BookingDate string `json:"booking_date"`
+	//BookingDate string `json:"booking_date"`
 	KioskCode   string `json:"kiosk_code"`
 }
 

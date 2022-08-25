@@ -3,6 +3,7 @@ package model_booking
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"log"
 	"start/constants"
 	"start/datasources"
 	"start/models"
@@ -14,21 +15,22 @@ import (
 
 type BookingServiceItem struct {
 	models.ModelId
-	ItemId        int64  `json:"item_id"`     // Id item
-	ServiceId     string `json:"service_id"`  // uid service
-	BookingUid    string `json:"booking_uid"` // Uid booking
-	PlayerName    string `json:"player_name"` // Tên người chơi
-	Bag           string `json:"bag"`         // Golf Bag
-	Type          string `json:"type"`        // Loại rental, kiosk, proshop,...
-	Order         string `json:"order"`       // Có thể là mã
-	Name          string `json:"name"`
-	GroupCode     string `json:"group_code"`
+	ItemId        int64  `json:"item_id"  gorm:"index"`                       // Id item
+	ServiceId     string `json:"service_id"  gorm:"type:varchar(100)"`        // uid service
+	BookingUid    string `json:"booking_uid"  gorm:"type:varchar(100);index"` // Uid booking
+	PlayerName    string `json:"player_name" gorm:"type:varchar(256)"`        // Tên người chơi
+	Bag           string `json:"bag" gorm:"type:varchar(50)"`                 // Golf Bag
+	Type          string `json:"type" gorm:"type:varchar(50)"`                // Loại rental, kiosk, proshop,...
+	Order         string `json:"order"  gorm:"type:varchar(100)"`             // Có thể là mã
+	Name          string `json:"name" gorm:"type:varchar(256)"`
+	GroupCode     string `json:"group_code" gorm:"type:varchar(100)"`
 	Quality       int    `json:"quality"` // Số lượng
 	UnitPrice     int64  `json:"unit_price"`
-	DiscountType  string `json:"discount_type"`
+	DiscountType  string `json:"discount_type" gorm:"type:varchar(50)"`
 	DiscountValue int64  `json:"discount_value"`
 	Amount        int64  `json:"amount"`
-	Input         string `json:"input"` // Note
+	Input         string `json:"input" gorm:"type:varchar(300)"` // Note
+	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"`
 }
 
 // Response cho FE
@@ -90,6 +92,20 @@ func (item *BookingServiceItem) Count() (int64, error) {
 	return total, db.Error
 }
 
+func (item *BookingServiceItem) FindAll() ([]BookingServiceItem, error) {
+	db := datasources.GetDatabase().Model(BookingServiceItem{})
+	list := []BookingServiceItem{}
+	item.Status = ""
+
+	if item.BillCode != "" {
+		db = db.Where("bill_code = ?", item.BillCode)
+	}
+
+	db = db.Find(&list)
+
+	return list, db.Error
+}
+
 func (item *BookingServiceItem) FindList(page models.Page) ([]BookingServiceItemResponse, int64, error) {
 	db := datasources.GetDatabase().Model(BookingServiceItem{})
 	list := []BookingServiceItemResponse{}
@@ -125,4 +141,28 @@ func (item *BookingServiceItem) Delete() error {
 		return errors.New("Primary key is undefined!")
 	}
 	return datasources.GetDatabase().Delete(item).Error
+}
+
+/// ------- BookingServiceItem batch insert to db ------
+func (item *BookingServiceItem) BatchInsert(list []BookingServiceItem) error {
+	db := datasources.GetDatabase().Table("booking_service_items")
+	var err error
+	err = db.Create(&list).Error
+
+	if err != nil {
+		log.Println("BookingServiceItem batch insert err: ", err.Error())
+	}
+	return err
+}
+
+// ------ Batch Update ------
+func (item *BookingServiceItem) BatchUpdate(list []BookingServiceItem) error {
+	db := datasources.GetDatabase().Table("booking_service_items")
+	var err error
+	err = db.Updates(&list).Error
+
+	if err != nil {
+		log.Println("BookingServiceItem batch update err: ", err.Error())
+	}
+	return err
 }

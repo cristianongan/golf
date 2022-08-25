@@ -50,10 +50,9 @@ type Booking struct {
 	TeeOffTime   string `json:"tee_off_time" gorm:"type:varchar(30)"`     // Ex: 16:26 Là thời gian thực tế phát bóng
 	RowIndex     *int   `json:"row_index"`                                // index trong Flight
 
-	CurrentBagPrice  BookingCurrentBagPriceDetail `json:"current_bag_price,omitempty" gorm:"type:json"`  // Thông tin phí++: Tính toán lại phí Service items, Tiền cho Subbag
-	ListGolfFee      ListBookingGolfFee           `json:"list_golf_fee,omitempty" gorm:"type:json"`      // Thông tin List Golf Fee, Main Bag, Sub Bag
-	ListServiceItems ListBookingServiceItems      `json:"list_service_items,omitempty" gorm:"type:json"` // List service item: rental, proshop, restaurant, kiosk
-	MushPayInfo      BookingMushPay               `json:"mush_pay_info,omitempty" gorm:"type:json"`      // Mush Pay info
+	CurrentBagPrice BookingCurrentBagPriceDetail `json:"current_bag_price,omitempty" gorm:"type:json"` // Thông tin phí++: Tính toán lại phí Service items, Tiền cho Subbag
+	ListGolfFee     ListBookingGolfFee           `json:"list_golf_fee,omitempty" gorm:"type:json"`     // Thông tin List Golf Fee, Main Bag, Sub Bag
+	MushPayInfo     BookingMushPay               `json:"mush_pay_info,omitempty" gorm:"type:json"`     // Mush Pay info
 	// Rounds           ListBookingRound             `json:"rounds,omitempty" gorm:"type:json"`             // List Rounds: Sẽ sinh golf Fee với List GolfFee
 	OtherPaids utils.ListOtherPaid `json:"other_paids,omitempty" gorm:"type:json"` // Other Paids
 
@@ -110,6 +109,8 @@ type Booking struct {
 	HasBookCaddie bool   `json:"has_book_caddie" gorm:"default:0"`
 	TimeOutFlight int64  `json:"time_out_flight,omitempty"`                // Thời gian out Flight
 	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"` // hỗ trợ query tính giá
+
+	ListServiceItems ListBookingServiceItems `json:"list_service_items,omitempty" gorm:"type:json"` // List service item: rental, proshop, restaurant, kiosk
 }
 
 type FlyInfoResponse struct {
@@ -120,9 +121,10 @@ type FlyInfoResponse struct {
 	GroupNameFlight string `json:"group_name_flight,omitempty" gorm:"-:migration"`
 }
 
-type ListBookingWithRound struct {
+type BagDetail struct {
 	Booking
-	Rounds models.ListRound `json:"rounds"`
+	Rounds           models.ListRound        `json:"rounds"`
+	ListServiceItems ListBookingServiceItems `json:"list_service_items,omitempty"`
 }
 
 type BookingForListServiceIems struct {

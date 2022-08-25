@@ -90,19 +90,21 @@ func (item *Caddie) FindFirst() error {
 func (item *Caddie) FindCaddieDetail() (CaddieResponse, error) {
 	total := int64(0)
 	var caddieObj Caddie
-	db := datasources.GetDatabase().Model(Caddie{})
-	db.Where(item).Find(&caddieObj)
+	db1 := datasources.GetDatabase().Model(Caddie{})
+	db1 = db1.Where("caddies.id = ?", item.Id)
+	db1.Preload("GroupInfo")
+	db1.Find(&caddieObj)
 
-	db = db.Where("caddies.id = ?", item.Id)
-	db = db.Joins("JOIN bookings ON bookings.caddie_id = caddies.id")
-	db = db.Count(&total)
+	db2 := datasources.GetDatabase().Model(Caddie{})
+	db2 = db2.Joins("JOIN bookings ON bookings.caddie_id = caddies.id")
+	db2.Count(&total)
 
 	caddieResponse := CaddieResponse{
 		Caddie:  caddieObj,
 		Booking: total,
 	}
 
-	return caddieResponse, db.Error
+	return caddieResponse, db1.Error
 }
 
 func (item *Caddie) Count() (int64, error) {
