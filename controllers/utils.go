@@ -915,3 +915,38 @@ func initMainBagForPay() utils.ListString {
 	listPays = append(listPays, constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE)
 	return listPays
 }
+
+func updateBookServiceList(serviceList model_booking.ListBookingServiceItems) error {
+	//chia list có item id rồi -> Udp
+	//chưa có item id -> Add
+	//sử dụng batch insert, batch update
+
+	listAdd := model_booking.ListBookingServiceItems{}
+	listUpd := model_booking.ListBookingServiceItems{}
+
+	for _, v := range serviceList {
+		if v.Id == 0 {
+			listAdd = append(listAdd, v)
+		} else {
+			listUpd = append(listUpd, v)
+		}
+	}
+
+	bServiceItems := model_booking.BookingServiceItem{}
+	if len(listAdd) > 0 {
+		err1 := bServiceItems.BatchInsert(listAdd)
+		if err1 != nil {
+			log.Println("updateBookServiceList err1", err1.Error())
+			return err1
+		}
+	}
+
+	if len(listUpd) > 0 {
+		err2 := bServiceItems.BatchUpdate(listUpd)
+		if err2 != nil {
+			log.Println("updateBookServiceList err1", err2.Error())
+			return err2
+		}
+	}
+	return nil
+}

@@ -95,20 +95,17 @@ func (item *Round) FindList(page Page) ([]Round, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *Round) FindAll() ([]Round, int64, error) {
+func (item *Round) FindAll() ([]Round, error) {
 	db := datasources.GetDatabase().Model(Round{})
 	list := []Round{}
-	total := int64(0)
 	item.Status = ""
 
 	if item.BillCode != "" {
 		db = db.Where("bill_code = ?", item.BillCode)
 	}
-
-	db.Count(&total)
 	db = db.Find(&list)
 
-	return list, total, db.Error
+	return list, db.Error
 }
 
 func (item *Round) Delete() error {
