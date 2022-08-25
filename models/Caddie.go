@@ -91,11 +91,12 @@ func (item *Caddie) FindCaddieDetail() (CaddieResponse, error) {
 	total := int64(0)
 	var caddieObj Caddie
 	db := datasources.GetDatabase().Model(Caddie{})
-	db.Where(item).Find(&caddieObj)
 
 	db = db.Where("caddies.id = ?", item.Id)
 	db = db.Joins("JOIN bookings ON bookings.caddie_id = caddies.id")
 	db = db.Count(&total)
+	db = db.Preload("GroupInfo")
+	db.Where(item).Find(&caddieObj)
 
 	caddieResponse := CaddieResponse{
 		Caddie:  caddieObj,

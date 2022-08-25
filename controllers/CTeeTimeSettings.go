@@ -31,10 +31,11 @@ func (_ *CTeeTimeSettings) CreateTeeTimeSettings(c *gin.Context, prof models.Cms
 	}
 
 	teeTimeSetting := models.LockTeeTime{
-		TeeTime:    body.TeeTime,
-		DateTime:   body.DateTime,
-		CourseUid:  body.CourseUid,
-		PartnerUid: body.PartnerUid,
+		TeeTime:        body.TeeTime,
+		DateTime:       body.DateTime,
+		CourseUid:      body.CourseUid,
+		PartnerUid:     body.PartnerUid,
+		CurrentTeeTime: body.TeeTime,
 	}
 
 	errFind := teeTimeSetting.FindFirst()
@@ -84,7 +85,7 @@ func (_ *CTeeTimeSettings) GetTeeTimeSettings(c *gin.Context, prof models.CmsUse
 		teeTimeSetting.DateTime = query.DateTime
 	}
 
-	list, total, err := teeTimeSetting.FindList(page)
+	list, total, err := teeTimeSetting.FindList(&page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -150,11 +151,12 @@ func (_ *CTeeTimeSettings) LockTurn(body request.CreateLockTurn, c *gin.Context,
 		teeTime1B := strconv.Itoa(t.Hour()) + ":" + strconv.Itoa(t.Minute())
 
 		lockTeeTime := models.LockTeeTime{
-			PartnerUid:    body.PartnerUid,
-			CourseUid:     body.CourseUid,
-			TeeTime:       teeTime1B,
-			TeeTimeStatus: "LOCKED",
-			DateTime:      body.BookingDate,
+			PartnerUid:     body.PartnerUid,
+			CourseUid:      body.CourseUid,
+			TeeTime:        teeTime1B,
+			TeeTimeStatus:  "LOCKED",
+			DateTime:       body.BookingDate,
+			CurrentTeeTime: body.TeeTime,
 		}
 		errC := lockTeeTime.Create()
 		if errC != nil {
@@ -162,5 +164,20 @@ func (_ *CTeeTimeSettings) LockTurn(body request.CreateLockTurn, c *gin.Context,
 		}
 	}
 
+	return nil
+}
+func (_ *CTeeTimeSettings) DeleteLockTurn(teeTime string, bookingDate string) error {
+	lockTeeTime := models.LockTeeTime{
+		CurrentTeeTime: teeTime,
+		DateTime:       bookingDate,
+	}
+	list, _, _ := lockTeeTime.FindList(nil)
+
+	for _, data := range list {
+		err := data.Delete()
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

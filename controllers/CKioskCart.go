@@ -8,6 +8,7 @@ import (
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
+	model_booking "start/models/booking"
 	kiosk_cart "start/models/kiosk-cart"
 	model_service "start/models/service"
 	"start/utils/response_message"
@@ -31,13 +32,30 @@ func (_ CKioskCart) AddItemToCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// validate golf bag
+	booking := model_booking.Booking{}
+	booking.Bag = body.GolfBag
+	booking.BookingDate = time.Now().Format("02/01/2006")
+	if err := booking.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate kiosk
+	kiosk := model_service.Kiosk{}
+	kiosk.KioskCode = body.KioskCode
+	if err := kiosk.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
 	// validate item code
 	fb := model_service.FoodBeverage{}
 	fb.PartnerUid = prof.PartnerUid
 	fb.CourseUid = prof.CourseUid
 	fb.FBCode = body.ItemCode
 
-	if err := fb.FindFirst(); err != nil {
+	if err := fb.FindFirstInKiosk(kiosk.Id); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
