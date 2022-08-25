@@ -366,14 +366,16 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		go updateMemberCard(memberCard)
 	}
 
-	cTeeTimeSettings := CTeeTimeSettings{}
-	lockTurn := request.CreateLockTurn{
-		BookingDate: body.BookingDate,
-		CourseUid:   body.CourseUid,
-		PartnerUid:  body.PartnerUid,
-		TeeTime:     body.TeeTime,
+	if body.TeeTime != "" {
+		cTeeTimeSettings := CTeeTimeSettings{}
+		lockTurn := request.CreateLockTurn{
+			BookingDate: body.BookingDate,
+			CourseUid:   body.CourseUid,
+			PartnerUid:  body.PartnerUid,
+			TeeTime:     body.TeeTime,
+		}
+		cTeeTimeSettings.LockTurn(lockTurn, c, prof)
 	}
-	cTeeTimeSettings.LockTurn(lockTurn, c, prof)
 
 	return &booking
 }

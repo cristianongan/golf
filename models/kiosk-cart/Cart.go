@@ -18,7 +18,7 @@ type Cart struct {
 	GolfBag     string         `json:"golf_bag"`
 	BookingDate datatypes.Date `json:"booking_date"`
 	BookingUid  string         `json:"booking_uid"`
-	BillingCode string         `json:"billing_code"`
+	BillingCode string         `json:"billing_code" gorm:"default:NONE"`
 }
 
 type CartItem struct {
@@ -37,6 +37,14 @@ type CartItem struct {
 	DiscountType   string  `json:"discount_type"`
 	DiscountReason string  `json:"discount_reason"`
 	Note           string  `json:"note"`
+}
+
+func (_ Cart) TableName() string {
+	return "kiosk_cart"
+}
+
+func (_ CartItem) TableName() string {
+	return "kiosk_cart_item"
 }
 
 func (item *Cart) Create() error {

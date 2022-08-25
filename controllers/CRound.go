@@ -209,9 +209,19 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 				if v1 == constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS {
 					for i, v2 := range bookingMain.ListGolfFee {
 						if v2.Bag == booking.Bag {
+							bookingMain.ListGolfFee[i].BookingUid = booking.Uid
 							bookingMain.ListGolfFee[i].BuggyFee = booking.ListGolfFee[0].BuggyFee
 							bookingMain.ListGolfFee[i].CaddieFee = booking.ListGolfFee[0].CaddieFee
 							bookingMain.ListGolfFee[i].GreenFee = booking.ListGolfFee[0].GreenFee
+
+							break
+						}
+					}
+					for i, v2 := range bookingMain.SubBags {
+						if v2.GolfBag == booking.Bag {
+							bookingMain.SubBags[i].BookingUid = booking.Uid
+
+							break
 						}
 					}
 					// Update mush pay, current bag
@@ -301,6 +311,10 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 	newRound.Index = body.RoundIndex + 1
 	currentRound.Hole = currentRound.Hole - newRound.Hole
 
+	// Update giá cho current round và new round
+	updateListGolfFeeWithRound(&currentRound, &booking)
+	updateListGolfFeeWithRound(&newRound, &booking)
+
 	errUpdate := currentRound.Update()
 	if errUpdate != nil {
 		response_message.BadRequest(c, errUpdate.Error())
@@ -312,6 +326,80 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequest(c, errCreate.Error())
 		return
 	}
+
+	// Update lại giá cho main bag
+	// if len(booking.MainBags) > 0 {
+	// 	// Get data main bag
+	// 	bookingMain := model_booking.Booking{}
+	// 	bookingMain.Uid = booking.MainBags[0].BookingUid
+	// 	if err := bookingMain.FindFirst(); err != nil {
+	// 		return
+	// 	}
+
+	// 	// Check loại tính tiền của main bag
+	// 	checkIsFirstRound := utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+	// 	checkIsNextRound := utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
+
+	// 	// get all round
+	// 	round := models.Round{
+	// 		BillCode: booking.BillCode,
+	// 	}
+
+	// 	rounds, _, errR := round.FindAll()
+	// 	if errR != nil {
+	// 		response_message.BadRequest(c, errR.Error())
+	// 		return
+	// 	}
+
+	// 	if checkIsFirstRound > -1 && checkIsNextRound > -1 {
+	// 		for _, v := range rounds {
+
+	// 		}
+
+	// 	} else if checkIsFirstRound > -1 {
+
+	// 	} else if checkIsNextRound > -1 {
+
+	// 	}
+
+	// 	// for _, v1 := range bookingMain.MainBagPay {
+	// 	// 	// TODO: Tính Fee cho sub bag fee
+	// 	// 	if v1 == constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS {
+	// 	// 		for i, v2 := range bookingMain.ListGolfFee {
+	// 	// 			if v2.Bag == booking.Bag {
+	// 	// 				bookingMain.ListGolfFee[i].BookingUid = booking.Uid
+	// 	// 				bookingMain.ListGolfFee[i].BuggyFee = booking.ListGolfFee[0].BuggyFee
+	// 	// 				bookingMain.ListGolfFee[i].CaddieFee = booking.ListGolfFee[0].CaddieFee
+	// 	// 				bookingMain.ListGolfFee[i].GreenFee = booking.ListGolfFee[0].GreenFee
+
+	// 	// 				break
+	// 	// 			}
+	// 	// 		}
+	// 	// 		for i, v2 := range bookingMain.SubBags {
+	// 	// 			if v2.GolfBag == booking.Bag {
+	// 	// 				bookingMain.SubBags[i].BookingUid = booking.Uid
+
+	// 	// 				break
+	// 	// 			}
+	// 	// 		}
+	// 	// 		// Update mush pay, current bag
+	// 	// 		totalPayChange := booking.ListGolfFee[0].CaddieFee + booking.ListGolfFee[0].BuggyFee + booking.ListGolfFee[0].GreenFee
+
+	// 	// 		bookingMain.MushPayInfo.MushPay += totalPayChange
+	// 	// 		bookingMain.MushPayInfo.TotalGolfFee += totalPayChange
+
+	// 	// 		errUpdateBooking := bookingMain.Update()
+
+	// 	// 		if errUpdateBooking != nil {
+	// 	// 			response_message.BadRequest(c, errUpdateBooking.Error())
+	// 	// 			return
+	// 	// 		}
+
+	// 	// 		break
+	// 	// 	}
+	// 	// }
+
+	// }
 
 	okRes(c)
 }

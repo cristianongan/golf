@@ -148,6 +148,8 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 	if body.ReasonUnactive != "" {
 		memberCard.ReasonUnactive = body.ReasonUnactive
 	}
+	memberCard.McTypeId = body.McTypeId
+	memberCard.ExpDate = body.ExpDate
 	memberCard.PriceCode = body.PriceCode
 	memberCard.GreenFee = body.GreenFee
 	memberCard.CaddieFee = body.CaddieFee

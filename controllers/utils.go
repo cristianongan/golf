@@ -310,6 +310,79 @@ func getInitListGolfFeeWithOutGuestStyleForAddRound(booking *model_booking.Booki
 }
 
 /*
+Update fee when action round
+*/
+func updateListGolfFeeWithRound(round *models.Round, booking *model_booking.Booking) {
+	// Check giá guest style
+	if booking.GuestStyle != "" {
+		//Guest style
+		golfFeeModel := models.GolfFee{
+			PartnerUid: booking.PartnerUid,
+			CourseUid:  booking.CourseUid,
+			GuestStyle: booking.GuestStyle,
+		}
+		// Lấy phí bởi Guest style với ngày tạo
+		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay()
+		if errFindGF != nil {
+			log.Println("golf fee err " + errFindGF.Error())
+			return
+		}
+
+		getInitListGolfFeeForAddRound(booking, golfFee, round.Hole)
+	} else {
+		// Get config course
+		course := models.Course{}
+		course.Uid = booking.CourseUid
+		errCourse := course.FindFirst()
+		if errCourse != nil {
+			log.Println("course config err " + errCourse.Error())
+			return
+		}
+		// Lấy giá đặc biệt của member card
+		if booking.MemberCardUid != "" {
+			// Get Member Card
+			memberCard := models.MemberCard{}
+			memberCard.Uid = booking.MemberCardUid
+			errFind := memberCard.FindFirst()
+			if errFind != nil {
+				log.Println("member card err " + errCourse.Error())
+				return
+			}
+
+			if memberCard.PriceCode == 1 {
+				getInitListGolfFeeWithOutGuestStyleForAddRound(booking, course.RateGolfFee, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee, round.Hole)
+			}
+		}
+
+		// Lấy giá đặc biệt của member card
+		if booking.AgencyId > 0 {
+			agency := models.Agency{}
+			agency.Id = booking.AgencyId
+			errFindAgency := agency.FindFirst()
+			if errFindAgency != nil || agency.Id == 0 {
+				log.Println("agency err " + errCourse.Error())
+				return
+			}
+
+			agencySpecialPrice := models.AgencySpecialPrice{
+				AgencyId: agency.Id,
+			}
+			errFSP := agencySpecialPrice.FindFirst()
+			if errFSP == nil && agencySpecialPrice.Id > 0 {
+				// Tính lại giá
+				// List Booking GolfFee
+				getInitListGolfFeeWithOutGuestStyleForAddRound(booking, course.RateGolfFee, agencySpecialPrice.CaddieFee, agencySpecialPrice.BuggyFee, agencySpecialPrice.GreenFee, round.Hole)
+			}
+		}
+	}
+
+	// Update fee in round
+	round.BuggyFee = booking.ListGolfFee[0].BuggyFee
+	round.CaddieFee = booking.ListGolfFee[0].CaddieFee
+	round.GreenFee = booking.ListGolfFee[0].GreenFee
+}
+
+/*
 	Booking Init and Update
 
 init price
