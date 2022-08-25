@@ -440,28 +440,7 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	res := model_booking.BagDetail{
-		Booking: booking,
-	}
-
-	// Get Rounds
-	round := models.Round{BillCode: booking.BillCode}
-	listRound, _ := round.FindAll()
-
-	if len(listRound) > 0 {
-		res.Rounds = listRound
-		okResponse(c, res)
-		return
-	}
-
-	// Get service items
-	serviceGolfs := model_booking.BookingServiceItem{
-		BillCode: booking.BillCode,
-	}
-	listGolfService, _ := serviceGolfs.FindAll()
-	if len(listGolfService) > 0 {
-		res.ListServiceItems = listGolfService
-	}
+	res := getBagDetailFromBooking(booking)
 
 	okResponse(c, res)
 }
@@ -633,6 +612,7 @@ func (_ *CBooking) GetListBookingWithFightInfo(c *gin.Context, prof models.CmsUs
 }
 
 /*
+TODO: Update lại api này
 Danh sách Booking với thông tin service item
 */
 
@@ -854,16 +834,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerBookingPhone = booking.CustomerInfo.Phone
 	}
 
-	// //Update service items
-	// booking.ListServiceItems = body.ListServiceItems
-
-	// //Update service items cho table booking_service_items
-	// errUdpService := updateBookServiceList(body.ListServiceItems)
-	// if errUdpService != nil {
-	// 	response_message.InternalServerError(c, errUdpService.Error())
-	// 	return
-	// }
-
 	// Tính lại giá
 	booking.UpdatePriceDetailCurrentBag()
 	booking.UpdateMushPay()
@@ -931,7 +901,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	okResponse(c, booking)
+	res := getBagDetailFromBooking(booking)
+
+	okResponse(c, res)
 }
 
 /*
@@ -1098,6 +1070,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 					BookingUid: v.BookingUid,
 					GolfBag:    subBooking.Bag,
 					PlayerName: subBooking.CustomerName,
+					BillCode:   subBooking.BillCode,
 				}
 				booking.SubBags = append(booking.SubBags, subBag)
 
@@ -1137,7 +1110,9 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	okResponse(c, booking)
+	res := getBagDetailFromBooking(booking)
+
+	okResponse(c, res)
 }
 
 /*
@@ -1254,7 +1229,8 @@ func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	okResponse(c, booking)
+	res := getBagDetailFromBooking(booking)
+	okResponse(c, res)
 }
 
 /*
