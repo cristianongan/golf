@@ -201,7 +201,10 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.CustomerName = owner.Name
 		booking.CustomerUid = owner.Uid
 		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
+
 		if memberCard.PriceCode == 1 {
+			// TODO:
+			// Check thêm thời dc app dụng
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(bUid, course.RateGolfFee, body, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee)
 			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 		} else {
@@ -247,6 +250,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		if errFSP == nil && agencySpecialPrice.Id > 0 {
 			// Tính lại giá
 			// List Booking GolfFee
+			// TODO:  Check số lượt dc config ở agency
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(bUid, course.RateGolfFee, body, agencySpecialPrice.CaddieFee, agencySpecialPrice.BuggyFee, agencySpecialPrice.GreenFee)
 			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 
