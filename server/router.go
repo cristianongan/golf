@@ -225,10 +225,10 @@ func NewRouter() *gin.Engine {
 
 			/// =================== Booking Service Item ===================
 			cBookingServiceItem := new(controllers.CBookingServiceItem)
-			cmsApiAuthorized.GET("/booking/booking-service-item/list", middlewares.AuthorizedCmsUserHandler(cBookingServiceItem.GetBookingServiceItemList))
-			cmsApiAuthorized.POST("/booking/booking-service-item/add", middlewares.AuthorizedCmsUserHandler(cBookingServiceItem.AddBookingServiceItemToBag))
-			cmsApiAuthorized.PUT("/booking/booking-service-item/:id", middlewares.AuthorizedCmsUserHandler(cBookingServiceItem.UdpBookingServiceItemToBag))
-			cmsApiAuthorized.DELETE("/booking/booking-service-item/:id", middlewares.AuthorizedCmsUserHandler(cBookingServiceItem.DelBookingServiceItemToBag))
+			cmsApiAuthorized.GET("/booking-service-item/list", middlewares.AuthorizedCmsUserHandler(cBookingServiceItem.GetBookingServiceItemList))
+			cmsApiAuthorized.POST("/booking-service-item/add", middlewares.AuthorizedCmsUserHandler(cBookingServiceItem.AddBookingServiceItemToBag))
+			cmsApiAuthorized.PUT("/booking-service-item/:id", middlewares.AuthorizedCmsUserHandler(cBookingServiceItem.UdpBookingServiceItemToBag))
+			cmsApiAuthorized.DELETE("/booking-service-item/:id", middlewares.AuthorizedCmsUserHandler(cBookingServiceItem.DelBookingServiceItemToBag))
 
 			/// =================== Checkout ===================
 			cmsApiAuthorized.POST("/booking/checkout", middlewares.AuthorizedCmsUserHandler(cBooking.Checkout))
