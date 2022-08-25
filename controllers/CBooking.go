@@ -761,6 +761,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 				body.ListServiceItems[i].BookingUid = booking.Uid
 				body.ListServiceItems[i].PlayerName = booking.CustomerName
 				body.ListServiceItems[i].Bag = booking.Bag
+				body.ListServiceItems[i].BillCode = booking.BillCode
 			}
 		}
 	}
