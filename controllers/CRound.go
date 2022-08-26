@@ -114,6 +114,13 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	hole := 0
+	if body.Hole == nil {
+		hole = 18
+	} else {
+		hole = *body.Hole
+	}
+
 	validate := validator.New()
 
 	if err := validate.Struct(body); err != nil {
@@ -148,7 +155,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 				return
 			}
 
-			getInitListGolfFeeForAddRound(&booking, golfFee, body.Hole)
+			getInitListGolfFeeForAddRound(&booking, golfFee, hole)
 		} else {
 			// Get config course
 			course := models.Course{}
@@ -170,7 +177,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 				}
 
 				if memberCard.PriceCode == 1 {
-					getInitListGolfFeeWithOutGuestStyleForAddRound(&booking, course.RateGolfFee, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee, body.Hole)
+					getInitListGolfFeeWithOutGuestStyleForAddRound(&booking, course.RateGolfFee, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee, hole)
 				}
 			}
 
@@ -191,7 +198,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 				if errFSP == nil && agencySpecialPrice.Id > 0 {
 					// Tính lại giá
 					// List Booking GolfFee
-					getInitListGolfFeeWithOutGuestStyleForAddRound(&booking, course.RateGolfFee, agencySpecialPrice.CaddieFee, agencySpecialPrice.BuggyFee, agencySpecialPrice.GreenFee, body.Hole)
+					getInitListGolfFeeWithOutGuestStyleForAddRound(&booking, course.RateGolfFee, agencySpecialPrice.CaddieFee, agencySpecialPrice.BuggyFee, agencySpecialPrice.GreenFee, hole)
 				}
 			}
 		}
@@ -243,7 +250,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 
 		}
 
-		err = cRound.createRound(booking, body.Hole, false)
+		err = cRound.createRound(booking, hole, false)
 		if err != nil {
 			response_message.BadRequest(c, err.Error())
 			return
