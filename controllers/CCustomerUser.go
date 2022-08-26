@@ -48,6 +48,27 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		}
 	}
 
+	// Check Identify
+	if body.Phone != "" {
+		cusTemp := models.CustomerUser{
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+			Identify:   body.Identify,
+		}
+
+		errFind := cusTemp.FindFirst()
+		if errFind == nil || cusTemp.Uid != "" {
+			// đã tồn tại
+			res := map[string]interface{}{
+				"message":     "Khách hàng đã tồn tại",
+				"status_code": 400,
+				"user":        cusTemp,
+			}
+			c.JSON(400, res)
+			return
+		}
+	}
+
 	customerUser := models.CustomerUser{}
 	dataByte, _ := json.Marshal(&body)
 	_ = json.Unmarshal(dataByte, &customerUser)
