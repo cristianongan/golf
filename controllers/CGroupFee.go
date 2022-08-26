@@ -30,6 +30,8 @@ func (_ *CGroupFee) GetListGroupFee(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
+
+	groupFeeR.Status = form.Status
 	list, total, err := groupFeeR.FindList(page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
