@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"log"
 	"start/constants"
 	"start/controllers/request"
@@ -14,6 +15,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type CCourseOperating struct{}
@@ -119,26 +121,29 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 
 	// Check các bag ok hết mới tạo flight
 	// Check Caddie, Buggy đang trong flight
-	listError := []error{}
+	listError := []string{}
 	listBooking := []model_booking.Booking{}
 	listCaddie := []models.Caddie{}
 	listBuggy := []models.Buggy{}
+	listCaddieInOut := []model_gostarter.CaddieInOutNote{}
 	for _, v := range body.ListData {
 		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
-		if errB == nil {
+		isCaddiReady := true
+
+		if !(caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY || caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH) {
+			listError = append(listError, errors.New(caddieTemp.Code+" chưa sẵn sàng để ghép ").Error())
+			isCaddiReady = false
+		}
+
+		if errB == nil && isCaddiReady {
+			// Update caddie_current_status
+			caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+			caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
+
 			listBooking = append(listBooking, bookingTemp)
 			listCaddie = append(listCaddie, caddieTemp)
 			listBuggy = append(listBuggy, buggyTemp)
 
-			// Update caddie_current_status
-			caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
-			caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
-			if err := caddieTemp.Update(); err != nil {
-				response_message.InternalServerError(c, err.Error())
-				return
-			}
-
-			// Udp Note
 			caddieInNote := model_gostarter.CaddieInOutNote{
 				PartnerUid: prof.PartnerUid,
 				CourseUid:  prof.CourseUid,
@@ -148,10 +153,9 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 				Type:       constants.STATUS_IN,
 				Note:       "",
 			}
-
-			go addCaddieInOutNote(caddieInNote)
+			listCaddieInOut = append(listCaddieInOut, caddieInNote)
 		} else {
-			listError = append(listError, errB)
+			listError = append(listError, errB.Error())
 		}
 	}
 
@@ -206,6 +210,11 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		if errUdp != nil {
 			log.Println("CreateFlight err udp caddie ", errUdp.Error())
 		}
+	}
+
+	// Udp Caddie In Out Note
+	for _, data := range listCaddieInOut {
+		go addCaddieInOutNote(data)
 	}
 
 	okResponse(c, flight)
@@ -394,6 +403,9 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 		}
 
 		go addCaddieInOutNote(caddieOutNote)
+		if booking.TeeTime != "" {
+			go unlockTurnTime(booking)
+		}
 	} else {
 		log.Println("OutAllFlight err out caddie ", errOut.Error())
 	}
@@ -958,12 +970,23 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 		return
 	}
 
-	// TODO: validate max list
+	// Chuyển booking cũ sang time out
+	booking.BagStatus = constants.BAG_STATUS_TIMEOUT
+	errBookingUpd := booking.Update()
+	if errBookingUpd != nil {
+		response_message.InternalServerError(c, errBookingUpd.Error())
+		return
+	}
 
+	// Tạo booking mới với flightID và bag_status in course
+	bookingUid := uuid.New()
+	bUid := booking.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
 	booking.FlightId = body.FlightId
+	booking.BagStatus = constants.BAG_STATUS_IN_COURSE
+	errCreateBooking := booking.Create(bUid)
 
-	if err := booking.Update(); err != nil {
-		response_message.InternalServerError(c, err.Error())
+	if errCreateBooking != nil {
+		response_message.InternalServerError(c, errCreateBooking.Error())
 		return
 	}
 

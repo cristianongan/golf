@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
@@ -73,6 +74,7 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 		Group:        body.Group,
 		StartedDate:  body.StartedDate,
 		//WorkingStatus: body.WorkingStatus,
+		CurrentStatus:  constants.CADDIE_CURRENT_STATUS_READY,
 		Level:          body.Level,
 		Note:           body.Note,
 		PlaceOfOrigin:  body.PlaceOfOrigin,

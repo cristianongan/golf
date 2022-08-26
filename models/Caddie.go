@@ -95,6 +95,7 @@ func (item *Caddie) FindCaddieDetail() (CaddieResponse, error) {
 	db1.Preload("GroupInfo")
 	db1.Find(&caddieObj)
 
+	// Đếm lượt booking của caddie
 	db2 := datasources.GetDatabase().Model(Caddie{})
 	db2 = db2.Joins("JOIN bookings ON bookings.caddie_id = caddies.id")
 	db2.Count(&total)

@@ -12,6 +12,7 @@ type CreateCaddieBody struct {
 	Group          string `json:"group"`
 	GroupId        int64  `json:"group_id"`
 	StartedDate    int64  `json:"started_date"`
+	CurrentStatus  string `json:"current_status"`
 	IdHr           string `json:"id_hr"`
 	Phone          string `json:"phone"`
 	Email          string `json:"email"`

@@ -1575,8 +1575,7 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 
 	// delete tee time locked theo booking date
 	if booking.TeeTime != "" {
-		cLockTurn := CTeeTimeSettings{}
-		cLockTurn.DeleteLockTurn(booking.TeeTime, booking.BookingDate)
+		go unlockTurnTime(booking)
 	}
 
 	okResponse(c, booking)
