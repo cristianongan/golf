@@ -1,40 +1,47 @@
 package kiosk_cart
 
 import (
-	"github.com/google/uuid"
-	"gorm.io/datatypes"
 	"start/constants"
 	"start/datasources"
 	"start/models"
 	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/datatypes"
 )
 
+/*
+Giỏ Hàng
+*/
 type Cart struct {
 	models.ModelId
 	PartnerUid  string         `json:"partner_uid"`
 	CourseUid   string         `json:"course_uid"`
-	KioskCode   string         `json:"kiosk_code"`
-	Code        string         `json:"code"`
+	KioskCode   string         `json:"kiosk_code"` // mã của kiosk
+	Code        string         `json:"code"`       // mã giỏ hàng
 	GolfBag     string         `json:"golf_bag"`
 	BookingDate datatypes.Date `json:"booking_date"`
 	BookingUid  string         `json:"booking_uid"`
 	BillingCode string         `json:"billing_code" gorm:"default:NONE"`
 }
 
+/*
+  Các sản phẩm trong giỏ hàng
+*/
 type CartItem struct {
 	models.ModelId
 	KioskCartId    int64   `json:"kiosk_cart_id"`
 	KioskCartCode  string  `json:"kiosk_cart_code"`
 	PartnerUid     string  `json:"partner_uid"`
 	CourseUid      string  `json:"course_uid"`
-	KioskCode      string  `json:"kiosk_code"`
-	ItemCode       string  `json:"item_code"`
-	Quantity       int64   `json:"quantity"`
-	UnitPrice      float64 `json:"unit_price"`
-	TotalPrice     float64 `json:"total_price"`
+	KioskCode      string  `json:"kiosk_code"`  // mã của kiosk
+	ItemCode       string  `json:"item_code"`   // mã sản phẩm
+	Quantity       int64   `json:"quantity"`    // số lượng
+	UnitPrice      float64 `json:"unit_price"`  // giá sản phẩm
+	TotalPrice     float64 `json:"total_price"` // tổng
 	ActionBy       string  `json:"action_by"`
-	DiscountPrice  float64 `json:"discount_price"`
-	DiscountType   string  `json:"discount_type"`
+	DiscountPrice  float64 `json:"discount_price"` // Giảm giá
+	DiscountType   string  `json:"discount_type"`  // ???
 	DiscountReason string  `json:"discount_reason"`
 	Note           string  `json:"note"`
 }

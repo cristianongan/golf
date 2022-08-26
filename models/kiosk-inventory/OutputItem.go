@@ -1,20 +1,24 @@
 package kiosk_inventory
 
 import (
-	"gorm.io/datatypes"
 	"start/constants"
 	"start/datasources"
 	"start/models"
 	"time"
+
+	"gorm.io/datatypes"
 )
 
+/*
+ Để lưu thông tin xuất kho
+*/
 type InventoryOutputItem struct {
 	models.ModelId
-	Code       string         `json:"code"`
-	ItemCode   string         `json:"item_code"`
-	Quantity   int64          `json:"quantity"`
-	OutputDate datatypes.Date `json:"output_date"`
-	Reason     string         `json:"reason"`
+	Code       string         `json:"code"`        // Mã đơn xuất
+	ItemCode   string         `json:"item_code"`   // mã của sản phẩm
+	Quantity   int64          `json:"quantity"`    // số lượng
+	OutputDate datatypes.Date `json:"output_date"` // ngày xuất kho
+	Reason     string         `json:"reason"`      // lý do xuất kho
 }
 
 func (item *InventoryOutputItem) Create() error {

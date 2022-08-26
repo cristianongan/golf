@@ -3,13 +3,14 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"gorm.io/datatypes"
 	"math"
 	"start/constants"
 	"start/models"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 )
 
 type CCron struct{}
@@ -52,7 +53,7 @@ func (_ CCron) CreateCaddieWorkingCalendar(c *gin.Context) {
 	maxLengthCaddie := 0
 
 	caddieList = models.CaddieList{}
-	caddieList.OrderByGroupIndexDesc = true
+	caddieList.OrderByGroupIndexDesc = true // Check xem đang ở trí số bao nhiêu, check lại theo tăng dần
 
 	for i := 0; i < countGroup; i++ {
 		caddieList.GroupId = int64(groupIds[i])
@@ -67,6 +68,7 @@ func (_ CCron) CreateCaddieWorkingCalendar(c *gin.Context) {
 		}
 	}
 
+	// Xào group với caddie
 	// set result
 	result := []models.Caddie{}
 
@@ -87,6 +89,8 @@ func (_ CCron) CreateCaddieWorkingCalendar(c *gin.Context) {
 	// set caddie_working_calendars
 	lengthResult := len(result)
 
+	// Add vào db
+	// Xếp Nốt
 	for i := 0; i < lengthResult; i++ {
 		caddieWorkingCalendar := models.CaddieWorkingCalendar{}
 		caddieWorkingCalendar.CaddieUid = strconv.FormatInt(result[i].Id, 10)
