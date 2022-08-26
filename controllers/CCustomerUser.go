@@ -49,7 +49,7 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 	}
 
 	// Check Identify
-	if body.Phone != "" {
+	if body.Identify != "" {
 		cusTemp := models.CustomerUser{
 			PartnerUid: body.PartnerUid,
 			CourseUid:  body.CourseUid,
@@ -161,7 +161,25 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 	}
 
 	if body.Phone != "" {
-		customerUser.Phone = body.Phone
+		cusTemp := models.CustomerUser{
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+			Phone:      body.Phone,
+		}
+
+		errFind := cusTemp.FindFirst()
+		if errFind == nil || cusTemp.Uid != "" {
+			// đã tồn tại
+			res := map[string]interface{}{
+				"message":     "Số điện thoại đã tồn tại",
+				"status_code": 400,
+				"user":        cusTemp,
+			}
+			c.JSON(400, res)
+			return
+		} else {
+			customerUser.Phone = body.Phone
+		}
 	}
 
 	customerUser.CellPhone = body.CellPhone
@@ -170,7 +188,25 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		customerUser.Status = body.Status
 	}
 	if body.Identify != "" {
-		customerUser.Identify = body.Identify
+		cusTemp := models.CustomerUser{
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+			Identify:   body.Identify,
+		}
+
+		errFind := cusTemp.FindFirst()
+		if errFind == nil || cusTemp.Uid != "" {
+			// đã tồn tại
+			res := map[string]interface{}{
+				"message":     "Số chứng minh thư đã tồn tại",
+				"status_code": 400,
+				"user":        cusTemp,
+			}
+			c.JSON(400, res)
+			return
+		} else {
+			customerUser.Identify = body.Identify
+		}
 	}
 	if body.Type != "" {
 		customerUser.Type = body.Type
