@@ -10,6 +10,7 @@ type BookingSubBag struct {
 	GolfBag    string `json:"golf_bag"` // Có thể bỏ
 	BookingUid string `json:"booking_uid"`
 	PlayerName string `json:"player_name"`
+	BillCode   string `json:"bill_code"`
 }
 
 type GolfHoleFee struct {

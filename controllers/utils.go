@@ -310,6 +310,79 @@ func getInitListGolfFeeWithOutGuestStyleForAddRound(booking *model_booking.Booki
 }
 
 /*
+Update fee when action round
+*/
+func updateListGolfFeeWithRound(round *models.Round, booking *model_booking.Booking, hole int) {
+	// Check giá guest style
+	if booking.GuestStyle != "" {
+		//Guest style
+		golfFeeModel := models.GolfFee{
+			PartnerUid: booking.PartnerUid,
+			CourseUid:  booking.CourseUid,
+			GuestStyle: booking.GuestStyle,
+		}
+		// Lấy phí bởi Guest style với ngày tạo
+		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay()
+		if errFindGF != nil {
+			log.Println("golf fee err " + errFindGF.Error())
+			return
+		}
+
+		getInitListGolfFeeForAddRound(booking, golfFee, hole)
+	} else {
+		// Get config course
+		course := models.Course{}
+		course.Uid = booking.CourseUid
+		errCourse := course.FindFirst()
+		if errCourse != nil {
+			log.Println("course config err " + errCourse.Error())
+			return
+		}
+		// Lấy giá đặc biệt của member card
+		if booking.MemberCardUid != "" {
+			// Get Member Card
+			memberCard := models.MemberCard{}
+			memberCard.Uid = booking.MemberCardUid
+			errFind := memberCard.FindFirst()
+			if errFind != nil {
+				log.Println("member card err " + errCourse.Error())
+				return
+			}
+
+			if memberCard.PriceCode == 1 {
+				getInitListGolfFeeWithOutGuestStyleForAddRound(booking, course.RateGolfFee, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee, hole)
+			}
+		}
+
+		// Lấy giá đặc biệt của member card
+		if booking.AgencyId > 0 {
+			agency := models.Agency{}
+			agency.Id = booking.AgencyId
+			errFindAgency := agency.FindFirst()
+			if errFindAgency != nil || agency.Id == 0 {
+				log.Println("agency err " + errCourse.Error())
+				return
+			}
+
+			agencySpecialPrice := models.AgencySpecialPrice{
+				AgencyId: agency.Id,
+			}
+			errFSP := agencySpecialPrice.FindFirst()
+			if errFSP == nil && agencySpecialPrice.Id > 0 {
+				// Tính lại giá
+				// List Booking GolfFee
+				getInitListGolfFeeWithOutGuestStyleForAddRound(booking, course.RateGolfFee, agencySpecialPrice.CaddieFee, agencySpecialPrice.BuggyFee, agencySpecialPrice.GreenFee, hole)
+			}
+		}
+	}
+
+	// Update fee in round
+	round.BuggyFee = booking.ListGolfFee[0].BuggyFee
+	round.CaddieFee = booking.ListGolfFee[0].CaddieFee
+	round.GreenFee = booking.ListGolfFee[0].GreenFee
+}
+
+/*
 	Booking Init and Update
 
 init price
@@ -929,34 +1002,23 @@ func initMainBagForPay() utils.ListString {
 	return listPays
 }
 
-// func updateBookServiceList(serviceList model_booking.ListBookingServiceItems) error {
-// 	//chia list có item id rồi -> Udp
-// 	//chưa có item id -> Add
-// 	//sử dụng batch insert, batch update
+/*
+	find booking with round va service items data
+*/
+func getBagDetailFromBooking(booking model_booking.Booking) model_booking.BagDetail {
+	//Get service items
+	booking.FindServiceItems()
 
-// 	listAdd := model_booking.ListBookingServiceItems{}
-// 	listUpd := model_booking.ListBookingServiceItems{}
+	bagDetail := model_booking.BagDetail{
+		Booking: booking,
+	}
 
-// 	for _, v := range serviceList {
-// 		if v.Id <= 0 {
-// 			listAdd = append(listAdd, v)
-// 		} else {
-// 			listUpd = append(listUpd, v)
-// 		}
-// 	}
+	// Get Rounds
+	round := models.Round{BillCode: booking.BillCode}
+	listRound, _ := round.FindAll()
 
-// 	bServiceItems := model_booking.BookingServiceItem{}
-// 	if len(listAdd) > 0 {
-// 		err1 := bServiceItems.BatchInsert(listAdd)
-// 		if err1 != nil {
-// 			log.Println("updateBookServiceList err1", err1.Error())
-// 			return err1
-// 		}
-// 	}
-
-// 	if len(listUpd) > 0 {
-// 		//TODO: check batch update lỗi
-// 		_ = bServiceItems.BatchUpdate(listUpd)
-// 	}
-// 	return nil
-// }
+	if len(listRound) > 0 {
+		bagDetail.Rounds = listRound
+	}
+	return bagDetail
+}

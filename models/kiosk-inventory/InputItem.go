@@ -1,23 +1,27 @@
 package kiosk_inventory
 
 import (
-	"gorm.io/datatypes"
 	"start/constants"
 	"start/datasources"
 	"start/models"
 	"time"
+
+	"gorm.io/datatypes"
 )
 
+/*
+ Để lưu thông tin nhập kho
+*/
 type InventoryInputItem struct {
 	models.ModelId
-	Code          string         `json:"code"`
-	ItemCode      string         `json:"item_code"`
-	Quantity      int64          `json:"quantity"`
-	InputDate     datatypes.Date `json:"input_date"`
-	Source        string         `json:"source"`
-	InputStatus   string         `json:"input_status"`
-	ReviewUserUid string         `json:"review_user_uid"`
-	Note          string         `json:"note"`
+	Code          string         `json:"code"`            // mã nhập kho
+	ItemCode      string         `json:"item_code"`       // mã sản phẩm
+	Quantity      int64          `json:"quantity"`        // số lượng
+	InputDate     datatypes.Date `json:"input_date"`      // ngày nhập kho
+	Source        string         `json:"source"`          // nguồn từ đâu: từ kho tổng hay từ kiosk khác..?
+	InputStatus   string         `json:"input_status"`    // hoàn , huỷ,..?
+	ReviewUserUid string         `json:"review_user_uid"` // Người duyệt khi nhập kho
+	Note          string         `json:"note"`            // ghi chú
 }
 
 func (item *InventoryInputItem) Create() error {

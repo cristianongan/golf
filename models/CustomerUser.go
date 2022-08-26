@@ -114,7 +114,7 @@ func (item *CustomerUser) FindList(page Page, partnerUid, courseUid, typeCus, cu
 		db = db.Where("type = ?", typeCus)
 	}
 	if customerUid != "" {
-		db = db.Where("uid = ?", customerUid)
+		db = db.Where("uid LIKE ?", "%"+customerUid+"%")
 	}
 	if name != "" {
 		db = db.Where("name LIKE ?", "%"+name+"%")

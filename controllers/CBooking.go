@@ -201,7 +201,10 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.CustomerName = owner.Name
 		booking.CustomerUid = owner.Uid
 		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
+
 		if memberCard.PriceCode == 1 {
+			// TODO:
+			// Check thêm thời dc app dụng
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(bUid, course.RateGolfFee, body, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee)
 			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 		} else {
@@ -247,6 +250,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		if errFSP == nil && agencySpecialPrice.Id > 0 {
 			// Tính lại giá
 			// List Booking GolfFee
+			// TODO:  Check số lượt dc config ở agency
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(bUid, course.RateGolfFee, body, agencySpecialPrice.CaddieFee, agencySpecialPrice.BuggyFee, agencySpecialPrice.GreenFee)
 			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 
@@ -440,28 +444,7 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	res := model_booking.BagDetail{
-		Booking: booking,
-	}
-
-	// Get Rounds
-	round := models.Round{BillCode: booking.BillCode}
-	listRound, _ := round.FindAll()
-
-	if len(listRound) > 0 {
-		res.Rounds = listRound
-		okResponse(c, res)
-		return
-	}
-
-	// Get service items
-	serviceGolfs := model_booking.BookingServiceItem{
-		BillCode: booking.BillCode,
-	}
-	listGolfService, _ := serviceGolfs.FindAll()
-	if len(listGolfService) > 0 {
-		res.ListServiceItems = listGolfService
-	}
+	res := getBagDetailFromBooking(booking)
 
 	okResponse(c, res)
 }
@@ -633,6 +616,7 @@ func (_ *CBooking) GetListBookingWithFightInfo(c *gin.Context, prof models.CmsUs
 }
 
 /*
+TODO: Update lại api này
 Danh sách Booking với thông tin service item
 */
 
@@ -854,16 +838,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerBookingPhone = booking.CustomerInfo.Phone
 	}
 
-	// //Update service items
-	// booking.ListServiceItems = body.ListServiceItems
-
-	// //Update service items cho table booking_service_items
-	// errUdpService := updateBookServiceList(body.ListServiceItems)
-	// if errUdpService != nil {
-	// 	response_message.InternalServerError(c, errUdpService.Error())
-	// 	return
-	// }
-
 	// Tính lại giá
 	booking.UpdatePriceDetailCurrentBag()
 	booking.UpdateMushPay()
@@ -931,7 +905,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	okResponse(c, booking)
+	res := getBagDetailFromBooking(booking)
+
+	okResponse(c, res)
 }
 
 /*
@@ -1098,6 +1074,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 					BookingUid: v.BookingUid,
 					GolfBag:    subBooking.Bag,
 					PlayerName: subBooking.CustomerName,
+					BillCode:   subBooking.BillCode,
 				}
 				booking.SubBags = append(booking.SubBags, subBag)
 
@@ -1137,7 +1114,9 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	okResponse(c, booking)
+	res := getBagDetailFromBooking(booking)
+
+	okResponse(c, res)
 }
 
 /*
@@ -1254,7 +1233,8 @@ func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	okResponse(c, booking)
+	res := getBagDetailFromBooking(booking)
+	okResponse(c, res)
 }
 
 /*

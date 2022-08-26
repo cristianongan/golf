@@ -7,13 +7,16 @@ import (
 	"time"
 )
 
+/*
+ Để lưu thông tin trạng thái item trong kho(trạng thái tồn)
+*/
 type InventoryItem struct {
 	models.ModelId
-	Code        string `json:"code"`
-	Name        string `json:"name"`
-	Unit        string `json:"unit"`
-	Quantity    int64  `json:"quantity"`
-	StockStatus string `json:"stock_status"`
+	Code        string `json:"code"`         // mã item
+	Name        string `json:"name"`         // Tên item
+	Unit        string `json:"unit"`         // Đơn vị item: lon, thùng, cốc
+	Quantity    int64  `json:"quantity"`     // số lượng
+	StockStatus string `json:"stock_status"` // trạng thái: còn hàng hay hết hàng
 }
 
 func (item *InventoryItem) FindFirst() error {

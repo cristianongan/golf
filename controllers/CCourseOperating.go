@@ -197,6 +197,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	// Udp flight for Booking
 	for _, b := range listBooking {
 		b.FlightId = flight.Id
+		b.TeeOffTime = body.TeeOff
 		errUdp := b.Update()
 		if errUdp != nil {
 			log.Println("CreateFlight err flight ", errUdp.Error())

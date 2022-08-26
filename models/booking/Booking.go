@@ -53,8 +53,7 @@ type Booking struct {
 	CurrentBagPrice BookingCurrentBagPriceDetail `json:"current_bag_price,omitempty" gorm:"type:json"` // Thông tin phí++: Tính toán lại phí Service items, Tiền cho Subbag
 	ListGolfFee     ListBookingGolfFee           `json:"list_golf_fee,omitempty" gorm:"type:json"`     // Thông tin List Golf Fee, Main Bag, Sub Bag
 	MushPayInfo     BookingMushPay               `json:"mush_pay_info,omitempty" gorm:"type:json"`     // Mush Pay info
-	// Rounds           ListBookingRound             `json:"rounds,omitempty" gorm:"type:json"`             // List Rounds: Sẽ sinh golf Fee với List GolfFee
-	OtherPaids utils.ListOtherPaid `json:"other_paids,omitempty" gorm:"type:json"` // Other Paids
+	OtherPaids      utils.ListOtherPaid          `json:"other_paids,omitempty" gorm:"type:json"`       // Other Paids
 
 	// Note          string `json:"note" gorm:"type:varchar(500)"`            // Note
 	NoteOfBag     string `json:"note_of_bag" gorm:"type:varchar(500)"`     // Note of Bag
@@ -110,7 +109,8 @@ type Booking struct {
 	TimeOutFlight int64  `json:"time_out_flight,omitempty"`                // Thời gian out Flight
 	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"` // hỗ trợ query tính giá
 
-	ListServiceItems ListBookingServiceItems `json:"list_service_items,omitempty" gorm:"type:json"` // List service item: rental, proshop, restaurant, kiosk
+	ListServiceItems ListBookingServiceItems `json:"list_service_items,omitempty" gorm:"-"` // List service item: rental, proshop, restaurant, kiosk
+	// Rounds           ListBookingRound             `json:"rounds,omitempty" gorm:"type:json"`             // List Rounds: Sẽ sinh golf Fee với List GolfFee
 }
 
 type FlyInfoResponse struct {
@@ -123,8 +123,8 @@ type FlyInfoResponse struct {
 
 type BagDetail struct {
 	Booking
-	Rounds           models.ListRound        `json:"rounds"`
-	ListServiceItems ListBookingServiceItems `json:"list_service_items,omitempty"`
+	Rounds models.ListRound `json:"rounds"`
+	//ListServiceItems ListBookingServiceItems `json:"list_service_items,omitempty"`
 }
 
 type BookingForListServiceIems struct {
@@ -456,6 +456,52 @@ type NumberPeopleInFlight struct {
 }
 
 // -------- Booking Logic --------
+/*
+	Lấy service item của main bag và sub bag nếu có
+*/
+func (item *Booking) FindServiceItems() {
+	//MainBag
+	listServiceItems := ListBookingServiceItems{}
+	serviceGolfs := BookingServiceItem{
+		BillCode: item.BillCode,
+	}
+	listGolfService, _ := serviceGolfs.FindAll()
+	if len(listGolfService) > 0 {
+		listServiceItems = append(listServiceItems, listGolfService...)
+	}
+
+	//Check Subbag
+	listTemp := ListBookingServiceItems{}
+	if item.SubBags != nil && len(item.SubBags) > 0 {
+		for _, v := range item.SubBags {
+			serviceGolfsTemp := BookingServiceItem{
+				BillCode: v.BillCode,
+			}
+			listGolfServiceTemp, _ := serviceGolfsTemp.FindAll()
+
+			for _, v1 := range listGolfServiceTemp {
+				isCanAdd := false
+				if item.MainBagPay != nil && len(item.MainBagPay) > 0 {
+					for _, v2 := range item.MainBagPay {
+						// Check trong MainBag có trả mới add
+						if v2 == v1.Type {
+							isCanAdd = true
+						}
+					}
+				}
+
+				if isCanAdd {
+					listTemp = append(listTemp, v1)
+				}
+			}
+		}
+	}
+
+	listServiceItems = append(listServiceItems, listTemp...)
+
+	item.ListServiceItems = listServiceItems
+}
+
 func (item *Booking) UpdateBookingMainBag() error {
 	if item.MainBags == nil || len(item.MainBags) == 0 {
 		return errors.New("invalid main bags")
@@ -487,33 +533,6 @@ func (item *Booking) UpdateBookingMainBag() error {
 		} else {
 			// Update cái mới
 			mainBagBooking.ListGolfFee[idxTemp] = item.GetCurrentBagGolfFee()
-		}
-	}
-
-	// Udp list service items
-	if mainBagBooking.ListServiceItems == nil {
-		mainBagBooking.ListServiceItems = ListBookingServiceItems{}
-	}
-
-	if item.ListServiceItems != nil && len(item.ListServiceItems) > 0 {
-		for _, v := range item.ListServiceItems {
-			// Check cùng booking và cùng item id
-			idxTemp := -1
-			if len(mainBagBooking.ListServiceItems) > 0 {
-				for i, v1 := range mainBagBooking.ListServiceItems {
-					if v1.BookingUid == v.BookingUid && v1.ItemId == v.ItemId {
-						idxTemp = i
-					}
-				}
-			}
-
-			if idxTemp == -1 {
-				// Chưa có thì thêm vào List
-				mainBagBooking.ListServiceItems = append(mainBagBooking.ListServiceItems, v)
-			} else {
-				// Update cái mới
-				mainBagBooking.ListServiceItems[idxTemp] = v
-			}
 		}
 	}
 
@@ -583,6 +602,9 @@ func (item *Booking) UpdateMushPay() {
 	// SubBag
 
 	// Sub Service Item của current Bag
+	// Get item for current Bag
+	//update lại lấy service items mới
+	item.FindServiceItems()
 	for _, v := range item.ListServiceItems {
 		isNeedPay := false
 		if len(item.MainBagPay) > 0 {
@@ -621,9 +643,9 @@ func (item *Booking) UpdatePriceDetailCurrentBag() {
 	if len(item.ListGolfFee) > 0 {
 		priceDetail.GolfFee = item.ListGolfFee[0].BuggyFee + item.ListGolfFee[0].CaddieFee + item.ListGolfFee[0].GreenFee
 	}
-
+	item.FindServiceItems()
 	for _, serviceItem := range item.ListServiceItems {
-		if serviceItem.BookingUid == item.Uid {
+		if serviceItem.BillCode == item.BillCode {
 			// Udp service detail cho booking uid
 			if serviceItem.Type == constants.GOLF_SERVICE_RENTAL {
 				priceDetail.Rental += serviceItem.Amount
