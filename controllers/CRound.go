@@ -319,8 +319,8 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 	currentRound.Hole = currentRound.Hole - newRound.Hole
 
 	// Update giá cho current round và new round
-	updateListGolfFeeWithRound(&currentRound, &booking, currentRound.Hole)
-	updateListGolfFeeWithRound(&newRound, &booking, newRound.Hole)
+	updateListGolfFeeWithRound(&currentRound, booking, currentRound.Hole)
+	updateListGolfFeeWithRound(&newRound, booking, newRound.Hole)
 
 	errUpdate := currentRound.Update()
 	if errUpdate != nil {
@@ -450,12 +450,95 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	})
 
 	// Update giá cho current round và new round
-	updateListGolfFeeWithRound(&round, &booking, totalHoles)
+	updateListGolfFeeWithRound(&round, booking, totalHoles)
+
+	// update fee booking
+	totalPayChange := round.BuggyFee + round.CaddieFee + round.CaddieFee
+
+	booking.ListGolfFee[0].BuggyFee = round.BuggyFee
+	booking.ListGolfFee[0].CaddieFee = round.CaddieFee
+	booking.ListGolfFee[0].GreenFee = round.GreenFee
+
+	booking.MushPayInfo.MushPay += totalPayChange
+	booking.MushPayInfo.TotalGolfFee += totalPayChange
+	booking.CurrentBagPrice.Amount += totalPayChange
+	booking.CurrentBagPrice.GolfFee += totalPayChange
 
 	err = cRound.createRound(booking, totalHoles, true)
 	if err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
+	}
+
+	err = booking.Update()
+	if err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// Update lại giá cho main bag
+	if len(booking.MainBags) > 0 {
+		//init fee
+
+		var totalFeeAfter int64 = 0
+
+		// Get data main bag
+		bookingMain := model_booking.Booking{}
+		bookingMain.Uid = booking.MainBags[0].BookingUid
+		if err := bookingMain.FindFirst(); err != nil {
+			return
+		}
+
+		// Check loại tính tiền của main bag
+		checkIsFirstRound := utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+
+		if checkIsFirstRound > -1 {
+			for i, v1 := range bookingMain.ListGolfFee {
+				if v1.Bag == booking.Bag {
+					totalFeeAfter += v1.BuggyFee + v1.CaddieFee + v1.GreenFee
+					bookingMain.ListGolfFee[i].BuggyFee = round.BuggyFee
+					bookingMain.ListGolfFee[i].CaddieFee = round.CaddieFee
+					bookingMain.ListGolfFee[i].GreenFee = round.GreenFee
+
+					break
+				}
+			}
+			// Update mush pay, current bag
+			totalFeeBefore := round.BuggyFee + round.CaddieFee + round.GreenFee
+
+			bookingMain.MushPayInfo.MushPay += totalFeeBefore - totalFeeAfter
+			bookingMain.MushPayInfo.TotalGolfFee += totalFeeBefore - totalFeeAfter
+
+		} else {
+			for _, v1 := range bookingMain.ListGolfFee {
+				if v1.Bag == booking.Bag {
+					totalFeeAfter += v1.BuggyFee + v1.CaddieFee + v1.GreenFee
+
+					break
+				}
+			}
+
+			// remove sub bag
+			subBags := utils.ListSubBag{}
+			for _, v2 := range bookingMain.SubBags {
+				if v2.GolfBag != booking.Bag {
+					subBags = append(subBags, v2)
+				}
+			}
+			bookingMain.SubBags = subBags
+
+			// Update mush pay, current bag
+			bookingMain.MushPayInfo.MushPay -= totalFeeAfter
+			bookingMain.MushPayInfo.TotalGolfFee -= totalFeeAfter
+		}
+
+		errUpdateBooking := bookingMain.Update()
+
+		if errUpdateBooking != nil {
+			response_message.BadRequest(c, errUpdateBooking.Error())
+			return
+		}
+
 	}
 
 	okRes(c)
