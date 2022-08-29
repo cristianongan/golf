@@ -7,7 +7,6 @@ type CreateTeeTimeSettings struct {
 	TeeTimeStatus string `json:"tee_time_status" binding:"required"`
 	DateTime      string `json:"date_time" binding:"required"`
 	TeeType       string `json:"tee_type" binding:"required"`
-	Type          string `json:"type" binding:"required"`
 	Note          string `json:"note"`
 }
 type GetListTeeTimeSettings struct {
@@ -17,4 +16,5 @@ type GetListTeeTimeSettings struct {
 	TeeTime       string `form:"tee_time"`
 	TeeTimeStatus string `form:"tee_time_status"`
 	DateTime      string `form:"date_time"`
+	RequestType   string `form:"request_type"`
 }

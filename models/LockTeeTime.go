@@ -64,7 +64,7 @@ func (item *LockTeeTime) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *LockTeeTime) FindList(page *Page) ([]LockTeeTime, int64, error) {
+func (item *LockTeeTime) FindList(requestType string) ([]LockTeeTime, int64, error) {
 	db := datasources.GetDatabase().Model(LockTeeTime{})
 	list := []LockTeeTime{}
 	total := int64(0)
@@ -74,22 +74,22 @@ func (item *LockTeeTime) FindList(page *Page) ([]LockTeeTime, int64, error) {
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
-	if item.CreatedAt != 0 {
+	if item.DateTime != "" {
 		db = db.Where("date_time = ?", item.DateTime)
 	}
 	if item.CurrentTeeTime != "" {
 		db = db.Where("current_tee_time = ?", item.CurrentTeeTime)
 	}
+	if requestType == "TURN_TIME" {
+		db = db.Where("current_tee_time <> tee_time")
+	}
+	if requestType == "TEE_TIME" {
+		db = db.Debug().Where("current_tee_time = tee_time OR current_tee_time is NULL")
+	}
 
 	db.Count(&total)
+	db = db.Find(&list)
 
-	if page != nil {
-		if total > 0 && int64(page.Offset()) < total {
-			db = page.Setup(db).Find(&list)
-		}
-	} else {
-		db = db.Find(&list)
-	}
 	return list, total, db.Error
 }
 

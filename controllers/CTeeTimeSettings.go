@@ -66,13 +66,6 @@ func (_ *CTeeTimeSettings) GetTeeTimeSettings(c *gin.Context, prof models.CmsUse
 		return
 	}
 
-	page := models.Page{
-		Limit:   query.PageRequest.Limit,
-		Page:    query.PageRequest.Page,
-		SortBy:  query.PageRequest.SortBy,
-		SortDir: query.PageRequest.SortDir,
-	}
-
 	teeTimeSetting := models.LockTeeTime{}
 
 	if query.TeeTime != "" {
@@ -87,7 +80,7 @@ func (_ *CTeeTimeSettings) GetTeeTimeSettings(c *gin.Context, prof models.CmsUse
 		teeTimeSetting.DateTime = query.DateTime
 	}
 
-	list, total, err := teeTimeSetting.FindList(&page)
+	list, total, err := teeTimeSetting.FindList(query.RequestType)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -199,7 +192,7 @@ func (_ *CTeeTimeSettings) DeleteLockTurn(teeTime string, bookingDate string) er
 		CurrentTeeTime: teeTime,
 		DateTime:       bookingDate,
 	}
-	list, _, _ := lockTeeTime.FindList(nil)
+	list, _, _ := lockTeeTime.FindList("TURN_TIME")
 
 	for _, data := range list {
 		err := data.Delete()
