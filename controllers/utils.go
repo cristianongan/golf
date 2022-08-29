@@ -312,7 +312,7 @@ func getInitListGolfFeeWithOutGuestStyleForAddRound(booking *model_booking.Booki
 /*
 Update fee when action round
 */
-func updateListGolfFeeWithRound(round *models.Round, booking *model_booking.Booking, hole int) {
+func updateListGolfFeeWithRound(round *models.Round, booking model_booking.Booking, hole int) {
 	// Check giá guest style
 	if booking.GuestStyle != "" {
 		//Guest style
@@ -328,7 +328,10 @@ func updateListGolfFeeWithRound(round *models.Round, booking *model_booking.Book
 			return
 		}
 
-		getInitListGolfFeeForAddRound(booking, golfFee, hole)
+		// Update fee in round
+		round.BuggyFee = utils.GetFeeFromListFee(golfFee.BuggyFee, hole)
+		round.CaddieFee = utils.GetFeeFromListFee(golfFee.CaddieFee, hole)
+		round.GreenFee = utils.GetFeeFromListFee(golfFee.GreenFee, hole)
 	} else {
 		// Get config course
 		course := models.Course{}
@@ -350,7 +353,10 @@ func updateListGolfFeeWithRound(round *models.Round, booking *model_booking.Book
 			}
 
 			if memberCard.PriceCode == 1 {
-				getInitListGolfFeeWithOutGuestStyleForAddRound(booking, course.RateGolfFee, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee, hole)
+				// Update fee in round
+				round.BuggyFee = utils.CalculateFeeByHole(hole, memberCard.BuggyFee, course.RateGolfFee)
+				round.CaddieFee = utils.CalculateFeeByHole(hole, memberCard.CaddieFee, course.RateGolfFee)
+				round.GreenFee = utils.CalculateFeeByHole(hole, memberCard.GreenFee, course.RateGolfFee)
 			}
 		}
 
@@ -369,17 +375,14 @@ func updateListGolfFeeWithRound(round *models.Round, booking *model_booking.Book
 			}
 			errFSP := agencySpecialPrice.FindFirst()
 			if errFSP == nil && agencySpecialPrice.Id > 0 {
-				// Tính lại giá
-				// List Booking GolfFee
-				getInitListGolfFeeWithOutGuestStyleForAddRound(booking, course.RateGolfFee, agencySpecialPrice.CaddieFee, agencySpecialPrice.BuggyFee, agencySpecialPrice.GreenFee, hole)
+				// Update fee in round
+				round.BuggyFee = utils.CalculateFeeByHole(hole, agencySpecialPrice.BuggyFee, course.RateGolfFee)
+				round.CaddieFee = utils.CalculateFeeByHole(hole, agencySpecialPrice.CaddieFee, course.RateGolfFee)
+				round.GreenFee = utils.CalculateFeeByHole(hole, agencySpecialPrice.GreenFee, course.RateGolfFee)
 			}
 		}
 	}
 
-	// Update fee in round
-	round.BuggyFee = booking.ListGolfFee[0].BuggyFee
-	round.CaddieFee = booking.ListGolfFee[0].CaddieFee
-	round.GreenFee = booking.ListGolfFee[0].GreenFee
 }
 
 /*
