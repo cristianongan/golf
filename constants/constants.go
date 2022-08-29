@@ -10,6 +10,15 @@ const (
 )
 
 const (
+	BUGGY_CURRENT_STATUS_ACTIVE      = "ACTIVE"      // Trạng thái hoạt động sẵn sàng ghép khách
+	BUGGY_CURRENT_STATUS_IN_COURSE   = "IN_COURSE"   // Đang được cho khách thuê
+	BUGGY_CURRENT_STATUS_MAINTENANCE = "MAINTENANCE" // Đang bảo hành không ghép khách
+	BUGGY_CURRENT_STATUS_IN_ACTIVE   = "INACTIVE"    // Không sử dụng nữa
+	BUGGY_CURRENT_STATUS_LOCK        = "LOCK"        // Buggy đã được ghép với khách nhưng chưa được ghép Flight
+	BUGGY_CURRENT_STATUS_FIX         = "FIX"         // Đang sửa chữa không ghép khách
+)
+
+const (
 	CADDIE_WORKING_STATUS_ACTIVE   = "ACTIVE"
 	CADDIE_WORKING_STATUS_INACTIVE = "INACTIVE"
 )

@@ -140,6 +140,8 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 			caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
 			caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
 
+			buggyTemp.BuggyStatus = constants.BUGGY_CURRENT_STATUS_IN_COURSE
+
 			listBooking = append(listBooking, bookingTemp)
 			listCaddie = append(listCaddie, caddieTemp)
 			listBuggy = append(listBuggy, buggyTemp)
@@ -216,6 +218,15 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	// Udp Caddie In Out Note
 	for _, data := range listCaddieInOut {
 		go addCaddieInOutNote(data)
+	}
+
+	// Udp Caddie In Out Note
+	for _, buggy := range listBuggy {
+		//ca.IsInCourse = true
+		errUdp := buggy.Update()
+		if errUdp != nil {
+			log.Println("CreateFlight err udp buggy ", errUdp.Error())
+		}
 	}
 
 	okResponse(c, flight)
@@ -325,6 +336,9 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 	timeOutFlight := time.Now().Unix()
 	for _, booking := range bookings {
 		errOut := udpOutCaddieBooking(&booking)
+		if errBuggy := udpOutBuggy(&booking, false); errBuggy != nil {
+			log.Println("OutAllFlight err book udp ", errBuggy.Error())
+		}
 		if errOut == nil {
 			booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 			booking.CaddieHoles = body.CaddieHoles
@@ -382,6 +396,10 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 	}
 	booking := bookingResponse[0]
 	errOut := udpOutCaddieBooking(&booking)
+	if errBuggy := udpOutBuggy(&booking, false); errBuggy != nil {
+		log.Println("OutAllFlight err book udp ", errBuggy.Error())
+	}
+
 	if errOut == nil {
 		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 		booking.CaddieHoles = body.CaddieHoles

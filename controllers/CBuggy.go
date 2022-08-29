@@ -65,6 +65,10 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 		BuggyStatus:     body.BuggyStatus,
 	}
 
+	if buggy.BuggyStatus == "" {
+		buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_ACTIVE
+	}
+
 	err := buggy.Create()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

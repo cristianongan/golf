@@ -55,34 +55,34 @@ type CLockTurn struct{}
 // 	teeTimeDate, _ := utils.ConvertHourToTime(body.TeeTime)
 // 	teeList := []string{}
 
-// 	if course.Hole == 18 {
+// if course.Hole == 18 {
 
-// 		if body.Tee == "1" {
-// 			teeList = []string{"10"}
-// 		} else {
-// 			teeList = []string{"1"}
-// 		}
-// 	} else if course.Hole == 27 {
-
-// 		if body.Tee == "1A" {
-// 			teeList = []string{"1B", "1C"}
-// 		} else if body.Tee == "1B" {
-// 			teeList = []string{"1C", "1A"}
-// 		} else if body.Tee == "1C" {
-// 			teeList = []string{"1A", "1B"}
-// 		}
-
+// 	if body.Tee == "1" {
+// 		teeList = []string{"10"}
 // 	} else {
-// 		if body.Tee == "1A" {
-// 			teeList = []string{"10A", "1B", "10B"}
-// 		} else if body.Tee == "10A" {
-// 			teeList = []string{"1B", "10B", "1A"}
-// 		} else if body.Tee == "1B" {
-// 			teeList = []string{"10B", "1A", "10A"}
-// 		} else {
-// 			teeList = []string{"1A", "10A", "1B"}
-// 		}
+// 		teeList = []string{"1"}
 // 	}
+// } else if course.Hole == 27 {
+
+// 	if body.Tee == "1A" {
+// 		teeList = []string{"1B", "1C"}
+// 	} else if body.Tee == "1B" {
+// 		teeList = []string{"1C", "1A"}
+// 	} else if body.Tee == "1C" {
+// 		teeList = []string{"1A", "1B"}
+// 	}
+
+// } else {
+// 	if body.Tee == "1A" {
+// 		teeList = []string{"10A", "1B", "10B"}
+// 	} else if body.Tee == "10A" {
+// 		teeList = []string{"1B", "10B", "1A"}
+// 	} else if body.Tee == "1B" {
+// 		teeList = []string{"10B", "1A", "10A"}
+// 	} else {
+// 		teeList = []string{"1A", "10A", "1B"}
+// 	}
+// }
 
 // 	for index, tee := range teeList {
 // 		t := teeTimeDate.Add((time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(turnLength)) * time.Duration(index))

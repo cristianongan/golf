@@ -377,6 +377,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			CourseUid:   body.CourseUid,
 			PartnerUid:  body.PartnerUid,
 			TeeTime:     body.TeeTime,
+			TeeType:     body.TeeType,
 		}
 		cTeeTimeSettings.LockTurn(lockTurn, c, prof)
 	}

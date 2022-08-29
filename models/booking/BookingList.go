@@ -26,7 +26,7 @@ type BookingList struct {
 	Status         string
 	FromDate       string
 	ToDate         string
-	BuggyUid       string
+	BuggyId        int64
 	BuggyCode      string
 	GolfBag        string
 	Month          string
@@ -78,6 +78,10 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 		} else if isAgency == 0 {
 			db = db.Where("agency_id = ?", 0)
 		}
+	}
+
+	if item.BuggyId > 0 {
+		db = db.Where("buggy_id = ?", item.BuggyId)
 	}
 
 	if item.BuggyCode != "" {
@@ -228,7 +232,7 @@ func (item *BookingList) FindAllBookingList() (*gorm.DB, int64, error) {
 
 	db = addFilter(db, item)
 
-	db.Count(&total)
+	db.Debug().Count(&total)
 
 	return db, total, db.Error
 }

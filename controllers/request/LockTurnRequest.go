@@ -5,6 +5,7 @@ type CreateLockTurn struct {
 	CourseUid   string
 	TeeTime     string
 	BookingDate string
+	TeeType     string
 }
 type GetListLockTurn struct {
 	PageRequest

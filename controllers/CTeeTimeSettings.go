@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -36,6 +37,7 @@ func (_ *CTeeTimeSettings) CreateTeeTimeSettings(c *gin.Context, prof models.Cms
 		CourseUid:      body.CourseUid,
 		PartnerUid:     body.PartnerUid,
 		CurrentTeeTime: body.TeeTime,
+		TeeType:        body.TeeType,
 	}
 
 	errFind := teeTimeSetting.FindFirst()
@@ -130,19 +132,44 @@ func (_ *CTeeTimeSettings) LockTurn(body request.CreateLockTurn, c *gin.Context,
 	currentTeeTimeDate, _ := utils.ConvertHourToTime(body.TeeTime)
 	endTimeDate, _ := utils.ConvertHourToTime(endTime)
 
-	countTeeTimeLock := 0
+	teeList := []string{}
 
 	if course.Hole == 18 {
-		countTeeTimeLock = 1
+
+		if body.TeeType == "1" {
+			teeList = []string{"10"}
+		} else {
+			teeList = []string{"1"}
+		}
 	} else if course.Hole == 27 {
-		countTeeTimeLock = 2
+
+		if body.TeeType == "1A" {
+			teeList = []string{"1B", "1C"}
+		} else if body.TeeType == "1B" {
+			teeList = []string{"1C", "1A"}
+		} else if body.TeeType == "1C" {
+			teeList = []string{"1A", "1B"}
+		}
+
 	} else {
-		countTeeTimeLock = 3
+		if body.TeeType == "1A" {
+			teeList = []string{"10A", "1B", "10B"}
+		} else if body.TeeType == "10A" {
+			teeList = []string{"1B", "10B", "1A"}
+		} else if body.TeeType == "1B" {
+			teeList = []string{"10B", "1A", "10A"}
+		} else {
+			teeList = []string{"1A", "10A", "1B"}
+		}
 	}
 
-	for i := 1; i <= countTeeTimeLock; i++ {
+	if len(teeList) == 0 {
+		return errors.New("Không tìm thấy sân")
+	}
 
-		t := currentTeeTimeDate.Add((time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(turnLength)) * time.Duration(i))
+	for index, data := range teeList {
+
+		t := currentTeeTimeDate.Add((time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(turnLength)) * time.Duration(index+1))
 
 		if t.After(endTimeDate) {
 			break
@@ -157,6 +184,7 @@ func (_ *CTeeTimeSettings) LockTurn(body request.CreateLockTurn, c *gin.Context,
 			TeeTimeStatus:  "LOCKED",
 			DateTime:       body.BookingDate,
 			CurrentTeeTime: body.TeeTime,
+			TeeType:        data,
 		}
 		errC := lockTeeTime.Create()
 		if errC != nil {

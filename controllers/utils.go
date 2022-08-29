@@ -746,7 +746,7 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 Out caddie
 */
 func udpOutCaddieBooking(booking *model_booking.Booking) error {
-	// Get Caddie
+
 	errCd := udpCaddieOut(booking.CaddieId)
 	if errCd != nil {
 		return errCd
@@ -755,6 +755,35 @@ func udpOutCaddieBooking(booking *model_booking.Booking) error {
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_OUT
 
 	booking.BagStatus = constants.BAG_STATUS_TIMEOUT
+
+	return nil
+}
+
+/*
+Out Buggy
+*/
+func udpOutBuggy(booking *model_booking.Booking, isOutAll bool) error {
+	// Get Caddie
+
+	bookingR := model_booking.BookingList{
+		BookingDate: booking.BookingDate,
+		BuggyId:     booking.BuggyId,
+		BagStatus:   constants.BAG_STATUS_IN_COURSE,
+	}
+
+	_, total, _ := bookingR.FindAllBookingList()
+
+	booking.BuggyId = 0
+	booking.BuggyInfo = cloneToBuggyBooking(models.Buggy{})
+
+	if total > 1 && !isOutAll {
+		return errors.New("Buggy còn đang ghép với booking khác")
+	}
+
+	errBuggy := udpBuggyOut(bookingR.BuggyId)
+	if errBuggy != nil {
+		return errBuggy
+	}
 
 	return nil
 }
@@ -802,9 +831,12 @@ func udpBuggyOut(buggyId int64) error {
 	buggy := models.Buggy{}
 	buggy.Id = buggyId
 	err := buggy.FindFirst()
-	//buggy.IsInCourse = false
-	if err := buggy.Update(); err != nil {
-		log.Println("udpBuggyOut err", err.Error())
+	if err == nil {
+		buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_ACTIVE
+		if errUdp := buggy.Update(); errUdp != nil {
+			log.Println("udpBuggyOut err", err.Error())
+			return errUdp
+		}
 	}
 	return err
 }
