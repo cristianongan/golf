@@ -109,13 +109,11 @@ func (item *CaddieFee) FindAllGroupBy(page Page, month string) ([]CaddieFee, int
 
 	db.Select("*, sum(amount) as total_amount")
 
-	db = db.Where(item)
-
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 	if item.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", item.PartnerUid)
+		db = db.Where("s", item.PartnerUid)
 	}
 	if item.CaddieCode != "" {
 		db = db.Where("caddie_code LIKE ?", "%"+item.CaddieCode+"%")
