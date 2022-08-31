@@ -10,6 +10,8 @@ type KioskInventoryInputItemBody struct {
 	ReviewUserUid string `json:"review_user_uid"`
 	Note          string `json:"note"`
 	KioskCode     string `json:"kiosk_code"`
+	KioskName     string `json:"kiosk_name"`
+	KioskType     string `json:"kiosk_type"`
 }
 
 type KioskInventoryOutputItemBody struct {
@@ -26,6 +28,19 @@ type KioskInventoryOutputItemBody struct {
 type KioskInventoryCreateItemBody struct {
 	Code string `json:"code"`
 	Name string `json:"name"`
+}
+
+type GetInputItems struct {
+	PageRequest
+	BillStatus string `json:"bill_status"`
+	KioskName  string `json:"kiosk_name"`
+	KioskType  string `json:"kiosk_type"`
+}
+
+type GetBillInput struct {
+	PageRequest
+	BillStatus string `json:"bill_status"`
+	Type       string `json:"type"`
 }
 
 type KioskInventoryInsertBody struct {

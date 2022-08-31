@@ -30,7 +30,9 @@ func (_ CKioskInventory) InputItem(c *gin.Context, prof models.CmsUser) {
 	inputItem.KioskCode = body.KioskCode
 	inputItem.ItemCode = body.ItemCode
 	inputItem.Source = body.Source
+	inputItem.KioskType = body.KioskType
 	inputItem.Note = body.Note
+	inputItem.KioskName = body.KioskName
 	inputItem.ReviewUserUid = body.ReviewUserUid
 	inputItem.InputDate = datatypes.Date(time.Now())
 
@@ -41,6 +43,7 @@ func (_ CKioskInventory) InputItem(c *gin.Context, prof models.CmsUser) {
 
 	inventoryStatus := kiosk_inventory.InventoryBill{}
 	inventoryStatus.Code = body.Code
+	inventoryStatus.Type = constants.KIOSK_BILL_INVENTORY_IMPORT
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
 	if errInventoryStatus := inventoryStatus.FindFirst(); errInventoryStatus != nil {
@@ -74,6 +77,7 @@ func (_ CKioskInventory) OutputItem(c *gin.Context, prof models.CmsUser) {
 	inventoryStatus.Code = body.Code
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
+	inventoryStatus.Type = constants.KIOSK_BILL_INVENTORY_EXPORT
 	if errInventoryStatus := inventoryStatus.FindFirst(); errInventoryStatus != nil {
 		inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_SELL
 		inventoryStatus.CourseUid = body.Code
@@ -146,7 +150,7 @@ func addItemToInventory(code string, courseUid string, partnerUid string) error 
 	// Get danh sách item của bill
 	item := kiosk_inventory.InventoryInputItem{}
 	item.Code = code
-	list, _, _ := item.FindList()
+	list, _, _ := item.FindAllList()
 
 	for _, data := range list {
 		item := kiosk_inventory.InventoryItem{
@@ -214,4 +218,67 @@ func (_ CKioskInventory) ReturnInputItem(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 	okRes(c)
+}
+
+func (_ CKioskInventory) GetInputItems(c *gin.Context, prof models.CmsUser) {
+	var form request.GetInputItems
+	if err := c.BindJSON(&form); err != nil {
+		response_message.BadRequest(c, "")
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	inputItems := kiosk_inventory.InventoryInputItem{}
+	inputItems.KioskType = form.KioskType
+	list, total, err := inputItems.FindList(page, form.BillStatus)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
+func (_ CKioskInventory) GetBillInput(c *gin.Context, prof models.CmsUser) {
+	var form request.GetBillInput
+	if err := c.BindJSON(&form); err != nil {
+		response_message.BadRequest(c, "")
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	inputItems := kiosk_inventory.InventoryBill{}
+	inputItems.BillStatus = form.BillStatus
+	inputItems.Type = form.Type
+	list, total, err := inputItems.FindList(page, form.BillStatus)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
 }

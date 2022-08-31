@@ -60,6 +60,11 @@ const (
 	KIOSK_BILL_INVENTORY_TRANSFER = "TRANSFER" // Đơn xuất đã xuất thành công
 )
 
+const (
+	KIOSK_BILL_INVENTORY_IMPORT = "IMPORT"
+	KIOSK_BILL_INVENTORY_EXPORT = "EXPORT"
+)
+
 /*
 Bag status
 */
