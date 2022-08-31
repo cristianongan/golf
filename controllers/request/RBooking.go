@@ -62,6 +62,7 @@ type GetListBookingWithSelectForm struct {
 	HasFlightInfo  string  `form:"has_flight_info"`
 	HasCaddieInOut string  `form:"has_caddie_in_out"`
 	FlightId       int64   `form:"flight_id"`
+	TeeType        string  `form:"tee_type"`
 }
 
 type GetListBookingWithListServiceItems struct {

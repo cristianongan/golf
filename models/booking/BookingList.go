@@ -43,6 +43,7 @@ type BookingList struct {
 	HasFlightInfo  string
 	HasCaddieInOut string
 	CustomerName   string
+	TeeType        string
 	FlightId       int64
 }
 
@@ -188,6 +189,10 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 
 	if item.CustomerName != "" {
 		db = db.Where("customer_name LIKE ?", "%"+item.CustomerName+"%")
+	}
+
+	if item.TeeType != "" {
+		db = db.Where("tee_type = ?", item.TeeType)
 	}
 
 	return db
