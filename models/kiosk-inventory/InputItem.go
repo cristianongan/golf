@@ -18,14 +18,14 @@ type InventoryInputItem struct {
 	CourseUid     string         `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	Code          string         `json:"code" gorm:"type:varchar(100);index"`        // mã nhập kho
 	ItemCode      string         `json:"item_code" gorm:"type:varchar(100);index"`   // mã sản phẩm
-	KioskCode     string         `json:"kiosk_code"`                                 // mã kiosk
-	KioskName     string         `json:"kiosk_name"`                                 // tên kiosk
-	KioskType     string         `json:"kiosk_type"`                                 // kiểu Kiosk (Mini Bar, Mini Restaurant,...)
+	Price         float64        `json:"price"`                                      // Giá sản phẩm
+	KioskCode     string         `json:"kiosk_code" gorm:"type:varchar(100);index"`  // mã kiosk
+	KioskName     string         `json:"kiosk_name" gorm:"type:varchar(256)"`        // tên kiosk
 	Quantity      int64          `json:"quantity"`                                   // số lượng
 	InputDate     datatypes.Date `json:"input_date"`                                 // ngày nhập kho
-	Source        string         `json:"source"`                                     // nguồn từ đâu: từ kho tổng hay từ kiosk khác..?
-	ReviewUserUid string         `json:"review_user_uid"`                            // Người duyệt khi nhập kho
-	Note          string         `json:"note"`                                       // ghi chú
+	Source        string         `json:"source" gorm:"type:varchar(100)"`            // nguồn từ đâu: từ kho tổng hay từ kiosk khác..?
+	ReviewUserUid string         `json:"review_user_uid" gorm:"type:varchar(256)"`   // Người duyệt khi nhập kho
+	Note          string         `json:"note" gorm:"type:varchar(256)"`              // ghi chú
 }
 
 type InventoryInputItemResponse struct {
@@ -57,21 +57,18 @@ func (item *InventoryInputItem) FindAllList() ([]InventoryInputItem, int64, erro
 	return list, total, db.Error
 }
 
-func (item *InventoryInputItem) FindList(page models.Page, status string) ([]InventoryInputItemResponse, int64, error) {
+func (item *InventoryInputItem) FindList(page models.Page) ([]InventoryInputItem, int64, error) {
 	db := datasources.GetDatabase().Model(InventoryInputItem{})
-	db = db.Joins("JOIN flights ON inventory_input_items.code = inventory_bills.code")
-	list := []InventoryInputItemResponse{}
+	list := []InventoryInputItem{}
 	total := int64(0)
 
 	if item.Code != "" {
-		db = db.Where("inventory_input_items.code = ?", item.Code)
+		db = db.Where("code = ?", item.Code)
+	}
+	if item.KioskCode != "" {
+		db = db.Where("kiosk_code = ?", item.KioskCode)
 	}
 
-	if item.KioskType != "" {
-		db = db.Where("inventory_input_items.kiosk_type = ?", item.KioskType)
-	}
-
-	db = db.Select("inventory_input_items.*, inventory_bills.bill_status")
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

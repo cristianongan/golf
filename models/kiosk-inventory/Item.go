@@ -15,11 +15,12 @@ type InventoryItem struct {
 	models.ModelId
 	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	KioskCode   string `json:"kiosk_code"`                                 // mã kiosk
-	InputCode   string `json:"input_code"`                                 // mã nhập kho
-	Code        string `json:"code"`                                       // mã item
+	KioskCode   string `json:"kiosk_code" gorm:"type:varchar(100);index"`  // mã kiosk
+	KioskName   string `json:"kiosk_name" gorm:"type:varchar(256)"`        // tên kiosk
+	InputCode   string `json:"input_code"  gorm:"type:varchar(100);index"` // mã nhập kho
+	Code        string `json:"code" gorm:"type:varchar(100)"`              // mã item
 	Quantity    int64  `json:"quantity"`                                   // số lượng
-	StockStatus string `json:"stock_status"`                               // trạng thái: còn hàng hay hết hàng
+	StockStatus string `json:"stock_status" gorm:"type:varchar(100)"`      // trạng thái: còn hàng hay hết hàng
 }
 
 func (item *InventoryItem) FindFirst() error {
@@ -54,4 +55,21 @@ func (item *InventoryItem) BatchInsert(list []InventoryItem) error {
 		log.Println("BookingServiceItem batch insert err: ", err.Error())
 	}
 	return err
+}
+func (item *InventoryItem) FindList(page models.Page) ([]InventoryItem, int64, error) {
+	db := datasources.GetDatabase().Model(InventoryItem{})
+	list := []InventoryItem{}
+	total := int64(0)
+
+	if item.KioskCode != "" {
+		db = db.Where("kiosk_code = ?", item.KioskCode)
+	}
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, total, db.Error
 }

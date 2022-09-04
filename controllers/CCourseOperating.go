@@ -156,7 +156,9 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 				Note:       "",
 			}
 			listCaddieInOut = append(listCaddieInOut, caddieInNote)
-		} else {
+		}
+
+		if errB != nil {
 			listError = append(listError, errB.Error())
 		}
 	}
