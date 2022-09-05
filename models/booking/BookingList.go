@@ -49,15 +49,15 @@ type BookingList struct {
 
 func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 	if item.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", item.PartnerUid)
+		db = db.Where("bookings.partner_uid = ?", item.PartnerUid)
 	}
 
 	if item.CourseUid != "" {
-		db = db.Where("course_uid = ?", item.CourseUid)
+		db = db.Where("bookings.course_uid = ?", item.CourseUid)
 	}
 
 	if item.BookingDate != "" {
-		db = db.Where("booking_date = ?", item.BookingDate)
+		db = db.Where("bookings.booking_date = ?", item.BookingDate)
 	}
 
 	if item.CaddieName != "" {
