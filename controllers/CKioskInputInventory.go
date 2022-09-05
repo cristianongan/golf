@@ -64,6 +64,7 @@ func (_ CKioskInputInventory) CreateInputItem(c *gin.Context, prof models.CmsUse
 		GroupName: goodsService.GroupName,
 		GroupType: goodsService.Type,
 		GroupCode: body.GoodsCode,
+		Unit:      body.Unit,
 	}
 
 	inputItem.InputDate = datatypes.Date(time.Now())
