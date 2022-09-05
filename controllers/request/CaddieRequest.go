@@ -39,6 +39,7 @@ type GetListCaddieForm struct {
 	IsInGroup         string `form:"is_in_group"`
 	IsReadyForBooking string `form:"is_ready_for_booking"`
 	ContractStatus    string `form:"contract_status"`
+	CurrentStatus     string `form:"current_status"`
 }
 
 type UpdateCaddieBody struct {

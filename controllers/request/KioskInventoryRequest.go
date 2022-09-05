@@ -6,6 +6,7 @@ type KioskInventoryInputItemBody struct {
 	Code          string  `json:"code" binding:"required"`
 	ItemCode      string  `json:"item_code" binding:"required"`
 	ItemName      string  `json:"item_name" binding:"required"`
+	Unit          string  `json:"unit" binding:"required"`
 	GoodsCode     string  `json:"goods_code" binding:"required"`
 	Quantity      int64   `json:"quantity" binding:"required"`
 	Source        string  `json:"source"`

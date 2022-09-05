@@ -32,9 +32,11 @@ type InventoryInputItem struct {
 
 type ItemInfo struct {
 	Price     float64 `json:"price"`                               // Giá sản phẩm
-	ItemName  string  `json:"item_name" gorm:"type:varchar(256)"`  // mã kiosk
-	GroupName string  `json:"group_name" gorm:"type:varchar(100)"` // mã kiosk
-	GroupType string  `json:"group_type" gorm:"type:varchar(100)"` // mã kiosk
+	ItemName  string  `json:"item_name" gorm:"type:varchar(256)"`  // Tên sản phẩm
+	GroupName string  `json:"group_name" gorm:"type:varchar(100)"` // Group Name
+	GroupType string  `json:"group_type" gorm:"type:varchar(100)"` // Group Type
+	GroupCode string  `json:"group_code" gorm:"type:varchar(100)"` // Group Type
+	Unit      string  `json:"unit" gorm:"type:varchar(100)"`       // Đơn vị
 }
 
 func (item *ItemInfo) Scan(v interface{}) error {

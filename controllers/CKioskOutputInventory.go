@@ -56,6 +56,7 @@ func (_ CKioskOutputInventory) CreateOutputItem(c *gin.Context, prof models.CmsU
 		ItemName:  body.ItemName,
 		GroupName: goodsService.GroupName,
 		GroupType: goodsService.Type,
+		GroupCode: body.GoodsCode,
 	}
 
 	if err := inputItem.Create(); err != nil {

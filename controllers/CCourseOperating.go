@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"log"
 	"start/constants"
 	"start/controllers/request"
@@ -127,14 +128,16 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	listCaddieInOut := []model_gostarter.CaddieInOutNote{}
 	for _, v := range body.ListData {
 		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
-		// isCaddiReady := true
+		isCaddiReady := true
 
-		// if !(caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY || caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH || caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK) {
-		// 	listError = append(listError, errors.New(caddieTemp.Code+" chưa sẵn sàng để ghép ").Error())
-		// 	isCaddiReady = false
-		// }
+		if !(caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
+			caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH ||
+			caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK) {
+			listError = append(listError, errors.New(caddieTemp.Code+" chưa sẵn sàng để ghép ").Error())
+			isCaddiReady = false
+		}
 
-		if errB == nil {
+		if errB == nil && isCaddiReady {
 			// Update caddie_current_status
 			caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
 			caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
