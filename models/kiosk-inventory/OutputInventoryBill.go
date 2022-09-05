@@ -20,7 +20,7 @@ type OutputInventoryBill struct {
 	Source     string         `json:"source" gorm:"type:varchar(100)"`            // nguồn từ đâu: từ kho tổng hay từ kiosk khác..?
 	BillStatus string         `json:"bill_status" gorm:"type:varchar(100)"`
 	InputDate  datatypes.Date `json:"input_date"`                                // ngày nhập kho
-	UserUpdate string         `json:"user_update" gorm:"type:varchar(256)"`      // Người update cuối cùngUserUpdate
+	UserUpdate string         `json:"user_update" gorm:"type:varchar(256)"`      // Người update cuối cùng
 	KioskCode  string         `json:"kiosk_code" gorm:"type:varchar(100);index"` // mã kiosk
 	KioskName  string         `json:"kiosk_name" gorm:"type:varchar(256)"`       // tên kiosk
 	Note       string         `json:"note" gorm:"type:varchar(256)"`             // ghi chú
@@ -61,9 +61,9 @@ func (item *OutputInventoryBill) FindFirst() error {
 	db := datasources.GetDatabase()
 	return db.Where(item).First(item).Error
 }
-func (item *OutputInventoryBill) FindList(page models.Page, status string) ([]InventoryInputItemResponse, int64, error) {
+func (item *OutputInventoryBill) FindList(page models.Page, status string) ([]OutputInventoryBill, int64, error) {
 	db := datasources.GetDatabase().Model(OutputInventoryBill{})
-	list := []InventoryInputItemResponse{}
+	list := []OutputInventoryBill{}
 	total := int64(0)
 
 	if item.Code != "" {

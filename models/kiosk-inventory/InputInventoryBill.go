@@ -61,9 +61,9 @@ func (item *InputInventoryBill) FindFirst() error {
 	db := datasources.GetDatabase()
 	return db.Where(item).First(item).Error
 }
-func (item *InputInventoryBill) FindList(page models.Page, status string) ([]InventoryInputItemResponse, int64, error) {
+func (item *InputInventoryBill) FindList(page models.Page, status string) ([]InputInventoryBill, int64, error) {
 	db := datasources.GetDatabase().Model(InputInventoryBill{})
-	list := []InventoryInputItemResponse{}
+	list := []InputInventoryBill{}
 	total := int64(0)
 
 	if item.Code != "" {

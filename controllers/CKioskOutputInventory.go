@@ -5,6 +5,7 @@ import (
 	"start/controllers/request"
 	"start/models"
 	kiosk_inventory "start/models/kiosk-inventory"
+	model_service "start/models/service"
 	"start/utils/response_message"
 
 	"github.com/gin-gonic/gin"
@@ -39,7 +40,23 @@ func (_ CKioskOutputInventory) CreateOutputItem(c *gin.Context, prof models.CmsU
 	inputItem.CourseUid = body.CourseUid
 	inputItem.Quantity = body.Quantity
 	inputItem.ItemCode = body.ItemCode
-	inputItem.Price = body.Price
+
+	goodsService := model_service.GroupServices{
+		GroupCode: body.GoodsCode,
+	}
+
+	errFindGoodsService := goodsService.FindFirst()
+	if errFindGoodsService != nil {
+		response_message.BadRequest(c, errFindGoodsService.Error())
+		return
+	}
+
+	inputItem.ItemInfo = kiosk_inventory.ItemInfo{
+		Price:     body.Price,
+		ItemName:  body.ItemName,
+		GroupName: goodsService.GroupName,
+		GroupType: goodsService.Type,
+	}
 
 	if err := inputItem.Create(); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -123,6 +140,7 @@ func (_ CKioskOutputInventory) removeItemToInventory(code string, courseUid stri
 			InputCode:  data.Code,
 			PartnerUid: partnerUid,
 			CourseUid:  courseUid,
+			ItemInfo:   data.ItemInfo,
 		}
 
 		if err := item.FindFirst(); err != nil {
@@ -137,7 +155,7 @@ func (_ CKioskOutputInventory) removeItemToInventory(code string, courseUid stri
 
 func (_ CKioskOutputInventory) GetOutputBills(c *gin.Context, prof models.CmsUser) {
 	var form request.GetBill
-	if err := c.BindJSON(&form); err != nil {
+	if err := c.ShouldBind(&form); err != nil {
 		response_message.BadRequest(c, "")
 		return
 	}
@@ -149,12 +167,12 @@ func (_ CKioskOutputInventory) GetOutputBills(c *gin.Context, prof models.CmsUse
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	inputItems := kiosk_inventory.OutputInventoryBill{}
-	inputItems.BillStatus = form.BillStatus
-	inputItems.KioskCode = form.KioskCode
-	inputItems.PartnerUid = form.PartnerUid
-	inputItems.CourseUid = form.CourseUid
-	list, total, err := inputItems.FindList(page, form.BillStatus)
+	outputItems := kiosk_inventory.OutputInventoryBill{}
+	outputItems.BillStatus = form.BillStatus
+	outputItems.KioskCode = form.KioskCode
+	outputItems.PartnerUid = form.PartnerUid
+	outputItems.CourseUid = form.CourseUid
+	list, total, err := outputItems.FindList(page, form.BillStatus)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -170,7 +188,7 @@ func (_ CKioskOutputInventory) GetOutputBills(c *gin.Context, prof models.CmsUse
 }
 func (_ CKioskOutputInventory) GetOutputItems(c *gin.Context, prof models.CmsUser) {
 	var form request.GetInOutItems
-	if err := c.BindJSON(&form); err != nil {
+	if err := c.ShouldBind(&form); err != nil {
 		response_message.BadRequest(c, "")
 		return
 	}
@@ -182,12 +200,11 @@ func (_ CKioskOutputInventory) GetOutputItems(c *gin.Context, prof models.CmsUse
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	inputItems := kiosk_inventory.InventoryOutputItem{}
-	inputItems.Code = form.Code
-	inputItems.KioskCode = form.KioskCode
-	inputItems.PartnerUid = form.PartnerUid
-	inputItems.CourseUid = form.CourseUid
-	list, total, err := inputItems.FindList(page)
+	outputItems := kiosk_inventory.InventoryOutputItem{}
+	outputItems.KioskCode = form.KioskCode
+	outputItems.PartnerUid = form.PartnerUid
+	outputItems.CourseUid = form.CourseUid
+	list, total, err := outputItems.FindList(page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

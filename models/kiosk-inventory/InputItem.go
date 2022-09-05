@@ -1,6 +1,8 @@
 package kiosk_inventory
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"start/constants"
 	"start/datasources"
 	"start/models"
@@ -18,19 +20,29 @@ type InventoryInputItem struct {
 	CourseUid     string         `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	Code          string         `json:"code" gorm:"type:varchar(100);index"`        // mã nhập kho
 	ItemCode      string         `json:"item_code" gorm:"type:varchar(100);index"`   // mã sản phẩm
-	Price         float64        `json:"price"`                                      // Giá sản phẩm
-	KioskCode     string         `json:"kiosk_code" gorm:"type:varchar(100);index"`  // mã kiosk
-	KioskName     string         `json:"kiosk_name" gorm:"type:varchar(256)"`        // tên kiosk
-	Quantity      int64          `json:"quantity"`                                   // số lượng
-	InputDate     datatypes.Date `json:"input_date"`                                 // ngày nhập kho
-	Source        string         `json:"source" gorm:"type:varchar(100)"`            // nguồn từ đâu: từ kho tổng hay từ kiosk khác..?
-	ReviewUserUid string         `json:"review_user_uid" gorm:"type:varchar(256)"`   // Người duyệt khi nhập kho
-	Note          string         `json:"note" gorm:"type:varchar(256)"`              // ghi chú
+	ItemInfo      ItemInfo       `json:"item_info" gorm:"type:json"`
+	KioskCode     string         `json:"kiosk_code" gorm:"type:varchar(100);index"` // mã kiosk
+	KioskName     string         `json:"kiosk_name" gorm:"type:varchar(256)"`       // tên kiosk
+	Quantity      int64          `json:"quantity"`                                  // số lượng
+	InputDate     datatypes.Date `json:"input_date"`                                // ngày nhập kho
+	Source        string         `json:"source" gorm:"type:varchar(100)"`           // nguồn từ đâu: từ kho tổng hay từ kiosk khác..?
+	ReviewUserUid string         `json:"review_user_uid" gorm:"type:varchar(256)"`  // Người duyệt khi nhập kho
+	Note          string         `json:"note" gorm:"type:varchar(256)"`             // ghi chú
 }
 
-type InventoryInputItemResponse struct {
-	InventoryInputItem
-	BillStatus string `json:"bill_status"`
+type ItemInfo struct {
+	Price     float64 `json:"price"`                               // Giá sản phẩm
+	ItemName  string  `json:"item_name" gorm:"type:varchar(256)"`  // mã kiosk
+	GroupName string  `json:"group_name" gorm:"type:varchar(100)"` // mã kiosk
+	GroupType string  `json:"group_type" gorm:"type:varchar(100)"` // mã kiosk
+}
+
+func (item *ItemInfo) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ItemInfo) Value() (driver.Value, error) {
+	return json.Marshal(&item)
 }
 
 func (item *InventoryInputItem) Create() error {
