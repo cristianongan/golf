@@ -163,7 +163,16 @@ const (
 )
 
 /*
- Các loại thay đổi hố booking
+Các loại Group Service
+*/
+const (
+	GROUP_FB      = "FB"
+	GROUP_RENTAL  = "RENTAL"
+	GROUP_PROSHOP = "PROSHOP"
+)
+
+/*
+Các loại thay đổi hố booking
 */
 const (
 	BOOKING_STOP_BY_SELF = "STOP_BY_SELF" // Dừng do khách
@@ -172,7 +181,7 @@ const (
 )
 
 /*
-  Các dịch vụ của sân Golf: thuê đồ, shop, nhà hàng...
+Các dịch vụ của sân Golf: thuê đồ, shop, nhà hàng...
 */
 const (
 	DAY_OFF_TYPE_AFTERNOON = "H_AFTERNOON"
