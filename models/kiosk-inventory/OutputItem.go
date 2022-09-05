@@ -18,12 +18,12 @@ type InventoryOutputItem struct {
 	CourseUid  string         `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	Code       string         `json:"code" gorm:"type:varchar(100);index"`        // Mã đơn xuất
 	ItemCode   string         `json:"item_code" gorm:"type:varchar(100);index"`   // mã của sản phẩm
-	Price      float64        `json:"price"`                                      // Giá sản phẩm
-	Quantity   int64          `json:"quantity"`                                   // số lượng
-	OutputDate datatypes.Date `json:"output_date"`                                // ngày xuất kho
-	KioskCode  string         `json:"kiosk_code" gorm:"type:varchar(100);index"`  // mã kiosk
-	KioskName  string         `json:"kiosk_name" gorm:"type:varchar(256)"`        // tên kiosk
-	Reason     string         `json:"reason" gorm:"type:varchar(256)"`            // lý do xuất kho
+	ItemInfo   ItemInfo       `json:"item_info" gorm:"type:json"`
+	Quantity   int64          `json:"quantity"`                                  // số lượng
+	OutputDate datatypes.Date `json:"output_date"`                               // ngày xuất kho
+	KioskCode  string         `json:"kiosk_code" gorm:"type:varchar(100);index"` // mã kiosk
+	KioskName  string         `json:"kiosk_name" gorm:"type:varchar(256)"`       // tên kiosk
+	Reason     string         `json:"reason" gorm:"type:varchar(256)"`           // lý do xuất kho
 }
 
 func (item *InventoryOutputItem) Create() error {

@@ -23,6 +23,7 @@ type CaddieList struct {
 	IsInGroup             string
 	IsReadyForBooking     string
 	ContractStatus        string
+	CurrentStatus         string
 }
 
 func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
@@ -69,6 +70,10 @@ func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
 
 	if item.ContractStatus != "" {
 		db = db.Where("contract_status = ?", item.ContractStatus)
+	}
+
+	if item.CurrentStatus != "" {
+		db = db.Where("current_status = ?", item.CurrentStatus)
 	}
 
 	if item.IsInGroup != "" {

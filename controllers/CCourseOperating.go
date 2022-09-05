@@ -130,7 +130,9 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
 		isCaddiReady := true
 
-		if !(caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY || caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH || caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK) {
+		if !(caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
+			caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH ||
+			caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK) {
 			listError = append(listError, errors.New(caddieTemp.Code+" chưa sẵn sàng để ghép ").Error())
 			isCaddiReady = false
 		}

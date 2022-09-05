@@ -43,7 +43,6 @@ func (item *Kiosk) Create() error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
-	item.KioskCode = "KIOSK-" + time.Now().Format("20060102150405")
 	if item.ModelId.Status == "" {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}

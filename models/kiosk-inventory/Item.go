@@ -13,14 +13,15 @@ import (
 */
 type InventoryItem struct {
 	models.ModelId
-	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	KioskCode   string `json:"kiosk_code" gorm:"type:varchar(100);index"`  // mã kiosk
-	KioskName   string `json:"kiosk_name" gorm:"type:varchar(256)"`        // tên kiosk
-	InputCode   string `json:"input_code"  gorm:"type:varchar(100);index"` // mã nhập kho
-	Code        string `json:"code" gorm:"type:varchar(100)"`              // mã item
-	Quantity    int64  `json:"quantity"`                                   // số lượng
-	StockStatus string `json:"stock_status" gorm:"type:varchar(100)"`      // trạng thái: còn hàng hay hết hàng
+	PartnerUid  string   `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid   string   `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	KioskCode   string   `json:"kiosk_code" gorm:"type:varchar(100);index"`  // mã kiosk
+	KioskName   string   `json:"kiosk_name" gorm:"type:varchar(256)"`        // tên kiosk
+	InputCode   string   `json:"input_code"  gorm:"type:varchar(100);index"` // mã nhập kho
+	Code        string   `json:"code" gorm:"type:varchar(100)"`              // mã sp
+	ItemInfo    ItemInfo `json:"item_info" gorm:"type:json"`                 // Thông tin sản phầm
+	Quantity    int64    `json:"quantity"`                                   // số lượng
+	StockStatus string   `json:"stock_status" gorm:"type:varchar(100)"`      // trạng thái: còn hàng hay hết hàng
 }
 
 func (item *InventoryItem) FindFirst() error {
