@@ -8,8 +8,10 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	kiosk_cart "start/models/kiosk-cart"
+	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
 	"start/utils/response_message"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -125,6 +127,29 @@ func (_ CKioskCart) AddItemToCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate quantity
+	inventory := kiosk_inventory.InventoryItem{}
+	inventory.PartnerUid = prof.PartnerUid
+	inventory.CourseUid = prof.CourseUid
+	inventory.KioskCode = strconv.Itoa(int(body.KioskCode))
+	inventory.Code = body.ItemCode
+
+	if err := inventory.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// Kiểm tra số lượng hàng tồn trong kho
+	if body.Quantity > inventory.Quantity {
+		response_message.BadRequest(c, "The quantity of goods in stock is not enough")
+		return
+	}
+
+	// Update số lượng hàng tồn trong kho
+	inventory.Quantity -= body.Quantity
+	if err := inventory.Update(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
 
 	// add infor cart item
 	cartItem.PartnerUid = prof.PartnerUid
@@ -352,6 +377,31 @@ func (_ CKioskCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// validate quantity
+	inventory := kiosk_inventory.InventoryItem{}
+	inventory.PartnerUid = prof.PartnerUid
+	inventory.CourseUid = prof.CourseUid
+	inventory.KioskCode = strconv.Itoa(int(cartItem.KioskCode))
+	inventory.Code = cartItem.ItemCode
+
+	if err := inventory.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// Kiểm tra số lượng hàng tồn trong kho
+	if body.Quantity > inventory.Quantity+cartItem.Quantity {
+		response_message.BadRequest(c, "The quantity of goods in stock is not enough")
+		return
+	}
+
+	// Update số lượng hàng tồn trong kho
+	inventory.Quantity = inventory.Quantity + cartItem.Quantity - body.Quantity
+	if err := inventory.Update(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
 	cartItem.Quantity = body.Quantity
 	cartItem.Note = body.Note
 
@@ -379,6 +429,25 @@ func (_ CKioskCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	cartItem.Id = body.CartItemId
 
 	if err := cartItem.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate quantity
+	inventory := kiosk_inventory.InventoryItem{}
+	inventory.PartnerUid = prof.PartnerUid
+	inventory.CourseUid = prof.CourseUid
+	inventory.KioskCode = strconv.Itoa(int(cartItem.KioskCode))
+	inventory.Code = cartItem.ItemCode
+
+	if err := inventory.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// Update số lượng hàng tồn trong kho
+	inventory.Quantity += cartItem.Quantity
+	if err := inventory.Update(); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
