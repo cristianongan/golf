@@ -537,13 +537,15 @@ func NewRouter() *gin.Engine {
 			/// =================== Kiosk ===================
 			cKioskCart := new(controllers.CKioskCart)
 			/// * multiple cart
-			cmsApiAuthorized.POST("/kiosk-cart/add-item", middlewares.AuthorizedCmsUserHandler(cKioskCart.AddItemToCart))
+			cmsApiAuthorized.GET("/kiosk-cart/list-cart-item", middlewares.AuthorizedCmsUserHandler(cKioskCart.GetItemInCart))
+			cmsApiAuthorized.GET("/kiosk-cart/list", middlewares.AuthorizedCmsUserHandler(cKioskCart.GetListCart))
+			cmsApiAuthorized.GET("/kiosk-cart/list-best-item", middlewares.AuthorizedCmsUserHandler(cKioskCart.GetBestItemInKiosk))
+			cmsApiAuthorized.POST("/kiosk-cart", middlewares.AuthorizedCmsUserHandler(cKioskCart.AddItemToCart))
 			cmsApiAuthorized.POST("/kiosk-cart/add-discount", middlewares.AuthorizedCmsUserHandler(cKioskCart.AddDiscountToItem))
-			cmsApiAuthorized.GET("/kiosk-cart/get-item", middlewares.AuthorizedCmsUserHandler(cKioskCart.GetItemInCart))
-			cmsApiAuthorized.POST("/kiosk-cart/update-quantity", middlewares.AuthorizedCmsUserHandler(cKioskCart.UpdateQuantityToCart))
-			cmsApiAuthorized.DELETE("/kiosk-cart/delete-item", middlewares.AuthorizedCmsUserHandler(cKioskCart.DeleteItemInCart))
 			cmsApiAuthorized.POST("/kiosk-cart/create-billing", middlewares.AuthorizedCmsUserHandler(cKioskCart.CreateBilling))
 			cmsApiAuthorized.POST("/kiosk-cart/move-item", middlewares.AuthorizedCmsUserHandler(cKioskCart.MoveItemToOtherCart))
+			cmsApiAuthorized.PUT("/kiosk-cart", middlewares.AuthorizedCmsUserHandler(cKioskCart.UpdateItemCart))
+			cmsApiAuthorized.DELETE("/kiosk-cart", middlewares.AuthorizedCmsUserHandler(cKioskCart.DeleteItemInCart))
 		}
 
 		// ----------------------------------------------------------

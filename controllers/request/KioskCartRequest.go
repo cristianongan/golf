@@ -5,7 +5,8 @@ type AddItemToKioskCartBody struct {
 	//BookingDate string `json:"booking_date"`
 	ItemCode  string `json:"item_code"`
 	Quantity  int64  `json:"quantity"`
-	KioskCode string `json:"kiosk_code"`
+	KioskCode int64  `json:"kiosk_code"`
+	KioskType string `json:"kiosk_type"`
 }
 
 type AddDiscountToKioskItemBody struct {
@@ -19,12 +20,25 @@ type GetItemInKioskCartBody struct {
 	PageRequest
 	GolfBag     string `form:"golf_bag"`
 	BookingDate string `form:"booking_date"`
-	KioskCode   string `json:"kiosk_code"`
+	KioskCode   int64  `form:"kiosk_code"`
+}
+
+type GetBestItemInKioskBody struct {
+	PageRequest
+	KioskCode int64  `form:"kiosk_code"`
+	GroupCode string `form:"group_code"`
+}
+
+type GetCartInKioskBody struct {
+	PageRequest
+	BookingDate string `form:"booking_date" binding:"required"`
+	KioskCode   int64  `form:"kiosk_code" binding:"required"`
 }
 
 type UpdateQuantityToKioskCartBody struct {
-	CartItemId int64 `json:"cart_item_id"`
-	Quantity   int64 `json:"quantity"`
+	CartItemId int64  `json:"cart_item_id"`
+	Quantity   int64  `json:"quantity"`
+	Note       string `json:"note"`
 }
 
 type DeleteItemInKioskCartBody struct {
@@ -32,9 +46,9 @@ type DeleteItemInKioskCartBody struct {
 }
 
 type CreateKioskBillingBody struct {
-	GolfBag     string `json:"golf_bag"`
+	GolfBag string `json:"golf_bag"`
 	//BookingDate string `json:"booking_date"`
-	KioskCode   string `json:"kiosk_code"`
+	KioskCode int64 `json:"kiosk_code"`
 }
 
 type MoveItemToOtherKioskCartBody struct {

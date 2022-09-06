@@ -12,22 +12,22 @@ import (
 // Rental
 type Rental struct {
 	models.ModelId
-	RentalId    string `json:"rental_id" gorm:"type:varchar(100);index"`
-	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	EnglishName string `json:"english_name" gorm:"type:varchar(256)"`      // Tên Tiếng Anh
-	RenPos      string `json:"ren_pos" gorm:"type:varchar(100)"`
-	VieName     string `json:"vietnamese_name" gorm:"type:varchar(256)"` // Tên Tiếng Anh
-	Type        string `json:"type" gorm:"type:varchar(50)"`             // Loại rental, kiosk, proshop,...
-	SystemCode  string `json:"system_code" gorm:"type:varchar(100)"`
-	GroupCode   string `json:"group_code" gorm:"type:varchar(100);index"`
-	Unit        string `json:"unit" gorm:"type:varchar(100)"`
-	Price       int64  `json:"price"`
-	ByHoles     bool   `json:"by_holes"`
-	ForPos      bool   `json:"for_pos"`
-	OnlyForRen  bool   `json:"only_for_ren"`
-	InputUser   string `json:"input_user" gorm:"type:varchar(100)"`
-	Name        string `json:"name" gorm:"type:varchar(256)"` // Tên
+	RentalId    string  `json:"rental_id" gorm:"type:varchar(100);index"`
+	PartnerUid  string  `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid   string  `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	EnglishName string  `json:"english_name" gorm:"type:varchar(256)"`      // Tên Tiếng Anh
+	RenPos      string  `json:"ren_pos" gorm:"type:varchar(100)"`
+	VieName     string  `json:"vietnamese_name" gorm:"type:varchar(256)"` // Tên Tiếng Anh
+	Type        string  `json:"type" gorm:"type:varchar(50)"`             // Loại rental, kiosk, proshop,...
+	SystemCode  string  `json:"system_code" gorm:"type:varchar(100)"`
+	GroupCode   string  `json:"group_code" gorm:"type:varchar(100);index"`
+	Unit        string  `json:"unit" gorm:"type:varchar(100)"`
+	Price       float64 `json:"price"`
+	ByHoles     bool    `json:"by_holes"`
+	ForPos      bool    `json:"for_pos"`
+	OnlyForRen  bool    `json:"only_for_ren"`
+	InputUser   string  `json:"input_user" gorm:"type:varchar(100)"`
+	Name        string  `json:"name" gorm:"type:varchar(256)"` // Tên
 }
 
 type RentalResponse struct {

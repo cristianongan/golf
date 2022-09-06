@@ -1,22 +1,27 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
-	"gorm.io/datatypes"
 	"log"
+	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/models"
 	model_booking "start/models/booking"
 	kiosk_cart "start/models/kiosk-cart"
+	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
 	"start/utils/response_message"
+	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"gorm.io/datatypes"
 )
 
-type CKioskCart struct {}
+type CKioskCart struct{}
 
+// Thêm sản phẩm vào giỏ hàng
 func (_ CKioskCart) AddItemToCart(c *gin.Context, prof models.CmsUser) {
 	var body request.AddItemToKioskCartBody
 	if err := c.BindJSON(&body); err != nil {
@@ -43,19 +48,8 @@ func (_ CKioskCart) AddItemToCart(c *gin.Context, prof models.CmsUser) {
 
 	// validate kiosk
 	kiosk := model_service.Kiosk{}
-	kiosk.KioskCode = body.KioskCode
+	kiosk.Id = body.KioskCode
 	if err := kiosk.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
-
-	// validate item code
-	fb := model_service.FoodBeverage{}
-	fb.PartnerUid = prof.PartnerUid
-	fb.CourseUid = prof.CourseUid
-	fb.FBCode = body.ItemCode
-
-	if err := fb.FindFirstInKiosk(kiosk.Id); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -80,8 +74,84 @@ func (_ CKioskCart) AddItemToCart(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	// add item
+	// create cart item
 	cartItem := kiosk_cart.CartItem{}
+
+	// validate item code by group
+	if body.KioskType == constants.GROUP_FB {
+		fb := model_service.FoodBeverage{}
+		fb.PartnerUid = prof.PartnerUid
+		fb.CourseUid = prof.CourseUid
+		fb.FBCode = body.ItemCode
+
+		if err := fb.FindFirstInKiosk(kiosk.Id); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+		// add infor cart item
+		cartItem.ItemGroupId = fb.GroupCode
+		cartItem.ItemName = fb.VieName
+		cartItem.UnitPrice = fb.Price
+	}
+
+	if body.KioskType == constants.GROUP_PROSHOP {
+		proshop := model_service.Proshop{}
+		proshop.PartnerUid = prof.PartnerUid
+		proshop.CourseUid = prof.CourseUid
+		proshop.ProShopId = body.ItemCode
+
+		if err := proshop.FindFirst(); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+		// add infor cart item
+		cartItem.ItemGroupId = proshop.GroupCode
+		cartItem.ItemName = proshop.VieName
+		cartItem.UnitPrice = proshop.Price
+	}
+
+	if body.KioskType == constants.GROUP_RENTAL {
+		rental := model_service.Rental{}
+		rental.PartnerUid = prof.PartnerUid
+		rental.CourseUid = prof.CourseUid
+		rental.RentalId = body.ItemCode
+
+		if err := rental.FindFirst(); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+		// add infor cart item
+		cartItem.ItemGroupId = rental.GroupCode
+		cartItem.ItemName = rental.VieName
+		cartItem.UnitPrice = rental.Price
+	}
+
+	// validate quantity
+	inventory := kiosk_inventory.InventoryItem{}
+	inventory.PartnerUid = prof.PartnerUid
+	inventory.CourseUid = prof.CourseUid
+	inventory.KioskCode = strconv.Itoa(int(body.KioskCode))
+	inventory.Code = body.ItemCode
+
+	if err := inventory.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// Kiểm tra số lượng hàng tồn trong kho
+	if body.Quantity > inventory.Quantity {
+		response_message.BadRequest(c, "The quantity of goods in stock is not enough")
+		return
+	}
+
+	// Update số lượng hàng tồn trong kho
+	inventory.Quantity -= body.Quantity
+	if err := inventory.Update(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// add infor cart item
 	cartItem.PartnerUid = prof.PartnerUid
 	cartItem.CourseUid = prof.CourseUid
 	cartItem.KioskCode = body.KioskCode
@@ -89,7 +159,6 @@ func (_ CKioskCart) AddItemToCart(c *gin.Context, prof models.CmsUser) {
 	cartItem.KioskCartCode = cart.Code
 	cartItem.ItemCode = body.ItemCode
 	cartItem.Quantity = body.Quantity
-	cartItem.UnitPrice = fb.Price
 	cartItem.TotalPrice = float64(cartItem.Quantity) * cartItem.UnitPrice
 	cartItem.ActionBy = prof.Uid
 	if err := cartItem.Create(); err != nil {
@@ -198,7 +267,79 @@ func (_ CKioskCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
 	c.JSON(200, res)
 }
 
-func (_ CKioskCart) UpdateQuantityToCart(c *gin.Context, prof models.CmsUser) {
+func (_ CKioskCart) GetBestItemInKiosk(c *gin.Context, prof models.CmsUser) {
+	query := request.GetBestItemInKioskBody{}
+	if err := c.Bind(&query); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   query.PageRequest.Limit,
+		Page:    query.PageRequest.Page,
+		SortBy:  query.PageRequest.SortBy,
+		SortDir: query.PageRequest.SortDir,
+	}
+
+	cartItem := kiosk_cart.CartItem{}
+	cartItem.PartnerUid = prof.PartnerUid
+	cartItem.CourseUid = prof.CourseUid
+	cartItem.KioskCode = query.KioskCode
+	cartItem.ItemGroupId = query.GroupCode
+
+	list, total, err := cartItem.FindBestCartItem(page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	c.JSON(200, res)
+}
+
+func (_ CKioskCart) GetListCart(c *gin.Context, prof models.CmsUser) {
+	query := request.GetCartInKioskBody{}
+	if err := c.Bind(&query); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   query.PageRequest.Limit,
+		Page:    query.PageRequest.Page,
+		SortBy:  query.PageRequest.SortBy,
+		SortDir: query.PageRequest.SortDir,
+	}
+
+	bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
+
+	cart := kiosk_cart.Cart{}
+	cart.PartnerUid = prof.PartnerUid
+	cart.CourseUid = prof.CourseUid
+	cart.KioskCode = query.KioskCode
+	cart.BookingDate = datatypes.Date(bookingDate)
+
+	list, total, err := cart.FindList(page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	c.JSON(200, res)
+}
+
+func (_ CKioskCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	var body request.UpdateQuantityToKioskCartBody
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("UpdateQuantityToCart BindJSON error")
@@ -236,7 +377,33 @@ func (_ CKioskCart) UpdateQuantityToCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// validate quantity
+	inventory := kiosk_inventory.InventoryItem{}
+	inventory.PartnerUid = prof.PartnerUid
+	inventory.CourseUid = prof.CourseUid
+	inventory.KioskCode = strconv.Itoa(int(cartItem.KioskCode))
+	inventory.Code = cartItem.ItemCode
+
+	if err := inventory.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// Kiểm tra số lượng hàng tồn trong kho
+	if body.Quantity > inventory.Quantity+cartItem.Quantity {
+		response_message.BadRequest(c, "The quantity of goods in stock is not enough")
+		return
+	}
+
+	// Update số lượng hàng tồn trong kho
+	inventory.Quantity = inventory.Quantity + cartItem.Quantity - body.Quantity
+	if err := inventory.Update(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
 	cartItem.Quantity = body.Quantity
+	cartItem.Note = body.Note
 
 	if err := cartItem.Update(); err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -262,6 +429,25 @@ func (_ CKioskCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	cartItem.Id = body.CartItemId
 
 	if err := cartItem.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate quantity
+	inventory := kiosk_inventory.InventoryItem{}
+	inventory.PartnerUid = prof.PartnerUid
+	inventory.CourseUid = prof.CourseUid
+	inventory.KioskCode = strconv.Itoa(int(cartItem.KioskCode))
+	inventory.Code = cartItem.ItemCode
+
+	if err := inventory.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// Update số lượng hàng tồn trong kho
+	inventory.Quantity += cartItem.Quantity
+	if err := inventory.Update(); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
