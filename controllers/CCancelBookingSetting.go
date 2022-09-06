@@ -129,6 +129,7 @@ func (_ *CCancelBookingSetting) UpdateCancelBookingSetting(c *gin.Context, prof 
 		cancelBooking.PeopleFrom = body.PeopleFrom
 		cancelBooking.PeopleTo = body.PeopleTo
 		cancelBooking.Time = body.Time
+		cancelBooking.Status = body.Status
 
 		err := cancelBooking.Update()
 		if err != nil {
