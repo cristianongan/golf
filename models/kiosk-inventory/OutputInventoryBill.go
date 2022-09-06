@@ -14,11 +14,10 @@ Lưu thông tin đơn nhập kho
 */
 type OutputInventoryBill struct {
 	models.ModelId
-	PartnerUid        string         `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid         string         `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Code              string         `json:"code" gorm:"type:varchar(100);index"`        // mã xuất kho
-	Source            string         `json:"source" gorm:"type:varchar(100)"`            // nguồn từ đâu: từ kho tổng hay từ kiosk khác..?
-	BillStatus        string         `json:"bill_status" gorm:"type:varchar(100)"`
+	PartnerUid        string         `json:"partner_uid" gorm:"type:varchar(100);index"`   // Hang Golf
+	CourseUid         string         `json:"course_uid" gorm:"type:varchar(256);index"`    // San Golf
+	Code              string         `json:"code" gorm:"type:varchar(100);index"`          // mã xuất kho
+	Source            string         `json:"source" gorm:"type:varchar(100)"`              // nguồn từ đâu: từ kho tổng hay từ kiosk khác..?
 	InputDate         datatypes.Date `json:"input_date"`                                   // ngày nhập kho
 	UserUpdate        string         `json:"user_update" gorm:"type:varchar(256)"`         // Người update cuối cùng
 	ServiceId         int64          `json:"service_id" gorm:"index"`                      // mã service
@@ -26,6 +25,10 @@ type OutputInventoryBill struct {
 	Note              string         `json:"note" gorm:"type:varchar(256)"`                // ghi chú
 	ServiceImportId   int64          `json:"service_import_id"`                            // id service sẽ import
 	ServiceImportName string         `json:"service_import_name" gorm:"type:varchar(256)"` // tên service import
+	Bag               string         `json:"bag" gorm:"type:varchar(100);index"`           // Golf Bag
+	CustomerName      string         `json:"customer_name" gorm:"type:varchar(256)"`       // Tên khách hàng
+	BillStatus        string         `json:"bill_status" gorm:"type:varchar(100)"`         // Trạng thái đơn hàng (SELL, TRANSFER)
+	Quantity          int64          `json:"quantity"`                                     // Tổng số lượng sell or transfer
 }
 
 func (item *OutputInventoryBill) IsDuplicated() bool {

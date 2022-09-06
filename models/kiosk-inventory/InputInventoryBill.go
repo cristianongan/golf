@@ -25,6 +25,7 @@ type InputInventoryBill struct {
 	ServiceName       string         `json:"service_name" gorm:"type:varchar(256)"`        // tên service
 	ServiceExportId   int64          `json:"service_import_id"`                            // id service export
 	ServiceExportName string         `json:"service_import_name" gorm:"type:varchar(256)"` // tên service export
+	Quantity          int64          `json:"quantity"`                                     // Tổng số lượng sell or transfer
 }
 
 func (item *InputInventoryBill) IsDuplicated() bool {
