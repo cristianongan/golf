@@ -11,7 +11,6 @@ import (
 	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
 	"start/utils/response_message"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -130,7 +129,7 @@ func (_ CKioskCart) AddItemToCart(c *gin.Context, prof models.CmsUser) {
 	inventory := kiosk_inventory.InventoryItem{}
 	inventory.PartnerUid = prof.PartnerUid
 	inventory.CourseUid = prof.CourseUid
-	inventory.KioskCode = strconv.Itoa(int(body.KioskCode))
+	inventory.ServiceId = cartItem.KioskCode
 	inventory.Code = body.ItemCode
 
 	if err := inventory.FindFirst(); err != nil {
@@ -381,7 +380,7 @@ func (_ CKioskCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	inventory := kiosk_inventory.InventoryItem{}
 	inventory.PartnerUid = prof.PartnerUid
 	inventory.CourseUid = prof.CourseUid
-	inventory.KioskCode = strconv.Itoa(int(cartItem.KioskCode))
+	inventory.ServiceId = cartItem.KioskCode
 	inventory.Code = cartItem.ItemCode
 
 	if err := inventory.FindFirst(); err != nil {
@@ -437,7 +436,7 @@ func (_ CKioskCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	inventory := kiosk_inventory.InventoryItem{}
 	inventory.PartnerUid = prof.PartnerUid
 	inventory.CourseUid = prof.CourseUid
-	inventory.KioskCode = strconv.Itoa(int(cartItem.KioskCode))
+	inventory.ServiceId = cartItem.KioskCode
 	inventory.Code = cartItem.ItemCode
 
 	if err := inventory.FindFirst(); err != nil {

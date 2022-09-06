@@ -80,7 +80,6 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 
 	rental := model_service.Rental{
 		RentalId:    body.RentalId,
-		SystemCode:  body.SystemCode,
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,
 		EnglishName: body.EnglishName,
