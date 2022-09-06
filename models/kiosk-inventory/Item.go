@@ -15,8 +15,8 @@ type InventoryItem struct {
 	models.ModelId
 	PartnerUid  string   `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid   string   `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	KioskCode   string   `json:"kiosk_code" gorm:"type:varchar(100);index"`  // mã kiosk
-	KioskName   string   `json:"kiosk_name" gorm:"type:varchar(256)"`        // tên kiosk
+	ServiceId   int64    `json:"service_id" gorm:"index"`                    // mã service
+	ServiceName string   `json:"service_name" gorm:"type:varchar(256)"`      // tên service
 	InputCode   string   `json:"input_code"  gorm:"type:varchar(100);index"` // mã nhập kho
 	Code        string   `json:"code" gorm:"type:varchar(100)"`              // mã sp
 	ItemInfo    ItemInfo `json:"item_info" gorm:"type:json"`                 // Thông tin sản phầm
@@ -62,8 +62,8 @@ func (item *InventoryItem) FindList(page models.Page) ([]InventoryItem, int64, e
 	list := []InventoryItem{}
 	total := int64(0)
 
-	if item.KioskCode != "" {
-		db = db.Where("kiosk_code = ?", item.KioskCode)
+	if item.ServiceId > 0 {
+		db = db.Where("service_id = ?", item.ServiceId)
 	}
 
 	db.Count(&total)

@@ -16,33 +16,35 @@ type CKioskOutputInventory struct{}
 func (_ CKioskOutputInventory) CreateOutputItem(c *gin.Context, prof models.CmsUser) {
 	var body request.KioskInventoryOutputItemBody
 	if err := c.BindJSON(&body); err != nil {
-		response_message.BadRequest(c, "")
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 	inventoryStatus := kiosk_inventory.OutputInventoryBill{}
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
 	inventoryStatus.CourseUid = body.Code
-	inventoryStatus.KioskCode = body.KioskCode
+	inventoryStatus.ServiceId = body.ServiceId
 	if errInventoryStatus := inventoryStatus.FindFirst(); errInventoryStatus != nil {
 		inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_SELL
 		inventoryStatus.UserUpdate = prof.UserName
-		inventoryStatus.KioskName = body.KioskName
-		inventoryStatus.Source = body.Source
+		inventoryStatus.ServiceName = body.ServiceName
+		inventoryStatus.ServiceImportId = body.ServiceImportId
+		inventoryStatus.ServiceImportName = body.ServiceImportName
 		inventoryStatus.Create()
 	}
 
 	inputItem := kiosk_inventory.InventoryOutputItem{}
 	inputItem.Code = body.Code
-	inputItem.KioskCode = body.KioskCode
-	inputItem.KioskName = body.KioskName
+	inputItem.ServiceId = body.ServiceId
+	inputItem.ServiceName = body.ServiceName
 	inputItem.PartnerUid = body.PartnerUid
 	inputItem.CourseUid = body.CourseUid
 	inputItem.Quantity = body.Quantity
 	inputItem.ItemCode = body.ItemCode
+	inputItem.UserUpdate = prof.UserName
 
 	goodsService := model_service.GroupServices{
-		GroupCode: body.GoodsCode,
+		GroupCode: body.GroupCode,
 	}
 
 	errFindGoodsService := goodsService.FindFirst()
@@ -56,7 +58,7 @@ func (_ CKioskOutputInventory) CreateOutputItem(c *gin.Context, prof models.CmsU
 		ItemName:  body.ItemName,
 		GroupName: goodsService.GroupName,
 		GroupType: goodsService.Type,
-		GroupCode: body.GoodsCode,
+		GroupCode: body.GroupCode,
 		Unit:      body.Unit,
 	}
 
@@ -77,12 +79,13 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 	inventoryStatus := kiosk_inventory.OutputInventoryBill{}
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
-	inventoryStatus.KioskCode = body.KioskCode
+	inventoryStatus.ServiceId = body.ServiceId
 	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_SELL
 	inventoryStatus.CourseUid = body.Code
 	inventoryStatus.UserUpdate = prof.UserName
-	inventoryStatus.KioskName = body.KioskName
-	inventoryStatus.Source = body.Source
+	inventoryStatus.ServiceName = body.ServiceName
+	inventoryStatus.ServiceImportId = body.SourceId
+	inventoryStatus.ServiceImportName = body.SourceName
 
 	err := inventoryStatus.Create()
 	if err != nil {
@@ -103,7 +106,7 @@ func (item CKioskOutputInventory) TransferOutputBill(c *gin.Context, prof models
 	// Update trạng thái kiosk inventory
 	inventoryStatus := kiosk_inventory.OutputInventoryBill{}
 	inventoryStatus.Code = body.Code
-	inventoryStatus.KioskCode = body.KioskCode
+	inventoryStatus.ServiceId = body.ServiceId
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
 	if errInventoryStatus := inventoryStatus.FindFirst(); errInventoryStatus != nil {
@@ -137,7 +140,7 @@ func (_ CKioskOutputInventory) removeItemToInventory(code string, courseUid stri
 
 	for _, data := range list {
 		item := kiosk_inventory.InventoryItem{
-			KioskCode:  data.KioskCode,
+			ServiceId:  data.ServiceId,
 			Code:       data.ItemCode,
 			InputCode:  data.Code,
 			PartnerUid: partnerUid,
@@ -171,7 +174,7 @@ func (_ CKioskOutputInventory) GetOutputBills(c *gin.Context, prof models.CmsUse
 
 	outputItems := kiosk_inventory.OutputInventoryBill{}
 	outputItems.BillStatus = form.BillStatus
-	outputItems.KioskCode = form.KioskCode
+	outputItems.ServiceId = form.ServiceId
 	outputItems.PartnerUid = form.PartnerUid
 	outputItems.CourseUid = form.CourseUid
 	list, total, err := outputItems.FindList(page, form.BillStatus)
@@ -203,7 +206,7 @@ func (_ CKioskOutputInventory) GetOutputItems(c *gin.Context, prof models.CmsUse
 	}
 
 	outputItems := kiosk_inventory.InventoryOutputItem{}
-	outputItems.KioskCode = form.KioskCode
+	outputItems.ServiceId = form.ServiceId
 	outputItems.PartnerUid = form.PartnerUid
 	outputItems.CourseUid = form.CourseUid
 	list, total, err := outputItems.FindList(page)

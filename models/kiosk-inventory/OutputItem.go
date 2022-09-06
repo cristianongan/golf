@@ -14,16 +14,16 @@ import (
 */
 type InventoryOutputItem struct {
 	models.ModelId
-	PartnerUid string         `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string         `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Code       string         `json:"code" gorm:"type:varchar(100);index"`        // Mã đơn xuất
-	ItemCode   string         `json:"item_code" gorm:"type:varchar(100);index"`   // mã của sản phẩm
-	ItemInfo   ItemInfo       `json:"item_info" gorm:"type:json"`
-	Quantity   int64          `json:"quantity"`                                  // số lượng
-	OutputDate datatypes.Date `json:"output_date"`                               // ngày xuất kho
-	KioskCode  string         `json:"kiosk_code" gorm:"type:varchar(100);index"` // mã kiosk
-	KioskName  string         `json:"kiosk_name" gorm:"type:varchar(256)"`       // tên kiosk
-	Reason     string         `json:"reason" gorm:"type:varchar(256)"`           // lý do xuất kho
+	PartnerUid  string         `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid   string         `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Code        string         `json:"code" gorm:"type:varchar(100);index"`        // Mã đơn xuất
+	ItemCode    string         `json:"item_code" gorm:"type:varchar(100);index"`   // mã của sản phẩm
+	ItemInfo    ItemInfo       `json:"item_info" gorm:"type:json"`
+	Quantity    int64          `json:"quantity"`                              // số lượng
+	OutputDate  datatypes.Date `json:"output_date"`                           // ngày xuất kho
+	ServiceId   int64          `json:"service_id" gorm:"index"`               // mã service
+	ServiceName string         `json:"service_name" gorm:"type:varchar(256)"` // tên service
+	UserUpdate  string         `json:"user_update" gorm:"type:varchar(256)"`  // Người duyệt khi nhập kho
 }
 
 func (item *InventoryOutputItem) Create() error {
@@ -59,8 +59,8 @@ func (item *InventoryOutputItem) FindList(page models.Page) ([]InventoryOutputIt
 	if item.Code != "" {
 		db = db.Where("code = ?", item.Code)
 	}
-	if item.KioskCode != "" {
-		db = db.Where("kiosk_code = ?", item.KioskCode)
+	if item.ServiceId > 0 {
+		db = db.Where("service_id = ?", item.ServiceId)
 	}
 
 	db.Count(&total)

@@ -5,7 +5,7 @@ type CreateRentalBody struct {
 	PartnerUid  string `json:"partner_uid" binding:"required"`
 	GroupCode   string `json:"group_code" binding:"required"`
 	CourseUid   string `json:"course_uid" binding:"required"`
-	SystemCode  string `json:"system_code" binding:"required"`
+	SystemCode  string `json:"system_code"`
 	EnglishName string `json:"english_name"`
 	VieName     string `json:"vietnamese_name"`
 	RenPos      string `json:"ren_pos"`

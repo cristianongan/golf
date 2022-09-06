@@ -16,18 +16,16 @@ import (
 */
 type InventoryInputItem struct {
 	models.ModelId
-	PartnerUid    string         `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid     string         `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Code          string         `json:"code" gorm:"type:varchar(100);index"`        // mã nhập kho
-	ItemCode      string         `json:"item_code" gorm:"type:varchar(100);index"`   // mã sản phẩm
-	ItemInfo      ItemInfo       `json:"item_info" gorm:"type:json"`
-	KioskCode     string         `json:"kiosk_code" gorm:"type:varchar(100);index"` // mã kiosk
-	KioskName     string         `json:"kiosk_name" gorm:"type:varchar(256)"`       // tên kiosk
-	Quantity      int64          `json:"quantity"`                                  // số lượng
-	InputDate     datatypes.Date `json:"input_date"`                                // ngày nhập kho
-	Source        string         `json:"source" gorm:"type:varchar(100)"`           // nguồn từ đâu: từ kho tổng hay từ kiosk khác..?
-	ReviewUserUid string         `json:"review_user_uid" gorm:"type:varchar(256)"`  // Người duyệt khi nhập kho
-	Note          string         `json:"note" gorm:"type:varchar(256)"`             // ghi chú
+	PartnerUid  string         `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid   string         `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Code        string         `json:"code" gorm:"type:varchar(100);index"`        // mã nhập kho
+	ItemCode    string         `json:"item_code" gorm:"type:varchar(100);index"`   // mã sản phẩm
+	ItemInfo    ItemInfo       `json:"item_info" gorm:"type:json"`
+	ServiceId   int64          `json:"service_id" gorm:"index"`               // mã service
+	ServiceName string         `json:"service_name" gorm:"type:varchar(256)"` // tên service
+	Quantity    int64          `json:"quantity"`                              // số lượng
+	InputDate   datatypes.Date `json:"input_date"`                            // ngày nhập kho
+	UserUpdate  string         `json:"user_update" gorm:"type:varchar(256)"`  // Người duyệt khi nhập kho
 }
 
 type ItemInfo struct {
@@ -79,8 +77,9 @@ func (item *InventoryInputItem) FindList(page models.Page) ([]InventoryInputItem
 	if item.Code != "" {
 		db = db.Where("code = ?", item.Code)
 	}
-	if item.KioskCode != "" {
-		db = db.Where("kiosk_code = ?", item.KioskCode)
+
+	if item.ServiceId > 0 {
+		db = db.Where("service_id = ?", item.ServiceId)
 	}
 
 	db.Count(&total)

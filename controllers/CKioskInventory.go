@@ -14,7 +14,7 @@ type CKioskInventory struct{}
 func (_ CKioskInventory) GetKioskInventory(c *gin.Context, prof models.CmsUser) {
 	var form request.GetInOutItems
 	if err := c.ShouldBind(&form); err != nil {
-		response_message.BadRequest(c, "")
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
@@ -26,7 +26,7 @@ func (_ CKioskInventory) GetKioskInventory(c *gin.Context, prof models.CmsUser) 
 	}
 
 	inputItems := kiosk_inventory.InventoryItem{}
-	inputItems.KioskCode = form.KioskCode
+	inputItems.ServiceId = form.ServiceId
 	inputItems.PartnerUid = form.PartnerUid
 	inputItems.CourseUid = form.CourseUid
 	list, total, err := inputItems.FindList(page)

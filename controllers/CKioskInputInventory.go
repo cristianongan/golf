@@ -18,7 +18,7 @@ type CKioskInputInventory struct{}
 func (_ CKioskInputInventory) CreateInputItem(c *gin.Context, prof models.CmsUser) {
 	var body request.KioskInventoryInputItemBody
 	if err := c.BindJSON(&body); err != nil {
-		response_message.BadRequest(c, "")
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
@@ -26,12 +26,14 @@ func (_ CKioskInputInventory) CreateInputItem(c *gin.Context, prof models.CmsUse
 	inventoryStatus := kiosk_inventory.InputInventoryBill{}
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
-	inventoryStatus.KioskCode = body.KioskCode
+	inventoryStatus.ServiceId = body.ServiceId
 	inventoryStatus.Code = body.Code
 	if errInventoryStatus := inventoryStatus.FindFirst(); errInventoryStatus != nil {
-		inventoryStatus.Source = body.Source
-		inventoryStatus.KioskName = body.KioskName
+		inventoryStatus.ServiceExportId = body.ServiceExportId
+		inventoryStatus.ServiceExportName = body.ServiceExportName
+		inventoryStatus.ServiceName = body.ServiceName
 		inventoryStatus.UserUpdate = prof.UserName
+		inventoryStatus.Note = body.Note
 		inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_PENDING
 		inventoryStatus.Create()
 	}
@@ -42,14 +44,13 @@ func (_ CKioskInputInventory) CreateInputItem(c *gin.Context, prof models.CmsUse
 	inputItem.CourseUid = body.CourseUid
 	inputItem.Quantity = body.Quantity
 	inputItem.ItemCode = body.ItemCode
-	inputItem.Source = body.Source
-	inputItem.Note = body.Note
-	inputItem.ReviewUserUid = prof.UserName
-	inputItem.KioskCode = body.KioskCode
-	inputItem.KioskName = body.KioskName
+	inputItem.UserUpdate = prof.UserName
+	inputItem.ServiceId = body.ServiceId
+	inputItem.ServiceName = body.ServiceName
+	inputItem.UserUpdate = body.UserUpdate
 
 	goodsService := model_service.GroupServices{
-		GroupCode: body.GoodsCode,
+		GroupCode: body.GroupCode,
 	}
 
 	errFindGoodsService := goodsService.FindFirst()
@@ -63,7 +64,7 @@ func (_ CKioskInputInventory) CreateInputItem(c *gin.Context, prof models.CmsUse
 		ItemName:  body.ItemName,
 		GroupName: goodsService.GroupName,
 		GroupType: goodsService.Type,
-		GroupCode: body.GoodsCode,
+		GroupCode: body.GroupCode,
 		Unit:      body.Unit,
 	}
 
@@ -86,12 +87,13 @@ func (item CKioskOutputInventory) CreateInputBill(c *gin.Context, prof models.Cm
 	inventoryStatus := kiosk_inventory.InputInventoryBill{}
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
-	inventoryStatus.KioskCode = body.KioskCode
-	inventoryStatus.KioskName = body.KioskName
+	inventoryStatus.ServiceId = body.ServiceId
+	inventoryStatus.ServiceName = body.ServiceName
 	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_PENDING
 	inventoryStatus.CourseUid = body.Code
 	inventoryStatus.UserUpdate = prof.UserName
-	inventoryStatus.Source = body.Source
+	inventoryStatus.ServiceExportId = body.SourceId
+	inventoryStatus.ServiceExportName = body.SourceName
 
 	err := inventoryStatus.Create()
 	if err != nil {
@@ -105,14 +107,14 @@ func (item CKioskOutputInventory) CreateInputBill(c *gin.Context, prof models.Cm
 func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.CmsUser) {
 	var body request.KioskInventoryInsertBody
 	if err := c.BindJSON(&body); err != nil {
-		response_message.BadRequest(c, "")
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
 	// Update trạng thái kiosk inventory
 	inventoryStatus := kiosk_inventory.InputInventoryBill{}
 	inventoryStatus.Code = body.Code
-	inventoryStatus.KioskCode = body.KioskCode
+	inventoryStatus.ServiceId = body.ServiceId
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
 	if errInventoryStatus := inventoryStatus.FindFirst(); errInventoryStatus != nil {
@@ -146,7 +148,7 @@ func (_ CKioskInputInventory) addItemToInventory(code string, courseUid string, 
 
 	for _, data := range list {
 		item := kiosk_inventory.InventoryItem{
-			KioskCode:  data.KioskCode,
+			ServiceId:  data.ServiceId,
 			Code:       data.ItemCode,
 			InputCode:  data.Code,
 			PartnerUid: partnerUid,
@@ -205,7 +207,7 @@ func (_ CKioskInputInventory) ReturnInputItem(c *gin.Context, prof models.CmsUse
 	// Update trạng thái kiosk inventory
 	inventoryStatus := kiosk_inventory.InputInventoryBill{}
 	inventoryStatus.Code = body.Code
-	inventoryStatus.KioskCode = body.KioskCode
+	inventoryStatus.ServiceId = body.ServiceId
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
 	if errInventoryStatus := inventoryStatus.FindFirst(); errInventoryStatus != nil {
@@ -241,7 +243,7 @@ func (_ CKioskInputInventory) GetInputItems(c *gin.Context, prof models.CmsUser)
 	}
 
 	inputItems := kiosk_inventory.InventoryInputItem{}
-	inputItems.KioskCode = form.KioskCode
+	inputItems.ServiceId = form.ServiceId
 	inputItems.PartnerUid = form.PartnerUid
 	inputItems.CourseUid = form.CourseUid
 	list, total, err := inputItems.FindList(page)
@@ -275,7 +277,7 @@ func (_ CKioskInputInventory) GetInputBills(c *gin.Context, prof models.CmsUser)
 
 	inputItems := kiosk_inventory.InputInventoryBill{}
 	inputItems.BillStatus = form.BillStatus
-	inputItems.KioskCode = form.KioskCode
+	inputItems.ServiceId = form.ServiceId
 	inputItems.PartnerUid = form.PartnerUid
 	inputItems.CourseUid = form.CourseUid
 	list, total, err := inputItems.FindList(page, form.BillStatus)

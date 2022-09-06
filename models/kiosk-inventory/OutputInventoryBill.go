@@ -14,23 +14,25 @@ Lưu thông tin đơn nhập kho
 */
 type OutputInventoryBill struct {
 	models.ModelId
-	PartnerUid string         `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string         `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Code       string         `json:"code" gorm:"type:varchar(100);index"`        // mã xuất kho
-	Source     string         `json:"source" gorm:"type:varchar(100)"`            // nguồn từ đâu: từ kho tổng hay từ kiosk khác..?
-	BillStatus string         `json:"bill_status" gorm:"type:varchar(100)"`
-	InputDate  datatypes.Date `json:"input_date"`                                // ngày nhập kho
-	UserUpdate string         `json:"user_update" gorm:"type:varchar(256)"`      // Người update cuối cùng
-	KioskCode  string         `json:"kiosk_code" gorm:"type:varchar(100);index"` // mã kiosk
-	KioskName  string         `json:"kiosk_name" gorm:"type:varchar(256)"`       // tên kiosk
-	Note       string         `json:"note" gorm:"type:varchar(256)"`             // ghi chú
+	PartnerUid        string         `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid         string         `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Code              string         `json:"code" gorm:"type:varchar(100);index"`        // mã xuất kho
+	Source            string         `json:"source" gorm:"type:varchar(100)"`            // nguồn từ đâu: từ kho tổng hay từ kiosk khác..?
+	BillStatus        string         `json:"bill_status" gorm:"type:varchar(100)"`
+	InputDate         datatypes.Date `json:"input_date"`                                   // ngày nhập kho
+	UserUpdate        string         `json:"user_update" gorm:"type:varchar(256)"`         // Người update cuối cùng
+	ServiceId         int64          `json:"service_id" gorm:"index"`                      // mã service
+	ServiceName       string         `json:"service_name" gorm:"type:varchar(256)"`        // tên service
+	Note              string         `json:"note" gorm:"type:varchar(256)"`                // ghi chú
+	ServiceImportId   int64          `json:"service_import_id"`                            // id service sẽ import
+	ServiceImportName string         `json:"service_import_name" gorm:"type:varchar(256)"` // tên service import
 }
 
 func (item *OutputInventoryBill) IsDuplicated() bool {
 	bill := OutputInventoryBill{
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
-		KioskCode:  item.KioskCode,
+		ServiceId:  item.ServiceId,
 		Code:       item.Code,
 	}
 
@@ -74,8 +76,8 @@ func (item *OutputInventoryBill) FindList(page models.Page, status string) ([]Ou
 		db = db.Where("bill_status = ?", status)
 	}
 
-	if item.KioskCode != "" {
-		db = db.Where("kiosk_code = ?", item.KioskCode)
+	if item.ServiceId > 0 {
+		db = db.Where("kiosk_code = ?", item.ServiceId)
 	}
 
 	db.Count(&total)
