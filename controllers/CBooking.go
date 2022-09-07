@@ -954,7 +954,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		isDuplicated, errDupli := booking.IsDuplicated(false, true)
 		if isDuplicated {
 			if errDupli != nil {
-				response_message.DuplicateRecord(c, errDupli.Error())
+				response_message.InternalServerErrorWithKey(c, errDupli.Error(), "BAG_NOT_FOUND")
 				return
 			}
 			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
