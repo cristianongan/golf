@@ -36,6 +36,7 @@ type BookingServiceItem struct {
 	Input          string `json:"input" gorm:"type:varchar(300)"`       // Note
 	BillCode       string `json:"bill_code" gorm:"type:varchar(100);index"`
 	ServiceBill    int64  `json:"service_bill" gorm:"index"` // id service cart
+	SaleQuantity   int64  `json:"sale_quantity"`             // tổng số lượng bán được
 }
 
 // Response cho FE
