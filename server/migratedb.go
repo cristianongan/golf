@@ -134,6 +134,9 @@ func MigrateDb() {
 		db.AutoMigrate(&kiosk_cart.Cart{})
 		db.AutoMigrate(&kiosk_cart.CartItem{})
 
+		// ------- ServiceCart -------
+		db.AutoMigrate(&models.ServiceCart{})
+
 		log.Println("migrated db")
 	}
 }
