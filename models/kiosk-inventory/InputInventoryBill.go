@@ -5,8 +5,6 @@ import (
 	"start/datasources"
 	"start/models"
 	"time"
-
-	"gorm.io/datatypes"
 )
 
 /*
@@ -14,18 +12,18 @@ Lưu thông tin đơn nhập kho
 */
 type InputInventoryBill struct {
 	models.ModelId
-	PartnerUid        string         `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid         string         `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Code              string         `json:"code" gorm:"type:varchar(100);index"`        // mã nhập kho
-	BillStatus        string         `json:"bill_status" gorm:"type:varchar(100)"`
-	Note              string         `json:"note" gorm:"type:varchar(256)"`                // ghi chú
-	InputDate         datatypes.Date `json:"input_date"`                                   // ngày nhập kho
-	UserUpdate        string         `json:"user_update" gorm:"type:varchar(256)"`         // Người update cuối cùngUserUpdate
-	ServiceId         int64          `json:"service_id" gorm:"index"`                      // mã service
-	ServiceName       string         `json:"service_name" gorm:"type:varchar(256)"`        // tên service
-	ServiceExportId   int64          `json:"service_import_id"`                            // id service export
-	ServiceExportName string         `json:"service_import_name" gorm:"type:varchar(256)"` // tên service export
-	Quantity          int64          `json:"quantity"`                                     // Tổng số lượng sell or transfer
+	PartnerUid        string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid         string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Code              string `json:"code" gorm:"type:varchar(100);index"`        // mã nhập kho
+	BillStatus        string `json:"bill_status" gorm:"type:varchar(100)"`
+	Note              string `json:"note" gorm:"type:varchar(256)"`                // ghi chú
+	InputDate         int64  `json:"input_date"`                                   // ngày nhập kho
+	UserUpdate        string `json:"user_update" gorm:"type:varchar(256)"`         // Người update cuối cùngUserUpdate
+	ServiceId         int64  `json:"service_id" gorm:"index"`                      // mã service
+	ServiceName       string `json:"service_name" gorm:"type:varchar(256)"`        // tên service
+	ServiceExportId   int64  `json:"service_import_id"`                            // id service export
+	ServiceExportName string `json:"service_import_name" gorm:"type:varchar(256)"` // tên service export
+	Quantity          int64  `json:"quantity"`                                     // Tổng số lượng sell or transfer
 }
 
 func (item *InputInventoryBill) IsDuplicated() bool {

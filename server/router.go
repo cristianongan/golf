@@ -522,16 +522,15 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/kiosk-inventory/list", middlewares.AuthorizedCmsUserHandler(cKioskInventory.GetKioskInventory))
 
 			cKioskInputInventory := new(controllers.CKioskInputInventory)
+			cmsApiAuthorized.POST("/kiosk-inventory/input-bill/create", middlewares.AuthorizedCmsUserHandler(cKioskInputInventory.CreateInputBill))
 			cmsApiAuthorized.POST("/kiosk-inventory/input-bill/accept", middlewares.AuthorizedCmsUserHandler(cKioskInputInventory.AcceptInputBill))
 			cmsApiAuthorized.POST("/kiosk-inventory/input-bill/return", middlewares.AuthorizedCmsUserHandler(cKioskInputInventory.ReturnInputItem))
 			cmsApiAuthorized.GET("/kiosk-inventory/input-bill/list", middlewares.AuthorizedCmsUserHandler(cKioskInputInventory.GetInputBills))
-			cmsApiAuthorized.POST("/kiosk-inventory/input-items", middlewares.AuthorizedCmsUserHandler(cKioskInputInventory.CreateInputItem))
 			cmsApiAuthorized.GET("/kiosk-inventory/input-items/list", middlewares.AuthorizedCmsUserHandler(cKioskInputInventory.GetInputItems))
 
 			cKioskOutputInventory := new(controllers.CKioskOutputInventory)
-			cmsApiAuthorized.POST("/kiosk-inventory/output-bill/create", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.CreateOutputItem))
+			cmsApiAuthorized.POST("/kiosk-inventory/output-bill/create", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.CreateOutputBill))
 			cmsApiAuthorized.POST("/kiosk-inventory/output-bill/transfer", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.TransferOutputBill))
-			cmsApiAuthorized.POST("/kiosk-inventory/output-items", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.CreateOutputItem))
 			cmsApiAuthorized.GET("/kiosk-inventory/output-bill/list", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.GetOutputBills))
 			cmsApiAuthorized.GET("/kiosk-inventory/output-items/list", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.GetOutputItems))
 

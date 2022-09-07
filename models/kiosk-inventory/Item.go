@@ -66,6 +66,10 @@ func (item *InventoryItem) FindList(page models.Page) ([]InventoryItem, int64, e
 		db = db.Where("service_id = ?", item.ServiceId)
 	}
 
+	if item.Code != "" {
+		db = db.Where("code = ?", item.Code)
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

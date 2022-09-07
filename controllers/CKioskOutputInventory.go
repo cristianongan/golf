@@ -7,73 +7,17 @@ import (
 	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
 	"start/utils/response_message"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 type CKioskOutputInventory struct{}
 
-func (_ CKioskOutputInventory) CreateOutputItem(c *gin.Context, prof models.CmsUser) {
-	var body request.KioskInventoryOutputItemBody
-	if err := c.BindJSON(&body); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
-	inventoryStatus := kiosk_inventory.OutputInventoryBill{}
-	inventoryStatus.PartnerUid = body.PartnerUid
-	inventoryStatus.CourseUid = body.CourseUid
-	inventoryStatus.CourseUid = body.Code
-	inventoryStatus.ServiceId = body.ServiceId
-	if errInventoryStatus := inventoryStatus.FindFirst(); errInventoryStatus != nil {
-		inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_SELL
-		inventoryStatus.UserUpdate = prof.UserName
-		inventoryStatus.ServiceName = body.ServiceName
-		inventoryStatus.ServiceImportId = body.ServiceImportId
-		inventoryStatus.ServiceImportName = body.ServiceImportName
-		inventoryStatus.Create()
-	}
-
-	inputItem := kiosk_inventory.InventoryOutputItem{}
-	inputItem.Code = body.Code
-	inputItem.ServiceId = body.ServiceId
-	inputItem.ServiceName = body.ServiceName
-	inputItem.PartnerUid = body.PartnerUid
-	inputItem.CourseUid = body.CourseUid
-	inputItem.Quantity = body.Quantity
-	inputItem.ItemCode = body.ItemCode
-	inputItem.UserUpdate = prof.UserName
-
-	goodsService := model_service.GroupServices{
-		GroupCode: body.GroupCode,
-	}
-
-	errFindGoodsService := goodsService.FindFirst()
-	if errFindGoodsService != nil {
-		response_message.BadRequest(c, errFindGoodsService.Error())
-		return
-	}
-
-	inputItem.ItemInfo = kiosk_inventory.ItemInfo{
-		Price:     body.Price,
-		ItemName:  body.ItemName,
-		GroupName: goodsService.GroupName,
-		GroupType: goodsService.Type,
-		GroupCode: body.GroupCode,
-		Unit:      body.Unit,
-	}
-
-	if err := inputItem.Create(); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
-
-	okRes(c)
-}
-
 func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.CmsUser) {
-	var body request.CreateKioskInventoryBillBody
+	var body request.CreateOutputBillBody
 	if err := c.BindJSON(&body); err != nil {
-		response_message.BadRequest(c, "")
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 	inventoryStatus := kiosk_inventory.OutputInventoryBill{}
@@ -81,12 +25,57 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 	inventoryStatus.CourseUid = body.CourseUid
 	inventoryStatus.ServiceId = body.ServiceId
 	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_SELL
-	inventoryStatus.CourseUid = body.Code
+	inventoryStatus.Code = body.BillCode
 	inventoryStatus.UserUpdate = prof.UserName
 	inventoryStatus.ServiceName = body.ServiceName
-	inventoryStatus.ServiceImportId = body.SourceId
-	inventoryStatus.ServiceImportName = body.SourceName
+	inventoryStatus.ServiceImportId = body.ServiceImportId
+	inventoryStatus.ServiceImportName = body.ServiceImportName
+	inventoryStatus.OutputDate = time.Now().Unix()
 
+	quantity := 0
+
+	for _, data := range body.ListItem {
+		inputItem := kiosk_inventory.InventoryOutputItem{}
+		inputItem.Code = data.Code
+		inputItem.PartnerUid = body.PartnerUid
+		inputItem.CourseUid = body.CourseUid
+		inputItem.Quantity = data.Quantity
+		inputItem.ItemCode = data.ItemCode
+		inputItem.UserUpdate = prof.UserName
+		inputItem.ServiceId = body.ServiceId
+		inputItem.ServiceName = body.ServiceName
+		inputItem.UserUpdate = data.UserUpdate
+
+		goodsService := model_service.GroupServices{
+			GroupCode: data.GroupCode,
+		}
+
+		errFindGoodsService := goodsService.FindFirst()
+		if errFindGoodsService != nil {
+			response_message.BadRequest(c, errFindGoodsService.Error())
+			return
+		}
+
+		inputItem.ItemInfo = kiosk_inventory.ItemInfo{
+			Price:     data.Price,
+			ItemName:  data.ItemName,
+			GroupName: goodsService.GroupName,
+			GroupType: goodsService.Type,
+			GroupCode: data.GroupCode,
+			Unit:      data.Unit,
+		}
+
+		inputItem.OutputDate = time.Now().Unix()
+
+		if err := inputItem.Create(); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+
+		quantity += int(data.Quantity)
+	}
+
+	inventoryStatus.Quantity = int64(quantity)
 	err := inventoryStatus.Create()
 	if err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -209,6 +198,7 @@ func (_ CKioskOutputInventory) GetOutputItems(c *gin.Context, prof models.CmsUse
 	outputItems.ServiceId = form.ServiceId
 	outputItems.PartnerUid = form.PartnerUid
 	outputItems.CourseUid = form.CourseUid
+	outputItems.ItemCode = form.ItemCode
 	list, total, err := outputItems.FindList(page)
 
 	if err != nil {
