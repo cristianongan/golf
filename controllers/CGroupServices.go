@@ -143,3 +143,50 @@ func (_ *CGroupServices) DeleteServices(c *gin.Context, prof models.CmsUser) {
 
 	okRes(c)
 }
+
+func (_ *CGroupServices) UpdateServices(c *gin.Context, prof models.CmsUser) {
+	serviceIdP := c.Param("id")
+	serviceId, errId := strconv.ParseInt(serviceIdP, 10, 64)
+	if errId != nil {
+		response_message.BadRequest(c, errId.Error())
+		return
+	}
+
+	groupServices := model_service.GroupServices{}
+	groupServices.Id = serviceId
+	errF := groupServices.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	body := model_service.GroupServices{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if body.GroupCode != "" {
+		groupServices.GroupCode = body.GroupCode
+	}
+
+	if body.GroupName != "" {
+		groupServices.GroupName = body.GroupName
+	}
+
+	if body.DetailGroup != "" {
+		groupServices.DetailGroup = body.DetailGroup
+	}
+
+	if body.Type != "" {
+		groupServices.Type = body.Type
+	}
+
+	errUdp := groupServices.Update()
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, groupServices)
+}
