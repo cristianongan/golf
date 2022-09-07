@@ -53,25 +53,6 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
-	// check service cart
-	serviceCart := models.ServiceCart{}
-	serviceCart.PartnerUid = prof.PartnerUid
-	serviceCart.CourseUid = prof.CourseUid
-	serviceCart.GolfBag = body.GolfBag
-	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
-	serviceCart.ServiceId = body.ServiceId
-	serviceCart.BillCode = "NONE"
-
-	err := serviceCart.FindFirst()
-	// no cart
-	if err != nil {
-		// create cart
-		if err := serviceCart.Create(); err != nil {
-			response_message.InternalServerError(c, err.Error())
-			return
-		}
-	}
-
 	// create cart item
 	serviceCartItem := model_booking.BookingServiceItem{}
 
@@ -147,6 +128,25 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	if err := inventory.Update(); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
+	}
+
+	// check service cart
+	serviceCart := models.ServiceCart{}
+	serviceCart.PartnerUid = prof.PartnerUid
+	serviceCart.CourseUid = prof.CourseUid
+	serviceCart.GolfBag = body.GolfBag
+	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
+	serviceCart.ServiceId = body.ServiceId
+	serviceCart.BillCode = "NONE"
+
+	err := serviceCart.FindFirst()
+	// no cart
+	if err != nil {
+		// create cart
+		if err := serviceCart.Create(); err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
 	}
 
 	// add infor cart item
