@@ -15,22 +15,27 @@ import (
 
 type BookingServiceItem struct {
 	models.ModelId
-	ItemId        int64  `json:"item_id"  gorm:"index"`                       // Id item
-	ServiceId     string `json:"service_id"  gorm:"type:varchar(100)"`        // uid service
-	BookingUid    string `json:"booking_uid"  gorm:"type:varchar(100);index"` // Uid booking
-	PlayerName    string `json:"player_name" gorm:"type:varchar(256)"`        // Tên người chơi
-	Bag           string `json:"bag" gorm:"type:varchar(50)"`                 // Golf Bag
-	Type          string `json:"type" gorm:"type:varchar(50)"`                // Loại rental, kiosk, proshop,...
-	Order         string `json:"order"  gorm:"type:varchar(100)"`             // Có thể là mã
-	Name          string `json:"name" gorm:"type:varchar(256)"`
-	GroupCode     string `json:"group_code" gorm:"type:varchar(100)"`
-	Quality       int    `json:"quality"` // Số lượng
-	UnitPrice     int64  `json:"unit_price"`
-	DiscountType  string `json:"discount_type" gorm:"type:varchar(50)"`
-	DiscountValue int64  `json:"discount_value"`
-	Amount        int64  `json:"amount"`
-	Input         string `json:"input" gorm:"type:varchar(300)"` // Note
-	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"`
+	PartnerUid     string `json:"partner_uid" gorm:"type:varchar(100);index"`  // Hãng golf
+	CourseUid      string `json:"course_uid" gorm:"type:varchar(150);index"`   // Sân golf
+	ItemId         int64  `json:"item_id"  gorm:"index"`                       // Id item
+	ServiceId      string `json:"service_id"  gorm:"type:varchar(100)"`        // uid service
+	BookingUid     string `json:"booking_uid"  gorm:"type:varchar(100);index"` // Uid booking
+	PlayerName     string `json:"player_name" gorm:"type:varchar(256)"`        // Tên người chơi
+	Bag            string `json:"bag" gorm:"type:varchar(50)"`                 // Golf Bag
+	Type           string `json:"type" gorm:"type:varchar(50)"`                // Loại rental, kiosk, proshop,...
+	Order          string `json:"order"  gorm:"type:varchar(100)"`             // Có thể là mã
+	Name           string `json:"name" gorm:"type:varchar(256)"`
+	GroupCode      string `json:"group_code" gorm:"type:varchar(100)"`
+	Quality        int    `json:"quality"` // Số lượng
+	UnitPrice      int64  `json:"unit_price"`
+	DiscountType   string `json:"discount_type" gorm:"type:varchar(50)"`
+	DiscountValue  int64  `json:"discount_value"`
+	DiscountReason string `json:"discount_reason" gorm:"type:varchar(50)"` // Lý do giảm giá
+	Amount         int64  `json:"amount"`
+	UserAction     string `json:"user_action" gorm:"type:varchar(100)"` // Người tạo
+	Input          string `json:"input" gorm:"type:varchar(300)"`       // Note
+	BillCode       string `json:"bill_code" gorm:"type:varchar(100);index"`
+	ServiceBill    int64  `json:"service_bill" gorm:"index"` // id service cart
 }
 
 // Response cho FE
@@ -143,7 +148,7 @@ func (item *BookingServiceItem) Delete() error {
 	return datasources.GetDatabase().Delete(item).Error
 }
 
-/// ------- BookingServiceItem batch insert to db ------
+// / ------- BookingServiceItem batch insert to db ------
 func (item *BookingServiceItem) BatchInsert(list []BookingServiceItem) error {
 	db := datasources.GetDatabase().Table("booking_service_items")
 	var err error
@@ -165,4 +170,42 @@ func (item *BookingServiceItem) BatchUpdate(list []BookingServiceItem) error {
 		log.Println("BookingServiceItem batch update err: ", err.Error())
 	}
 	return err
+}
+
+// ------ Find Best Item ------
+func (item *BookingServiceItem) FindBestCartItem(page models.Page) ([]BookingServiceItem, int64, error) {
+	now := time.Now().Format("02/01/2006")
+
+	from, _ := time.Parse("02/01/2006 15:04:05", now+" 17:00:00")
+
+	db := datasources.GetDatabase().Model(BookingServiceItem{})
+	list := []BookingServiceItem{}
+	total := int64(0)
+
+	db.Select("*, sum(quality) as sale_quantity")
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.ServiceId != "" {
+		db = db.Where("service_id = ?", item.ServiceId)
+	}
+	if item.GroupCode != "" {
+		db = db.Where("group_code = ?", item.GroupCode)
+	}
+
+	db = db.Where("created_at >= ?", from.AddDate(0, 0, -8).Unix())
+
+	db.Group("order")
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, total, db.Error
 }

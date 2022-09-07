@@ -535,17 +535,17 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/kiosk-inventory/output-items/list", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.GetOutputItems))
 
 			/// =================== Kiosk ===================
-			cKioskCart := new(controllers.CKioskCart)
+			cServiceCart := new(controllers.CServiceCart)
 			/// * multiple cart
-			cmsApiAuthorized.GET("/kiosk-cart/list-cart-item", middlewares.AuthorizedCmsUserHandler(cKioskCart.GetItemInCart))
-			cmsApiAuthorized.GET("/kiosk-cart/list", middlewares.AuthorizedCmsUserHandler(cKioskCart.GetListCart))
-			cmsApiAuthorized.GET("/kiosk-cart/list-best-item", middlewares.AuthorizedCmsUserHandler(cKioskCart.GetBestItemInKiosk))
-			cmsApiAuthorized.POST("/kiosk-cart", middlewares.AuthorizedCmsUserHandler(cKioskCart.AddItemToCart))
-			cmsApiAuthorized.POST("/kiosk-cart/add-discount", middlewares.AuthorizedCmsUserHandler(cKioskCart.AddDiscountToItem))
-			cmsApiAuthorized.POST("/kiosk-cart/create-billing", middlewares.AuthorizedCmsUserHandler(cKioskCart.CreateBilling))
-			cmsApiAuthorized.POST("/kiosk-cart/move-item", middlewares.AuthorizedCmsUserHandler(cKioskCart.MoveItemToOtherCart))
-			cmsApiAuthorized.PUT("/kiosk-cart", middlewares.AuthorizedCmsUserHandler(cKioskCart.UpdateItemCart))
-			cmsApiAuthorized.DELETE("/kiosk-cart", middlewares.AuthorizedCmsUserHandler(cKioskCart.DeleteItemInCart))
+			cmsApiAuthorized.GET("/service-cart/list-cart-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetItemInCart))
+			cmsApiAuthorized.GET("/service-cart/list", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetListCart))
+			cmsApiAuthorized.GET("/service-cart/list-best-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetBestItemInKiosk))
+			cmsApiAuthorized.POST("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddItemServiceToCart))
+			cmsApiAuthorized.POST("/service-cart/add-discount", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddDiscountToItem))
+			cmsApiAuthorized.POST("/service-cart/create-billing", middlewares.AuthorizedCmsUserHandler(cServiceCart.CreateBilling))
+			cmsApiAuthorized.POST("/service-cart/move-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.MoveItemToOtherCart))
+			cmsApiAuthorized.PUT("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.UpdateItemCart))
+			cmsApiAuthorized.DELETE("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteItemInCart))
 		}
 
 		// ----------------------------------------------------------
