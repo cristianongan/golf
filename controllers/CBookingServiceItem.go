@@ -101,6 +101,9 @@ func (_ *CBookingServiceItem) AddBookingServiceItemToBag(c *gin.Context, prof mo
 		return
 	}
 
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
+
 	okResponse(c, serviceItem)
 }
 
@@ -161,6 +164,18 @@ func (_ *CBookingServiceItem) DelBookingServiceItemToBag(c *gin.Context, prof mo
 	if errDel != nil {
 		response_message.BadRequest(c, errDel.Error())
 		return
+	}
+
+	//Find Booking
+	booking := model_booking.Booking{}
+	booking.Uid = serviceItem.BookingUid
+
+	errFB := booking.FindFirst()
+	if errFB != nil {
+		log.Println("DelBookingServiceItemToBag", errFB.Error())
+	} else {
+		//Update lại giá trong booking
+		updatePriceWithServiceItem(booking, prof)
 	}
 
 	okRes(c)
