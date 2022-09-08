@@ -15,11 +15,21 @@ import (
 type CKioskInputInventory struct{}
 
 func (item CKioskInputInventory) CreateInputBill(c *gin.Context, prof models.CmsUser) {
-	var body request.CreateInputBillBody
+	var body request.CreateBillBody
 	if err := c.BindJSON(&body); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
+
+	if errInputBill := item.MethodInputBill(c, prof, body); errInputBill != nil {
+		response_message.BadRequest(c, errInputBill.Error())
+		return
+	}
+
+	okRes(c)
+}
+
+func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.CmsUser, body request.CreateBillBody) error {
 	inventoryStatus := kiosk_inventory.InputInventoryBill{}
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
@@ -28,8 +38,8 @@ func (item CKioskInputInventory) CreateInputBill(c *gin.Context, prof models.Cms
 	inventoryStatus.ServiceName = body.ServiceName
 	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_PENDING
 	inventoryStatus.UserUpdate = prof.UserName
-	inventoryStatus.ServiceExportId = body.ServiceExportId
-	inventoryStatus.ServiceExportName = body.ServiceExportName
+	inventoryStatus.ServiceExportId = body.SourceId
+	inventoryStatus.ServiceExportName = body.SourceName
 	inventoryStatus.Note = body.Note
 	inventoryStatus.InputDate = time.Now().Unix()
 
@@ -53,8 +63,7 @@ func (item CKioskInputInventory) CreateInputBill(c *gin.Context, prof models.Cms
 
 		errFindGoodsService := goodsService.FindFirst()
 		if errFindGoodsService != nil {
-			response_message.BadRequest(c, errFindGoodsService.Error())
-			return
+			return errFindGoodsService
 		}
 
 		inputItem.ItemInfo = kiosk_inventory.ItemInfo{
@@ -69,8 +78,7 @@ func (item CKioskInputInventory) CreateInputBill(c *gin.Context, prof models.Cms
 		inputItem.InputDate = time.Now().Format(constants.DATE_FORMAT_1)
 
 		if err := inputItem.Create(); err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
+			return err
 		}
 
 		quantity += int(data.Quantity)
@@ -79,11 +87,9 @@ func (item CKioskInputInventory) CreateInputBill(c *gin.Context, prof models.Cms
 	inventoryStatus.Quantity = int64(quantity)
 	err := inventoryStatus.Create()
 	if err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
+		return err
 	}
-
-	okResponse(c, inventoryStatus)
+	return nil
 }
 
 func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.CmsUser) {
