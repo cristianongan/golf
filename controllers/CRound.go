@@ -121,12 +121,12 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		hole = *body.Hole
 	}
 
-	validate := validator.New()
+	// validate := validator.New()
 
-	if err := validate.Struct(body); err != nil {
-		response_message.BadRequest(c, "Body format type error")
-		return
-	}
+	// if err := validate.Struct(body); err != nil {
+	// 	response_message.BadRequest(c, "Body format type error")
+	// 	return
+	// }
 
 	for _, data := range body.BookUidList {
 		// validate booking_uid
