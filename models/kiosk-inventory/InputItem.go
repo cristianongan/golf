@@ -22,7 +22,7 @@ type InventoryInputItem struct {
 	ServiceId   int64    `json:"service_id" gorm:"index"`               // mã service
 	ServiceName string   `json:"service_name" gorm:"type:varchar(256)"` // tên service
 	Quantity    int64    `json:"quantity"`                              // số lượng
-	InputDate   int64    `json:"input_date"`                            // ngày nhập kho
+	InputDate   string   `json:"input_date"`                            // ngày nhập kho
 	UserUpdate  string   `json:"user_update" gorm:"type:varchar(256)"`  // Người duyệt khi nhập kho
 }
 
@@ -33,6 +33,13 @@ type ItemInfo struct {
 	GroupType string  `json:"group_type" gorm:"type:varchar(100)"` // Group Type
 	GroupCode string  `json:"group_code" gorm:"type:varchar(100)"` // Group Type
 	Unit      string  `json:"unit" gorm:"type:varchar(100)"`       // Đơn vị
+}
+
+type InputStatisticItem struct {
+	PartnerUid string `json:"partner_uid"`
+	CourseUid  string `json:"course_uid"`
+	ItemCode   string `json:"item_code"`
+	Total      int64  `json:"total"`
 }
 
 func (item *ItemInfo) Scan(v interface{}) error {
@@ -91,4 +98,17 @@ func (item *InventoryInputItem) FindList(page models.Page) ([]InventoryInputItem
 	}
 
 	return list, total, db.Error
+}
+
+func (item *InventoryInputItem) FindStatistic() ([]OutputStatisticItem, error) {
+	db := datasources.GetDatabase().Model(InventoryInputItem{})
+	db = db.Joins("JOIN input_inventory_bills ON input_inventory_bills.code = inventory_input_items.code")
+	db = db.Select("inventory_input_items.partner_uid,inventory_input_items.course_uid,inventory_input_items.item_code,SUM(inventory_input_items.quantity) as total").Group("inventory_input_items.partner_uid,inventory_input_items.course_uid,inventory_input_items.item_code").Where("input_inventory_bills.bill_status = ?", "ACCEPT")
+	if item.InputDate != "" {
+		db = db.Where("inventory_input_items.input_date = ?", item.InputDate)
+	}
+	list := []OutputStatisticItem{}
+	db.Debug().Find(&list)
+
+	return list, db.Error
 }

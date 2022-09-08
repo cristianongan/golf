@@ -26,6 +26,8 @@ func runReportCaddieFeeToDay() {
 	//Lấy danh sách caddie in out note trong ngày
 	now := time.Now().Format("02/01/2006")
 
+	log.Println("runReportCaddieFeeToDay", time.Now().UnixNano())
+
 	caddieIONRequest := model_gostarter.CaddieInOutNote{}
 	listCaddieION, err := caddieIONRequest.FindAllCaddieInOutNotes()
 

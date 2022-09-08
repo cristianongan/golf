@@ -1057,3 +1057,19 @@ func getBagDetailFromBooking(booking model_booking.Booking) model_booking.BagDet
 	}
 	return bagDetail
 }
+
+/*
+	Update lại gía với các service items mới nhất
+*/
+func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUser) {
+	booking.UpdateMushPay()
+	booking.UpdatePriceDetailCurrentBag()
+
+	booking.CmsUser = prof.UserName
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+
+	errUdp := booking.Update()
+	if errUdp != nil {
+		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
+	}
+}

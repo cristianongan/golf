@@ -8,7 +8,6 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
-	kiosk_cart "start/models/kiosk-cart"
 	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
 )
@@ -23,7 +22,6 @@ func MigrateDb() {
 		db.AutoMigrate(&models.CmsUserToken{})
 		db.AutoMigrate(&models.Partner{})
 		db.AutoMigrate(&models.Course{})
-		db.AutoMigrate(&models.Todo{})
 		db.AutoMigrate(&models.Buggy{})
 		db.AutoMigrate(&models.BuggyDiary{})
 		db.AutoMigrate(&models.MemberCard{})
@@ -129,10 +127,7 @@ func MigrateDb() {
 		db.AutoMigrate(&kiosk_inventory.InventoryOutputItem{})
 		db.AutoMigrate(&kiosk_inventory.InputInventoryBill{})
 		db.AutoMigrate(&kiosk_inventory.OutputInventoryBill{})
-
-		// ------- KioskCart -------
-		db.AutoMigrate(&kiosk_cart.Cart{})
-		db.AutoMigrate(&kiosk_cart.CartItem{})
+		db.AutoMigrate(&kiosk_inventory.StatisticItem{})
 
 		// ------- ServiceCart -------
 		db.AutoMigrate(&models.ServiceCart{})

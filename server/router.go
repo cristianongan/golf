@@ -13,7 +13,7 @@ import (
 	// "github.com/swaggo/gin-swagger/swaggerFiles"
 )
 
-var versionCheck = "v1.1"
+var versionCheck = "v1.2"
 
 func healthcheck(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "success: " + versionCheck})
@@ -533,6 +533,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/kiosk-inventory/output-bill/transfer", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.TransferOutputBill))
 			cmsApiAuthorized.GET("/kiosk-inventory/output-bill/list", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.GetOutputBills))
 			cmsApiAuthorized.GET("/kiosk-inventory/output-items/list", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.GetOutputItems))
+
+			/// =================== Kiosk Statistic ===================
+			cKioskStatistic := new(controllers.CStatisticItem)
+			cmsApiAuthorized.GET("/kiosk-inventory/item/statistic/list", middlewares.AuthorizedCmsUserHandler(cKioskStatistic.GetStatistic))
 
 			/// =================== Kiosk ===================
 			cServiceCart := new(controllers.CServiceCart)
