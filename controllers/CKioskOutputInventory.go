@@ -21,14 +21,28 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 		return
 	}
 
-	if errOutputBill := item.MethodOutputBill(c, prof, body, constants.KIOSK_BILL_INVENTORY_TRANSFER); errOutputBill != nil {
+	if errOutputBill := item.MethodOutputBill(c, prof, body,
+		constants.KIOSK_BILL_INVENTORY_TRANSFER); errOutputBill != nil {
 		response_message.BadRequest(c, errOutputBill.Error())
 		return
 	}
 
 	// Tạo import đơn
 	cKioskInputInventory := CKioskInputInventory{}
-	if errInputBill := cKioskInputInventory.MethodInputBill(c, prof, body); errInputBill != nil {
+	bodyInputBill := request.CreateBillBody{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BillCode:    body.BillCode,
+		ServiceId:   body.SourceId,
+		ServiceName: body.SourceName,
+		SourceId:    body.ServiceId,
+		SourceName:  body.ServiceName,
+		ListItem:    body.ListItem,
+		Note:        body.Note,
+	}
+
+	if errInputBill := cKioskInputInventory.MethodInputBill(c, prof,
+		bodyInputBill, constants.KIOSK_BILL_INVENTORY_PENDING); errInputBill != nil {
 		response_message.BadRequest(c, errInputBill.Error())
 		return
 	}
@@ -123,7 +137,7 @@ func (item CKioskOutputInventory) TransferOutputBill(c *gin.Context, prof models
 		return
 	}
 	// Thêm ds item vào Inventory
-	item.removeItemToInventory(body.Code, body.CourseUid, body.PartnerUid)
+	item.removeItemFromInventory(body.Code, body.CourseUid, body.PartnerUid)
 
 	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_ACCEPT
 	if err := inventoryStatus.Update(); err != nil {
@@ -136,7 +150,7 @@ func (item CKioskOutputInventory) TransferOutputBill(c *gin.Context, prof models
 	okRes(c)
 }
 
-func (_ CKioskOutputInventory) removeItemToInventory(code string, courseUid string, partnerUid string) error {
+func (_ CKioskOutputInventory) removeItemFromInventory(code string, courseUid string, partnerUid string) error {
 	// Get danh sách item của bill
 	item := kiosk_inventory.InventoryOutputItem{}
 	item.Code = code

@@ -522,7 +522,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/kiosk-inventory/list", middlewares.AuthorizedCmsUserHandler(cKioskInventory.GetKioskInventory))
 
 			cKioskInputInventory := new(controllers.CKioskInputInventory)
-			cmsApiAuthorized.POST("/kiosk-inventory/input-bill/create", middlewares.AuthorizedCmsUserHandler(cKioskInputInventory.CreateInputBill))
+			cmsApiAuthorized.POST("/kiosk-inventory/input-bill/create", middlewares.AuthorizedCmsUserHandler(cKioskInputInventory.CreateManualInputBill))
 			cmsApiAuthorized.POST("/kiosk-inventory/input-bill/accept", middlewares.AuthorizedCmsUserHandler(cKioskInputInventory.AcceptInputBill))
 			cmsApiAuthorized.POST("/kiosk-inventory/input-bill/return", middlewares.AuthorizedCmsUserHandler(cKioskInputInventory.ReturnInputItem))
 			cmsApiAuthorized.GET("/kiosk-inventory/input-bill/list", middlewares.AuthorizedCmsUserHandler(cKioskInputInventory.GetInputBills))

@@ -14,29 +14,32 @@ import (
 
 type CKioskInputInventory struct{}
 
-func (item CKioskInputInventory) CreateInputBill(c *gin.Context, prof models.CmsUser) {
+func (item CKioskInputInventory) CreateManualInputBill(c *gin.Context, prof models.CmsUser) {
 	var body request.CreateBillBody
 	if err := c.BindJSON(&body); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
 
-	if errInputBill := item.MethodInputBill(c, prof, body); errInputBill != nil {
+	if errInputBill := item.MethodInputBill(c, prof, body,
+		constants.KIOSK_BILL_INVENTORY_ACCEPT); errInputBill != nil {
 		response_message.BadRequest(c, errInputBill.Error())
 		return
 	}
 
+	item.addItemToInventory(body.BillCode, body.CourseUid, body.PartnerUid)
+
 	okRes(c)
 }
 
-func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.CmsUser, body request.CreateBillBody) error {
+func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.CmsUser, body request.CreateBillBody, billtype string) error {
 	inventoryStatus := kiosk_inventory.InputInventoryBill{}
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
 	inventoryStatus.Code = body.BillCode
 	inventoryStatus.ServiceId = body.ServiceId
 	inventoryStatus.ServiceName = body.ServiceName
-	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_PENDING
+	inventoryStatus.BillStatus = billtype
 	inventoryStatus.UserUpdate = prof.UserName
 	inventoryStatus.ServiceExportId = body.SourceId
 	inventoryStatus.ServiceExportName = body.SourceName
@@ -124,6 +127,8 @@ func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.Cms
 	}
 
 	// TODO Giảm ds item trong Inventory
+	cKioskOutputInventory := CKioskOutputInventory{}
+	cKioskOutputInventory.removeItemFromInventory(body.Code, body.CourseUid, body.PartnerUid)
 
 	okRes(c)
 }
@@ -141,12 +146,10 @@ func (_ CKioskInputInventory) addItemToInventory(code string, courseUid string, 
 			InputCode:  data.Code,
 			PartnerUid: partnerUid,
 			CourseUid:  courseUid,
-			ItemInfo:   data.ItemInfo,
 		}
 
-		item.ItemInfo = data.ItemInfo
-
 		if err := item.FindFirst(); err != nil {
+			item.ItemInfo = data.ItemInfo
 			item.Quantity = data.Quantity
 			if errCre := item.Create(); errCre != nil {
 				return errCre
