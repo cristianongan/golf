@@ -20,6 +20,7 @@ type ServiceCart struct {
 	BookingDate datatypes.Date `json:"booking_date"`                               // Ngày order
 	BookingUid  string         `json:"booking_uid" gorm:"type:varchar(100)"`       // Booking uid
 	BillCode    string         `json:"bill_code" gorm:"default:NONE"`              // Mã hóa đơn
+	Amount      int64          `json:"amount"`                                     // tổng tiền
 }
 
 func (item *ServiceCart) Create() error {
