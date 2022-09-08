@@ -129,6 +129,7 @@ func MigrateDb() {
 		db.AutoMigrate(&kiosk_inventory.InventoryOutputItem{})
 		db.AutoMigrate(&kiosk_inventory.InputInventoryBill{})
 		db.AutoMigrate(&kiosk_inventory.OutputInventoryBill{})
+		db.AutoMigrate(&kiosk_inventory.StatisticItem{})
 
 		// ------- KioskCart -------
 		db.AutoMigrate(&kiosk_cart.Cart{})

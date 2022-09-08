@@ -18,10 +18,17 @@ type InventoryOutputItem struct {
 	ItemCode    string   `json:"item_code" gorm:"type:varchar(100);index"`   // mã của sản phẩm
 	ItemInfo    ItemInfo `json:"item_info" gorm:"type:json"`
 	Quantity    int64    `json:"quantity"`                              // số lượng
-	OutputDate  int64    `json:"output_date"`                           // ngày xuất kho
+	OutputDate  string   `json:"output_date"`                           // ngày xuất kho
 	ServiceId   int64    `json:"service_id" gorm:"index"`               // mã service
 	ServiceName string   `json:"service_name" gorm:"type:varchar(256)"` // tên service
 	UserUpdate  string   `json:"user_update" gorm:"type:varchar(256)"`  // Người duyệt khi nhập kho
+}
+
+type OutputStatisticItem struct {
+	PartnerUid string `json:"partner_uid"`
+	CourseUid  string `json:"course_uid"`
+	ItemCode   string `json:"item_code"`
+	Total      int64  `json:"total"`
 }
 
 func (item *InventoryOutputItem) Create() error {
@@ -47,6 +54,18 @@ func (item *InventoryOutputItem) FindAllList() ([]InventoryOutputItem, int64, er
 	db.Find(&list)
 
 	return list, total, db.Error
+}
+
+func (item *InventoryOutputItem) FindStatistic() ([]OutputStatisticItem, error) {
+	db := datasources.GetDatabase().Model(InventoryOutputItem{})
+	db = db.Select("partner_uid, course_uid,item_code,SUM(quantity) as total").Group("partner_uid,course_uid,item_code")
+	if item.OutputDate != "" {
+		db = db.Where("output_date = ?", item.OutputDate)
+	}
+	list := []OutputStatisticItem{}
+	db.Find(&list)
+
+	return list, db.Error
 }
 
 func (item *InventoryOutputItem) FindList(page models.Page) ([]InventoryOutputItem, int64, error) {

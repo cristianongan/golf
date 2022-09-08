@@ -37,7 +37,7 @@ func (item CKioskInputInventory) CreateInputBill(c *gin.Context, prof models.Cms
 
 	for _, data := range body.ListItem {
 		inputItem := kiosk_inventory.InventoryInputItem{}
-		inputItem.Code = data.Code
+		inputItem.Code = body.BillCode
 		inputItem.PartnerUid = body.PartnerUid
 		inputItem.CourseUid = body.CourseUid
 		inputItem.Quantity = data.Quantity
@@ -66,7 +66,7 @@ func (item CKioskInputInventory) CreateInputBill(c *gin.Context, prof models.Cms
 			Unit:      data.Unit,
 		}
 
-		inputItem.InputDate = time.Now().Unix()
+		inputItem.InputDate = time.Now().Format(constants.DATE_FORMAT_1)
 
 		if err := inputItem.Create(); err != nil {
 			response_message.BadRequest(c, err.Error())

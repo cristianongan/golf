@@ -534,6 +534,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/kiosk-inventory/output-bill/list", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.GetOutputBills))
 			cmsApiAuthorized.GET("/kiosk-inventory/output-items/list", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.GetOutputItems))
 
+			/// =================== Kiosk Statistic ===================
+			cKioskStatistic := new(controllers.CStatisticItem)
+			cmsApiAuthorized.GET("/kiosk-inventory/item/statistic/list", middlewares.AuthorizedCmsUserHandler(cKioskStatistic.GetStatistic))
+
 			/// =================== Kiosk ===================
 			cServiceCart := new(controllers.CServiceCart)
 			/// * multiple cart

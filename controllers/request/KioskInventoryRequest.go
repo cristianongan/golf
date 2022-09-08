@@ -13,7 +13,6 @@ type KioskInventoryInputItemBody struct {
 	GroupCode  string  `json:"group_code" binding:"required"`
 	Quantity   int64   `json:"quantity" binding:"required"`
 	UserUpdate string  `json:"user_update" binding:"required"`
-	Note       string  `json:"note"`
 	Price      float64 `json:"price" binding:"required"`
 }
 
@@ -35,7 +34,6 @@ type KioskInventoryOutputItemBody struct {
 	GroupCode  string  `json:"group_code" binding:"required"`
 	Quantity   int64   `json:"quantity" binding:"required"`
 	UserUpdate string  `json:"user_update" binding:"required"`
-	Note       string  `json:"note"`
 	Price      float64 `json:"price" binding:"required"`
 }
 
@@ -78,6 +76,13 @@ type GetInOutItems struct {
 	PartnerUid string `form:"partner_uid" binding:"required"`
 	CourseUid  string `form:"course_uid" binding:"required"`
 	ItemCode   string `form:"item_code"`
+}
+
+type GetItems struct {
+	PageRequest
+	ItemCode string `form:"item_code"`
+	FromDate string `form:"from_date"`
+	ToDate   string `form:"to_date"`
 }
 
 type GetBill struct {
