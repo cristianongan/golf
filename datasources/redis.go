@@ -71,7 +71,7 @@ func GetRedisKeyLockerResetDataMemberCard() string {
 }
 
 func GetRedisKeyLockerReportCaddieFeeToDay() string {
-	return config.GetEnvironmentName() + "_" + "anhnq_redis_locker_report_caddie_fee_to_day"
+	return config.GetEnvironmentName() + "_" + "anhnq_redis_locker_report_caddie_fee_today"
 }
 
 func GetRedisKeyLockerReportInventoryStatisticItem() string {
