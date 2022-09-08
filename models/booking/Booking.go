@@ -607,7 +607,7 @@ func (item *Booking) UpdateMushPay() {
 	item.FindServiceItems()
 	for _, v := range item.ListServiceItems {
 		isNeedPay := false
-		if len(item.MainBagPay) > 0 && item.Uid != v.BookingUid {
+		if len(item.MainBagPay) > 0 && item.BillCode != v.BillCode {
 			for _, v1 := range item.MainBagPay {
 				// TODO: Tính Fee cho sub bag fee
 				if v1 == constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS {
@@ -626,7 +626,7 @@ func (item *Booking) UpdateMushPay() {
 				}
 			}
 		} else {
-			if item.Uid == v.BookingUid {
+			if item.BillCode == v.BillCode {
 				isNeedPay = true
 			}
 		}
