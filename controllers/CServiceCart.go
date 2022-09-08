@@ -143,7 +143,15 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	// no cart
 	if err != nil {
 		// create cart
+		serviceCart.Amount = body.Quantity * serviceCartItem.UnitPrice
 		if err := serviceCart.Create(); err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
+	} else {
+		// update tổng giá bill
+		serviceCart.Amount += body.Quantity * serviceCartItem.UnitPrice
+		if err := serviceCart.Update(); err != nil {
 			response_message.InternalServerError(c, err.Error())
 			return
 		}
@@ -404,7 +412,16 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// update service cart
+	serviceCart.Amount += (body.Quantity * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+	if err := serviceCart.Update(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	// update service item
 	serviceCartItem.Quality = int(body.Quantity)
+	serviceCartItem.Amount = body.Quantity * serviceCartItem.UnitPrice
 	serviceCartItem.Input = body.Note
 
 	if err := serviceCartItem.Update(); err != nil {
@@ -463,6 +480,13 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	inventory.Quantity += int64(serviceCartItem.Quality)
 	if err := inventory.Update(); err != nil {
 		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// update service cart
+	serviceCart.Amount -= int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice
+	if err := serviceCart.Update(); err != nil {
+		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
