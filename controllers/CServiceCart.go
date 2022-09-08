@@ -253,7 +253,12 @@ func (_ CServiceCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
 	serviceCart.BookingDate = datatypes.Date(bookingDate)
 
 	if err := serviceCart.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
+		res := response.PageResponse{
+			Total: 0,
+			Data:  nil,
+		}
+
+		c.JSON(200, res)
 		return
 	}
 
