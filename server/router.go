@@ -209,12 +209,11 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/booking/list/select", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingWithSelect))
 			cmsApiAuthorized.GET("/booking/list/flight", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingWithFightInfo))
 			cmsApiAuthorized.GET("/booking/list-service-item", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingWithListServiceItems))
-			cmsApiAuthorized.GET("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingDetail))             // Get Booking detail by uid
-			cmsApiAuthorized.GET("/booking/by-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingByBag))            // Get booking detail by Bag
-			cmsApiAuthorized.PUT("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.UpdateBooking))                // Thêm Info..., rental, kiosk, ...
-			cmsApiAuthorized.POST("/booking/sub-bag/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddSubBagToBooking))   // Add SubBag
-			cmsApiAuthorized.POST("/booking/sub-bag/edit", middlewares.AuthorizedCmsUserHandler(cBooking.EditSubBagToBooking)) // Edit SubBag
-			//cmsApiAuthorized.POST("/booking/round/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddRound))                         // Add Round
+			cmsApiAuthorized.GET("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingDetail))                       // Get Booking detail by uid
+			cmsApiAuthorized.GET("/booking/by-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingByBag))                      // Get booking detail by Bag
+			cmsApiAuthorized.PUT("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.UpdateBooking))                          // Thêm Info..., rental, kiosk, ...
+			cmsApiAuthorized.POST("/booking/sub-bag/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddSubBagToBooking))             // Add SubBag
+			cmsApiAuthorized.POST("/booking/sub-bag/edit", middlewares.AuthorizedCmsUserHandler(cBooking.EditSubBagToBooking))           // Edit SubBag                  // Add Round
 			cmsApiAuthorized.GET("/booking/list/add-sub-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingForAddSubBag)) // List booking for add sub bag
 			cmsApiAuthorized.GET("/booking/sub-bag-detail/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetSubBagDetail))         // Get Sub bag detail
 			cmsApiAuthorized.POST("/booking/other-paid/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddOtherPaid))                // Add Other Paid

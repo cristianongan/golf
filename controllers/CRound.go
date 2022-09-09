@@ -256,8 +256,6 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
-		booking.BagStatus = constants.BAG_STATUS_WAITING
-
 		//Update mush pay, current bag
 		if len(booking.ListGolfFee) > 0 {
 			totalPayChange := booking.ListGolfFee[0].CaddieFee + booking.ListGolfFee[0].BuggyFee + booking.ListGolfFee[0].GreenFee
@@ -267,6 +265,10 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 			booking.CurrentBagPrice.Amount += totalPayChange
 			booking.CurrentBagPrice.GolfFee += totalPayChange
 		}
+
+		booking.BagStatus = constants.BAG_STATUS_WAITING
+		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+		booking.FlightId = 0
 		errCreateBooking := booking.Create(bUid)
 
 		if errCreateBooking != nil {
@@ -275,7 +277,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	okRes(c)
+	okResponse(c, booking)
 }
 
 func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
