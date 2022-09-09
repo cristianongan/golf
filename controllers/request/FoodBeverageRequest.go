@@ -32,6 +32,7 @@ type GetListFoodBeverageForm struct {
 	EnglishName string `form:"english_name" json:"english_name"`
 	VieName     string `form:"vietnamese_name" json:"vietnamese_name"`
 	GroupCode   string `form:"group_code" json:"group_code"`
+	FBCode      string `form:"fb_code" json:"fb_code"`
 	Status      string `form:"status" json:"status"`
 	FBCodeList  string `form:"fb_code_list" json:"fb_code_list"`
 }
