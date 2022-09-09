@@ -71,6 +71,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCartItem.GroupCode = fb.GroupCode
 		serviceCartItem.Name = fb.VieName
 		serviceCartItem.UnitPrice = int64(fb.Price)
+		serviceCartItem.Unit = fb.Unit
 	}
 
 	if body.GroupType == constants.GROUP_PROSHOP {
@@ -87,6 +88,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCartItem.GroupCode = proshop.GroupCode
 		serviceCartItem.Name = proshop.VieName
 		serviceCartItem.UnitPrice = int64(proshop.Price)
+		serviceCartItem.Unit = proshop.Unit
 	}
 
 	if body.GroupType == constants.GROUP_RENTAL {
@@ -103,6 +105,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCartItem.GroupCode = rental.GroupCode
 		serviceCartItem.Name = rental.VieName
 		serviceCartItem.UnitPrice = int64(rental.Price)
+		serviceCartItem.Unit = rental.Unit
 	}
 
 	// validate quantity
