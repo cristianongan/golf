@@ -6,7 +6,6 @@ import (
 )
 
 type KioskInventoryItemBody struct {
-	Code       string  `json:"code" binding:"required"`
 	ItemCode   string  `json:"item_code" binding:"required"`
 	ItemName   string  `json:"item_name" binding:"required"`
 	Unit       string  `json:"unit" binding:"required"`
@@ -27,13 +26,13 @@ func (item ListKioskInventoryInputItemBody) Value() (driver.Value, error) {
 }
 
 type CreateBillBody struct {
-	PartnerUid  string                          `json:"partner_uid" binding:"required"`
-	CourseUid   string                          `json:"course_uid" binding:"required"`
-	BillCode    string                          `json:"bill_code" binding:"required"`
+	PartnerUid string `json:"partner_uid" binding:"required"`
+	CourseUid  string `json:"course_uid" binding:"required"`
+	// BillCode    string                          `json:"bill_code" binding:"required"`
 	ServiceId   int64                           `json:"service_id" binding:"required"`
 	ServiceName string                          `json:"service_name" binding:"required"`
-	SourceId    int64                           `json:"source_id" binding:"required"`
-	SourceName  string                          `json:"source_name" binding:"required"`
+	SourceId    int64                           `json:"source_id"`
+	SourceName  string                          `json:"source_name"`
 	ListItem    ListKioskInventoryInputItemBody `json:"list_item" binding:"required"`
 	Note        string                          `json:"note"`
 }

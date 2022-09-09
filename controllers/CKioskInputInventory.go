@@ -21,22 +21,23 @@ func (item CKioskInputInventory) CreateManualInputBill(c *gin.Context, prof mode
 		return
 	}
 
+	billcode := time.Now().Format("20060102150405")
 	if errInputBill := item.MethodInputBill(c, prof, body,
-		constants.KIOSK_BILL_INVENTORY_ACCEPT); errInputBill != nil {
+		constants.KIOSK_BILL_INVENTORY_ACCEPT, billcode); errInputBill != nil {
 		response_message.BadRequest(c, errInputBill.Error())
 		return
 	}
 
-	item.addItemToInventory(body.BillCode, body.CourseUid, body.PartnerUid)
+	item.addItemToInventory(billcode, body.CourseUid, body.PartnerUid)
 
 	okRes(c)
 }
 
-func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.CmsUser, body request.CreateBillBody, billtype string) error {
+func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.CmsUser, body request.CreateBillBody, billtype string, billcode string) error {
 	inventoryStatus := kiosk_inventory.InputInventoryBill{}
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
-	inventoryStatus.Code = body.BillCode
+	inventoryStatus.Code = billcode
 	inventoryStatus.ServiceId = body.ServiceId
 	inventoryStatus.ServiceName = body.ServiceName
 	inventoryStatus.BillStatus = billtype
@@ -50,7 +51,7 @@ func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.Cms
 
 	for _, data := range body.ListItem {
 		inputItem := kiosk_inventory.InventoryInputItem{}
-		inputItem.Code = body.BillCode
+		inputItem.Code = billcode
 		inputItem.PartnerUid = body.PartnerUid
 		inputItem.CourseUid = body.CourseUid
 		inputItem.Quantity = data.Quantity
@@ -126,7 +127,7 @@ func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.Cms
 		return
 	}
 
-	// TODO Giảm ds item trong Inventory
+	// Giảm ds item trong Inventory
 	cKioskOutputInventory := CKioskOutputInventory{}
 	cKioskOutputInventory.removeItemFromInventory(body.Code, body.CourseUid, body.PartnerUid)
 

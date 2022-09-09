@@ -21,8 +21,9 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 		return
 	}
 
+	billcode := time.Now().Format("20060102150405")
 	if errOutputBill := item.MethodOutputBill(c, prof, body,
-		constants.KIOSK_BILL_INVENTORY_TRANSFER); errOutputBill != nil {
+		constants.KIOSK_BILL_INVENTORY_TRANSFER, billcode); errOutputBill != nil {
 		response_message.BadRequest(c, errOutputBill.Error())
 		return
 	}
@@ -32,7 +33,6 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 	bodyInputBill := request.CreateBillBody{
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,
-		BillCode:    body.BillCode,
 		ServiceId:   body.SourceId,
 		ServiceName: body.SourceName,
 		SourceId:    body.ServiceId,
@@ -42,7 +42,7 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 	}
 
 	if errInputBill := cKioskInputInventory.MethodInputBill(c, prof,
-		bodyInputBill, constants.KIOSK_BILL_INVENTORY_PENDING); errInputBill != nil {
+		bodyInputBill, constants.KIOSK_BILL_INVENTORY_PENDING, billcode); errInputBill != nil {
 		response_message.BadRequest(c, errInputBill.Error())
 		return
 	}
@@ -50,13 +50,13 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 	okRes(c)
 }
 
-func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.CmsUser, body request.CreateBillBody, billtype string) error {
+func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.CmsUser, body request.CreateBillBody, billtype string, billcode string) error {
 	inventoryStatus := kiosk_inventory.OutputInventoryBill{}
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
 	inventoryStatus.ServiceId = body.ServiceId
 	inventoryStatus.BillStatus = billtype
-	inventoryStatus.Code = body.BillCode
+	inventoryStatus.Code = billcode
 	inventoryStatus.UserUpdate = prof.UserName
 	inventoryStatus.ServiceName = body.ServiceName
 	inventoryStatus.ServiceImportId = body.SourceId
@@ -66,16 +66,16 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 	quantity := 0
 
 	for _, data := range body.ListItem {
-		inputItem := kiosk_inventory.InventoryOutputItem{}
-		inputItem.Code = body.BillCode
-		inputItem.PartnerUid = body.PartnerUid
-		inputItem.CourseUid = body.CourseUid
-		inputItem.Quantity = data.Quantity
-		inputItem.ItemCode = data.ItemCode
-		inputItem.UserUpdate = prof.UserName
-		inputItem.ServiceId = body.ServiceId
-		inputItem.ServiceName = body.ServiceName
-		inputItem.UserUpdate = data.UserUpdate
+		outputItem := kiosk_inventory.InventoryOutputItem{}
+		outputItem.Code = billcode
+		outputItem.PartnerUid = body.PartnerUid
+		outputItem.CourseUid = body.CourseUid
+		outputItem.Quantity = data.Quantity
+		outputItem.ItemCode = data.ItemCode
+		outputItem.UserUpdate = prof.UserName
+		outputItem.ServiceId = body.ServiceId
+		outputItem.ServiceName = body.ServiceName
+		outputItem.UserUpdate = data.UserUpdate
 
 		goodsService := model_service.GroupServices{
 			GroupCode: data.GroupCode,
@@ -86,7 +86,7 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 			return errFindGoodsService
 		}
 
-		inputItem.ItemInfo = kiosk_inventory.ItemInfo{
+		outputItem.ItemInfo = kiosk_inventory.ItemInfo{
 			Price:     data.Price,
 			ItemName:  data.ItemName,
 			GroupName: goodsService.GroupName,
@@ -95,9 +95,9 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 			Unit:      data.Unit,
 		}
 
-		inputItem.OutputDate = time.Now().Format(constants.DATE_FORMAT_1)
+		outputItem.OutputDate = time.Now().Format(constants.DATE_FORMAT_1)
 
-		if err := inputItem.Create(); err != nil {
+		if err := outputItem.Create(); err != nil {
 			return err
 		}
 

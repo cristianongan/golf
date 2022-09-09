@@ -19,7 +19,7 @@ type BookingServiceItem struct {
 	CourseUid      string `json:"course_uid" gorm:"type:varchar(150);index"`   // Sân golf
 	ItemId         int64  `json:"item_id"  gorm:"index"`                       // Id item
 	ItemCode       string `json:"item_code"  gorm:"type:varchar(100)"`         // mã code của item
-	Unit           string `json:"unit"  gorm:"type:varchar(100)"`              // mã code của item
+	Unit           string `json:"unit"  gorm:"type:varchar(100)"`              // Unit của item
 	ServiceId      string `json:"service_id"  gorm:"type:varchar(100)"`        // uid service
 	BookingUid     string `json:"booking_uid"  gorm:"type:varchar(100);index"` // Uid booking
 	PlayerName     string `json:"player_name" gorm:"type:varchar(256)"`        // Tên người chơi

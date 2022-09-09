@@ -71,6 +71,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCartItem.GroupCode = fb.GroupCode
 		serviceCartItem.Name = fb.VieName
 		serviceCartItem.UnitPrice = int64(fb.Price)
+		serviceCartItem.Unit = fb.Unit
 	}
 
 	if body.GroupType == constants.GROUP_PROSHOP {
@@ -87,6 +88,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCartItem.GroupCode = proshop.GroupCode
 		serviceCartItem.Name = proshop.VieName
 		serviceCartItem.UnitPrice = int64(proshop.Price)
+		serviceCartItem.Unit = proshop.Unit
 	}
 
 	if body.GroupType == constants.GROUP_RENTAL {
@@ -103,6 +105,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCartItem.GroupCode = rental.GroupCode
 		serviceCartItem.Name = rental.VieName
 		serviceCartItem.UnitPrice = int64(rental.Price)
+		serviceCartItem.Unit = rental.Unit
 	}
 
 	// validate quantity
@@ -530,12 +533,14 @@ func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	serviceCart.BillCode = "KIOSK-BILLING-" + time.Now().Format("20060102150405")
+	serviceCart.BillCode = time.Now().Format("20060102150405")
 
 	if err := serviceCart.Update(); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	createExportBillInventory(c, prof, serviceCart, serviceCart.BillCode)
 
 	okRes(c)
 }
@@ -623,4 +628,38 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okRes(c)
+}
+func createExportBillInventory(c *gin.Context, prof models.CmsUser, serviceCart models.ServiceCart, code string) {
+	serviceCartItem := model_booking.BookingServiceItem{}
+	serviceCartItem.PartnerUid = prof.PartnerUid
+	serviceCartItem.CourseUid = prof.CourseUid
+	serviceCartItem.ServiceBill = serviceCart.Id
+
+	listItemInBill, _ := serviceCartItem.FindAll()
+
+	if len(listItemInBill) > 0 {
+		bodyInputBill := request.CreateBillBody{}
+		bodyInputBill.PartnerUid = prof.PartnerUid
+		bodyInputBill.CourseUid = prof.CourseUid
+		bodyInputBill.SourceId = serviceCart.ServiceId
+		bodyInputBill.SourceName = ""
+		lisItem := []request.KioskInventoryItemBody{}
+
+		for _, data := range listItemInBill {
+			inputItem := request.KioskInventoryItemBody{}
+			inputItem.Quantity = data.SaleQuantity
+			inputItem.ItemCode = data.ItemCode
+			inputItem.ItemName = data.Name
+			inputItem.UserUpdate = prof.UserName
+			inputItem.Unit = data.Unit
+			inputItem.GroupCode = data.GroupCode
+			inputItem.Price = float64(data.UnitPrice)
+			lisItem = append(lisItem, inputItem)
+		}
+
+		bodyInputBill.ListItem = lisItem
+
+		cKioskOutputInventory := CKioskOutputInventory{}
+		cKioskOutputInventory.MethodOutputBill(c, prof, bodyInputBill, constants.KIOSK_BILL_INVENTORY_SELL, code)
+	}
 }
