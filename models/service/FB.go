@@ -104,13 +104,13 @@ func (item *FoodBeverageRequest) FindList(page models.Page) ([]FoodBeverageRespo
 		db = db.Where("food_beverages.course_uid = ?", item.CourseUid)
 	}
 	if item.EnglishName != "" {
-		db = db.Where("food_beverages.english_name LIKE ?", "%"+item.EnglishName+"%")
+		db = db.Or("food_beverages.english_name LIKE ?", "%"+item.EnglishName+"%")
 	}
 	if item.VieName != "" {
 		db = db.Where("food_beverages.vie_name LIKE ?", "%"+item.VieName+"%")
 	}
 	if item.FBCode != "" {
-		db = db.Where("food_beverages.fb_code = ?", item.FBCode)
+		db = db.Or("food_beverages.fb_code = ?", item.FBCode)
 	}
 	if item.GroupCode != "" {
 		db = db.Where("food_beverages.group_code = ?", item.GroupCode)

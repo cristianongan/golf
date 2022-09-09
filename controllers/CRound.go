@@ -277,7 +277,9 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	okResponse(c, booking)
+	res := getBagDetailFromBooking(booking)
+
+	okResponse(c, res)
 }
 
 func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
