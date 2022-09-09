@@ -438,11 +438,10 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
-	var body request.DeleteItemInKioskCartBody
-
-	if err := c.BindJSON(&body); err != nil {
-		log.Print("DeleteItemInCart BindJSON error")
-		response_message.BadRequest(c, "")
+	idRequest := c.Param("id")
+	id, errId := strconv.ParseInt(idRequest, 10, 64)
+	if errId != nil {
+		response_message.BadRequest(c, errId.Error())
 		return
 	}
 
@@ -450,7 +449,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	serviceCartItem := model_booking.BookingServiceItem{}
 	serviceCartItem.PartnerUid = prof.PartnerUid
 	serviceCartItem.CourseUid = prof.CourseUid
-	serviceCartItem.Id = body.CartItemId
+	serviceCartItem.Id = id
 
 	if err := serviceCartItem.FindFirst(); err != nil {
 		response_message.BadRequest(c, err.Error())
