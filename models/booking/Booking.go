@@ -769,7 +769,7 @@ func (item *Booking) CreateBatch(bookings []Booking) error {
 
 func (item *Booking) FindFirst() error {
 	db := datasources.GetDatabase()
-	return db.Where(item).First(item).Error
+	return db.Where(item).Last(item).Error
 }
 
 func (item *Booking) FindFirstNotCancel() error {
