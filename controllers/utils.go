@@ -1073,3 +1073,45 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
 	}
 }
+
+/*
+ Mỗi lần thêm đợt thanh toán, update lại totalPaid
+*/
+func updateTotalPaidAnnualFeeForMemberCard(mcUid string, year int) {
+	//Get List paid
+	listPaidR := models.AnnualFeePay{
+		MemberCardUid: mcUid,
+		Year:          year,
+	}
+	listPaid, errF := listPaidR.FindAll()
+	if errF != nil {
+		log.Println("updateTotalPaidAnnualFeeForMemberCard errF", errF.Error())
+	}
+
+	totalPaid := int64(0)
+	for _, v := range listPaid {
+		totalPaid += v.Amount
+	}
+
+	// Find memberCard Annual Fee
+	mcCardAnnualFee := models.AnnualFee{
+		MemberCardUid: mcUid,
+		Year:          year,
+	}
+	errMc := mcCardAnnualFee.FindFirst()
+	if errMc != nil || mcCardAnnualFee.Id <= 0 {
+		// Tạo mới
+		mcCardAnnualFee.TotalPaid = totalPaid
+		errC := mcCardAnnualFee.Create()
+		if errC != nil {
+			log.Println("updateTotalPaidAnnualFeeForMemberCard errC", errC.Error())
+		}
+	} else {
+		mcCardAnnualFee.TotalPaid = totalPaid
+		errUdp := mcCardAnnualFee.Update()
+		if errUdp != nil {
+			log.Println("updateTotalPaidAnnualFeeForMemberCard errUdp", errUdp.Error())
+		}
+	}
+
+}
