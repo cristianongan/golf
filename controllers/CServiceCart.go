@@ -7,6 +7,7 @@ import (
 	"start/controllers/response"
 	"start/models"
 	model_booking "start/models/booking"
+	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
 	"start/utils/response_message"
 	"strconv"
@@ -104,30 +105,30 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCartItem.UnitPrice = int64(rental.Price)
 	}
 
-	// // validate quantity
-	// inventory := kiosk_inventory.InventoryItem{}
-	// inventory.PartnerUid = prof.PartnerUid
-	// inventory.CourseUid = prof.CourseUid
-	// inventory.ServiceId = body.ServiceId
-	// inventory.Code = body.ItemCode
+	// validate quantity
+	inventory := kiosk_inventory.InventoryItem{}
+	inventory.PartnerUid = prof.PartnerUid
+	inventory.CourseUid = prof.CourseUid
+	inventory.ServiceId = body.ServiceId
+	inventory.Code = body.ItemCode
 
-	// if err := inventory.FindFirst(); err != nil {
-	// 	response_message.BadRequest(c, err.Error())
-	// 	return
-	// }
+	if err := inventory.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
 
-	// // Kiểm tra số lượng hàng tồn trong kho
-	// if body.Quantity > inventory.Quantity {
-	// 	response_message.BadRequest(c, "The quantity of goods in stock is not enough")
-	// 	return
-	// }
+	// Kiểm tra số lượng hàng tồn trong kho
+	if body.Quantity > inventory.Quantity {
+		response_message.BadRequest(c, "The quantity of goods in stock is not enough")
+		return
+	}
 
-	// // Update số lượng hàng tồn trong kho
-	// inventory.Quantity -= body.Quantity
-	// if err := inventory.Update(); err != nil {
-	// 	response_message.BadRequest(c, err.Error())
-	// 	return
-	// }
+	// Update số lượng hàng tồn trong kho
+	inventory.Quantity -= body.Quantity
+	if err := inventory.Update(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
 
 	// check service cart
 	serviceCart := models.ServiceCart{}
@@ -391,30 +392,30 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// // validate quantity
-	// inventory := kiosk_inventory.InventoryItem{}
-	// inventory.PartnerUid = prof.PartnerUid
-	// inventory.CourseUid = prof.CourseUid
-	// inventory.ServiceId = serviceCart.ServiceId
-	// inventory.Code = serviceCartItem.Order
+	// validate quantity
+	inventory := kiosk_inventory.InventoryItem{}
+	inventory.PartnerUid = prof.PartnerUid
+	inventory.CourseUid = prof.CourseUid
+	inventory.ServiceId = serviceCart.ServiceId
+	inventory.Code = serviceCartItem.Order
 
-	// if err := inventory.FindFirst(); err != nil {
-	// 	response_message.BadRequest(c, err.Error())
-	// 	return
-	// }
+	if err := inventory.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
 
-	// // Kiểm tra số lượng hàng tồn trong kho
-	// if body.Quantity > inventory.Quantity+int64(serviceCartItem.Quality) {
-	// 	response_message.BadRequest(c, "The quantity of goods in stock is not enough")
-	// 	return
-	// }
+	// Kiểm tra số lượng hàng tồn trong kho
+	if body.Quantity > inventory.Quantity+int64(serviceCartItem.Quality) {
+		response_message.BadRequest(c, "The quantity of goods in stock is not enough")
+		return
+	}
 
-	// // Update số lượng hàng tồn trong kho
-	// inventory.Quantity = inventory.Quantity + int64(serviceCartItem.Quality) - body.Quantity
-	// if err := inventory.Update(); err != nil {
-	// 	response_message.BadRequest(c, err.Error())
-	// 	return
-	// }
+	// Update số lượng hàng tồn trong kho
+	inventory.Quantity = inventory.Quantity + int64(serviceCartItem.Quality) - body.Quantity
+	if err := inventory.Update(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
 
 	// update service cart
 	serviceCart.Amount += (body.Quantity * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
@@ -437,11 +438,10 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
-	var body request.DeleteItemInKioskCartBody
-
-	if err := c.BindJSON(&body); err != nil {
-		log.Print("DeleteItemInCart BindJSON error")
-		response_message.BadRequest(c, "")
+	idRequest := c.Param("id")
+	id, errId := strconv.ParseInt(idRequest, 10, 64)
+	if errId != nil {
+		response_message.BadRequest(c, errId.Error())
 		return
 	}
 
@@ -449,7 +449,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	serviceCartItem := model_booking.BookingServiceItem{}
 	serviceCartItem.PartnerUid = prof.PartnerUid
 	serviceCartItem.CourseUid = prof.CourseUid
-	serviceCartItem.Id = body.CartItemId
+	serviceCartItem.Id = id
 
 	if err := serviceCartItem.FindFirst(); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -468,24 +468,24 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// // validate quantity
-	// inventory := kiosk_inventory.InventoryItem{}
-	// inventory.PartnerUid = prof.PartnerUid
-	// inventory.CourseUid = prof.CourseUid
-	// inventory.ServiceId = serviceCart.ServiceId
-	// inventory.Code = serviceCartItem.Order
+	// validate quantity
+	inventory := kiosk_inventory.InventoryItem{}
+	inventory.PartnerUid = prof.PartnerUid
+	inventory.CourseUid = prof.CourseUid
+	inventory.ServiceId = serviceCart.ServiceId
+	inventory.Code = serviceCartItem.Order
 
-	// if err := inventory.FindFirst(); err != nil {
-	// 	response_message.BadRequest(c, err.Error())
-	// 	return
-	// }
+	if err := inventory.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
 
-	// // Update số lượng hàng tồn trong kho
-	// inventory.Quantity += int64(serviceCartItem.Quality)
-	// if err := inventory.Update(); err != nil {
-	// 	response_message.BadRequest(c, err.Error())
-	// 	return
-	// }
+	// Update số lượng hàng tồn trong kho
+	inventory.Quantity += int64(serviceCartItem.Quality)
+	if err := inventory.Update(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
 
 	// update service cart
 	serviceCart.Amount -= int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice

@@ -54,6 +54,9 @@ func (_ *CAnnualFeePay) CreateAnnualFeePay(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	//Update total paid của membercard trong năm
+	updateTotalPaidAnnualFeeForMemberCard(body.MemberCardUid, body.Year)
+
 	okResponse(c, annualFeePay)
 }
 
@@ -122,6 +125,9 @@ func (_ *CAnnualFeePay) UpdateAnnualFeePay(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	//Update total paid của membercard trong năm
+	updateTotalPaidAnnualFeeForMemberCard(body.MemberCardUid, body.Year)
+
 	okResponse(c, annualFeePay)
 }
 
@@ -146,6 +152,9 @@ func (_ *CAnnualFeePay) DeleteAnnualFeePay(c *gin.Context, prof models.CmsUser) 
 		response_message.InternalServerError(c, errDel.Error())
 		return
 	}
+
+	//Update total paid của membercard trong năm
+	updateTotalPaidAnnualFeeForMemberCard(annualFeePay.MemberCardUid, annualFeePay.Year)
 
 	okRes(c)
 }
