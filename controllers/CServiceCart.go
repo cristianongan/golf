@@ -140,7 +140,12 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	serviceCart.GolfBag = body.GolfBag
 	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
 	serviceCart.ServiceId = body.ServiceId
-	serviceCart.BillCode = "NONE"
+
+	if body.BillId != 0 {
+		serviceCart.Id = body.BillId
+	} else {
+		serviceCart.BillCode = "NONE"
+	}
 
 	err := serviceCart.FindFirst()
 	// no cart
