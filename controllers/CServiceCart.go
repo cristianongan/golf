@@ -136,6 +136,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	serviceCart.PartnerUid = prof.PartnerUid
 	serviceCart.CourseUid = prof.CourseUid
 	serviceCart.GolfBag = body.GolfBag
+	serviceCart.BookingUid = booking.Uid
 	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
 	serviceCart.ServiceId = body.ServiceId
 
