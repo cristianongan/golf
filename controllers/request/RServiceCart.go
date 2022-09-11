@@ -18,22 +18,22 @@ type AddDiscountServiceItemBody struct {
 
 type GetItemServiceCartBody struct {
 	PageRequest
-	GolfBag     string `json:"golf_bag"`
-	BookingDate string `json:"booking_date"`
-	ServiceId   int64  `json:"service_id"`
-	BillId      int64  `json:"bill_id"`
+	GolfBag     string `form:"golf_bag"`
+	BookingDate string `form:"booking_date"`
+	ServiceId   int64  `form:"service_id"`
+	BillId      int64  `form:"bill_id"`
 }
 
 type GetBestItemBody struct {
 	PageRequest
-	ServiceId int64  `json:"service_id"`
-	GroupCode string `json:"group_code"`
+	ServiceId int64  `form:"service_id"`
+	GroupCode string `form:"group_code"`
 }
 
 type GetServiceCartBody struct {
 	PageRequest
-	BookingDate string `json:"booking_date" binding:"required"`
-	ServiceId   int64  `json:"service_id"`
+	BookingDate string `form:"booking_date" binding:"required"`
+	ServiceId   int64  `form:"service_id"`
 }
 
 type UpdateServiceCartBody struct {

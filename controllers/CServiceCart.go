@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -22,10 +21,9 @@ type CServiceCart struct{}
 
 // Thêm sản phẩm vào giỏ hàng
 func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) {
-	var body request.AddItemServiceCartBody
-	if err := c.BindJSON(&body); err != nil {
-		log.Print("AddItemToServiceCart BindJSON error")
-		response_message.BadRequest(c, "")
+	body := request.AddItemServiceCartBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
@@ -188,10 +186,9 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 }
 
 func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
-	var body request.AddDiscountServiceItemBody
-	if err := c.BindJSON(&body); err != nil {
-		log.Print("AddDiscountToItem BindJSON error")
-		response_message.BadRequest(c, "")
+	body := request.AddDiscountServiceItemBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
@@ -239,8 +236,8 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 
 func (_ CServiceCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
 	query := request.GetItemServiceCartBody{}
-	if err := c.Bind(&query); err != nil {
-		response_message.BadRequest(c, err.Error())
+	if bindErr := c.ShouldBind(&query); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
@@ -305,8 +302,8 @@ func (_ CServiceCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
 
 func (_ CServiceCart) GetBestItemInKiosk(c *gin.Context, prof models.CmsUser) {
 	query := request.GetBestItemBody{}
-	if err := c.Bind(&query); err != nil {
-		response_message.BadRequest(c, err.Error())
+	if bindErr := c.ShouldBind(&query); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
@@ -340,8 +337,8 @@ func (_ CServiceCart) GetBestItemInKiosk(c *gin.Context, prof models.CmsUser) {
 
 func (_ CServiceCart) GetListCart(c *gin.Context, prof models.CmsUser) {
 	query := request.GetServiceCartBody{}
-	if err := c.Bind(&query); err != nil {
-		response_message.BadRequest(c, err.Error())
+	if bindErr := c.ShouldBind(&query); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
@@ -376,10 +373,9 @@ func (_ CServiceCart) GetListCart(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
-	var body request.UpdateServiceCartBody
-	if err := c.BindJSON(&body); err != nil {
-		log.Print("UpdateQuantityToCart BindJSON error")
-		response_message.BadRequest(c, "")
+	body := request.UpdateServiceCartBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
@@ -523,10 +519,9 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
-	var body request.CreateBillCodeBody
-	if err := c.BindJSON(&body); err != nil {
-		log.Print("CreateBilling BindJSON error")
-		response_message.BadRequest(c, "")
+	body := request.CreateBillCodeBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
@@ -562,10 +557,9 @@ func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
-	var body request.MoveItemToOtherServiceCartBody
-	if err := c.BindJSON(&body); err != nil {
-		log.Print("MoveItemToOtherCart BindJSON error")
-		response_message.BadRequest(c, "")
+	body := request.MoveItemToOtherServiceCartBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
