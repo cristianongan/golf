@@ -255,6 +255,12 @@ func (_ CServiceCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
 	serviceCart.GolfBag = query.GolfBag
 	serviceCart.BookingDate = datatypes.Date(bookingDate)
 
+	if query.BillId != 0 {
+		serviceCart.Id = query.BillId
+	} else {
+		serviceCart.BillCode = "NONE"
+	}
+
 	if err := serviceCart.FindFirst(); err != nil {
 		res := response.PageResponse{
 			Total: 0,
@@ -277,9 +283,16 @@ func (_ CServiceCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	var dataRes map[string]interface{}
+
+	dataRes = make(map[string]interface{})
+
+	dataRes["cart_infor"] = serviceCart
+	dataRes["list_item"] = list
+
 	res := response.PageResponse{
 		Total: total,
-		Data:  list,
+		Data:  dataRes,
 	}
 
 	c.JSON(200, res)
@@ -388,7 +401,6 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	serviceCart.PartnerUid = prof.PartnerUid
 	serviceCart.CourseUid = prof.CourseUid
 	serviceCart.Id = serviceCartItem.ServiceBill
-	serviceCart.BillCode = "NONE"
 
 	if err := serviceCart.FindFirst(); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -464,7 +476,6 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	serviceCart.PartnerUid = prof.PartnerUid
 	serviceCart.CourseUid = prof.CourseUid
 	serviceCart.Id = serviceCartItem.ServiceBill
-	serviceCart.BillCode = "NONE"
 
 	if err := serviceCart.FindFirst(); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -491,7 +502,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// update service cart
-	serviceCart.Amount -= int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice
+	serviceCart.Amount -= serviceCartItem.Amount
 	if err := serviceCart.Update(); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -629,6 +640,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 
 	okRes(c)
 }
+
 func createExportBillInventory(c *gin.Context, prof models.CmsUser, serviceCart models.ServiceCart, code string) {
 	serviceCartItem := model_booking.BookingServiceItem{}
 	serviceCartItem.PartnerUid = prof.PartnerUid
