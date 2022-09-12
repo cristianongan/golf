@@ -653,18 +653,17 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 
 func createExportBillInventory(c *gin.Context, prof models.CmsUser, serviceCart models.ServiceCart, code string) {
 	serviceCartItem := model_booking.BookingServiceItem{}
-	serviceCartItem.PartnerUid = prof.PartnerUid
-	serviceCartItem.CourseUid = prof.CourseUid
+	serviceCartItem.PartnerUid = serviceCart.PartnerUid
+	serviceCartItem.CourseUid = serviceCart.CourseUid
 	serviceCartItem.ServiceBill = serviceCart.Id
 
 	listItemInBill, _ := serviceCartItem.FindAll()
 
 	if len(listItemInBill) > 0 {
 		bodyInputBill := request.CreateBillBody{}
-		bodyInputBill.PartnerUid = prof.PartnerUid
-		bodyInputBill.CourseUid = prof.CourseUid
-		bodyInputBill.SourceId = serviceCart.ServiceId
-		bodyInputBill.SourceName = ""
+		bodyInputBill.PartnerUid = serviceCart.PartnerUid
+		bodyInputBill.CourseUid = serviceCart.CourseUid
+		bodyInputBill.ServiceId = serviceCart.ServiceId
 		lisItem := []request.KioskInventoryItemBody{}
 
 		for _, data := range listItemInBill {

@@ -274,6 +274,7 @@ func (_ CKioskInputInventory) GetInputBills(c *gin.Context, prof models.CmsUser)
 	inputItems.ServiceId = form.ServiceId
 	inputItems.PartnerUid = form.PartnerUid
 	inputItems.CourseUid = form.CourseUid
+	inputItems.Code = form.BillCode
 	list, total, err := inputItems.FindList(page, form.BillStatus)
 
 	if err != nil {

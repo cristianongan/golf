@@ -64,6 +64,7 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 	inventoryStatus.ServiceImportId = body.SourceId
 	inventoryStatus.ServiceImportName = body.SourceName
 	inventoryStatus.OutputDate = body.OutputDate
+	inventoryStatus.Note = body.Note
 
 	quantity := 0
 
@@ -195,6 +196,7 @@ func (_ CKioskOutputInventory) GetOutputBills(c *gin.Context, prof models.CmsUse
 	outputItems.ServiceId = form.ServiceId
 	outputItems.PartnerUid = form.PartnerUid
 	outputItems.CourseUid = form.CourseUid
+	outputItems.Code = form.BillCode
 	list, total, err := outputItems.FindList(page, form.BillStatus)
 
 	if err != nil {
