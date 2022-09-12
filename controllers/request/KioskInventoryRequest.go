@@ -26,15 +26,16 @@ func (item ListKioskInventoryInputItemBody) Value() (driver.Value, error) {
 }
 
 type CreateBillBody struct {
-	PartnerUid string `json:"partner_uid" binding:"required"`
-	CourseUid  string `json:"course_uid" binding:"required"`
-	// BillCode    string                          `json:"bill_code" binding:"required"`
+	PartnerUid  string                          `json:"partner_uid" binding:"required"`
+	CourseUid   string                          `json:"course_uid" binding:"required"`
 	ServiceId   int64                           `json:"service_id" binding:"required"`
 	ServiceName string                          `json:"service_name" binding:"required"`
 	SourceId    int64                           `json:"source_id"`
 	SourceName  string                          `json:"source_name"`
 	ListItem    ListKioskInventoryInputItemBody `json:"list_item" binding:"required"`
 	Note        string                          `json:"note"`
+	UserExport  string                          `json:"user_export"`
+	OutputDate  int64                           `json:"output_date"`
 }
 
 type GetInOutItems struct {

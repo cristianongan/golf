@@ -17,13 +17,15 @@ type InputInventoryBill struct {
 	Code              string `json:"code" gorm:"type:varchar(100);index"`        // mã nhập kho
 	BillStatus        string `json:"bill_status" gorm:"type:varchar(100)"`
 	Note              string `json:"note" gorm:"type:varchar(256)"`                // ghi chú
-	InputDate         int64  `json:"input_date"`                                   // ngày nhập kho
-	UserUpdate        string `json:"user_update" gorm:"type:varchar(256)"`         // Người update cuối cùngUserUpdate
 	ServiceId         int64  `json:"service_id" gorm:"index"`                      // mã service
 	ServiceName       string `json:"service_name" gorm:"type:varchar(256)"`        // tên service
 	ServiceExportId   int64  `json:"service_import_id"`                            // id service export
 	ServiceExportName string `json:"service_import_name" gorm:"type:varchar(256)"` // tên service export
 	Quantity          int64  `json:"quantity"`                                     // Tổng số lượng sell or transfer
+	UserUpdate        string `json:"user_update" gorm:"type:varchar(256)"`         // Người update cuối cùng UserUpdate
+	StaffExport       string `json:"staff_export" gorm:"type:varchar(256)"`        // Người export đơn
+	InputDate         int64  `json:"input_date"`                                   // ngày nhập kho
+	OutputDate        int64  `json:"output_date"`                                  // ngày xuất kho
 }
 
 func (item *InputInventoryBill) IsDuplicated() bool {
@@ -68,6 +70,14 @@ func (item *InputInventoryBill) FindList(page models.Page, status string) ([]Inp
 
 	if item.Code != "" {
 		db = db.Where("code = ?", item.Code)
+	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 
 	if status != "" {

@@ -42,10 +42,11 @@ func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.Cms
 	inventoryStatus.ServiceName = body.ServiceName
 	inventoryStatus.BillStatus = billtype
 	inventoryStatus.UserUpdate = prof.UserName
+	inventoryStatus.StaffExport = body.UserExport
 	inventoryStatus.ServiceExportId = body.SourceId
 	inventoryStatus.ServiceExportName = body.SourceName
 	inventoryStatus.Note = body.Note
-	inventoryStatus.InputDate = time.Now().Unix()
+	inventoryStatus.OutputDate = body.OutputDate
 
 	quantity := 0
 
@@ -56,10 +57,8 @@ func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.Cms
 		inputItem.CourseUid = body.CourseUid
 		inputItem.Quantity = data.Quantity
 		inputItem.ItemCode = data.ItemCode
-		inputItem.UserUpdate = prof.UserName
 		inputItem.ServiceId = body.ServiceId
 		inputItem.ServiceName = body.ServiceName
-		inputItem.UserUpdate = data.UserUpdate
 
 		goodsService := model_service.GroupServices{
 			GroupCode: data.GroupCode,
@@ -122,6 +121,7 @@ func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.Cms
 	item.addItemToInventory(body.Code, body.CourseUid, body.PartnerUid)
 
 	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_ACCEPT
+	inventoryStatus.UserUpdate = prof.UserName
 	if err := inventoryStatus.Update(); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
@@ -213,6 +213,7 @@ func (_ CKioskInputInventory) ReturnInputItem(c *gin.Context, prof models.CmsUse
 	}
 
 	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_RETURN
+	inventoryStatus.UserUpdate = prof.UserName
 	if err := inventoryStatus.Update(); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return

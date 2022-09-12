@@ -21,7 +21,6 @@ type InventoryOutputItem struct {
 	OutputDate  string   `json:"output_date"`                           // ngày xuất kho
 	ServiceId   int64    `json:"service_id" gorm:"index"`               // mã service
 	ServiceName string   `json:"service_name" gorm:"type:varchar(256)"` // tên service
-	UserUpdate  string   `json:"user_update" gorm:"type:varchar(256)"`  // Người duyệt khi nhập kho
 }
 
 type OutputStatisticItem struct {

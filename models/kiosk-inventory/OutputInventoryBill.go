@@ -23,7 +23,7 @@ type OutputInventoryBill struct {
 	ServiceImportId   int64  `json:"service_import_id"`                                // id service sẽ import
 	ServiceImportName string `json:"service_import_name" gorm:"type:varchar(256)"`     // tên service import
 	Bag               string `json:"bag,omitempty" gorm:"type:varchar(100);index"`     // Golf Bag
-	CustomerName      string `json:"customer_name,omitempty" gorm:"type:varchar(256)"` // Tên khách hàng
+	CustomerName      string `json:"customer_name,omitempty" gorm:"type:varchar(256)"` // Tên khách hàng chơi golf
 	BillStatus        string `json:"bill_status" gorm:"type:varchar(100)"`             // Trạng thái đơn hàng (SELL, TRANSFER)
 	Quantity          int64  `json:"quantity"`                                         // Tổng số lượng sell or transfer
 }
@@ -72,12 +72,20 @@ func (item *OutputInventoryBill) FindList(page models.Page, status string) ([]Ou
 		db = db.Where("code = ?", item.Code)
 	}
 
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
 	if status != "" {
 		db = db.Where("bill_status = ?", status)
 	}
 
 	if item.ServiceId > 0 {
-		db = db.Where("kiosk_code = ?", item.ServiceId)
+		db = db.Where("service_id = ?", item.ServiceId)
 	}
 
 	db.Count(&total)

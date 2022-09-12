@@ -8,7 +8,7 @@ type AddRoundBody struct {
 type SplitRoundBody struct {
 	BookingUid string `json:"booking_uid"`
 	Hole       int    `json:"hole"`
-	RoundIndex int    `json:"round_index"`
+	RoundId    int64  `json:"round_id"`
 }
 
 type MergeRoundBody struct {

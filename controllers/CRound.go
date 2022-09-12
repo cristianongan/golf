@@ -25,7 +25,7 @@ func (_ CRound) validateBooking(bookindUid string) (model_booking.Booking, error
 	}
 
 	if booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
-		return booking, errors.New(booking.Bag + "Bag chưa TIME OUT ")
+		return booking, errors.New("Bag chưa TIME OUT")
 	}
 
 	return booking, nil
@@ -47,10 +47,10 @@ func (_ CRound) createRound(booking model_booking.Booking, newHole int, isMerge 
 	if isMerge {
 		round.Index = 0
 	} else {
-		round.BillCode = booking.BillCode
 		totalRound, _ := round.CountWithBillCode()
 		round.Index = int(totalRound + 1)
 	}
+	round.BillCode = booking.BillCode
 	round.Bag = booking.Bag
 	round.PartnerUid = booking.PartnerUid
 	round.CourseUid = booking.CourseUid
@@ -269,6 +269,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		booking.BagStatus = constants.BAG_STATUS_WAITING
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
 		booking.FlightId = 0
+		booking.TimeOutFlight = 0
 		errCreateBooking := booking.Create(bUid)
 
 		if errCreateBooking != nil {
@@ -305,7 +306,8 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	currentRound := models.Round{BillCode: booking.BillCode, Index: body.RoundIndex}
+	currentRound := models.Round{}
+	currentRound.Id = body.RoundId
 	errRound := currentRound.FindFirst()
 
 	if errRound != nil {
@@ -319,7 +321,7 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 	}
 	newRound := currentRound
 	newRound.Hole = int(body.Hole)
-	newRound.Index = body.RoundIndex + 1
+	newRound.Index = currentRound.Index + 1
 	currentRound.Hole = currentRound.Hole - newRound.Hole
 
 	// Update giá cho current round và new round
@@ -419,7 +421,8 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 
 	}
 
-	okRes(c)
+	res := getBagDetailFromBooking(booking)
+	okResponse(c, res)
 }
 
 func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
@@ -545,5 +548,6 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 
 	}
 
-	okRes(c)
+	res := getBagDetailFromBooking(booking)
+	okResponse(c, res)
 }

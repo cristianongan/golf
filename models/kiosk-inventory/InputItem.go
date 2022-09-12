@@ -23,7 +23,6 @@ type InventoryInputItem struct {
 	ServiceName string   `json:"service_name" gorm:"type:varchar(256)"` // tên service
 	Quantity    int64    `json:"quantity"`                              // số lượng
 	InputDate   string   `json:"input_date"`                            // ngày nhập kho
-	UserUpdate  string   `json:"user_update" gorm:"type:varchar(256)"`  // Người duyệt khi nhập kho
 }
 
 type ItemInfo struct {

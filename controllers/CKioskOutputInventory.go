@@ -39,6 +39,8 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 		SourceName:  body.ServiceName,
 		ListItem:    body.ListItem,
 		Note:        body.Note,
+		UserExport:  body.UserExport,
+		OutputDate:  body.OutputDate,
 	}
 
 	if errInputBill := cKioskInputInventory.MethodInputBill(c, prof,
@@ -57,11 +59,11 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 	inventoryStatus.ServiceId = body.ServiceId
 	inventoryStatus.BillStatus = billtype
 	inventoryStatus.Code = billcode
-	inventoryStatus.UserUpdate = prof.UserName
+	inventoryStatus.UserUpdate = body.UserExport
 	inventoryStatus.ServiceName = body.ServiceName
 	inventoryStatus.ServiceImportId = body.SourceId
 	inventoryStatus.ServiceImportName = body.SourceName
-	inventoryStatus.OutputDate = time.Now().Unix()
+	inventoryStatus.OutputDate = body.OutputDate
 
 	quantity := 0
 
@@ -72,10 +74,8 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 		outputItem.CourseUid = body.CourseUid
 		outputItem.Quantity = data.Quantity
 		outputItem.ItemCode = data.ItemCode
-		outputItem.UserUpdate = prof.UserName
 		outputItem.ServiceId = body.ServiceId
 		outputItem.ServiceName = body.ServiceName
-		outputItem.UserUpdate = data.UserUpdate
 
 		goodsService := model_service.GroupServices{
 			GroupCode: data.GroupCode,
