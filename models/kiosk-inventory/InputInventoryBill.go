@@ -19,8 +19,8 @@ type InputInventoryBill struct {
 	Note              string               `json:"note" gorm:"type:varchar(256)"`                // ghi chú
 	ServiceId         int64                `json:"service_id" gorm:"index"`                      // mã service
 	ServiceName       string               `json:"service_name" gorm:"type:varchar(256)"`        // tên service
-	ServiceExportId   int64                `json:"service_import_id"`                            // id service export
-	ServiceExportName string               `json:"service_import_name" gorm:"type:varchar(256)"` // tên service export
+	ServiceExportId   int64                `json:"service_export_id"`                            // id service export
+	ServiceExportName string               `json:"service_export_name" gorm:"type:varchar(256)"` // tên service export
 	Quantity          int64                `json:"quantity"`                                     // Tổng số lượng sell or transfer
 	UserUpdate        string               `json:"user_update" gorm:"type:varchar(256)"`         // Người update cuối cùng UserUpdate
 	UserExport        string               `json:"user_export" gorm:"type:varchar(256)"`         // Người export đơn
