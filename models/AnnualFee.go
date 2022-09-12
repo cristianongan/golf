@@ -30,8 +30,8 @@ type AnnualFee struct {
 	// MustPaid          int64  `json:"must_paid"`                                      // K: Số tiền Phí khách hàng đó pải đóng K = A-B+C-D+E
 	TotalPaid int64 `json:"total_paid"` // G: Tổng số tiền các lần khách trả
 	// Debit             int64  `json:"debit"`                                          // H: tiền nợ H = K - G
-	PlayCountsAdd int    `json:"play_counts_add"`                    //
-	DaysPaid      string `json:"days_paid" gorm:"type:varchar(256)"` // Ghi lại các ngày thanh toán của khách
+	// PlayCountsAdd int    `json:"play_counts_add"`                    // Bỏ, lấy từ adjust_play_count member card
+	DaysPaid string `json:"days_paid" gorm:"type:varchar(256)"` // Ghi lại các ngày thanh toán của khách
 }
 
 func (item *AnnualFee) IsDuplicated() bool {
@@ -130,7 +130,8 @@ func (item *AnnualFee) FindListWithGroupMemberCard(page Page) ([]map[string]inte
 		member_cards.valid_date as mc_valid_date, 
 		member_cards.exp_date as mc_exp_date, 
 		member_cards.owner_uid as owner_uid, 
-		member_cards.mc_type_id as mc_type_id
+		member_cards.mc_type_id as mc_type_id,
+		member_cards.adjust_play_count as adjust_play_count
 		from member_cards WHERE member_cards.partner_uid = `
 
 	queryStr = queryStr + `"` + item.PartnerUid + `"`
@@ -207,7 +208,8 @@ func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, utils.Coun
 		member_cards.exp_date as mc_exp_date, 
 		member_cards.owner_uid as owner_uid, 
 		member_cards.mc_type_id as mc_type_id,
-		member_cards.card_id as mc_card_id
+		member_cards.card_id as mc_card_id,
+		member_cards.adjust_play_count as adjust_play_count
 		from member_cards WHERE member_cards.partner_uid = `
 
 	queryStr = queryStr + `"` + item.PartnerUid + `"`
