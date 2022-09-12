@@ -130,7 +130,8 @@ func (item *AnnualFee) FindListWithGroupMemberCard(page Page) ([]map[string]inte
 		member_cards.valid_date as mc_valid_date, 
 		member_cards.exp_date as mc_exp_date, 
 		member_cards.owner_uid as owner_uid, 
-		member_cards.mc_type_id as mc_type_id
+		member_cards.mc_type_id as mc_type_id,
+		member_cards.adjust_play_count as play_counts_add
 		from member_cards WHERE member_cards.partner_uid = `
 
 	queryStr = queryStr + `"` + item.PartnerUid + `"`
