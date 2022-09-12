@@ -208,7 +208,8 @@ func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, utils.Coun
 		member_cards.exp_date as mc_exp_date, 
 		member_cards.owner_uid as owner_uid, 
 		member_cards.mc_type_id as mc_type_id,
-		member_cards.card_id as mc_card_id
+		member_cards.card_id as mc_card_id,
+		member_cards.adjust_play_count as adjust_play_count
 		from member_cards WHERE member_cards.partner_uid = `
 
 	queryStr = queryStr + `"` + item.PartnerUid + `"`
