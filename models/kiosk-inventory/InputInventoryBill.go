@@ -23,7 +23,7 @@ type InputInventoryBill struct {
 	ServiceExportName string `json:"service_import_name" gorm:"type:varchar(256)"` // tên service export
 	Quantity          int64  `json:"quantity"`                                     // Tổng số lượng sell or transfer
 	UserUpdate        string `json:"user_update" gorm:"type:varchar(256)"`         // Người update cuối cùng UserUpdate
-	StaffExport       string `json:"staff_export" gorm:"type:varchar(256)"`        // Người export đơn
+	UserExport        string `json:"user_export" gorm:"type:varchar(256)"`         // Người export đơn
 	InputDate         int64  `json:"input_date"`                                   // ngày nhập kho
 	OutputDate        int64  `json:"output_date"`                                  // ngày xuất kho
 }

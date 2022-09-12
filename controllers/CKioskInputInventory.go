@@ -42,7 +42,7 @@ func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.Cms
 	inventoryStatus.ServiceName = body.ServiceName
 	inventoryStatus.BillStatus = billtype
 	inventoryStatus.UserUpdate = prof.UserName
-	inventoryStatus.StaffExport = body.UserExport
+	inventoryStatus.UserExport = body.UserExport
 	inventoryStatus.ServiceExportId = body.SourceId
 	inventoryStatus.ServiceExportName = body.SourceName
 	inventoryStatus.Note = body.Note
