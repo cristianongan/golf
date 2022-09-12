@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -46,7 +45,6 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
-	log.Println("QA", booking.BagStatus)
 	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
 		response_message.BadRequest(c, "Bag status invalid")
 		return
