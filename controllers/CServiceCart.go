@@ -533,12 +533,22 @@ func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// validate golf bag
+	booking := model_booking.Booking{}
+	booking.Bag = body.GolfBag
+	booking.BookingDate = time.Now().Format("02/01/2006")
+	if err := booking.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
 	serviceCart := models.ServiceCart{}
 	serviceCart.PartnerUid = prof.PartnerUid
 	serviceCart.CourseUid = prof.CourseUid
 	serviceCart.ServiceId = body.ServiceId
 	serviceCart.GolfBag = body.GolfBag
 	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
+	serviceCart.BillCode = "NONE"
 
 	if err := serviceCart.FindFirst(); err != nil {
 		response_message.BadRequest(c, err.Error())
