@@ -5,7 +5,6 @@ type AddItemServiceCartBody struct {
 	ItemCode  string `json:"item_code"`
 	Quantity  int64  `json:"quantity"`
 	ServiceId int64  `json:"service_id"`
-	GroupType string `json:"group_type"`
 	BillId    int64  `json:"bill_id"`
 }
 

@@ -54,7 +54,6 @@ func (_ *CAnnualFee) CreateAnnualFee(c *gin.Context, prof models.CmsUser) {
 		PaidForfeit:       body.PaidForfeit,
 		LastYearDebit:     body.LastYearDebit,
 		TotalPaid:         body.TotalPaid,
-		PlayCountsAdd:     body.PlayCountsAdd,
 		DaysPaid:          body.DaysPaid,
 	}
 
@@ -172,7 +171,6 @@ func (_ *CAnnualFee) UpdateAnnualFee(c *gin.Context, prof models.CmsUser) {
 	annualFee.PaidForfeit = body.PaidForfeit
 	annualFee.LastYearDebit = body.LastYearDebit
 	annualFee.TotalPaid = body.TotalPaid
-	annualFee.PlayCountsAdd = body.PlayCountsAdd
 	annualFee.DaysPaid = body.DaysPaid
 
 	errUdp := annualFee.Update()

@@ -43,6 +43,11 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
 	// validate kiosk
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = body.ServiceId
@@ -55,7 +60,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	serviceCartItem := model_booking.BookingServiceItem{}
 
 	// validate item code by group
-	if body.GroupType == constants.GROUP_FB {
+	if kiosk.ServiceType == constants.GROUP_FB {
 		fb := model_service.FoodBeverage{}
 		fb.PartnerUid = prof.PartnerUid
 		fb.CourseUid = prof.CourseUid
@@ -72,7 +77,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCartItem.Unit = fb.Unit
 	}
 
-	if body.GroupType == constants.GROUP_PROSHOP {
+	if kiosk.ServiceType == constants.GROUP_PROSHOP {
 		proshop := model_service.Proshop{}
 		proshop.PartnerUid = prof.PartnerUid
 		proshop.CourseUid = prof.CourseUid
@@ -89,7 +94,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCartItem.Unit = proshop.Unit
 	}
 
-	if body.GroupType == constants.GROUP_RENTAL {
+	if kiosk.ServiceType == constants.GROUP_RENTAL {
 		rental := model_service.Rental{}
 		rental.PartnerUid = prof.PartnerUid
 		rental.CourseUid = prof.CourseUid
@@ -139,6 +144,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	serviceCart.BookingUid = booking.Uid
 	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
 	serviceCart.ServiceId = body.ServiceId
+	serviceCartItem.ServiceType = kiosk.ServiceType
 
 	if body.BillId != 0 {
 		serviceCart.Id = body.BillId

@@ -21,6 +21,7 @@ type BookingServiceItem struct {
 	ItemCode       string `json:"item_code"  gorm:"type:varchar(100)"`         // mã code của item
 	Unit           string `json:"unit"  gorm:"type:varchar(100)"`              // Unit của item
 	ServiceId      string `json:"service_id"  gorm:"type:varchar(100)"`        // uid service
+	ServiceType    string `json:"service_type"  gorm:"type:varchar(100)"`      // Loại service gồm FB, Rental, Proshop
 	BookingUid     string `json:"booking_uid"  gorm:"type:varchar(100);index"` // Uid booking
 	PlayerName     string `json:"player_name" gorm:"type:varchar(256)"`        // Tên người chơi
 	Bag            string `json:"bag" gorm:"type:varchar(50)"`                 // Golf Bag

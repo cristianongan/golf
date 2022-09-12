@@ -202,11 +202,13 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.CustomerUid = owner.Uid
 		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
 
-		if memberCard.PriceCode == 1 {
-			// TODO:
-			// Check thêm thời dc app dụng
+		if memberCard.PriceCode == 1 && memberCard.IsValidTimePrecial() {
+			// Check member card với giá riêng và time được áp dụng
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(bUid, course.RateGolfFee, body, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee)
 			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
+			if body.GuestStyle != "" {
+				body.GuestStyle = ""
+			}
 		} else {
 			// Lấy theo GuestStyle
 			body.GuestStyle = memberCard.GetGuestStyle()
