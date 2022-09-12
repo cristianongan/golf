@@ -81,6 +81,38 @@ type MemberCardDetailRes struct {
 	OwnerInfo CustomerUser `json:"owner_info"`
 }
 
+/*
+ Check time có thể sử dụng giá riêng
+*/
+func (item *MemberCard) IsValidTimePrecial() bool {
+
+	currentTime := time.Now().Unix()
+
+	if item.StartPrecial == 0 && item.EndPrecial == 0 {
+		return true
+	}
+
+	if item.StartPrecial > 0 && item.EndPrecial == 0 {
+		if item.StartPrecial > currentTime {
+			return false
+		}
+		return true
+	}
+
+	if item.EndPrecial > 0 && item.StartPrecial == 0 {
+		if item.EndPrecial < currentTime {
+			return false
+		}
+		return true
+	}
+
+	if item.StartPrecial <= currentTime && currentTime <= item.EndPrecial {
+		return true
+	}
+
+	return false
+}
+
 // Find member card detail with info card type and owner
 func (item *MemberCard) FindDetail() (MemberCardDetailRes, error) {
 	memberCardDetailRes := MemberCardDetailRes{}
