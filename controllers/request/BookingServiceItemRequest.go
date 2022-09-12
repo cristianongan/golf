@@ -6,4 +6,5 @@ type GetBookingServiceItem struct {
 	ServiceId string `form:"service_id"`
 	Name      string `form:"name"`
 	Type      string `form:"type"`
+	ItemCode  string `form:"item_code"`
 }

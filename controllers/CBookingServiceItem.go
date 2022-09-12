@@ -36,6 +36,7 @@ func (_ *CBookingServiceItem) GetBookingServiceItemList(c *gin.Context, prof mod
 		ServiceId: query.ServiceId,
 		Name:      query.Name,
 		Type:      query.Type,
+		ItemCode:  query.ItemCode,
 	}
 
 	list, total, err := bookingServiceItem.FindList(page)
