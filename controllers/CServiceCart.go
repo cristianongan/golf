@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -36,6 +37,8 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 
 	// validate golf bag
 	booking := model_booking.Booking{}
+	booking.PartnerUid = prof.PartnerUid
+	booking.CourseUid = prof.CourseUid
 	booking.Bag = body.GolfBag
 	booking.BookingDate = time.Now().Format("02/01/2006")
 	if err := booking.FindFirst(); err != nil {
@@ -43,6 +46,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	log.Println("QA", booking.BagStatus)
 	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
 		response_message.BadRequest(c, "Bag status invalid")
 		return
@@ -541,6 +545,8 @@ func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 
 	// validate golf bag
 	booking := model_booking.Booking{}
+	booking.PartnerUid = prof.PartnerUid
+	booking.CourseUid = prof.CourseUid
 	booking.Bag = body.GolfBag
 	booking.BookingDate = time.Now().Format("02/01/2006")
 	if err := booking.FindFirst(); err != nil {
