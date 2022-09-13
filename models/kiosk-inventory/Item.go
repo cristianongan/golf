@@ -17,7 +17,6 @@ type InventoryItem struct {
 	CourseUid   string   `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	ServiceId   int64    `json:"service_id" gorm:"index"`                    // mã service
 	ServiceName string   `json:"service_name" gorm:"type:varchar(256)"`      // tên service
-	InputCode   string   `json:"input_code"  gorm:"type:varchar(100);index"` // mã nhập kho
 	Code        string   `json:"code" gorm:"type:varchar(100)"`              // mã sp
 	ItemInfo    ItemInfo `json:"item_info" gorm:"type:json"`                 // Thông tin sản phầm
 	Quantity    int64    `json:"quantity"`                                   // số lượng

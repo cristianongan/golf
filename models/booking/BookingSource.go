@@ -109,22 +109,22 @@ func (item *BookingSource) FindList(page models.Page) ([]BookingSource, int64, e
 	total := int64(0)
 	status := item.ModelId.Status
 	db = db.Joins("JOIN agencies ON agencies.Id = booking_sources.agency_id")
-	db = db.Select("agencies.*,agencies.agency_id")
+	db = db.Select("booking_sources.*,agencies.agency_id")
 
 	if item.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", item.PartnerUid)
+		db = db.Where("booking_sources.partner_uid = ?", item.PartnerUid)
 	}
 
 	if item.CourseUid != "" {
-		db = db.Where("course_uid = ?", item.CourseUid)
+		db = db.Where("booking_sources.course_uid = ?", item.CourseUid)
 	}
 
 	if status != "" {
-		db = db.Where("status = ?", item.Status)
+		db = db.Where("booking_sources.status = ?", item.Status)
 	}
 
 	if item.BookingSourceName != "" {
-		db = db.Where("booking_source_name LIKE ?", "%"+item.BookingSourceName+"%")
+		db = db.Where("booking_sources.booking_source_name LIKE ?", "%"+item.BookingSourceName+"%")
 	}
 
 	db.Count(&total)
