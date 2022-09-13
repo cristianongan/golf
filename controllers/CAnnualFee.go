@@ -167,11 +167,20 @@ func (_ *CAnnualFee) UpdateAnnualFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Check duplicated
+	if body.IsDuplicated() {
+		response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
+		return
+	}
+
 	annualFee.AnnualQuotaAmount = body.AnnualQuotaAmount
 	annualFee.PaidForfeit = body.PaidForfeit
 	annualFee.LastYearDebit = body.LastYearDebit
 	annualFee.TotalPaid = body.TotalPaid
 	annualFee.DaysPaid = body.DaysPaid
+	if body.Year > 0 {
+		annualFee.Year = body.Year
+	}
 
 	errUdp := annualFee.Update()
 	if errUdp != nil {

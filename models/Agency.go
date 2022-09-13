@@ -71,7 +71,7 @@ func (item *Agency) IsDuplicated() bool {
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
 		AgencyId:   item.AgencyId,
-		ShortName:  item.ShortName,
+		// ShortName:  item.ShortName,
 	}
 
 	errFind := modelCheck.FindFirst()
