@@ -113,9 +113,9 @@ func (item *AnnualFeePay) FindList(page Page) ([]AnnualFeePay, int64, error) {
 func (item *AnnualFeePay) FindTotalPaid() int64 {
 	db := datasources.GetDatabase().Model(AnnualFeePay{})
 
-	sumStr := utils.SumStruct{}
+	sumStr := utils.TotalStruct{}
 
-	db = db.Select("sum(amount) as total_paid")
+	db = db.Select("sum(amount) as total_amount")
 
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
@@ -132,7 +132,7 @@ func (item *AnnualFeePay) FindTotalPaid() int64 {
 
 	db = db.Group("member_card_uid").First(&sumStr)
 
-	return sumStr.Sum
+	return sumStr.TotalAmount
 }
 
 func (item *AnnualFeePay) FindAll() ([]AnnualFeePay, error) {
