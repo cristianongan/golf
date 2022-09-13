@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	model_report "start/models/report"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -1123,7 +1125,6 @@ func updateTotalPaidAnnualFeeForMemberCard(mcUid string, year int) {
 			log.Println("updateTotalPaidAnnualFeeForMemberCard errUdp", errUdp.Error())
 		}
 	}
-
 }
 
 /*
@@ -1135,4 +1136,93 @@ func checkCaddieReady(booking model_booking.Booking, caddie models.Caddie) error
 		return errors.New(caddie.Code + " chưa sẵn sàng để ghép ")
 	}
 	return nil
+}
+
+/*
+ Tính total Paid của user
+*/
+func getTotalPaidForCustomerUser(userUid string) int64 {
+	totalPaid := int64(0)
+
+	//Get list memberCard của khách hàng
+	memberCard := models.MemberCard{
+		OwnerUid: userUid,
+	}
+	errMC, listMC := memberCard.FindAll()
+
+	if errMC == nil {
+		for _, v := range listMC {
+			annualFeePayR := models.AnnualFeePay{
+				MemberCardUid: v.Uid,
+			}
+			listFeePay, errAF := annualFeePayR.FindAll()
+			if errAF == nil {
+				for _, v1 := range listFeePay {
+					totalPaid += v1.Amount
+				}
+			} else {
+				log.Println("updateTotalPaidForCustomerUser errAF", errAF.Error())
+			}
+		}
+	} else {
+		log.Println("updateTotalPaidForCustomerUser errMC", errMC.Error())
+	}
+
+	return totalPaid
+}
+
+/*
+ Update report customer play
+*/
+func updateReportTotalPaidForCustomerUser(userUid string, partnerUid, courseUid string) {
+	totalPaid := getTotalPaidForCustomerUser(userUid)
+
+	reportCustomer := model_report.ReportCustomerPlay{
+		CustomerUid: userUid,
+	}
+
+	errF := reportCustomer.FindFirst()
+	if errF != nil || reportCustomer.Id <= 0 {
+		reportCustomer.CourseUid = courseUid
+		reportCustomer.PartnerUid = partnerUid
+		reportCustomer.TotalPaid = totalPaid
+		errC := reportCustomer.Create()
+		if errC != nil {
+			log.Println("updateReportTotalPaidForCustomerUser errC", errC.Error())
+		}
+
+	} else {
+		reportCustomer.TotalPaid = totalPaid
+		errUdp := reportCustomer.Update()
+		if errUdp != nil {
+			log.Println("updateReportTotalPaidForCustomerUser errUdp", errUdp.Error())
+		}
+	}
+}
+
+/*
+ Udp report số lần chơi của user
+*/
+func updateReportTotalPlayCountForCustomerUser(userUid string, partnerUid, courseUid string) {
+	reportCustomer := model_report.ReportCustomerPlay{
+		CustomerUid: userUid,
+	}
+
+	errF := reportCustomer.FindFirst()
+	if errF != nil || reportCustomer.Id <= 0 {
+		reportCustomer.CourseUid = courseUid
+		reportCustomer.PartnerUid = partnerUid
+		reportCustomer.TotalPlayCount = 1
+		errC := reportCustomer.Create()
+		if errC != nil {
+			log.Println("updateReportTotalPlayCountForCustomerUser errC", errC.Error())
+		}
+	} else {
+		totalTemp := reportCustomer.TotalPlayCount
+		reportCustomer.TotalPlayCount = totalTemp + 1
+		errUdp := reportCustomer.Update()
+		if errUdp != nil {
+			log.Println("updateReportTotalPlayCountForCustomerUser errUdp", errUdp.Error())
+		}
+	}
 }
