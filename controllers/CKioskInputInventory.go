@@ -28,7 +28,7 @@ func (item CKioskInputInventory) CreateManualInputBill(c *gin.Context, prof mode
 		return
 	}
 
-	item.addItemToInventory(billcode, body.CourseUid, body.PartnerUid)
+	item.addItemToInventory(body.ServiceId, billcode, body.CourseUid, body.PartnerUid)
 
 	okRes(c)
 }
@@ -118,7 +118,7 @@ func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.Cms
 		return
 	}
 	// Thêm ds item vào Inventory
-	item.addItemToInventory(body.Code, body.CourseUid, body.PartnerUid)
+	item.addItemToInventory(body.ServiceId, body.Code, body.CourseUid, body.PartnerUid)
 
 	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_ACCEPT
 	inventoryStatus.UserUpdate = prof.UserName
@@ -129,12 +129,12 @@ func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.Cms
 
 	// Giảm ds item trong Inventory
 	cKioskOutputInventory := CKioskOutputInventory{}
-	cKioskOutputInventory.removeItemFromInventory(body.Code, body.CourseUid, body.PartnerUid)
+	cKioskOutputInventory.removeItemFromInventory(inventoryStatus.ServiceExportId, body.Code, body.CourseUid, body.PartnerUid)
 
 	okRes(c)
 }
 
-func (_ CKioskInputInventory) addItemToInventory(code string, courseUid string, partnerUid string) error {
+func (_ CKioskInputInventory) addItemToInventory(serviceId int64, code string, courseUid string, partnerUid string) error {
 	// Get danh sách item của bill
 	item := kiosk_inventory.InventoryInputItem{}
 	item.Code = code
@@ -142,9 +142,8 @@ func (_ CKioskInputInventory) addItemToInventory(code string, courseUid string, 
 
 	for _, data := range list {
 		item := kiosk_inventory.InventoryItem{
-			ServiceId:  data.ServiceId,
+			ServiceId:  serviceId,
 			Code:       data.ItemCode,
-			InputCode:  data.Code,
 			PartnerUid: partnerUid,
 			CourseUid:  courseUid,
 		}

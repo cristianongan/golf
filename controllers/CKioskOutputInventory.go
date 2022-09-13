@@ -138,7 +138,7 @@ func (item CKioskOutputInventory) TransferOutputBill(c *gin.Context, prof models
 		return
 	}
 	// Thêm ds item vào Inventory
-	item.removeItemFromInventory(body.Code, body.CourseUid, body.PartnerUid)
+	item.removeItemFromInventory(body.ServiceId, body.Code, body.CourseUid, body.PartnerUid)
 
 	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_ACCEPT
 	if err := inventoryStatus.Update(); err != nil {
@@ -151,7 +151,7 @@ func (item CKioskOutputInventory) TransferOutputBill(c *gin.Context, prof models
 	okRes(c)
 }
 
-func (_ CKioskOutputInventory) removeItemFromInventory(code string, courseUid string, partnerUid string) error {
+func (_ CKioskOutputInventory) removeItemFromInventory(serviceId int64, code string, courseUid string, partnerUid string) error {
 	// Get danh sách item của bill
 	item := kiosk_inventory.InventoryOutputItem{}
 	item.Code = code
@@ -159,15 +159,19 @@ func (_ CKioskOutputInventory) removeItemFromInventory(code string, courseUid st
 
 	for _, data := range list {
 		item := kiosk_inventory.InventoryItem{
-			ServiceId:  data.ServiceId,
+			ServiceId:  serviceId,
 			Code:       data.ItemCode,
-			InputCode:  data.Code,
 			PartnerUid: partnerUid,
 			CourseUid:  courseUid,
-			ItemInfo:   data.ItemInfo,
 		}
 
 		if err := item.FindFirst(); err != nil {
+			item.ItemInfo = data.ItemInfo
+			item.Quantity = data.Quantity
+			if errCre := item.Create(); errCre != nil {
+				return errCre
+			}
+		} else {
 			item.Quantity = item.Quantity - data.Quantity
 			if errUpd := item.Update(); errUpd != nil {
 				return errUpd
