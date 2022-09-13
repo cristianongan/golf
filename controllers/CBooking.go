@@ -384,7 +384,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		cLockTeeTime.LockTurn(lockTurn, c, prof)
 	}
 
-	if booking.CustomerUid != "" {
+	if body.IsCheckIn && booking.CustomerUid != "" {
 		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
 	}
 
