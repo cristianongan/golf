@@ -1108,12 +1108,15 @@ func updateTotalPaidAnnualFeeForMemberCard(mcUid string, year int) {
 	if errMc != nil || mcCardAnnualFee.Id <= 0 {
 		// Tạo mới
 		mcCardAnnualFee.TotalPaid = totalPaid
+		mcCardAnnualFee.CountPaid = 1
 		errC := mcCardAnnualFee.Create()
 		if errC != nil {
 			log.Println("updateTotalPaidAnnualFeeForMemberCard errC", errC.Error())
 		}
 	} else {
 		mcCardAnnualFee.TotalPaid = totalPaid
+		countTemp := mcCardAnnualFee.CountPaid
+		mcCardAnnualFee.CountPaid = countTemp + 1
 		errUdp := mcCardAnnualFee.Update()
 		if errUdp != nil {
 			log.Println("updateTotalPaidAnnualFeeForMemberCard errUdp", errUdp.Error())
