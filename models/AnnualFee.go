@@ -174,7 +174,7 @@ func (item *AnnualFee) FindListWithGroupMemberCard(page Page) ([]map[string]inte
 	return list, total, db.Error
 }
 
-func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, utils.CountAnnualFeeStruct, int64, error) {
+func (item *AnnualFee) FindList(page Page, cardId string) ([]map[string]interface{}, utils.CountAnnualFeeStruct, int64, error) {
 	db := datasources.GetDatabase().Table("annual_fees")
 	list := []map[string]interface{}{}
 	var countTotalAnnualFee utils.CountAnnualFeeStruct
@@ -219,6 +219,9 @@ func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, utils.Coun
 	}
 	if item.MemberCardUid != "" {
 		queryStr = queryStr + " and member_cards.uid = " + `"` + item.MemberCardUid + `"`
+	}
+	if cardId != "" {
+		queryStr = queryStr + " and member_cards.card_id = " + `"` + cardId + `"`
 	}
 
 	queryStr = queryStr + ") tb1 "
