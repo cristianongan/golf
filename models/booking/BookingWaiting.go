@@ -65,9 +65,18 @@ func (item *BookingWaiting) FindList(page models.Page) ([]BookingWaiting, int64,
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
 
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+
 	if item.BookingTime != "" {
 		db = db.Where("booking_time = ?", item.BookingTime)
 	}
