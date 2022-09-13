@@ -116,7 +116,7 @@ func (item *AnnualFee) FindListWithGroupMemberCard(page Page) ([]map[string]inte
 	queryStr = queryStr + " GROUP BY member_card_uid "
 
 	queryStr = queryStr + ") tb0 "
-	queryStr = queryStr + `LEFT JOIN (select tb1.*, 
+	queryStr = queryStr + `INNER JOIN (select tb1.*, 
 		member_card_types.name as member_card_types_names, 
 		member_card_types.type as base_type, 
 		customer_users.name as owner_name,
@@ -193,7 +193,7 @@ func (item *AnnualFee) FindList(page Page) ([]map[string]interface{}, utils.Coun
 	}
 
 	queryStr = queryStr + ") tb0 "
-	queryStr = queryStr + `LEFT JOIN (select tb1.*, 
+	queryStr = queryStr + `INNER  JOIN (select tb1.*, 
 		member_card_types.name as member_card_types_names, 
 		member_card_types.type as base_type, 
 		customer_users.name as owner_name,
