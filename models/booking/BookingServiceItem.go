@@ -138,6 +138,9 @@ func (item *BookingServiceItem) FindList(page models.Page) ([]BookingServiceItem
 	if item.Type != "" {
 		db = db.Where("booking_service_items.type = ?", item.Type)
 	}
+	if item.ItemCode != "" {
+		db = db.Where("item_code = ?", item.ItemCode)
+	}
 
 	db = db.Joins("JOIN bookings ON bookings.uid = booking_service_items.booking_uid")
 	db = db.Select("booking_service_items.*, bookings.bag, bookings.check_in_time, bookings.customer_name")

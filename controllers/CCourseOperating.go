@@ -65,6 +65,14 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 
 	// Check can add
 	errB, booking, caddie, _ := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode)
+
+	if !(caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH ||
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK) {
+		response_message.InternalServerError(c, errors.New(caddie.Code+" chưa sẵn sàng để ghép ").Error())
+		return
+	}
+
 	if errB != nil {
 		response_message.InternalServerError(c, errB.Error())
 		return
@@ -848,13 +856,22 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 
 	// Check các bag ok hết mới tạo flight
 	// Check Caddie, Buggy đang trong flight
-	listError := []error{}
+	listError := []string{}
 	listBooking := []model_booking.Booking{}
 	listCaddie := []models.Caddie{}
 	listBuggy := []models.Buggy{}
 	for _, v := range body.ListData {
 		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(prof.PartnerUid, prof.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
-		if errB == nil {
+		isCaddiReady := true
+
+		if !(caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
+			caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH ||
+			caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK) {
+			listError = append(listError, errors.New(caddieTemp.Code+" chưa sẵn sàng để ghép ").Error())
+			isCaddiReady = false
+		}
+
+		if errB == nil && isCaddiReady {
 			listBooking = append(listBooking, bookingTemp)
 			listCaddie = append(listCaddie, caddieTemp)
 			listBuggy = append(listBuggy, buggyTemp)
@@ -880,7 +897,7 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 
 			go addCaddieInOutNote(caddieInNote)
 		} else {
-			listError = append(listError, errB)
+			listError = append(listError, errB.Error())
 		}
 	}
 

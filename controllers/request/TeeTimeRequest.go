@@ -18,3 +18,9 @@ type GetListTeeTimeSettings struct {
 	DateTime      string `form:"date_time"`
 	RequestType   string `form:"request_type"`
 }
+
+type DeleteLockRequest struct {
+	TeeTime     string `json:"tee_time"`
+	BookingDate string `json:"booking_date"`
+	RequestType string `json:"request_type"`
+}

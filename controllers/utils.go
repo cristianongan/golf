@@ -826,7 +826,7 @@ func addCaddieInOutNote(caddieInOut model_gostarter.CaddieInOutNote) {
 unlock turn time
 */
 func unlockTurnTime(booking model_booking.Booking) {
-	cLockTeeTim := CTeeTimeSettings{}
+	cLockTeeTim := CLockTeeTime{}
 	cLockTeeTim.DeleteLockTurn(booking.TeeTime, booking.BookingDate)
 }
 
