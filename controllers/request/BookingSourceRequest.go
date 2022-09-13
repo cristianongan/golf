@@ -13,6 +13,8 @@ type UpdateBookingSource struct {
 }
 type GetListBookingSource struct {
 	PageRequest
+	PartnerUid        string `json:"partner_uid"`
+	CourseUid         string `json:"course_uid"`
 	BookingSourceName string `form:"booking_source_name"`
 	Status            string `form:"status"`
 }

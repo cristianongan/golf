@@ -66,7 +66,10 @@ func (_ *CBookingSource) GetBookingSourceList(c *gin.Context, prof models.CmsUse
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	bookingSourceRequest := model_booking.BookingSource{}
+	bookingSourceRequest := model_booking.BookingSource{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
 
 	if form.BookingSourceName != "" {
 		bookingSourceRequest.BookingSourceName = form.BookingSourceName
