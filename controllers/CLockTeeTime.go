@@ -15,9 +15,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type CTeeTimeSettings struct{}
+type CLockTeeTime struct{}
 
-func (_ *CTeeTimeSettings) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
+func (_ *CLockTeeTime) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
 	body := request.CreateTeeTimeSettings{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -59,7 +59,7 @@ func (_ *CTeeTimeSettings) CreateTeeTimeSettings(c *gin.Context, prof models.Cms
 	}
 	okResponse(c, teeTimeSetting)
 }
-func (_ *CTeeTimeSettings) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
+func (_ *CLockTeeTime) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
 	query := request.GetListTeeTimeSettings{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -94,7 +94,7 @@ func (_ *CTeeTimeSettings) GetTeeTimeSettings(c *gin.Context, prof models.CmsUse
 
 	c.JSON(200, res)
 }
-func (_ *CTeeTimeSettings) LockTurn(body request.CreateLockTurn, c *gin.Context, prof models.CmsUser) error {
+func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, prof models.CmsUser) error {
 	course := models.Course{}
 	course.Uid = body.CourseUid
 	errCourse := course.FindFirst()
@@ -187,7 +187,7 @@ func (_ *CTeeTimeSettings) LockTurn(body request.CreateLockTurn, c *gin.Context,
 
 	return nil
 }
-func (_ *CTeeTimeSettings) DeleteLockTurn(teeTime string, bookingDate string) error {
+func (_ *CLockTeeTime) DeleteLockTurn(teeTime string, bookingDate string) error {
 	lockTeeTime := models.LockTeeTime{
 		CurrentTeeTime: teeTime,
 		DateTime:       bookingDate,
@@ -201,4 +201,34 @@ func (_ *CTeeTimeSettings) DeleteLockTurn(teeTime string, bookingDate string) er
 		}
 	}
 	return nil
+}
+
+func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
+	query := request.DeleteLockRequest{}
+	if err := c.Bind(&query); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	lockTeeTime := models.LockTeeTime{
+		CurrentTeeTime: query.TeeTime,
+		DateTime:       query.BookingDate,
+	}
+
+	list, _, _ := lockTeeTime.FindList(query.RequestType)
+
+	if len(list) == 0 {
+		response_message.BadRequest(c, "TeeTime not found")
+		return
+	}
+
+	for _, data := range list {
+		err := data.Delete()
+		if err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+	}
+
+	okRes(c)
 }

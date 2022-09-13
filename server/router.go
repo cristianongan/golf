@@ -450,9 +450,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/deposit/:id", middlewares.AuthorizedCmsUserHandler(cDeposit.UpdateDeposit))
 
 			/// =================== Teet Time Settings ===================
-			cTeeTimeSettings := new(controllers.CTeeTimeSettings)
-			cmsApiAuthorized.POST("/tee-time", middlewares.AuthorizedCmsUserHandler(cTeeTimeSettings.CreateTeeTimeSettings))
-			cmsApiAuthorized.GET("/tee-time/list", middlewares.AuthorizedCmsUserHandler(cTeeTimeSettings.GetTeeTimeSettings))
+			cLockTeeTime := new(controllers.CLockTeeTime)
+			cmsApiAuthorized.POST("/tee-time", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.CreateTeeTimeSettings))
+			cmsApiAuthorized.GET("/tee-time/list", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.GetTeeTimeSettings))
+			cmsApiAuthorized.DELETE("/tee-time/delete", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.DeleteLockTeeTime))
 
 			/// =================== Authority ===================
 			cAuthority := new(controllers.CAuthority)
@@ -483,12 +484,6 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/tee-type-close", middlewares.AuthorizedCmsUserHandler(cTeeTypeClose.CreateTeeTypeClose))
 			cmsApiAuthorized.GET("/tee-type-close/list", middlewares.AuthorizedCmsUserHandler(cTeeTypeClose.GetTeeTypeClose))
 			cmsApiAuthorized.DELETE("/tee-type-close/:id", middlewares.AuthorizedCmsUserHandler(cTeeTypeClose.DeleteTeeTypeClose))
-
-			/// =================== Unlock Turn Time =====================
-			cLockTurn := new(controllers.CLockTurn)
-			// cmsApiAuthorized.POST("/lock-turn", middlewares.AuthorizedCmsUserHandler(cLockTurn.CreateLockTurn))
-			cmsApiAuthorized.GET("/lock-turn/list", middlewares.AuthorizedCmsUserHandler(cLockTurn.GetLockTurn))
-			cmsApiAuthorized.DELETE("/lock-turn/:id", middlewares.AuthorizedCmsUserHandler(cLockTurn.DeleteLockTurn))
 
 			/// =================== Holiday =====================
 			cHoliday := new(controllers.CHoliday)
@@ -529,7 +524,6 @@ func NewRouter() *gin.Engine {
 
 			cKioskOutputInventory := new(controllers.CKioskOutputInventory)
 			cmsApiAuthorized.POST("/kiosk-inventory/output-bill/create", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.CreateOutputBill))
-			cmsApiAuthorized.POST("/kiosk-inventory/output-bill/transfer", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.TransferOutputBill))
 			cmsApiAuthorized.GET("/kiosk-inventory/output-bill/list", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.GetOutputBills))
 			cmsApiAuthorized.GET("/kiosk-inventory/output-items/list", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.GetOutputItems))
 

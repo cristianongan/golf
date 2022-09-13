@@ -373,7 +373,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	if body.TeeTime != "" {
-		cTeeTimeSettings := CTeeTimeSettings{}
+		cLockTeeTime := CLockTeeTime{}
 		lockTurn := request.CreateLockTurn{
 			BookingDate: body.BookingDate,
 			CourseUid:   body.CourseUid,
@@ -381,7 +381,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			TeeTime:     body.TeeTime,
 			TeeType:     body.TeeType,
 		}
-		cTeeTimeSettings.LockTurn(lockTurn, c, prof)
+		cLockTeeTime.LockTurn(lockTurn, c, prof)
 	}
 
 	return &booking
