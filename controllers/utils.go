@@ -1099,6 +1099,8 @@ func updateTotalPaidAnnualFeeForMemberCard(mcUid string, year int) {
 		totalPaid += v.Amount
 	}
 
+	countPaid := len(listPaid)
+
 	// Find memberCard Annual Fee
 	mcCardAnnualFee := models.AnnualFee{
 		MemberCardUid: mcUid,
@@ -1108,15 +1110,14 @@ func updateTotalPaidAnnualFeeForMemberCard(mcUid string, year int) {
 	if errMc != nil || mcCardAnnualFee.Id <= 0 {
 		// Tạo mới
 		mcCardAnnualFee.TotalPaid = totalPaid
-		mcCardAnnualFee.CountPaid = 1
+		mcCardAnnualFee.CountPaid = countPaid
 		errC := mcCardAnnualFee.Create()
 		if errC != nil {
 			log.Println("updateTotalPaidAnnualFeeForMemberCard errC", errC.Error())
 		}
 	} else {
 		mcCardAnnualFee.TotalPaid = totalPaid
-		countTemp := mcCardAnnualFee.CountPaid
-		mcCardAnnualFee.CountPaid = countTemp + 1
+		mcCardAnnualFee.CountPaid = countPaid
 		errUdp := mcCardAnnualFee.Update()
 		if errUdp != nil {
 			log.Println("updateTotalPaidAnnualFeeForMemberCard errUdp", errUdp.Error())
