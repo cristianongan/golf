@@ -9,6 +9,7 @@ import (
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
 	kiosk_inventory "start/models/kiosk-inventory"
+	model_report "start/models/report"
 	model_service "start/models/service"
 )
 
@@ -131,6 +132,9 @@ func MigrateDb() {
 
 		// ------- ServiceCart -------
 		db.AutoMigrate(&models.ServiceCart{})
+
+		// ------- Report -------
+		db.AutoMigrate(&model_report.ReportCustomerPlay{})
 
 		log.Println("migrated db")
 	}

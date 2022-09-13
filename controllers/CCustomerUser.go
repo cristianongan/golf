@@ -10,6 +10,8 @@ import (
 	"start/models"
 	"start/utils/response_message"
 
+	model_report "start/models/report"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -320,7 +322,33 @@ func (_ *CCustomerUser) GetCustomerUserDetail(c *gin.Context, prof models.CmsUse
 		return
 	}
 
-	c.JSON(200, customerUser)
+	// Get report play count
+	reportCus := model_report.ReportCustomerPlay{
+		CustomerUid: customerUserUidStr,
+	}
+
+	errFR := reportCus.FindFirst()
+	if errFR != nil || reportCus.Id <= 0 {
+		reportCus.CourseUid = customerUser.CourseUid
+		reportCus.PartnerUid = customerUser.PartnerUid
+		errRC := reportCus.Create()
+		if errRC != nil {
+			log.Println("GetCustomerUserDetail errRC", errRC.Error())
+		}
+	}
+
+	reportData := map[string]interface{}{
+		"total_paid":            reportCus.TotalPaid,
+		"total_play_count":      reportCus.TotalPlayCount,
+		"total_hour_play_count": reportCus.TotalHourPlayCount,
+	}
+
+	res := map[string]interface{}{
+		"data":   customerUser,
+		"report": reportData,
+	}
+
+	c.JSON(200, res)
 }
 
 // Delete agency customer
