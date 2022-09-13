@@ -86,9 +86,13 @@ func (_ *CAnnualFeePay) GetListAnnualFeePay(c *gin.Context, prof models.CmsUser)
 		return
 	}
 
+	//get total paid
+	totalPaid := annualFeeR.FindTotalPaid()
+
 	res := map[string]interface{}{
-		"total": total,
-		"data":  list,
+		"total":      total,
+		"data":       list,
+		"total_paid": totalPaid,
 	}
 
 	okResponse(c, res)
