@@ -710,6 +710,12 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 			return errFC, booking, caddie, models.Buggy{}
 		}
 
+		if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
+			if booking.CaddieId != caddie.Id {
+				return errors.New(caddie.Code + " đang bị LOCK"), booking, caddie, models.Buggy{}
+			}
+		}
+
 		booking.CaddieId = caddie.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddie)
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
@@ -1118,4 +1124,15 @@ func updateTotalPaidAnnualFeeForMemberCard(mcUid string, year int) {
 		}
 	}
 
+}
+
+/*
+	Check Caddie có đang sẵn sàng để ghép không
+*/
+func checkCaddieReady(booking model_booking.Booking, caddie models.Caddie) error {
+	if !(caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH) {
+		return errors.New(caddie.Code + " chưa sẵn sàng để ghép ")
+	}
+	return nil
 }
