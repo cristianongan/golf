@@ -66,10 +66,8 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 	// Check can add
 	errB, booking, caddie, _ := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode)
 
-	if !(caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
-		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH ||
-		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK) {
-		response_message.InternalServerError(c, errors.New(caddie.Code+" chưa sẵn sàng để ghép ").Error())
+	if errCaddie := checkCaddieReady(booking, caddie); errCaddie != nil {
+		response_message.InternalServerError(c, errCaddie.Error())
 		return
 	}
 
@@ -139,10 +137,9 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		isCaddiReady := true
 
 		if caddieTemp.Id > 0 {
-			if !(caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
-				caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH ||
-				caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK) {
-				listError = append(listError, errors.New(caddieTemp.Code+" chưa sẵn sàng để ghép ").Error())
+
+			if errCaddie := checkCaddieReady(bookingTemp, caddieTemp); errCaddie != nil {
+				listError = append(listError, errCaddie.Error())
 				isCaddiReady = false
 			}
 
@@ -655,7 +652,6 @@ func (_ CCourseOperating) validateCaddie(courseUid string, caddieCode string) (m
 	caddieList.CourseUid = courseUid
 	caddieList.CaddieCode = caddieCode
 	caddieList.WorkingStatus = constants.CADDIE_WORKING_STATUS_ACTIVE
-	caddieList.InCurrentStatus = []string{constants.CADDIE_CURRENT_STATUS_READY, constants.CADDIE_CURRENT_STATUS_FINISH}
 	caddieNew, err := caddieList.FindFirst()
 
 	if err != nil {
@@ -681,8 +677,21 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 
 	// validate caddie_code
 	caddieNew, err := cCourseOperating.validateCaddie(prof.CourseUid, body.CaddieCode)
+
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	if caddieNew.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
+		if booking.CaddieId != caddieNew.Id {
+			response_message.InternalServerError(c, errors.New(caddieNew.Code+" đang bị LOCK").Error())
+			return
+		}
+	}
+
+	if errCaddie := checkCaddieReady(booking, caddieNew); errCaddie != nil {
+		response_message.InternalServerError(c, errCaddie.Error())
 		return
 	}
 
@@ -871,11 +880,10 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		isCaddiReady := true
 
 		if caddieTemp.Id > 0 {
-			if !(caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
-				caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH ||
-				caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK) {
-				listError = append(listError, errors.New(caddieTemp.Code+" chưa sẵn sàng để ghép ").Error())
-				isCaddiReady = false
+
+			if errCaddie := checkCaddieReady(bookingTemp, caddieTemp); errCaddie != nil {
+				response_message.InternalServerError(c, errCaddie.Error())
+				return
 			}
 
 			if errB == nil && isCaddiReady {

@@ -5,7 +5,7 @@ type CreateFoodBeverageBody struct {
 	CourseUid     string  `json:"course_uid" binding:"required"`
 	GroupCode     string  `json:"group_code" binding:"required"`
 	FBCode        string  `json:"fb_code" binding:"required"`
-	AccountCode   string  `json:"account_code" binding:"required"`
+	AccountCode   string  `json:"account_code"`
 	EnglishName   string  `json:"english_name"`
 	VieName       string  `json:"vietnamese_name"`
 	Unit          string  `json:"unit"`
