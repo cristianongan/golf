@@ -31,7 +31,8 @@ type AnnualFee struct {
 	TotalPaid int64 `json:"total_paid"` // G: Tổng số tiền các lần khách trả
 	// Debit             int64  `json:"debit"`                                          // H: tiền nợ H = K - G
 	// PlayCountsAdd int    `json:"play_counts_add"`                    // Bỏ, lấy từ adjust_play_count member card
-	DaysPaid string `json:"days_paid" gorm:"type:varchar(256)"` // Ghi lại các ngày thanh toán của khách
+	DaysPaid  string `json:"days_paid" gorm:"type:varchar(256)"` // Ghi lại các ngày thanh toán của khách
+	CountPaid int    `json:"count_paid"`                         // Số lần thanh toán
 }
 
 func (item *AnnualFee) IsDuplicated() bool {
