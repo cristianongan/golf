@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/models"
@@ -285,5 +286,17 @@ func (_ *CGolfFee) GetGolfFeeByGuestStyle(c *gin.Context, prof models.CmsUser) {
 		GuestStyle:   form.GuestStyle,
 	}
 	guestStyles := golfFeeR.GetGuestStyleGolfFeeByGuestStyle()
+
+	for i, v := range guestStyles {
+		groupGS := models.GroupFee{}
+		groupGS.Id = v.GroupId
+		errFGGS := groupGS.FindFirst()
+		if errFGGS != nil {
+			log.Println("GetGolfFeeByGuestStyle", errFGGS.Error())
+		} else {
+			guestStyles[i].GroupName = groupGS.Name
+		}
+	}
+
 	okResponse(c, guestStyles)
 }
