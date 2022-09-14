@@ -674,6 +674,13 @@ func createExportBillInventory(c *gin.Context, prof models.CmsUser, serviceCart 
 		bodyOutputBill.PartnerUid = serviceCart.PartnerUid
 		bodyOutputBill.CourseUid = serviceCart.CourseUid
 		bodyOutputBill.ServiceId = serviceCart.ServiceId
+
+		service := model_service.Kiosk{}
+		service.Id = serviceCart.Id
+		if err := service.FindFirst(); err != nil {
+			bodyOutputBill.ServiceName = service.KioskName
+		}
+
 		bodyOutputBill.UserExport = prof.UserName
 		bodyOutputBill.Bag = serviceCart.GolfBag
 		bodyOutputBill.CustomerName = serviceCartItem.PlayerName

@@ -14,6 +14,8 @@ type StatisticItem struct {
 	models.ModelId
 	PartnerUid      string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid       string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	ServiceId       int64  `json:"service_id" gorm:"index"`                    // mã service
+	ServiceName     string `json:"service_name" gorm:"type:varchar(256)"`      // tên service
 	ItemCode        string `json:"item_code" gorm:"type:varchar(100);index"`   // Mã Item
 	EndingInventory int64  `json:"ending_inventory"`                           // Số lượng item cuối ngày
 	Import          int64  `json:"import"`                                     // Số lượng đã Import cuối ngày
@@ -36,8 +38,20 @@ func (item *StatisticItem) FindList(page models.Page) ([]StatisticItem, int64, e
 	list := []StatisticItem{}
 	total := int64(0)
 
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
 	if item.ItemCode != "" {
 		db = db.Where("item_code = ?", item.ItemCode)
+	}
+
+	if item.ServiceId > 0 {
+		db = db.Where("service_id = ?", item.ServiceId)
 	}
 
 	db.Count(&total)

@@ -13,16 +13,18 @@ import (
 
 type CStatisticItem struct{}
 
-func (_ CStatisticItem) AddItemToStatistic() {
+func (_ CStatisticItem) AddItemToStatistic(c *gin.Context, prof models.CmsUser) {
 	now := time.Now().Format(constants.DATE_FORMAT_1)
 
 	outputInventory := kiosk_inventory.InventoryOutputItem{
 		OutputDate: now,
+		ServiceId:  20,
 	}
 	outputList, _ := outputInventory.FindStatistic()
 
 	inputInventory := kiosk_inventory.InventoryInputItem{
 		InputDate: now,
+		ServiceId: 20,
 	}
 	inputList, _ := inputInventory.FindStatistic()
 
@@ -35,13 +37,15 @@ func (_ CStatisticItem) AddItemToStatistic() {
 			for _, input := range inputList {
 				if output.ItemCode == input.ItemCode &&
 					output.PartnerUid == input.PartnerUid &&
-					output.CourseUid == input.CourseUid {
+					output.CourseUid == input.CourseUid &&
+					output.ServiceId == input.ServiceId {
 					itemList = append(itemList, kiosk_inventory.StatisticItem{
 						PartnerUid: input.PartnerUid,
 						CourseUid:  input.CourseUid,
 						ItemCode:   input.ItemCode,
 						Import:     input.Total,
 						Export:     output.Total,
+						ServiceId:  input.ServiceId,
 					})
 					commonItemCode = append(commonItemCode, kiosk_inventory.StatisticItem{
 						PartnerUid: input.PartnerUid,
@@ -61,6 +65,7 @@ func (_ CStatisticItem) AddItemToStatistic() {
 				ItemCode:   output.ItemCode,
 				Import:     0,
 				Export:     output.Total,
+				ServiceId:  output.ServiceId,
 			})
 		}
 	} else {
@@ -69,7 +74,8 @@ func (_ CStatisticItem) AddItemToStatistic() {
 			for _, common := range commonItemCode {
 				if output.ItemCode == common.ItemCode &&
 					output.PartnerUid == common.PartnerUid &&
-					output.CourseUid == common.CourseUid {
+					output.CourseUid == common.CourseUid &&
+					output.ServiceId == common.ServiceId {
 					check = true
 				}
 			}
@@ -80,6 +86,7 @@ func (_ CStatisticItem) AddItemToStatistic() {
 					ItemCode:   output.ItemCode,
 					Import:     0,
 					Export:     output.Total,
+					ServiceId:  output.ServiceId,
 				})
 			}
 		}
@@ -93,6 +100,7 @@ func (_ CStatisticItem) AddItemToStatistic() {
 				ItemCode:   input.ItemCode,
 				Import:     input.Total,
 				Export:     0,
+				ServiceId:  input.ServiceId,
 			})
 		}
 	} else {
@@ -101,7 +109,8 @@ func (_ CStatisticItem) AddItemToStatistic() {
 			for _, common := range commonItemCode {
 				if input.ItemCode == common.ItemCode &&
 					input.PartnerUid == common.PartnerUid &&
-					input.CourseUid == common.CourseUid {
+					input.CourseUid == common.CourseUid &&
+					input.ServiceId == common.ServiceId {
 					check = true
 				}
 			}
@@ -112,20 +121,24 @@ func (_ CStatisticItem) AddItemToStatistic() {
 					ItemCode:   input.ItemCode,
 					Import:     0,
 					Export:     input.Total,
+					ServiceId:  input.ServiceId,
 				})
 			}
 		}
 	}
 
 	for _, data := range itemList {
-		data.Create()
+		if err := data.Create(); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
 	}
 }
 
 func (_ CStatisticItem) GetStatistic(c *gin.Context, prof models.CmsUser) {
 	var form request.GetItems
 
-	if err := c.BindJSON(&form); err != nil {
+	if err := c.ShouldBind(&form); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -138,7 +151,10 @@ func (_ CStatisticItem) GetStatistic(c *gin.Context, prof models.CmsUser) {
 	}
 
 	outputInventory := kiosk_inventory.StatisticItem{
-		ItemCode: form.ItemCode,
+		ItemCode:   form.ItemCode,
+		ServiceId:  form.ServiceId,
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
 	}
 
 	outputList, total, _ := outputInventory.FindList(page)

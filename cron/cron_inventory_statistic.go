@@ -1,7 +1,7 @@
 package cron
 
 import (
-	"start/controllers"
+	// "start/controllers"
 	"start/datasources"
 )
 
@@ -19,6 +19,6 @@ func runReportInventoryStatisticItemJob() {
 // Báo cáo số fee của caddie trong ngày,
 func runReportInventoryStatisticItem() {
 	//Lấy danh sách caddie in out note trong ngày
-	cStatistic := controllers.CStatisticItem{}
-	cStatistic.AddItemToStatistic()
+	// cStatistic := controllers.CStatisticItem{}
+	// cStatistic.AddItemToStatistic()
 }
