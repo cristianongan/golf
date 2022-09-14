@@ -384,6 +384,10 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		cLockTeeTime.LockTurn(lockTurn, c, prof)
 	}
 
+	if body.IsCheckIn && booking.CustomerUid != "" {
+		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
+	}
+
 	return &booking
 }
 
@@ -1018,7 +1022,13 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		go updateMemberCard(memberCard)
 	}
 
-	okResponse(c, booking)
+	if booking.CustomerUid != "" {
+		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
+	}
+
+	res := getBagDetailFromBooking(booking)
+
+	okResponse(c, res)
 }
 
 /*
