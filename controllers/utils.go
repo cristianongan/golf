@@ -146,6 +146,18 @@ func checkDuplicateGolfFee(body models.GolfFee) bool {
 		Dow:          body.Dow,
 		TablePriceId: body.TablePriceId,
 	}
+
+	if body.ApplyTime != "" {
+		// Có set time áp dụng
+		golfFee.ApplyTime = body.ApplyTime
+		errFind := golfFee.FindFirst()
+		if errFind == nil || golfFee.Id > 0 {
+			log.Print("checkDuplicateGolfFee 0 true")
+			return true
+		}
+		return false
+	}
+
 	errFind := golfFee.FindFirst()
 	if errFind == nil || golfFee.Id > 0 {
 		log.Print("checkDuplicateGolfFee true")
@@ -921,7 +933,7 @@ func checkMemberCardGuestOfDay(memberCard models.MemberCard, memberCardType mode
 		// Check GuestStyle có không
 		if v.GuestStyle == guestStyle {
 			if v.Dow != "" {
-				if utils.CheckDow(v.Dow, createdTime) {
+				if utils.CheckDow(v.Dow, "", createdTime) {
 					// Ngày hợp lệ
 					listTotal := []int{}
 					if utils.IsWeekend(createdTime.Unix()) {
@@ -1046,7 +1058,7 @@ func initMainBagForPay() utils.ListString {
 }
 
 /*
-	find booking with round va service items data
+find booking with round va service items data
 */
 func getBagDetailFromBooking(booking model_booking.Booking) model_booking.BagDetail {
 	//Get service items
@@ -1067,7 +1079,7 @@ func getBagDetailFromBooking(booking model_booking.Booking) model_booking.BagDet
 }
 
 /*
-	Update lại gía với các service items mới nhất
+Update lại gía với các service items mới nhất
 */
 func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUser) {
 	booking.UpdateMushPay()
@@ -1083,7 +1095,7 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 }
 
 /*
- Mỗi lần thêm đợt thanh toán, update lại totalPaid
+Mỗi lần thêm đợt thanh toán, update lại totalPaid
 */
 func updateTotalPaidAnnualFeeForMemberCard(mcUid string, year int) {
 	//Get List paid
@@ -1128,7 +1140,7 @@ func updateTotalPaidAnnualFeeForMemberCard(mcUid string, year int) {
 }
 
 /*
-	Check Caddie có đang sẵn sàng để ghép không
+Check Caddie có đang sẵn sàng để ghép không
 */
 func checkCaddieReady(booking model_booking.Booking, caddie models.Caddie) error {
 	if !(caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
@@ -1139,7 +1151,7 @@ func checkCaddieReady(booking model_booking.Booking, caddie models.Caddie) error
 }
 
 /*
- Tính total Paid của user
+Tính total Paid của user
 */
 func getTotalPaidForCustomerUser(userUid string) int64 {
 	totalPaid := int64(0)
@@ -1172,7 +1184,7 @@ func getTotalPaidForCustomerUser(userUid string) int64 {
 }
 
 /*
- Update report customer play
+Update report customer play
 */
 func updateReportTotalPaidForCustomerUser(userUid string, partnerUid, courseUid string) {
 	totalPaid := getTotalPaidForCustomerUser(userUid)
@@ -1201,7 +1213,7 @@ func updateReportTotalPaidForCustomerUser(userUid string, partnerUid, courseUid 
 }
 
 /*
- Udp report số lần chơi của user
+Udp report số lần chơi của user
 */
 func updateReportTotalPlayCountForCustomerUser(userUid string, partnerUid, courseUid string) {
 	reportCustomer := model_report.ReportCustomerPlay{

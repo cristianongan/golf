@@ -8,6 +8,7 @@ import (
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -72,6 +73,7 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.GroupName = body.GroupName
 	golfFee.GroupId = groupFee.Id
 	golfFee.UpdateUserName = prof.UserName
+	golfFee.ApplyTime = strings.TrimSpace(body.ApplyTime)
 
 	errC := golfFee.Create()
 
@@ -184,7 +186,7 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.PaidType = body.PaidType
 	golfFee.Idx = body.Idx
 	golfFee.AccDebit = body.AccDebit
-
+	golfFee.ApplyTime = strings.TrimSpace(body.ApplyTime)
 	golfFee.UpdateUserName = prof.UserName
 
 	errUdp := golfFee.Update()
