@@ -23,6 +23,7 @@ type CreateFoodBeverageBody struct {
 	InternalPrice float64 `json:"internal_price"`
 	IsKitchen     bool    `json:"is_kitchen"`
 	Status        string  `json:"status"`
+	Type          string  `json:"type"`
 }
 
 type GetListFoodBeverageForm struct {

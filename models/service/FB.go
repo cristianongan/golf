@@ -35,6 +35,7 @@ type FoodBeverage struct {
 	IsKitchen     bool    `json:"is_kitchen"`
 	Name          string  `json:"name" gorm:"type:varchar(256)"`        // Tên
 	UserUpdate    string  `json:"user_update" gorm:"type:varchar(256)"` // Người update cuối cùng
+	Type          string  `json:"type" gorm:"type:varchar(256)"`        // FOOD,BEVERAGE
 }
 type FoodBeverageResponse struct {
 	FoodBeverage
