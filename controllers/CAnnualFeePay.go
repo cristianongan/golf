@@ -55,7 +55,8 @@ func (_ *CAnnualFeePay) CreateAnnualFeePay(c *gin.Context, prof models.CmsUser) 
 	}
 
 	//Update total paid của membercard trong năm
-	updateTotalPaidAnnualFeeForMemberCard(body.MemberCardUid, body.Year)
+	go updateTotalPaidAnnualFeeForMemberCard(body.MemberCardUid, body.Year)
+	go updateReportTotalPaidForCustomerUser(memberCard.OwnerUid, body.PartnerUid, body.CourseUid)
 
 	okResponse(c, annualFeePay)
 }
@@ -86,9 +87,13 @@ func (_ *CAnnualFeePay) GetListAnnualFeePay(c *gin.Context, prof models.CmsUser)
 		return
 	}
 
+	//get total paid
+	totalPaid := annualFeeR.FindTotalPaid()
+
 	res := map[string]interface{}{
-		"total": total,
-		"data":  list,
+		"total":      total,
+		"data":       list,
+		"total_paid": totalPaid,
 	}
 
 	okResponse(c, res)
@@ -126,7 +131,14 @@ func (_ *CAnnualFeePay) UpdateAnnualFeePay(c *gin.Context, prof models.CmsUser) 
 	}
 
 	//Update total paid của membercard trong năm
-	updateTotalPaidAnnualFeeForMemberCard(body.MemberCardUid, body.Year)
+	go updateTotalPaidAnnualFeeForMemberCard(body.MemberCardUid, body.Year)
+
+	memberCard := models.MemberCard{}
+	memberCard.Uid = annualFeePay.MemberCardUid
+	errFMC := memberCard.FindFirst()
+	if errFMC == nil && memberCard.OwnerUid != "" {
+		go updateReportTotalPaidForCustomerUser(memberCard.OwnerUid, memberCard.PartnerUid, memberCard.CourseUid)
+	}
 
 	okResponse(c, annualFeePay)
 }
@@ -154,7 +166,13 @@ func (_ *CAnnualFeePay) DeleteAnnualFeePay(c *gin.Context, prof models.CmsUser) 
 	}
 
 	//Update total paid của membercard trong năm
-	updateTotalPaidAnnualFeeForMemberCard(annualFeePay.MemberCardUid, annualFeePay.Year)
+	go updateTotalPaidAnnualFeeForMemberCard(annualFeePay.MemberCardUid, annualFeePay.Year)
+	memberCard := models.MemberCard{}
+	memberCard.Uid = annualFeePay.MemberCardUid
+	errFMC := memberCard.FindFirst()
+	if errFMC == nil && memberCard.OwnerUid != "" {
+		go updateReportTotalPaidForCustomerUser(memberCard.OwnerUid, memberCard.PartnerUid, memberCard.CourseUid)
+	}
 
 	okRes(c)
 }

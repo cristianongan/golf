@@ -174,5 +174,13 @@ func (_ *CAgency) GetAgencyDetail(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
-	okResponse(c, agency)
+
+	agencyDetail := models.AgencyDetailRes{
+		Agency: agency,
+	}
+	//Get number customer
+	numberCustomer := agency.GetNumberCustomer()
+	agencyDetail.NumberOfCustomer = numberCustomer
+
+	okResponse(c, agencyDetail)
 }

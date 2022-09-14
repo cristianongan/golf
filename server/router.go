@@ -513,6 +513,7 @@ func NewRouter() *gin.Engine {
 
 			/// =================== Kiosk Inventory ===================
 			cKioskInventory := new(controllers.CKioskInventory)
+			cmsApiAuthorized.POST("/kiosk-inventory/create", middlewares.AuthorizedCmsUserHandler(cKioskInventory.AddItemToInventory))
 			cmsApiAuthorized.GET("/kiosk-inventory/list", middlewares.AuthorizedCmsUserHandler(cKioskInventory.GetKioskInventory))
 
 			cKioskInputInventory := new(controllers.CKioskInputInventory)
@@ -529,7 +530,8 @@ func NewRouter() *gin.Engine {
 
 			/// =================== Kiosk Statistic ===================
 			cKioskStatistic := new(controllers.CStatisticItem)
-			cmsApiAuthorized.GET("/kiosk-inventory/item/statistic/list", middlewares.AuthorizedCmsUserHandler(cKioskStatistic.GetStatistic))
+			cmsApiAuthorized.GET("/kiosk-inventory/item/statistic/list", middlewares.AuthorizedCmsUserHandler(cKioskStatistic.GetItemStatisticDetail))
+			// cmsApiAuthorized.POST("/kiosk-inventory/item/statistic/create", middlewares.AuthorizedCmsUserHandler(cKioskStatistic.AddItemToStatistic))
 
 			/// =================== Kiosk ===================
 			cServiceCart := new(controllers.CServiceCart)

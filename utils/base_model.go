@@ -22,10 +22,14 @@ type CountStruct struct {
 	Count int64 `json:"count"`
 }
 
+type TotalStruct struct {
+	TotalAmount int64 `json:"total_amount"`
+}
+
 type CountAnnualFeeStruct struct {
 	TotalA int64 `json:"total_a"`
 	TotalB int64 `json:"total_b"`
-	Totalc int64 `json:"total_c"`
+	TotalC int64 `json:"total_c"`
 	TotalD int64 `json:"total_d"`
 	TotalE int64 `json:"total_e"`
 	TotalG int64 `json:"total_g"`

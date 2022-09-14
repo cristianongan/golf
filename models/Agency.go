@@ -29,6 +29,13 @@ type Agency struct {
 	Avatar               string         `json:"avatar" gorm:"type:varchar(256)"`
 }
 
+type AgencyDetailRes struct {
+	Agency
+	NumberOfContract int64 `json:"number_of_contract"`
+	NumberOfVoucher  int64 `json:"number_of_voucher"`
+	NumberOfCustomer int64 `json:"number_of_customer"`
+}
+
 type AgencyContact struct {
 	Name        string `json:"name"`
 	JobTile     string `json:"job_title"`
@@ -71,7 +78,7 @@ func (item *Agency) IsDuplicated() bool {
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
 		AgencyId:   item.AgencyId,
-		ShortName:  item.ShortName,
+		// ShortName:  item.ShortName,
 	}
 
 	errFind := modelCheck.FindFirst()
@@ -177,4 +184,12 @@ func (item *Agency) Delete() error {
 		return errors.New("Primary key is undefined!")
 	}
 	return datasources.GetDatabase().Delete(item).Error
+}
+
+func (item *Agency) GetNumberCustomer() int64 {
+	total := int64(0)
+	db := datasources.GetDatabase().Model(CustomerUser{})
+	db = db.Where("agency_id = ?", item.Id)
+	db.Count(&total)
+	return total
 }

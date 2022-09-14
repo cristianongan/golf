@@ -2,11 +2,13 @@ package controllers
 
 import (
 	"errors"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -71,6 +73,7 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.GroupName = body.GroupName
 	golfFee.GroupId = groupFee.Id
 	golfFee.UpdateUserName = prof.UserName
+	golfFee.ApplyTime = strings.TrimSpace(body.ApplyTime)
 
 	errC := golfFee.Create()
 
@@ -183,7 +186,7 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.PaidType = body.PaidType
 	golfFee.Idx = body.Idx
 	golfFee.AccDebit = body.AccDebit
-
+	golfFee.ApplyTime = strings.TrimSpace(body.ApplyTime)
 	golfFee.UpdateUserName = prof.UserName
 
 	errUdp := golfFee.Update()
@@ -285,5 +288,17 @@ func (_ *CGolfFee) GetGolfFeeByGuestStyle(c *gin.Context, prof models.CmsUser) {
 		GuestStyle:   form.GuestStyle,
 	}
 	guestStyles := golfFeeR.GetGuestStyleGolfFeeByGuestStyle()
+
+	for i, v := range guestStyles {
+		groupGS := models.GroupFee{}
+		groupGS.Id = v.GroupId
+		errFGGS := groupGS.FindFirst()
+		if errFGGS != nil {
+			log.Println("GetGolfFeeByGuestStyle", errFGGS.Error())
+		} else {
+			guestStyles[i].GroupName = groupGS.Name
+		}
+	}
+
 	okResponse(c, guestStyles)
 }

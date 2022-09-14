@@ -191,9 +191,9 @@ type EditSubBagBooking struct {
 
 type CheckInBody struct {
 	BookingBaseBody
-	Bag    string `json:"bag" binding:"required"` // Golf Bag
-	Locker string `json:"locker"`
-	Hole   int    `json:"hole"` // Số hố
+	Bag         string `json:"bag" binding:"required"` // Golf Bag
+	Locker      string `json:"locker"`
+	HoleCheckIn int    `json:"hole_checkin"` // Số hố
 
 	GuestStyle     string `json:"guest_style"`      // Guest Style
 	GuestStyleName string `json:"guest_style_name"` // Guest Style Name

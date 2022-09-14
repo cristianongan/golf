@@ -3,6 +3,7 @@ package models
 import (
 	"start/constants"
 	"start/datasources"
+	"start/utils"
 	"strings"
 	"time"
 
@@ -107,6 +108,31 @@ func (item *AnnualFeePay) FindList(page Page) ([]AnnualFeePay, int64, error) {
 		db = page.Setup(db).Find(&list)
 	}
 	return list, total, db.Error
+}
+
+func (item *AnnualFeePay) FindTotalPaid() int64 {
+	db := datasources.GetDatabase().Model(AnnualFeePay{})
+
+	sumStr := utils.TotalStruct{}
+
+	db = db.Select("sum(amount) as total_amount")
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.MemberCardUid != "" {
+		db = db.Where("member_card_uid = ?", item.MemberCardUid)
+	}
+	if item.Year > 0 {
+		db = db.Where("year = ?", item.Year)
+	}
+
+	db = db.Group("member_card_uid").First(&sumStr)
+
+	return sumStr.TotalAmount
 }
 
 func (item *AnnualFeePay) FindAll() ([]AnnualFeePay, error) {

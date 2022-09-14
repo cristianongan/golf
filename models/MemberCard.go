@@ -207,6 +207,9 @@ func (item *MemberCard) Update() error {
 func (item *MemberCard) FindAll() (error, []MemberCard) {
 	db := datasources.GetDatabase().Model(MemberCard{})
 	list := []MemberCard{}
+	if item.OwnerUid != "" {
+		db = db.Where("owner_uid = ?", item.OwnerUid)
+	}
 	db.Find(&list)
 	return db.Error, list
 }

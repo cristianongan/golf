@@ -66,10 +66,8 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 	// Check can add
 	errB, booking, caddie, _ := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode)
 
-	if !(caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
-		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH ||
-		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK) {
-		response_message.InternalServerError(c, errors.New(caddie.Code+" chưa sẵn sàng để ghép ").Error())
+	if errCaddie := checkCaddieReady(booking, caddie); errCaddie != nil {
+		response_message.InternalServerError(c, errCaddie.Error())
 		return
 	}
 
@@ -138,39 +136,43 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
 		isCaddiReady := true
 
-		if !(caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
-			caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH ||
-			caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK) {
-			listError = append(listError, errors.New(caddieTemp.Code+" chưa sẵn sàng để ghép ").Error())
-			isCaddiReady = false
+		if caddieTemp.Id > 0 {
+
+			if errCaddie := checkCaddieReady(bookingTemp, caddieTemp); errCaddie != nil {
+				listError = append(listError, errCaddie.Error())
+				isCaddiReady = false
+			}
+
+			if errB == nil && isCaddiReady {
+				// Update caddie_current_status
+				caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+				caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
+
+				listCaddie = append(listCaddie, caddieTemp)
+
+				caddieInNote := model_gostarter.CaddieInOutNote{
+					PartnerUid: prof.PartnerUid,
+					CourseUid:  prof.CourseUid,
+					BookingUid: bookingTemp.Uid,
+					CaddieId:   bookingTemp.CaddieId,
+					CaddieCode: bookingTemp.CaddieInfo.Code,
+					Type:       constants.STATUS_IN,
+					Note:       "",
+				}
+				listCaddieInOut = append(listCaddieInOut, caddieInNote)
+			}
 		}
 
-		if errB == nil && isCaddiReady {
-			// Update caddie_current_status
-			caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
-			caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
-
+		if buggyTemp.Id > 0 {
 			buggyTemp.BuggyStatus = constants.BUGGY_CURRENT_STATUS_IN_COURSE
-
-			listBooking = append(listBooking, bookingTemp)
-			listCaddie = append(listCaddie, caddieTemp)
 			listBuggy = append(listBuggy, buggyTemp)
-
-			caddieInNote := model_gostarter.CaddieInOutNote{
-				PartnerUid: prof.PartnerUid,
-				CourseUid:  prof.CourseUid,
-				BookingUid: bookingTemp.Uid,
-				CaddieId:   bookingTemp.CaddieId,
-				CaddieCode: bookingTemp.CaddieInfo.Code,
-				Type:       constants.STATUS_IN,
-				Note:       "",
-			}
-			listCaddieInOut = append(listCaddieInOut, caddieInNote)
 		}
 
 		if errB != nil {
 			listError = append(listError, errB.Error())
 		}
+
+		listBooking = append(listBooking, bookingTemp)
 	}
 
 	if len(listError) > 0 {
@@ -650,7 +652,6 @@ func (_ CCourseOperating) validateCaddie(courseUid string, caddieCode string) (m
 	caddieList.CourseUid = courseUid
 	caddieList.CaddieCode = caddieCode
 	caddieList.WorkingStatus = constants.CADDIE_WORKING_STATUS_ACTIVE
-	caddieList.InCurrentStatus = []string{constants.CADDIE_CURRENT_STATUS_READY, constants.CADDIE_CURRENT_STATUS_FINISH}
 	caddieNew, err := caddieList.FindFirst()
 
 	if err != nil {
@@ -676,8 +677,21 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 
 	// validate caddie_code
 	caddieNew, err := cCourseOperating.validateCaddie(prof.CourseUid, body.CaddieCode)
+
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	if caddieNew.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
+		if booking.CaddieId != caddieNew.Id {
+			response_message.InternalServerError(c, errors.New(caddieNew.Code+" đang bị LOCK").Error())
+			return
+		}
+	}
+
+	if errCaddie := checkCaddieReady(booking, caddieNew); errCaddie != nil {
+		response_message.InternalServerError(c, errCaddie.Error())
 		return
 	}
 
@@ -860,45 +874,48 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 	listBooking := []model_booking.Booking{}
 	listCaddie := []models.Caddie{}
 	listBuggy := []models.Buggy{}
+	listCaddieInOut := []model_gostarter.CaddieInOutNote{}
 	for _, v := range body.ListData {
 		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(prof.PartnerUid, prof.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
 		isCaddiReady := true
 
-		if !(caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
-			caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH ||
-			caddieTemp.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK) {
-			listError = append(listError, errors.New(caddieTemp.Code+" chưa sẵn sàng để ghép ").Error())
-			isCaddiReady = false
-		}
+		if caddieTemp.Id > 0 {
 
-		if errB == nil && isCaddiReady {
-			listBooking = append(listBooking, bookingTemp)
-			listCaddie = append(listCaddie, caddieTemp)
-			listBuggy = append(listBuggy, buggyTemp)
-
-			// Update caddie_current_status
-			caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
-			caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
-			if err := caddieTemp.Update(); err != nil {
-				response_message.InternalServerError(c, err.Error())
+			if errCaddie := checkCaddieReady(bookingTemp, caddieTemp); errCaddie != nil {
+				response_message.InternalServerError(c, errCaddie.Error())
 				return
 			}
 
-			// Udp Note
-			caddieInNote := model_gostarter.CaddieInOutNote{
-				PartnerUid: prof.PartnerUid,
-				CourseUid:  prof.CourseUid,
-				BookingUid: bookingTemp.Uid,
-				CaddieId:   bookingTemp.CaddieId,
-				CaddieCode: bookingTemp.CaddieInfo.Code,
-				Type:       constants.STATUS_IN,
-				Note:       "",
-			}
+			if errB == nil && isCaddiReady {
+				// Update caddie_current_status
+				caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+				caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
 
-			go addCaddieInOutNote(caddieInNote)
-		} else {
+				listCaddie = append(listCaddie, caddieTemp)
+
+				caddieInNote := model_gostarter.CaddieInOutNote{
+					PartnerUid: prof.PartnerUid,
+					CourseUid:  prof.CourseUid,
+					BookingUid: bookingTemp.Uid,
+					CaddieId:   bookingTemp.CaddieId,
+					CaddieCode: bookingTemp.CaddieInfo.Code,
+					Type:       constants.STATUS_IN,
+					Note:       "",
+				}
+				listCaddieInOut = append(listCaddieInOut, caddieInNote)
+			}
+		}
+
+		if buggyTemp.Id > 0 {
+			buggyTemp.BuggyStatus = constants.BUGGY_CURRENT_STATUS_IN_COURSE
+			listBuggy = append(listBuggy, buggyTemp)
+		}
+
+		if errB != nil {
 			listError = append(listError, errB.Error())
 		}
+
+		listBooking = append(listBooking, bookingTemp)
 	}
 
 	if len(listError) > 0 {

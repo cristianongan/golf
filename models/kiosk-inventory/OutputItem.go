@@ -26,6 +26,7 @@ type InventoryOutputItem struct {
 type OutputStatisticItem struct {
 	PartnerUid string `json:"partner_uid"`
 	CourseUid  string `json:"course_uid"`
+	ServiceId  int64  `json:"service_id"`
 	ItemCode   string `json:"item_code"`
 	Total      int64  `json:"total"`
 }
@@ -57,7 +58,7 @@ func (item *InventoryOutputItem) FindAllList() ([]InventoryOutputItem, int64, er
 
 func (item *InventoryOutputItem) FindStatistic() ([]OutputStatisticItem, error) {
 	db := datasources.GetDatabase().Model(InventoryOutputItem{})
-	db = db.Select("partner_uid, course_uid,item_code,SUM(quantity) as total").Group("partner_uid,course_uid,item_code")
+	db = db.Select("partner_uid, course_uid,item_code,service_id,SUM(quantity) as total").Group("partner_uid,course_uid,item_code")
 	if item.OutputDate != "" {
 		db = db.Where("output_date = ?", item.OutputDate)
 	}
@@ -71,6 +72,14 @@ func (item *InventoryOutputItem) FindList(page models.Page) ([]InventoryOutputIt
 	db := datasources.GetDatabase().Model(InventoryOutputItem{})
 	list := []InventoryOutputItem{}
 	total := int64(0)
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
 
 	if item.Code != "" {
 		db = db.Where("code = ?", item.Code)

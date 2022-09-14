@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"log"
 	"start/constants"
 	"start/controllers/request"
@@ -60,6 +61,22 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 		return
 	}
 
+	var price float64 = 0
+
+	for _, code := range body.FBList {
+		foodBeverage := model_service.FoodBeverage{
+			FBCode:     code,
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+		}
+
+		if err := foodBeverage.FindFirst(); err != nil {
+			response_message.BadRequest(c, errors.New(code+" không tìm thấy ").Error())
+			return
+		}
+		price += foodBeverage.Price
+	}
+
 	base := models.ModelId{
 		Status: constants.STATUS_ENABLE,
 	}
@@ -73,9 +90,13 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 		Discount:   body.Discount,
 		Note:       body.Note,
 		FBList:     body.FBList,
+		Code:       body.Code,
 		InputUser:  body.InputUser,
+		Price:      price,
 	}
+
 	promotionSet.Status = body.Status
+
 	err := promotionSet.Create()
 	if err != nil {
 		log.Print("Create caddieNote error")

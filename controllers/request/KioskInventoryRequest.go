@@ -38,6 +38,12 @@ type CreateBillBody struct {
 	OutputDate  int64                           `json:"output_date"`
 }
 
+type CreateOutputBillBody struct {
+	CreateBillBody
+	Bag          string `json:"bag"`
+	CustomerName string `json:"customer_name"`
+}
+
 type GetInOutItems struct {
 	PageRequest
 	ServiceId  int64  `form:"service_id" binding:"required"`
@@ -48,9 +54,12 @@ type GetInOutItems struct {
 
 type GetItems struct {
 	PageRequest
-	ItemCode string `form:"item_code"`
-	FromDate string `form:"from_date"`
-	ToDate   string `form:"to_date"`
+	ServiceId  int64  `form:"service_id" binding:"required"`
+	ItemCode   string `form:"item_code" binding:"required"`
+	PartnerUid string `form:"partner_uid" binding:"required"`
+	CourseUid  string `form:"course_uid" binding:"required"`
+	FromDate   string `form:"from_date"`
+	ToDate     string `form:"to_date"`
 }
 
 type GetBill struct {
@@ -67,4 +76,27 @@ type KioskInventoryInsertBody struct {
 	CourseUid  string `json:"course_uid" binding:"required"`
 	Code       string `json:"code" binding:"required"` // Mã đơn nhập
 	ServiceId  int64  `json:"service_id" binding:"required"`
+}
+
+type AddItemToInventoryBody struct {
+	ServiceId  int64        `json:"service_id" binding:"required"`
+	PartnerUid string       `json:"partner_uid" binding:"required"`
+	CourseUid  string       `json:"course_uid" binding:"required"`
+	ListItem   ListItemBody `json:"list_item" binding:"required"`
+}
+
+type ListItemBody []ItemBody
+
+func (item *ListItemBody) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListItemBody) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
+type ItemBody struct {
+	ItemCode    string `json:"item_code" binding:"required"`
+	ServiceType string `json:"service_type" binding:"required"`
+	Quantity    int64  `json:"quantity" binding:"required"`
 }

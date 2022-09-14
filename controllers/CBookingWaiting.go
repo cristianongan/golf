@@ -55,7 +55,10 @@ func (_ *CBookingWaiting) GetBookingWaitingList(c *gin.Context, prof models.CmsU
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	bookingWaitingRequest := model_booking.BookingWaiting{}
+	bookingWaitingRequest := model_booking.BookingWaiting{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
 
 	if form.PlayerName != "" {
 		bookingWaitingRequest.PlayerName = form.PlayerName

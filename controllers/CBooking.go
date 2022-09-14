@@ -384,6 +384,10 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		cLockTeeTime.LockTurn(lockTurn, c, prof)
 	}
 
+	if body.IsCheckIn && booking.CustomerUid != "" {
+		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
+	}
+
 	return &booking
 }
 
@@ -948,8 +952,6 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	booking.Hole = body.Hole
-
 	if body.Bag != "" {
 		booking.Bag = body.Bag
 		//Check duplicated
@@ -966,8 +968,8 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.UpdateBagGolfFee()
 	}
 
-	if body.Hole > 0 {
-		booking.Hole = body.Hole
+	if body.HoleCheckIn > 0 {
+		booking.HoleCheckIn = body.HoleCheckIn
 	}
 
 	checkInTime := time.Now().Unix()
@@ -990,7 +992,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 		// List Booking GolfFee
 		bodyCreate := request.CreateBookingBody{
-			Hole:         booking.Hole,
+			Hole:         booking.HoleCheckIn,
 			CustomerName: booking.CustomerName,
 			Bag:          booking.Bag,
 		}
@@ -1018,7 +1020,13 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		go updateMemberCard(memberCard)
 	}
 
-	okResponse(c, booking)
+	if booking.CustomerUid != "" {
+		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
+	}
+
+	res := getBagDetailFromBooking(booking)
+
+	okResponse(c, res)
 }
 
 /*

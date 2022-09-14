@@ -34,13 +34,6 @@ type ItemInfo struct {
 	Unit      string  `json:"unit" gorm:"type:varchar(100)"`       // Đơn vị
 }
 
-type InputStatisticItem struct {
-	PartnerUid string `json:"partner_uid"`
-	CourseUid  string `json:"course_uid"`
-	ItemCode   string `json:"item_code"`
-	Total      int64  `json:"total"`
-}
-
 func (item *ItemInfo) Scan(v interface{}) error {
 	return json.Unmarshal(v.([]byte), item)
 }
@@ -78,6 +71,14 @@ func (item *InventoryInputItem) FindList(page models.Page) ([]InventoryInputItem
 	list := []InventoryInputItem{}
 	total := int64(0)
 
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
 	if item.Code != "" {
 		db = db.Where("code = ?", item.Code)
 	}
@@ -102,12 +103,12 @@ func (item *InventoryInputItem) FindList(page models.Page) ([]InventoryInputItem
 func (item *InventoryInputItem) FindStatistic() ([]OutputStatisticItem, error) {
 	db := datasources.GetDatabase().Model(InventoryInputItem{})
 	db = db.Joins("JOIN input_inventory_bills ON input_inventory_bills.code = inventory_input_items.code")
-	db = db.Select("inventory_input_items.partner_uid,inventory_input_items.course_uid,inventory_input_items.item_code,SUM(inventory_input_items.quantity) as total").Group("inventory_input_items.partner_uid,inventory_input_items.course_uid,inventory_input_items.item_code").Where("input_inventory_bills.bill_status = ?", "ACCEPT")
+	db = db.Select("inventory_input_items.partner_uid,inventory_input_items.course_uid,inventory_input_items.service_id,inventory_input_items.item_code,SUM(inventory_input_items.quantity) as total").Group("inventory_input_items.partner_uid,inventory_input_items.course_uid,inventory_input_items.item_code").Where("input_inventory_bills.bill_status = ?", "ACCEPT")
 	if item.InputDate != "" {
 		db = db.Where("inventory_input_items.input_date = ?", item.InputDate)
 	}
 	list := []OutputStatisticItem{}
-	db.Debug().Find(&list)
+	db.Find(&list)
 
 	return list, db.Error
 }
