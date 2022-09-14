@@ -146,7 +146,6 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	serviceCart.BookingUid = booking.Uid
 	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
 	serviceCart.ServiceId = body.ServiceId
-	serviceCartItem.ServiceType = kiosk.ServiceType
 
 	if body.BillId != 0 {
 		serviceCart.Id = body.BillId
@@ -175,6 +174,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	// add infor cart item
 	serviceCartItem.PartnerUid = prof.PartnerUid
 	serviceCartItem.CourseUid = prof.CourseUid
+	serviceCartItem.ServiceType = kiosk.ServiceType
 	serviceCartItem.Bag = booking.Bag
 	serviceCartItem.BillCode = booking.BillCode
 	serviceCartItem.BookingUid = booking.Uid
