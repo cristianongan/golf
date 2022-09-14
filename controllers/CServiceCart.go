@@ -670,10 +670,13 @@ func createExportBillInventory(c *gin.Context, prof models.CmsUser, serviceCart 
 	listItemInBill, _ := serviceCartItem.FindAll()
 
 	if len(listItemInBill) > 0 {
-		bodyInputBill := request.CreateBillBody{}
-		bodyInputBill.PartnerUid = serviceCart.PartnerUid
-		bodyInputBill.CourseUid = serviceCart.CourseUid
-		bodyInputBill.ServiceId = serviceCart.ServiceId
+		bodyOutputBill := request.CreateOutputBillBody{}
+		bodyOutputBill.PartnerUid = serviceCart.PartnerUid
+		bodyOutputBill.CourseUid = serviceCart.CourseUid
+		bodyOutputBill.ServiceId = serviceCart.ServiceId
+		bodyOutputBill.UserExport = prof.UserName
+		bodyOutputBill.Bag = serviceCart.GolfBag
+		bodyOutputBill.CustomerName = serviceCartItem.PlayerName
 		lisItem := []request.KioskInventoryItemBody{}
 
 		for _, data := range listItemInBill {
@@ -688,9 +691,9 @@ func createExportBillInventory(c *gin.Context, prof models.CmsUser, serviceCart 
 			lisItem = append(lisItem, inputItem)
 		}
 
-		bodyInputBill.ListItem = lisItem
+		bodyOutputBill.ListItem = lisItem
 
 		cKioskOutputInventory := CKioskOutputInventory{}
-		cKioskOutputInventory.MethodOutputBill(c, prof, bodyInputBill, constants.KIOSK_BILL_INVENTORY_SELL, code)
+		cKioskOutputInventory.MethodOutputBill(c, prof, bodyOutputBill, constants.KIOSK_BILL_INVENTORY_SELL, code)
 	}
 }

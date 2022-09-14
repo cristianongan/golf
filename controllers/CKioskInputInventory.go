@@ -127,11 +127,7 @@ func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.Cms
 		return
 	}
 
-	// Giảm ds item trong Inventory
-	cKioskOutputInventory := CKioskOutputInventory{}
-	cKioskOutputInventory.removeItemFromInventory(inventoryStatus.ServiceExportId, body.Code, body.CourseUid, body.PartnerUid)
-
-	okRes(c)
+	okResponse(c, inventoryStatus)
 }
 
 func (_ CKioskInputInventory) addItemToInventory(serviceId int64, code string, courseUid string, partnerUid string) error {
@@ -164,30 +160,6 @@ func (_ CKioskInputInventory) addItemToInventory(serviceId int64, code string, c
 	return nil
 }
 
-// func removeItemFromInventory(code string) error {
-// 	// Get danh sách item của bill
-// 	item := kiosk_inventory.InventoryOutputItem{}
-// 	item.Code = code
-// 	list, _, _ := item.FindAllList()
-
-// 	for _, data := range list {
-// 		item := kiosk_inventory.InventoryItem{
-// 			KioskCode: data.KioskCode,
-// 			KioskType: data.KioskType,
-// 			Code:      data.ItemCode,
-// 			InputCode: data.Code,
-// 		}
-
-// 		if err := item.FindFirst(); err != nil {
-// 			item.Quantity = item.Quantity - data.Quantity
-// 			if errUpd := item.Update(); errUpd != nil {
-// 				return errUpd
-// 			}
-// 		}
-// 	}
-// 	return nil
-// }
-
 func (_ CKioskInputInventory) ReturnInputItem(c *gin.Context, prof models.CmsUser) {
 	var body request.KioskInventoryInsertBody
 	if err := c.BindJSON(&body); err != nil {
@@ -217,7 +189,11 @@ func (_ CKioskInputInventory) ReturnInputItem(c *gin.Context, prof models.CmsUse
 		response_message.BadRequest(c, err.Error())
 		return
 	}
-	okRes(c)
+
+	// Trả lại hàng cho Inventory
+	cKioskOutputInventory := CKioskOutputInventory{}
+	cKioskOutputInventory.returnItemToInventory(inventoryStatus.ServiceExportId, body.Code, body.CourseUid, body.PartnerUid)
+	okResponse(c, inventoryStatus)
 }
 
 func (_ CKioskInputInventory) GetInputItems(c *gin.Context, prof models.CmsUser) {

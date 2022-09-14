@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"start/constants"
 	"start/controllers/request"
 	"start/models"
@@ -15,7 +16,7 @@ import (
 type CKioskOutputInventory struct{}
 
 func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.CmsUser) {
-	var body request.CreateBillBody
+	var body request.CreateOutputBillBody
 	if err := c.BindJSON(&body); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
@@ -52,7 +53,7 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 	okRes(c)
 }
 
-func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.CmsUser, body request.CreateBillBody, billtype string, billcode string) error {
+func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.CmsUser, body request.CreateOutputBillBody, billtype string, billcode string) error {
 	inventoryStatus := kiosk_inventory.OutputInventoryBill{}
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
@@ -65,18 +66,30 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 	inventoryStatus.ServiceImportName = body.SourceName
 	inventoryStatus.OutputDate = body.OutputDate
 	inventoryStatus.Note = body.Note
+	inventoryStatus.Bag = body.Bag
+	inventoryStatus.CustomerName = body.CustomerName
 
 	quantity := 0
 
 	for _, data := range body.ListItem {
-		outputItem := kiosk_inventory.InventoryOutputItem{}
-		outputItem.Code = billcode
-		outputItem.PartnerUid = body.PartnerUid
-		outputItem.CourseUid = body.CourseUid
-		outputItem.Quantity = data.Quantity
-		outputItem.ItemCode = data.ItemCode
-		outputItem.ServiceId = body.ServiceId
-		outputItem.ServiceName = body.ServiceName
+
+		// check lượng hàng trong kho có đủ để xuất không
+		itemInInventory := kiosk_inventory.InventoryItem{
+			ServiceId:  body.ServiceId,
+			Code:       data.ItemCode,
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+		}
+
+		if errInventory := itemInInventory.FindFirst(); errInventory != nil {
+			message := data.ItemCode + " không tìm thấy "
+			return errors.New(message)
+		}
+
+		if data.Quantity > itemInInventory.Quantity {
+			message := data.ItemCode + " vượt quá số lượng trong kho "
+			return errors.New(message)
+		}
 
 		goodsService := model_service.GroupServices{
 			GroupCode: data.GroupCode,
@@ -86,6 +99,15 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 		if errFindGoodsService != nil {
 			return errFindGoodsService
 		}
+
+		outputItem := kiosk_inventory.InventoryOutputItem{}
+		outputItem.Code = billcode
+		outputItem.PartnerUid = body.PartnerUid
+		outputItem.CourseUid = body.CourseUid
+		outputItem.Quantity = data.Quantity
+		outputItem.ItemCode = data.ItemCode
+		outputItem.ServiceId = body.ServiceId
+		outputItem.ServiceName = body.ServiceName
 
 		outputItem.ItemInfo = kiosk_inventory.ItemInfo{
 			Price:     data.Price,
@@ -100,6 +122,11 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 
 		if err := outputItem.Create(); err != nil {
 			return err
+		}
+
+		itemInInventory.Quantity = itemInInventory.Quantity - data.Quantity
+		if errUpd := itemInInventory.Update(); errUpd != nil {
+			return errUpd
 		}
 
 		quantity += int(data.Quantity)
@@ -166,13 +193,31 @@ func (_ CKioskOutputInventory) removeItemFromInventory(serviceId int64, code str
 		}
 
 		if err := item.FindFirst(); err != nil {
-			item.ItemInfo = data.ItemInfo
-			item.Quantity = data.Quantity
-			if errCre := item.Create(); errCre != nil {
-				return errCre
-			}
-		} else {
 			item.Quantity = item.Quantity - data.Quantity
+			if errUpd := item.Update(); errUpd != nil {
+				return errUpd
+			}
+		}
+	}
+	return nil
+}
+
+func (_ CKioskOutputInventory) returnItemToInventory(serviceId int64, code string, courseUid string, partnerUid string) error {
+	// Get danh sách item của bill
+	item := kiosk_inventory.InventoryInputItem{}
+	item.Code = code
+	list, _, _ := item.FindAllList()
+
+	for _, data := range list {
+		item := kiosk_inventory.InventoryItem{
+			ServiceId:  serviceId,
+			Code:       data.ItemCode,
+			PartnerUid: partnerUid,
+			CourseUid:  courseUid,
+		}
+
+		if err := item.FindFirst(); err != nil {
+			item.Quantity = item.Quantity + data.Quantity
 			if errUpd := item.Update(); errUpd != nil {
 				return errUpd
 			}

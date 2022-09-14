@@ -12,21 +12,21 @@ Lưu thông tin đơn nhập kho
 */
 type OutputInventoryBill struct {
 	models.ModelId
-	PartnerUid        string               `json:"partner_uid" gorm:"type:varchar(100);index"`       // Hang Golf
-	CourseUid         string               `json:"course_uid" gorm:"type:varchar(256);index"`        // San Golf
-	Code              string               `json:"code" gorm:"type:varchar(100);index"`              // mã xuất kho
-	OutputDate        int64                `json:"output_date"`                                      // ngày xuất kho
-	UserUpdate        string               `json:"user_update" gorm:"type:varchar(256)"`             // Người update cuối cùng
-	ServiceId         int64                `json:"service_id" gorm:"index"`                          // mã service
-	ServiceName       string               `json:"service_name" gorm:"type:varchar(256)"`            // tên service
-	Note              string               `json:"note" gorm:"type:varchar(256)"`                    // ghi chú
-	ServiceImportId   int64                `json:"service_import_id"`                                // id service sẽ import
-	ServiceImportName string               `json:"service_import_name" gorm:"type:varchar(256)"`     // tên service import
-	Bag               string               `json:"bag,omitempty" gorm:"type:varchar(100);index"`     // Golf Bag
-	CustomerName      string               `json:"customer_name,omitempty" gorm:"type:varchar(256)"` // Tên khách hàng chơi golf
-	BillStatus        string               `json:"bill_status" gorm:"type:varchar(100)"`             // Trạng thái đơn hàng (SELL, TRANSFER)
-	Quantity          int64                `json:"quantity"`                                         // Tổng số lượng sell or transfer
-	ListItem          []InventoryInputItem `json:"list_item,omitempty" gorm:"foreignKey:Code;references:Code"`
+	PartnerUid        string                `json:"partner_uid" gorm:"type:varchar(100);index"`   // Hang Golf
+	CourseUid         string                `json:"course_uid" gorm:"type:varchar(256);index"`    // San Golf
+	Code              string                `json:"code" gorm:"type:varchar(100);index"`          // mã xuất kho
+	OutputDate        int64                 `json:"output_date"`                                  // ngày xuất kho
+	UserUpdate        string                `json:"user_update" gorm:"type:varchar(256)"`         // Người update cuối cùng
+	ServiceId         int64                 `json:"service_id" gorm:"index"`                      // mã service
+	ServiceName       string                `json:"service_name" gorm:"type:varchar(256)"`        // tên service
+	Note              string                `json:"note" gorm:"type:varchar(256)"`                // ghi chú
+	ServiceImportId   int64                 `json:"service_import_id"`                            // id service sẽ import
+	ServiceImportName string                `json:"service_import_name" gorm:"type:varchar(256)"` // tên service import
+	Bag               string                `json:"bag" gorm:"type:varchar(100);index"`           // Golf Bag
+	CustomerName      string                `json:"customer_name" gorm:"type:varchar(256)"`       // Tên khách hàng chơi golf
+	BillStatus        string                `json:"bill_status" gorm:"type:varchar(100)"`         // Trạng thái đơn hàng (SELL, TRANSFER)
+	Quantity          int64                 `json:"quantity"`                                     // Tổng số lượng sell or transfer
+	ListItem          []InventoryOutputItem `json:"list_item,omitempty" gorm:"foreignKey:Code;references:Code"`
 }
 
 func (item *OutputInventoryBill) IsDuplicated() bool {
