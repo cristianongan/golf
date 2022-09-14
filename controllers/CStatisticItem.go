@@ -13,7 +13,7 @@ import (
 
 type CStatisticItem struct{}
 
-func (_ CStatisticItem) AddItemToStatistic(c *gin.Context, prof models.CmsUser) {
+func (_ CStatisticItem) AddItemToStatistic() {
 	now := time.Now().Format(constants.DATE_FORMAT_1)
 
 	outputInventory := kiosk_inventory.InventoryOutputItem{
@@ -128,14 +128,11 @@ func (_ CStatisticItem) AddItemToStatistic(c *gin.Context, prof models.CmsUser) 
 	}
 
 	for _, data := range itemList {
-		if err := data.Create(); err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
-		}
+		data.Create()
 	}
 }
 
-func (_ CStatisticItem) GetStatistic(c *gin.Context, prof models.CmsUser) {
+func (_ CStatisticItem) GetItemStatisticDetail(c *gin.Context, prof models.CmsUser) {
 	var form request.GetItems
 
 	if err := c.ShouldBind(&form); err != nil {
@@ -157,11 +154,24 @@ func (_ CStatisticItem) GetStatistic(c *gin.Context, prof models.CmsUser) {
 		CourseUid:  form.CourseUid,
 	}
 
+	inventoryItem := kiosk_inventory.InventoryItem{
+		Code:       form.ItemCode,
+		ServiceId:  form.ServiceId,
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+
+	if errInventoryItem := inventoryItem.FindFirst(); errInventoryItem != nil {
+		response_message.BadRequest(c, errInventoryItem.Error())
+		return
+	}
+
 	outputList, total, _ := outputInventory.FindList(page)
 
 	res := map[string]interface{}{
-		"total": total,
-		"data":  outputList,
+		"total":     total,
+		"item-info": inventoryItem.ItemInfo,
+		"data":      outputList,
 	}
 
 	okResponse(c, res)
