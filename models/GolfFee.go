@@ -34,6 +34,7 @@ type GolfFee struct {
 	CustomerCategory string                `json:"customer_category" gorm:"index;type:varchar(50)"` // CUSTOMER, AGENCY
 	GroupName        string                `json:"group_name" gorm:"index;type:varchar(200)"`       // Tên nhóm Fee
 	GroupId          int64                 `json:"group_id" gorm:"index"`                           // Id nhóm Fee
+	ApplyTime        string                `json:"apply_time" gorm:"type:varchar(100)"`             // Time áp dụng
 }
 
 type GuestStyle struct {
@@ -80,7 +81,7 @@ func (item *GolfFee) Count() (int64, error) {
 }
 
 /*
- Get Golf Fee valid in to day
+Get Golf Fee valid in to day
 */
 func (item *GolfFee) GetGuestStyleOnDay() (GolfFee, error) {
 	golfFee := GolfFee{
@@ -102,11 +103,40 @@ func (item *GolfFee) GetGuestStyleOnDay() (GolfFee, error) {
 		return golfFee, err
 	}
 
+	//Check có setup time theo h không
+	isHaveHour := false
+	for _, v := range list {
+		if v.ApplyTime != "" {
+			isHaveHour = true
+		}
+	}
+
+	if isHaveHour {
+		// Xử lý check theo giờ
+		// check nhung row có hour trước
+		idxTemp := -1
+
+		for i, gf := range list {
+			if gf.ApplyTime != "" {
+				if idxTemp < 0 {
+					if utils.CheckDow(gf.Dow, gf.ApplyTime, time.Now()) {
+						idxTemp = i
+					}
+				}
+			}
+		}
+
+		if idxTemp >= 0 {
+			return list[idxTemp], nil
+		}
+	}
+
+	// Không có hour check theo ngày như bt
 	idxTemp := -1
 
 	for i, golfFee_ := range list {
 		if idxTemp < 0 {
-			if utils.CheckDow(golfFee_.Dow, time.Now()) {
+			if utils.CheckDow(golfFee_.Dow, "", time.Now()) {
 				idxTemp = i
 			}
 		}
