@@ -17,10 +17,12 @@ type FbPromotionSet struct {
 	CourseUid  string           `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	GroupCode  string           `json:"group_code" gorm:"type:varchar(100);index"`
 	SetName    string           `json:"set_name"`
+	Code       string           `json:"code"`
 	Discount   int64            `json:"discount"`
 	Note       string           `json:"note"`
 	FBList     utils.ListString `json:"fb_list,omitempty" gorm:"type:json"`
 	InputUser  string           `json:"input_user" gorm:"type:varchar(100)"`
+	Price      float64          `json:"price"`
 }
 type FBPromotionSetResponse struct {
 	FbPromotionSet

@@ -9,6 +9,7 @@ type FbPromotionSetBody struct {
 	SetName    string           `json:"set_name"`
 	Discount   int64            `json:"discount"`
 	Note       string           `json:"note"`
+	Code       string           `json:"code"`
 	FBList     utils.ListString `json:"fb_list"`
 	Status     string           `json:"status"`
 	InputUser  string           `json:"input_user"`

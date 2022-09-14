@@ -171,6 +171,7 @@ func (_ CStatisticItem) GetItemStatisticDetail(c *gin.Context, prof models.CmsUs
 	res := map[string]interface{}{
 		"total":     total,
 		"item-info": inventoryItem.ItemInfo,
+		"quantity":  inventoryItem.Quantity,
 		"data":      outputList,
 	}
 
