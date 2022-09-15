@@ -22,6 +22,7 @@ type InventoryInputItem struct {
 	ServiceId   int64    `json:"service_id" gorm:"index"`               // mã service
 	ServiceName string   `json:"service_name" gorm:"type:varchar(256)"` // tên service
 	Quantity    int64    `json:"quantity"`                              // số lượng
+	Amount      int64    `json:"amount"`                                // Tổng tiền
 	InputDate   string   `json:"input_date"`                            // ngày nhập kho
 }
 

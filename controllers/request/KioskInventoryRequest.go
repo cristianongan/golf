@@ -69,6 +69,7 @@ type GetBill struct {
 	PartnerUid string `form:"partner_uid" binding:"required"`
 	CourseUid  string `form:"course_uid" binding:"required"`
 	BillCode   string `form:"bill_code"`
+	ItemCode   string `form:"item_code"`
 }
 
 type KioskInventoryInsertBody struct {

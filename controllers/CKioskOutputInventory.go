@@ -8,6 +8,7 @@ import (
 	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
 	"start/utils/response_message"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -63,11 +64,18 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 	inventoryStatus.UserUpdate = body.UserExport
 	inventoryStatus.ServiceName = body.ServiceName
 	inventoryStatus.ServiceImportId = body.SourceId
-	inventoryStatus.ServiceImportName = body.SourceName
 	inventoryStatus.OutputDate = body.OutputDate
 	inventoryStatus.Note = body.Note
 	inventoryStatus.Bag = body.Bag
 	inventoryStatus.CustomerName = body.CustomerName
+
+	kiosk := model_service.Kiosk{}
+	kiosk.Id = body.SourceId
+
+	if errFind := kiosk.FindFirst(); errFind != nil {
+		return errors.New("SourceId" + strconv.Itoa(int(body.SourceId)) + "not found")
+	}
+	inventoryStatus.ServiceImportName = kiosk.KioskName
 
 	quantity := 0
 
@@ -108,6 +116,7 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 		outputItem.ItemCode = data.ItemCode
 		outputItem.ServiceId = body.ServiceId
 		outputItem.ServiceName = body.ServiceName
+		outputItem.Amount = int64(data.Price) * data.Quantity
 
 		outputItem.ItemInfo = kiosk_inventory.ItemInfo{
 			Price:     data.Price,
@@ -140,42 +149,6 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 	}
 
 	return nil
-}
-
-func (item CKioskOutputInventory) TransferOutputBill(c *gin.Context, prof models.CmsUser) {
-	var body request.KioskInventoryInsertBody
-	if err := c.BindJSON(&body); err != nil {
-		response_message.BadRequest(c, "")
-		return
-	}
-
-	// Update trạng thái kiosk inventory
-	inventoryStatus := kiosk_inventory.OutputInventoryBill{}
-	inventoryStatus.Code = body.Code
-	inventoryStatus.ServiceId = body.ServiceId
-	inventoryStatus.PartnerUid = body.PartnerUid
-	inventoryStatus.CourseUid = body.CourseUid
-	if errInventoryStatus := inventoryStatus.FindFirst(); errInventoryStatus != nil {
-		response_message.BadRequest(c, "")
-		return
-	}
-
-	if inventoryStatus.BillStatus != constants.KIOSK_BILL_INVENTORY_PENDING {
-		response_message.BadRequest(c, body.Code+" đã "+inventoryStatus.BillStatus)
-		return
-	}
-	// Thêm ds item vào Inventory
-	item.removeItemFromInventory(body.ServiceId, body.Code, body.CourseUid, body.PartnerUid)
-
-	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_ACCEPT
-	if err := inventoryStatus.Update(); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
-
-	// TODO Giảm ds item trong Inventory
-
-	okRes(c)
 }
 
 func (_ CKioskOutputInventory) removeItemFromInventory(serviceId int64, code string, courseUid string, partnerUid string) error {
@@ -280,6 +253,40 @@ func (_ CKioskOutputInventory) GetOutputItems(c *gin.Context, prof models.CmsUse
 	outputItems.CourseUid = form.CourseUid
 	outputItems.ItemCode = form.ItemCode
 	list, total, err := outputItems.FindList(page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
+func (_ CKioskOutputInventory) GetOutputItemsForStatistic(c *gin.Context, prof models.CmsUser) {
+	var form request.GetInOutItems
+	if err := c.ShouldBind(&form); err != nil {
+		response_message.BadRequest(c, "")
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	outputItems := kiosk_inventory.InventoryOutputItem{}
+	outputItems.ServiceId = form.ServiceId
+	outputItems.PartnerUid = form.PartnerUid
+	outputItems.CourseUid = form.CourseUid
+	outputItems.ItemCode = form.ItemCode
+	list, total, err := outputItems.FindListForStatistic(page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
