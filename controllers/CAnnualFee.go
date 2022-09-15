@@ -42,11 +42,11 @@ func (_ *CAnnualFee) CreateAnnualFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	annualFee := models.AnnualFee{
-		PartnerUid:    body.PartnerUid,
-		CourseUid:     body.CourseUid,
-		Year:          body.Year,
-		MemberCardUid: body.MemberCardUid,
-		// PaymentType:       body.PaymentType,
+		PartnerUid:     body.PartnerUid,
+		CourseUid:      body.CourseUid,
+		Year:           body.Year,
+		MemberCardUid:  body.MemberCardUid,
+		ExpirationDate: body.ExpirationDate,
 		// BillNumber:        body.BillNumber,
 		Note:              body.Note,
 		AnnualQuotaAmount: body.AnnualQuotaAmount,
@@ -178,6 +178,9 @@ func (_ *CAnnualFee) UpdateAnnualFee(c *gin.Context, prof models.CmsUser) {
 	annualFee.LastYearDebit = body.LastYearDebit
 	annualFee.TotalPaid = body.TotalPaid
 	annualFee.DaysPaid = body.DaysPaid
+	annualFee.PrePaid = body.PrePaid
+	annualFee.PaidReduce = body.PaidReduce
+	annualFee.ExpirationDate = body.ExpirationDate
 	if body.Year > 0 {
 		annualFee.Year = body.Year
 	}
