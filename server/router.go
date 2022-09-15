@@ -548,7 +548,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.UpdateItemCart))
 			cmsApiAuthorized.DELETE("/service-cart/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteItemInCart))
 
-			/// =================== Kiosk ===================
+			/// =================== Restaurant ===================
 			cRestaurantOrder := new(controllers.CRestaurantOrder)
 			cmsApiAuthorized.GET("/restaurant/list-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.GetListItemOrder))
 			cmsApiAuthorized.GET("/restaurant/list-bill", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.GetListBill))

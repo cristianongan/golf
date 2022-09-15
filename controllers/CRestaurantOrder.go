@@ -276,7 +276,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	okRes(c)
+	c.JSON(200, serviceCartItem)
 }
 
 // Update sản phẩm
