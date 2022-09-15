@@ -25,7 +25,13 @@ type InventoryInputItem struct {
 	Amount      int64    `json:"amount"`                                // Tổng tiền
 	InputDate   string   `json:"input_date"`                            // ngày nhập kho
 }
-
+type InventoryInputItemWithBill struct {
+	InventoryInputItem
+	ServiceExportId   int64  `json:"service_export_id"`
+	ServiceExportName string `json:"service_export_name"`
+	BillStatus        string `json:"bill_status"`
+	UserUpdate        string `json:"user_update"`
+}
 type ItemInfo struct {
 	Price     float64 `json:"price"`                               // Giá sản phẩm
 	ItemName  string  `json:"item_name" gorm:"type:varchar(256)"`  // Tên sản phẩm
@@ -112,4 +118,42 @@ func (item *InventoryInputItem) FindStatistic() ([]OutputStatisticItem, error) {
 	db.Find(&list)
 
 	return list, db.Error
+}
+
+func (item *InventoryInputItem) FindListForStatistic(page models.Page) ([]InventoryInputItemWithBill, int64, error) {
+	db := datasources.GetDatabase().Model(InventoryInputItem{})
+	db = db.Joins("JOIN input_inventory_bills on input_inventory_bills.code = inventory_input_items.code")
+	db = db.Select("inventory_input_items.*,input_inventory_bills.service_export_id," +
+		"input_inventory_bills.service_export_name,input_inventory_bills.bill_status," +
+		"input_inventory_bills.user_update")
+	list := []InventoryInputItemWithBill{}
+	total := int64(0)
+
+	if item.PartnerUid != "" {
+		db = db.Where("inventory_input_items.partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("inventory_input_items.course_uid = ?", item.CourseUid)
+	}
+
+	if item.Code != "" {
+		db = db.Where("inventory_input_items.code = ?", item.Code)
+	}
+
+	if item.ServiceId > 0 {
+		db = db.Where("inventory_input_items.service_id = ?", item.ServiceId)
+	}
+
+	if item.ItemCode != "" {
+		db = db.Where("inventory_input_items.item_code = ?", item.ItemCode)
+	}
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, total, db.Error
 }
