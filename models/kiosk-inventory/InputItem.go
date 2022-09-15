@@ -31,6 +31,7 @@ type InventoryInputItemWithBill struct {
 	ServiceExportName string `json:"service_export_name"`
 	BillStatus        string `json:"bill_status"`
 	UserUpdate        string `json:"user_update"`
+	Note              string `json:"note"`
 }
 type ItemInfo struct {
 	Price     float64 `json:"price"`                               // Giá sản phẩm
@@ -125,7 +126,7 @@ func (item *InventoryInputItem) FindListForStatistic(page models.Page) ([]Invent
 	db = db.Joins("JOIN input_inventory_bills on input_inventory_bills.code = inventory_input_items.code")
 	db = db.Select("inventory_input_items.*,input_inventory_bills.service_export_id," +
 		"input_inventory_bills.service_export_name,input_inventory_bills.bill_status," +
-		"input_inventory_bills.user_update")
+		"input_inventory_bills.user_update,input_inventory_bills.note")
 	list := []InventoryInputItemWithBill{}
 	total := int64(0)
 

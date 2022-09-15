@@ -234,17 +234,17 @@ func getBookingCmsUserLog(cmsUser string, timeDo int64) string {
 	  Tính golf fee cho tạo đơn có guest style
 		Là phần tử đầu của list golfFee
 */
-func getInitListGolfFeeForBooking(uid string, body request.CreateBookingBody, golfFee models.GolfFee) (model_booking.ListBookingGolfFee, model_booking.BookingGolfFee) {
+func getInitListGolfFeeForBooking(param request.GolfFeeGuestyleParam, golfFee models.GolfFee) (model_booking.ListBookingGolfFee, model_booking.BookingGolfFee) {
 	listBookingGolfFee := model_booking.ListBookingGolfFee{}
 	bookingGolfFee := model_booking.BookingGolfFee{}
-	bookingGolfFee.BookingUid = uid
-	bookingGolfFee.Bag = body.Bag
-	bookingGolfFee.PlayerName = body.CustomerName
+	bookingGolfFee.BookingUid = param.Uid
+	bookingGolfFee.Bag = param.Bag
+	bookingGolfFee.PlayerName = param.CustomerName
 	bookingGolfFee.RoundIndex = 0
 
-	bookingGolfFee.CaddieFee = utils.GetFeeFromListFee(golfFee.CaddieFee, body.Hole)
-	bookingGolfFee.BuggyFee = utils.GetFeeFromListFee(golfFee.BuggyFee, body.Hole)
-	bookingGolfFee.GreenFee = utils.GetFeeFromListFee(golfFee.GreenFee, body.Hole)
+	bookingGolfFee.CaddieFee = utils.GetFeeFromListFee(golfFee.CaddieFee, param.Hole)
+	bookingGolfFee.BuggyFee = utils.GetFeeFromListFee(golfFee.BuggyFee, param.Hole)
+	bookingGolfFee.GreenFee = utils.GetFeeFromListFee(golfFee.GreenFee, param.Hole)
 
 	listBookingGolfFee = append(listBookingGolfFee, bookingGolfFee)
 	return listBookingGolfFee, bookingGolfFee
@@ -296,17 +296,17 @@ func getInitGolfFeeForChangeHole(body request.ChangeBookingHole, golfFee models.
 /*
 Theo giá đặc biệt, k theo GuestStyle
 */
-func getInitListGolfFeeWithOutGuestStyleForBooking(uid, rate string, body request.CreateBookingBody, caddieFee, buggyFee, greenFee int64) (model_booking.ListBookingGolfFee, model_booking.BookingGolfFee) {
+func getInitListGolfFeeWithOutGuestStyleForBooking(param request.GolfFeeGuestyleParam) (model_booking.ListBookingGolfFee, model_booking.BookingGolfFee) {
 	listBookingGolfFee := model_booking.ListBookingGolfFee{}
 	bookingGolfFee := model_booking.BookingGolfFee{}
-	bookingGolfFee.BookingUid = uid
-	bookingGolfFee.Bag = body.Bag
-	bookingGolfFee.PlayerName = body.CustomerName
+	bookingGolfFee.BookingUid = param.Uid
+	bookingGolfFee.Bag = param.Bag
+	bookingGolfFee.PlayerName = param.CustomerName
 	bookingGolfFee.RoundIndex = 0
 
-	bookingGolfFee.CaddieFee = utils.CalculateFeeByHole(body.Hole, caddieFee, rate)
-	bookingGolfFee.BuggyFee = utils.CalculateFeeByHole(body.Hole, buggyFee, rate)
-	bookingGolfFee.GreenFee = utils.CalculateFeeByHole(body.Hole, greenFee, rate)
+	bookingGolfFee.CaddieFee = utils.CalculateFeeByHole(param.Hole, param.CaddieFee, param.Rate)
+	bookingGolfFee.BuggyFee = utils.CalculateFeeByHole(param.Hole, param.BuggyFee, param.Rate)
+	bookingGolfFee.GreenFee = utils.CalculateFeeByHole(param.Hole, param.GreenFee, param.Rate)
 
 	listBookingGolfFee = append(listBookingGolfFee, bookingGolfFee)
 	return listBookingGolfFee, bookingGolfFee

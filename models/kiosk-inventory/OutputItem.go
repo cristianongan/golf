@@ -30,6 +30,7 @@ type InventoryOutputItemWithBill struct {
 	Bag               string `json:"bag"`
 	CustomerName      string `json:"customer_name"`
 	BillStatus        string `json:"bill_status"`
+	UserUpdate        string `json:"user_update"`
 }
 type OutputStatisticItem struct {
 	PartnerUid string `json:"partner_uid"`
@@ -115,7 +116,7 @@ func (item *InventoryOutputItem) FindListForStatistic(page models.Page) ([]Inven
 	db = db.Joins("JOIN output_inventory_bills on output_inventory_bills.code = inventory_output_items.code")
 	db = db.Select("inventory_output_items.*,output_inventory_bills.service_import_id," +
 		"output_inventory_bills.service_import_name,output_inventory_bills.bag," +
-		"output_inventory_bills.customer_name,output_inventory_bills.bill_status")
+		"output_inventory_bills.customer_name,output_inventory_bills.bill_status,output_inventory_bills.user_update")
 	list := []InventoryOutputItemWithBill{}
 	total := int64(0)
 

@@ -205,7 +205,17 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 		if memberCard.PriceCode == 1 && memberCard.IsValidTimePrecial() {
 			// Check member card với giá riêng và time được áp dụng
-			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(bUid, course.RateGolfFee, body, memberCard.CaddieFee, memberCard.BuggyFee, memberCard.GreenFee)
+			param := request.GolfFeeGuestyleParam{
+				Uid:          bUid,
+				Rate:         course.RateGolfFee,
+				Bag:          body.Bag,
+				CustomerName: body.CustomerName,
+				Hole:         body.Hole,
+				CaddieFee:    memberCard.CaddieFee,
+				BuggyFee:     memberCard.BuggyFee,
+				GreenFee:     memberCard.GreenFee,
+			}
+			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
 			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 			if body.GuestStyle != "" {
 				body.GuestStyle = ""
@@ -254,7 +264,17 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			// Tính lại giá
 			// List Booking GolfFee
 			// TODO:  Check số lượt dc config ở agency
-			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(bUid, course.RateGolfFee, body, agencySpecialPrice.CaddieFee, agencySpecialPrice.BuggyFee, agencySpecialPrice.GreenFee)
+			param := request.GolfFeeGuestyleParam{
+				Uid:          bUid,
+				Rate:         course.RateGolfFee,
+				Bag:          body.Bag,
+				CustomerName: body.CustomerName,
+				Hole:         body.Hole,
+				CaddieFee:    agencySpecialPrice.CaddieFee,
+				BuggyFee:     agencySpecialPrice.BuggyFee,
+				GreenFee:     agencySpecialPrice.GreenFee,
+			}
+			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
 			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 
 		} else {
@@ -301,7 +321,14 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.GuestStyleName = golfFee.GuestStyleName
 
 		// List Booking GolfFee
-		listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(bUid, body, golfFee)
+		param := request.GolfFeeGuestyleParam{
+			Uid:          bUid,
+			Bag:          body.Bag,
+			CustomerName: body.CustomerName,
+			Hole:         body.Hole,
+		}
+
+		listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(param, golfFee)
 		initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 	}
 
@@ -827,9 +854,29 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerName = owner.Name
 		booking.CustomerUid = owner.Uid
 		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
-		if memberCard.PriceCode == 1 {
-			// TODO: Check khác mới Udp lại, Giá riêng không theo guest style
-
+		if memberCard.PriceCode == 1 && memberCard.IsValidTimePrecial() {
+			course := models.Course{}
+			course.Uid = body.CourseUid
+			errCourse := course.FindFirst()
+			if errCourse != nil {
+				response_message.BadRequest(c, errCourse.Error())
+				return
+			}
+			param := request.GolfFeeGuestyleParam{
+				Uid:          booking.Uid,
+				Rate:         course.RateGolfFee,
+				Bag:          booking.Bag,
+				CustomerName: body.CustomerName,
+				CaddieFee:    memberCard.CaddieFee,
+				BuggyFee:     memberCard.BuggyFee,
+				GreenFee:     memberCard.GreenFee,
+				Hole:         booking.Hole,
+			}
+			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
+			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
+			if body.GuestStyle != "" {
+				body.GuestStyle = ""
+			}
 		} else {
 			// Lấy theo GuestStyle
 			body.GuestStyle = memberCard.GetGuestStyle()
@@ -840,6 +887,81 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	//Agency id
+	if body.AgencyId > 0 {
+		// Get config course
+		course := models.Course{}
+		course.Uid = body.CourseUid
+		errCourse := course.FindFirst()
+		if errCourse != nil {
+			response_message.BadRequest(c, errCourse.Error())
+			return
+		}
+
+		agency := models.Agency{}
+		agency.Id = body.AgencyId
+		errFindAgency := agency.FindFirst()
+		if errFindAgency != nil || agency.Id == 0 {
+			response_message.BadRequest(c, "agency"+errFindAgency.Error())
+			return
+		}
+
+		agencyBooking := cloneToAgencyBooking(agency)
+		booking.AgencyInfo = agencyBooking
+		booking.AgencyId = body.AgencyId
+
+		agencySpecialPrice := models.AgencySpecialPrice{
+			AgencyId: agency.Id,
+		}
+		errFSP := agencySpecialPrice.FindFirst()
+		if errFSP == nil && agencySpecialPrice.Id > 0 {
+			// Tính lại giá
+			// List Booking GolfFee
+			// TODO:  Check số lượt dc config ở agency
+			param := request.GolfFeeGuestyleParam{
+				Uid:          booking.Uid,
+				Rate:         course.RateGolfFee,
+				Bag:          booking.Bag,
+				CustomerName: body.CustomerName,
+				Hole:         booking.Hole,
+				CaddieFee:    agencySpecialPrice.CaddieFee,
+				BuggyFee:     agencySpecialPrice.BuggyFee,
+				GreenFee:     agencySpecialPrice.GreenFee,
+			}
+			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
+			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
+
+		} else {
+			body.GuestStyle = agency.GuestStyle
+		}
+	}
+	// GuestStyle
+	if body.GuestStyle != "" {
+		//Guest style
+		golfFeeModel := models.GolfFee{
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+			GuestStyle: body.GuestStyle,
+		}
+		// Lấy phí bởi Guest style với ngày tạo
+		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay()
+		if errFindGF != nil {
+			response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+			return
+		}
+		booking.GuestStyle = body.GuestStyle
+		booking.GuestStyleName = golfFee.GuestStyleName
+
+		// List Booking GolfFee
+		param := request.GolfFeeGuestyleParam{
+			Uid:          booking.Uid,
+			Bag:          body.Bag,
+			CustomerName: body.CustomerName,
+			Hole:         body.Hole,
+		}
+		listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(param, golfFee)
+		initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
+	}
 	//Find Booking Code
 	list, _ := booking.FindListWithBookingCode()
 	if len(list) == 1 {
@@ -992,12 +1114,13 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.GuestStyleName = golfFee.GuestStyleName
 
 		// List Booking GolfFee
-		bodyCreate := request.CreateBookingBody{
-			Hole:         booking.Hole,
-			CustomerName: booking.CustomerName,
+		param := request.GolfFeeGuestyleParam{
+			Uid:          booking.Uid,
 			Bag:          booking.Bag,
+			CustomerName: booking.CustomerName,
+			Hole:         booking.Hole,
 		}
-		listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(booking.Uid, bodyCreate, golfFee)
+		listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(param, golfFee)
 		initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 	}
 

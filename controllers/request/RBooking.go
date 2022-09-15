@@ -133,6 +133,17 @@ type CreateBookingBody struct {
 	BookMark          bool
 }
 
+type GolfFeeGuestyleParam struct {
+	Uid          string
+	Rate         string
+	Bag          string
+	CustomerName string
+	CaddieFee    int64
+	BuggyFee     int64
+	GreenFee     int64
+	Hole         int
+}
+
 type CreateBatchBookingBody struct {
 	BookingList ListCreateBookingBody `json:"booking_list"`
 }
