@@ -101,13 +101,14 @@ type CreateBookingBody struct {
 	CmsUser     string `json:"cms_user"`                       // Acc Operator Tạo (Bỏ lấy theo token)
 	PartnerUid  string `json:"partner_uid" binding:"required"` // Hang Golf
 	CourseUid   string `json:"course_uid" binding:"required"`  // San Golf
-	Bag         string `json:"bag"`                            // Golf Bag
-	Hole        int    `json:"hole"`                           // Số hố
-	TeeType     string `json:"tee_type"`                       // 1, 1A, 1B, 1C, 10, 10A, 10B (k required cái này vì có case checking k qua booking)
-	TeePath     string `json:"tee_path"`                       // MORNING, NOON, NIGHT (k required cái này vì có case checking k qua booking)
-	TurnTime    string `json:"turn_time"`                      // Ex: 16:26 (k required cái này vì có case checking k qua booking)
-	TeeTime     string `json:"tee_time"`                       // Ex: 16:26 Tee time là thời gian tee off dự kiến (k required cái này vì có case checking k qua booking)
-	RowIndex    *int   `json:"row_index"`                      // index trong Flight
+	CourseType  string `json:"course_type"`
+	Bag         string `json:"bag"`       // Golf Bag
+	Hole        int    `json:"hole"`      // Số hố
+	TeeType     string `json:"tee_type"`  // 1, 1A, 1B, 1C, 10, 10A, 10B (k required cái này vì có case checking k qua booking)
+	TeePath     string `json:"tee_path"`  // MORNING, NOON, NIGHT (k required cái này vì có case checking k qua booking)
+	TurnTime    string `json:"turn_time"` // Ex: 16:26 (k required cái này vì có case checking k qua booking)
+	TeeTime     string `json:"tee_time"`  // Ex: 16:26 Tee time là thời gian tee off dự kiến (k required cái này vì có case checking k qua booking)
+	RowIndex    *int   `json:"row_index"` // index trong Flight
 
 	// Guest booking
 	GuestStyle           string `json:"guest_style"`            // Guest Style
@@ -202,10 +203,10 @@ type EditSubBagBooking struct {
 
 type CheckInBody struct {
 	BookingBaseBody
-	Bag    string `json:"bag" binding:"required"` // Golf Bag
-	Locker string `json:"locker"`
-	Hole   int    `json:"hole"` // Số hố
-
+	Bag            string `json:"bag" binding:"required"` // Golf Bag
+	Locker         string `json:"locker"`
+	Hole           int    `json:"hole"`             // Số hố
+	CourseType     string `json:"course_type"`      // Sân nào : A,B,C
 	GuestStyle     string `json:"guest_style"`      // Guest Style
 	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
 

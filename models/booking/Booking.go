@@ -19,9 +19,9 @@ import (
 // omitempty: xứ lý khi các field trả về rỗng
 type Booking struct {
 	models.Model
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-
+	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	CourseType  string `json:"course_type" gorm:"type:varchar(100)"`       // A,B,C
 	BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
 
 	Bag            string `json:"bag" gorm:"type:varchar(100);index"`         // Golf Bag
