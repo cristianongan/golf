@@ -173,6 +173,27 @@ const (
 )
 
 /*
+Các dịch vụ của nhà hàng: mang theo, giao hàng, đặt bàn...
+*/
+const (
+	RES_TYPE_BRING = "BRING"
+	RES_TYPE_SHIP  = "SHIP"
+	RES_TYPE_TABLE = "TABLE"
+)
+
+/*
+Các trạng thaiscuar nhà hàng
+*/
+const (
+	RES_STATUS_BOOKING = "BOOKING"
+	RES_STATUS_ORDER   = "ORDER"
+	RES_STATUS_PROCESS = "PROCESS"
+	RES_STATUS_DONE    = "DONE"
+	RES_STATUS_CANCEL  = "CANCEL"
+	RES_STATUS_OUT     = "OUT"
+)
+
+/*
 Các loại thay đổi hố booking
 */
 const (
