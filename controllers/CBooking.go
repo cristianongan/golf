@@ -117,6 +117,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		BookingRestaurant: body.BookingRestaurant,
 		BookingRetal:      body.BookingRetal,
 		BookingCode:       body.BookingCode,
+		CourseType:        body.CourseType,
 	}
 
 	// Check Guest of member, check member có còn slot đi cùng không
