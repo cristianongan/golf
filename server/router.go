@@ -522,11 +522,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/kiosk-inventory/input-bill/return", middlewares.AuthorizedCmsUserHandler(cKioskInputInventory.ReturnInputItem))
 			cmsApiAuthorized.GET("/kiosk-inventory/input-bill/list", middlewares.AuthorizedCmsUserHandler(cKioskInputInventory.GetInputBills))
 			cmsApiAuthorized.GET("/kiosk-inventory/input-items/list", middlewares.AuthorizedCmsUserHandler(cKioskInputInventory.GetInputItems))
+			cmsApiAuthorized.GET("/kiosk-inventory/input-items/statistic", middlewares.AuthorizedCmsUserHandler(cKioskInputInventory.GetInputItemsForStatis))
 
 			cKioskOutputInventory := new(controllers.CKioskOutputInventory)
 			cmsApiAuthorized.POST("/kiosk-inventory/output-bill/create", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.CreateOutputBill))
 			cmsApiAuthorized.GET("/kiosk-inventory/output-bill/list", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.GetOutputBills))
 			cmsApiAuthorized.GET("/kiosk-inventory/output-items/list", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.GetOutputItems))
+			cmsApiAuthorized.GET("/kiosk-inventory/output-items/statistic", middlewares.AuthorizedCmsUserHandler(cKioskOutputInventory.GetOutputItemsForStatistic))
 
 			/// =================== Kiosk Statistic ===================
 			cKioskStatistic := new(controllers.CStatisticItem)

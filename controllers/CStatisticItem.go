@@ -15,6 +15,7 @@ type CStatisticItem struct{}
 
 func (_ CStatisticItem) AddItemToStatistic() {
 	now := time.Now().Format(constants.DATE_FORMAT_1)
+	yesterday := time.Now().AddDate(0, 0, -1).Format(constants.DATE_FORMAT_1)
 
 	outputInventory := kiosk_inventory.InventoryOutputItem{
 		OutputDate: now,
@@ -39,97 +40,88 @@ func (_ CStatisticItem) AddItemToStatistic() {
 					output.PartnerUid == input.PartnerUid &&
 					output.CourseUid == input.CourseUid &&
 					output.ServiceId == input.ServiceId {
-					itemList = append(itemList, kiosk_inventory.StatisticItem{
-						PartnerUid: input.PartnerUid,
-						CourseUid:  input.CourseUid,
-						ItemCode:   input.ItemCode,
-						Import:     input.Total,
-						Export:     output.Total,
-						ServiceId:  input.ServiceId,
-					})
+
+					newItem := InitStatisticItem(input, yesterday, output.Total, input.Total, now)
+
+					itemList = append(itemList, newItem)
+
 					commonItemCode = append(commonItemCode, kiosk_inventory.StatisticItem{
 						PartnerUid: input.PartnerUid,
 						CourseUid:  input.CourseUid,
 						ItemCode:   input.ItemCode,
+						ServiceId:  input.ServiceId,
 					})
 				}
 			}
 		}
 	}
 
-	if len(commonItemCode) == 0 {
-		for _, output := range outputList {
-			itemList = append(itemList, kiosk_inventory.StatisticItem{
-				PartnerUid: output.PartnerUid,
-				CourseUid:  output.CourseUid,
-				ItemCode:   output.ItemCode,
-				Import:     0,
-				Export:     output.Total,
-				ServiceId:  output.ServiceId,
-			})
+	for _, output := range outputList {
+		check := false
+		for _, common := range commonItemCode {
+			if output.ItemCode == common.ItemCode &&
+				output.PartnerUid == common.PartnerUid &&
+				output.CourseUid == common.CourseUid &&
+				output.ServiceId == common.ServiceId {
+				check = true
+			}
 		}
-	} else {
-		for _, output := range outputList {
-			check := false
-			for _, common := range commonItemCode {
-				if output.ItemCode == common.ItemCode &&
-					output.PartnerUid == common.PartnerUid &&
-					output.CourseUid == common.CourseUid &&
-					output.ServiceId == common.ServiceId {
-					check = true
-				}
-			}
-			if !check {
-				itemList = append(itemList, kiosk_inventory.StatisticItem{
-					PartnerUid: output.PartnerUid,
-					CourseUid:  output.CourseUid,
-					ItemCode:   output.ItemCode,
-					Import:     0,
-					Export:     output.Total,
-					ServiceId:  output.ServiceId,
-				})
-			}
+		if !check {
+			newItem := InitStatisticItem(output, yesterday, output.Total, 0, now)
+			itemList = append(itemList, newItem)
 		}
 	}
 
-	if len(commonItemCode) == 0 {
-		for _, input := range inputList {
-			itemList = append(itemList, kiosk_inventory.StatisticItem{
-				PartnerUid: input.PartnerUid,
-				CourseUid:  input.CourseUid,
-				ItemCode:   input.ItemCode,
-				Import:     input.Total,
-				Export:     0,
-				ServiceId:  input.ServiceId,
-			})
+	for _, input := range inputList {
+		check := false
+		for _, common := range commonItemCode {
+			if input.ItemCode == common.ItemCode &&
+				input.PartnerUid == common.PartnerUid &&
+				input.CourseUid == common.CourseUid &&
+				input.ServiceId == common.ServiceId {
+				check = true
+			}
 		}
-	} else {
-		for _, input := range inputList {
-			check := false
-			for _, common := range commonItemCode {
-				if input.ItemCode == common.ItemCode &&
-					input.PartnerUid == common.PartnerUid &&
-					input.CourseUid == common.CourseUid &&
-					input.ServiceId == common.ServiceId {
-					check = true
-				}
-			}
-			if !check {
-				itemList = append(itemList, kiosk_inventory.StatisticItem{
-					PartnerUid: input.PartnerUid,
-					CourseUid:  input.CourseUid,
-					ItemCode:   input.ItemCode,
-					Import:     0,
-					Export:     input.Total,
-					ServiceId:  input.ServiceId,
-				})
-			}
+		if !check {
+			newItem := InitStatisticItem(input, yesterday, 0, input.Total, now)
+			itemList = append(itemList, newItem)
 		}
 	}
 
 	for _, data := range itemList {
 		data.Create()
 	}
+}
+
+func InitStatisticItem(item kiosk_inventory.OutputStatisticItem, yesterday string, outputTotal int64, inputTotal int64, now string) kiosk_inventory.StatisticItem {
+	var endingInventory int64 = 0
+
+	yesterdayItem := kiosk_inventory.StatisticItem{
+		PartnerUid: item.PartnerUid,
+		CourseUid:  item.CourseUid,
+		ItemCode:   item.ItemCode,
+		ServiceId:  item.ServiceId,
+		Time:       yesterday,
+	}
+
+	if errFind := yesterdayItem.FindFirst(); errFind == nil {
+		endingInventory = yesterdayItem.Total
+	}
+
+	totalNow := endingInventory + item.Total - outputTotal
+
+	newItem := kiosk_inventory.StatisticItem{
+		PartnerUid:      item.PartnerUid,
+		CourseUid:       item.CourseUid,
+		ItemCode:        item.ItemCode,
+		ServiceId:       item.ServiceId,
+		Import:          inputTotal,
+		Export:          outputTotal,
+		EndingInventory: yesterdayItem.Total,
+		Total:           totalNow,
+		Time:            now,
+	}
+	return newItem
 }
 
 func (_ CStatisticItem) GetItemStatisticDetail(c *gin.Context, prof models.CmsUser) {

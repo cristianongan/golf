@@ -21,6 +21,7 @@ type StatisticItem struct {
 	Import          int64  `json:"import"`                                     // Số lượng đã Import cuối ngày
 	Export          int64  `json:"export"`                                     // Số lượng đã Export cuối ngày
 	Total           int64  `json:"total"`                                      // Tổng số lượng cuối ngày
+	Time            string `json:"time" gorm:"type:varchar(256)"`              // Ngày thống kê
 }
 
 func (item *StatisticItem) Create() error {
@@ -31,6 +32,11 @@ func (item *StatisticItem) Create() error {
 
 	db := datasources.GetDatabase()
 	return db.Create(item).Error
+}
+
+func (item *StatisticItem) FindFirst() error {
+	db := datasources.GetDatabase()
+	return db.Where(item).First(item).Error
 }
 
 func (item *StatisticItem) FindList(page models.Page) ([]StatisticItem, int64, error) {

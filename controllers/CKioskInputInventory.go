@@ -230,6 +230,40 @@ func (_ CKioskInputInventory) GetInputItems(c *gin.Context, prof models.CmsUser)
 	okResponse(c, res)
 }
 
+func (_ CKioskInputInventory) GetInputItemsForStatis(c *gin.Context, prof models.CmsUser) {
+	var form request.GetInOutItems
+	if err := c.ShouldBind(&form); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	inputItems := kiosk_inventory.InventoryInputItem{}
+	inputItems.ServiceId = form.ServiceId
+	inputItems.PartnerUid = form.PartnerUid
+	inputItems.CourseUid = form.CourseUid
+	inputItems.ItemCode = form.ItemCode
+	list, total, err := inputItems.FindListForStatistic(page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
 func (_ CKioskInputInventory) GetInputBills(c *gin.Context, prof models.CmsUser) {
 	var form request.GetBill
 	if err := c.ShouldBind(&form); err != nil {

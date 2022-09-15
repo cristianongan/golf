@@ -51,7 +51,7 @@ func (_ *CKiosk) GetListKiosk(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	typeList := []string{constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.MINI_R_SETTING, constants.DRIVING_SETTING, constants.RENTAL_SETTING, constants.PROSHOP_SETTING}
+	typeList := []string{constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.MINI_R_SETTING, constants.DRIVING_SETTING, constants.RENTAL_SETTING, constants.PROSHOP_SETTING, constants.RESTAURANT_SETTING}
 	kioskList := []KioskResponse{}
 
 	for _, typeD := range typeList {

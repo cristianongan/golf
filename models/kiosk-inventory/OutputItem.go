@@ -18,11 +18,19 @@ type InventoryOutputItem struct {
 	ItemCode    string   `json:"item_code" gorm:"type:varchar(100);index"`   // mã của sản phẩm
 	ItemInfo    ItemInfo `json:"item_info" gorm:"type:json"`
 	Quantity    int64    `json:"quantity"`                              // số lượng
+	Amount      int64    `json:"amount"`                                // Tổng tiền
 	OutputDate  string   `json:"output_date"`                           // ngày xuất kho
 	ServiceId   int64    `json:"service_id" gorm:"index"`               // mã service
 	ServiceName string   `json:"service_name" gorm:"type:varchar(256)"` // tên service
 }
-
+type InventoryOutputItemWithBill struct {
+	InventoryInputItem
+	ServiceImportId   int64  `json:"service_import_id"`
+	ServiceImportName string `json:"service_import_name"`
+	Bag               string `json:"bag"`
+	CustomerName      string `json:"customer_name"`
+	BillStatus        string `json:"bill_status"`
+}
 type OutputStatisticItem struct {
 	PartnerUid string `json:"partner_uid"`
 	CourseUid  string `json:"course_uid"`
@@ -91,6 +99,44 @@ func (item *InventoryOutputItem) FindList(page models.Page) ([]InventoryOutputIt
 
 	if item.ItemCode != "" {
 		db = db.Where("item_code = ?", item.ItemCode)
+	}
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, total, db.Error
+}
+
+func (item *InventoryOutputItem) FindListForStatistic(page models.Page) ([]InventoryOutputItemWithBill, int64, error) {
+	db := datasources.GetDatabase().Model(InventoryOutputItem{})
+	db = db.Joins("JOIN output_inventory_bills on output_inventory_bills.code = inventory_output_items.code")
+	db = db.Select("inventory_output_items.*,output_inventory_bills.service_import_id," +
+		"output_inventory_bills.service_import_name,output_inventory_bills.bag," +
+		"output_inventory_bills.customer_name,output_inventory_bills.bill_status")
+	list := []InventoryOutputItemWithBill{}
+	total := int64(0)
+
+	if item.PartnerUid != "" {
+		db = db.Where("inventory_output_items.partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("inventory_output_items.course_uid = ?", item.CourseUid)
+	}
+
+	if item.Code != "" {
+		db = db.Where("inventory_output_items.code = ?", item.Code)
+	}
+
+	if item.ServiceId > 0 {
+		db = db.Where("inventory_output_items.service_id = ?", item.ServiceId)
+	}
+
+	if item.ItemCode != "" {
+		db = db.Where("inventory_output_items.item_code = ?", item.ItemCode)
 	}
 
 	db.Count(&total)
