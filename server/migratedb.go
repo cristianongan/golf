@@ -133,6 +133,9 @@ func MigrateDb() {
 		// ------- ServiceCart -------
 		db.AutoMigrate(&models.ServiceCart{})
 
+		// ------- RestuarantItem -------
+		db.AutoMigrate(&models.RestaurantItem{})
+
 		// ------- Report -------
 		db.AutoMigrate(&model_report.ReportCustomerPlay{})
 

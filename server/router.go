@@ -545,6 +545,16 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/service-cart/move-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.MoveItemToOtherCart))
 			cmsApiAuthorized.PUT("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.UpdateItemCart))
 			cmsApiAuthorized.DELETE("/service-cart/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteItemInCart))
+
+			/// =================== Kiosk ===================
+			cRestaurantOrder := new(controllers.CRestaurantOrder)
+			cmsApiAuthorized.GET("/restaurant/list-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.GetListItemOrder))
+			cmsApiAuthorized.GET("/restaurant/list-bill", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.GetListBill))
+			cmsApiAuthorized.POST("/restaurant/add-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.AddItemOrder))
+			cmsApiAuthorized.POST("/restaurant/add-bill", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateRestaurantOrder))
+			cmsApiAuthorized.POST("/restaurant/create-bill-code", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateBill))
+			cmsApiAuthorized.PUT("/restaurant/item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.UpdateItemOrder))
+			cmsApiAuthorized.DELETE("/restaurant/item/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteItemOrder))
 		}
 
 		// ----------------------------------------------------------
