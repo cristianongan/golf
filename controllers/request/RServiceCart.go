@@ -1,8 +1,8 @@
 package request
 
 type AddItemServiceCartBody struct {
-	GolfBag   string `json:"golf_bag"`
-	ItemCode  string `json:"item_code"`
+	GolfBag   string `json:"golf_bag" binding:"required"`
+	ItemCode  string `json:"item_code" binding:"required"`
 	Quantity  int64  `json:"quantity"`
 	ServiceId int64  `json:"service_id"`
 	BillId    int64  `json:"bill_id"`
