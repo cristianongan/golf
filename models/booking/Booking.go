@@ -25,8 +25,8 @@ type Booking struct {
 	BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
 
 	Bag            string `json:"bag" gorm:"type:varchar(100);index"`         // Golf Bag
-	Hole           int    `json:"hole"`                                       // Số hố
-	HoleCheckIn    int    `json:"hole_checkin"`                               // Số hố khi check in
+	Hole           int    `json:"hole"`                                       // Số hố dùng full luồng
+	HoleBooking    int    `json:"hole_booking"`                               // Số hố khi booking
 	GuestStyle     string `json:"guest_style" gorm:"type:varchar(200);index"` // Guest Style
 	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Guest Style Name
 
