@@ -168,7 +168,7 @@ func (_ *CAnnualFee) UpdateAnnualFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Check duplicated
-	if body.IsDuplicated() {
+	if body.Year != annualFee.Year && body.IsDuplicated() {
 		response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}

@@ -113,6 +113,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		RowIndex:          body.RowIndex,
 		CmsUser:           prof.UserName,
 		Hole:              body.Hole,
+		HoleBooking:       body.Hole,
 		BookingRestaurant: body.BookingRestaurant,
 		BookingRetal:      body.BookingRetal,
 		BookingCode:       body.BookingCode,
@@ -968,8 +969,8 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.UpdateBagGolfFee()
 	}
 
-	if body.HoleCheckIn > 0 {
-		booking.HoleCheckIn = body.HoleCheckIn
+	if body.Hole > 0 {
+		booking.Hole = body.Hole
 	}
 
 	checkInTime := time.Now().Unix()
@@ -992,7 +993,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 		// List Booking GolfFee
 		bodyCreate := request.CreateBookingBody{
-			Hole:         booking.HoleCheckIn,
+			Hole:         booking.Hole,
 			CustomerName: booking.CustomerName,
 			Bag:          booking.Bag,
 		}
