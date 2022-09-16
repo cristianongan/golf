@@ -351,13 +351,19 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	if body.CaddieCode != "" {
 		booking.CaddieId = caddie.Id
 
-		if booking.CheckDuplicatedCaddieInTeeTime() {
-			response_message.InternalServerError(c, "Caddie không được trùng trong cùng TeeTime")
-			return nil
-		}
+		// if booking.CheckDuplicatedCaddieInTeeTime() {
+		// 	response_message.InternalServerError(c, "Caddie không được trùng trong cùng TeeTime")
+		// 	return nil
+		// }
 
 		booking.CaddieInfo = cloneToCaddieBooking(caddie)
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+
+		// udp trạng thái caddie sang LOCK
+		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+		if errCad := caddie.Update(); errCad != nil {
+			log.Println("err addCaddieInOutNote", err.Error())
+		}
 
 		// Udp Note
 		caddieInNote := model_gostarter.CaddieInOutNote{
@@ -1676,6 +1682,9 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	// udp trạng thái caddie
+	udpOutCaddieBooking(&booking)
 
 	// delete tee time locked theo booking date
 	if booking.TeeTime != "" {
