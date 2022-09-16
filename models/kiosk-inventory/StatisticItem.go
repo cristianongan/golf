@@ -39,7 +39,7 @@ func (item *StatisticItem) FindFirst() error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *StatisticItem) FindList(page models.Page) ([]StatisticItem, int64, error) {
+func (item *StatisticItem) FindList(page models.Page, fromDate int64, toDate int64) ([]StatisticItem, int64, error) {
 	db := datasources.GetDatabase().Model(StatisticItem{})
 	list := []StatisticItem{}
 	total := int64(0)
@@ -58,6 +58,14 @@ func (item *StatisticItem) FindList(page models.Page) ([]StatisticItem, int64, e
 
 	if item.ServiceId > 0 {
 		db = db.Where("service_id = ?", item.ServiceId)
+	}
+
+	if fromDate > 0 {
+		db = db.Where("created_at >= ?", fromDate)
+	}
+
+	if toDate > 0 {
+		db = db.Where("created_at <= ?", toDate)
 	}
 
 	db.Count(&total)

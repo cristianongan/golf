@@ -24,8 +24,8 @@ type InputInventoryBill struct {
 	Quantity          int64                `json:"quantity"`                                     // Tổng số lượng sell or transfer
 	UserUpdate        string               `json:"user_update" gorm:"type:varchar(256)"`         // Người update cuối cùng UserUpdate
 	UserExport        string               `json:"user_export" gorm:"type:varchar(256)"`         // Người export đơn
-	InputDate         int64                `json:"input_date"`                                   // ngày nhập kho
-	OutputDate        int64                `json:"output_date"`                                  // ngày xuất kho
+	InputDate         int64                `json:"input_date"`                                   // ngày chấp nhận nhập kho
+	OutputDate        int64                `json:"output_date"`                                  // ngày của đơn xuất
 	ListItem          []InventoryInputItem `json:"list_item,omitempty" gorm:"foreignKey:Code;references:Code"`
 }
 

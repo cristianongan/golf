@@ -6,6 +6,7 @@ import (
 	"start/models"
 	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
+	"start/utils"
 	"start/utils/response_message"
 	"time"
 
@@ -122,6 +123,7 @@ func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.Cms
 
 	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_ACCEPT
 	inventoryStatus.UserUpdate = prof.UserName
+	inventoryStatus.InputDate = time.Now().Unix()
 	if err := inventoryStatus.Update(); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
@@ -249,7 +251,19 @@ func (_ CKioskInputInventory) GetInputItemsForStatis(c *gin.Context, prof models
 	inputItems.PartnerUid = form.PartnerUid
 	inputItems.CourseUid = form.CourseUid
 	inputItems.ItemCode = form.ItemCode
-	list, total, err := inputItems.FindListForStatistic(page)
+
+	var fromDateInt int64 = 0
+	var toDateInt int64 = 0
+
+	if form.FromDate != "" {
+		fromDateInt = utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, form.FromDate)
+	}
+
+	if form.ToDate != "" {
+		toDateInt = utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, form.ToDate)
+	}
+
+	list, total, err := inputItems.FindListForStatistic(page, fromDateInt, toDateInt)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

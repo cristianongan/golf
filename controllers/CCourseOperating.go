@@ -1015,6 +1015,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 
 	// Chuyển booking cũ sang time out
 	booking.BagStatus = constants.BAG_STATUS_TIMEOUT
+	booking.TimeOutFlight = time.Now().Unix()
 	errBookingUpd := booking.Update()
 	if errBookingUpd != nil {
 		response_message.InternalServerError(c, errBookingUpd.Error())

@@ -68,6 +68,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	if body.TeeTime != "" {
 		teeTime := models.LockTeeTime{}
 		teeTime.TeeTime = body.TeeTime
+		teeTime.TeeType = body.TeeType
 		teeTime.CourseUid = body.CourseUid
 		teeTime.PartnerUid = body.PartnerUid
 		teeTime.DateTime = body.BookingDate

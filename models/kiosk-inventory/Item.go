@@ -61,6 +61,14 @@ func (item *InventoryItem) FindList(page models.Page) ([]InventoryItem, int64, e
 	list := []InventoryItem{}
 	total := int64(0)
 
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
 	if item.ServiceId > 0 {
 		db = db.Where("service_id = ?", item.ServiceId)
 	}

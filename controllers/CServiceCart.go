@@ -73,6 +73,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 			return
 		}
 		// add infor cart item
+		serviceCartItem.Type = kiosk.KioskType
 		serviceCartItem.GroupCode = fb.GroupCode
 		serviceCartItem.Name = fb.VieName
 		serviceCartItem.UnitPrice = int64(fb.Price)
@@ -90,6 +91,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 			return
 		}
 		// add infor cart item
+		serviceCartItem.Type = kiosk.KioskType
 		serviceCartItem.GroupCode = proshop.GroupCode
 		serviceCartItem.Name = proshop.VieName
 		serviceCartItem.UnitPrice = int64(proshop.Price)
@@ -107,6 +109,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 			return
 		}
 		// add infor cart item
+		serviceCartItem.Type = kiosk.KioskType
 		serviceCartItem.GroupCode = rental.GroupCode
 		serviceCartItem.Name = rental.VieName
 		serviceCartItem.UnitPrice = int64(rental.Price)
