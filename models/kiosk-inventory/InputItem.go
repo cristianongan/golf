@@ -121,7 +121,7 @@ func (item *InventoryInputItem) FindStatistic() ([]OutputStatisticItem, error) {
 	return list, db.Error
 }
 
-func (item *InventoryInputItem) FindListForStatistic(page models.Page) ([]InventoryInputItemWithBill, int64, error) {
+func (item *InventoryInputItem) FindListForStatistic(page models.Page, fromDate int64, toDate int64) ([]InventoryInputItemWithBill, int64, error) {
 	db := datasources.GetDatabase().Model(InventoryInputItem{})
 	db = db.Joins("JOIN input_inventory_bills on input_inventory_bills.code = inventory_input_items.code")
 	db = db.Select("inventory_input_items.*,input_inventory_bills.service_export_id," +
@@ -148,6 +148,14 @@ func (item *InventoryInputItem) FindListForStatistic(page models.Page) ([]Invent
 
 	if item.ItemCode != "" {
 		db = db.Where("inventory_input_items.item_code = ?", item.ItemCode)
+	}
+
+	if fromDate > 0 {
+		db = db.Where("input_inventory_bills.input_date >= ?", fromDate)
+	}
+
+	if toDate > 0 {
+		db = db.Where("input_inventory_bills.input_date <= ?", toDate)
 	}
 
 	db.Count(&total)

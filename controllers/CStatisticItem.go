@@ -5,6 +5,7 @@ import (
 	"start/controllers/request"
 	"start/models"
 	kiosk_inventory "start/models/kiosk-inventory"
+	"start/utils"
 	"start/utils/response_message"
 	"time"
 
@@ -158,7 +159,18 @@ func (_ CStatisticItem) GetItemStatisticDetail(c *gin.Context, prof models.CmsUs
 		return
 	}
 
-	outputList, total, _ := outputInventory.FindList(page)
+	var fromDateInt int64 = 0
+	var toDateInt int64 = 0
+
+	if form.FromDate != "" {
+		fromDateInt = utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, form.FromDate)
+	}
+
+	if form.ToDate != "" {
+		toDateInt = utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, form.ToDate)
+	}
+
+	outputList, total, _ := outputInventory.FindList(page, fromDateInt, toDateInt)
 
 	res := map[string]interface{}{
 		"total":     total,
