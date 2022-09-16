@@ -7,6 +7,7 @@ import (
 	"start/models"
 	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 	"time"
@@ -286,7 +287,19 @@ func (_ CKioskOutputInventory) GetOutputItemsForStatistic(c *gin.Context, prof m
 	outputItems.PartnerUid = form.PartnerUid
 	outputItems.CourseUid = form.CourseUid
 	outputItems.ItemCode = form.ItemCode
-	list, total, err := outputItems.FindListForStatistic(page)
+
+	var fromDateInt int64 = 0
+	var toDateInt int64 = 0
+
+	if form.FromDate != "" {
+		fromDateInt = utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, form.FromDate)
+	}
+
+	if form.ToDate != "" {
+		toDateInt = utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, form.ToDate)
+	}
+
+	list, total, err := outputItems.FindListForStatistic(page, fromDateInt, toDateInt)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

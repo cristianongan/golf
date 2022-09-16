@@ -24,7 +24,7 @@ type InventoryOutputItem struct {
 	ServiceName string   `json:"service_name" gorm:"type:varchar(256)"` // tên service
 }
 type InventoryOutputItemWithBill struct {
-	InventoryInputItem
+	InventoryOutputItem
 	ServiceImportId   int64  `json:"service_import_id"`
 	ServiceImportName string `json:"service_import_name"`
 	Bag               string `json:"bag"`
@@ -111,7 +111,7 @@ func (item *InventoryOutputItem) FindList(page models.Page) ([]InventoryOutputIt
 	return list, total, db.Error
 }
 
-func (item *InventoryOutputItem) FindListForStatistic(page models.Page) ([]InventoryOutputItemWithBill, int64, error) {
+func (item *InventoryOutputItem) FindListForStatistic(page models.Page, fromDate int64, toDate int64) ([]InventoryOutputItemWithBill, int64, error) {
 	db := datasources.GetDatabase().Model(InventoryOutputItem{})
 	db = db.Joins("JOIN output_inventory_bills on output_inventory_bills.code = inventory_output_items.code")
 	db = db.Select("inventory_output_items.*,output_inventory_bills.service_import_id," +
@@ -138,6 +138,14 @@ func (item *InventoryOutputItem) FindListForStatistic(page models.Page) ([]Inven
 
 	if item.ItemCode != "" {
 		db = db.Where("inventory_output_items.item_code = ?", item.ItemCode)
+	}
+
+	if fromDate > 0 {
+		db = db.Where("output_inventory_bills.output_date >= ?", fromDate)
+	}
+
+	if toDate > 0 {
+		db = db.Where("output_inventory_bills.output_date <= ?", toDate)
 	}
 
 	db.Count(&total)
