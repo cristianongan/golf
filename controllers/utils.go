@@ -493,6 +493,8 @@ func updateMainBagForSubBag(body request.AddSubBagToBooking, mainBooking model_b
 				GolfBag:    mainBooking.Bag,
 				PlayerName: mainBooking.CustomerName,
 			}
+			log.Println("updateMainBagForSubBag")
+			booking.MainBags = utils.ListSubBag{}
 			booking.MainBags = append(booking.MainBags, mainBag)
 			booking.UpdatePriceForBagHaveMainBags(mainBooking.MainBagPay)
 			errUdp := booking.Update()
