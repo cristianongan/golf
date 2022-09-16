@@ -349,29 +349,9 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	// Update caddie
 	if body.CaddieCode != "" {
-		booking.CaddieId = caddie.Id
-
-		if booking.CheckDuplicatedCaddieInTeeTime() {
-			response_message.InternalServerError(c, "Caddie không được trùng trong cùng TeeTime")
-			return nil
-		}
-
-		booking.CaddieInfo = cloneToCaddieBooking(caddie)
-		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
-
-		// Udp Note
-		caddieInNote := model_gostarter.CaddieInOutNote{
-			PartnerUid: prof.PartnerUid,
-			CourseUid:  prof.CourseUid,
-			BookingUid: booking.Uid,
-			CaddieId:   booking.CaddieId,
-			CaddieCode: booking.CaddieInfo.Code,
-			Type:       constants.STATUS_IN,
-			Note:       "",
-		}
-
-		go addCaddieInOutNote(caddieInNote)
+		cBooking.UpdateBookingCaddieCommon(body.PartnerUid, body.CourseUid, &booking, caddie)
 	}
+
 	if body.CustomerBookingName != "" {
 		booking.CustomerBookingName = body.CustomerBookingName
 	} else {
@@ -802,24 +782,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerBookingPhone = body.CustomerBookingPhone
 	}
 
-	//Agency id
-	if body.AgencyId > 0 {
-		agency := models.Agency{}
-		agency.Id = body.AgencyId
-		errFindAgency := agency.FindFirst()
-		if errFindAgency != nil || agency.Id == 0 {
-			response_message.BadRequest(c, "agency"+errFindAgency.Error())
-			return
-		}
-
-		agencyBooking := cloneToAgencyBooking(agency)
-		booking.AgencyId = body.AgencyId
-		booking.AgencyInfo = agencyBooking
-		body.GuestStyle = agency.GuestStyle
-		//TODO: Check khác mới udp lại,  check giá đặc biệt của agency
-
-	}
-
 	if body.MemberCardUid != "" {
 		// Get Member Card
 		memberCard := models.MemberCard{}
@@ -985,33 +947,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	// Update caddie
 	if body.CaddieCode != "" {
-		booking.CaddieId = caddie.Id
-
-		if booking.CheckDuplicatedCaddieInTeeTime() {
-			response_message.InternalServerError(c, "Caddie không được trùng trong cùng TeeTime")
-			return
-		}
-
-		booking.CaddieInfo = cloneToCaddieBooking(caddie)
-		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
-
-		// Set has_book_caddie
-		if booking.BagStatus == constants.BAG_STATUS_BOOKING {
-			booking.HasBookCaddie = true
-		}
-
-		// Udp Note
-		caddieInNote := model_gostarter.CaddieInOutNote{
-			PartnerUid: prof.PartnerUid,
-			CourseUid:  prof.CourseUid,
-			BookingUid: booking.Uid,
-			CaddieId:   booking.CaddieId,
-			CaddieCode: booking.CaddieInfo.Code,
-			Type:       constants.STATUS_IN,
-			Note:       "",
-		}
-
-		go addCaddieInOutNote(caddieInNote)
+		cBooking.UpdateBookingCaddieCommon(body.PartnerUid, body.CourseUid, &booking, caddie)
 	}
 
 	// Udp Log Tracking
@@ -1027,6 +963,45 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	res := getBagDetailFromBooking(booking)
 
 	okResponse(c, res)
+}
+
+/*
+Update booking caddie when create booking or update
+*/
+func (_ *CBooking) UpdateBookingCaddieCommon(PartnerUid string, CourseUid string, booking *model_booking.Booking, caddie models.Caddie) {
+	booking.CaddieId = caddie.Id
+
+	// if booking.CheckDuplicatedCaddieInTeeTime() {
+	// 	response_message.InternalServerError(c, "Caddie không được trùng trong cùng TeeTime")
+	// 	return
+	// }
+
+	booking.CaddieInfo = cloneToCaddieBooking(caddie)
+	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+
+	// Set has_book_caddie
+	if booking.BagStatus == constants.BAG_STATUS_BOOKING {
+		booking.HasBookCaddie = true
+	}
+
+	// udp trạng thái caddie sang LOCK
+	caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+	if errCad := caddie.Update(); errCad != nil {
+		log.Println("err addCaddieInOutNote", errCad.Error())
+	}
+
+	// Udp Note
+	caddieInNote := model_gostarter.CaddieInOutNote{
+		PartnerUid: PartnerUid,
+		CourseUid:  CourseUid,
+		BookingUid: booking.Uid,
+		CaddieId:   booking.CaddieId,
+		CaddieCode: booking.CaddieInfo.Code,
+		Type:       constants.STATUS_IN,
+		Note:       "",
+	}
+
+	go addCaddieInOutNote(caddieInNote)
 }
 
 /*
@@ -1379,8 +1354,9 @@ func (_ *CBooking) GetListBookingForAddSubBag(c *gin.Context, prof models.CmsUse
 	bookingR := model_booking.Booking{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
-		BagStatus:  constants.BAG_STATUS_WAITING,
+		BagStatus:  constants.BAG_STATUS_IN_COURSE,
 	}
+
 	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 	if errDate == nil {
 		bookingR.BookingDate = dateDisplay
@@ -1676,6 +1652,9 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	// udp trạng thái caddie
+	udpOutCaddieBooking(&booking)
 
 	// delete tee time locked theo booking date
 	if booking.TeeTime != "" {
