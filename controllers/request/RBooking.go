@@ -248,3 +248,13 @@ type ChangeBookingHole struct {
 	TypeChangeHole string `json:"type_stop"`
 	NoteOfBag      string `json:"note_of_bag" validate:"required"`
 }
+
+type UpdateAgencyFeeBookingCommon struct {
+	Uid          string
+	CourseUid    string
+	AgencyId     int64
+	Bag          string
+	CheckInTime  int64
+	CustomerName string
+	Hole         int
+}
