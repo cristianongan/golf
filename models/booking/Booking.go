@@ -503,50 +503,50 @@ func (item *Booking) FindServiceItems() {
 	item.ListServiceItems = listServiceItems
 }
 
-func (item *Booking) UpdateBookingMainBag() error {
-	if item.MainBags == nil || len(item.MainBags) == 0 {
-		return errors.New("invalid main bags")
-	}
-	mainBagBookingUid := item.MainBags[0].BookingUid
-	mainBagBooking := Booking{}
-	mainBagBooking.Uid = mainBagBookingUid
-	errFindMainB := mainBagBooking.FindFirst()
-	if errFindMainB != nil {
-		return errFindMainB
-	}
+// func (item *Booking) UpdateBookingMainBag() error {
+// 	if item.MainBags == nil || len(item.MainBags) == 0 {
+// 		return errors.New("invalid main bags")
+// 	}
+// 	mainBagBookingUid := item.MainBags[0].BookingUid
+// 	mainBagBooking := Booking{}
+// 	mainBagBooking.Uid = mainBagBookingUid
+// 	errFindMainB := mainBagBooking.FindFirst()
+// 	if errFindMainB != nil {
+// 		return errFindMainB
+// 	}
 
-	if mainBagBooking.ListGolfFee == nil {
-		mainBagBooking.ListGolfFee = ListBookingGolfFee{}
-	}
+// 	if mainBagBooking.ListGolfFee == nil {
+// 		mainBagBooking.ListGolfFee = ListBookingGolfFee{}
+// 	}
 
-	// Update lại cho Main Bag Booking
-	// Check GolfFee
-	if item.ListGolfFee != nil {
-		idxTemp := -1
-		for i, gf := range mainBagBooking.ListGolfFee {
-			if gf.BookingUid == item.Uid {
-				idxTemp = i
-			}
-		}
-		if idxTemp == -1 {
-			// Chưa có thì thêm vào
-			mainBagBooking.ListGolfFee = append(mainBagBooking.ListGolfFee, item.GetCurrentBagGolfFee())
-		} else {
-			// Update cái mới
-			mainBagBooking.ListGolfFee[idxTemp] = item.GetCurrentBagGolfFee()
-		}
-	}
+// 	// Update lại cho Main Bag Booking
+// 	// Check GolfFee
+// 	if item.ListGolfFee != nil {
+// 		idxTemp := -1
+// 		for i, gf := range mainBagBooking.ListGolfFee {
+// 			if gf.BookingUid == item.Uid {
+// 				idxTemp = i
+// 			}
+// 		}
+// 		if idxTemp == -1 {
+// 			// Chưa có thì thêm vào
+// 			mainBagBooking.ListGolfFee = append(mainBagBooking.ListGolfFee, item.GetCurrentBagGolfFee())
+// 		} else {
+// 			// Update cái mới
+// 			mainBagBooking.ListGolfFee[idxTemp] = item.GetCurrentBagGolfFee()
+// 		}
+// 	}
 
-	// Udp lại mush Pay
-	mainBagBooking.UpdateMushPay()
+// 	// Udp lại mush Pay
+// 	mainBagBooking.UpdateMushPay()
 
-	errUdp := mainBagBooking.Update()
-	if errUdp != nil {
-		return errUdp
-	}
+// 	errUdp := mainBagBooking.Update()
+// 	if errUdp != nil {
+// 		return errUdp
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func (item *Booking) GetCurrentBagGolfFee() BookingGolfFee {
 	golfFee := BookingGolfFee{}
@@ -638,6 +638,80 @@ func (item *Booking) UpdateMushPay() {
 
 	mushPay.MushPay = mushPay.TotalGolfFee + mushPay.TotalServiceItem
 	item.MushPayInfo = mushPay
+}
+
+/*
+Update mush price bag have main bag
+*/
+func (item *Booking) UpdatePriceForBagHaveMainBags(listPay utils.ListString) {
+	if item.MainBags == nil || len(item.MainBags) == 0 {
+		return
+	}
+	mushPay := BookingMushPay{}
+
+	totalGolfFee := int64(0)
+
+	// Check xem main bag có trả golf fee cho sub bag không
+	isConFR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+	isConNR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
+	for i, v := range item.ListGolfFee {
+		if i == 0 {
+			if isConFR >= 0 {
+				totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
+			}
+		} else {
+			if isConNR >= 0 {
+				totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
+			}
+		}
+	}
+	mushPay.TotalGolfFee = totalGolfFee
+
+	item.FindServiceItems()
+	for _, v := range item.ListServiceItems {
+		isCon := utils.ContainString(listPay, v.Type)
+		if isCon < 0 {
+			// Main bag không thanh toán cho sub bag thì cộng vào
+			mushPay.TotalServiceItem += v.Amount
+		}
+	}
+
+	// Mush pay
+	mushPay.MushPay = mushPay.TotalGolfFee + mushPay.TotalServiceItem
+	item.MushPayInfo = mushPay
+
+	//Udp current Bag price
+	priceDetail := BookingCurrentBagPriceDetail{}
+
+	if isConFR >= 0 {
+		//TODO: Có thể phải check cho case nhiều round
+		priceDetail.GolfFee = 0
+	}
+	for _, serviceItem := range item.ListServiceItems {
+		isCon := utils.ContainString(listPay, serviceItem.Type)
+		if isCon < 0 {
+			// Main bag không thanh toán cho sub bag thì cộng vào
+			if serviceItem.BillCode == item.BillCode {
+				// Udp service detail cho booking uid
+				if serviceItem.Type == constants.GOLF_SERVICE_RENTAL {
+					priceDetail.Rental += serviceItem.Amount
+				}
+				if serviceItem.Type == constants.GOLF_SERVICE_PROSHOP {
+					priceDetail.Proshop += serviceItem.Amount
+				}
+				if serviceItem.Type == constants.GOLF_SERVICE_RESTAURANT {
+					priceDetail.Restaurant += serviceItem.Amount
+				}
+				if serviceItem.Type == constants.GOLF_SERVICE_KIOSK {
+					priceDetail.Kiosk += serviceItem.Amount
+				}
+			}
+		}
+	}
+
+	priceDetail.UpdateAmount()
+
+	item.CurrentBagPrice = priceDetail
 }
 
 // Udp lại giá cho Booking

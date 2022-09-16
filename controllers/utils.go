@@ -477,16 +477,11 @@ func initUpdatePriceBookingForChanegHole(booking *model_booking.Booking, booking
 	mushPayInfo := initBookingMushPayInfo(bookingTemp)
 
 	booking.MushPayInfo = mushPayInfo
-
-	// Rounds
-	// booking.Rounds[len(booking.Rounds)-1].GreenFee = bookingGolfFee.GreenFee
-	// booking.Rounds[len(booking.Rounds)-1].CaddieFee = bookingGolfFee.CaddieFee
-	// booking.Rounds[len(booking.Rounds)-1].BuggyFee = bookingGolfFee.BuggyFee
 }
 
 // Khi add sub bag vào 1 booking thì cần cập nhật lại main bag cho booking sub bag
 // Cập nhật lại giá cho SubBag
-func updateMainBagForSubBag(body request.AddSubBagToBooking, mainBag string, customerPlayer string) error {
+func updateMainBagForSubBag(body request.AddSubBagToBooking, mainBooking model_booking.Booking) error {
 	var err error
 	for _, v := range body.SubBags {
 		booking := model_booking.Booking{}
@@ -495,11 +490,11 @@ func updateMainBagForSubBag(body request.AddSubBagToBooking, mainBag string, cus
 		if errFind == nil {
 			mainBag := utils.BookingSubBag{
 				BookingUid: body.BookingUid,
-				GolfBag:    mainBag,
-				PlayerName: customerPlayer,
+				GolfBag:    mainBooking.Bag,
+				PlayerName: mainBooking.CustomerName,
 			}
 			booking.MainBags = append(booking.MainBags, mainBag)
-			booking.MushPayInfo.MushPay = 0
+			booking.UpdatePriceForBagHaveMainBags(mainBooking.MainBagPay)
 			errUdp := booking.Update()
 			if errUdp != nil {
 				err = errUdp

@@ -923,17 +923,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	booking.UpdatePriceDetailCurrentBag()
 	booking.UpdateMushPay()
 
-	// Nếu có MainBag thì udp lại giá cho MainBag
-	// Update Lại GolfFee, Service items
-	if booking.MainBags != nil && len(booking.MainBags) > 0 {
-		// Chỉ có 1 main bags
-		errBookingMainBag := booking.UpdateBookingMainBag()
-		if errBookingMainBag != nil {
-			response_message.BadRequest(c, errBookingMainBag.Error())
-			return
-		}
-	}
-
 	// Booking Note
 	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
 		booking.NoteOfBag = body.NoteOfBag
@@ -1201,7 +1190,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	booking.UpdateMushPay()
 
 	// Cập nhật Main bag cho subbag
-	err := updateMainBagForSubBag(body, booking.Bag, booking.CustomerName)
+	err := updateMainBagForSubBag(body, booking)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
