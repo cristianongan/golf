@@ -730,21 +730,14 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 			}
 		}
 
+		if errCaddie := checkCaddieReady(booking, caddie); errCaddie != nil {
+			return errCaddie, booking, caddie, models.Buggy{}
+		}
+
 		booking.CaddieId = caddie.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddie)
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
-
-		// if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY {
-		// booking.CaddieId = caddie.Id
-		// booking.CaddieInfo = cloneToCaddieBooking(caddie)
-		// booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
-		// caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
-		// } else {
-		// 	return errors.New("Caddie đang trong IN_COURSE"), booking, caddie, models.Buggy{}
-		// }
 	}
-
-	// TODO: validate current_status
 
 	//Check buggy
 	var buggy models.Buggy
@@ -754,10 +747,16 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 			CourseUid:  courseUid,
 			Code:       buggyCode,
 		}
+
 		errFB := buggy.FindFirst()
 		if errFB != nil {
 			return errFB, booking, caddie, buggy
 		}
+
+		if err := checkBuggyReady(buggy, bookingDate); err != nil {
+			return err, booking, caddie, buggy
+		}
+
 		booking.BuggyId = buggy.Id
 		booking.BuggyInfo = cloneToBuggyBooking(buggy)
 	}
@@ -796,17 +795,17 @@ func udpOutBuggy(booking *model_booking.Booking, isOutAll bool) error {
 
 	_, total, _ := bookingR.FindAllBookingList()
 
-	booking.BuggyId = 0
-	booking.BuggyInfo = cloneToBuggyBooking(models.Buggy{})
-
 	if total > 1 && !isOutAll {
-		return errors.New("Buggy còn đang ghép với booking khác")
+		return errors.New("Buggy còn đang ghép với player khác")
 	}
 
 	errBuggy := udpBuggyOut(bookingR.BuggyId)
 	if errBuggy != nil {
 		return errBuggy
 	}
+
+	booking.BuggyId = 0
+	booking.BuggyInfo = cloneToBuggyBooking(models.Buggy{})
 
 	return nil
 }
@@ -1145,8 +1144,34 @@ Check Caddie có đang sẵn sàng để ghép không
 func checkCaddieReady(booking model_booking.Booking, caddie models.Caddie) error {
 	if !(caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
 		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH) {
-		return errors.New(caddie.Code + " chưa sẵn sàng để ghép ")
+		return errors.New("Caddie " + caddie.Code + " chưa sẵn sàng để ghép ")
 	}
+	return nil
+}
+
+/*
+Buggy có thể ghép tối đa 2 player
+Check Buggy có đang sẵn sàng để ghép không
+*/
+func checkBuggyReady(buggy models.Buggy, bookingDate string) error {
+	bookingList := model_booking.BookingList{
+		BuggyCode:   buggy.Code,
+		BookingDate: bookingDate,
+		BagStatus:   constants.BAG_STATUS_IN_COURSE,
+	}
+
+	_, total, _ := bookingList.FindAllBookingList()
+
+	if !(buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_ACTIVE ||
+		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_LOCK ||
+		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_IN_COURSE) {
+		return errors.New("Buggy " + buggy.Code + " đang ở trạng thái " + buggy.BuggyStatus)
+	}
+
+	if total >= 2 {
+		return errors.New(buggy.Code + " đã ghép đủ người")
+	}
+
 	return nil
 }
 

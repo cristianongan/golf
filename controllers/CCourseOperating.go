@@ -66,11 +66,6 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 	// Check can add
 	errB, booking, caddie, _ := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode)
 
-	if errCaddie := checkCaddieReady(booking, caddie); errCaddie != nil {
-		response_message.InternalServerError(c, errCaddie.Error())
-		return
-	}
-
 	if errB != nil {
 		response_message.InternalServerError(c, errB.Error())
 		return
@@ -134,16 +129,9 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	listCaddieInOut := []model_gostarter.CaddieInOutNote{}
 	for _, v := range body.ListData {
 		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
-		isCaddiReady := true
 
 		if caddieTemp.Id > 0 {
-
-			if errCaddie := checkCaddieReady(bookingTemp, caddieTemp); errCaddie != nil {
-				listError = append(listError, errCaddie.Error())
-				isCaddiReady = false
-			}
-
-			if errB == nil && isCaddiReady {
+			if errB == nil {
 				// Update caddie_current_status
 				caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
 				caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
@@ -214,6 +202,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	for _, b := range listBooking {
 		b.FlightId = flight.Id
 		b.TeeOffTime = body.TeeOff
+		b.BagStatus = constants.BAG_STATUS_IN_COURSE
 		errUdp := b.Update()
 		if errUdp != nil {
 			log.Println("CreateFlight err flight ", errUdp.Error())
@@ -777,7 +766,10 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		return
 	}
 
-	// TODO: validate current_status
+	if errBuggy := checkBuggyReady(buggyNew, booking.BookingDate); errBuggy != nil {
+		response_message.InternalServerError(c, errBuggy.Error())
+		return
+	}
 
 	if err := udpBuggyOut(booking.BuggyId); err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -877,16 +869,9 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 	listCaddieInOut := []model_gostarter.CaddieInOutNote{}
 	for _, v := range body.ListData {
 		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(prof.PartnerUid, prof.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
-		isCaddiReady := true
 
 		if caddieTemp.Id > 0 {
-
-			if errCaddie := checkCaddieReady(bookingTemp, caddieTemp); errCaddie != nil {
-				response_message.InternalServerError(c, errCaddie.Error())
-				return
-			}
-
-			if errB == nil && isCaddiReady {
+			if errB == nil {
 				// Update caddie_current_status
 				caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
 				caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
@@ -930,6 +915,7 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 	// Udp flight for Booking
 	for _, b := range listBooking {
 		b.FlightId = flight.Id
+		b.BagStatus = constants.BAG_STATUS_IN_COURSE
 		errUdp := b.Update()
 		if errUdp != nil {
 			log.Println("CreateFlight err flight ", errUdp.Error())

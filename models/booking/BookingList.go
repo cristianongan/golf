@@ -237,7 +237,7 @@ func (item *BookingList) FindAllBookingList() (*gorm.DB, int64, error) {
 
 	db = addFilter(db, item)
 
-	db.Debug().Count(&total)
+	db.Count(&total)
 
 	return db, total, db.Error
 }
