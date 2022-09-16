@@ -44,3 +44,10 @@ type GetListBillBody struct {
 	ServiceId   int64  `form:"service_id"`
 	BillStatus  string `form:"bill_status"`
 }
+
+type UpdateResItemBody struct {
+	PartnerUid string `json:"partner_uid"`
+	CourseUid  string `json:"course_uid"`
+	ItemId     int64  `json:"item_id"`
+	Action     string `json:"action"`
+}

@@ -41,7 +41,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	booking.Bag = body.GolfBag
 	booking.BookingDate = time.Now().Format("02/01/2006")
 	if err := booking.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
+		response_message.BadRequest(c, "Booking "+err.Error())
 		return
 	}
 
@@ -54,7 +54,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = body.ServiceId
 	if err := kiosk.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
+		response_message.BadRequest(c, "Kiosk "+err.Error())
 		return
 	}
 
@@ -86,7 +86,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		proshop.ProShopId = body.ItemCode
 
 		if err := proshop.FindFirst(); err != nil {
-			response_message.BadRequest(c, err.Error())
+			response_message.BadRequest(c, "Proshop "+err.Error())
 			return
 		}
 		// add infor cart item
@@ -103,7 +103,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		rental.RentalId = body.ItemCode
 
 		if err := rental.FindFirst(); err != nil {
-			response_message.BadRequest(c, err.Error())
+			response_message.BadRequest(c, "Rental "+err.Error())
 			return
 		}
 		// add infor cart item
@@ -121,7 +121,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	inventory.Code = body.ItemCode
 
 	if err := inventory.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
+		response_message.BadRequest(c, "Inventory "+err.Error())
 		return
 	}
 
@@ -159,14 +159,14 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		// create cart
 		serviceCart.Amount = body.Quantity * serviceCartItem.UnitPrice
 		if err := serviceCart.Create(); err != nil {
-			response_message.InternalServerError(c, err.Error())
+			response_message.InternalServerError(c, "Create cart "+err.Error())
 			return
 		}
 	} else {
 		// update tổng giá bill
 		serviceCart.Amount += body.Quantity * serviceCartItem.UnitPrice
 		if err := serviceCart.Update(); err != nil {
-			response_message.InternalServerError(c, err.Error())
+			response_message.InternalServerError(c, "Update cart "+err.Error())
 			return
 		}
 	}
@@ -187,7 +187,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	serviceCartItem.UserAction = prof.UserName
 
 	if err := serviceCartItem.Create(); err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.InternalServerError(c, "Create item "+err.Error())
 		return
 	}
 

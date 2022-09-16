@@ -77,6 +77,14 @@ func (item *ServiceCart) FindList(page Page) ([]ServiceCart, int64, error) {
 		db = db.Where("id = ?", item.Id)
 	}
 
+	if item.Id != 0 {
+		db = db.Where("id = ?", item.Id)
+	}
+
+	if item.BillStatus != "" {
+		db = db.Where("bill_status = ? OR bill_status = ?", constants.RES_STATUS_PROCESS, constants.RES_STATUS_DONE)
+	}
+
 	db = db.Where("booking_date = ?", item.BookingDate)
 
 	db.Count(&total)
