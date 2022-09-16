@@ -111,10 +111,31 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	serviceCart.BillCode = "OD-" + strconv.Itoa(int(body.BillId))
+	serviceCart.BillStatus = constants.RES_STATUS_PROCESS
 
 	if err := serviceCart.Update(); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
+	}
+
+	//find all item in bill
+	restaurantItem := models.RestaurantItem{}
+	restaurantItem.BillId = body.BillId
+
+	list, err := restaurantItem.FindAll()
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	for _, item := range list {
+		item.ItemStatus = constants.RES_STATUS_PROCESS
+
+		if err := item.Update(); err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
 	}
 
 	// createExportBillInventory(c, prof, serviceCart, serviceCart.BillCode)
@@ -270,6 +291,11 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 	restaurantItem.ItemStatus = constants.RES_STATUS_ORDER
 	restaurantItem.Quatity = body.Quantity
 	restaurantItem.QuatityProgress = body.Quantity
+
+	// Đổi trạng thái món khi đã có bill code
+	if serviceCart.BillCode != "NONE" {
+		restaurantItem.ItemStatus = constants.RES_STATUS_PROCESS
+	}
 
 	if err := restaurantItem.Create(); err != nil {
 		response_message.InternalServerError(c, err.Error())

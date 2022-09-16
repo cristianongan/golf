@@ -42,4 +42,5 @@ type GetListBillBody struct {
 	CourseUid   string `json:"course_uid"`
 	BookingDate string `form:"booking_date" binding:"required"`
 	ServiceId   int64  `form:"service_id"`
+	BillStatus  string `form:"bill_status"`
 }

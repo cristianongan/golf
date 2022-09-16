@@ -90,3 +90,29 @@ func (item *RestaurantItem) FindList(page Page) ([]RestaurantItem, int64, error)
 
 	return list, total, db.Error
 }
+
+func (item *RestaurantItem) FindAll() ([]RestaurantItem, error) {
+	var list []RestaurantItem
+
+	db := datasources.GetDatabase().Model(RestaurantItem{})
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.BillId != 0 {
+		db = db.Where("bill_id = ?", item.ServiceId)
+	}
+
+	if item.Id != 0 {
+		db = db.Where("id = ?", item.Id)
+	}
+
+	db.Find(&list)
+
+	return list, db.Error
+}
