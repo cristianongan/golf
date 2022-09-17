@@ -1,11 +1,11 @@
-rootUrl: uat-backup.vngolf.net
+rootUrl: golf-uat-api.vngolf.net
 
-replicaCount: 1
+replicaCount: 3
 
 resources:
   limits:
-    cpu: 0.1
+    cpu: 0.2
     memory: 200Mi
   requests:
-    cpu: 0.1
+    cpu: 0.2
     memory: 200Mi
