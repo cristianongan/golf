@@ -988,7 +988,7 @@ func (item *Booking) FindListForSubBag() ([]BookingForSubBag, error) {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 	if item.BagStatus != "" {
-		db = db.Where("bag_status = ?", item.BagStatus)
+		db = db.Where("bag_status in (?)", strings.Split(item.BagStatus, ","))
 	}
 
 	if item.BookingDate != "" {
