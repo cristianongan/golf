@@ -23,13 +23,14 @@ type ServiceCart struct {
 	BillStatus     string         `json:"bill_status" gorm:"type:varchar(50)"`        // trạng thái đơn
 	TypeCode       string         `json:"type_code" gorm:"type:varchar(100)"`         // Mã dịch vụ của hóa đơn
 	Type           string         `json:"type" gorm:"type:varchar(100)"`              // Dịch vụ hóa đơn: BRING, SHIP, TABLE
-	StaffOrder     string         `json:"staff_order" gorm:"type:varchar(150)"`
-	NumberGuest    int            `json:"number_guest"`                            // số lượng người đi cùng
-	Amount         int64          `json:"amount"`                                  // tổng tiền
-	DiscountType   string         `json:"discount_type" gorm:"type:varchar(50)"`   // Loại giảm giá
-	DiscountValue  int64          `json:"discount_value"`                          // Giá tiền được giảm
-	DiscountReason string         `json:"discount_reason" gorm:"type:varchar(50)"` // Lý do giảm giá
-	CostPrice      int64          `json:"cost_price"`                              // giá VAT
+	StaffOrder     string         `json:"staff_order" gorm:"type:varchar(150)"`       // Người tạo đơn
+	PlayerName     string         `json:"player_name" gorm:"type:varchar(150)"`       // Người mua
+	NumberGuest    int            `json:"number_guest"`                               // số lượng người đi cùng
+	Amount         int64          `json:"amount"`                                     // tổng tiền
+	DiscountType   string         `json:"discount_type" gorm:"type:varchar(50)"`      // Loại giảm giá
+	DiscountValue  int64          `json:"discount_value"`                             // Giá tiền được giảm
+	DiscountReason string         `json:"discount_reason" gorm:"type:varchar(50)"`    // Lý do giảm giá
+	CostPrice      int64          `json:"cost_price"`                                 // giá VAT
 }
 
 func (item *ServiceCart) Create() error {

@@ -77,6 +77,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 	serviceCart.BillCode = "NONE"
 	serviceCart.BillStatus = constants.RES_STATUS_ORDER
 	serviceCart.StaffOrder = prof.FullName
+	serviceCart.PlayerName = booking.CustomerName
 
 	if err := serviceCart.Create(); err != nil {
 		response_message.InternalServerError(c, err.Error())
