@@ -194,6 +194,9 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
+
 	okRes(c)
 }
 
