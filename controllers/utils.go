@@ -482,19 +482,18 @@ func initUpdatePriceBookingForChanegHole(booking *model_booking.Booking, booking
 
 // Khi add sub bag vào 1 booking thì cần cập nhật lại main bag cho booking sub bag
 // Cập nhật lại giá cho SubBag
-func updateMainBagForSubBag(body request.AddSubBagToBooking, mainBooking model_booking.Booking) error {
+func updateMainBagForSubBag(mainBooking model_booking.Booking) error {
 	var err error
-	for _, v := range body.SubBags {
+	for _, v := range mainBooking.SubBags {
 		booking := model_booking.Booking{}
 		booking.Uid = v.BookingUid
 		errFind := booking.FindFirst()
 		if errFind == nil {
 			mainBag := utils.BookingSubBag{
-				BookingUid: body.BookingUid,
+				BookingUid: mainBooking.Uid,
 				GolfBag:    mainBooking.Bag,
 				PlayerName: mainBooking.CustomerName,
 			}
-			log.Println("updateMainBagForSubBag")
 			booking.MainBags = utils.ListSubBag{}
 			booking.MainBags = append(booking.MainBags, mainBag)
 			booking.UpdatePriceForBagHaveMainBags()

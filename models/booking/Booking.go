@@ -615,19 +615,25 @@ func (item *Booking) UpdatePriceForBagHaveMainBags() {
 	totalGolfFee := int64(0)
 
 	// Check xem main bag có trả golf fee cho sub bag không
+	// Check thanh toán first round
 	isConFR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+	// Check thanh toán next round
 	isConNR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
 	for i, v := range item.ListGolfFee {
 		if i == 0 {
 			if isConFR < 0 {
+				// Nếu main k thanh toán FR cho sub thì add vào sub
 				totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
 			}
 		} else {
 			if isConNR < 0 {
+				// Nếu main k thanh toán NR cho sub thì add vào sub
 				totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
 			}
 		}
 	}
+
+	// Tính total golf fee cho sub
 	mushPay.TotalGolfFee = totalGolfFee
 
 	item.FindServiceItems()
@@ -1175,7 +1181,7 @@ func (item *Booking) FindListForReportForMainBagSubBag() ([]BookingForReportMain
 }
 
 /*
-	For report List Service Items
+For report List Service Items
 */
 func (item *Booking) FindListServiceItems(param GetListBookingWithListServiceItems, page models.Page) ([]BookingForListServiceIems, int64, error) {
 	db := datasources.GetDatabase().Table("bookings")
