@@ -674,7 +674,7 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(listPay utils.ListString) {
 	mainBook.Uid = item.MainBags[0].BookingUid
 	errFMB := mainBook.FindFirst()
 	if errFMB == nil {
-		listGolfFeeTemp := item.ListGolfFee
+		listGolfFeeTemp := mainBook.ListGolfFee
 		isIndex := -1
 		for i, v := range mainBook.ListGolfFee {
 			if v.BookingUid == item.Uid {
@@ -682,6 +682,7 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(listPay utils.ListString) {
 			}
 		}
 		if isIndex == -1 {
+			//Chua dc add
 			if isConFR >= 0 {
 				mainBook.ListGolfFee = append(listGolfFeeTemp, item.ListGolfFee[0])
 			}
