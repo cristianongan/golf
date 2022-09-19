@@ -182,15 +182,36 @@ const (
 )
 
 /*
-Các trạng thaiscuar nhà hàng
+Các trạng thái món ăn của nhà hàng
 */
 const (
-	RES_STATUS_BOOKING = "BOOKING"
-	RES_STATUS_ORDER   = "ORDER"
-	RES_STATUS_PROCESS = "PROCESS"
-	RES_STATUS_DONE    = "DONE"
-	RES_STATUS_CANCEL  = "CANCEL"
+	RES_STATUS_BOOKING = "BOOKING" // Trạng thái món được booking
+	RES_STATUS_ORDER   = "ORDER"   // Trạng thái là người đã đặt món và đang chờ đồ ăn
+	RES_STATUS_PROCESS = "PROCESS" // Trạng thái món ăn đang được chế biến chưa được phục vụ
+	RES_STATUS_DONE    = "DONE"    // Trạng thái món đã được phục vụ
+	RES_STATUS_CANCEL  = "CANCEL"  // Trạng thái món đã bị hủy
 	RES_STATUS_OUT     = "OUT"
+)
+
+/*
+Các trạng thái đơn của nhà hàng
+*/
+const (
+	RES_BILL_STATUS_BOOKING = "BOOKING" // Trạng thái là người booking bàn nhưng chưa vào nhà hàng dùng món
+	RES_BILL_STATUS_ORDER   = "ORDER"   // Trạng thái là người đã đặt món và đang chờ đồ ăn
+	RES_BILL_STATUS_PROCESS = "PROCESS" // Trạng thái món ăn đang được chế biến chưa được phục vụ
+	RES_BILL_STATUS_DONE    = "Finish"  // Trạng thái món đã được phục vụ
+	RES_BILL_STATUS_CANCEL  = "CANCEL"  // Trạng thái món đã bị hủy
+	RES_BILL_STATUS_OUT     = "OUT"     //Trạng thái khách đã dùng xong món ăn và out khỏi nhà hàng.
+)
+
+/*
+Các trạng thái đơn của point of sale
+*/
+const (
+	POS_BILL_STATUS_BOOKING = "PENDING"  // Đơn hàng đang ở trạng thái chưa xác nhận
+	POS_BILL_STATUS_ORDER   = "ACTIVE"   // Đơn hàng đã được xác nhận và chốt đơn
+	POS_BILL_STATUS_PROCESS = "CHECKOUT" // Đơn hàng đã hủy
 )
 
 /*

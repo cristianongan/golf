@@ -921,8 +921,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Tính lại giá
-	booking.UpdatePriceDetailCurrentBag()
-	booking.UpdateMushPay()
+	updatePriceWithServiceItem(booking, prof)
+	// booking.UpdatePriceDetailCurrentBag()
+	// booking.UpdateMushPay()
 
 	// Booking Note
 	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
@@ -1440,29 +1441,37 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// list service items
-	// Remove cái cũ
-	listServiceItems := model_booking.ListBookingServiceItems{}
-	for _, v := range booking.ListServiceItems {
-		if v.Type != constants.BOOKING_OTHER_FEE {
-			listServiceItems = append(listServiceItems, v)
-		}
-	}
-
 	// add cái mới
 	for _, v := range body.OtherPaids {
 		serviceItem := model_booking.BookingServiceItem{
-			Type:       constants.BOOKING_OTHER_FEE,
-			Amount:     v.Amount,
-			Name:       v.Reason,
-			PlayerName: booking.CustomerName,
-			Bag:        booking.Bag,
+			Type:     constants.BOOKING_OTHER_FEE,
+			Name:     v.Reason,
+			BillCode: booking.BillCode,
 		}
-		listServiceItems = append(listServiceItems, serviceItem)
+		errF := serviceItem.FindFirst()
+		if errF != nil {
+			//Chưa có thì tạo mới
+			serviceItem.Amount = v.Amount
+			serviceItem.PlayerName = booking.CustomerName
+			serviceItem.Bag = booking.Bag
+			serviceItem.BookingUid = booking.Uid
+			errC := serviceItem.Create()
+			if errC != nil {
+				log.Println("AddOtherPaid errC", errC.Error())
+			}
+		} else {
+			// Check đã có thì udp
+			if serviceItem.Amount != v.Amount {
+				serviceItem.Amount = v.Amount
+				errUdp := serviceItem.Update()
+				if errUdp != nil {
+					log.Println("AddOtherPaid errUdp", errUdp.Error())
+				}
+			}
+		}
 	}
 
-	booking.ListServiceItems = listServiceItems
-	booking.UpdateMushPay()
+	updatePriceWithServiceItem(booking, prof)
 
 	booking.OtherPaids = body.OtherPaids
 
@@ -1476,7 +1485,9 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	okResponse(c, booking)
+	res := getBagDetailFromBooking(booking)
+
+	okResponse(c, res)
 }
 
 /*

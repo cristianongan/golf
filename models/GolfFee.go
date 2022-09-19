@@ -92,11 +92,22 @@ func (item *GolfFee) GetGuestStyleOnDay() (GolfFee, error) {
 		return golfFee, errors.New("Guest style invalid")
 	}
 
+	// Get table price avaible trước
+	tablePriceR := TablePrice{
+		PartnerUid: item.PartnerUid,
+		CourseUid:  item.CourseUid,
+	}
+	tablePrice, errFTB := tablePriceR.FindCurrentUse()
+	if errFTB != nil {
+		return golfFee, errFTB
+	}
+
 	list := []GolfFee{}
 	db := datasources.GetDatabase().Model(GolfFee{})
 	db = db.Where("partner_uid = ?", item.PartnerUid)
 	db = db.Where("course_uid = ?", item.CourseUid)
 	db = db.Where("guest_style = ?", item.GuestStyle)
+	db = db.Where("table_price_id = ?", tablePrice.Id)
 	err := db.Find(&list).Error
 
 	if err != nil {
