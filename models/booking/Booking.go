@@ -1076,6 +1076,14 @@ func (item *Booking) FindForCaddieOnCourse(InFlight string) []Booking {
 	}
 	db = db.Where("bag_status = ?", constants.BAG_STATUS_WAITING)
 	db = db.Not("caddie_status = ?", constants.BOOKING_CADDIE_STATUS_OUT)
+
+	customerType := []string{
+		constants.CUSTOMER_TYPE_NONE_GOLF,
+		constants.CUSTOMER_TYPE_WALKING_FEE,
+	}
+
+	db = db.Where("customer_info->'$.type' NOT IN (?)", customerType)
+
 	if InFlight != "" {
 		if InFlight == "0" {
 			db = db.Not("flight_id > ?", 0)
