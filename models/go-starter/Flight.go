@@ -58,6 +58,7 @@ type BookingForFlight struct {
 	CmsUserLog     string                      `json:"cms_user_log,omitempty"`
 	NoteOfBag      string                      `json:"note_of_bag"`
 	NoteOfBooking  string                      `json:"note_of_booking"`
+	BagStatus      string                      `json:"bag_status"`
 }
 
 func (item *Flight) Create() error {
