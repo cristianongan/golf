@@ -677,11 +677,11 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 			response_message.InternalServerError(c, errors.New(caddieNew.Code+" đang bị LOCK").Error())
 			return
 		}
-	}
-
-	if errCaddie := checkCaddieReady(booking, caddieNew); errCaddie != nil {
-		response_message.InternalServerError(c, errCaddie.Error())
-		return
+	} else {
+		if errCaddie := checkCaddieReady(booking, caddieNew); errCaddie != nil {
+			response_message.InternalServerError(c, errCaddie.Error())
+			return
+		}
 	}
 
 	// TODO: validate current_status
