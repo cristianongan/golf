@@ -270,6 +270,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
 		booking.FlightId = 0
 		booking.TimeOutFlight = 0
+		booking.CourseType = body.CourseType
 		errCreateBooking := booking.Create(bUid)
 
 		if errCreateBooking != nil {
