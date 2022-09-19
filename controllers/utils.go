@@ -1082,6 +1082,18 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 	if booking.MainBags != nil && len(booking.MainBags) > 0 {
 		booking.UpdatePriceForBagHaveMainBags()
 	} else {
+		if booking.SubBags != nil && len(booking.SubBags) > 0 {
+			for _, v := range booking.SubBags {
+				subBook := model_booking.Booking{}
+				subBook.Uid = v.BookingUid
+				errFSub := subBook.FindFirst()
+				if errFSub == nil {
+					go subBook.UpdatePriceForBagHaveMainBags()
+				} else {
+					log.Println("updatePriceWithServiceItem errUdp", errFSub.Error())
+				}
+			}
+		}
 		booking.UpdateMushPay()
 		booking.UpdatePriceDetailCurrentBag()
 	}

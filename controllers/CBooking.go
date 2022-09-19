@@ -939,17 +939,12 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	// Tính lại giá
 	updatePriceWithServiceItem(booking, prof)
 
-	// Udp Log Tracking
-	// booking.CmsUser = prof.UserName
-	// booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	// Get lai booking
+	bookLast := model_booking.Booking{}
+	bookLast.Uid = booking.Uid
+	bookLast.FindFirst()
 
-	// errUdp := booking.Update()
-	// if errUdp != nil {
-	// 	response_message.InternalServerError(c, errUdp.Error())
-	// 	return
-	// }
-
-	res := getBagDetailFromBooking(booking)
+	res := getBagDetailFromBooking(bookLast)
 
 	okResponse(c, res)
 }
