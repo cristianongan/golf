@@ -10,6 +10,7 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
+	model_service "start/models/service"
 	"start/utils"
 	"strings"
 	"time"
@@ -725,10 +726,10 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 			if booking.CaddieId != caddie.Id {
 				return errors.New(caddie.Code + " đang bị LOCK"), booking, caddie, models.Buggy{}
 			}
-		}
-
-		if errCaddie := checkCaddieReady(booking, caddie); errCaddie != nil {
-			return errCaddie, booking, caddie, models.Buggy{}
+		} else {
+			if errCaddie := checkCaddieReady(booking, caddie); errCaddie != nil {
+				return errCaddie, booking, caddie, models.Buggy{}
+			}
 		}
 
 		booking.CaddieId = caddie.Id
@@ -1078,8 +1079,28 @@ func getBagDetailFromBooking(booking model_booking.Booking) model_booking.BagDet
 Update lại gía với các service items mới nhất
 */
 func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUser) {
-	booking.UpdateMushPay()
-	booking.UpdatePriceDetailCurrentBag()
+	if booking.MainBags != nil && len(booking.MainBags) > 0 {
+		//Find MainBag
+		mainBag := model_booking.Booking{}
+		mainBag.Uid = booking.MainBags[0].BookingUid
+		errFMB := mainBag.FindFirst()
+		if errFMB == nil {
+			// Update cho sub bag
+			booking.UpdatePriceForBagHaveMainBags(mainBag.MainBagPay)
+			//Update lại giá cho main bag
+			mainBag.UpdateMushPay()
+			mainBag.UpdatePriceDetailCurrentBag()
+			errUpdMainBag := mainBag.Update()
+			if errUpdMainBag != nil {
+				log.Println("updatePriceWithServiceItem errUpdMainBag", errUpdMainBag.Error())
+			}
+		} else {
+			log.Println("updatePriceWithServiceItem errFMB", errFMB.Error())
+		}
+	} else {
+		booking.UpdateMushPay()
+		booking.UpdatePriceDetailCurrentBag()
+	}
 
 	booking.CmsUser = prof.UserName
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
@@ -1259,4 +1280,36 @@ func updateReportTotalPlayCountForCustomerUser(userUid string, partnerUid, cours
 			log.Println("updateReportTotalPlayCountForCustomerUser errUdp", errUdp.Error())
 		}
 	}
+}
+
+/*
+Validate Item Code có tồn tại trong Proshop or FB or Rental hay không
+*/
+func validateItemCodeInService(serviceType string, itemCode string) error {
+	if serviceType == constants.GROUP_PROSHOP {
+		proshop := model_service.Proshop{
+			ProShopId: itemCode,
+		}
+
+		if err := proshop.FindFirst(); err == nil {
+			return errors.New(itemCode + "không tìm thấy")
+		}
+	} else if serviceType == constants.GROUP_FB {
+		fb := model_service.FoodBeverage{
+			FBCode: itemCode,
+		}
+
+		if err := fb.FindFirst(); err == nil {
+			return errors.New(itemCode + "không tìm thấy")
+		}
+	} else if serviceType == constants.GROUP_RENTAL {
+		rental := model_service.Rental{
+			RentalId: itemCode,
+		}
+
+		if err := rental.FindFirst(); err == nil {
+			return errors.New(itemCode + " không tìm thấy ")
+		}
+	}
+	return nil
 }

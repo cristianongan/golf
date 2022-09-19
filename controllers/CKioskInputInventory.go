@@ -65,6 +65,10 @@ func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.Cms
 			GroupCode: data.GroupCode,
 		}
 
+		if errSer := validateItemCodeInService(goodsService.Type, data.ItemCode); errSer != nil {
+			return errSer
+		}
+
 		errFindGoodsService := goodsService.FindFirst()
 		if errFindGoodsService != nil {
 			return errFindGoodsService
