@@ -921,8 +921,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Tính lại giá
-	booking.UpdatePriceDetailCurrentBag()
-	booking.UpdateMushPay()
+	updatePriceWithServiceItem(booking, prof)
+	// booking.UpdatePriceDetailCurrentBag()
+	// booking.UpdateMushPay()
 
 	// Booking Note
 	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
