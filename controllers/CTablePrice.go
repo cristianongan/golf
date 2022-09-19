@@ -125,6 +125,10 @@ func (_ *CTablePrice) UpdateTablePrice(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CTablePrice) DeleteTablePrice(c *gin.Context, prof models.CmsUser) {
+
+	response_message.BadRequest(c, "Không hỗ trợ xoá bảng giá")
+	return
+
 	tablePriceIdStr := c.Param("id")
 	tablePriceId, err := strconv.ParseInt(tablePriceIdStr, 10, 64)
 	if err != nil || tablePriceId <= 0 {
