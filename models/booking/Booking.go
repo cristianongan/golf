@@ -503,51 +503,6 @@ func (item *Booking) FindServiceItems() {
 	item.ListServiceItems = listServiceItems
 }
 
-// func (item *Booking) UpdateBookingMainBag() error {
-// 	if item.MainBags == nil || len(item.MainBags) == 0 {
-// 		return errors.New("invalid main bags")
-// 	}
-// 	mainBagBookingUid := item.MainBags[0].BookingUid
-// 	mainBagBooking := Booking{}
-// 	mainBagBooking.Uid = mainBagBookingUid
-// 	errFindMainB := mainBagBooking.FindFirst()
-// 	if errFindMainB != nil {
-// 		return errFindMainB
-// 	}
-
-// 	if mainBagBooking.ListGolfFee == nil {
-// 		mainBagBooking.ListGolfFee = ListBookingGolfFee{}
-// 	}
-
-// 	// Update lại cho Main Bag Booking
-// 	// Check GolfFee
-// 	if item.ListGolfFee != nil {
-// 		idxTemp := -1
-// 		for i, gf := range mainBagBooking.ListGolfFee {
-// 			if gf.BookingUid == item.Uid {
-// 				idxTemp = i
-// 			}
-// 		}
-// 		if idxTemp == -1 {
-// 			// Chưa có thì thêm vào
-// 			mainBagBooking.ListGolfFee = append(mainBagBooking.ListGolfFee, item.GetCurrentBagGolfFee())
-// 		} else {
-// 			// Update cái mới
-// 			mainBagBooking.ListGolfFee[idxTemp] = item.GetCurrentBagGolfFee()
-// 		}
-// 	}
-
-// 	// Udp lại mush Pay
-// 	mainBagBooking.UpdateMushPay()
-
-// 	errUdp := mainBagBooking.Update()
-// 	if errUdp != nil {
-// 		return errUdp
-// 	}
-
-// 	return nil
-// }
-
 func (item *Booking) GetCurrentBagGolfFee() BookingGolfFee {
 	golfFee := BookingGolfFee{}
 	if item.ListGolfFee == nil {
@@ -656,11 +611,11 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(listPay utils.ListString) {
 	isConNR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
 	for i, v := range item.ListGolfFee {
 		if i == 0 {
-			if isConFR >= 0 {
+			if isConFR < 0 {
 				totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
 			}
 		} else {
-			if isConNR >= 0 {
+			if isConNR < 0 {
 				totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
 			}
 		}
