@@ -3,6 +3,7 @@ package request
 type AddRoundBody struct {
 	BookUidList []string `json:"booking_uid_list" validate:"required"`
 	Hole        *int     `json:"hole"`
+	CourseType  string   `json:"course_type"`
 }
 
 type SplitRoundBody struct {
