@@ -980,6 +980,7 @@ func (item *Booking) FindListForSubBag() ([]BookingForSubBag, error) {
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}

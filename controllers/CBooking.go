@@ -1344,7 +1344,7 @@ func (_ *CBooking) GetListBookingForAddSubBag(c *gin.Context, prof models.CmsUse
 	bookingR := model_booking.Booking{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
-		BagStatus:  constants.BAG_STATUS_IN_COURSE,
+		BagStatus:  constants.BAG_STATUS_IN_COURSE + "," + constants.BAG_STATUS_WAITING,
 	}
 
 	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
