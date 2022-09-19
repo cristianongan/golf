@@ -1081,23 +1081,6 @@ Update lại gía với các service items mới nhất
 func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUser) {
 	if booking.MainBags != nil && len(booking.MainBags) > 0 {
 		booking.UpdatePriceForBagHaveMainBags()
-		// //Find MainBag
-		// mainBag := model_booking.Booking{}
-		// mainBag.Uid = booking.MainBags[0].BookingUid
-		// errFMB := mainBag.FindFirst()
-		// if errFMB == nil {
-		// 	// Update cho sub bag
-
-		// 	//Update lại giá cho main bag
-		// 	mainBag.UpdateMushPay()
-		// 	mainBag.UpdatePriceDetailCurrentBag()
-		// 	errUpdMainBag := mainBag.Update()
-		// 	if errUpdMainBag != nil {
-		// 		log.Println("updatePriceWithServiceItem errUpdMainBag", errUpdMainBag.Error())
-		// 	}
-		// } else {
-		// 	log.Println("updatePriceWithServiceItem errFMB", errFMB.Error())
-		// }
 	} else {
 		booking.UpdateMushPay()
 		booking.UpdatePriceDetailCurrentBag()

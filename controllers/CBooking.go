@@ -920,11 +920,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerBookingPhone = booking.CustomerInfo.Phone
 	}
 
-	// Tính lại giá
-	updatePriceWithServiceItem(booking, prof)
-	// booking.UpdatePriceDetailCurrentBag()
-	// booking.UpdateMushPay()
-
 	// Booking Note
 	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
 		booking.NoteOfBag = body.NoteOfBag
@@ -941,15 +936,18 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		cBooking.UpdateBookingCaddieCommon(body.PartnerUid, body.CourseUid, &booking, caddie)
 	}
 
-	// Udp Log Tracking
-	booking.CmsUser = prof.UserName
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	// Tính lại giá
+	updatePriceWithServiceItem(booking, prof)
 
-	errUdp := booking.Update()
-	if errUdp != nil {
-		response_message.InternalServerError(c, errUdp.Error())
-		return
-	}
+	// Udp Log Tracking
+	// booking.CmsUser = prof.UserName
+	// booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+
+	// errUdp := booking.Update()
+	// if errUdp != nil {
+	// 	response_message.InternalServerError(c, errUdp.Error())
+	// 	return
+	// }
 
 	res := getBagDetailFromBooking(booking)
 
