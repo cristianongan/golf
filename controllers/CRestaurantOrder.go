@@ -188,8 +188,10 @@ func (_ CRestaurantOrder) GetListBill(c *gin.Context, prof models.CmsUser) {
 		}
 
 		// Add infor to response
-		listData[i]["bill_infor"] = data
-		listData[i]["menu"] = listResItem
+		listData[i] = map[string]interface{}{
+			"bill_infor": data,
+			"menu":       listResItem,
+		}
 	}
 
 	res := response.PageResponse{
