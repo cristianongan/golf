@@ -68,7 +68,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		fb.CourseUid = prof.CourseUid
 		fb.FBCode = body.ItemCode
 
-		if err := fb.FindFirstInKiosk(kiosk.Id); err != nil {
+		if err := fb.FindFirst(); err != nil {
 			response_message.BadRequest(c, err.Error())
 			return
 		}
