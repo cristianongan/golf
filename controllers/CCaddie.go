@@ -381,4 +381,7 @@ func assignCaddieUpdate(caddieRequest *models.Caddie, body request.UpdateCaddieB
 	if body.GroupId > 0 {
 		caddieRequest.GroupId = body.GroupId
 	}
+	if body.ContractStatus != nil {
+		caddieRequest.ContractStatus = *body.ContractStatus
+	}
 }
