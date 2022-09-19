@@ -277,7 +277,7 @@ func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	err := caddieRequest.Delete()
+	err := caddieRequest.SolfDelete()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

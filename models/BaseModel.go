@@ -16,7 +16,7 @@ type ModelId struct {
 	Id        int64  `gorm:"AUTO_INCREMENT:yes" sql:"bigint;not null;primary_key"  json:"id"`
 	CreatedAt int64  `json:"created_at" gorm:"index"`
 	UpdatedAt int64  `json:"updated_at"`
-	Status    string `json:"status"  gorm:"type:varchar(50)"` //ENABLE, DISABLE, TESTING
+	Status    string `json:"status"  gorm:"type:varchar(50)"` //ENABLE, DISABLE, TESTING, DELETED
 }
 
 type ModelLog struct {

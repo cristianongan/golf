@@ -59,35 +59,35 @@ func (_ *CCaddieBookingList) GetCaddieBookingList(c *gin.Context, prof models.Cm
 	result = make(map[int64]map[string]interface{})
 
 	for _, item := range list {
-		caddie := models.Caddie{}
-		caddie.Id = item.CaddieId
-
-		if err := caddie.FindFirst(); err == nil {
+		if result[item.CaddieId] == nil {
 			result[item.CaddieId] = make(map[string]interface{})
-			result[item.CaddieId]["caddie_info"] = caddie
-			if result[item.CaddieId]["total_booking"] == nil {
-				result[item.CaddieId]["total_booking"] = 0
-			}
-			if result[item.CaddieId]["total_agent_booking"] == nil {
-				result[item.CaddieId]["total_agent_booking"] = 0
-			}
-			if result[item.CaddieId]["total_customer_booking"] == nil {
-				result[item.CaddieId]["total_customer_booking"] = 0
-			}
-			if totalBooking, ok := result[item.CaddieId]["total_booking"].(int); ok {
-				result[item.CaddieId]["total_booking"] = totalBooking + 1
-			}
-			if item.AgencyId != 0 {
-				if totalAgencyBooking, ok := result[item.CaddieId]["total_agent_booking"].(int); ok {
-					result[item.CaddieId]["total_agent_booking"] = totalAgencyBooking + 1
-				}
-			} else {
-				if totalCustomerBooking, ok := result[item.CaddieId]["total_customer_booking"].(int); ok {
-					result[item.CaddieId]["total_customer_booking"] = totalCustomerBooking + 1
-				}
+			caddie := models.Caddie{}
+			caddie.Id = item.CaddieId
+			if err := caddie.FindFirst(); err == nil {
+				result[item.CaddieId]["caddie_info"] = caddie
 			}
 		}
-
+		if result[item.CaddieId]["total_booking"] == nil {
+			result[item.CaddieId]["total_booking"] = 0
+		}
+		if result[item.CaddieId]["total_agent_booking"] == nil {
+			result[item.CaddieId]["total_agent_booking"] = 0
+		}
+		if result[item.CaddieId]["total_customer_booking"] == nil {
+			result[item.CaddieId]["total_customer_booking"] = 0
+		}
+		if totalBooking, ok := result[item.CaddieId]["total_booking"].(int); ok {
+			result[item.CaddieId]["total_booking"] = totalBooking + 1
+		}
+		if item.AgencyId != 0 {
+			if totalAgencyBooking, ok := result[item.CaddieId]["total_agent_booking"].(int); ok {
+				result[item.CaddieId]["total_agent_booking"] = totalAgencyBooking + 1
+			}
+		} else {
+			if totalCustomerBooking, ok := result[item.CaddieId]["total_customer_booking"].(int); ok {
+				result[item.CaddieId]["total_customer_booking"] = totalCustomerBooking + 1
+			}
+		}
 	}
 
 	if err != nil {
