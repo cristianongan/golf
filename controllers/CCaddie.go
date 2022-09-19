@@ -223,6 +223,10 @@ func (_ *CCaddie) GetCaddieList(c *gin.Context, prof models.CmsUser) {
 		caddie.CurrentStatus = form.CurrentStatus
 	}
 
+	if form.IsReadyForJoin != "" {
+		caddie.IsReadyForJoin = form.IsReadyForJoin
+	}
+
 	list, total, err := caddie.FindList(page)
 
 	if err != nil {
