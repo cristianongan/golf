@@ -94,6 +94,7 @@ func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
 		}
 	}
 
+	db.Not("status = ?", constants.STATUS_DELETE)
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

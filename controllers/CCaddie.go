@@ -277,7 +277,7 @@ func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	err := caddieRequest.Delete()
+	err := caddieRequest.SolfDelete()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -380,5 +380,8 @@ func assignCaddieUpdate(caddieRequest *models.Caddie, body request.UpdateCaddieB
 	}
 	if body.GroupId > 0 {
 		caddieRequest.GroupId = body.GroupId
+	}
+	if body.ContractStatus != nil {
+		caddieRequest.ContractStatus = *body.ContractStatus
 	}
 }

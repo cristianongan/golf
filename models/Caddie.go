@@ -71,6 +71,16 @@ func (item *Caddie) Delete() error {
 	return datasources.GetDatabase().Delete(item).Error
 }
 
+func (item *Caddie) SolfDelete() error {
+	item.ModelId.Status = constants.STATUS_DELETED
+	db := datasources.GetDatabase()
+	errUpdate := db.Save(item).Error
+	if errUpdate != nil {
+		return errUpdate
+	}
+	return nil
+}
+
 func (item *Caddie) Update() error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
 
