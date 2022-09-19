@@ -412,6 +412,17 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// validate golf bag
+	booking := model_booking.Booking{}
+	booking.PartnerUid = prof.PartnerUid
+	booking.CourseUid = prof.CourseUid
+	booking.Bag = serviceCartItem.Bag
+	booking.BookingDate = time.Now().Format("02/01/2006")
+	if err := booking.FindFirst(); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
 	// validate cart
 	serviceCart := models.ServiceCart{}
 	serviceCart.PartnerUid = prof.PartnerUid
@@ -465,6 +476,9 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
+
 	okRes(c)
 }
 
@@ -484,6 +498,17 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 
 	if err := serviceCartItem.FindFirst(); err != nil {
 		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate golf bag
+	booking := model_booking.Booking{}
+	booking.PartnerUid = prof.PartnerUid
+	booking.CourseUid = prof.CourseUid
+	booking.Bag = serviceCartItem.Bag
+	booking.BookingDate = time.Now().Format("02/01/2006")
+	if err := booking.FindFirst(); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
 		return
 	}
 
@@ -529,6 +554,9 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
+
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
 
 	okRes(c)
 }
