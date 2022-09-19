@@ -748,6 +748,22 @@ func (item *Booking) UpdatePriceDetailCurrentBag() {
 
 // Check Duplicated
 func (item *Booking) IsDuplicated(checkTeeTime, checkBag bool) (bool, error) {
+	//Check Bag đã tồn tại trước
+	if checkBag {
+		if item.Bag != "" {
+			booking := Booking{
+				PartnerUid:  item.PartnerUid,
+				CourseUid:   item.CourseUid,
+				BookingDate: item.BookingDate,
+				Bag:         item.Bag,
+			}
+			errBagFind := booking.FindFirst()
+			if errBagFind == nil || booking.Uid != "" {
+				return true, errors.New("Duplicated Bag")
+			}
+		}
+	}
+
 	if item.TeeTime == "" {
 		return false, nil
 	}
@@ -766,22 +782,6 @@ func (item *Booking) IsDuplicated(checkTeeTime, checkBag bool) (bool, error) {
 		errFind := booking.FindFirstNotCancel()
 		if errFind == nil || booking.Uid != "" {
 			return true, errors.New("Duplicated TeeTime")
-		}
-	}
-
-	//Check Bag đã tồn tại
-	if checkBag {
-		if item.Bag != "" {
-			booking := Booking{
-				PartnerUid:  item.PartnerUid,
-				CourseUid:   item.CourseUid,
-				BookingDate: item.BookingDate,
-				Bag:         item.Bag,
-			}
-			errBagFind := booking.FindFirst()
-			if errBagFind == nil || booking.Uid != "" {
-				return true, errors.New("Duplicated Bag")
-			}
 		}
 	}
 
