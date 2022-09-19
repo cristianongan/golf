@@ -1,4 +1,4 @@
-rootUrl: golf-uat-api.vngolf.net
+rootUrl: golf-dev-api.vngolf.net
 
 replicaCount: 3
 
