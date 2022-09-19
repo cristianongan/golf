@@ -1132,9 +1132,6 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	if booking.SubBags == nil {
 		booking.SubBags = utils.ListSubBag{}
 	}
-	// if booking.ListServiceItems == nil {
-	// 	booking.ListServiceItems = model_booking.ListBookingServiceItems{}
-	// }
 
 	if booking.MainBagPay == nil {
 		booking.MainBagPay = initMainBagForPay()
@@ -1167,11 +1164,6 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 					booking.ListGolfFee = model_booking.ListBookingGolfFee{}
 				}
 				booking.ListGolfFee = append(booking.ListGolfFee, subBagGolfFee)
-
-				//Udp lại Sub service items
-				// if subBooking.ListServiceItems != nil {
-				// 	booking.ListServiceItems = append(booking.ListServiceItems, subBooking.ListServiceItems...)
-				// }
 			} else {
 				log.Println("AddSubBagToBooking err1", err1.Error())
 			}

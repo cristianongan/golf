@@ -150,7 +150,7 @@ Các dịch vụ của sân Golf: thuê đồ, shop, nhà hàng...
 const (
 	GOLF_SERVICE_RENTAL     = "RENTAL"
 	GOLF_SERVICE_PROSHOP    = "PROSHOP"
-	GOLF_SERVICE_RESTAURANT = "FB"
+	GOLF_SERVICE_RESTAURANT = "RESTAURANT"
 	GOLF_SERVICE_KIOSK      = "KIOSK"
 )
 
