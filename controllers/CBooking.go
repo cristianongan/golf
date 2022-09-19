@@ -1470,7 +1470,7 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	booking.UpdateMushPay()
+	updatePriceWithServiceItem(booking, prof)
 
 	booking.OtherPaids = body.OtherPaids
 
