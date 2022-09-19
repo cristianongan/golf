@@ -667,6 +667,48 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(listPay utils.ListString) {
 	priceDetail.UpdateAmount()
 
 	item.CurrentBagPrice = priceDetail
+
+	//Udp price for main bag
+	// trả cho thằng con
+	mainBook := Booking{}
+	mainBook.Uid = item.MainBags[0].BookingUid
+	errFMB := mainBook.FindFirst()
+	if errFMB == nil {
+		listGolfFeeTemp := mainBook.ListGolfFee
+		isIndex := -1
+		for i, v := range mainBook.ListGolfFee {
+			if v.BookingUid == item.Uid {
+				isIndex = i
+			}
+		}
+		if isIndex == -1 {
+			//Chua dc add
+			if isConFR >= 0 {
+				mainBook.ListGolfFee = append(listGolfFeeTemp, item.ListGolfFee[0])
+			}
+		} else {
+			if isConFR >= 0 {
+				// add them vao
+				mainBook.ListGolfFee[isIndex] = item.ListGolfFee[0]
+			} else {
+				// remove di
+				listTempGF1 := ListBookingGolfFee{}
+				for _, v := range mainBook.ListGolfFee {
+					if v.BookingUid != item.Uid {
+						listTempGF1 = append(listTempGF1, v)
+					}
+				}
+				mainBook.ListGolfFee = listTempGF1
+			}
+		}
+		mainBook.UpdateMushPay()
+		errUdpMB := mainBook.Update()
+		if errUdpMB != nil {
+			log.Println("UpdatePriceForBagHaveMainBags errUdpMB", errUdpMB.Error())
+		}
+	} else {
+		log.Println("UpdatePriceForBagHaveMainBags errFMB", errFMB.Error())
+	}
 }
 
 // Udp lại giá cho Booking
