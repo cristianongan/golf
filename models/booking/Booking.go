@@ -701,6 +701,10 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(listPay utils.ListString) {
 			}
 		}
 		mainBook.UpdateMushPay()
+		errUdpMB := mainBook.Update()
+		if errUdpMB != nil {
+			log.Println("UpdatePriceForBagHaveMainBags errUdpMB", errUdpMB.Error())
+		}
 	} else {
 		log.Println("UpdatePriceForBagHaveMainBags errFMB", errFMB.Error())
 	}
