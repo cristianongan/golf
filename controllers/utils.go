@@ -1076,13 +1076,18 @@ func getBagDetailFromBooking(booking model_booking.Booking) model_booking.BagDet
 }
 
 /*
-Update lại gía với các service items mới nhất
+Update lại gía của
+Bag hiện tại
+main bag nếu có
+sub bag nếu có
 */
 func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUser) {
 	if booking.MainBags != nil && len(booking.MainBags) > 0 {
 		booking.UpdatePriceForBagHaveMainBags()
 	} else {
 		if booking.SubBags != nil && len(booking.SubBags) > 0 {
+			//Udp lại giá sub bag mới nhất nếu có sub bag
+			// Udp cho case sửa main bag pay
 			for _, v := range booking.SubBags {
 				subBook := model_booking.Booking{}
 				subBook.Uid = v.BookingUid
