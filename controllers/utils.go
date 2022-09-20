@@ -482,19 +482,18 @@ func initUpdatePriceBookingForChanegHole(booking *model_booking.Booking, booking
 
 // Khi add sub bag vào 1 booking thì cần cập nhật lại main bag cho booking sub bag
 // Cập nhật lại giá cho SubBag
-func updateMainBagForSubBag(body request.AddSubBagToBooking, mainBooking model_booking.Booking) error {
+func updateMainBagForSubBag(mainBooking model_booking.Booking) error {
 	var err error
-	for _, v := range body.SubBags {
+	for _, v := range mainBooking.SubBags {
 		booking := model_booking.Booking{}
 		booking.Uid = v.BookingUid
 		errFind := booking.FindFirst()
 		if errFind == nil {
 			mainBag := utils.BookingSubBag{
-				BookingUid: body.BookingUid,
+				BookingUid: mainBooking.Uid,
 				GolfBag:    mainBooking.Bag,
 				PlayerName: mainBooking.CustomerName,
 			}
-			log.Println("updateMainBagForSubBag")
 			booking.MainBags = utils.ListSubBag{}
 			booking.MainBags = append(booking.MainBags, mainBag)
 			booking.UpdatePriceForBagHaveMainBags()
@@ -1076,29 +1075,29 @@ func getBagDetailFromBooking(booking model_booking.Booking) model_booking.BagDet
 }
 
 /*
-Update lại gía với các service items mới nhất
+Update lại gía của
+Bag hiện tại
+main bag nếu có
+sub bag nếu có
 */
 func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUser) {
 	if booking.MainBags != nil && len(booking.MainBags) > 0 {
 		booking.UpdatePriceForBagHaveMainBags()
-		// //Find MainBag
-		// mainBag := model_booking.Booking{}
-		// mainBag.Uid = booking.MainBags[0].BookingUid
-		// errFMB := mainBag.FindFirst()
-		// if errFMB == nil {
-		// 	// Update cho sub bag
-
-		// 	//Update lại giá cho main bag
-		// 	mainBag.UpdateMushPay()
-		// 	mainBag.UpdatePriceDetailCurrentBag()
-		// 	errUpdMainBag := mainBag.Update()
-		// 	if errUpdMainBag != nil {
-		// 		log.Println("updatePriceWithServiceItem errUpdMainBag", errUpdMainBag.Error())
-		// 	}
-		// } else {
-		// 	log.Println("updatePriceWithServiceItem errFMB", errFMB.Error())
-		// }
 	} else {
+		if booking.SubBags != nil && len(booking.SubBags) > 0 {
+			//Udp lại giá sub bag mới nhất nếu có sub bag
+			// Udp cho case sửa main bag pay
+			for _, v := range booking.SubBags {
+				subBook := model_booking.Booking{}
+				subBook.Uid = v.BookingUid
+				errFSub := subBook.FindFirst()
+				if errFSub == nil {
+					go subBook.UpdatePriceForBagHaveMainBags()
+				} else {
+					log.Println("updatePriceWithServiceItem errUdp", errFSub.Error())
+				}
+			}
+		}
 		booking.UpdateMushPay()
 		booking.UpdatePriceDetailCurrentBag()
 	}

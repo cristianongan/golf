@@ -920,11 +920,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerBookingPhone = booking.CustomerInfo.Phone
 	}
 
-	// Tính lại giá
-	updatePriceWithServiceItem(booking, prof)
-	// booking.UpdatePriceDetailCurrentBag()
-	// booking.UpdateMushPay()
-
 	// Booking Note
 	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
 		booking.NoteOfBag = body.NoteOfBag
@@ -941,17 +936,15 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		cBooking.UpdateBookingCaddieCommon(body.PartnerUid, body.CourseUid, &booking, caddie)
 	}
 
-	// Udp Log Tracking
-	booking.CmsUser = prof.UserName
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	// Tính lại giá
+	updatePriceWithServiceItem(booking, prof)
 
-	errUdp := booking.Update()
-	if errUdp != nil {
-		response_message.InternalServerError(c, errUdp.Error())
-		return
-	}
+	// Get lai booking
+	bookLast := model_booking.Booking{}
+	bookLast.Uid = booking.Uid
+	bookLast.FindFirst()
 
-	res := getBagDetailFromBooking(booking)
+	res := getBagDetailFromBooking(bookLast)
 
 	okResponse(c, res)
 }
@@ -1139,9 +1132,6 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	if booking.SubBags == nil {
 		booking.SubBags = utils.ListSubBag{}
 	}
-	// if booking.ListServiceItems == nil {
-	// 	booking.ListServiceItems = model_booking.ListBookingServiceItems{}
-	// }
 
 	if booking.MainBagPay == nil {
 		booking.MainBagPay = initMainBagForPay()
@@ -1167,18 +1157,6 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 					BillCode:   subBooking.BillCode,
 				}
 				booking.SubBags = append(booking.SubBags, subBag)
-
-				//Udp List GolfFee
-				subBagGolfFee := subBooking.GetCurrentBagGolfFee()
-				if booking.ListGolfFee == nil {
-					booking.ListGolfFee = model_booking.ListBookingGolfFee{}
-				}
-				booking.ListGolfFee = append(booking.ListGolfFee, subBagGolfFee)
-
-				//Udp lại Sub service items
-				// if subBooking.ListServiceItems != nil {
-				// 	booking.ListServiceItems = append(booking.ListServiceItems, subBooking.ListServiceItems...)
-				// }
 			} else {
 				log.Println("AddSubBagToBooking err1", err1.Error())
 			}
@@ -1188,23 +1166,29 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	booking.CmsUser = prof.UserName
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
-	// Tính lại giá
-	booking.UpdateMushPay()
-
-	// Cập nhật Main bag cho subbag
-	err := updateMainBagForSubBag(body, booking)
-	if err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
-
 	errUdp := booking.Update()
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
 
-	res := getBagDetailFromBooking(booking)
+	// Tính lại giá
+	// Cập nhật Main bag cho subbag
+	err := updateMainBagForSubBag(booking)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	bookRes := model_booking.Booking{}
+	bookRes.Uid = booking.Uid
+	errFRes := bookRes.FindFirst()
+	if errFRes != nil {
+		response_message.InternalServerError(c, errFRes.Error())
+		return
+	}
+
+	res := getBagDetailFromBooking(bookRes)
 
 	okResponse(c, res)
 }

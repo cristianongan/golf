@@ -639,19 +639,25 @@ func (item *Booking) UpdatePriceForBagHaveMainBags() {
 	totalGolfFee := int64(0)
 
 	// Check xem main bag có trả golf fee cho sub bag không
+	// Check thanh toán first round
 	isConFR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+	// Check thanh toán next round
 	isConNR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
 	for i, v := range item.ListGolfFee {
 		if i == 0 {
 			if isConFR < 0 {
+				// Nếu main k thanh toán FR cho sub thì add vào sub
 				totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
 			}
 		} else {
 			if isConNR < 0 {
+				// Nếu main k thanh toán NR cho sub thì add vào sub
 				totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
 			}
 		}
 	}
+
+	// Tính total golf fee cho sub
 	mushPay.TotalGolfFee = totalGolfFee
 
 	item.FindServiceItems()
@@ -1100,6 +1106,14 @@ func (item *Booking) FindForCaddieOnCourse(InFlight string) []Booking {
 	}
 	db = db.Where("bag_status = ?", constants.BAG_STATUS_WAITING)
 	db = db.Not("caddie_status = ?", constants.BOOKING_CADDIE_STATUS_OUT)
+
+	customerType := []string{
+		constants.CUSTOMER_TYPE_NONE_GOLF,
+		constants.CUSTOMER_TYPE_WALKING_FEE,
+	}
+
+	db = db.Where("customer_info->'$.type' NOT IN (?)", customerType)
+
 	if InFlight != "" {
 		if InFlight == "0" {
 			db = db.Not("flight_id > ?", 0)

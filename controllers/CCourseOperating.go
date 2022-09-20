@@ -1026,6 +1026,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	bookingUid := uuid.New()
 	bUid := booking.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
 	booking.FlightId = body.FlightId
+	booking.TimeOutFlight = 0
 	booking.BagStatus = constants.BAG_STATUS_IN_COURSE
 	errCreateBooking := booking.Create(bUid)
 
