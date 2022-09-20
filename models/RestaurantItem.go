@@ -20,12 +20,15 @@ type RestaurantItem struct {
 	Type            string `json:"type" gorm:"type:varchar(100)"`              // Loại sản phẩm: FOOD, DRINK
 	BillId          int64  `json:"bill_id" gorm:"index"`                       // id hóa đơn
 	ItemId          int64  `json:"item_id" gorm:"index"`                       // id sản phẩm
-	ItemCode        string `json:"iten_code" gorm:"type:varchar(100)"`         // Tên sản phẩm
-	ItemName        string `json:"iten_name" gorm:"type:varchar(100)"`         // Tên sản phẩm
-	ItemStatus      string `json:"iten_staus" gorm:"type:varchar(100)"`        // Trạng thái sản phẩm
-	ItemNote        string `json:"iten_note" gorm:"type:varchar(200)"`         // Yêu cầu của khách hàng
+	ItemCode        string `json:"item_code" gorm:"type:varchar(100)"`         // Mã sản phẩm
+	ItemName        string `json:"item_name" gorm:"type:varchar(100)"`         // Tên sản phẩm
+	ItemComboName   string `json:"item_combo_name" gorm:"type:varchar(100)"`   // Tên combo
+	ItemUnit        string `json:"item_unit" gorm:"type:varchar(100)"`         // Đơn vị
+	ItemStatus      string `json:"item_staus" gorm:"type:varchar(100)"`        // Trạng thái sản phẩm
+	ItemNote        string `json:"item_note" gorm:"type:varchar(200)"`         // Yêu cầu của khách hàng
 	Quatity         int    `json:"quatity"`                                    // Số lượng order
 	QuatityProgress int    `json:"quatity_progress"`                           // Số lương đang tiến hành
+	TotalProcess    int    `json:"total_process"`                              // Tổng số lượng đang làm
 }
 
 func (item *RestaurantItem) Create() error {
@@ -111,6 +114,44 @@ func (item *RestaurantItem) FindAll() ([]RestaurantItem, error) {
 	if item.Id != 0 {
 		db = db.Where("id = ?", item.Id)
 	}
+
+	if item.ServiceId != 0 {
+		db = db.Where("service_id = ?", item.ServiceId)
+	}
+
+	if item.ItemCode != "" {
+		db = db.Where("item_code = ?", item.ItemCode)
+	}
+
+	db.Find(&list)
+
+	return list, db.Error
+}
+
+func (item *RestaurantItem) FindAllGroupBy() ([]RestaurantItem, error) {
+	db := datasources.GetDatabase().Model(RestaurantItem{})
+	list := []RestaurantItem{}
+
+	db.Select("*, sum(quatity_progress) as total_process")
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.ServiceId != 0 {
+		db = db.Where("service_id = ?", item.ServiceId)
+	}
+	if item.Type != "" {
+		db = db.Where("type = ?", item.Type)
+	}
+	if item.ItemName != "" {
+		db = db.Where("item_name LIKE ?", "%"+item.ItemName+"%")
+	}
+
+	db = db.Where("item_staus = ?", constants.RES_STATUS_PROCESS)
+	db.Group("item_code")
 
 	db.Find(&list)
 

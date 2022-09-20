@@ -41,7 +41,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 	booking.Bag = body.GolfBag
 	booking.BookingDate = time.Now().Format("02/01/2006")
 	if err := booking.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
+		response_message.BadRequest(c, "Find booking "+err.Error())
 		return
 	}
 
@@ -54,7 +54,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = body.ServiceId
 	if err := kiosk.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
+		response_message.BadRequest(c, "Find kiosk "+err.Error())
 		return
 	}
 
@@ -80,7 +80,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 	serviceCart.PlayerName = booking.CustomerName
 
 	if err := serviceCart.Create(); err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
@@ -115,7 +115,7 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 	serviceCart.BillStatus = constants.RES_STATUS_PROCESS
 
 	if err := serviceCart.Update(); err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
@@ -126,7 +126,7 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 	list, err := restaurantItem.FindAll()
 
 	if err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
@@ -134,7 +134,7 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 		item.ItemStatus = constants.RES_STATUS_PROCESS
 
 		if err := item.Update(); err != nil {
-			response_message.InternalServerError(c, err.Error())
+			response_message.BadRequest(c, err.Error())
 			return
 		}
 	}
@@ -170,7 +170,7 @@ func (_ CRestaurantOrder) GetListBill(c *gin.Context, prof models.CmsUser) {
 	list, total, err := serviceCart.FindList(page)
 
 	if err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
@@ -184,7 +184,7 @@ func (_ CRestaurantOrder) GetListBill(c *gin.Context, prof models.CmsUser) {
 		listResItem, err := restaurantItem.FindAll()
 
 		if err != nil {
-			response_message.InternalServerError(c, err.Error())
+			response_message.BadRequest(c, err.Error())
 			return
 		}
 
@@ -223,7 +223,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = body.BillId
 	if err := serviceCart.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
+		response_message.BadRequest(c, "Find service Cart "+err.Error())
 		return
 	}
 
@@ -234,7 +234,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 	booking.Bag = serviceCart.GolfBag
 	booking.BookingDate = time.Now().Format("02/01/2006")
 	if err := booking.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
+		response_message.BadRequest(c, "Find booking "+err.Error())
 		return
 	}
 
@@ -242,45 +242,89 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = serviceCart.ServiceId
 	if err := kiosk.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
+		response_message.BadRequest(c, "Find kiosk "+err.Error())
 		return
 	}
 
 	// create cart item
 	serviceCartItem := model_booking.BookingServiceItem{}
 
-	// add res item
-	restaurantItem := models.RestaurantItem{}
+	// add res item with combo
+	restaurantItems := []models.RestaurantItem{}
 
 	// validate item code by group
 	if body.Type == "COMBO" {
+		fbSet := model_service.FbPromotionSet{}
+		fbSet.PartnerUid = body.PartnerUid
+		fbSet.CourseUid = body.CourseUid
+		fbSet.Code = body.ItemCode
 
+		if err := fbSet.FindFirst(); err != nil {
+			response_message.BadRequest(c, "Find fb set "+err.Error())
+			return
+		}
+
+		// add infor cart item
+		serviceCartItem.Type = kiosk.KioskType
+		serviceCartItem.GroupCode = fbSet.GroupCode
+		serviceCartItem.Name = fbSet.SetName
+		serviceCartItem.UnitPrice = int64(fbSet.Price)
+
+		// add item res
+		for _, v := range fbSet.FBList {
+			fb := model_service.FoodBeverage{}
+			fb.PartnerUid = body.PartnerUid
+			fb.CourseUid = body.CourseUid
+			fb.FBCode = v
+
+			if err := fb.FindFirst(); err != nil {
+				response_message.BadRequest(c, "Find fb in combo "+err.Error())
+				return
+			}
+
+			item := models.RestaurantItem{
+				Type:          fb.Type,
+				ItemName:      fb.VieName,
+				ItemComboName: fbSet.SetName,
+				ItemCode:      fb.FBCode,
+				ItemUnit:      fb.Unit,
+			}
+
+			restaurantItems = append(restaurantItems, item)
+		}
 	} else {
 		fb := model_service.FoodBeverage{}
 		fb.PartnerUid = body.PartnerUid
 		fb.CourseUid = body.CourseUid
 		fb.FBCode = body.ItemCode
 
-		if err := fb.FindFirstInKiosk(kiosk.Id); err != nil {
-			response_message.BadRequest(c, err.Error())
+		if err := fb.FindFirst(); err != nil {
+			response_message.BadRequest(c, "Find fb "+err.Error())
 			return
 		}
 
 		// add infor cart item
+		serviceCartItem.Type = kiosk.KioskType
 		serviceCartItem.GroupCode = fb.GroupCode
 		serviceCartItem.Name = fb.VieName
 		serviceCartItem.UnitPrice = int64(fb.Price)
 		serviceCartItem.Unit = fb.Unit
 
 		// add infor res item
-		restaurantItem.Type = fb.Type
-		restaurantItem.ItemName = fb.VieName
+		item := models.RestaurantItem{
+			Type:     fb.Type,
+			ItemName: fb.VieName,
+			ItemCode: fb.FBCode,
+			ItemUnit: fb.Unit,
+		}
+
+		restaurantItems = append(restaurantItems, item)
 	}
 
 	// update service cart
 	serviceCart.Amount += (int64(body.Quantity) * serviceCartItem.UnitPrice)
 	if err := serviceCart.Update(); err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
@@ -299,33 +343,37 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 	serviceCartItem.UserAction = prof.UserName
 
 	if err := serviceCartItem.Create(); err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
-	// add infor restaurant item
-	restaurantItem.PartnerUid = body.PartnerUid
-	restaurantItem.CourseUid = body.CourseUid
-	restaurantItem.ServiceId = serviceCart.ServiceId
-	restaurantItem.OrderDate = time.Now().Format("02/01/2006")
-	restaurantItem.BillId = serviceCart.Id
-	restaurantItem.ItemId = serviceCartItem.Id
-	restaurantItem.ItemCode = body.ItemCode
-	restaurantItem.ItemStatus = constants.RES_STATUS_ORDER
-	restaurantItem.Quatity = body.Quantity
-	restaurantItem.QuatityProgress = body.Quantity
+	for _, v := range restaurantItems {
+		// add infor restaurant item
+		v.PartnerUid = body.PartnerUid
+		v.CourseUid = body.CourseUid
+		v.ServiceId = serviceCart.ServiceId
+		v.OrderDate = time.Now().Format("02/01/2006")
+		v.BillId = serviceCart.Id
+		v.ItemId = serviceCartItem.Id
+		v.ItemStatus = constants.RES_STATUS_ORDER
+		v.Quatity = body.Quantity
+		v.QuatityProgress = body.Quantity
 
-	// Đổi trạng thái món khi đã có bill code
-	if serviceCart.BillCode != "NONE" {
-		restaurantItem.ItemStatus = constants.RES_STATUS_PROCESS
+		// Đổi trạng thái món khi đã có bill code
+		if serviceCart.BillCode != "NONE" {
+			v.ItemStatus = constants.RES_STATUS_PROCESS
+		}
+
+		if err := v.Create(); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
 	}
 
-	if err := restaurantItem.Create(); err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
 
-	c.JSON(200, serviceCartItem)
+	okRes(c)
 }
 
 // Update sản phẩm
@@ -346,23 +394,27 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 
 	// validate cart item
 	serviceCartItem := model_booking.BookingServiceItem{}
-	serviceCartItem.PartnerUid = prof.PartnerUid
-	serviceCartItem.CourseUid = prof.CourseUid
 	serviceCartItem.Id = body.ItemId
 
 	if err := serviceCartItem.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
+		response_message.BadRequest(c, "Find item"+err.Error())
 		return
 	}
 
 	// validate restaurant order
 	serviceCart := models.ServiceCart{}
-	serviceCart.PartnerUid = body.PartnerUid
-	serviceCart.CourseUid = body.CourseUid
 	serviceCart.Id = serviceCartItem.ServiceBill
 
 	if err := serviceCart.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
+		response_message.BadRequest(c, "Find order"+err.Error())
+		return
+	}
+
+	// validate golf bag
+	booking := model_booking.Booking{}
+	booking.Uid = serviceCart.BookingUid
+	if err := booking.FindFirst(); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
 		return
 	}
 
@@ -375,14 +427,14 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 	restaurantItem.ItemId = serviceCartItem.Id
 
 	if err := restaurantItem.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
+		response_message.BadRequest(c, "Find res item"+err.Error())
 		return
 	}
 
 	// update service cart
 	serviceCart.Amount += (int64(body.Quantity) * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
 	if err := serviceCart.Update(); err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
@@ -392,7 +444,7 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 	serviceCartItem.Input = body.Note
 
 	if err := serviceCartItem.Update(); err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
@@ -402,9 +454,12 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 	restaurantItem.ItemNote = body.Note
 
 	if err := restaurantItem.Update(); err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequest(c, err.Error())
 		return
 	}
+
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
 
 	okRes(c)
 }
@@ -423,16 +478,24 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 	serviceCartItem.Id = id
 
 	if err := serviceCartItem.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
+		response_message.BadRequest(c, "Find item"+err.Error())
 		return
 	}
 
-	// validate cart
+	// validate res order
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = serviceCartItem.ServiceBill
 
 	if err := serviceCart.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
+		response_message.BadRequest(c, "Find res order"+err.Error())
+		return
+	}
+
+	// validate golf bag
+	booking := model_booking.Booking{}
+	booking.Uid = serviceCart.BookingUid
+	if err := booking.FindFirst(); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
 		return
 	}
 
@@ -442,14 +505,14 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 	restaurantItem.ItemId = serviceCartItem.Id
 
 	if err := restaurantItem.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
+		response_message.BadRequest(c, "Find res item"+err.Error())
 		return
 	}
 
 	// update service cart
 	serviceCart.Amount -= serviceCartItem.Amount
 	if err := serviceCart.Update(); err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
@@ -459,11 +522,25 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// Delete res item
-	if err := restaurantItem.Delete(); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
+	if serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS {
+
+		// Update res item
+		restaurantItem.ItemStatus = constants.RES_STATUS_CANCEL
+
+		if err := restaurantItem.Update(); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+	} else {
+		// Delete res item
+		if err := restaurantItem.Delete(); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
 	}
+
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
 
 	okRes(c)
 }
@@ -483,17 +560,12 @@ func (_ CRestaurantOrder) GetListItemOrder(c *gin.Context, prof models.CmsUser) 
 		SortDir: query.PageRequest.SortDir,
 	}
 
-	// validate bill
+	// validate res order
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = query.BillId
 
 	if err := serviceCart.FindFirst(); err != nil {
-		res := response.PageResponse{
-			Total: 0,
-			Data:  nil,
-		}
-
-		c.JSON(200, res)
+		response_message.BadRequest(c, "Find res order"+err.Error())
 		return
 	}
 
@@ -503,7 +575,7 @@ func (_ CRestaurantOrder) GetListItemOrder(c *gin.Context, prof models.CmsUser) 
 	list, total, err := serviceCartItem.FindList(page)
 
 	if err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
@@ -515,7 +587,7 @@ func (_ CRestaurantOrder) GetListItemOrder(c *gin.Context, prof models.CmsUser) 
 	c.JSON(200, res)
 }
 
-// get list sản phẩm
+// Update res item
 func (_ CRestaurantOrder) UpdateResItem(c *gin.Context, prof models.CmsUser) {
 	body := request.UpdateResItemBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -533,8 +605,6 @@ func (_ CRestaurantOrder) UpdateResItem(c *gin.Context, prof models.CmsUser) {
 
 	// validate restaurant item
 	resItem := models.RestaurantItem{}
-	resItem.PartnerUid = body.PartnerUid
-	resItem.CourseUid = body.CourseUid
 	resItem.Id = body.ItemId
 
 	if err := resItem.FindFirst(); err != nil {
@@ -542,81 +612,165 @@ func (_ CRestaurantOrder) UpdateResItem(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Update trạng thái khi trả hết món
+	if resItem.QuatityProgress-1 == 0 {
+		resItem.ItemStatus = constants.RES_STATUS_DONE
+	}
+
 	// Update quatity progress when finish
-	if body.Action == constants.RES_STATUS_DONE {
-		// Update trạng thái khi trả hết món
-		if resItem.QuatityProgress-1 == 0 {
-			resItem.ItemStatus = constants.RES_STATUS_DONE
-		}
-
-		resItem.QuatityProgress -= 1
-	}
-
-	// Update cancel res item
-	if body.Action == constants.RES_STATUS_CANCEL {
-		resItem.ItemStatus = constants.RES_STATUS_CANCEL
-
-		// validate bill
-		serviceCart := models.ServiceCart{}
-		serviceCart.PartnerUid = body.PartnerUid
-		serviceCart.CourseUid = body.CourseUid
-		serviceCart.Id = resItem.BillId
-
-		if err := serviceCart.FindFirst(); err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
-		}
-
-		// validate bill
-		serviceCartItem := model_booking.BookingServiceItem{}
-		serviceCartItem.PartnerUid = body.PartnerUid
-		serviceCartItem.CourseUid = body.CourseUid
-		serviceCartItem.ServiceBill = resItem.BillId
-		serviceCartItem.Order = resItem.ItemCode
-
-		if err := serviceCartItem.FindFirst(); err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
-		}
-
-		// update service cart
-		serviceCart.Amount -= serviceCartItem.Amount
-		if err := serviceCart.Update(); err != nil {
-			response_message.InternalServerError(c, err.Error())
-			return
-		}
-
-		// Delete res item
-		if err := serviceCartItem.Delete(); err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
-		}
-	}
+	resItem.QuatityProgress -= 1
 
 	// update res item
 	if err := resItem.Update(); err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
 	okRes(c)
 }
 
-// // get list sản phẩm
-// func (_ CRestaurantOrder) UpdateResItem(c *gin.Context, prof models.CmsUser) {
-// 	body := request.UpdateResItemBody{}
-// 	if bindErr := c.ShouldBind(&body); bindErr != nil {
-// 		response_message.BadRequest(c, bindErr.Error())
-// 		return
-// 	}
+// get list sản phẩm cho nhà bếp
+func (_ CRestaurantOrder) GetFoodProcess(c *gin.Context, prof models.CmsUser) {
+	body := request.GetFoodProcessBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
 
-// 	// validate body
-// 	validate := validator.New()
+	// validate body
+	validate := validator.New()
 
-// 	if err := validate.Struct(body); err != nil {
-// 		response_message.BadRequest(c, err.Error())
-// 		return
-// 	}
+	if err := validate.Struct(body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
 
-// 	okRes(c)
-// }
+	// validate kiosk
+	kiosk := model_service.Kiosk{}
+	kiosk.Id = body.ServiceId
+	if err := kiosk.FindFirst(); err != nil {
+		response_message.BadRequest(c, "Find kiosk "+err.Error())
+		return
+	}
+
+	// validate restaurant item
+	resItem := models.RestaurantItem{}
+	resItem.ServiceId = body.ServiceId
+	resItem.Type = body.Type
+	resItem.ItemName = body.Name
+
+	list, err := resItem.FindAllGroupBy()
+
+	if err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	c.JSON(200, list)
+}
+
+// get list theo sản phẩm
+func (_ CRestaurantOrder) GetDetailFoodProcess(c *gin.Context, prof models.CmsUser) {
+	body := request.GetDetailFoodProcessBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// validate body
+	validate := validator.New()
+
+	if err := validate.Struct(body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate kiosk
+	kiosk := model_service.Kiosk{}
+	kiosk.Id = body.ServiceId
+	if err := kiosk.FindFirst(); err != nil {
+		response_message.BadRequest(c, "Find kiosk "+err.Error())
+		return
+	}
+
+	// validate restaurant item
+	resItem := models.RestaurantItem{}
+	resItem.ServiceId = body.ServiceId
+	resItem.ItemCode = body.ItemCode
+
+	list, err := resItem.FindAll()
+
+	if err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	c.JSON(200, list)
+}
+
+// Action hoàn thành all
+func (_ CRestaurantOrder) FinishAllResItem(c *gin.Context, prof models.CmsUser) {
+	body := request.FinishAllResItemBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// validate body
+	validate := validator.New()
+
+	if err := validate.Struct(body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate kiosk
+	kiosk := model_service.Kiosk{}
+	kiosk.Id = body.ServiceId
+	if err := kiosk.FindFirst(); err != nil {
+		response_message.BadRequest(c, "Find kiosk "+err.Error())
+		return
+	}
+
+	// validate restaurant item
+	resItem := models.RestaurantItem{}
+	resItem.ServiceId = body.ServiceId
+	resItem.BillId = body.BillId
+	resItem.ItemCode = body.ItemCode
+
+	list, err := resItem.FindAll()
+
+	if err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	for _, v := range list {
+		v.ItemStatus = constants.RES_STATUS_DONE
+		v.QuatityProgress = 0
+
+		if err := v.Update(); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+	}
+
+	if body.BillId != 0 {
+		// validate res order
+		serviceCart := models.ServiceCart{}
+		serviceCart.Id = body.BillId
+
+		if err := serviceCart.FindFirst(); err != nil {
+			response_message.BadRequest(c, "Find res order"+err.Error())
+			return
+		}
+
+		serviceCart.BillStatus = constants.RES_BILL_STATUS_FINISH
+		if err := serviceCart.Update(); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+	}
+
+	okRes(c)
+}

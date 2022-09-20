@@ -4,16 +4,19 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"gorm.io/datatypes"
 )
 
@@ -36,8 +39,8 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 
 	// validate golf bag
 	booking := model_booking.Booking{}
-	booking.PartnerUid = prof.PartnerUid
-	booking.CourseUid = prof.CourseUid
+	booking.PartnerUid = body.PartnerUid
+	booking.CourseUid = body.CourseUid
 	booking.Bag = body.GolfBag
 	booking.BookingDate = time.Now().Format("02/01/2006")
 	if err := booking.FindFirst(); err != nil {
@@ -154,6 +157,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCart.Id = body.BillId
 	} else {
 		serviceCart.BillCode = "NONE"
+		serviceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
 	}
 
 	err := serviceCart.FindFirst()
@@ -197,7 +201,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	//Update lại giá trong booking
 	updatePriceWithServiceItem(booking, prof)
 
-	okRes(c)
+	c.JSON(200, serviceCart)
 }
 
 func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
@@ -266,17 +270,12 @@ func (_ CServiceCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
 	bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
 
 	serviceCart := models.ServiceCart{}
-	serviceCart.PartnerUid = prof.PartnerUid
-	serviceCart.CourseUid = prof.CourseUid
+	serviceCart.PartnerUid = query.PartnerUid
+	serviceCart.CourseUid = query.CourseUid
 	serviceCart.ServiceId = query.ServiceId
 	serviceCart.GolfBag = query.GolfBag
 	serviceCart.BookingDate = datatypes.Date(bookingDate)
-
-	if query.BillId != 0 {
-		serviceCart.Id = query.BillId
-	} else {
-		serviceCart.BillCode = "NONE"
-	}
+	serviceCart.Id = query.BillId
 
 	if err := serviceCart.FindFirst(); err != nil {
 		res := response.PageResponse{
@@ -289,8 +288,6 @@ func (_ CServiceCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	serviceCartItem := model_booking.BookingServiceItem{}
-	serviceCartItem.PartnerUid = prof.PartnerUid
-	serviceCartItem.CourseUid = prof.CourseUid
 	serviceCartItem.ServiceBill = serviceCart.Id
 
 	list, total, err := serviceCartItem.FindList(page)
@@ -300,12 +297,10 @@ func (_ CServiceCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	var dataRes map[string]interface{}
-
-	dataRes = make(map[string]interface{})
-
-	dataRes["cart_infor"] = serviceCart
-	dataRes["list_item"] = list
+	dataRes := map[string]interface{}{
+		"cart_infor": serviceCart,
+		"list_item":  list,
+	}
 
 	res := response.PageResponse{
 		Total: total,
@@ -330,8 +325,8 @@ func (_ CServiceCart) GetBestItemInKiosk(c *gin.Context, prof models.CmsUser) {
 	}
 
 	serviceCartItem := model_booking.BookingServiceItem{}
-	serviceCartItem.PartnerUid = prof.PartnerUid
-	serviceCartItem.CourseUid = prof.CourseUid
+	serviceCartItem.PartnerUid = query.PartnerUid
+	serviceCartItem.CourseUid = query.CourseUid
 	serviceCartItem.ServiceId = strconv.Itoa(int(query.ServiceId))
 	serviceCartItem.GroupCode = query.GroupCode
 
@@ -367,8 +362,8 @@ func (_ CServiceCart) GetListCart(c *gin.Context, prof models.CmsUser) {
 	bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
 
 	serviceCart := models.ServiceCart{}
-	serviceCart.PartnerUid = prof.PartnerUid
-	serviceCart.CourseUid = prof.CourseUid
+	serviceCart.PartnerUid = query.PartnerUid
+	serviceCart.CourseUid = query.CourseUid
 	serviceCart.ServiceId = query.ServiceId
 	serviceCart.BookingDate = datatypes.Date(bookingDate)
 
@@ -403,8 +398,6 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 
 	// validate cart item
 	serviceCartItem := model_booking.BookingServiceItem{}
-	serviceCartItem.PartnerUid = prof.PartnerUid
-	serviceCartItem.CourseUid = prof.CourseUid
 	serviceCartItem.Id = body.CartItemId
 
 	if err := serviceCartItem.FindFirst(); err != nil {
@@ -414,8 +407,8 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 
 	// validate golf bag
 	booking := model_booking.Booking{}
-	booking.PartnerUid = prof.PartnerUid
-	booking.CourseUid = prof.CourseUid
+	booking.PartnerUid = body.PartnerUid
+	booking.CourseUid = body.CourseUid
 	booking.Bag = serviceCartItem.Bag
 	booking.BookingDate = time.Now().Format("02/01/2006")
 	if err := booking.FindFirst(); err != nil {
@@ -423,10 +416,14 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Check bag status
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag check out")
+		return
+	}
+
 	// validate cart
 	serviceCart := models.ServiceCart{}
-	serviceCart.PartnerUid = prof.PartnerUid
-	serviceCart.CourseUid = prof.CourseUid
 	serviceCart.Id = serviceCartItem.ServiceBill
 
 	if err := serviceCart.FindFirst(); err != nil {
@@ -436,8 +433,8 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 
 	// validate quantity
 	inventory := kiosk_inventory.InventoryItem{}
-	inventory.PartnerUid = prof.PartnerUid
-	inventory.CourseUid = prof.CourseUid
+	inventory.PartnerUid = body.PartnerUid
+	inventory.CourseUid = body.CourseUid
 	inventory.ServiceId = serviceCart.ServiceId
 	inventory.Code = serviceCartItem.Order
 
@@ -492,8 +489,6 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 
 	// validate cart item
 	serviceCartItem := model_booking.BookingServiceItem{}
-	serviceCartItem.PartnerUid = prof.PartnerUid
-	serviceCartItem.CourseUid = prof.CourseUid
 	serviceCartItem.Id = id
 
 	if err := serviceCartItem.FindFirst(); err != nil {
@@ -503,8 +498,8 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 
 	// validate golf bag
 	booking := model_booking.Booking{}
-	booking.PartnerUid = prof.PartnerUid
-	booking.CourseUid = prof.CourseUid
+	booking.PartnerUid = serviceCartItem.PartnerUid
+	booking.CourseUid = serviceCartItem.CourseUid
 	booking.Bag = serviceCartItem.Bag
 	booking.BookingDate = time.Now().Format("02/01/2006")
 	if err := booking.FindFirst(); err != nil {
@@ -514,8 +509,6 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 
 	// validate cart
 	serviceCart := models.ServiceCart{}
-	serviceCart.PartnerUid = prof.PartnerUid
-	serviceCart.CourseUid = prof.CourseUid
 	serviceCart.Id = serviceCartItem.ServiceBill
 
 	if err := serviceCart.FindFirst(); err != nil {
@@ -525,8 +518,8 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 
 	// validate quantity
 	inventory := kiosk_inventory.InventoryItem{}
-	inventory.PartnerUid = prof.PartnerUid
-	inventory.CourseUid = prof.CourseUid
+	inventory.PartnerUid = serviceCartItem.PartnerUid
+	inventory.CourseUid = serviceCartItem.CourseUid
 	inventory.ServiceId = serviceCart.ServiceId
 	inventory.Code = serviceCartItem.Order
 
@@ -600,6 +593,7 @@ func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 	}
 
 	serviceCart.BillCode = time.Now().Format("20060102150405")
+	serviceCart.BillStatus = constants.POS_BILL_STATUS_ACTIVE
 
 	if err := serviceCart.Update(); err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -695,6 +689,45 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
+func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
+	idRequest := c.Param("id")
+	id, errId := strconv.ParseInt(idRequest, 10, 64)
+	if errId != nil {
+		response_message.BadRequest(c, errId.Error())
+		return
+	}
+
+	// validate cart
+	serviceCart := models.ServiceCart{}
+	serviceCart.Id = id
+
+	if err := serviceCart.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate golf bag
+	booking := model_booking.Booking{}
+	booking.Uid = serviceCart.BookingUid
+
+	if err := booking.FindFirst(); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
+	serviceCart.BillStatus = constants.POS_BILL_STATUS_OUT
+
+	if err := serviceCart.Update(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
+
+	okRes(c)
+}
+
 func createExportBillInventory(c *gin.Context, prof models.CmsUser, serviceCart models.ServiceCart, code string) {
 	serviceCartItem := model_booking.BookingServiceItem{}
 	serviceCartItem.PartnerUid = serviceCart.PartnerUid
@@ -737,4 +770,74 @@ func createExportBillInventory(c *gin.Context, prof models.CmsUser, serviceCart 
 		cKioskOutputInventory := CKioskOutputInventory{}
 		cKioskOutputInventory.MethodOutputBill(c, prof, bodyOutputBill, constants.KIOSK_BILL_INVENTORY_SELL, code)
 	}
+}
+
+func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
+	body := request.CreateNewGuestBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	validate := validator.New()
+
+	if err := validate.Struct(body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// Get key redis
+	key := datasources.GetRedisKeyLockerCreateGuestName()
+
+	// check cache
+	bagClone, errCache := datasources.GetCache(key)
+	if errCache != nil {
+		datasources.SetCache(key, "100000", -1)
+		bagClone = "100000"
+	}
+
+	for {
+		// validate golf bag
+		booking := model_booking.Booking{}
+		booking.Bag = bagClone
+		booking.BookingDate = time.Now().Format("02/01/2006")
+		if err := booking.FindFirst(); err == nil {
+			bag, err := strconv.ParseInt(bagClone, 10, 64)
+			if err != nil {
+				response_message.BadRequest(c, err.Error())
+				return
+			}
+
+			bag += 1
+			bagClone = strconv.FormatInt(bag, 10)
+			datasources.SetCache(key, bagClone, -1)
+		} else {
+			break
+		}
+	}
+
+	// Booking Uid
+	bookingUid := uuid.New()
+	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
+
+	// Create booking
+	booking := model_booking.Booking{
+		PartnerUid:   body.PartnerUid,
+		CourseUid:    body.CourseUid,
+		Bag:          bagClone,
+		BookingDate:  time.Now().Format("02/01/2006"),
+		BagStatus:    constants.BAG_STATUS_WAITING,
+		InitType:     constants.BOOKING_INIT_TYPE_CHECKIN,
+		CheckInTime:  time.Now().Unix(),
+		CustomerName: body.GuestName,
+	}
+
+	errC := booking.Create(bUid)
+
+	if errC != nil {
+		response_message.InternalServerError(c, errC.Error())
+		return
+	}
+
+	c.JSON(200, booking)
 }

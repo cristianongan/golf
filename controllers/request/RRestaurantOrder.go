@@ -46,8 +46,22 @@ type GetListBillBody struct {
 }
 
 type UpdateResItemBody struct {
-	PartnerUid string `json:"partner_uid"`
-	CourseUid  string `json:"course_uid"`
-	ItemId     int64  `json:"item_id"`
-	Action     string `json:"action"`
+	ItemId int64 `json:"item_id"`
+}
+
+type GetFoodProcessBody struct {
+	ServiceId int64  `json:"service_id"`
+	Type      string `json:"type"`
+	Name      string `json:"name"`
+}
+
+type GetDetailFoodProcessBody struct {
+	ServiceId int64  `json:"service_id"`
+	ItemCode  string `json:"item_code"`
+}
+
+type FinishAllResItemBody struct {
+	ServiceId int64  `json:"service_id"`
+	BillId    int64  `json:"bill_id"`
+	ItemCode  string `json:"item_code"`
 }

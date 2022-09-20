@@ -468,7 +468,21 @@ func (item *Booking) FindServiceItems() {
 	}
 	listGolfService, _ := serviceGolfs.FindAll()
 	if len(listGolfService) > 0 {
-		listServiceItems = append(listServiceItems, listGolfService...)
+		for _, v := range listGolfService {
+			// Check trạng thái bill
+			serviceCart := models.ServiceCart{}
+			serviceCart.Id = v.ServiceBill
+
+			errSC := serviceCart.FindFirst()
+			if errSC != nil {
+				log.Println("FindFristServiceCart errSC", errSC.Error())
+				return
+			}
+
+			if serviceCart.BillStatus != constants.POS_BILL_STATUS_OUT {
+				listServiceItems = append(listServiceItems, v)
+			}
+		}
 	}
 
 	//Check Subbag
@@ -484,8 +498,18 @@ func (item *Booking) FindServiceItems() {
 				isCanAdd := false
 				if item.MainBagPay != nil && len(item.MainBagPay) > 0 {
 					for _, v2 := range item.MainBagPay {
+						// Check trạng thái bill
+						serviceCart := models.ServiceCart{}
+						serviceCart.Id = v1.ServiceBill
+
+						errSC := serviceCart.FindFirst()
+						if errSC != nil {
+							log.Println("FindFristServiceCart errSC", errSC.Error())
+							return
+						}
+
 						// Check trong MainBag có trả mới add
-						if v2 == v1.Type {
+						if v2 == v1.Type && serviceCart.BillStatus != constants.POS_BILL_STATUS_OUT {
 							isCanAdd = true
 						}
 					}
@@ -1167,7 +1191,7 @@ func (item *Booking) FindListForReportForMainBagSubBag() ([]BookingForReportMain
 }
 
 /*
-	For report List Service Items
+For report List Service Items
 */
 func (item *Booking) FindListServiceItems(param GetListBookingWithListServiceItems, page models.Page) ([]BookingForListServiceIems, int64, error) {
 	db := datasources.GetDatabase().Table("bookings")
