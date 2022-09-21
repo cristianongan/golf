@@ -11,12 +11,10 @@ type AddItemServiceCartBody struct {
 }
 
 type AddDiscountServiceItemBody struct {
-	PartnerUid     string  `json:"partner_uid"`
-	CourseUid      string  `json:"course_uid"`
-	CartItemId     int64   `json:"cart_item_id"`
-	DiscountType   string  `json:"discount_type"`
-	DiscountPrice  float64 `json:"discount_price"`
-	DiscountReason string  `json:"discount_reason"`
+	CartItemId     int64  `json:"cart_item_id"`
+	DiscountType   string `json:"discount_type"`
+	DiscountPrice  int64  `json:"discount_price"`
+	DiscountReason string `json:"discount_reason"`
 }
 
 type GetItemServiceCartBody struct {
@@ -54,8 +52,10 @@ type UpdateServiceCartBody struct {
 }
 
 type CreateBillCodeBody struct {
-	GolfBag   string `json:"golf_bag"`
-	ServiceId int64  `json:"service_id"`
+	PartnerUid string `json:"partner_uid"`
+	CourseUid  string `json:"course_uid"`
+	GolfBag    string `json:"golf_bag"`
+	ServiceId  int64  `json:"service_id"`
 }
 
 type MoveItemToOtherServiceCartBody struct {
