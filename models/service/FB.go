@@ -116,6 +116,9 @@ func (item *FoodBeverageRequest) FindList(page models.Page) ([]FoodBeverageRespo
 	if item.GroupCode != "" {
 		db = db.Where("food_beverages.group_code = ?", item.GroupCode)
 	}
+	if item.Type != "" {
+		db = db.Where("food_beverages.type = ?", item.Type)
+	}
 	if len(item.FBCodeList) != 0 {
 		db = db.Where("food_beverages.fb_code IN (?)", item.FBCodeList)
 	}
