@@ -109,6 +109,26 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 			return errFindGoodsService
 		}
 
+		var itemType = ""
+
+		if goodsService.Type == constants.GROUP_FB {
+			fb := model_service.FoodBeverage{
+				FBCode: data.ItemCode,
+			}
+
+			if err := fb.FindFirst(); err == nil {
+				itemType = fb.Type
+			}
+		}
+
+		if errFindGoodsService := goodsService.FindFirst(); errFindGoodsService != nil {
+			return errFindGoodsService
+		}
+
+		if itemType == "" {
+			itemType = goodsService.Type
+		}
+
 		outputItem := kiosk_inventory.InventoryOutputItem{}
 		outputItem.Code = billcode
 		outputItem.PartnerUid = body.PartnerUid
@@ -123,7 +143,7 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 			Price:     data.Price,
 			ItemName:  data.ItemName,
 			GroupName: goodsService.GroupName,
-			GroupType: goodsService.Type,
+			GroupType: itemType,
 			GroupCode: data.GroupCode,
 			Unit:      data.Unit,
 		}

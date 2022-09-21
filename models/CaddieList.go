@@ -101,6 +101,7 @@ func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
 			constants.CADDIE_CURRENT_STATUS_FINISH,
 			constants.CADDIE_CURRENT_STATUS_FINISH_R2,
 			constants.CADDIE_CURRENT_STATUS_FINISH_R3,
+			constants.CADDIE_CURRENT_STATUS_LOCK,
 		}
 
 		db = db.Where("current_status IN (?) ", caddieStatus)

@@ -69,16 +69,31 @@ func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.Cms
 			return errSer
 		}
 
-		errFindGoodsService := goodsService.FindFirst()
-		if errFindGoodsService != nil {
+		if errFindGoodsService := goodsService.FindFirst(); errFindGoodsService != nil {
 			return errFindGoodsService
+		}
+
+		var itemType = ""
+
+		if goodsService.Type == constants.GROUP_FB {
+			fb := model_service.FoodBeverage{
+				FBCode: data.ItemCode,
+			}
+
+			if err := fb.FindFirst(); err == nil {
+				itemType = fb.Type
+			}
+		}
+
+		if itemType == "" {
+			itemType = goodsService.Type
 		}
 
 		inputItem.ItemInfo = kiosk_inventory.ItemInfo{
 			Price:     data.Price,
 			ItemName:  data.ItemName,
 			GroupName: goodsService.GroupName,
-			GroupType: goodsService.Type,
+			GroupType: itemType,
 			GroupCode: data.GroupCode,
 			Unit:      data.Unit,
 		}
@@ -221,7 +236,7 @@ func (_ CKioskInputInventory) GetInputItems(c *gin.Context, prof models.CmsUser)
 	inputItems.PartnerUid = form.PartnerUid
 	inputItems.CourseUid = form.CourseUid
 	inputItems.ItemCode = form.ItemCode
-	list, total, err := inputItems.FindList(page)
+	list, total, err := inputItems.FindList(page, form.Type)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

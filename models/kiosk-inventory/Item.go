@@ -56,7 +56,7 @@ func (item *InventoryItem) BatchInsert(list []InventoryItem) error {
 	}
 	return err
 }
-func (item *InventoryItem) FindList(page models.Page) ([]InventoryItem, int64, error) {
+func (item *InventoryItem) FindList(page models.Page, itemType string) ([]InventoryItem, int64, error) {
 	db := datasources.GetDatabase().Model(InventoryItem{})
 	list := []InventoryItem{}
 	total := int64(0)
@@ -75,6 +75,10 @@ func (item *InventoryItem) FindList(page models.Page) ([]InventoryItem, int64, e
 
 	if item.Code != "" {
 		db = db.Where("code = ?", item.Code)
+	}
+
+	if itemType != "" {
+		db = db.Where("item_info->'$.group_type' = ?", itemType)
 	}
 
 	db.Count(&total)

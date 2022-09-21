@@ -52,6 +52,7 @@ type GetInOutItems struct {
 	ItemCode   string `form:"item_code"`
 	FromDate   string `form:"from_date"`
 	ToDate     string `form:"to_date"`
+	Type       string `form:"type"`
 }
 
 type GetItems struct {

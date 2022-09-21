@@ -74,7 +74,7 @@ func (item *InventoryInputItem) FindAllList() ([]InventoryInputItem, int64, erro
 	return list, total, db.Error
 }
 
-func (item *InventoryInputItem) FindList(page models.Page) ([]InventoryInputItem, int64, error) {
+func (item *InventoryInputItem) FindList(page models.Page, itemType string) ([]InventoryInputItem, int64, error) {
 	db := datasources.GetDatabase().Model(InventoryInputItem{})
 	list := []InventoryInputItem{}
 	total := int64(0)

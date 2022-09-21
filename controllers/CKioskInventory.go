@@ -33,7 +33,7 @@ func (_ CKioskInventory) GetKioskInventory(c *gin.Context, prof models.CmsUser) 
 	inputItems.PartnerUid = form.PartnerUid
 	inputItems.CourseUid = form.CourseUid
 	inputItems.Code = form.ItemCode
-	list, total, err := inputItems.FindList(page)
+	list, total, err := inputItems.FindList(page, form.Type)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
