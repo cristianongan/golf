@@ -1330,7 +1330,6 @@ func (_ *CBooking) GetListBookingForAddSubBag(c *gin.Context, prof models.CmsUse
 	bookingR := model_booking.Booking{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
-		BagStatus:  constants.BAG_STATUS_IN_COURSE + "," + constants.BAG_STATUS_WAITING,
 	}
 
 	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
@@ -1354,7 +1353,7 @@ func (_ *CBooking) GetListBookingForAddSubBag(c *gin.Context, prof models.CmsUse
 	}
 
 	for _, v := range list {
-		if v.Bag != form.Bag {
+		if v.Bag != form.Bag && len(v.MainBags) == 0 && len(v.SubBags) == 0 {
 			listResponse = append(listResponse, v)
 		}
 	}
