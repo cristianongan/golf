@@ -30,7 +30,8 @@ type ServiceCart struct {
 	DiscountType   string         `json:"discount_type" gorm:"type:varchar(50)"`      // Loại giảm giá
 	DiscountValue  int64          `json:"discount_value"`                             // Giá tiền được giảm
 	DiscountReason string         `json:"discount_reason" gorm:"type:varchar(50)"`    // Lý do giảm giá
-	CostPrice      int64          `json:"cost_price"`                                 // giá VAT
+	CostPrice      bool           `json:"cost_price"`                                 // Có giá VAT hay ko
+	ResFloor       int            `json:"res_floor"`                                  // Số tầng bàn được đặt
 }
 
 func (item *ServiceCart) Create() error {
@@ -78,12 +79,16 @@ func (item *ServiceCart) FindList(page Page) ([]ServiceCart, int64, error) {
 		db = db.Where("id = ?", item.Id)
 	}
 
-	if item.Id != 0 {
-		db = db.Where("id = ?", item.Id)
+	if item.Type != "" {
+		db = db.Where("type = ?", item.Type)
 	}
 
 	if item.BillStatus != "" {
 		db = db.Where("bill_status = ? OR bill_status = ?", constants.RES_STATUS_PROCESS, constants.RES_STATUS_DONE)
+	}
+
+	if item.ResFloor != 0 {
+		db = db.Where("res_floor = ?", item.ResFloor)
 	}
 
 	db = db.Where("booking_date = ?", item.BookingDate)

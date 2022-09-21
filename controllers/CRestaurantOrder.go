@@ -66,6 +66,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 
 	if body.Type == constants.RES_TYPE_TABLE {
 		serviceCart.NumberGuest = body.NumberGuest
+		serviceCart.ResFloor = body.Floor
 	}
 
 	serviceCart.PartnerUid = body.PartnerUid
@@ -144,6 +145,46 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 	c.JSON(200, serviceCart)
 }
 
+// Hủy đơn
+func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsUser) {
+	idRequest := c.Param("id")
+	id, errId := strconv.ParseInt(idRequest, 10, 64)
+	if errId != nil {
+		response_message.BadRequest(c, errId.Error())
+		return
+	}
+
+	// validate cart
+	serviceCart := models.ServiceCart{}
+	serviceCart.Id = id
+
+	if err := serviceCart.FindFirst(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate golf bag
+	booking := model_booking.Booking{}
+	booking.Uid = serviceCart.BookingUid
+
+	if err := booking.FindFirst(); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
+	serviceCart.BillStatus = constants.RES_BILL_STATUS_CANCEL
+
+	if err := serviceCart.Update(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
+
+	okRes(c)
+}
+
 func (_ CRestaurantOrder) GetListBill(c *gin.Context, prof models.CmsUser) {
 	query := request.GetListBillBody{}
 	if bindErr := c.ShouldBind(&query); bindErr != nil {
@@ -166,6 +207,8 @@ func (_ CRestaurantOrder) GetListBill(c *gin.Context, prof models.CmsUser) {
 	serviceCart.ServiceId = query.ServiceId
 	serviceCart.BookingDate = datatypes.Date(bookingDate)
 	serviceCart.BillStatus = query.BillStatus
+	serviceCart.Type = query.Type
+	serviceCart.ResFloor = query.Floor
 
 	list, total, err := serviceCart.FindList(page)
 
@@ -697,6 +740,7 @@ func (_ CRestaurantOrder) GetDetailFoodProcess(c *gin.Context, prof models.CmsUs
 	resItem := models.RestaurantItem{}
 	resItem.ServiceId = body.ServiceId
 	resItem.ItemCode = body.ItemCode
+	resItem.ItemStatus = constants.RES_STATUS_PROCESS
 
 	list, err := resItem.FindAll()
 

@@ -554,8 +554,8 @@ func NewRouter() *gin.Engine {
 			cRestaurantOrder := new(controllers.CRestaurantOrder)
 			cmsApiAuthorized.GET("/restaurant/list-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.GetListItemOrder))
 			cmsApiAuthorized.GET("/restaurant/list-bill", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.GetListBill))
-			cmsApiAuthorized.GET("/restaurant/food-process", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.GetFoodProcess))
-			cmsApiAuthorized.GET("/restaurant/detail-food-process", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.GetDetailFoodProcess))
+			cmsApiAuthorized.POST("/restaurant/food-process", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.GetFoodProcess))
+			cmsApiAuthorized.POST("/restaurant/detail-food-process", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.GetDetailFoodProcess))
 			cmsApiAuthorized.POST("/restaurant/add-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.AddItemOrder))
 			cmsApiAuthorized.POST("/restaurant/add-bill", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateRestaurantOrder))
 			cmsApiAuthorized.POST("/restaurant/create-bill-code", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateBill))
@@ -563,6 +563,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/restaurant/item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.UpdateItemOrder))
 			cmsApiAuthorized.PUT("/restaurant/res-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.UpdateResItem))
 			cmsApiAuthorized.DELETE("/restaurant/item/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteItemOrder))
+			cmsApiAuthorized.DELETE("/restaurant/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteRestaurantOrder))
 		}
 
 		// ----------------------------------------------------------

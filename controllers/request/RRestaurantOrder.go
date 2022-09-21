@@ -8,6 +8,7 @@ type CreateRestaurantOrderBody struct {
 	Type        string `json:"type"`
 	TypeCode    string `json:"type_code"`
 	NumberGuest int    `json:"number_guest"`
+	Floor       int    `json:"floor"`
 }
 
 type AddItemOrderBody struct {
@@ -43,6 +44,8 @@ type GetListBillBody struct {
 	BookingDate string `form:"booking_date" binding:"required"`
 	ServiceId   int64  `form:"service_id"`
 	BillStatus  string `form:"bill_status"`
+	Type        string `form:"type"`
+	Floor       int    `form:"floor"`
 }
 
 type UpdateResItemBody struct {

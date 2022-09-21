@@ -24,7 +24,7 @@ type RestaurantItem struct {
 	ItemName        string `json:"item_name" gorm:"type:varchar(100)"`         // Tên sản phẩm
 	ItemComboName   string `json:"item_combo_name" gorm:"type:varchar(100)"`   // Tên combo
 	ItemUnit        string `json:"item_unit" gorm:"type:varchar(100)"`         // Đơn vị
-	ItemStatus      string `json:"item_staus" gorm:"type:varchar(100)"`        // Trạng thái sản phẩm
+	ItemStatus      string `json:"item_status" gorm:"type:varchar(100)"`       // Trạng thái sản phẩm
 	ItemNote        string `json:"item_note" gorm:"type:varchar(200)"`         // Yêu cầu của khách hàng
 	Quatity         int    `json:"quatity"`                                    // Số lượng order
 	QuatityProgress int    `json:"quatity_progress"`                           // Số lương đang tiến hành
@@ -108,7 +108,7 @@ func (item *RestaurantItem) FindAll() ([]RestaurantItem, error) {
 	}
 
 	if item.BillId != 0 {
-		db = db.Where("bill_id = ?", item.ServiceId)
+		db = db.Where("bill_id = ?", item.BillId)
 	}
 
 	if item.Id != 0 {
@@ -121,6 +121,10 @@ func (item *RestaurantItem) FindAll() ([]RestaurantItem, error) {
 
 	if item.ItemCode != "" {
 		db = db.Where("item_code = ?", item.ItemCode)
+	}
+
+	if item.ItemStatus != "" {
+		db = db.Where("item_status = ?", item.ItemStatus)
 	}
 
 	db.Find(&list)
@@ -150,7 +154,7 @@ func (item *RestaurantItem) FindAllGroupBy() ([]RestaurantItem, error) {
 		db = db.Where("item_name LIKE ?", "%"+item.ItemName+"%")
 	}
 
-	db = db.Where("item_staus = ?", constants.RES_STATUS_PROCESS)
+	db = db.Where("item_status = ?", constants.RES_STATUS_PROCESS)
 	db.Group("item_code")
 
 	db.Find(&list)
