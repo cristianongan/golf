@@ -220,8 +220,6 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 
 	// validate cart item
 	serviceCartItem := model_booking.BookingServiceItem{}
-	serviceCartItem.PartnerUid = prof.PartnerUid
-	serviceCartItem.CourseUid = prof.CourseUid
 	serviceCartItem.Id = body.CartItemId
 
 	if err := serviceCartItem.FindFirst(); err != nil {
@@ -232,9 +230,6 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	// validate cart
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = serviceCartItem.ServiceBill
-	serviceCart.PartnerUid = prof.PartnerUid
-	serviceCart.CourseUid = prof.CourseUid
-	serviceCart.BillCode = "NONE"
 
 	if err := serviceCart.FindFirst(); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -242,7 +237,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	serviceCartItem.DiscountType = body.DiscountType
-	serviceCartItem.DiscountValue = int64(body.DiscountPrice)
+	serviceCartItem.DiscountValue = body.DiscountPrice
 	serviceCartItem.DiscountReason = body.DiscountReason
 
 	if err := serviceCartItem.Update(); err != nil {
@@ -570,8 +565,8 @@ func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 
 	// validate golf bag
 	booking := model_booking.Booking{}
-	booking.PartnerUid = prof.PartnerUid
-	booking.CourseUid = prof.CourseUid
+	booking.PartnerUid = body.PartnerUid
+	booking.CourseUid = body.CourseUid
 	booking.Bag = body.GolfBag
 	booking.BookingDate = time.Now().Format("02/01/2006")
 	if err := booking.FindFirst(); err != nil {
@@ -580,8 +575,8 @@ func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 	}
 
 	serviceCart := models.ServiceCart{}
-	serviceCart.PartnerUid = prof.PartnerUid
-	serviceCart.CourseUid = prof.CourseUid
+	serviceCart.PartnerUid = body.PartnerUid
+	serviceCart.CourseUid = body.CourseUid
 	serviceCart.ServiceId = body.ServiceId
 	serviceCart.GolfBag = body.GolfBag
 	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
