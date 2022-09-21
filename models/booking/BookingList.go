@@ -200,7 +200,7 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 		bagStatus := []string{
 			constants.BAG_STATUS_IN_COURSE,
 			constants.BAG_STATUS_TIMEOUT,
-			constants.BAG_STATUS_TIMEOUT,
+			constants.BAG_STATUS_WAITING,
 		}
 
 		db = db.Where("bag_status IN (?) ", bagStatus)

@@ -18,7 +18,6 @@ type BookingServiceItem struct {
 	PartnerUid     string `json:"partner_uid" gorm:"type:varchar(100);index"`  // Hãng golf
 	CourseUid      string `json:"course_uid" gorm:"type:varchar(150);index"`   // Sân golf
 	ItemId         int64  `json:"item_id"  gorm:"index"`                       // Id item
-	ItemCode       string `json:"item_code"  gorm:"type:varchar(100)"`         // mã code của item
 	Unit           string `json:"unit"  gorm:"type:varchar(100)"`              // Unit của item
 	ServiceId      string `json:"service_id"  gorm:"type:varchar(100)"`        // uid service
 	ServiceType    string `json:"service_type"  gorm:"type:varchar(100)"`      // Loại service gồm FB, Rental, Proshop
@@ -26,8 +25,8 @@ type BookingServiceItem struct {
 	PlayerName     string `json:"player_name" gorm:"type:varchar(256)"`        // Tên người chơi
 	Bag            string `json:"bag" gorm:"type:varchar(50)"`                 // Golf Bag
 	Type           string `json:"type" gorm:"type:varchar(50)"`                // Loại rental, kiosk, proshop,...
-	Order          string `json:"order"  gorm:"type:varchar(100)"`             // Có thể là mã
-	Name           string `json:"name" gorm:"type:varchar(256)"`
+	ItemCode       string `json:"order"  gorm:"type:varchar(100)"`             // Mã code của item
+	Name           string `json:"item_code" gorm:"type:varchar(256)"`
 	GroupCode      string `json:"group_code" gorm:"type:varchar(100)"`
 	Quality        int    `json:"quality"` // Số lượng
 	UnitPrice      int64  `json:"unit_price"`

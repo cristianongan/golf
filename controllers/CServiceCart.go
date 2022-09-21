@@ -188,7 +188,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	serviceCartItem.PlayerName = booking.CustomerName
 	serviceCartItem.ServiceId = strconv.Itoa(int(serviceCart.ServiceId))
 	serviceCartItem.ServiceBill = serviceCart.Id
-	serviceCartItem.Order = body.ItemCode
+	serviceCartItem.ItemCode = body.ItemCode
 	serviceCartItem.Quality = int(body.Quantity)
 	serviceCartItem.Amount = body.Quantity * serviceCartItem.UnitPrice
 	serviceCartItem.UserAction = prof.UserName
@@ -431,7 +431,7 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	inventory.PartnerUid = body.PartnerUid
 	inventory.CourseUid = body.CourseUid
 	inventory.ServiceId = serviceCart.ServiceId
-	inventory.Code = serviceCartItem.Order
+	inventory.Code = serviceCartItem.ItemCode
 
 	if err := inventory.FindFirst(); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -516,7 +516,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	inventory.PartnerUid = serviceCartItem.PartnerUid
 	inventory.CourseUid = serviceCartItem.CourseUid
 	inventory.ServiceId = serviceCart.ServiceId
-	inventory.Code = serviceCartItem.Order
+	inventory.Code = serviceCartItem.ItemCode
 
 	if err := inventory.FindFirst(); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -750,7 +750,7 @@ func createExportBillInventory(c *gin.Context, prof models.CmsUser, serviceCart 
 
 		for _, data := range listItemInBill {
 			inputItem := request.KioskInventoryItemBody{}
-			inputItem.Quantity = data.SaleQuantity
+			inputItem.Quantity = int64(data.Quality)
 			inputItem.ItemCode = data.ItemCode
 			inputItem.ItemName = data.Name
 			inputItem.UserUpdate = prof.UserName

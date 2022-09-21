@@ -380,7 +380,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 	serviceCartItem.PlayerName = booking.CustomerName
 	serviceCartItem.ServiceId = strconv.Itoa(int(serviceCart.ServiceId))
 	serviceCartItem.ServiceBill = body.BillId
-	serviceCartItem.Order = body.ItemCode
+	serviceCartItem.ItemCode = body.ItemCode
 	serviceCartItem.Quality = body.Quantity
 	serviceCartItem.Amount = int64(body.Quantity) * serviceCartItem.UnitPrice
 	serviceCartItem.UserAction = prof.UserName
