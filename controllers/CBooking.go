@@ -203,6 +203,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.CardId = memberCard.CardId
 		booking.CustomerName = owner.Name
 		booking.CustomerUid = owner.Uid
+		booking.CustomerType = owner.Type
 		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
 
 		if memberCard.PriceCode == 1 && memberCard.IsValidTimePrecial() {
@@ -299,6 +300,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 
 		booking.CustomerName = customer.Name
+		booking.CustomerType = customer.Type
 		booking.CustomerInfo = cloneToCustomerBooking(customer)
 		booking.CustomerUid = body.CustomerUid
 	}
@@ -805,6 +807,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CardId = memberCard.CardId
 		booking.CustomerName = owner.Name
 		booking.CustomerUid = owner.Uid
+		booking.CustomerType = owner.Type
 		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
 		if memberCard.PriceCode == 1 && memberCard.IsValidTimePrecial() {
 			course := models.Course{}
@@ -1060,6 +1063,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		}
 		booking.GuestStyle = body.GuestStyle
 		booking.GuestStyleName = golfFee.GuestStyleName
+		booking.CustomerType = golfFee.CustomerType
 
 		// List Booking GolfFee
 		param := request.GolfFeeGuestyleParam{
