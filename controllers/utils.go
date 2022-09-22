@@ -630,6 +630,20 @@ func convertToCustomerSqlIntoBooking(customerSql models.CustomerUser) model_book
 	return cusBook
 }
 
+func cloneToBooking(booking model_booking.Booking) model_booking.Booking {
+	bookingNew := model_booking.Booking{}
+	agencyData, errMAgency := json.Marshal(&booking)
+	if errMAgency != nil {
+		log.Println("CloneToBooking errMAgency", errMAgency.Error())
+	}
+	errUnMAgency := json.Unmarshal(agencyData, &bookingNew)
+	if errMAgency != nil {
+		log.Println("CloneToBooking errUnMAgency", errUnMAgency.Error())
+	}
+
+	return bookingNew
+}
+
 func cloneToAgencyBooking(agency models.Agency) model_booking.BookingAgency {
 	agencyBooking := model_booking.BookingAgency{}
 	agencyData, errMAgency := json.Marshal(&agency)
