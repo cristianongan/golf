@@ -46,13 +46,14 @@ type CreateOutputBillBody struct {
 
 type GetInOutItems struct {
 	PageRequest
-	ServiceId  int64  `form:"service_id" binding:"required"`
-	PartnerUid string `form:"partner_uid" binding:"required"`
-	CourseUid  string `form:"course_uid" binding:"required"`
-	ItemCode   string `form:"item_code"`
-	FromDate   string `form:"from_date"`
-	ToDate     string `form:"to_date"`
-	Type       string `form:"type"`
+	ServiceId   int64  `form:"service_id" binding:"required"`
+	PartnerUid  string `form:"partner_uid" binding:"required"`
+	CourseUid   string `form:"course_uid" binding:"required"`
+	ItemCode    string `form:"item_code"`
+	FromDate    string `form:"from_date"`
+	ToDate      string `form:"to_date"`
+	Type        string `form:"type"`
+	ProductName string `form:"product_name"`
 }
 
 type GetItems struct {
