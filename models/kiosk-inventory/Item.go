@@ -93,7 +93,7 @@ func (item *InventoryItem) FindList(page models.Page, param InventoryItemRequest
 	}
 
 	if param.ProductName != "" {
-		db = db.Where("item_info->'$.item_name' = ?", param.ProductName)
+		db = db.Where("item_info->'$.item_name' LIKE ?", "%"+param.ProductName+"%")
 	}
 
 	db.Count(&total)
