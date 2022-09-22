@@ -25,24 +25,13 @@ func (_ CRound) validateBooking(bookindUid string) (model_booking.Booking, error
 	}
 
 	if booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
-		return booking, errors.New("Bag chưa TIME OUT")
+		return booking, errors.New("Lỗi Add Round")
 	}
 
 	return booking, nil
 }
 
 func (_ CRound) createRound(booking model_booking.Booking, newHole int, isMerge bool) error {
-	// golfFeeModel := models.GolfFee{
-	// 	PartnerUid: booking.PartnerUid,
-	// 	CourseUid:  booking.CourseUid,
-	// 	GuestStyle: booking.GuestStyle,
-	// }
-
-	// golfFee, err := golfFeeModel.GetGuestStyleOnDay()
-	// if err != nil {
-	// 	return models.Round{}, err
-	// }
-
 	round := models.Round{}
 	if isMerge {
 		round.Index = 0
@@ -72,22 +61,6 @@ func (_ CRound) createRound(booking model_booking.Booking, newHole int, isMerge 
 
 	return nil
 }
-
-// func (_ CRound) updateListGolfFee(booking model_booking.Booking, currentGolfFee *model_booking.BookingGolfFee) (model_booking.ListBookingGolfFee, error) {
-// 	currentGolfFee.CaddieFee = slices.Reduce(booking.Rounds, func(prev int64, item model_booking.BookingRound) int64 {
-// 		return prev + item.CaddieFee
-// 	})
-
-// 	currentGolfFee.BuggyFee = slices.Reduce(booking.Rounds, func(prev int64, item model_booking.BookingRound) int64 {
-// 		return prev + item.BuggyFee
-// 	})
-
-// 	currentGolfFee.GreenFee = slices.Reduce(booking.Rounds, func(prev int64, item model_booking.BookingRound) int64 {
-// 		return prev + item.GreenFee
-// 	})
-
-// 	return slices.Splice(booking.ListGolfFee, 0, 1, *currentGolfFee), nil
-// }
 
 func (_ CRound) updateCurrentBagPrice(booking model_booking.Booking, golfFee int64) (model_booking.BookingCurrentBagPriceDetail, error) {
 	currentBagPriceDetail := booking.CurrentBagPrice
@@ -120,13 +93,6 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 	} else {
 		hole = *body.Hole
 	}
-
-	// validate := validator.New()
-
-	// if err := validate.Struct(body); err != nil {
-	// 	response_message.BadRequest(c, "Body format type error")
-	// 	return
-	// }
 
 	for _, data := range body.BookUidList {
 		// validate booking_uid
@@ -266,17 +232,23 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 			booking.CurrentBagPrice.GolfFee += totalPayChange
 		}
 
-		booking.BagStatus = constants.BAG_STATUS_WAITING
-		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
-		booking.FlightId = 0
-		booking.TimeOutFlight = 0
-		booking.CourseType = body.CourseType
-		errCreateBooking := booking.Create(bUid)
+		// Tạo booking mới khi add round
+		newBooking := cloneToBooking(booking)
+		newBooking.BagStatus = constants.BAG_STATUS_WAITING
+		newBooking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+		newBooking.FlightId = 0
+		newBooking.TimeOutFlight = 0
+		newBooking.CourseType = body.CourseType
+		errCreateBooking := newBooking.Create(bUid)
 
 		if errCreateBooking != nil {
 			response_message.BadRequest(c, errCreateBooking.Error())
 			return
 		}
+
+		// Update lại bag_status của booking cũ
+		booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
+		go booking.Update()
 	}
 
 	res := getBagDetailFromBooking(booking)
