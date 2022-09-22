@@ -315,6 +315,14 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			CourseUid:  body.CourseUid,
 			GuestStyle: body.GuestStyle,
 		}
+
+		if errGS := golfFeeModel.FindFirst(); errGS != nil {
+			response_message.InternalServerError(c, "guest style not found ")
+			return nil
+		}
+
+		booking.CustomerType = golfFeeModel.CustomerType
+
 		// Lấy phí bởi Guest style với ngày tạo
 		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay()
 		if errFindGF != nil {
@@ -898,6 +906,14 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			CourseUid:  body.CourseUid,
 			GuestStyle: body.GuestStyle,
 		}
+
+		if errGS := golfFeeModel.FindFirst(); errGS != nil {
+			response_message.InternalServerError(c, "guest style not found ")
+			return
+		}
+
+		booking.CustomerType = golfFeeModel.CustomerType
+
 		// Lấy phí bởi Guest style với ngày tạo
 		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay()
 		if errFindGF != nil {
@@ -1055,6 +1071,14 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			CourseUid:  booking.CourseUid,
 			GuestStyle: body.GuestStyle,
 		}
+
+		if errGS := golfFeeModel.FindFirst(); errGS != nil {
+			response_message.InternalServerError(c, "guest style not found ")
+			return
+		}
+
+		booking.CustomerType = golfFeeModel.CustomerType
+
 		// Lấy phí bởi Guest style với ngày tạo
 		golfFee, errFind := golfFeeModel.GetGuestStyleOnDay()
 		if errFind != nil {
@@ -1063,7 +1087,6 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		}
 		booking.GuestStyle = body.GuestStyle
 		booking.GuestStyleName = golfFee.GuestStyleName
-		booking.CustomerType = golfFee.CustomerType
 
 		// List Booking GolfFee
 		param := request.GolfFeeGuestyleParam{
