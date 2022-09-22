@@ -588,7 +588,6 @@ func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 	}
 
 	serviceCart.BillCode = time.Now().Format("20060102150405")
-	serviceCart.BillStatus = constants.POS_BILL_STATUS_ACTIVE
 
 	if err := serviceCart.Update(); err != nil {
 		response_message.InternalServerError(c, err.Error())
