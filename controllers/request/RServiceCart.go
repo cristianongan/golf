@@ -69,3 +69,7 @@ type CreateNewGuestBody struct {
 	CourseUid  string `json:"course_uid"`
 	GuestName  string `json:"guest_name"`
 }
+
+type FinishOrderBody struct {
+	BillId int64 `json:"bill_id" binding:"required"`
+}

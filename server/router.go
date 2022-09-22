@@ -547,6 +547,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/service-cart/move-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.MoveItemToOtherCart))
 			cmsApiAuthorized.POST("/service-cart/create-new-guest", middlewares.AuthorizedCmsUserHandler(cServiceCart.CreateNewGuest))
 			cmsApiAuthorized.PUT("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.UpdateItemCart))
+			cmsApiAuthorized.PUT("/service-cart/finish-order", middlewares.AuthorizedCmsUserHandler(cServiceCart.FinishOrder))
 			cmsApiAuthorized.DELETE("/service-cart/item/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteItemInCart))
 			cmsApiAuthorized.DELETE("/service-cart/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteCart))
 
@@ -558,10 +559,12 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/restaurant/detail-food-process", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.GetDetailFoodProcess))
 			cmsApiAuthorized.POST("/restaurant/add-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.AddItemOrder))
 			cmsApiAuthorized.POST("/restaurant/add-bill", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateRestaurantOrder))
+			cmsApiAuthorized.POST("/restaurant/add-booking", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateRestaurantBooking))
 			cmsApiAuthorized.POST("/restaurant/create-bill-code", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateBill))
 			cmsApiAuthorized.POST("/restaurant/finish-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.FinishAllResItem))
 			cmsApiAuthorized.PUT("/restaurant/item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.UpdateItemOrder))
 			cmsApiAuthorized.PUT("/restaurant/res-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.UpdateResItem))
+			cmsApiAuthorized.PUT("/restaurant/finish-res-order", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.FinishRestaurantOrder))
 			cmsApiAuthorized.DELETE("/restaurant/item/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteItemOrder))
 			cmsApiAuthorized.DELETE("/restaurant/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteRestaurantOrder))
 		}

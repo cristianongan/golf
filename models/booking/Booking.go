@@ -479,7 +479,11 @@ func (item *Booking) FindServiceItems() {
 				return
 			}
 
-			if serviceCart.BillStatus != constants.POS_BILL_STATUS_OUT {
+			if serviceCart.BillStatus != constants.POS_BILL_STATUS_OUT &&
+				serviceCart.BillStatus != constants.POS_BILL_STATUS_ACTIVE &&
+				serviceCart.BillStatus != constants.RES_BILL_STATUS_BOOKING &&
+				serviceCart.BillStatus != constants.RES_BILL_STATUS_OUT &&
+				serviceCart.BillStatus != constants.RES_BILL_STATUS_CANCEL {
 				listServiceItems = append(listServiceItems, v)
 			}
 		}

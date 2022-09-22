@@ -75,6 +75,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 	serviceCart.BookingUid = booking.Uid
 	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
 	serviceCart.ServiceId = body.ServiceId
+	serviceCart.ServiceType = kiosk.KioskType
 	serviceCart.BillCode = "NONE"
 	serviceCart.BillStatus = constants.RES_STATUS_ORDER
 	serviceCart.StaffOrder = prof.FullName
@@ -270,6 +271,13 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
+
+		response_message.BadRequest(c, "Bill status invalid")
+		return
+	}
+
 	// validate golf bag
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid
@@ -399,8 +407,8 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		v.BillId = serviceCart.Id
 		v.ItemId = serviceCartItem.Id
 		v.ItemStatus = constants.RES_STATUS_ORDER
-		v.Quatity = body.Quantity
-		v.QuatityProgress = body.Quantity
+		v.Quantity = body.Quantity
+		v.QuantityProgress = body.Quantity
 
 		// Đổi trạng thái món khi đã có bill code
 		if serviceCart.BillCode != "NONE" {
@@ -453,6 +461,13 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
+
+		response_message.BadRequest(c, "Bill status invalid")
+		return
+	}
+
 	// validate golf bag
 	booking := model_booking.Booking{}
 	booking.Uid = serviceCart.BookingUid
@@ -492,8 +507,8 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// update res item
-	restaurantItem.Quatity = body.Quantity
-	restaurantItem.QuatityProgress = body.Quantity
+	restaurantItem.Quantity = body.Quantity
+	restaurantItem.QuantityProgress = body.Quantity
 	restaurantItem.ItemNote = body.Note
 
 	if err := restaurantItem.Update(); err != nil {
@@ -613,7 +628,7 @@ func (_ CRestaurantOrder) GetListItemOrder(c *gin.Context, prof models.CmsUser) 
 	}
 
 	serviceCartItem := model_booking.BookingServiceItem{}
-	serviceCartItem.ServiceBill = serviceCart.Id
+	serviceCartItem.ServiceBill = query.BillId
 
 	list, total, err := serviceCartItem.FindList(page)
 
@@ -656,12 +671,12 @@ func (_ CRestaurantOrder) UpdateResItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Update trạng thái khi trả hết món
-	if resItem.QuatityProgress-1 == 0 {
+	if resItem.QuantityProgress-1 == 0 {
 		resItem.ItemStatus = constants.RES_STATUS_DONE
 	}
 
-	// Update quatity progress when finish
-	resItem.QuatityProgress -= 1
+	// Update quantity progress when finish
+	resItem.QuantityProgress -= 1
 
 	// update res item
 	if err := resItem.Update(); err != nil {
@@ -791,7 +806,7 @@ func (_ CRestaurantOrder) FinishAllResItem(c *gin.Context, prof models.CmsUser) 
 
 	for _, v := range list {
 		v.ItemStatus = constants.RES_STATUS_DONE
-		v.QuatityProgress = 0
+		v.QuantityProgress = 0
 
 		if err := v.Update(); err != nil {
 			response_message.BadRequest(c, err.Error())
@@ -814,6 +829,247 @@ func (_ CRestaurantOrder) FinishAllResItem(c *gin.Context, prof models.CmsUser) 
 			response_message.BadRequest(c, err.Error())
 			return
 		}
+	}
+
+	okRes(c)
+}
+
+// Tạo booking cho nhà hàng
+func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.CmsUser) {
+	body := request.CreateBookingRestaurantBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// validate body
+	validate := validator.New()
+
+	if err := validate.Struct(body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// Tạo đơn order
+	serviceCart := models.ServiceCart{}
+
+	if body.GolfBag != "" {
+		// validate golf bag
+		booking := model_booking.Booking{}
+		booking.PartnerUid = body.PartnerUid
+		booking.CourseUid = body.CourseUid
+		booking.Bag = body.GolfBag
+		booking.BookingDate = time.Now().Format("02/01/2006")
+		if err := booking.FindFirst(); err != nil {
+			response_message.BadRequest(c, "Find booking "+err.Error())
+			return
+		}
+
+		if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
+			response_message.BadRequest(c, "Bag status invalid")
+			return
+		}
+
+		// add infor service cart
+		serviceCart.GolfBag = body.GolfBag
+		serviceCart.BookingUid = booking.Uid
+	}
+
+	// validate kiosk
+	kiosk := model_service.Kiosk{}
+	kiosk.Id = body.ServiceId
+	if err := kiosk.FindFirst(); err != nil {
+		response_message.BadRequest(c, "Find kiosk "+err.Error())
+		return
+	}
+
+	// validate from kiosk
+	fromKiosk := model_service.Kiosk{}
+	fromKiosk.Id = body.FromServiceId
+	if err := fromKiosk.FindFirst(); err != nil {
+		response_message.BadRequest(c, "Find from kiosk "+err.Error())
+		return
+	}
+
+	serviceCart.PartnerUid = body.PartnerUid
+	serviceCart.CourseUid = body.CourseUid
+	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
+	serviceCart.ServiceId = body.ServiceId
+	serviceCart.ServiceType = kiosk.KioskType
+	serviceCart.BillCode = "NONE"
+	serviceCart.BillStatus = constants.RES_BILL_STATUS_BOOKING
+	serviceCart.Type = constants.RES_TYPE_TABLE
+	serviceCart.TypeCode = body.Table
+	serviceCart.NumberGuest = body.NumberGuest
+	serviceCart.ResFloor = body.Floor
+	serviceCart.StaffOrder = prof.FullName
+	serviceCart.PlayerName = body.PlayerName
+	serviceCart.Phone = body.Phone
+	serviceCart.Note = body.Note
+
+	if err := serviceCart.Create(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// add item
+	for _, item := range body.ListOrderItem {
+		// create cart item
+		serviceCartItem := model_booking.BookingServiceItem{}
+
+		// add res item with combo
+		restaurantItems := []models.RestaurantItem{}
+
+		// validate item code by group
+		if item.Type == "COMBO" {
+			fbSet := model_service.FbPromotionSet{}
+			fbSet.PartnerUid = body.PartnerUid
+			fbSet.CourseUid = body.CourseUid
+			fbSet.Code = item.ItemCode
+
+			if err := fbSet.FindFirst(); err != nil {
+				response_message.BadRequest(c, "Find fb set "+err.Error())
+				return
+			}
+
+			// add infor cart item
+			serviceCartItem.Type = kiosk.KioskType
+			serviceCartItem.GroupCode = fbSet.GroupCode
+			serviceCartItem.Name = fbSet.SetName
+			serviceCartItem.UnitPrice = int64(fbSet.Price)
+
+			// add item res
+			for _, v := range fbSet.FBList {
+				fb := model_service.FoodBeverage{}
+				fb.PartnerUid = body.PartnerUid
+				fb.CourseUid = body.CourseUid
+				fb.FBCode = v
+
+				if err := fb.FindFirst(); err != nil {
+					response_message.BadRequest(c, "Find fb in combo "+err.Error())
+					return
+				}
+
+				item := models.RestaurantItem{
+					Type:          fb.Type,
+					ItemName:      fb.VieName,
+					ItemComboName: fbSet.SetName,
+					ItemCode:      fb.FBCode,
+					ItemUnit:      fb.Unit,
+				}
+
+				restaurantItems = append(restaurantItems, item)
+			}
+		} else {
+			fb := model_service.FoodBeverage{}
+			fb.PartnerUid = body.PartnerUid
+			fb.CourseUid = body.CourseUid
+			fb.FBCode = item.ItemCode
+
+			if err := fb.FindFirst(); err != nil {
+				response_message.BadRequest(c, "Find fb "+err.Error())
+				return
+			}
+
+			// add infor cart item
+			serviceCartItem.Type = kiosk.KioskType
+			serviceCartItem.GroupCode = fb.GroupCode
+			serviceCartItem.Name = fb.VieName
+			serviceCartItem.UnitPrice = int64(fb.Price)
+			serviceCartItem.Unit = fb.Unit
+
+			// add infor res item
+			item := models.RestaurantItem{
+				Type:     fb.Type,
+				ItemName: fb.VieName,
+				ItemCode: fb.FBCode,
+				ItemUnit: fb.Unit,
+			}
+
+			restaurantItems = append(restaurantItems, item)
+		}
+
+		// update amount service cart
+		// update service cart
+		serviceCart.Amount += (int64(item.Quantity) * serviceCartItem.UnitPrice)
+
+		// add infor cart item
+		serviceCartItem.PartnerUid = body.PartnerUid
+		serviceCartItem.CourseUid = body.CourseUid
+		serviceCartItem.ServiceId = strconv.Itoa(int(serviceCart.ServiceId))
+		serviceCartItem.ServiceBill = serviceCart.Id
+		serviceCartItem.ItemCode = item.ItemCode
+		serviceCartItem.Quality = item.Quantity
+		serviceCartItem.Amount = int64(item.Quantity) * serviceCartItem.UnitPrice
+		serviceCartItem.UserAction = prof.UserName
+
+		if err := serviceCartItem.Create(); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+
+		for _, v := range restaurantItems {
+			// add infor restaurant item
+			v.PartnerUid = body.PartnerUid
+			v.CourseUid = body.CourseUid
+			v.ServiceId = serviceCart.ServiceId
+			v.OrderDate = time.Now().Format("02/01/2006")
+			v.BillId = serviceCart.Id
+			v.ItemId = serviceCartItem.Id
+			v.ItemStatus = constants.RES_STATUS_ORDER
+			v.Quantity = item.Quantity
+			v.QuantityProgress = item.Quantity
+
+			// Đổi trạng thái món khi đã có bill code
+			if serviceCart.BillCode != "NONE" {
+				v.ItemStatus = constants.RES_STATUS_PROCESS
+			}
+
+			if err := v.Create(); err != nil {
+				response_message.BadRequest(c, err.Error())
+				return
+			}
+		}
+	}
+
+	// Update
+	if err := serviceCart.Update(); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	okRes(c)
+}
+
+// Chốt order
+func (_ CRestaurantOrder) FinishRestaurantOrder(c *gin.Context, prof models.CmsUser) {
+	body := request.FinishRestaurantOrderBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// validate body
+	validate := validator.New()
+
+	if err := validate.Struct(body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate restaurant order
+	serviceCart := models.ServiceCart{}
+	serviceCart.Id = body.BillId
+	if err := serviceCart.FindFirst(); err != nil {
+		response_message.BadRequest(c, "Find service Cart "+err.Error())
+		return
+	}
+
+	// Update trạng thái
+	serviceCart.BillStatus = constants.RES_BILL_STATUS_OUT
+	if err := serviceCart.Update(); err != nil {
+		response_message.BadRequest(c, "Update service Cart "+err.Error())
+		return
 	}
 
 	okRes(c)

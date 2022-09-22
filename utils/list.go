@@ -43,6 +43,23 @@ func (item ListSubBag) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
+// ------- List Order Item ---------
+type ListOrderItem []OrderItem
+
+type OrderItem struct {
+	ItemCode string `json:"item_code"`
+	Quantity int    `json:"quantity"`
+	Type     string `json:"type"`
+}
+
+func (item *ListOrderItem) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListOrderItem) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
 // ------- List Int64 -------
 
 type ListInt64 []int64

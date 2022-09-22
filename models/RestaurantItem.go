@@ -13,22 +13,22 @@ Giỏ Hàng
 */
 type RestaurantItem struct {
 	ModelId
-	PartnerUid      string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng golf
-	CourseUid       string `json:"course_uid" gorm:"type:varchar(150);index"`  // Sân golf
-	ServiceId       int64  `json:"service_id" gorm:"index"`                    // Mã của service
-	OrderDate       string `json:"order_date" gorm:"type:varchar(30);index"`   // Ex: 06/11/2022
-	Type            string `json:"type" gorm:"type:varchar(100)"`              // Loại sản phẩm: FOOD, DRINK
-	BillId          int64  `json:"bill_id" gorm:"index"`                       // id hóa đơn
-	ItemId          int64  `json:"item_id" gorm:"index"`                       // id sản phẩm
-	ItemCode        string `json:"item_code" gorm:"type:varchar(100)"`         // Mã sản phẩm
-	ItemName        string `json:"item_name" gorm:"type:varchar(100)"`         // Tên sản phẩm
-	ItemComboName   string `json:"item_combo_name" gorm:"type:varchar(100)"`   // Tên combo
-	ItemUnit        string `json:"item_unit" gorm:"type:varchar(100)"`         // Đơn vị
-	ItemStatus      string `json:"item_status" gorm:"type:varchar(100)"`       // Trạng thái sản phẩm
-	ItemNote        string `json:"item_note" gorm:"type:varchar(200)"`         // Yêu cầu của khách hàng
-	Quatity         int    `json:"quatity"`                                    // Số lượng order
-	QuatityProgress int    `json:"quatity_progress"`                           // Số lương đang tiến hành
-	TotalProcess    int    `json:"total_process"`                              // Tổng số lượng đang làm
+	PartnerUid       string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng golf
+	CourseUid        string `json:"course_uid" gorm:"type:varchar(150);index"`  // Sân golf
+	ServiceId        int64  `json:"service_id" gorm:"index"`                    // Mã của service
+	OrderDate        string `json:"order_date" gorm:"type:varchar(30);index"`   // Ex: 06/11/2022
+	Type             string `json:"type" gorm:"type:varchar(100)"`              // Loại sản phẩm: FOOD, DRINK
+	BillId           int64  `json:"bill_id" gorm:"index"`                       // id hóa đơn
+	ItemId           int64  `json:"item_id" gorm:"index"`                       // id sản phẩm
+	ItemCode         string `json:"item_code" gorm:"type:varchar(100)"`         // Mã sản phẩm
+	ItemName         string `json:"item_name" gorm:"type:varchar(100)"`         // Tên sản phẩm
+	ItemComboName    string `json:"item_combo_name" gorm:"type:varchar(100)"`   // Tên combo
+	ItemUnit         string `json:"item_unit" gorm:"type:varchar(100)"`         // Đơn vị
+	ItemStatus       string `json:"item_status" gorm:"type:varchar(100)"`       // Trạng thái sản phẩm
+	ItemNote         string `json:"item_note" gorm:"type:varchar(200)"`         // Yêu cầu của khách hàng
+	Quantity         int    `json:"quantity"`                                   // Số lượng order
+	QuantityProgress int    `json:"quantity_progress"`                          // Số lương đang tiến hành
+	TotalProcess     int    `json:"total_process"`                              // Tổng số lượng đang làm
 }
 
 func (item *RestaurantItem) Create() error {
@@ -136,7 +136,7 @@ func (item *RestaurantItem) FindAllGroupBy() ([]RestaurantItem, error) {
 	db := datasources.GetDatabase().Model(RestaurantItem{})
 	list := []RestaurantItem{}
 
-	db.Select("*, sum(quatity_progress) as total_process")
+	db.Select("*, sum(quantity_progress) as total_process")
 
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
