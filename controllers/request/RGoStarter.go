@@ -3,7 +3,7 @@ package request
 type GetBookingForCaddieOnCourseForm struct {
 	PartnerUid  string `form:"partner_uid" binding:"required"`
 	CourseUid   string `form:"course_uid" binding:"required"`
-	BookingDate string `form:"booking_date"`
+	BookingDate string `form:"booking_date" binding:"required"`
 	Bag         string `form:"bag"`
 	BuggyId     int64  `form:"buggy_id"`
 	CaddieId    int64  `form:"caddie_id"`

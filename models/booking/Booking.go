@@ -39,6 +39,7 @@ type Booking struct {
 	CustomerBookingPhone string       `json:"customer_booking_phone" gorm:"type:varchar(100)"` // SDT khách hàng đặt booking
 	CustomerName         string       `json:"customer_name" gorm:"type:varchar(256)"`          // Tên khách hàng
 	CustomerUid          string       `json:"customer_uid" gorm:"type:varchar(256);index"`     // Uid khách hàng
+	CustomerType         string       `json:"customer_type" gorm:"type:varchar(256)"`          // Loai khach hang: Member, Guest, Visitor...
 	CustomerInfo         CustomerInfo `json:"customer_info,omitempty" gorm:"type:json"`        // Customer Info
 
 	BagStatus    string `json:"bag_status" gorm:"type:varchar(50);index"` // Bag status
@@ -1119,7 +1120,7 @@ func (item *Booking) FindForCaddieOnCourse(InFlight string) []Booking {
 		constants.CUSTOMER_TYPE_WALKING_FEE,
 	}
 
-	db = db.Where("customer_info->'$.type' NOT IN (?)", customerType)
+	db = db.Where("customer_type NOT IN (?)", customerType)
 
 	if InFlight != "" {
 		if InFlight == "0" {

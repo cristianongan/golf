@@ -23,6 +23,17 @@ type InventoryItem struct {
 	StockStatus string   `json:"stock_status" gorm:"type:varchar(100)"`      // trạng thái: còn hàng hay hết hàng
 }
 
+type InventoryItemRequest struct {
+	ServiceId   int64
+	PartnerUid  string
+	CourseUid   string
+	ItemCode    string
+	FromDate    string
+	ToDate      string
+	Type        string
+	ProductName string
+}
+
 func (item *InventoryItem) FindFirst() error {
 	db := datasources.GetDatabase()
 	return db.Where(item).First(item).Error
@@ -56,29 +67,33 @@ func (item *InventoryItem) BatchInsert(list []InventoryItem) error {
 	}
 	return err
 }
-func (item *InventoryItem) FindList(page models.Page, itemType string) ([]InventoryItem, int64, error) {
+func (item *InventoryItem) FindList(page models.Page, param InventoryItemRequest) ([]InventoryItem, int64, error) {
 	db := datasources.GetDatabase().Model(InventoryItem{})
 	list := []InventoryItem{}
 	total := int64(0)
 
-	if item.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", item.PartnerUid)
+	if param.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", param.PartnerUid)
 	}
 
-	if item.CourseUid != "" {
-		db = db.Where("course_uid = ?", item.CourseUid)
+	if param.CourseUid != "" {
+		db = db.Where("course_uid = ?", param.CourseUid)
 	}
 
-	if item.ServiceId > 0 {
-		db = db.Where("service_id = ?", item.ServiceId)
+	if param.ServiceId > 0 {
+		db = db.Where("service_id = ?", param.ServiceId)
 	}
 
-	if item.Code != "" {
-		db = db.Where("code = ?", item.Code)
+	if param.ItemCode != "" {
+		db = db.Where("code = ?", param.ItemCode)
 	}
 
-	if itemType != "" {
-		db = db.Where("item_info->'$.group_type' = ?", itemType)
+	if param.Type != "" {
+		db = db.Where("item_info->'$.group_type' = ?", param.Type)
+	}
+
+	if param.ProductName != "" {
+		db = db.Where("item_info->'$.item_name' = ?", param.ProductName)
 	}
 
 	db.Count(&total)

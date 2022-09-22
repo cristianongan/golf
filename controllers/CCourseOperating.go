@@ -684,8 +684,6 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 		}
 	}
 
-	// TODO: validate current_status
-
 	if err := udpCaddieOut(booking.CaddieId); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

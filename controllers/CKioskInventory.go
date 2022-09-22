@@ -29,11 +29,18 @@ func (_ CKioskInventory) GetKioskInventory(c *gin.Context, prof models.CmsUser) 
 	}
 
 	inputItems := kiosk_inventory.InventoryItem{}
-	inputItems.ServiceId = form.ServiceId
-	inputItems.PartnerUid = form.PartnerUid
-	inputItems.CourseUid = form.CourseUid
-	inputItems.Code = form.ItemCode
-	list, total, err := inputItems.FindList(page, form.Type)
+	param := kiosk_inventory.InventoryItemRequest{
+		ServiceId:   form.ServiceId,
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		ItemCode:    form.ItemCode,
+		FromDate:    form.FromDate,
+		ToDate:      form.ToDate,
+		Type:        form.Type,
+		ProductName: form.ProductName,
+	}
+
+	list, total, err := inputItems.FindList(page, param)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
