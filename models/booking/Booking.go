@@ -1016,9 +1016,6 @@ func (item *Booking) FindListForSubBag() ([]BookingForSubBag, error) {
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
-	if item.BagStatus != "" {
-		db = db.Where("bag_status in (?)", strings.Split(item.BagStatus, ","))
-	}
 
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
@@ -1028,6 +1025,12 @@ func (item *Booking) FindListForSubBag() ([]BookingForSubBag, error) {
 		db = db.Where("booking_code = ?", item.BookingCode)
 	}
 
+	bagStatus := []string{
+		constants.BAG_STATUS_TIMEOUT,
+		constants.BAG_STATUS_BOOKING,
+	}
+
+	db = db.Where("bag_status NOT IN (?)", bagStatus)
 	db.Find(&list)
 
 	return list, db.Error
