@@ -777,12 +777,12 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.MainBagPay = body.MainBagPay
 	}
 
-	if body.LockerNo == "" {
+	if body.LockerNo != "" {
 		booking.LockerNo = body.LockerNo
 		go createLocker(booking)
 	}
 
-	if body.ReportNo == "" {
+	if body.ReportNo != "" {
 		booking.ReportNo = body.ReportNo
 	}
 
