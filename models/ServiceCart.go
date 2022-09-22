@@ -20,12 +20,13 @@ type ServiceCart struct {
 	FromService     int64          `json:"from_service" gorm:"index"`                   // Mã của from service
 	FromServiceName string         `json:"from_service_name" gorm:"type:varchar(150)"`  // Tên của from service
 	OrderTime       int64          `json:"order_time" gorm:"index"`                     // Thời gian order
+	TimeProcess     int64          `json:"time_process"`                                // Thời gian bắt đầu chế biến
 	GolfBag         string         `json:"golf_bag" gorm:"type:varchar(100);index"`     // Số bag order
 	BookingDate     datatypes.Date `json:"booking_date"`                                // Ngày order
 	BookingUid      string         `json:"booking_uid" gorm:"type:varchar(100)"`        // Booking uid
-	BillCode        string         `json:"bill_code" gorm:"default:NONE"`               // Mã hóa đơn
+	BillCode        string         `json:"bill_code" gorm:"default:NONE;index"`         // Mã hóa đơn
 	BillStatus      string         `json:"bill_status" gorm:"type:varchar(50)"`         // trạng thái đơn
-	TypeCode        string         `json:"type_code" gorm:"type:varchar(100)"`          // Mã dịch vụ của hóa đơn
+	TypeCode        string         `json:"type_code" gorm:"type:varchar(100);index"`    // Mã dịch vụ của hóa đơn
 	Type            string         `json:"type" gorm:"type:varchar(100)"`               // Dịch vụ hóa đơn: BRING, SHIP, TABLE
 	StaffOrder      string         `json:"staff_order" gorm:"type:varchar(150)"`        // Người tạo đơn
 	PlayerName      string         `json:"player_name" gorm:"type:varchar(150)"`        // Người mua
@@ -79,6 +80,14 @@ func (item *ServiceCart) FindList(page Page) ([]ServiceCart, int64, error) {
 
 	if item.ServiceId != 0 {
 		db = db.Where("service_id = ?", item.ServiceId)
+	}
+
+	if item.BillCode != "" {
+		db = db.Where("bill_code = ?", item.BillCode)
+	}
+
+	if item.TypeCode != "" {
+		db = db.Where("type_cdoe = ?", item.TypeCode)
 	}
 
 	if item.Id != 0 {

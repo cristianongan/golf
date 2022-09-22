@@ -114,6 +114,7 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	serviceCart.BillCode = "OD-" + strconv.Itoa(int(body.BillId))
+	serviceCart.TimeProcess = time.Now().Unix()
 	serviceCart.BillStatus = constants.RES_STATUS_PROCESS
 
 	if err := serviceCart.Update(); err != nil {
@@ -208,6 +209,8 @@ func (_ CRestaurantOrder) GetListBill(c *gin.Context, prof models.CmsUser) {
 	serviceCart.ServiceId = query.ServiceId
 	serviceCart.BookingDate = datatypes.Date(bookingDate)
 	serviceCart.BillStatus = query.BillStatus
+	serviceCart.BillCode = query.BillCode
+	serviceCart.TypeCode = query.Table
 	serviceCart.Type = query.Type
 	serviceCart.ResFloor = query.Floor
 
