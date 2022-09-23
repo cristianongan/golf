@@ -10,6 +10,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"gorm.io/plugin/dbresolver"
 )
 
 var db *gorm.DB
@@ -35,6 +36,12 @@ func MySqlConnect() {
 		config.GetDbHost(),
 		config.GetDbPort(),
 		config.GetDbName(), params)
+	args2 := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s",
+		config.GetDbUser2(),
+		config.GetDbPassword2(),
+		config.GetDbHost2(),
+		config.GetDbPort2(),
+		config.GetDbName2(), params)
 	db, err = gorm.Open(mysql.New(mysql.Config{DSN: args,
 		DefaultStringSize: 256,
 	}), &gorm.Config{
@@ -48,8 +55,18 @@ func MySqlConnect() {
 	if config.GetDbDebug() {
 		db.Debug()
 	}
+	db.Use(dbresolver.Register(dbresolver.Config{
+		Sources: []gorm.Dialector{mysql.Open(args2)},
+	}, config.GetDbName2()))
 }
 
 func GetDatabase() *gorm.DB {
+	return db
+}
+
+func GetDatabaseWithPartner(partnerUid string) *gorm.DB {
+	if partnerUid == "FLC" {
+		return db.Clauses(dbresolver.Use(config.GetDbName2()))
+	}
 	return db
 }

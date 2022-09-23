@@ -4,6 +4,7 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 type CCaddieAbsent struct{}
 
 func (_ *CCaddieAbsent) CreateCaddieAbsent(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CreateCaddieAbsentBody
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		response_message.BadRequest(c, "")
@@ -22,7 +24,7 @@ func (_ *CCaddieAbsent) CreateCaddieAbsent(c *gin.Context, prof models.CmsUser) 
 
 	courseRequest := models.Course{}
 	courseRequest.Uid = body.CourseId
-	errFind := courseRequest.FindFirst()
+	errFind := courseRequest.FindFirst(db)
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
@@ -31,7 +33,7 @@ func (_ *CCaddieAbsent) CreateCaddieAbsent(c *gin.Context, prof models.CmsUser) 
 	caddieRequest := models.Caddie{}
 	// caddieRequest.Uid = body.CaddieId
 	// caddieRequest.CourseId = body.CourseId
-	errExist := caddieRequest.FindFirst()
+	errExist := caddieRequest.FindFirst(db)
 
 	if errExist != nil {
 		response_message.BadRequest(c, "Caddie number did not exist in course")

@@ -3,6 +3,7 @@ package controllers
 import (
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 
@@ -14,6 +15,7 @@ import (
 type CGolfService struct{}
 
 func (_ *CGolfService) GetGolfServiceForReception(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetGolfServiceForReceptionForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -42,7 +44,7 @@ func (_ *CGolfService) GetGolfServiceForReception(c *gin.Context, prof models.Cm
 			EnglishName: form.Name,
 		}
 
-		list, total, errRentalR := rentalR.FindList(page)
+		list, total, errRentalR := rentalR.FindList(db, page)
 
 		if errRentalR != nil {
 			response_message.InternalServerError(c, errRentalR.Error())
@@ -63,7 +65,7 @@ func (_ *CGolfService) GetGolfServiceForReception(c *gin.Context, prof models.Cm
 		proshopR.CourseUid = form.CourseUid
 		proshopR.Name = form.Name
 
-		list, total, errProshopR := proshopR.FindList(page)
+		list, total, errProshopR := proshopR.FindList(db, page)
 
 		if errProshopR != nil {
 			response_message.InternalServerError(c, errProshopR.Error())
@@ -84,7 +86,7 @@ func (_ *CGolfService) GetGolfServiceForReception(c *gin.Context, prof models.Cm
 	restaurentR.CourseUid = form.CourseUid
 	restaurentR.Name = form.Name
 
-	list, total, errRestaurentR := restaurentR.FindList(page)
+	list, total, errRestaurentR := restaurentR.FindList(db, page)
 
 	if errRestaurentR != nil {
 		response_message.InternalServerError(c, errRestaurentR.Error())

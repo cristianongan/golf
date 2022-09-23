@@ -5,6 +5,7 @@ import (
 	"log"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -16,6 +17,7 @@ import (
 type CGolfFee struct{}
 
 func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.GolfFee{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -23,7 +25,7 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Check Exits
-	isDupli := checkDuplicateGolfFee(body)
+	isDupli := checkDuplicateGolfFee(db, body)
 	if isDupli {
 		response_message.DuplicateRecord(c, "duplicated golf fee")
 		return
@@ -32,7 +34,7 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	// Check Table Price Exit
 	tablePrice := models.TablePrice{}
 	tablePrice.Id = body.TablePriceId
-	errFind := tablePrice.FindFirst()
+	errFind := tablePrice.FindFirst(db)
 	if errFind != nil {
 		response_message.BadRequest(c, "table price not found")
 		return
@@ -41,7 +43,7 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	// Check group Fee
 	groupFee := models.GroupFee{}
 	groupFee.Id = body.GroupId
-	errFind = groupFee.FindFirst()
+	errFind = groupFee.FindFirst(db)
 	if errFind != nil || groupFee.Id <= 0 {
 		response_message.BadRequest(c, "group fee not found")
 		return
@@ -69,13 +71,13 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.Idx = body.Idx
 	golfFee.AccDebit = body.AccDebit
 	golfFee.CustomerType = body.CustomerType
-	golfFee.CustomerCategory = getCustomerCategoryFromCustomerType(body.CustomerType)
+	golfFee.CustomerCategory = getCustomerCategoryFromCustomerType(db, body.CustomerType)
 	golfFee.GroupName = body.GroupName
 	golfFee.GroupId = groupFee.Id
 	golfFee.UpdateUserName = prof.UserName
 	golfFee.ApplyTime = strings.TrimSpace(body.ApplyTime)
 
-	errC := golfFee.Create()
+	errC := golfFee.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -86,6 +88,7 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CGolfFee) GetListGolfFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListGolfFeeForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -107,7 +110,7 @@ func (_ *CGolfFee) GetListGolfFee(c *gin.Context, prof models.CmsUser) {
 		GuestStyle:   form.GuestStyle,
 	}
 	golfFeeR.Status = form.Status
-	list, total, err := golfFeeR.FindList(page)
+	list, total, err := golfFeeR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -122,6 +125,7 @@ func (_ *CGolfFee) GetListGolfFee(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	golfFeeIdStr := c.Param("id")
 	golfFeeId, err := strconv.ParseInt(golfFeeIdStr, 10, 64)
 	if err != nil || golfFeeId <= 0 {
@@ -131,7 +135,7 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 
 	golfFee := models.GolfFee{}
 	golfFee.Id = golfFeeId
-	errF := golfFee.FindFirst()
+	errF := golfFee.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -144,7 +148,7 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if golfFee.Dow != body.Dow || golfFee.GuestStyle != body.GuestStyle {
-		isDupli := checkDuplicateGolfFee(body)
+		isDupli := checkDuplicateGolfFee(db, body)
 		if isDupli {
 			response_message.DuplicateRecord(c, "duplicated golf fee")
 			return
@@ -154,7 +158,7 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 	if golfFee.GroupId != body.GroupId {
 		groupFee := models.GroupFee{}
 		groupFee.Id = body.GroupId
-		errFindGroupFee := groupFee.FindFirst()
+		errFindGroupFee := groupFee.FindFirst(db)
 		if errFindGroupFee != nil || groupFee.Id <= 0 {
 			response_message.BadRequest(c, "group fee not found")
 			return
@@ -189,7 +193,7 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.ApplyTime = strings.TrimSpace(body.ApplyTime)
 	golfFee.UpdateUserName = prof.UserName
 
-	errUdp := golfFee.Update()
+	errUdp := golfFee.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -199,6 +203,7 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CGolfFee) DeleteGolfFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	golfFeeIdStr := c.Param("id")
 	golfFeeId, err := strconv.ParseInt(golfFeeIdStr, 10, 64)
 	if err != nil || golfFeeId <= 0 {
@@ -208,13 +213,13 @@ func (_ *CGolfFee) DeleteGolfFee(c *gin.Context, prof models.CmsUser) {
 
 	golfFee := models.GolfFee{}
 	golfFee.Id = golfFeeId
-	errF := golfFee.FindFirst()
+	errF := golfFee.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := golfFee.Delete()
+	errDel := golfFee.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
@@ -224,6 +229,7 @@ func (_ *CGolfFee) DeleteGolfFee(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CGolfFee) GetListGuestStyle(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListGolfFeeForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -240,7 +246,7 @@ func (_ *CGolfFee) GetListGuestStyle(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
-	tablePrice, err := tablePriceR.FindCurrentUse()
+	tablePrice, err := tablePriceR.FindCurrentUse(db)
 	if err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
@@ -254,11 +260,12 @@ func (_ *CGolfFee) GetListGuestStyle(c *gin.Context, prof models.CmsUser) {
 		CustomerCategory: form.CustomerCategory,
 	}
 	golfFeeR.Status = constants.STATUS_ENABLE
-	guestStyles := golfFeeR.GetGuestStyleList()
+	guestStyles := golfFeeR.GetGuestStyleList(db)
 	okResponse(c, guestStyles)
 }
 
 func (_ *CGolfFee) GetGolfFeeByGuestStyle(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListGolfFeeByGuestStyleForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -275,7 +282,7 @@ func (_ *CGolfFee) GetGolfFeeByGuestStyle(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
-	tablePrice, err := tablePriceR.FindCurrentUse()
+	tablePrice, err := tablePriceR.FindCurrentUse(db)
 	if err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
@@ -287,12 +294,12 @@ func (_ *CGolfFee) GetGolfFeeByGuestStyle(c *gin.Context, prof models.CmsUser) {
 		TablePriceId: tablePrice.Id,
 		GuestStyle:   form.GuestStyle,
 	}
-	guestStyles := golfFeeR.GetGuestStyleGolfFeeByGuestStyle()
+	guestStyles := golfFeeR.GetGuestStyleGolfFeeByGuestStyle(db)
 
 	for i, v := range guestStyles {
 		groupGS := models.GroupFee{}
 		groupGS.Id = v.GroupId
-		errFGGS := groupGS.FindFirst()
+		errFGGS := groupGS.FindFirst(db)
 		if errFGGS != nil {
 			log.Println("GetGolfFeeByGuestStyle", errFGGS.Error())
 		} else {

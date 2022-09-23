@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	model_service "start/models/service"
 	"start/utils/response_message"
@@ -14,6 +15,7 @@ import (
 type CGroupServices struct{}
 
 func (_ *CGroupServices) CreateGroupServices(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateGroupServicesBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -30,7 +32,7 @@ func (_ *CGroupServices) CreateGroupServices(c *gin.Context, prof models.CmsUser
 
 	courseRequest := models.Course{}
 	courseRequest.Uid = body.CourseUid
-	errCourseFind := courseRequest.FindFirst()
+	errCourseFind := courseRequest.FindFirst(db)
 	if errCourseFind != nil {
 		response_message.BadRequest(c, errCourseFind.Error())
 		return
@@ -41,7 +43,7 @@ func (_ *CGroupServices) CreateGroupServices(c *gin.Context, prof models.CmsUser
 	groupServices.CourseUid = body.CourseUid
 	groupServices.PartnerUid = body.PartnerUid
 	//Check Exits
-	errFind := groupServices.FindFirst()
+	errFind := groupServices.FindFirst(db)
 	if errFind == nil {
 		response_message.DuplicateRecord(c, errors.New("Duplicate uid").Error())
 		return
@@ -50,7 +52,7 @@ func (_ *CGroupServices) CreateGroupServices(c *gin.Context, prof models.CmsUser
 	groupServices.Type = body.Type
 	groupServices.DetailGroup = body.DetailGroup
 
-	errC := groupServices.Create()
+	errC := groupServices.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -61,6 +63,7 @@ func (_ *CGroupServices) CreateGroupServices(c *gin.Context, prof models.CmsUser
 }
 
 func (_ *CGroupServices) GetGroupServicesList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListGroupServicesForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -105,7 +108,7 @@ func (_ *CGroupServices) GetGroupServicesList(c *gin.Context, prof models.CmsUse
 		groupServices.CourseUid = ""
 	}
 
-	list, total, err := groupServices.FindList(page)
+	list, total, err := groupServices.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -120,6 +123,7 @@ func (_ *CGroupServices) GetGroupServicesList(c *gin.Context, prof models.CmsUse
 }
 
 func (_ *CGroupServices) DeleteServices(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	serviceIdP := c.Param("id")
 	serviceId, errId := strconv.ParseInt(serviceIdP, 10, 64)
 	if errId != nil {
@@ -129,13 +133,13 @@ func (_ *CGroupServices) DeleteServices(c *gin.Context, prof models.CmsUser) {
 
 	groupServices := model_service.GroupServices{}
 	groupServices.Id = serviceId
-	errF := groupServices.FindFirst()
+	errF := groupServices.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := groupServices.Delete()
+	errDel := groupServices.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
@@ -145,6 +149,7 @@ func (_ *CGroupServices) DeleteServices(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CGroupServices) UpdateServices(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	serviceIdP := c.Param("id")
 	serviceId, errId := strconv.ParseInt(serviceIdP, 10, 64)
 	if errId != nil {
@@ -154,7 +159,7 @@ func (_ *CGroupServices) UpdateServices(c *gin.Context, prof models.CmsUser) {
 
 	groupServices := model_service.GroupServices{}
 	groupServices.Id = serviceId
-	errF := groupServices.FindFirst()
+	errF := groupServices.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -182,7 +187,7 @@ func (_ *CGroupServices) UpdateServices(c *gin.Context, prof models.CmsUser) {
 		groupServices.Type = body.Type
 	}
 
-	errUdp := groupServices.Update()
+	errUdp := groupServices.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return

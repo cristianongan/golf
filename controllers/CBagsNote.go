@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 
@@ -11,6 +12,7 @@ import (
 type CBagsNote struct{}
 
 func (_ *CBagsNote) GetListBagsNote(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBagNoteForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -29,7 +31,7 @@ func (_ *CBagsNote) GetListBagsNote(c *gin.Context, prof models.CmsUser) {
 		CourseUid:  form.CourseUid,
 		GolfBag:    form.GolfBag,
 	}
-	list, total, err := bagsNoteR.FindList(page)
+	list, total, err := bagsNoteR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

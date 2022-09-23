@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 
@@ -11,6 +12,7 @@ import (
 type CTranferCard struct{}
 
 func (_ *CTranferCard) CreateTranferCard(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateTranferCardBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -20,7 +22,7 @@ func (_ *CTranferCard) CreateTranferCard(c *gin.Context, prof models.CmsUser) {
 	// Check Owner Old Invalid
 	memberCard := models.MemberCard{}
 	memberCard.Uid = body.CardUid
-	errF := memberCard.FindFirst()
+	errF := memberCard.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -29,7 +31,7 @@ func (_ *CTranferCard) CreateTranferCard(c *gin.Context, prof models.CmsUser) {
 	// Check Owner Old Invalid
 	ownerOld := models.CustomerUser{}
 	ownerOld.Uid = body.OwnerOldUid
-	errFind := ownerOld.FindFirst()
+	errFind := ownerOld.FindFirst(db)
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
@@ -38,7 +40,7 @@ func (_ *CTranferCard) CreateTranferCard(c *gin.Context, prof models.CmsUser) {
 	// Check Owner New Invalid
 	owner := models.CustomerUser{}
 	owner.Uid = body.OwnerNewUid
-	errFind = owner.FindFirst()
+	errFind = owner.FindFirst(db)
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
@@ -62,7 +64,7 @@ func (_ *CTranferCard) CreateTranferCard(c *gin.Context, prof models.CmsUser) {
 		memberCard.ExpDate = body.ExpDate
 	}
 
-	errUdp := memberCard.Update()
+	errUdp := memberCard.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -77,7 +79,7 @@ func (_ *CTranferCard) CreateTranferCard(c *gin.Context, prof models.CmsUser) {
 	tranferCard.Amount = body.Amount
 	tranferCard.InputUser = body.InputUser
 
-	errC := tranferCard.Create()
+	errC := tranferCard.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -88,6 +90,7 @@ func (_ *CTranferCard) CreateTranferCard(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CTranferCard) GetListTranferCard(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.GetTranferCardList{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -107,7 +110,7 @@ func (_ *CTranferCard) GetListTranferCard(c *gin.Context, prof models.CmsUser) {
 		CardId:     body.CardId,
 	}
 
-	list, total, err := tranferCardR.FindList(page, body.PlayerName)
+	list, total, err := tranferCardR.FindList(db, page, body.PlayerName)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

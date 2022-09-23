@@ -3,13 +3,13 @@ package models
 import (
 	"log"
 	"start/constants"
-	"start/datasources"
 	"start/utils"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Loại thẻ
@@ -136,7 +136,7 @@ func (item *MemberCardType) IsValidated() bool {
 	return true
 }
 
-func (item *MemberCardType) Create() error {
+func (item *MemberCardType) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -144,35 +144,32 @@ func (item *MemberCardType) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *MemberCardType) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *MemberCardType) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *MemberCardType) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *MemberCardType) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *MemberCardType) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(MemberCardType{})
+func (item *MemberCardType) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(MemberCardType{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *MemberCardType) FindList(page Page) ([]MemberCardType, int64, error) {
-	db := datasources.GetDatabase().Model(MemberCardType{})
+func (item *MemberCardType) FindList(database *gorm.DB,page Page) ([]MemberCardType, int64, error) {
+	db := database.Model(MemberCardType{})
 	list := []MemberCardType{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -205,9 +202,9 @@ func (item *MemberCardType) FindList(page Page) ([]MemberCardType, int64, error)
 	return list, total, db.Error
 }
 
-func (item *MemberCardType) Delete() error {
+func (item *MemberCardType) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

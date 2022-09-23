@@ -2,13 +2,13 @@ package model_booking
 
 import (
 	"start/constants"
-	"start/datasources"
 	"start/models"
 	"start/utils"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 type BookingWaiting struct {
@@ -23,7 +23,7 @@ type BookingWaiting struct {
 	Note          string           `json:"note" gorm:"type:varchar(256)"`               // Ghi chú
 }
 
-func (item *BookingWaiting) Create() error {
+func (item *BookingWaiting) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -31,35 +31,32 @@ func (item *BookingWaiting) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *BookingWaiting) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *BookingWaiting) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *BookingWaiting) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *BookingWaiting) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *BookingWaiting) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(BookingWaiting{})
+func (item *BookingWaiting) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(BookingWaiting{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *BookingWaiting) FindList(page models.Page) ([]BookingWaiting, int64, error) {
-	db := datasources.GetDatabase().Model(BookingWaiting{})
+func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]BookingWaiting, int64, error) {
+	db := database.Model(BookingWaiting{})
 	list := []BookingWaiting{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -93,9 +90,9 @@ func (item *BookingWaiting) FindList(page models.Page) ([]BookingWaiting, int64,
 	return list, total, db.Error
 }
 
-func (item *BookingWaiting) Delete() error {
+func (item *BookingWaiting) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

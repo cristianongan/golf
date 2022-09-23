@@ -1,21 +1,24 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
-	"github.com/pkg/errors"
-	"gorm.io/datatypes"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/pkg/errors"
+	"gorm.io/datatypes"
 )
 
 type CDeposit struct{}
 
 func (_ *CDeposit) CreateDeposit(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CreateDepositBody
 	if err := c.BindJSON(&body); err != nil {
 		response_message.BadRequest(c, "")
@@ -34,7 +37,7 @@ func (_ *CDeposit) CreateDeposit(c *gin.Context, prof models.CmsUser) {
 		// validate customer_uid
 		customer = models.CustomerUser{}
 		customer.Uid = body.CustomerUid
-		if err := customer.FindFirst(); err != nil {
+		if err := customer.FindFirst(db); err != nil {
 			response_message.BadRequest(c, err.Error())
 			return
 		}
@@ -43,14 +46,14 @@ func (_ *CDeposit) CreateDeposit(c *gin.Context, prof models.CmsUser) {
 		customer.PartnerUid = prof.PartnerUid
 		customer.CourseUid = prof.CourseUid
 		customer.Phone = body.CustomerPhone
-		if err := customer.FindFirst(); err == nil {
+		if err := customer.FindFirst(db); err == nil {
 			response_message.BadRequest(c, errors.New("phone number is exist").Error())
 			return
 		} else {
 			customer.Name = body.CustomerName
 			customer.Identify = body.CustomerIdentity
 			customer.Type = "VISITOR"
-			if err := customer.Create(); err != nil {
+			if err := customer.Create(db); err != nil {
 				response_message.BadRequest(c, errors.New("phone number is exist").Error())
 				return
 			}
@@ -80,7 +83,7 @@ func (_ *CDeposit) CreateDeposit(c *gin.Context, prof models.CmsUser) {
 	deposit.TotalAmount = deposit.TmTotalAmount + deposit.TcTotalAmount
 	deposit.Note = body.Note
 
-	if err := deposit.Create(); err != nil {
+	if err := deposit.Create(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
@@ -89,6 +92,7 @@ func (_ *CDeposit) CreateDeposit(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CDeposit) GetDeposit(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetDepositList{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -108,7 +112,7 @@ func (_ *CDeposit) GetDeposit(c *gin.Context, prof models.CmsUser) {
 	deposit.CustomerStyle = query.CustomerStyle
 	deposit.InputDate = query.InputDate
 
-	list, total, err := deposit.FindList(page)
+	list, total, err := deposit.FindList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -124,6 +128,7 @@ func (_ *CDeposit) GetDeposit(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CDeposit) UpdateDeposit(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.UpdateDepositBody
 	if err := c.BindJSON(&body); err != nil {
 		response_message.BadRequest(c, "")
@@ -141,7 +146,7 @@ func (_ *CDeposit) UpdateDeposit(c *gin.Context, prof models.CmsUser) {
 	deposit.CustomerUid = body.CustomerUid
 	deposit.Id, _ = strconv.ParseInt(c.Param("id"), 10, 64)
 
-	if err := deposit.FindFirst(); err != nil {
+	if err := deposit.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -158,7 +163,7 @@ func (_ *CDeposit) UpdateDeposit(c *gin.Context, prof models.CmsUser) {
 	deposit.TotalAmount = deposit.TmTotalAmount + deposit.TcTotalAmount
 	deposit.Note = body.Note
 
-	if err := deposit.Update(); err != nil {
+	if err := deposit.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}

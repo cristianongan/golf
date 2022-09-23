@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	model_service "start/models/service"
 	"start/utils/response_message"
@@ -19,6 +20,7 @@ type KioskResponse struct {
 }
 
 func (_ *CKiosk) GetListKiosk(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListKioskForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -45,7 +47,7 @@ func (_ *CKiosk) GetListKiosk(c *gin.Context, prof models.CmsUser) {
 		kioskR.Status = form.Status
 	}
 
-	list, _, err := kioskR.FindList(page)
+	list, _, err := kioskR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -71,6 +73,7 @@ func (_ *CKiosk) GetListKiosk(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CKiosk) CreateKiosk(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := model_service.Kiosk{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -90,7 +93,7 @@ func (_ *CKiosk) CreateKiosk(c *gin.Context, prof models.CmsUser) {
 	kiosk.KioskType = body.KioskType
 	kiosk.Status = body.Status
 
-	errC := kiosk.Create()
+	errC := kiosk.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -101,6 +104,7 @@ func (_ *CKiosk) CreateKiosk(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CKiosk) UpdateKiosk(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	kioskIdStr := c.Param("id")
 	kioskId, err := strconv.ParseInt(kioskIdStr, 10, 64) // Nếu uid là int64 mới cần convert
 	if err != nil && kioskId == 0 {
@@ -110,7 +114,7 @@ func (_ *CKiosk) UpdateKiosk(c *gin.Context, prof models.CmsUser) {
 
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = kioskId
-	errF := kiosk.FindFirst()
+	errF := kiosk.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -135,7 +139,7 @@ func (_ *CKiosk) UpdateKiosk(c *gin.Context, prof models.CmsUser) {
 		kiosk.ServiceType = body.ServiceType
 	}
 
-	errUdp := kiosk.Update()
+	errUdp := kiosk.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -145,6 +149,7 @@ func (_ *CKiosk) UpdateKiosk(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CKiosk) DeleteKiosk(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	kioskIdStr := c.Param("id")
 	kioskId, err := strconv.ParseInt(kioskIdStr, 10, 64) // Nếu uid là int64 mới cần convert
 	if err != nil && kioskId == 0 {
@@ -154,13 +159,13 @@ func (_ *CKiosk) DeleteKiosk(c *gin.Context, prof models.CmsUser) {
 
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = kioskId
-	errF := kiosk.FindFirst()
+	errF := kiosk.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := kiosk.Delete()
+	errDel := kiosk.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

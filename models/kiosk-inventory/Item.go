@@ -3,13 +3,14 @@ package kiosk_inventory
 import (
 	"log"
 	"start/constants"
-	"start/datasources"
 	"start/models"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 /*
- Để lưu thông tin trạng thái item trong kho(trạng thái tồn)
+Để lưu thông tin trạng thái item trong kho(trạng thái tồn)
 */
 type InventoryItem struct {
 	models.ModelId
@@ -34,31 +35,28 @@ type InventoryItemRequest struct {
 	ProductName string
 }
 
-func (item *InventoryItem) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *InventoryItem) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *InventoryItem) Create() error {
+func (item *InventoryItem) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *InventoryItem) Update() error {
+func (item *InventoryItem) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
 
-	db := datasources.GetDatabase()
 	return db.Save(item).Error
 }
 
-/// ------- InventoryItem batch insert to db ------
-func (item *InventoryItem) BatchInsert(list []InventoryItem) error {
-	db := datasources.GetDatabase().Table("inventory_items")
+// / ------- InventoryItem batch insert to db ------
+func (item *InventoryItem) BatchInsert(database *gorm.DB, list []InventoryItem) error {
+	db := database.Table("inventory_items")
 	var err error
 	err = db.Create(&list).Error
 
@@ -67,8 +65,8 @@ func (item *InventoryItem) BatchInsert(list []InventoryItem) error {
 	}
 	return err
 }
-func (item *InventoryItem) FindList(page models.Page, param InventoryItemRequest) ([]InventoryItem, int64, error) {
-	db := datasources.GetDatabase().Model(InventoryItem{})
+func (item *InventoryItem) FindList(database *gorm.DB, page models.Page, param InventoryItemRequest) ([]InventoryItem, int64, error) {
+	db := database.Model(InventoryItem{})
 	list := []InventoryItem{}
 	total := int64(0)
 

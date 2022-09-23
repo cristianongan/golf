@@ -2,11 +2,11 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Group Fee
@@ -51,43 +51,39 @@ func (item *Holiday) IsValidated() bool {
 	return true
 }
 
-func (item *Holiday) Create() error {
+func (item *Holiday) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
-
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *Holiday) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *Holiday) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *Holiday) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *Holiday) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *Holiday) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(Holiday{})
+func (item *Holiday) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(Holiday{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *Holiday) FindList() ([]Holiday, int64, error) {
-	db := datasources.GetDatabase().Model(Holiday{})
+func (item *Holiday) FindList(database *gorm.DB) ([]Holiday, int64, error) {
+	db := database.Model(Holiday{})
 	list := []Holiday{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -104,9 +100,9 @@ func (item *Holiday) FindList() ([]Holiday, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *Holiday) Delete() error {
+func (item *Holiday) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

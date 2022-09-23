@@ -5,6 +5,7 @@ import (
 	"log"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	model_service "start/models/service"
 	"start/utils/response_message"
@@ -16,6 +17,7 @@ import (
 type CFbPromotionSet struct{}
 
 func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.FbPromotionSetBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -39,7 +41,7 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 
 	servicesRequest := model_service.GroupServices{}
 	servicesRequest.GroupCode = body.GroupCode
-	servicesErrFind := servicesRequest.FindFirst()
+	servicesErrFind := servicesRequest.FindFirst(db)
 	if servicesErrFind != nil {
 		response_message.BadRequest(c, servicesErrFind.Error())
 		return
@@ -55,7 +57,7 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 
 	courseRequest := models.Course{}
 	courseRequest.Uid = body.CourseUid
-	errCourseFind := courseRequest.FindFirst()
+	errCourseFind := courseRequest.FindFirst(db)
 	if errCourseFind != nil {
 		response_message.BadRequest(c, errCourseFind.Error())
 		return
@@ -70,7 +72,7 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 			CourseUid:  body.CourseUid,
 		}
 
-		if err := foodBeverage.FindFirst(); err != nil {
+		if err := foodBeverage.FindFirst(db); err != nil {
 			response_message.BadRequest(c, errors.New(code+" không tìm thấy ").Error())
 			return
 		}
@@ -97,7 +99,7 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 
 	promotionSet.Status = body.Status
 
-	err := promotionSet.Create()
+	err := promotionSet.Create(db)
 	if err != nil {
 		log.Print("Create caddieNote error")
 		response_message.InternalServerError(c, err.Error())
@@ -107,6 +109,7 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 }
 
 func (_ *CFbPromotionSet) GetListFoodBeveragepRomotionSet(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListFbPromotionSetForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -147,7 +150,7 @@ func (_ *CFbPromotionSet) GetListFoodBeveragepRomotionSet(c *gin.Context, prof m
 		promotionSetR.Status = ""
 	}
 
-	list, total, err := promotionSetR.FindList(page)
+	list, total, err := promotionSetR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -162,6 +165,7 @@ func (_ *CFbPromotionSet) GetListFoodBeveragepRomotionSet(c *gin.Context, prof m
 }
 
 func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	idStr := c.Param("id")
 	Id, errId := strconv.ParseInt(idStr, 10, 64)
 	if errId != nil {
@@ -178,7 +182,7 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 	promotionSetR := model_service.FbPromotionSet{}
 	promotionSetR.Id = Id
 
-	errF := promotionSetR.FindFirst()
+	errF := promotionSetR.FindFirst(db)
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
@@ -199,7 +203,7 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 		promotionSetR.FBList = *body.FBList
 	}
 
-	err := promotionSetR.Update()
+	err := promotionSetR.Update(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -208,6 +212,7 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 	okRes(c)
 }
 func (_ *CFbPromotionSet) DeleteFoodBeveragePromotionSet(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	fbIdStr := c.Param("id")
 	fbId, errId := strconv.ParseInt(fbIdStr, 10, 64)
 	if errId != nil {
@@ -217,13 +222,13 @@ func (_ *CFbPromotionSet) DeleteFoodBeveragePromotionSet(c *gin.Context, prof mo
 
 	fbModel := model_service.FbPromotionSet{}
 	fbModel.Id = fbId
-	errF := fbModel.FindFirst()
+	errF := fbModel.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := fbModel.Delete()
+	errDel := fbModel.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

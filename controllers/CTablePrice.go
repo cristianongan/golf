@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils"
 	"start/utils/response_message"
@@ -15,6 +16,7 @@ import (
 type CTablePrice struct{}
 
 func (_ *CTablePrice) CreateTablePrice(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateTablePriceBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -31,7 +33,7 @@ func (_ *CTablePrice) CreateTablePrice(c *gin.Context, prof models.CmsUser) {
 	year, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.YEAR_FORMAT, body.FromDate)
 	yearInt, _ := strconv.Atoi(year)
 	tablePrice.Year = yearInt
-	errC := tablePrice.Create()
+	errC := tablePrice.Create(db)
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
 		return
@@ -47,6 +49,7 @@ func (_ *CTablePrice) CreateTablePrice(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CTablePrice) GetListTablePrice(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListTablePriceForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -66,7 +69,7 @@ func (_ *CTablePrice) GetListTablePrice(c *gin.Context, prof models.CmsUser) {
 		Name:       form.TablePriceName,
 		Year:       form.Year,
 	}
-	list, total, err := tablePriceR.FindList(page)
+	list, total, err := tablePriceR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -81,6 +84,7 @@ func (_ *CTablePrice) GetListTablePrice(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CTablePrice) UpdateTablePrice(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	tablePriceIdStr := c.Param("id")
 	tablePriceId, err := strconv.ParseInt(tablePriceIdStr, 10, 64)
 	if err != nil || tablePriceId <= 0 {
@@ -90,7 +94,7 @@ func (_ *CTablePrice) UpdateTablePrice(c *gin.Context, prof models.CmsUser) {
 
 	tablePrice := models.TablePrice{}
 	tablePrice.Id = tablePriceId
-	errF := tablePrice.FindFirst()
+	errF := tablePrice.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -115,7 +119,7 @@ func (_ *CTablePrice) UpdateTablePrice(c *gin.Context, prof models.CmsUser) {
 		tablePrice.Status = body.Status
 	}
 
-	errUdp := tablePrice.Update()
+	errUdp := tablePrice.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -125,7 +129,7 @@ func (_ *CTablePrice) UpdateTablePrice(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CTablePrice) DeleteTablePrice(c *gin.Context, prof models.CmsUser) {
-
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	response_message.BadRequest(c, "Không hỗ trợ xoá bảng giá")
 	return
 
@@ -138,13 +142,13 @@ func (_ *CTablePrice) DeleteTablePrice(c *gin.Context, prof models.CmsUser) {
 
 	tablePrice := models.TablePrice{}
 	tablePrice.Id = tablePriceId
-	errF := tablePrice.FindFirst()
+	errF := tablePrice.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := tablePrice.Delete()
+	errDel := tablePrice.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

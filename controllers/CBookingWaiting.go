@@ -3,6 +3,7 @@ package controllers
 import (
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils/response_message"
@@ -15,6 +16,7 @@ import (
 type CBookingWaiting struct{}
 
 func (_ *CBookingWaiting) CreateBookingWaiting(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CreateBookingWaiting
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		response_message.BadRequest(c, "")
@@ -33,7 +35,7 @@ func (_ *CBookingWaiting) CreateBookingWaiting(c *gin.Context, prof models.CmsUs
 		Note:          body.Note,
 	}
 
-	err := bookingWaiting.Create()
+	err := bookingWaiting.Create(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -42,6 +44,7 @@ func (_ *CBookingWaiting) CreateBookingWaiting(c *gin.Context, prof models.CmsUs
 }
 
 func (_ *CBookingWaiting) GetBookingWaitingList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingWaitingForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -68,7 +71,7 @@ func (_ *CBookingWaiting) GetBookingWaitingList(c *gin.Context, prof models.CmsU
 		bookingWaitingRequest.BookingTime = form.Date
 	}
 
-	list, total, err := bookingWaitingRequest.FindList(page)
+	list, total, err := bookingWaitingRequest.FindList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -84,6 +87,7 @@ func (_ *CBookingWaiting) GetBookingWaitingList(c *gin.Context, prof models.CmsU
 }
 
 func (_ *CBookingWaiting) DeleteBookingWaiting(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	bookingIdStr := c.Param("id")
 	bookingId, errId := strconv.ParseInt(bookingIdStr, 10, 64)
 	if errId != nil {
@@ -93,14 +97,14 @@ func (_ *CBookingWaiting) DeleteBookingWaiting(c *gin.Context, prof models.CmsUs
 
 	bookingWaitingRequest := model_booking.BookingWaiting{}
 	bookingWaitingRequest.Id = bookingId
-	errF := bookingWaitingRequest.FindFirst()
+	errF := bookingWaitingRequest.FindFirst(db)
 
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
 
-	err := bookingWaitingRequest.Delete()
+	err := bookingWaitingRequest.Delete(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -110,6 +114,7 @@ func (_ *CBookingWaiting) DeleteBookingWaiting(c *gin.Context, prof models.CmsUs
 }
 
 func (_ *CBookingWaiting) UpdateBookingWaiting(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	caddieIdStr := c.Param("id")
 	caddieId, errId := strconv.ParseInt(caddieIdStr, 10, 64)
 	if errId != nil {
@@ -126,7 +131,7 @@ func (_ *CBookingWaiting) UpdateBookingWaiting(c *gin.Context, prof models.CmsUs
 	bookingWaitingRequest := model_booking.BookingWaiting{}
 	bookingWaitingRequest.Id = caddieId
 
-	errF := bookingWaitingRequest.FindFirst()
+	errF := bookingWaitingRequest.FindFirst(db)
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
@@ -148,7 +153,7 @@ func (_ *CBookingWaiting) UpdateBookingWaiting(c *gin.Context, prof models.CmsUs
 		bookingWaitingRequest.Note = body.Note
 	}
 
-	err := bookingWaitingRequest.Update()
+	err := bookingWaitingRequest.Update(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

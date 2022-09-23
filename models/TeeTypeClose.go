@@ -2,11 +2,11 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 type TeeTypeClose struct {
@@ -18,48 +18,44 @@ type TeeTypeClose struct {
 	Note             string `json:"note"`
 }
 
-func (item *TeeTypeClose) IsDuplicated() bool {
-	errFind := item.FindFirst()
+func (item *TeeTypeClose) IsDuplicated(db *gorm.DB) bool {
+	errFind := item.FindFirst(db)
 	return errFind == nil
 }
 
-func (item *TeeTypeClose) Create() error {
+func (item *TeeTypeClose) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
-
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *TeeTypeClose) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *TeeTypeClose) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *TeeTypeClose) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *TeeTypeClose) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *TeeTypeClose) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(TeeTypeClose{})
+func (item *TeeTypeClose) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(TeeTypeClose{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *TeeTypeClose) FindList(page Page) ([]TeeTypeClose, int64, error) {
-	db := datasources.GetDatabase().Model(TeeTypeClose{})
+func (item *TeeTypeClose) FindList(database *gorm.DB, page Page) ([]TeeTypeClose, int64, error) {
+	db := database.Model(TeeTypeClose{})
 	list := []TeeTypeClose{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -89,9 +85,9 @@ func (item *TeeTypeClose) FindList(page Page) ([]TeeTypeClose, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *TeeTypeClose) Delete() error {
+func (item *TeeTypeClose) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

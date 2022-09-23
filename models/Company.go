@@ -3,9 +3,10 @@ package models
 import (
 	"errors"
 	"start/constants"
-	"start/datasources"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Company
@@ -23,14 +24,14 @@ type Company struct {
 	CompanyTypeName string `json:"company_type_name" gorm:"type:varchar(300)"`
 }
 
-func (item *Company) IsDuplicated() bool {
+func (item *Company) IsDuplicated(db *gorm.DB) bool {
 	company := Company{
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
 		Code:       item.Code,
 	}
 
-	errFind := company.FindFirst()
+	errFind := company.FindFirst(db)
 	if errFind == nil || company.Id > 0 {
 		return true
 	}
@@ -38,7 +39,7 @@ func (item *Company) IsDuplicated() bool {
 }
 
 // ======= CRUD ===========
-func (item *Company) Create() error {
+func (item *Company) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
@@ -47,35 +48,33 @@ func (item *Company) Create() error {
 		item.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *Company) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *Company) Update(db *gorm.DB) error {
 	item.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *Company) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *Company) FindFirst(db *gorm.DB) error {
+
 	return db.Where(item).First(item).Error
 }
 
-func (item *Company) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(Company{})
+func (item *Company) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(Company{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *Company) FindList(page Page) ([]Company, int64, error) {
-	db := datasources.GetDatabase().Model(Company{})
+func (item *Company) FindList(database *gorm.DB, page Page) ([]Company, int64, error) {
+	db := database.Model(Company{})
 	list := []Company{}
 	total := int64(0)
 	status := item.Status
@@ -108,9 +107,9 @@ func (item *Company) FindList(page Page) ([]Company, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *Company) Delete() error {
+func (item *Company) Delete(db *gorm.DB) error {
 	if item.Id == 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

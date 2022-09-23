@@ -1,18 +1,21 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/logger"
 	"start/models"
 	"start/utils/response_message"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CActivityLog struct{}
 
 func (_ CActivityLog) GetLog(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetLogList{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -36,7 +39,7 @@ func (_ CActivityLog) GetLog(c *gin.Context, prof models.CmsUser) {
 		activityLog.Label = query.Code
 		activityLog.Action = query.Action
 
-		list, total, err = activityLog.FindList(page)
+		list, total, err = activityLog.FindList(db, page)
 	}
 
 	if err != nil {

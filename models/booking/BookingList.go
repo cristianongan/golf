@@ -3,7 +3,6 @@ package model_booking
 import (
 	"fmt"
 	"start/constants"
-	"start/datasources"
 	"start/models"
 	"strconv"
 	"strings"
@@ -209,11 +208,11 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 	return db
 }
 
-func (item *BookingList) FindBookingList(page models.Page) ([]Booking, int64, error) {
+func (item *BookingList) FindBookingList(database *gorm.DB,page models.Page) ([]Booking, int64, error) {
 	var list []Booking
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(Booking{})
+	db := database.Model(Booking{})
 
 	db = addFilter(db, item)
 
@@ -226,10 +225,10 @@ func (item *BookingList) FindBookingList(page models.Page) ([]Booking, int64, er
 	return list, total, db.Error
 }
 
-func (item *BookingList) FindBookingListWithSelect(page models.Page) (*gorm.DB, int64, error) {
+func (item *BookingList) FindBookingListWithSelect(database *gorm.DB,page models.Page) (*gorm.DB, int64, error) {
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(Booking{})
+	db := database.Model(Booking{})
 
 	db = addFilter(db, item)
 
@@ -242,9 +241,9 @@ func (item *BookingList) FindBookingListWithSelect(page models.Page) (*gorm.DB, 
 	return db, total, db.Error
 }
 
-func (item *BookingList) FindAllBookingList() (*gorm.DB, int64, error) {
+func (item *BookingList) FindAllBookingList(database *gorm.DB) (*gorm.DB, int64, error) {
 	total := int64(0)
-	db := datasources.GetDatabase().Model(Booking{})
+	db := database.Model(Booking{})
 
 	db = addFilter(db, item)
 
@@ -253,9 +252,9 @@ func (item *BookingList) FindAllBookingList() (*gorm.DB, int64, error) {
 	return db, total, db.Error
 }
 
-func (item *BookingList) FindFirst() (Booking, error) {
+func (item *BookingList) FindFirst(database *gorm.DB) (Booking, error) {
 	var result Booking
-	db := datasources.GetDatabase().Model(Booking{})
+	db := database.Model(Booking{})
 
 	if item.CaddieCode != "" {
 		db = db.Where("caddie_info->'$.code' = ?", item.CaddieCode)

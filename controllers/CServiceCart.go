@@ -24,6 +24,7 @@ type CServiceCart struct{}
 
 // Thêm sản phẩm vào giỏ hàng
 func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.AddItemServiceCartBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -43,7 +44,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	booking.CourseUid = body.CourseUid
 	booking.Bag = body.GolfBag
 	booking.BookingDate = time.Now().Format("02/01/2006")
-	if err := booking.FindFirst(); err != nil {
+	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
 		return
 	}
@@ -56,7 +57,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	// validate kiosk
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = body.ServiceId
-	if err := kiosk.FindFirst(); err != nil {
+	if err := kiosk.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Kiosk "+err.Error())
 		return
 	}
@@ -71,7 +72,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		fb.CourseUid = prof.CourseUid
 		fb.FBCode = body.ItemCode
 
-		if err := fb.FindFirst(); err != nil {
+		if err := fb.FindFirst(db); err != nil {
 			response_message.BadRequest(c, err.Error())
 			return
 		}
@@ -89,7 +90,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		proshop.CourseUid = prof.CourseUid
 		proshop.ProShopId = body.ItemCode
 
-		if err := proshop.FindFirst(); err != nil {
+		if err := proshop.FindFirst(db); err != nil {
 			response_message.BadRequest(c, "Proshop "+err.Error())
 			return
 		}
@@ -107,7 +108,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		rental.CourseUid = prof.CourseUid
 		rental.RentalId = body.ItemCode
 
-		if err := rental.FindFirst(); err != nil {
+		if err := rental.FindFirst(db); err != nil {
 			response_message.BadRequest(c, "Rental "+err.Error())
 			return
 		}
@@ -135,12 +136,12 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
 	}
 
-	err := serviceCart.FindFirst()
+	err := serviceCart.FindFirst(db)
 	// no cart
 	if err != nil {
 		// create cart
 		serviceCart.Amount = body.Quantity * serviceCartItem.UnitPrice
-		if err := serviceCart.Create(); err != nil {
+		if err := serviceCart.Create(db); err != nil {
 			response_message.InternalServerError(c, "Create cart "+err.Error())
 			return
 		}
@@ -152,7 +153,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		}
 		// update tổng giá bill
 		serviceCart.Amount += body.Quantity * serviceCartItem.UnitPrice
-		if err := serviceCart.Update(); err != nil {
+		if err := serviceCart.Update(db); err != nil {
 			response_message.InternalServerError(c, "Update cart "+err.Error())
 			return
 		}
@@ -165,7 +166,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	inventory.ServiceId = body.ServiceId
 	inventory.Code = body.ItemCode
 
-	if err := inventory.FindFirst(); err != nil {
+	if err := inventory.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Inventory "+err.Error())
 		return
 	}
@@ -178,7 +179,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 
 	// Update số lượng hàng tồn trong kho
 	inventory.Quantity -= body.Quantity
-	if err := inventory.Update(); err != nil {
+	if err := inventory.Update(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -198,7 +199,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	serviceCartItem.Amount = body.Quantity * serviceCartItem.UnitPrice
 	serviceCartItem.UserAction = prof.UserName
 
-	if err := serviceCartItem.Create(); err != nil {
+	if err := serviceCartItem.Create(db); err != nil {
 		response_message.InternalServerError(c, "Create item "+err.Error())
 		return
 	}
@@ -210,6 +211,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 }
 
 func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.AddDiscountServiceItemBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -227,7 +229,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	serviceCartItem := model_booking.BookingServiceItem{}
 	serviceCartItem.Id = body.CartItemId
 
-	if err := serviceCartItem.FindFirst(); err != nil {
+	if err := serviceCartItem.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -236,7 +238,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = serviceCartItem.ServiceBill
 
-	if err := serviceCart.FindFirst(); err != nil {
+	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -245,7 +247,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	serviceCartItem.DiscountValue = body.DiscountPrice
 	serviceCartItem.DiscountReason = body.DiscountReason
 
-	if err := serviceCartItem.Update(); err != nil {
+	if err := serviceCartItem.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
@@ -254,6 +256,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ CServiceCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetItemServiceCartBody{}
 	if bindErr := c.ShouldBind(&query); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -277,7 +280,7 @@ func (_ CServiceCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
 	serviceCart.BookingDate = datatypes.Date(bookingDate)
 	serviceCart.Id = query.BillId
 
-	if err := serviceCart.FindFirst(); err != nil {
+	if err := serviceCart.FindFirst(db); err != nil {
 		res := response.PageResponse{
 			Total: 0,
 			Data:  nil,
@@ -290,7 +293,7 @@ func (_ CServiceCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
 	serviceCartItem := model_booking.BookingServiceItem{}
 	serviceCartItem.ServiceBill = serviceCart.Id
 
-	list, total, err := serviceCartItem.FindList(page)
+	list, total, err := serviceCartItem.FindList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -311,6 +314,7 @@ func (_ CServiceCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ CServiceCart) GetBestItemInKiosk(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetBestItemBody{}
 	if bindErr := c.ShouldBind(&query); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -330,7 +334,7 @@ func (_ CServiceCart) GetBestItemInKiosk(c *gin.Context, prof models.CmsUser) {
 	serviceCartItem.ServiceId = strconv.Itoa(int(query.ServiceId))
 	serviceCartItem.GroupCode = query.GroupCode
 
-	list, total, err := serviceCartItem.FindBestCartItem(page)
+	list, total, err := serviceCartItem.FindBestCartItem(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -346,6 +350,7 @@ func (_ CServiceCart) GetBestItemInKiosk(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ CServiceCart) GetListCart(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetServiceCartBody{}
 	if bindErr := c.ShouldBind(&query); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -367,7 +372,7 @@ func (_ CServiceCart) GetListCart(c *gin.Context, prof models.CmsUser) {
 	serviceCart.ServiceId = query.ServiceId
 	serviceCart.BookingDate = datatypes.Date(bookingDate)
 
-	list, total, err := serviceCart.FindList(page)
+	list, total, err := serviceCart.FindList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -383,6 +388,7 @@ func (_ CServiceCart) GetListCart(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.UpdateServiceCartBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -400,7 +406,7 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	serviceCartItem := model_booking.BookingServiceItem{}
 	serviceCartItem.Id = body.CartItemId
 
-	if err := serviceCartItem.FindFirst(); err != nil {
+	if err := serviceCartItem.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -411,7 +417,7 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	booking.CourseUid = body.CourseUid
 	booking.Bag = serviceCartItem.Bag
 	booking.BookingDate = time.Now().Format("02/01/2006")
-	if err := booking.FindFirst(); err != nil {
+	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
 		return
 	}
@@ -426,7 +432,7 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = serviceCartItem.ServiceBill
 
-	if err := serviceCart.FindFirst(); err != nil {
+	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -444,7 +450,7 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	inventory.ServiceId = serviceCart.ServiceId
 	inventory.Code = serviceCartItem.ItemCode
 
-	if err := inventory.FindFirst(); err != nil {
+	if err := inventory.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -457,14 +463,14 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 
 	// Update số lượng hàng tồn trong kho
 	inventory.Quantity = inventory.Quantity + int64(serviceCartItem.Quality) - body.Quantity
-	if err := inventory.Update(); err != nil {
+	if err := inventory.Update(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
 
 	// update service cart
 	serviceCart.Amount += (body.Quantity * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
-	if err := serviceCart.Update(); err != nil {
+	if err := serviceCart.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
@@ -474,7 +480,7 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	serviceCartItem.Amount = body.Quantity * serviceCartItem.UnitPrice
 	serviceCartItem.Input = body.Note
 
-	if err := serviceCartItem.Update(); err != nil {
+	if err := serviceCartItem.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
@@ -486,6 +492,7 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	idRequest := c.Param("id")
 	id, errId := strconv.ParseInt(idRequest, 10, 64)
 	if errId != nil {
@@ -497,7 +504,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	serviceCartItem := model_booking.BookingServiceItem{}
 	serviceCartItem.Id = id
 
-	if err := serviceCartItem.FindFirst(); err != nil {
+	if err := serviceCartItem.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -508,7 +515,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	booking.CourseUid = serviceCartItem.CourseUid
 	booking.Bag = serviceCartItem.Bag
 	booking.BookingDate = time.Now().Format("02/01/2006")
-	if err := booking.FindFirst(); err != nil {
+	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
 		return
 	}
@@ -517,7 +524,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = serviceCartItem.ServiceBill
 
-	if err := serviceCart.FindFirst(); err != nil {
+	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -529,27 +536,27 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	inventory.ServiceId = serviceCart.ServiceId
 	inventory.Code = serviceCartItem.ItemCode
 
-	if err := inventory.FindFirst(); err != nil {
+	if err := inventory.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
 
 	// Update số lượng hàng tồn trong kho
 	inventory.Quantity += int64(serviceCartItem.Quality)
-	if err := inventory.Update(); err != nil {
+	if err := inventory.Update(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
 
 	// update service cart
 	serviceCart.Amount -= serviceCartItem.Amount
-	if err := serviceCart.Update(); err != nil {
+	if err := serviceCart.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
 	// Delete Item
-	if err := serviceCartItem.Delete(); err != nil {
+	if err := serviceCartItem.Delete(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -561,6 +568,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateBillCodeBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -580,7 +588,7 @@ func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 	booking.CourseUid = body.CourseUid
 	booking.Bag = body.GolfBag
 	booking.BookingDate = time.Now().Format("02/01/2006")
-	if err := booking.FindFirst(); err != nil {
+	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -593,14 +601,14 @@ func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
 	serviceCart.BillCode = "NONE"
 
-	if err := serviceCart.FindFirst(); err != nil {
+	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
 
 	serviceCart.BillCode = time.Now().Format("20060102150405")
 
-	if err := serviceCart.Update(); err != nil {
+	if err := serviceCart.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
@@ -611,6 +619,7 @@ func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.MoveItemToOtherServiceCartBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -628,7 +637,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	booking := model_booking.Booking{}
 	booking.Bag = body.GolfBag
 	booking.BookingDate = time.Now().Format("02/01/2006")
-	if err := booking.FindFirst(); err != nil {
+	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -640,7 +649,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	sourceServiceCart.CourseUid = prof.CourseUid
 	sourceServiceCart.BillCode = "NONE"
 
-	if err := sourceServiceCart.FindFirst(); err != nil {
+	if err := sourceServiceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -654,12 +663,12 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	targetServiceCart.ServiceId = sourceServiceCart.ServiceId
 	targetServiceCart.BillCode = "NONE"
 
-	err := targetServiceCart.FindFirst()
+	err := targetServiceCart.FindFirst(db)
 
 	// no cart
 	if err != nil {
 		// create cart
-		if err := targetServiceCart.Create(); err != nil {
+		if err := targetServiceCart.Create(db); err != nil {
 			response_message.InternalServerError(c, err.Error())
 			return
 		}
@@ -674,13 +683,13 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		serviceCartItem.Id = cartItemId
 		serviceCartItem.ServiceBill = sourceServiceCart.Id
 
-		if err := serviceCartItem.FindFirst(); err != nil {
+		if err := serviceCartItem.FindFirst(db); err != nil {
 			continue
 		}
 
 		serviceCartItem.ServiceBill = targetServiceCart.Id
 
-		if errFor = serviceCartItem.Update(); errFor != nil {
+		if errFor = serviceCartItem.Update(db); errFor != nil {
 			hasError = true
 			break
 		}
@@ -695,6 +704,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	idRequest := c.Param("id")
 	id, errId := strconv.ParseInt(idRequest, 10, 64)
 	if errId != nil {
@@ -706,7 +716,7 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = id
 
-	if err := serviceCart.FindFirst(); err != nil {
+	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -715,14 +725,14 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 	booking := model_booking.Booking{}
 	booking.Uid = serviceCart.BookingUid
 
-	if err := booking.FindFirst(); err != nil {
+	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
 		return
 	}
 
 	serviceCart.BillStatus = constants.POS_BILL_STATUS_OUT
 
-	if err := serviceCart.Update(); err != nil {
+	if err := serviceCart.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
@@ -734,12 +744,13 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 }
 
 func createExportBillInventory(c *gin.Context, prof models.CmsUser, serviceCart models.ServiceCart, code string) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	serviceCartItem := model_booking.BookingServiceItem{}
 	serviceCartItem.PartnerUid = serviceCart.PartnerUid
 	serviceCartItem.CourseUid = serviceCart.CourseUid
 	serviceCartItem.ServiceBill = serviceCart.Id
 
-	listItemInBill, _ := serviceCartItem.FindAll()
+	listItemInBill, _ := serviceCartItem.FindAll(db)
 
 	if len(listItemInBill) > 0 {
 		bodyOutputBill := request.CreateOutputBillBody{}
@@ -749,7 +760,7 @@ func createExportBillInventory(c *gin.Context, prof models.CmsUser, serviceCart 
 
 		service := model_service.Kiosk{}
 		service.Id = serviceCart.Id
-		if err := service.FindFirst(); err != nil {
+		if err := service.FindFirst(db); err != nil {
 			bodyOutputBill.ServiceName = service.KioskName
 		}
 
@@ -778,6 +789,7 @@ func createExportBillInventory(c *gin.Context, prof models.CmsUser, serviceCart 
 }
 
 func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateNewGuestBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -806,7 +818,7 @@ func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
 		booking := model_booking.Booking{}
 		booking.Bag = bagClone
 		booking.BookingDate = time.Now().Format("02/01/2006")
-		if err := booking.FindFirst(); err == nil {
+		if err := booking.FindFirst(db); err == nil {
 			bag, err := strconv.ParseInt(bagClone, 10, 64)
 			if err != nil {
 				response_message.BadRequest(c, err.Error())
@@ -837,7 +849,7 @@ func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
 		CustomerName: body.GuestName,
 	}
 
-	errC := booking.Create(bUid)
+	errC := booking.Create(db, bUid)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -849,6 +861,7 @@ func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
 
 // Chốt order
 func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.FinishOrderBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -866,14 +879,14 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 	// validate bill
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = body.BillId
-	if err := serviceCart.FindFirst(); err != nil {
+	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find service Cart "+err.Error())
 		return
 	}
 
 	// Update trạng thái
 	serviceCart.BillStatus = constants.POS_BILL_STATUS_OUT
-	if err := serviceCart.Update(); err != nil {
+	if err := serviceCart.Update(db); err != nil {
 		response_message.BadRequest(c, "Update service Cart "+err.Error())
 		return
 	}

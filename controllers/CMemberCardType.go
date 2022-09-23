@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils"
@@ -16,6 +17,7 @@ import (
 type CMemberCardType struct{}
 
 func (_ *CMemberCardType) CreateMemberCardType(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.MemberCardType{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -43,7 +45,7 @@ func (_ *CMemberCardType) CreateMemberCardType(c *gin.Context, prof models.CmsUs
 	memberCardType.Type = body.Type
 	memberCardType.AnnualType = body.AnnualType
 
-	errC := memberCardType.Create()
+	errC := memberCardType.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -54,6 +56,7 @@ func (_ *CMemberCardType) CreateMemberCardType(c *gin.Context, prof models.CmsUs
 }
 
 func (_ *CMemberCardType) GetListMemberCardType(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListMemberCardTypeForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -75,7 +78,7 @@ func (_ *CMemberCardType) GetListMemberCardType(c *gin.Context, prof models.CmsU
 		Type:       form.Type,
 	}
 	memberCardTypeR.Status = form.Status
-	list, total, err := memberCardTypeR.FindList(page)
+	list, total, err := memberCardTypeR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -90,6 +93,7 @@ func (_ *CMemberCardType) GetListMemberCardType(c *gin.Context, prof models.CmsU
 }
 
 func (_ *CMemberCardType) UpdateMemberCardType(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	memberCardTypeIdStr := c.Param("id")
 	memberCardTypeId, err := strconv.ParseInt(memberCardTypeIdStr, 10, 64)
 	if err != nil || memberCardTypeId <= 0 {
@@ -99,7 +103,7 @@ func (_ *CMemberCardType) UpdateMemberCardType(c *gin.Context, prof models.CmsUs
 
 	memberCardType := models.MemberCardType{}
 	memberCardType.Id = memberCardTypeId
-	errF := memberCardType.FindFirst()
+	errF := memberCardType.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -124,7 +128,7 @@ func (_ *CMemberCardType) UpdateMemberCardType(c *gin.Context, prof models.CmsUs
 	memberCardType.Type = body.Type
 	memberCardType.AnnualType = body.AnnualType
 
-	errUdp := memberCardType.Update()
+	errUdp := memberCardType.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -134,6 +138,7 @@ func (_ *CMemberCardType) UpdateMemberCardType(c *gin.Context, prof models.CmsUs
 }
 
 func (_ *CMemberCardType) DeleteMemberCardType(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	memberCardTypeIdStr := c.Param("id")
 	memberCardTypeId, err := strconv.ParseInt(memberCardTypeIdStr, 10, 64)
 	if err != nil || memberCardTypeId <= 0 {
@@ -143,13 +148,13 @@ func (_ *CMemberCardType) DeleteMemberCardType(c *gin.Context, prof models.CmsUs
 
 	memberCardType := models.MemberCardType{}
 	memberCardType.Id = memberCardTypeId
-	errF := memberCardType.FindFirst()
+	errF := memberCardType.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := memberCardType.Delete()
+	errDel := memberCardType.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
@@ -159,6 +164,7 @@ func (_ *CMemberCardType) DeleteMemberCardType(c *gin.Context, prof models.CmsUs
 }
 
 func (_ *CMemberCardType) GetFeeByHole(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetFeeByHoleForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -176,7 +182,7 @@ func (_ *CMemberCardType) GetFeeByHole(c *gin.Context, prof models.CmsUser) {
 
 	memberCardType := models.MemberCardType{}
 	memberCardType.Id = form.McTypeId
-	errFind := memberCardType.FindFirst()
+	errFind := memberCardType.FindFirst(db)
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
@@ -188,7 +194,7 @@ func (_ *CMemberCardType) GetFeeByHole(c *gin.Context, prof models.CmsUser) {
 		GuestStyle: memberCardType.GuestStyle,
 	}
 
-	golfFee, err := golfFeeR.GetGuestStyleOnDay()
+	golfFee, err := golfFeeR.GetGuestStyleOnDay(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -205,6 +211,7 @@ func (_ *CMemberCardType) GetFeeByHole(c *gin.Context, prof models.CmsUser) {
 
 // ---- Annual Fee for Member Card Type ----
 func (_ *CMemberCardType) AddMcTypeAnnualFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.AddMcAnnualFeeBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -219,18 +226,19 @@ func (_ *CMemberCardType) AddMcTypeAnnualFee(c *gin.Context, prof models.CmsUser
 		Fee:        body.Fee,
 	}
 
-	errC := mcAnnualFee.Create()
+	errC := mcAnnualFee.Create(db)
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
 		return
 	}
 
-	updateAnnualFeeToMcType(body.Year, body.McTypeId, body.Fee)
+	updateAnnualFeeToMcType(db, body.Year, body.McTypeId, body.Fee)
 
 	okResponse(c, mcAnnualFee)
 }
 
 func (_ *CMemberCardType) GetListMcTypeAnnualFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetMcTypeAnnualFeeForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -241,7 +249,7 @@ func (_ *CMemberCardType) GetListMcTypeAnnualFee(c *gin.Context, prof models.Cms
 		McTypeId: form.McTypeId,
 	}
 
-	list, err := mcTypeAnnualFee.FindByMcTypeId()
+	list, err := mcTypeAnnualFee.FindByMcTypeId(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -251,6 +259,7 @@ func (_ *CMemberCardType) GetListMcTypeAnnualFee(c *gin.Context, prof models.Cms
 }
 
 func (_ *CMemberCardType) UdpMcTypeAnnualFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.UdpMcAnnualFeeBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -260,7 +269,7 @@ func (_ *CMemberCardType) UdpMcTypeAnnualFee(c *gin.Context, prof models.CmsUser
 	mcAnnualFee := models.McTypeAnnualFee{}
 	mcAnnualFee.Id = body.Id
 
-	errFind := mcAnnualFee.FindFirst()
+	errFind := mcAnnualFee.FindFirst(db)
 	if errFind != nil || mcAnnualFee.Id <= 0 {
 		response_message.InternalServerError(c, errFind.Error())
 		return
@@ -268,13 +277,13 @@ func (_ *CMemberCardType) UdpMcTypeAnnualFee(c *gin.Context, prof models.CmsUser
 
 	mcAnnualFee.Fee = body.Fee
 
-	errUdp := mcAnnualFee.Update()
+	errUdp := mcAnnualFee.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
 
-	updateAnnualFeeToMcType(mcAnnualFee.Year, body.Id, body.Fee)
+	updateAnnualFeeToMcType(db, mcAnnualFee.Year, body.Id, body.Fee)
 
 	okResponse(c, mcAnnualFee)
 }

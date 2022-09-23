@@ -3,10 +3,11 @@ package model_service
 import (
 	"errors"
 	"start/constants"
-	"start/datasources"
 	"start/models"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Kiosk
@@ -39,7 +40,7 @@ func (item *Kiosk) IsValidated() bool {
 	return true
 }
 
-func (item *Kiosk) Create() error {
+func (item *Kiosk) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -47,35 +48,32 @@ func (item *Kiosk) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *Kiosk) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *Kiosk) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *Kiosk) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *Kiosk) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *Kiosk) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(Kiosk{})
+func (item *Kiosk) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(Kiosk{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *Kiosk) FindList(page models.Page) ([]Kiosk, int64, error) {
-	db := datasources.GetDatabase().Model(Kiosk{})
+func (item *Kiosk) FindList(database *gorm.DB, page models.Page) ([]Kiosk, int64, error) {
+	db := database.Model(Kiosk{})
 	list := []Kiosk{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -101,9 +99,9 @@ func (item *Kiosk) FindList(page models.Page) ([]Kiosk, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *Kiosk) Delete() error {
+func (item *Kiosk) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	model_service "start/models/service"
 	"start/utils/response_message"
@@ -13,6 +14,7 @@ import (
 type CProshop struct{}
 
 func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateProshopBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -36,7 +38,7 @@ func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
 
 	servicesRequest := model_service.GroupServices{}
 	servicesRequest.GroupCode = body.GroupCode
-	servicesErrFind := servicesRequest.FindFirst()
+	servicesErrFind := servicesRequest.FindFirst(db)
 	if servicesErrFind != nil {
 		response_message.BadRequest(c, servicesErrFind.Error())
 		return
@@ -52,7 +54,7 @@ func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
 
 	courseRequest := models.Course{}
 	courseRequest.Uid = body.CourseUid
-	errFind := courseRequest.FindFirst()
+	errFind := courseRequest.FindFirst(db)
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
@@ -62,7 +64,7 @@ func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
 	ProshopRequest.CourseUid = body.CourseUid
 	ProshopRequest.PartnerUid = body.PartnerUid
 	ProshopRequest.ProShopId = body.ProshopId
-	errExist := ProshopRequest.FindFirst()
+	errExist := ProshopRequest.FindFirst(db)
 
 	if errExist == nil {
 		response_message.BadRequest(c, "F&B Id existed")
@@ -101,7 +103,7 @@ func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
 		PeopleDeposit: body.PeopleDeposit,
 	}
 
-	err := service.Create()
+	err := service.Create(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -111,6 +113,7 @@ func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CProshop) GetListProshop(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListProshopForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -132,7 +135,7 @@ func (_ *CProshop) GetListProshop(c *gin.Context, prof models.CmsUser) {
 	ProshopR.GroupCode = form.GroupCode
 	ProshopR.GroupName = form.GroupName
 
-	list, total, err := ProshopR.FindList(page)
+	list, total, err := ProshopR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -147,6 +150,7 @@ func (_ *CProshop) GetListProshop(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	ProshopIdStr := c.Param("id")
 	ProshopId, errId := strconv.ParseInt(ProshopIdStr, 10, 64)
 	if errId != nil {
@@ -156,7 +160,7 @@ func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
 
 	proshop := model_service.Proshop{}
 	proshop.Id = ProshopId
-	errF := proshop.FindFirst()
+	errF := proshop.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -220,7 +224,7 @@ func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
 		proshop.UserUpdate = *body.UserUpdate
 	}
 
-	errUdp := proshop.Update()
+	errUdp := proshop.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -230,6 +234,7 @@ func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CProshop) DeleteProshop(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	fbIdStr := c.Param("id")
 	fbId, errId := strconv.ParseInt(fbIdStr, 10, 64)
 	if errId != nil {
@@ -239,13 +244,13 @@ func (_ *CProshop) DeleteProshop(c *gin.Context, prof models.CmsUser) {
 
 	fbModel := model_service.Proshop{}
 	fbModel.Id = fbId
-	errF := fbModel.FindFirst()
+	errF := fbModel.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := fbModel.Delete()
+	errDel := fbModel.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

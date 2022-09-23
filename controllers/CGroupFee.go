@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 type CGroupFee struct{}
 
 func (_ *CGroupFee) GetListGroupFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListGroupFeeForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -32,7 +34,7 @@ func (_ *CGroupFee) GetListGroupFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	groupFeeR.Status = form.Status
-	list, total, err := groupFeeR.FindList(page)
+	list, total, err := groupFeeR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -47,6 +49,7 @@ func (_ *CGroupFee) GetListGroupFee(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CGroupFee) CreateGroupFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.GroupFee{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -65,7 +68,7 @@ func (_ *CGroupFee) CreateGroupFee(c *gin.Context, prof models.CmsUser) {
 	groupFee.CategoryType = body.CategoryType
 
 	// Check duplicated
-	errF := groupFee.FindFirst()
+	errF := groupFee.FindFirst(db)
 	if errF == nil || groupFee.Id > 0 {
 		response_message.BadRequest(c, errF.Error())
 		return
@@ -73,7 +76,7 @@ func (_ *CGroupFee) CreateGroupFee(c *gin.Context, prof models.CmsUser) {
 
 	groupFee.Status = body.Status
 
-	errC := groupFee.Create()
+	errC := groupFee.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -84,6 +87,7 @@ func (_ *CGroupFee) CreateGroupFee(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CGroupFee) UpdateGroupFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	groupFeeIdStr := c.Param("id")
 	groupFeeId, err := strconv.ParseInt(groupFeeIdStr, 10, 64) // Nếu uid là int64 mới cần convert
 	if err != nil && groupFeeId == 0 {
@@ -93,7 +97,7 @@ func (_ *CGroupFee) UpdateGroupFee(c *gin.Context, prof models.CmsUser) {
 
 	groupFee := models.GroupFee{}
 	groupFee.Id = groupFeeId
-	errF := groupFee.FindFirst()
+	errF := groupFee.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -115,7 +119,7 @@ func (_ *CGroupFee) UpdateGroupFee(c *gin.Context, prof models.CmsUser) {
 		groupFee.CategoryType = body.CategoryType
 	}
 
-	errUdp := groupFee.Update()
+	errUdp := groupFee.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -125,6 +129,7 @@ func (_ *CGroupFee) UpdateGroupFee(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CGroupFee) DeleteGroupFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	groupFeeIdStr := c.Param("id")
 	groupFeeId, err := strconv.ParseInt(groupFeeIdStr, 10, 64) // Nếu uid là int64 mới cần convert
 	if err != nil && groupFeeId == 0 {
@@ -134,13 +139,13 @@ func (_ *CGroupFee) DeleteGroupFee(c *gin.Context, prof models.CmsUser) {
 
 	groupFee := models.GroupFee{}
 	groupFee.Id = groupFeeId
-	errF := groupFee.FindFirst()
+	errF := groupFee.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := groupFee.Delete()
+	errDel := groupFee.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
