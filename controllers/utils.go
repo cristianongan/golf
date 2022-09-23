@@ -1089,17 +1089,21 @@ func getBagDetailFromBooking(booking model_booking.Booking) model_booking.BagDet
 }
 
 /*
-Update lại gía của
+Update lại gia của
 Bag hiện tại
 main bag nếu có
 sub bag nếu có
 */
 func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUser) {
+	booking.CmsUser = prof.UserName
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+
 	if booking.MainBags != nil && len(booking.MainBags) > 0 {
+		// Nếu bag có Main Bag
 		booking.UpdatePriceForBagHaveMainBags()
 	} else {
 		if booking.SubBags != nil && len(booking.SubBags) > 0 {
-			//Udp lại giá sub bag mới nhất nếu có sub bag
+			// Udp lại giá sub bag mới nhất nếu có sub bag
 			// Udp cho case sửa main bag pay
 			for _, v := range booking.SubBags {
 				subBook := model_booking.Booking{}
@@ -1108,20 +1112,16 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 				if errFSub == nil {
 					go subBook.UpdatePriceForBagHaveMainBags()
 				} else {
-					log.Println("updatePriceWithServiceItem errUdp", errFSub.Error())
+					log.Println("updatePriceWithServiceItem errFSub", errFSub.Error())
 				}
 			}
 		}
 		booking.UpdateMushPay()
 		booking.UpdatePriceDetailCurrentBag()
-	}
-
-	booking.CmsUser = prof.UserName
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
-
-	errUdp := booking.Update()
-	if errUdp != nil {
-		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
+		errUdp := booking.Update()
+		if errUdp != nil {
+			log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
+		}
 	}
 }
 

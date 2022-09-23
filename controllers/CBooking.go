@@ -956,10 +956,17 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		cBooking.UpdateBookingCaddieCommon(body.PartnerUid, body.CourseUid, &booking, caddie)
 	}
 
-	// Tính lại giá
+	// Update các thông tin khác trước
+	errUdpBook := booking.Update()
+	if errUdpBook != nil {
+		response_message.InternalServerError(c, errUdpBook.Error())
+		return
+	}
+
+	// udp ok -> Tính lại giá
 	updatePriceWithServiceItem(booking, prof)
 
-	// Get lai booking
+	// Get lai booking mới nhất trong DB
 	bookLast := model_booking.Booking{}
 	bookLast.Uid = booking.Uid
 	bookLast.FindFirst()
