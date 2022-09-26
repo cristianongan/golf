@@ -5,6 +5,7 @@ type GetBookingForCaddieOnCourseForm struct {
 	CourseUid   string `form:"course_uid" binding:"required"`
 	BookingDate string `form:"booking_date" binding:"required"`
 	Bag         string `form:"bag"`
+	PlayerName  string `form:"player_name"`
 	BuggyId     int64  `form:"buggy_id"`
 	CaddieId    int64  `form:"caddie_id"`
 	InFlight    string `form:"in_flight"`

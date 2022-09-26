@@ -1113,6 +1113,9 @@ func (item *Booking) FindForCaddieOnCourse(InFlight string) []Booking {
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
+	if item.CustomerName != "" {
+		db = db.Where("customer_name LIKE ?", "%"+item.CustomerName+"%")
+	}
 	db = db.Where("bag_status = ?", constants.BAG_STATUS_WAITING)
 	db = db.Not("caddie_status = ?", constants.BOOKING_CADDIE_STATUS_OUT)
 
