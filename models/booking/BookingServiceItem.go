@@ -25,8 +25,8 @@ type BookingServiceItem struct {
 	PlayerName     string `json:"player_name" gorm:"type:varchar(256)"`        // Tên người chơi
 	Bag            string `json:"bag" gorm:"type:varchar(50)"`                 // Golf Bag
 	Type           string `json:"type" gorm:"type:varchar(50)"`                // Loại rental, kiosk, proshop,...
-	ItemCode       string `json:"order"  gorm:"type:varchar(100)"`             // Mã code của item
-	Name           string `json:"item_code" gorm:"type:varchar(256)"`
+	ItemCode       string `json:"item_code"  gorm:"type:varchar(100)"`         // Mã code của item
+	Name           string `json:"name" gorm:"type:varchar(256)"`
 	GroupCode      string `json:"group_code" gorm:"type:varchar(100)"`
 	Quality        int    `json:"quality"` // Số lượng
 	UnitPrice      int64  `json:"unit_price"`

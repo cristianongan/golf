@@ -874,8 +874,9 @@ func (item *Booking) CreateBatch(db *gorm.DB, bookings []Booking) error {
 	return db.CreateInBatches(bookings, 100).Error
 }
 
-func (item *Booking) FindFirst(db *gorm.DB) error {
-	return db.Where(item).Last(item).Error
+func (item *Booking) FindFirst(database *gorm.DB) error {
+	db := database.Order("created_at desc")
+	return db.Where(item).First(item).Error
 }
 
 func (item *Booking) FindFirstNotCancel(db *gorm.DB) error {

@@ -133,6 +133,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCart.Id = body.BillId
 	} else {
 		serviceCart.BillCode = "NONE"
+		serviceCart.StaffOrder = prof.UserName
 		serviceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
 	}
 

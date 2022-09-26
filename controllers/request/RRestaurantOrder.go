@@ -62,6 +62,8 @@ type GetListBillBody struct {
 	BookingDate string `form:"booking_date" binding:"required"`
 	ServiceId   int64  `form:"service_id" binding:"required"`
 	BillStatus  string `form:"bill_status"`
+	BillCode    string `form:"bill_code"`
+	Table       string `form:"table"`
 	Type        string `form:"type"`
 	Floor       int    `form:"floor"`
 }

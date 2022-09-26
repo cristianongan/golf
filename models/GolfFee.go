@@ -2,6 +2,7 @@ package models
 
 import (
 	"start/constants"
+	"strconv"
 	"strings"
 	"time"
 
@@ -43,6 +44,7 @@ type GuestStyle struct {
 	GuestStyle       string `json:"guest_style"`       // Guest style
 	CustomerType     string `json:"customer_type"`     // Loại khách hàng
 	CustomerCategory string `json:"customer_category"` // Loại khách hàng
+	Dow              string `json:"dow"`               // Dow
 }
 
 func (item *GolfFee) Create(db *gorm.DB) error {
@@ -223,7 +225,12 @@ func (item *GolfFee) GetGuestStyleList(database *gorm.DB) []GuestStyle {
 		db = db.Where("table_price_id = ?", item.TablePriceId)
 	}
 
+	// Filter guest style theo ngày trong tuần
+	day := strconv.FormatInt(int64(time.Now().Weekday()), 10)
+	db = db.Where("dow LIKE ?", "%"+day+"%")
+
 	db = db.Group("guest_style")
+
 	db.Find(&list)
 
 	return list

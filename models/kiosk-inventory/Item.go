@@ -91,7 +91,7 @@ func (item *InventoryItem) FindList(database *gorm.DB, page models.Page, param I
 	}
 
 	if param.ProductName != "" {
-		db = db.Where("item_info->'$.item_name' = ?", param.ProductName)
+		db = db.Where("item_info->'$.item_name' LIKE ?", "%"+param.ProductName+"%")
 	}
 
 	db.Count(&total)
