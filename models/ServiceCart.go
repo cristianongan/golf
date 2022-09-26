@@ -87,7 +87,7 @@ func (item *ServiceCart) FindList(page Page) ([]ServiceCart, int64, error) {
 	}
 
 	if item.TypeCode != "" {
-		db = db.Where("type_cdoe = ?", item.TypeCode)
+		db = db.Where("type_code = ?", item.TypeCode)
 	}
 
 	if item.Id != 0 {
