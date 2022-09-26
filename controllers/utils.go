@@ -737,7 +737,7 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 
 		if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
 			if booking.CaddieId != caddie.Id {
-				return errors.New(caddie.Code + " đang bị LOCK"), booking, caddie, models.Buggy{}
+				return errors.New("Caddie " + caddie.Code + " đang bị LOCK"), booking, caddie, models.Buggy{}
 			}
 		} else {
 			if errCaddie := checkCaddieReady(booking, caddie); errCaddie != nil {
@@ -764,7 +764,7 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 			return errFB, booking, caddie, buggy
 		}
 
-		if err := checkBuggyReady(buggy, bookingDate); err != nil {
+		if err := checkBuggyReady(buggy, booking); err != nil {
 			return err, booking, caddie, buggy
 		}
 
@@ -1185,14 +1185,18 @@ func checkCaddieReady(booking model_booking.Booking, caddie models.Caddie) error
 Buggy có thể ghép tối đa 2 player
 Check Buggy có đang sẵn sàng để ghép không
 */
-func checkBuggyReady(buggy models.Buggy, bookingDate string) error {
+func checkBuggyReady(buggy models.Buggy, booking model_booking.Booking) error {
 	bookingList := model_booking.BookingList{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
 		BuggyCode:   buggy.Code,
-		BookingDate: bookingDate,
+		BookingDate: booking.BookingDate,
 		BagStatus:   constants.BAG_STATUS_IN_COURSE,
 	}
 
-	_, total, _ := bookingList.FindAllBookingList()
+	db, total, _ := bookingList.FindAllBookingList()
+	var list []model_booking.Booking
+	db.Find(&list)
 
 	if !(buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_ACTIVE ||
 		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_LOCK ||
@@ -1202,6 +1206,13 @@ func checkBuggyReady(buggy models.Buggy, bookingDate string) error {
 
 	if total >= 2 {
 		return errors.New(buggy.Code + " đã ghép đủ người")
+	}
+
+	if total == 1 {
+		bookingBuggy := list[0]
+		if bookingBuggy.FlightId != booking.FlightId {
+			return errors.New("Buggy " + buggy.Code + " đang ở flight khác ")
+		}
 	}
 
 	return nil

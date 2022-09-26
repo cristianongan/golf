@@ -34,12 +34,13 @@ func (_ *CCourseOperating) GetListBookingCaddieOnCourse(c *gin.Context, prof mod
 	// TODO: filter by date
 
 	bookingR := model_booking.Booking{
-		PartnerUid:  form.PartnerUid,
-		CourseUid:   form.CourseUid,
-		BookingDate: form.BookingDate,
-		BuggyId:     form.BuggyId,
-		CaddieId:    form.CaddieId,
-		Bag:         form.Bag,
+		PartnerUid:   form.PartnerUid,
+		CourseUid:    form.CourseUid,
+		BookingDate:  form.BookingDate,
+		BuggyId:      form.BuggyId,
+		CaddieId:     form.CaddieId,
+		Bag:          form.Bag,
+		CustomerName: form.PlayerName,
 	}
 
 	list := bookingR.FindForCaddieOnCourse(form.InFlight)
@@ -117,6 +118,32 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 
 	if len(body.ListData) == 0 {
 		response_message.BadRequest(c, "List Data empty")
+		return
+	}
+
+	// Validate trùng cadddie
+	for _, item1 := range body.ListData {
+		for _, item2 := range body.ListData {
+			if item1.Bag != item2.Bag && item2.CaddieCode == item1.CaddieCode {
+				response_message.BadRequest(c, "Caddie chỉ được ghép cho một người ")
+				return
+			}
+		}
+	}
+
+	// Validate Buggy, Buggy ghép tối đa được 2 người trong 1 flight
+	countBuggy := 0
+	for _, item1 := range body.ListData {
+		countBuggy = 0
+		for _, item2 := range body.ListData {
+			if item1.Bag != item2.Bag && item2.BuggyCode == item1.BuggyCode {
+				countBuggy += 1
+			}
+		}
+	}
+
+	if countBuggy >= 2 {
+		response_message.BadRequest(c, "Buggy ghép tối đa được 2 người trong 1 flight")
 		return
 	}
 
@@ -764,7 +791,7 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		return
 	}
 
-	if errBuggy := checkBuggyReady(buggyNew, booking.BookingDate); errBuggy != nil {
+	if errBuggy := checkBuggyReady(buggyNew, booking); errBuggy != nil {
 		response_message.InternalServerError(c, errBuggy.Error())
 		return
 	}
