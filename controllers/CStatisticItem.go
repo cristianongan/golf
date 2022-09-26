@@ -3,6 +3,7 @@ package controllers
 import (
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	kiosk_inventory "start/models/kiosk-inventory"
 	"start/utils"
@@ -10,11 +11,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type CStatisticItem struct{}
 
-func (_ CStatisticItem) AddItemToStatistic() {
+func (_ CStatisticItem) AddItemToStatistic(db *gorm.DB) {
 	now := time.Now().Format(constants.DATE_FORMAT_1)
 	yesterday := time.Now().AddDate(0, 0, -1).Format(constants.DATE_FORMAT_1)
 
@@ -22,13 +24,13 @@ func (_ CStatisticItem) AddItemToStatistic() {
 		OutputDate: now,
 		ServiceId:  20,
 	}
-	outputList, _ := outputInventory.FindStatistic()
+	outputList, _ := outputInventory.FindStatistic(db)
 
 	inputInventory := kiosk_inventory.InventoryInputItem{
 		InputDate: now,
 		ServiceId: 20,
 	}
-	inputList, _ := inputInventory.FindStatistic()
+	inputList, _ := inputInventory.FindStatistic(db)
 
 	commonItemCode := []kiosk_inventory.StatisticItem{}
 
@@ -126,6 +128,7 @@ func InitStatisticItem(item kiosk_inventory.OutputStatisticItem, yesterday strin
 }
 
 func (_ CStatisticItem) GetItemStatisticDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var form request.GetItems
 
 	if err := c.ShouldBind(&form); err != nil {
@@ -154,7 +157,7 @@ func (_ CStatisticItem) GetItemStatisticDetail(c *gin.Context, prof models.CmsUs
 		CourseUid:  form.CourseUid,
 	}
 
-	if errInventoryItem := inventoryItem.FindFirst(); errInventoryItem != nil {
+	if errInventoryItem := inventoryItem.FindFirst(db); errInventoryItem != nil {
 		response_message.BadRequest(c, errInventoryItem.Error())
 		return
 	}

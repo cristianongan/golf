@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 type CHoliday struct{}
 
 func (_ *CHoliday) GetListHoliday(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListHolidayForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -25,7 +27,7 @@ func (_ *CHoliday) GetListHoliday(c *gin.Context, prof models.CmsUser) {
 		Year:       form.Year,
 	}
 
-	list, _, err := holidayR.FindList()
+	list, _, err := holidayR.FindList(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -35,6 +37,7 @@ func (_ *CHoliday) GetListHoliday(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CHoliday) CreateHoliday(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.Holiday{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -55,7 +58,7 @@ func (_ *CHoliday) CreateHoliday(c *gin.Context, prof models.CmsUser) {
 	holiday.From = body.From
 	holiday.To = body.To
 
-	errC := holiday.Create()
+	errC := holiday.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -66,6 +69,7 @@ func (_ *CHoliday) CreateHoliday(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CHoliday) UpdateHoliday(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	holidayIdStr := c.Param("id")
 	holidayId, err := strconv.ParseInt(holidayIdStr, 10, 64) // Nếu uid là int64 mới cần convert
 	if err != nil && holidayId == 0 {
@@ -75,7 +79,7 @@ func (_ *CHoliday) UpdateHoliday(c *gin.Context, prof models.CmsUser) {
 
 	holiday := models.Holiday{}
 	holiday.Id = holidayId
-	errF := holiday.FindFirst()
+	errF := holiday.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -103,7 +107,7 @@ func (_ *CHoliday) UpdateHoliday(c *gin.Context, prof models.CmsUser) {
 		holiday.Year = body.Year
 	}
 
-	errUdp := holiday.Update()
+	errUdp := holiday.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -113,6 +117,7 @@ func (_ *CHoliday) UpdateHoliday(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CHoliday) DeleteHoliday(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	holidayIdStr := c.Param("id")
 	holidayId, err := strconv.ParseInt(holidayIdStr, 10, 64) // Nếu uid là int64 mới cần convert
 	if err != nil && holidayId == 0 {
@@ -122,13 +127,13 @@ func (_ *CHoliday) DeleteHoliday(c *gin.Context, prof models.CmsUser) {
 
 	holiday := models.Holiday{}
 	holiday.Id = holidayId
-	errF := holiday.FindFirst()
+	errF := holiday.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := holiday.Delete()
+	errDel := holiday.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

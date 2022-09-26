@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 type CAgency struct{}
 
 func (_ *CAgency) CreateAgency(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.Agency{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -25,7 +27,7 @@ func (_ *CAgency) CreateAgency(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.IsDuplicated() {
+	if body.IsDuplicated(db) {
 		response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
@@ -41,6 +43,7 @@ func (_ *CAgency) CreateAgency(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CAgency) GetListAgency(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListAgencyForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -60,7 +63,7 @@ func (_ *CAgency) GetListAgency(c *gin.Context, prof models.CmsUser) {
 		Type:       form.Type,
 	}
 	agencyR.Status = form.Status
-	list, total, err := agencyR.FindList(page)
+	list, total, err := agencyR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -75,6 +78,7 @@ func (_ *CAgency) GetListAgency(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CAgency) UpdateAgency(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	agencyIdStr := c.Param("id")
 	agencyId, err := strconv.ParseInt(agencyIdStr, 10, 64)
 	if err != nil || agencyId <= 0 {
@@ -84,7 +88,7 @@ func (_ *CAgency) UpdateAgency(c *gin.Context, prof models.CmsUser) {
 
 	agency := models.Agency{}
 	agency.Id = agencyId
-	errF := agency.FindFirst()
+	errF := agency.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -97,7 +101,7 @@ func (_ *CAgency) UpdateAgency(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if agency.AgencyId != body.AgencyId || agency.ShortName != body.ShortName {
-		if body.IsDuplicated() {
+		if body.IsDuplicated(db) {
 			response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
 			return
 		}
@@ -125,7 +129,7 @@ func (_ *CAgency) UpdateAgency(c *gin.Context, prof models.CmsUser) {
 	agency.PrimaryContactSecond = body.PrimaryContactSecond
 	agency.ContractDetail = body.ContractDetail
 
-	errUdp := agency.Update()
+	errUdp := agency.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -135,6 +139,7 @@ func (_ *CAgency) UpdateAgency(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CAgency) DeleteAgency(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	agencyIdStr := c.Param("id")
 	agencyId, err := strconv.ParseInt(agencyIdStr, 10, 64)
 	if err != nil || agencyId <= 0 {
@@ -144,13 +149,13 @@ func (_ *CAgency) DeleteAgency(c *gin.Context, prof models.CmsUser) {
 
 	agency := models.Agency{}
 	agency.Id = agencyId
-	errF := agency.FindFirst()
+	errF := agency.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := agency.Delete()
+	errDel := agency.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
@@ -160,6 +165,7 @@ func (_ *CAgency) DeleteAgency(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CAgency) GetAgencyDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	agencyIdStr := c.Param("id")
 	agencyId, err := strconv.ParseInt(agencyIdStr, 10, 64)
 	if err != nil || agencyId <= 0 {
@@ -169,7 +175,7 @@ func (_ *CAgency) GetAgencyDetail(c *gin.Context, prof models.CmsUser) {
 
 	agency := models.Agency{}
 	agency.Id = agencyId
-	errF := agency.FindFirst()
+	errF := agency.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -179,7 +185,7 @@ func (_ *CAgency) GetAgencyDetail(c *gin.Context, prof models.CmsUser) {
 		Agency: agency,
 	}
 	//Get number customer
-	numberCustomer := agency.GetNumberCustomer()
+	numberCustomer := agency.GetNumberCustomer(db)
 	agencyDetail.NumberOfCustomer = numberCustomer
 
 	okResponse(c, agencyDetail)

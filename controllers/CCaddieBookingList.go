@@ -3,6 +3,7 @@ package controllers
 import (
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils/response_message"
@@ -14,6 +15,7 @@ import (
 type CCaddieBookingList struct{}
 
 func (_ *CCaddieBookingList) GetCaddieBookingList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetCaddieBookingList{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -49,7 +51,7 @@ func (_ *CCaddieBookingList) GetCaddieBookingList(c *gin.Context, prof models.Cm
 	bookings.HasBookCaddie = "1"
 	bookings.HasCaddie = "1"
 
-	db, total, err := bookings.FindBookingListWithSelect(page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page)
 
 	var list []response.CaddieBookingResponse
 	db.Find(&list)
@@ -63,7 +65,7 @@ func (_ *CCaddieBookingList) GetCaddieBookingList(c *gin.Context, prof models.Cm
 			result[item.CaddieId] = make(map[string]interface{})
 			caddie := models.Caddie{}
 			caddie.Id = item.CaddieId
-			if err := caddie.FindFirst(); err == nil {
+			if err := caddie.FindFirst(db); err == nil {
 				result[item.CaddieId]["caddie_info"] = caddie
 			}
 		}
@@ -104,6 +106,7 @@ func (_ *CCaddieBookingList) GetCaddieBookingList(c *gin.Context, prof models.Cm
 }
 
 func (_ *CCaddieBookingList) GetAgencyBookingList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetAgencyBookingList{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -126,7 +129,7 @@ func (_ *CCaddieBookingList) GetAgencyBookingList(c *gin.Context, prof models.Cm
 	bookings.PartnerUid = prof.PartnerUid
 	bookings.CourseUid = prof.CourseUid
 
-	db, total, err := bookings.FindBookingListWithSelect(page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page)
 
 	var list []response.CaddieAgencyBookingResponse
 	db.Find(&list)
@@ -144,6 +147,7 @@ func (_ *CCaddieBookingList) GetAgencyBookingList(c *gin.Context, prof models.Cm
 }
 
 func (_ *CCaddieBookingList) GetCancelBookingList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	const CANCEL = "CANCEL"
 
 	query := request.GetCancelBookingList{}
@@ -168,7 +172,7 @@ func (_ *CCaddieBookingList) GetCancelBookingList(c *gin.Context, prof models.Cm
 	bookings.PartnerUid = prof.PartnerUid
 	bookings.CourseUid = prof.CourseUid
 
-	db, total, err := bookings.FindBookingListWithSelect(page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page)
 
 	var list []response.CaddieCancelBookingResponse
 	db.Find(&list)

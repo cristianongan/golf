@@ -2,13 +2,14 @@ package kiosk_inventory
 
 import (
 	"start/constants"
-	"start/datasources"
 	"start/models"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 /*
- Để lưu thông tin xuất kho
+Để lưu thông tin xuất kho
 */
 type InventoryOutputItem struct {
 	models.ModelId
@@ -40,18 +41,17 @@ type OutputStatisticItem struct {
 	Total      int64  `json:"total"`
 }
 
-func (item *InventoryOutputItem) Create() error {
+func (item *InventoryOutputItem) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *InventoryOutputItem) FindAllList() ([]InventoryOutputItem, int64, error) {
-	db := datasources.GetDatabase().Model(InventoryOutputItem{})
+func (item *InventoryOutputItem) FindAllList(database *gorm.DB) ([]InventoryOutputItem, int64, error) {
+	db := database.Model(InventoryOutputItem{})
 	list := []InventoryOutputItem{}
 	total := int64(0)
 
@@ -65,8 +65,8 @@ func (item *InventoryOutputItem) FindAllList() ([]InventoryOutputItem, int64, er
 	return list, total, db.Error
 }
 
-func (item *InventoryOutputItem) FindStatistic() ([]OutputStatisticItem, error) {
-	db := datasources.GetDatabase().Model(InventoryOutputItem{})
+func (item *InventoryOutputItem) FindStatistic(database *gorm.DB) ([]OutputStatisticItem, error) {
+	db := database.Model(InventoryOutputItem{})
 	db = db.Select("partner_uid, course_uid,item_code,service_id,SUM(quantity) as total").Group("partner_uid,course_uid,item_code")
 	if item.OutputDate != "" {
 		db = db.Where("output_date = ?", item.OutputDate)
@@ -77,8 +77,8 @@ func (item *InventoryOutputItem) FindStatistic() ([]OutputStatisticItem, error) 
 	return list, db.Error
 }
 
-func (item *InventoryOutputItem) FindList(page models.Page) ([]InventoryOutputItem, int64, error) {
-	db := datasources.GetDatabase().Model(InventoryOutputItem{})
+func (item *InventoryOutputItem) FindList(database *gorm.DB, page models.Page) ([]InventoryOutputItem, int64, error) {
+	db := database.Model(InventoryOutputItem{})
 	list := []InventoryOutputItem{}
 	total := int64(0)
 
@@ -111,8 +111,8 @@ func (item *InventoryOutputItem) FindList(page models.Page) ([]InventoryOutputIt
 	return list, total, db.Error
 }
 
-func (item *InventoryOutputItem) FindListForStatistic(page models.Page, fromDate int64, toDate int64) ([]InventoryOutputItemWithBill, int64, error) {
-	db := datasources.GetDatabase().Model(InventoryOutputItem{})
+func (item *InventoryOutputItem) FindListForStatistic(database *gorm.DB, page models.Page, fromDate int64, toDate int64) ([]InventoryOutputItemWithBill, int64, error) {
+	db := database.Model(InventoryOutputItem{})
 	db = db.Joins("JOIN output_inventory_bills on output_inventory_bills.code = inventory_output_items.code")
 	db = db.Select("inventory_output_items.*,output_inventory_bills.service_import_id," +
 		"output_inventory_bills.service_import_name,output_inventory_bills.bag," +

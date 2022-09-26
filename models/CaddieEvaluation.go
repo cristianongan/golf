@@ -2,10 +2,10 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"time"
 
 	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 // TODO: add gorm_type
@@ -24,24 +24,21 @@ type CaddieEvaluation struct {
 	RankType    int            `json:"rank_type" gorm:"size:2"`
 }
 
-func (item *CaddieEvaluation) Create() error {
+func (item *CaddieEvaluation) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *CaddieEvaluation) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *CaddieEvaluation) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *CaddieEvaluation) Update() error {
+func (item *CaddieEvaluation) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
 
-	db := datasources.GetDatabase()
 	return db.Save(item).Error
 }

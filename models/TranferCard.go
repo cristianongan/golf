@@ -3,10 +3,11 @@ package models
 import (
 	"log"
 	"start/constants"
-	"start/datasources"
 	"start/utils"
 	"strconv"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Thẻ thành viên
@@ -26,7 +27,7 @@ type TranferCard struct {
 	Note        string `json:"note" gorm:"type:varchar(500)"`                // Ghi chu them
 }
 
-func (item *TranferCard) Create() error {
+func (item *TranferCard) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -34,25 +35,23 @@ func (item *TranferCard) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *TranferCard) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *TranferCard) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *TranferCard) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(MemberCardType{})
+func (item *TranferCard) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(MemberCardType{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *TranferCard) FindList(page Page, playerName string) ([]map[string]interface{}, int64, error) {
-	db := datasources.GetDatabase().Table("tranfer_cards")
+func (item *TranferCard) FindList(database *gorm.DB,page Page, playerName string) ([]map[string]interface{}, int64, error) {
+	db := database.Table("tranfer_cards")
 	list := []map[string]interface{}{}
 	total := int64(0)
 

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
@@ -18,6 +19,7 @@ import (
 	model_report "start/models/report"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func getLanguageFromHeader(c *gin.Context) string {
@@ -139,7 +141,7 @@ func udpCourseUid(courseUid, partnerUid string) string {
 	return strings.ToUpper(partnerUid + "-" + courseUid2)
 }
 
-func checkDuplicateGolfFee(body models.GolfFee) bool {
+func checkDuplicateGolfFee(db *gorm.DB, body models.GolfFee) bool {
 	golfFee := models.GolfFee{
 		PartnerUid:   body.PartnerUid,
 		CourseUid:    body.CourseUid,
@@ -151,7 +153,7 @@ func checkDuplicateGolfFee(body models.GolfFee) bool {
 	if body.ApplyTime != "" {
 		// Có set time áp dụng
 		golfFee.ApplyTime = body.ApplyTime
-		errFind := golfFee.FindFirst()
+		errFind := golfFee.FindFirst(db)
 		if errFind == nil || golfFee.Id > 0 {
 			log.Print("checkDuplicateGolfFee 0 true")
 			return true
@@ -159,7 +161,7 @@ func checkDuplicateGolfFee(body models.GolfFee) bool {
 		return false
 	}
 
-	errFind := golfFee.FindFirst()
+	errFind := golfFee.FindFirst(db)
 	if errFind == nil || golfFee.Id > 0 {
 		log.Print("checkDuplicateGolfFee true")
 		return true
@@ -172,7 +174,7 @@ func checkDuplicateGolfFee(body models.GolfFee) bool {
 		GuestStyle:   body.GuestStyle,
 		TablePriceId: body.TablePriceId,
 	}
-	listTemp := listTempR.GetGuestStyleGolfFeeByGuestStyle()
+	listTemp := listTempR.GetGuestStyleGolfFeeByGuestStyle(db)
 
 	listDowStr := strings.Split(body.Dow, "")
 
@@ -191,11 +193,11 @@ func checkDuplicateGolfFee(body models.GolfFee) bool {
 	return isdup
 }
 
-func getCustomerCategoryFromCustomerType(cusType string) string {
+func getCustomerCategoryFromCustomerType(db *gorm.DB, cusType string) string {
 	customerType := models.CustomerType{
 		Type: cusType,
 	}
-	errFind := customerType.FindFirst()
+	errFind := customerType.FindFirst(db)
 	if errFind != nil {
 		log.Println("getCustomerCategoryFromCustomerType err", errFind.Error())
 		return constants.CUSTOMER_TYPE_CUSTOMER
@@ -265,10 +267,10 @@ func getInitListGolfFeeForAddRound(booking *model_booking.Booking, golfFee model
 /*
 Tính golf fee cho đơn thqay đổi hố
 */
-func getInitGolfFeeForChangeHole(body request.ChangeBookingHole, golfFee models.GolfFee) model_booking.BookingGolfFee {
+func getInitGolfFeeForChangeHole(db *gorm.DB, body request.ChangeBookingHole, golfFee models.GolfFee) model_booking.BookingGolfFee {
 	holePriceFormula := models.HolePriceFormula{}
 	holePriceFormula.Hole = body.Hole
-	err := holePriceFormula.FindFirst()
+	err := holePriceFormula.FindFirst(db)
 	if err != nil {
 		log.Println("find hole price err", err.Error())
 	}
@@ -327,7 +329,7 @@ func getInitListGolfFeeWithOutGuestStyleForAddRound(booking *model_booking.Booki
 /*
 Update fee when action round
 */
-func updateListGolfFeeWithRound(round *models.Round, booking model_booking.Booking, hole int) {
+func updateListGolfFeeWithRound(db *gorm.DB, round *models.Round, booking model_booking.Booking, hole int) {
 	// Check giá guest style
 	if booking.GuestStyle != "" {
 		//Guest style
@@ -337,7 +339,7 @@ func updateListGolfFeeWithRound(round *models.Round, booking model_booking.Booki
 			GuestStyle: booking.GuestStyle,
 		}
 		// Lấy phí bởi Guest style với ngày tạo
-		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay()
+		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)
 		if errFindGF != nil {
 			log.Println("golf fee err " + errFindGF.Error())
 			return
@@ -351,7 +353,7 @@ func updateListGolfFeeWithRound(round *models.Round, booking model_booking.Booki
 		// Get config course
 		course := models.Course{}
 		course.Uid = booking.CourseUid
-		errCourse := course.FindFirst()
+		errCourse := course.FindFirst(db)
 		if errCourse != nil {
 			log.Println("course config err " + errCourse.Error())
 			return
@@ -361,7 +363,7 @@ func updateListGolfFeeWithRound(round *models.Round, booking model_booking.Booki
 			// Get Member Card
 			memberCard := models.MemberCard{}
 			memberCard.Uid = booking.MemberCardUid
-			errFind := memberCard.FindFirst()
+			errFind := memberCard.FindFirst(db)
 			if errFind != nil {
 				log.Println("member card err " + errCourse.Error())
 				return
@@ -379,7 +381,7 @@ func updateListGolfFeeWithRound(round *models.Round, booking model_booking.Booki
 		if booking.AgencyId > 0 {
 			agency := models.Agency{}
 			agency.Id = booking.AgencyId
-			errFindAgency := agency.FindFirst()
+			errFindAgency := agency.FindFirst(db)
 			if errFindAgency != nil || agency.Id == 0 {
 				log.Println("agency err " + errCourse.Error())
 				return
@@ -388,7 +390,7 @@ func updateListGolfFeeWithRound(round *models.Round, booking model_booking.Booki
 			agencySpecialPrice := models.AgencySpecialPrice{
 				AgencyId: agency.Id,
 			}
-			errFSP := agencySpecialPrice.FindFirst()
+			errFSP := agencySpecialPrice.FindFirst(db)
 			if errFSP == nil && agencySpecialPrice.Id > 0 {
 				// Update fee in round
 				round.BuggyFee = utils.CalculateFeeByHole(hole, agencySpecialPrice.BuggyFee, course.RateGolfFee)
@@ -408,7 +410,7 @@ init Golf Fee
 init MushPay
 init Rounds
 */
-func initPriceForBooking(booking *model_booking.Booking, listBookingGolfFee model_booking.ListBookingGolfFee, bookingGolfFee model_booking.BookingGolfFee, checkInTime int64) {
+func initPriceForBooking(db *gorm.DB, booking *model_booking.Booking, listBookingGolfFee model_booking.ListBookingGolfFee, bookingGolfFee model_booking.BookingGolfFee, checkInTime int64) {
 	if booking == nil {
 		log.Println("initPriceForBooking err booking nil")
 		return
@@ -441,7 +443,7 @@ func initPriceForBooking(booking *model_booking.Booking, listBookingGolfFee mode
 	bookingTemp.MushPayInfo = mushPayInfo
 
 	// Rounds: Init Firsts
-	initListRound(bookingTemp, bookingGolfFee, checkInTime)
+	initListRound(db, bookingTemp, bookingGolfFee, checkInTime)
 	// booking.Rounds = listRounds
 }
 
@@ -482,12 +484,12 @@ func initUpdatePriceBookingForChanegHole(booking *model_booking.Booking, booking
 
 // Khi add sub bag vào 1 booking thì cần cập nhật lại main bag cho booking sub bag
 // Cập nhật lại giá cho SubBag
-func updateMainBagForSubBag(mainBooking model_booking.Booking) error {
+func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) error {
 	var err error
 	for _, v := range mainBooking.SubBags {
 		booking := model_booking.Booking{}
 		booking.Uid = v.BookingUid
-		errFind := booking.FindFirst()
+		errFind := booking.FindFirst(db)
 		if errFind == nil {
 			mainBag := utils.BookingSubBag{
 				BookingUid: mainBooking.Uid,
@@ -496,8 +498,8 @@ func updateMainBagForSubBag(mainBooking model_booking.Booking) error {
 			}
 			booking.MainBags = utils.ListSubBag{}
 			booking.MainBags = append(booking.MainBags, mainBag)
-			booking.UpdatePriceForBagHaveMainBags()
-			errUdp := booking.Update()
+			booking.UpdatePriceForBagHaveMainBags(db)
+			errUdp := booking.Update(db)
 			if errUdp != nil {
 				err = errUdp
 				log.Println("UpdateMainBagForSubBag errUdp", errUdp.Error())
@@ -514,7 +516,7 @@ func updateMainBagForSubBag(mainBooking model_booking.Booking) error {
 /*
 Init List Round
 */
-func initListRound(booking model_booking.Booking, bookingGolfFee model_booking.BookingGolfFee, checkInTime int64) {
+func initListRound(db *gorm.DB, booking model_booking.Booking, bookingGolfFee model_booking.BookingGolfFee, checkInTime int64) {
 	// create round and add round
 	round := models.Round{}
 	round.BillCode = booking.BillCode
@@ -531,7 +533,7 @@ func initListRound(booking model_booking.Booking, bookingGolfFee model_booking.B
 	round.Pax = 1
 	round.Index = 1
 
-	errCreateRound := round.Create()
+	errCreateRound := round.Create(db)
 	if errCreateRound != nil {
 		log.Println("createBagsNote err", errCreateRound.Error())
 	}
@@ -570,7 +572,7 @@ func checkCheckSubBagDupli(bookingUid string, booking model_booking.Booking) boo
 /*
 Create bags note: Note of Bag
 */
-func createBagsNoteNoteOfBag(booking model_booking.Booking) {
+func createBagsNoteNoteOfBag(db *gorm.DB, booking model_booking.Booking) {
 	if booking.NoteOfBag == "" {
 		return
 	}
@@ -585,7 +587,7 @@ func createBagsNoteNoteOfBag(booking model_booking.Booking) {
 		CourseUid:  booking.CourseUid,
 	}
 
-	errC := bagsNote.Create()
+	errC := bagsNote.Create(db)
 	if errC != nil {
 		log.Println("createBagsNote err", errC.Error())
 	}
@@ -594,7 +596,7 @@ func createBagsNoteNoteOfBag(booking model_booking.Booking) {
 /*
 Create bags note: Note of Booking
 */
-func createBagsNoteNoteOfBooking(booking model_booking.Booking) {
+func createBagsNoteNoteOfBooking(db *gorm.DB, booking model_booking.Booking) {
 	if booking.NoteOfBooking == "" {
 		return
 	}
@@ -609,7 +611,7 @@ func createBagsNoteNoteOfBooking(booking model_booking.Booking) {
 		CourseUid:  booking.CourseUid,
 	}
 
-	errC := bagsNote.Create()
+	errC := bagsNote.Create(db)
 	if errC != nil {
 		log.Println("createBagsNote err", errC.Error())
 	}
@@ -703,7 +705,7 @@ func cloneToBuggyBooking(buggy models.Buggy) model_booking.BookingBuggy {
 /*
 Add Caddie, Buggy To Booking
 */
-func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode, buggyCode string) (error, model_booking.Booking, models.Caddie, models.Buggy) {
+func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, bag, caddieCode, buggyCode string) (error, model_booking.Booking, models.Caddie, models.Buggy) {
 	//if partnerUid == "" || courseUid == "" || bookingDate == "" || bag == "" {
 	//	return errors.New(constants.API_ERR_INVALID_BODY_DATA), model_booking.Booking{}, models.Caddie{}, models.Buggy{}
 	//}
@@ -717,7 +719,7 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 		Bag:         bag,
 	}
 
-	err := booking.FindFirst()
+	err := booking.FindFirst(db)
 	if err != nil {
 		return err, booking, models.Caddie{}, models.Buggy{}
 	}
@@ -730,7 +732,7 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 			CourseUid:  courseUid,
 			Code:       caddieCode,
 		}
-		errFC := caddie.FindFirst()
+		errFC := caddie.FindFirst(db)
 		if errFC != nil {
 			return errFC, booking, caddie, models.Buggy{}
 		}
@@ -759,12 +761,12 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 			Code:       buggyCode,
 		}
 
-		errFB := buggy.FindFirst()
+		errFB := buggy.FindFirst(db)
 		if errFB != nil {
 			return errFB, booking, caddie, buggy
 		}
 
-		if err := checkBuggyReady(buggy, bookingDate); err != nil {
+		if err := checkBuggyReady(db, buggy, bookingDate); err != nil {
 			return err, booking, caddie, buggy
 		}
 
@@ -778,9 +780,9 @@ func addCaddieBuggyToBooking(partnerUid, courseUid, bookingDate, bag, caddieCode
 /*
 Out caddie
 */
-func udpOutCaddieBooking(booking *model_booking.Booking) error {
+func udpOutCaddieBooking(db *gorm.DB, booking *model_booking.Booking) error {
 
-	errCd := udpCaddieOut(booking.CaddieId)
+	errCd := udpCaddieOut(db, booking.CaddieId)
 	if errCd != nil {
 		return errCd
 	}
@@ -795,7 +797,7 @@ func udpOutCaddieBooking(booking *model_booking.Booking) error {
 /*
 Out Buggy
 */
-func udpOutBuggy(booking *model_booking.Booking, isOutAll bool) error {
+func udpOutBuggy(db *gorm.DB, booking *model_booking.Booking, isOutAll bool) error {
 	// Get Caddie
 
 	bookingR := model_booking.BookingList{
@@ -804,13 +806,13 @@ func udpOutBuggy(booking *model_booking.Booking, isOutAll bool) error {
 		BagStatus:   constants.BAG_STATUS_IN_COURSE,
 	}
 
-	_, total, _ := bookingR.FindAllBookingList()
+	_, total, _ := bookingR.FindAllBookingList(db)
 
 	if total > 1 && !isOutAll {
 		return errors.New("Buggy còn đang ghép với player khác")
 	}
 
-	errBuggy := udpBuggyOut(bookingR.BuggyId)
+	errBuggy := udpBuggyOut(db, bookingR.BuggyId)
 	if errBuggy != nil {
 		return errBuggy
 	}
@@ -824,18 +826,18 @@ func udpOutBuggy(booking *model_booking.Booking, isOutAll bool) error {
 /*
 Update caddie is in course is false
 */
-func udpCaddieOut(caddieId int64) error {
+func udpCaddieOut(db *gorm.DB, caddieId int64) error {
 	// Get Caddie
 	caddie := models.Caddie{}
 	caddie.Id = caddieId
-	err := caddie.FindFirst()
+	err := caddie.FindFirst(db)
 	//caddie.IsInCourse = false
 	if caddie.CurrentRound == 0 {
 		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
 	} else {
 		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
 	}
-	err = caddie.Update()
+	err = caddie.Update(db)
 	if err != nil {
 		log.Println("udpCaddieOut err", err.Error())
 	}
@@ -845,8 +847,8 @@ func udpCaddieOut(caddieId int64) error {
 /*
 add Caddie In Out Note
 */
-func addCaddieInOutNote(caddieInOut model_gostarter.CaddieInOutNote) {
-	err := caddieInOut.Create()
+func addCaddieInOutNote(db *gorm.DB, caddieInOut model_gostarter.CaddieInOutNote) {
+	err := caddieInOut.Create(db)
 	if err != nil {
 		log.Println("err addCaddieInOutNote", err.Error())
 	}
@@ -855,18 +857,18 @@ func addCaddieInOutNote(caddieInOut model_gostarter.CaddieInOutNote) {
 /*
 unlock turn time
 */
-func unlockTurnTime(booking model_booking.Booking) {
+func unlockTurnTime(db *gorm.DB, booking model_booking.Booking) {
 	cLockTeeTim := CLockTeeTime{}
-	cLockTeeTim.DeleteLockTurn(booking.TeeTime, booking.BookingDate)
+	cLockTeeTim.DeleteLockTurn(db, booking.TeeTime, booking.BookingDate)
 }
 
-func udpBuggyOut(buggyId int64) error {
+func udpBuggyOut(db *gorm.DB, buggyId int64) error {
 	buggy := models.Buggy{}
 	buggy.Id = buggyId
-	err := buggy.FindFirst()
+	err := buggy.FindFirst(db)
 	if err == nil {
 		buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_ACTIVE
-		if errUdp := buggy.Update(); errUdp != nil {
+		if errUdp := buggy.Update(db); errUdp != nil {
 			log.Println("udpBuggyOut err", err.Error())
 			return errUdp
 		}
@@ -877,7 +879,7 @@ func udpBuggyOut(buggyId int64) error {
 /*
 Create Locker: Locker for list
 */
-func createLocker(booking model_booking.Booking) {
+func createLocker(db *gorm.DB, booking model_booking.Booking) {
 	if booking.LockerNo == "" {
 		return
 	}
@@ -887,7 +889,7 @@ func createLocker(booking model_booking.Booking) {
 	}
 
 	// check tồn tại
-	errF := locker.FindFirst()
+	errF := locker.FindFirst(db)
 	if errF != nil || locker.Id <= 0 {
 		// Tạo mới
 		locker.CourseUid = booking.CourseUid
@@ -898,7 +900,7 @@ func createLocker(booking model_booking.Booking) {
 		locker.GuestStyle = booking.GuestStyle
 		locker.GuestStyleName = booking.GuestStyleName
 
-		errC := locker.Create()
+		errC := locker.Create(db)
 		if errC != nil {
 			log.Println("createLocker errC", errC.Error())
 		}
@@ -908,7 +910,7 @@ func createLocker(booking model_booking.Booking) {
 	if booking.LockerNo != "" && locker.Locker != booking.LockerNo {
 		locker.PlayerName = booking.CustomerName
 		locker.Locker = booking.LockerNo
-		errU := locker.Update()
+		errU := locker.Update(db)
 		if errU != nil {
 			log.Println("createLocker errU", errU.Error())
 		}
@@ -972,8 +974,8 @@ func checkMemberCardGuestOfDay(memberCard models.MemberCard, memberCardType mode
 	return isOk, err
 }
 
-func updateMemberCard(memberCard models.MemberCard) {
-	errUdp := memberCard.Update()
+func updateMemberCard(db *gorm.DB, memberCard models.MemberCard) {
+	errUdp := memberCard.Update(db)
 	if errUdp != nil {
 		log.Println("updateMemberCard errUdp", errUdp.Error())
 	}
@@ -982,11 +984,11 @@ func updateMemberCard(memberCard models.MemberCard) {
 /*
 Handle MemberCard for Booking
 */
-func handleCheckMemberCardOfGuest(memberUidOfGuest, guestStyle string) (error, models.MemberCard, string) {
+func handleCheckMemberCardOfGuest(db *gorm.DB, memberUidOfGuest, guestStyle string) (error, models.MemberCard, string) {
 	var memberCard models.MemberCard
 	memberCard = models.MemberCard{}
 	memberCard.Uid = memberUidOfGuest
-	errM1, errM2, memberCardType := memberCard.FindFirstWithMemberCardType()
+	errM1, errM2, memberCardType := memberCard.FindFirstWithMemberCardType(db)
 	if errM1 != nil {
 		return errM1, memberCard, ""
 	}
@@ -1008,7 +1010,7 @@ func handleCheckMemberCardOfGuest(memberUidOfGuest, guestStyle string) (error, m
 
 	customer := models.CustomerUser{}
 	customer.Uid = memberCard.OwnerUid
-	errFC := customer.FindFirst()
+	errFC := customer.FindFirst(db)
 	if errFC != nil {
 		log.Println("handleBookingForMemberCard err", errFC.Error())
 	}
@@ -1016,15 +1018,15 @@ func handleCheckMemberCardOfGuest(memberUidOfGuest, guestStyle string) (error, m
 	return nil, memberCard, customer.Name
 }
 
-func updateAnnualFeeToMcType(yearInt int, mcTypeId, fee int64) {
+func updateAnnualFeeToMcType(db *gorm.DB, yearInt int, mcTypeId, fee int64) {
 	if time.Now().Year() == yearInt {
 		mcType := models.MemberCardType{}
 		mcType.Id = mcTypeId
-		errFMCType := mcType.FindFirst()
+		errFMCType := mcType.FindFirst(db)
 		if errFMCType == nil {
 			if mcType.CurrentAnnualFee != fee {
 				mcType.CurrentAnnualFee = fee
-				errMcTUdp := mcType.Update()
+				errMcTUdp := mcType.Update(db)
 				if errMcTUdp != nil {
 					log.Println("updateAnnualFeeToMcType errMcTUdp", errMcTUdp.Error())
 				}
@@ -1035,7 +1037,7 @@ func updateAnnualFeeToMcType(yearInt int, mcTypeId, fee int64) {
 	}
 }
 
-func validatePartnerAndCourse(partnerUid string, courseUid string) error {
+func validatePartnerAndCourse(db *gorm.DB, partnerUid string, courseUid string) error {
 	partnerRequest := models.Partner{}
 	partnerRequest.Uid = partnerUid
 	partnerErrFind := partnerRequest.FindFirst()
@@ -1045,7 +1047,7 @@ func validatePartnerAndCourse(partnerUid string, courseUid string) error {
 
 	courseRequest := models.Course{}
 	courseRequest.Uid = courseUid
-	errCourseFind := courseRequest.FindFirst()
+	errCourseFind := courseRequest.FindFirst(db)
 	if errCourseFind != nil {
 		return errCourseFind
 	}
@@ -1070,9 +1072,9 @@ func initMainBagForPay() utils.ListString {
 /*
 find booking with round va service items data
 */
-func getBagDetailFromBooking(booking model_booking.Booking) model_booking.BagDetail {
+func getBagDetailFromBooking(db *gorm.DB, booking model_booking.Booking) model_booking.BagDetail {
 	//Get service items
-	booking.FindServiceItems()
+	booking.FindServiceItems(db)
 
 	bagDetail := model_booking.BagDetail{
 		Booking: booking,
@@ -1080,7 +1082,7 @@ func getBagDetailFromBooking(booking model_booking.Booking) model_booking.BagDet
 
 	// Get Rounds
 	round := models.Round{BillCode: booking.BillCode}
-	listRound, _ := round.FindAll()
+	listRound, _ := round.FindAll(db)
 
 	if len(listRound) > 0 {
 		bagDetail.Rounds = listRound
@@ -1095,12 +1097,14 @@ main bag nếu có
 sub bag nếu có
 */
 func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUser) {
+
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	booking.CmsUser = prof.UserName
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
 	if booking.MainBags != nil && len(booking.MainBags) > 0 {
 		// Nếu bag có Main Bag
-		booking.UpdatePriceForBagHaveMainBags()
+		booking.UpdatePriceForBagHaveMainBags(db)
 	} else {
 		if booking.SubBags != nil && len(booking.SubBags) > 0 {
 			// Udp lại giá sub bag mới nhất nếu có sub bag
@@ -1108,17 +1112,24 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 			for _, v := range booking.SubBags {
 				subBook := model_booking.Booking{}
 				subBook.Uid = v.BookingUid
-				errFSub := subBook.FindFirst()
+				errFSub := subBook.FindFirst(db)
 				if errFSub == nil {
-					go subBook.UpdatePriceForBagHaveMainBags()
+					go subBook.UpdatePriceForBagHaveMainBags(db)
 				} else {
 					log.Println("updatePriceWithServiceItem errFSub", errFSub.Error())
 				}
 			}
 		}
-		booking.UpdateMushPay()
-		booking.UpdatePriceDetailCurrentBag()
-		errUdp := booking.Update()
+		booking.UpdateMushPay(db)
+		booking.UpdatePriceDetailCurrentBag(db)
+	}
+	errUdp := booking.Update(db)
+	if errUdp != nil {
+		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
+
+		booking.UpdateMushPay(db)
+		booking.UpdatePriceDetailCurrentBag(db)
+		errUdp := booking.Update(db)
 		if errUdp != nil {
 			log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
 		}
@@ -1128,13 +1139,13 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 /*
 Mỗi lần thêm đợt thanh toán, update lại totalPaid
 */
-func updateTotalPaidAnnualFeeForMemberCard(mcUid string, year int) {
+func updateTotalPaidAnnualFeeForMemberCard(db *gorm.DB, mcUid string, year int) {
 	//Get List paid
 	listPaidR := models.AnnualFeePay{
 		MemberCardUid: mcUid,
 		Year:          year,
 	}
-	listPaid, errF := listPaidR.FindAll()
+	listPaid, errF := listPaidR.FindAll(db)
 	if errF != nil {
 		log.Println("updateTotalPaidAnnualFeeForMemberCard errF", errF.Error())
 	}
@@ -1151,19 +1162,19 @@ func updateTotalPaidAnnualFeeForMemberCard(mcUid string, year int) {
 		MemberCardUid: mcUid,
 		Year:          year,
 	}
-	errMc := mcCardAnnualFee.FindFirst()
+	errMc := mcCardAnnualFee.FindFirst(db)
 	if errMc != nil || mcCardAnnualFee.Id <= 0 {
 		// Tạo mới
 		mcCardAnnualFee.TotalPaid = totalPaid
 		mcCardAnnualFee.CountPaid = countPaid
-		errC := mcCardAnnualFee.Create()
+		errC := mcCardAnnualFee.Create(db)
 		if errC != nil {
 			log.Println("updateTotalPaidAnnualFeeForMemberCard errC", errC.Error())
 		}
 	} else {
 		mcCardAnnualFee.TotalPaid = totalPaid
 		mcCardAnnualFee.CountPaid = countPaid
-		errUdp := mcCardAnnualFee.Update()
+		errUdp := mcCardAnnualFee.Update(db)
 		if errUdp != nil {
 			log.Println("updateTotalPaidAnnualFeeForMemberCard errUdp", errUdp.Error())
 		}
@@ -1185,14 +1196,14 @@ func checkCaddieReady(booking model_booking.Booking, caddie models.Caddie) error
 Buggy có thể ghép tối đa 2 player
 Check Buggy có đang sẵn sàng để ghép không
 */
-func checkBuggyReady(buggy models.Buggy, bookingDate string) error {
+func checkBuggyReady(db *gorm.DB, buggy models.Buggy, bookingDate string) error {
 	bookingList := model_booking.BookingList{
 		BuggyCode:   buggy.Code,
 		BookingDate: bookingDate,
 		BagStatus:   constants.BAG_STATUS_IN_COURSE,
 	}
 
-	_, total, _ := bookingList.FindAllBookingList()
+	_, total, _ := bookingList.FindAllBookingList(db)
 
 	if !(buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_ACTIVE ||
 		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_LOCK ||
@@ -1210,21 +1221,21 @@ func checkBuggyReady(buggy models.Buggy, bookingDate string) error {
 /*
 Tính total Paid của user
 */
-func getTotalPaidForCustomerUser(userUid string) int64 {
+func getTotalPaidForCustomerUser(db *gorm.DB, userUid string) int64 {
 	totalPaid := int64(0)
 
 	//Get list memberCard của khách hàng
 	memberCard := models.MemberCard{
 		OwnerUid: userUid,
 	}
-	errMC, listMC := memberCard.FindAll()
+	errMC, listMC := memberCard.FindAll(db)
 
 	if errMC == nil {
 		for _, v := range listMC {
 			annualFeePayR := models.AnnualFeePay{
 				MemberCardUid: v.Uid,
 			}
-			listFeePay, errAF := annualFeePayR.FindAll()
+			listFeePay, errAF := annualFeePayR.FindAll(db)
 			if errAF == nil {
 				for _, v1 := range listFeePay {
 					totalPaid += v1.Amount
@@ -1243,8 +1254,8 @@ func getTotalPaidForCustomerUser(userUid string) int64 {
 /*
 Update report customer play
 */
-func updateReportTotalPaidForCustomerUser(userUid string, partnerUid, courseUid string) {
-	totalPaid := getTotalPaidForCustomerUser(userUid)
+func updateReportTotalPaidForCustomerUser(db *gorm.DB, userUid string, partnerUid, courseUid string) {
+	totalPaid := getTotalPaidForCustomerUser(db, userUid)
 
 	reportCustomer := model_report.ReportCustomerPlay{
 		CustomerUid: userUid,
@@ -1299,13 +1310,13 @@ func updateReportTotalPlayCountForCustomerUser(userUid string, partnerUid, cours
 /*
 Validate Item Code có tồn tại trong Proshop or FB or Rental hay không
 */
-func validateItemCodeInService(serviceType string, itemCode string) error {
+func validateItemCodeInService(db *gorm.DB, serviceType string, itemCode string) error {
 	if serviceType == constants.GROUP_PROSHOP {
 		proshop := model_service.Proshop{
 			ProShopId: itemCode,
 		}
 
-		if err := proshop.FindFirst(); err == nil {
+		if err := proshop.FindFirst(db); err == nil {
 			return errors.New(itemCode + "không tìm thấy")
 		}
 	} else if serviceType == constants.GROUP_FB {
@@ -1313,7 +1324,7 @@ func validateItemCodeInService(serviceType string, itemCode string) error {
 			FBCode: itemCode,
 		}
 
-		if err := fb.FindFirst(); err == nil {
+		if err := fb.FindFirst(db); err == nil {
 			return errors.New(itemCode + "không tìm thấy")
 		}
 	} else if serviceType == constants.GROUP_RENTAL {
@@ -1321,7 +1332,7 @@ func validateItemCodeInService(serviceType string, itemCode string) error {
 			RentalId: itemCode,
 		}
 
-		if err := rental.FindFirst(); err == nil {
+		if err := rental.FindFirst(db); err == nil {
 			return errors.New(itemCode + " không tìm thấy ")
 		}
 	}

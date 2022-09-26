@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 type CAnnualFeePay struct{}
 
 func (_ *CAnnualFeePay) CreateAnnualFeePay(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.AnnualFeePay{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -28,7 +30,7 @@ func (_ *CAnnualFeePay) CreateAnnualFeePay(c *gin.Context, prof models.CmsUser) 
 	// Check member card exits
 	memberCard := models.MemberCard{}
 	memberCard.Uid = body.MemberCardUid
-	errFind := memberCard.FindFirst()
+	errFind := memberCard.FindFirst(db)
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
@@ -47,7 +49,7 @@ func (_ *CAnnualFeePay) CreateAnnualFeePay(c *gin.Context, prof models.CmsUser) 
 		CmsUser:       prof.UserName,
 	}
 
-	errC := annualFeePay.Create()
+	errC := annualFeePay.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -55,13 +57,14 @@ func (_ *CAnnualFeePay) CreateAnnualFeePay(c *gin.Context, prof models.CmsUser) 
 	}
 
 	//Update total paid của membercard trong năm
-	go updateTotalPaidAnnualFeeForMemberCard(body.MemberCardUid, body.Year)
-	go updateReportTotalPaidForCustomerUser(memberCard.OwnerUid, body.PartnerUid, body.CourseUid)
+	go updateTotalPaidAnnualFeeForMemberCard(db, body.MemberCardUid, body.Year)
+	go updateReportTotalPaidForCustomerUser(db, memberCard.OwnerUid, body.PartnerUid, body.CourseUid)
 
 	okResponse(c, annualFeePay)
 }
 
 func (_ *CAnnualFeePay) GetListAnnualFeePay(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListAnnualFeeForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -81,14 +84,14 @@ func (_ *CAnnualFeePay) GetListAnnualFeePay(c *gin.Context, prof models.CmsUser)
 		MemberCardUid: form.MemberCardUid,
 		Year:          form.Year,
 	}
-	list, total, err := annualFeeR.FindList(page)
+	list, total, err := annualFeeR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
 	//get total paid
-	totalPaid := annualFeeR.FindTotalPaid()
+	totalPaid := annualFeeR.FindTotalPaid(db)
 
 	res := map[string]interface{}{
 		"total":      total,
@@ -100,6 +103,7 @@ func (_ *CAnnualFeePay) GetListAnnualFeePay(c *gin.Context, prof models.CmsUser)
 }
 
 func (_ *CAnnualFeePay) UpdateAnnualFeePay(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	annualFeeIdStr := c.Param("id")
 	annualFeeId, err := strconv.ParseInt(annualFeeIdStr, 10, 64)
 	if err != nil || annualFeeId <= 0 {
@@ -109,7 +113,7 @@ func (_ *CAnnualFeePay) UpdateAnnualFeePay(c *gin.Context, prof models.CmsUser) 
 
 	annualFeePay := models.AnnualFeePay{}
 	annualFeePay.Id = annualFeeId
-	errF := annualFeePay.FindFirst()
+	errF := annualFeePay.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -124,26 +128,27 @@ func (_ *CAnnualFeePay) UpdateAnnualFeePay(c *gin.Context, prof models.CmsUser) 
 	annualFeePay.Amount = body.Amount
 	annualFeePay.CmsUser = prof.UserName
 
-	errUdp := annualFeePay.Update()
+	errUdp := annualFeePay.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
 
 	//Update total paid của membercard trong năm
-	go updateTotalPaidAnnualFeeForMemberCard(body.MemberCardUid, body.Year)
+	go updateTotalPaidAnnualFeeForMemberCard(db, body.MemberCardUid, body.Year)
 
 	memberCard := models.MemberCard{}
 	memberCard.Uid = annualFeePay.MemberCardUid
-	errFMC := memberCard.FindFirst()
+	errFMC := memberCard.FindFirst(db)
 	if errFMC == nil && memberCard.OwnerUid != "" {
-		go updateReportTotalPaidForCustomerUser(memberCard.OwnerUid, memberCard.PartnerUid, memberCard.CourseUid)
+		go updateReportTotalPaidForCustomerUser(db, memberCard.OwnerUid, memberCard.PartnerUid, memberCard.CourseUid)
 	}
 
 	okResponse(c, annualFeePay)
 }
 
 func (_ *CAnnualFeePay) DeleteAnnualFeePay(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	annualFeeIdStr := c.Param("id")
 	annualFeeId, err := strconv.ParseInt(annualFeeIdStr, 10, 64)
 	if err != nil || annualFeeId <= 0 {
@@ -153,25 +158,25 @@ func (_ *CAnnualFeePay) DeleteAnnualFeePay(c *gin.Context, prof models.CmsUser) 
 
 	annualFeePay := models.AnnualFeePay{}
 	annualFeePay.Id = annualFeeId
-	errF := annualFeePay.FindFirst()
+	errF := annualFeePay.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := annualFeePay.Delete()
+	errDel := annualFeePay.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
 	}
 
 	//Update total paid của membercard trong năm
-	go updateTotalPaidAnnualFeeForMemberCard(annualFeePay.MemberCardUid, annualFeePay.Year)
+	go updateTotalPaidAnnualFeeForMemberCard(db, annualFeePay.MemberCardUid, annualFeePay.Year)
 	memberCard := models.MemberCard{}
 	memberCard.Uid = annualFeePay.MemberCardUid
-	errFMC := memberCard.FindFirst()
+	errFMC := memberCard.FindFirst(db)
 	if errFMC == nil && memberCard.OwnerUid != "" {
-		go updateReportTotalPaidForCustomerUser(memberCard.OwnerUid, memberCard.PartnerUid, memberCard.CourseUid)
+		go updateReportTotalPaidForCustomerUser(db, memberCard.OwnerUid, memberCard.PartnerUid, memberCard.CourseUid)
 	}
 
 	okRes(c)

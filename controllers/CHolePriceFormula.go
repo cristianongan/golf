@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 type CHolePriceFormula struct{}
 
 func (_ *CHolePriceFormula) CreateHolePriceFormula(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateHolePriceFormulaBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -26,7 +28,7 @@ func (_ *CHolePriceFormula) CreateHolePriceFormula(c *gin.Context, prof models.C
 		Hole:       body.Hole,
 	}
 	//Check duplicated
-	if holePriceFormula.IsDuplicated() {
+	if holePriceFormula.IsDuplicated(db) {
 		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
@@ -34,7 +36,7 @@ func (_ *CHolePriceFormula) CreateHolePriceFormula(c *gin.Context, prof models.C
 	holePriceFormula.StopByRain = body.StopByRain
 	holePriceFormula.StopBySelf = body.StopBySelf
 
-	errC := holePriceFormula.Create()
+	errC := holePriceFormula.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -45,6 +47,7 @@ func (_ *CHolePriceFormula) CreateHolePriceFormula(c *gin.Context, prof models.C
 }
 
 func (_ *CHolePriceFormula) GetListHolePriceFormula(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListHolePriceFormulaForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -62,7 +65,7 @@ func (_ *CHolePriceFormula) GetListHolePriceFormula(c *gin.Context, prof models.
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
-	list, total, err := holePriceFormulaR.FindList(page)
+	list, total, err := holePriceFormulaR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -77,6 +80,7 @@ func (_ *CHolePriceFormula) GetListHolePriceFormula(c *gin.Context, prof models.
 }
 
 func (_ *CHolePriceFormula) UpdateHolePriceFormula(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	holePriceFormulaIdStr := c.Param("id")
 	holePriceFormulaId, err := strconv.ParseInt(holePriceFormulaIdStr, 10, 64)
 	if err != nil || holePriceFormulaId <= 0 {
@@ -86,7 +90,7 @@ func (_ *CHolePriceFormula) UpdateHolePriceFormula(c *gin.Context, prof models.C
 
 	holePriceFormula := models.HolePriceFormula{}
 	holePriceFormula.Id = holePriceFormulaId
-	errF := holePriceFormula.FindFirst()
+	errF := holePriceFormula.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -114,7 +118,7 @@ func (_ *CHolePriceFormula) UpdateHolePriceFormula(c *gin.Context, prof models.C
 		holePriceFormula.StopBySelf = body.StopBySelf
 	}
 
-	errUdp := holePriceFormula.Update()
+	errUdp := holePriceFormula.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -124,6 +128,7 @@ func (_ *CHolePriceFormula) UpdateHolePriceFormula(c *gin.Context, prof models.C
 }
 
 func (_ *CHolePriceFormula) DeleteHolePriceFormula(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	holePriceFormulaIdStr := c.Param("id")
 	holePriceFormulaId, err := strconv.ParseInt(holePriceFormulaIdStr, 10, 64)
 	if err != nil || holePriceFormulaId <= 0 {
@@ -133,13 +138,13 @@ func (_ *CHolePriceFormula) DeleteHolePriceFormula(c *gin.Context, prof models.C
 
 	holePriceFormula := models.HolePriceFormula{}
 	holePriceFormula.Id = holePriceFormulaId
-	errF := holePriceFormula.FindFirst()
+	errF := holePriceFormula.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := holePriceFormula.Delete()
+	errDel := holePriceFormula.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

@@ -1,7 +1,7 @@
 package models
 
 import (
-	"start/datasources"
+	"gorm.io/gorm"
 )
 
 type CaddieWorkingCalendarList struct {
@@ -10,11 +10,11 @@ type CaddieWorkingCalendarList struct {
 	ApplyDate  string
 }
 
-func (item *CaddieWorkingCalendarList) FindList(page Page) ([]CaddieWorkingCalendar, int64, error) {
+func (item *CaddieWorkingCalendarList) FindList(database *gorm.DB, page Page) ([]CaddieWorkingCalendar, int64, error) {
 	var list []CaddieWorkingCalendar
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(CaddieWorkingCalendar{})
+	db := database.Model(CaddieWorkingCalendar{})
 
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)

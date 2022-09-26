@@ -5,6 +5,7 @@ import (
 	"log"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils"
@@ -12,12 +13,14 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type CBookingSetting struct{}
 
-/// --------- Booking Setting Group ----------
+// / --------- Booking Setting Group ----------
 func (_ *CBookingSetting) CreateBookingSettingGroup(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := model_booking.BookingSettingGroup{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -29,7 +32,7 @@ func (_ *CBookingSetting) CreateBookingSettingGroup(c *gin.Context, prof models.
 		return
 	}
 
-	if body.IsDuplicated() {
+	if body.IsDuplicated(db) {
 		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
@@ -42,7 +45,7 @@ func (_ *CBookingSetting) CreateBookingSettingGroup(c *gin.Context, prof models.
 		ToDate:     body.ToDate,
 	}
 
-	errC := bookingSettingGroup.Create()
+	errC := bookingSettingGroup.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -53,6 +56,7 @@ func (_ *CBookingSetting) CreateBookingSettingGroup(c *gin.Context, prof models.
 }
 
 func (_ *CBookingSetting) GetListBookingSettingGroup(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingSettingGroupForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -70,7 +74,7 @@ func (_ *CBookingSetting) GetListBookingSettingGroup(c *gin.Context, prof models
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
-	list, total, err := bookingSettingGroupR.FindList(page, 0, 0)
+	list, total, err := bookingSettingGroupR.FindList(db, page, 0, 0)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -85,6 +89,7 @@ func (_ *CBookingSetting) GetListBookingSettingGroup(c *gin.Context, prof models
 }
 
 func (_ *CBookingSetting) UpdateBookingSettingGroup(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	bookingSettingGroupIdStr := c.Param("id")
 	bookingSettingGroupId, err := strconv.ParseInt(bookingSettingGroupIdStr, 10, 64)
 	if err != nil || bookingSettingGroupId <= 0 {
@@ -94,7 +99,7 @@ func (_ *CBookingSetting) UpdateBookingSettingGroup(c *gin.Context, prof models.
 
 	bookingSettingGroup := model_booking.BookingSettingGroup{}
 	bookingSettingGroup.Id = bookingSettingGroupId
-	errF := bookingSettingGroup.FindFirst()
+	errF := bookingSettingGroup.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -107,7 +112,7 @@ func (_ *CBookingSetting) UpdateBookingSettingGroup(c *gin.Context, prof models.
 	}
 
 	if bookingSettingGroup.Name != body.Name || bookingSettingGroup.FromDate != body.FromDate || bookingSettingGroup.ToDate != body.ToDate {
-		if body.IsDuplicated() {
+		if body.IsDuplicated(db) {
 			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 			return
 		}
@@ -122,7 +127,7 @@ func (_ *CBookingSetting) UpdateBookingSettingGroup(c *gin.Context, prof models.
 	bookingSettingGroup.FromDate = body.FromDate
 	bookingSettingGroup.ToDate = body.ToDate
 
-	errUdp := bookingSettingGroup.Update()
+	errUdp := bookingSettingGroup.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -132,6 +137,7 @@ func (_ *CBookingSetting) UpdateBookingSettingGroup(c *gin.Context, prof models.
 }
 
 func (_ *CBookingSetting) DeleteBookingSettingGroup(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	bookingSettingGroupIdStr := c.Param("id")
 	bookingSettingGroupId, err := strconv.ParseInt(bookingSettingGroupIdStr, 10, 64)
 	if err != nil || bookingSettingGroupId <= 0 {
@@ -141,13 +147,13 @@ func (_ *CBookingSetting) DeleteBookingSettingGroup(c *gin.Context, prof models.
 
 	bookingSettingGroup := model_booking.BookingSettingGroup{}
 	bookingSettingGroup.Id = bookingSettingGroupId
-	errF := bookingSettingGroup.FindFirst()
+	errF := bookingSettingGroup.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := bookingSettingGroup.Delete()
+	errDel := bookingSettingGroup.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
@@ -159,6 +165,7 @@ func (_ *CBookingSetting) DeleteBookingSettingGroup(c *gin.Context, prof models.
 /// --------- Booking Setting ----------
 
 func (_ *CBookingSetting) CreateBookingSetting(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := model_booking.BookingSetting{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -170,7 +177,7 @@ func (_ *CBookingSetting) CreateBookingSetting(c *gin.Context, prof models.CmsUs
 		return
 	}
 
-	if body.IsDuplicated() {
+	if body.IsDuplicated(db) {
 		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
@@ -178,7 +185,7 @@ func (_ *CBookingSetting) CreateBookingSetting(c *gin.Context, prof models.CmsUs
 	//Check Group Id avaible
 	bSettingGroup := model_booking.BookingSettingGroup{}
 	bSettingGroup.Id = body.GroupId
-	errFind := bSettingGroup.FindFirst()
+	errFind := bSettingGroup.FindFirst(db)
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
@@ -208,7 +215,7 @@ func (_ *CBookingSetting) CreateBookingSetting(c *gin.Context, prof models.CmsUs
 
 	bookingSetting.Status = body.Status
 
-	errC := bookingSetting.Create()
+	errC := bookingSetting.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -219,6 +226,7 @@ func (_ *CBookingSetting) CreateBookingSetting(c *gin.Context, prof models.CmsUs
 }
 
 func (_ *CBookingSetting) GetListBookingSetting(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingSettingForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -237,7 +245,7 @@ func (_ *CBookingSetting) GetListBookingSetting(c *gin.Context, prof models.CmsU
 		CourseUid:  form.CourseUid,
 		GroupId:    form.GroupId,
 	}
-	list, total, err := bookingSettingR.FindList(page)
+	list, total, err := bookingSettingR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -252,6 +260,7 @@ func (_ *CBookingSetting) GetListBookingSetting(c *gin.Context, prof models.CmsU
 }
 
 func (_ *CBookingSetting) UpdateBookingSetting(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	bookingSettingIdStr := c.Param("id")
 	bookingSettingId, err := strconv.ParseInt(bookingSettingIdStr, 10, 64)
 	if err != nil || bookingSettingId <= 0 {
@@ -261,7 +270,7 @@ func (_ *CBookingSetting) UpdateBookingSetting(c *gin.Context, prof models.CmsUs
 
 	bookingSetting := model_booking.BookingSetting{}
 	bookingSetting.Id = bookingSettingId
-	errF := bookingSetting.FindFirst()
+	errF := bookingSetting.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -274,7 +283,7 @@ func (_ *CBookingSetting) UpdateBookingSetting(c *gin.Context, prof models.CmsUs
 	}
 
 	if body.Dow != bookingSetting.Dow {
-		if body.IsDuplicated() {
+		if body.IsDuplicated(db) {
 			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 			return
 		}
@@ -306,7 +315,7 @@ func (_ *CBookingSetting) UpdateBookingSetting(c *gin.Context, prof models.CmsUs
 	bookingSetting.Part2TeeType = body.Part2TeeType
 	bookingSetting.Part3TeeType = body.Part3TeeType
 
-	errUdp := bookingSetting.Update()
+	errUdp := bookingSetting.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -316,6 +325,7 @@ func (_ *CBookingSetting) UpdateBookingSetting(c *gin.Context, prof models.CmsUs
 }
 
 func (_ *CBookingSetting) DeleteBookingSetting(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	bookingSettingIdStr := c.Param("id")
 	bookingSettingId, err := strconv.ParseInt(bookingSettingIdStr, 10, 64)
 	if err != nil || bookingSettingId <= 0 {
@@ -325,13 +335,13 @@ func (_ *CBookingSetting) DeleteBookingSetting(c *gin.Context, prof models.CmsUs
 
 	bookingSetting := model_booking.BookingSetting{}
 	bookingSetting.Id = bookingSettingId
-	errF := bookingSetting.FindFirst()
+	errF := bookingSetting.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := bookingSetting.Delete()
+	errDel := bookingSetting.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
@@ -342,13 +352,14 @@ func (_ *CBookingSetting) DeleteBookingSetting(c *gin.Context, prof models.CmsUs
 
 // Get booking Config của ngày
 func (item *CBookingSetting) GetListBookingSettingOnDate(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingSettingForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
-	list, bookingSettingGroup, errDel := item.GetSettingOnDate(form)
+	list, bookingSettingGroup, errDel := item.GetSettingOnDate(db, form)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
@@ -362,7 +373,7 @@ func (item *CBookingSetting) GetListBookingSettingOnDate(c *gin.Context, prof mo
 	okResponse(c, res)
 }
 
-func (_ *CBookingSetting) GetSettingOnDate(form request.GetListBookingSettingForm) ([]model_booking.BookingSetting, *model_booking.BookingSettingGroup, error) {
+func (_ *CBookingSetting) GetSettingOnDate(db *gorm.DB, form request.GetListBookingSettingForm) ([]model_booking.BookingSetting, *model_booking.BookingSettingGroup, error) {
 	if form.OnDate == "" {
 		log.Println("on-date empty", form)
 		form.OnDate = utils.GetCurrentDay1()
@@ -394,7 +405,7 @@ func (_ *CBookingSetting) GetSettingOnDate(form request.GetListBookingSettingFor
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
-	listBSG, _, errLBSG := bookingSettingGroupR.FindList(page, from, to)
+	listBSG, _, errLBSG := bookingSettingGroupR.FindList(db, page, from, to)
 	if errLBSG != nil || len(listBSG) == 0 {
 		return nil, nil, errors.New("Not found booking setting group")
 	}
@@ -413,14 +424,14 @@ func (_ *CBookingSetting) GetSettingOnDate(form request.GetListBookingSettingFor
 		CourseUid:  form.CourseUid,
 		GroupId:    bookingSettingGroupId,
 	}
-	list, _, err := bookingSettingR.FindList(page1)
+	list, _, err := bookingSettingR.FindList(db, page1)
 	if err != nil {
 		return nil, nil, err
 	}
 	return list, &bookingSettingGroup, nil
 }
 
-func (_ *CBookingSetting) ValidateClose1ST(BookingDate string, PartnerUid string, CourseUid string) error {
+func (_ *CBookingSetting) ValidateClose1ST(db *gorm.DB, BookingDate string, PartnerUid string, CourseUid string) error {
 	bookingSetting := model_booking.BookingSettingGroup{
 		PartnerUid: PartnerUid,
 		CourseUid:  CourseUid,
@@ -433,7 +444,7 @@ func (_ *CBookingSetting) ValidateClose1ST(BookingDate string, PartnerUid string
 		SortBy:  "created_at",
 		SortDir: "desc",
 	}
-	listBSG, _, errLBSG := bookingSetting.FindList(page, from, to)
+	listBSG, _, errLBSG := bookingSetting.FindList(db, page, from, to)
 	if errLBSG != nil || len(listBSG) == 0 {
 		return nil
 	}
@@ -445,7 +456,7 @@ func (_ *CBookingSetting) ValidateClose1ST(BookingDate string, PartnerUid string
 			BookingSettingId: bookingSettingGroup.Id,
 			DateTime:         BookingDate,
 		}
-		err := teeTypeClose.FindFirst()
+		err := teeTypeClose.FindFirst(db)
 		if err == nil {
 			return errors.New("Tee 1 is closed")
 		}

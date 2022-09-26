@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils/response_message"
@@ -15,6 +16,7 @@ import (
 type CTeeTypeClose struct{}
 
 func (_ *CTeeTypeClose) CreateTeeTypeClose(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateTeeTypeClose{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -23,7 +25,7 @@ func (_ *CTeeTypeClose) CreateTeeTypeClose(c *gin.Context, prof models.CmsUser) 
 
 	bookingSetting := model_booking.BookingSettingGroup{}
 	bookingSetting.Id = body.BookingSettingId
-	errBookingSettingFind := bookingSetting.FindFirst()
+	errBookingSettingFind := bookingSetting.FindFirst(db)
 	if errBookingSettingFind != nil {
 		response_message.InternalServerError(c, "booking setting id incorrect")
 		return
@@ -36,11 +38,11 @@ func (_ *CTeeTypeClose) CreateTeeTypeClose(c *gin.Context, prof models.CmsUser) 
 		PartnerUid:       body.PartnerUid,
 	}
 
-	errFind := teeTypeClose.FindFirst()
+	errFind := teeTypeClose.FindFirst(db)
 	teeTypeClose.Note = body.Note
 
 	if errFind != nil {
-		errC := teeTypeClose.Create()
+		errC := teeTypeClose.Create(db)
 		if errC != nil {
 			response_message.InternalServerError(c, errC.Error())
 			return
@@ -52,6 +54,7 @@ func (_ *CTeeTypeClose) CreateTeeTypeClose(c *gin.Context, prof models.CmsUser) 
 	okResponse(c, teeTypeClose)
 }
 func (_ *CTeeTypeClose) GetTeeTypeClose(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetListTeeTypeClose{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -75,7 +78,7 @@ func (_ *CTeeTypeClose) GetTeeTypeClose(c *gin.Context, prof models.CmsUser) {
 		teeTypeClose.DateTime = query.DateTime
 	}
 
-	list, total, err := teeTypeClose.FindList(page)
+	list, total, err := teeTypeClose.FindList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -90,6 +93,7 @@ func (_ *CTeeTypeClose) GetTeeTypeClose(c *gin.Context, prof models.CmsUser) {
 	c.JSON(200, res)
 }
 func (_ *CTeeTypeClose) DeleteTeeTypeClose(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	teeTypeCloseIdStr := c.Param("id")
 	teeTypeCloseId, err := strconv.ParseInt(teeTypeCloseIdStr, 10, 64)
 	if err != nil || teeTypeCloseId <= 0 {
@@ -99,13 +103,13 @@ func (_ *CTeeTypeClose) DeleteTeeTypeClose(c *gin.Context, prof models.CmsUser) 
 
 	teeTypeClose := models.TeeTypeClose{}
 	teeTypeClose.Id = teeTypeCloseId
-	errF := teeTypeClose.FindFirst()
+	errF := teeTypeClose.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := teeTypeClose.Delete()
+	errDel := teeTypeClose.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

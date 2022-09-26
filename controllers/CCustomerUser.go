@@ -7,6 +7,7 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 
@@ -18,6 +19,7 @@ import (
 type CCustomerUser struct{}
 
 func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.CustomerUser{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -37,7 +39,7 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 			Phone:      body.Phone,
 		}
 
-		errFind := cusTemp.FindFirst()
+		errFind := cusTemp.FindFirst(db)
 		if errFind == nil || cusTemp.Uid != "" {
 			// đã tồn tại
 			res := map[string]interface{}{
@@ -58,7 +60,7 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 			Identify:   body.Identify,
 		}
 
-		errFind := cusTemp.FindFirst()
+		errFind := cusTemp.FindFirst(db)
 		if errFind == nil || cusTemp.Uid != "" {
 			// đã tồn tại
 			res := map[string]interface{}{
@@ -79,7 +81,7 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		// Check agency Valid
 		agency := models.Agency{}
 		agency.Id = body.AgencyId
-		errFind := agency.FindFirst()
+		errFind := agency.FindFirst(db)
 		if errFind != nil || agency.Id == 0 {
 			response_message.BadRequest(c, "agency "+errFind.Error())
 			return
@@ -89,7 +91,7 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		customerUser.Type = constants.CUSTOMER_TYPE_AGENCY
 	}
 
-	errC := customerUser.Create()
+	errC := customerUser.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -100,6 +102,7 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 }
 
 func (_ *CCustomerUser) GetListCustomerUser(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListCustomerUserForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -120,7 +123,7 @@ func (_ *CCustomerUser) GetListCustomerUser(c *gin.Context, prof models.CmsUser)
 		Phone:      form.Phone,
 		Identify:   form.Identify,
 	}
-	list, total, err := customerUserGet.FindList(page, form.PartnerUid, form.CourseUid, form.Type, form.CustomerUid, form.Name)
+	list, total, err := customerUserGet.FindList(db, page, form.PartnerUid, form.CourseUid, form.Type, form.CustomerUid, form.Name)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -135,6 +138,7 @@ func (_ *CCustomerUser) GetListCustomerUser(c *gin.Context, prof models.CmsUser)
 }
 
 func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	customerUserUidStr := c.Param("uid")
 	if customerUserUidStr == "" {
 		response_message.BadRequest(c, errors.New("uid not valid").Error())
@@ -143,7 +147,7 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 
 	customerUser := models.CustomerUser{}
 	customerUser.Uid = customerUserUidStr
-	errF := customerUser.FindFirst()
+	errF := customerUser.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -157,7 +161,7 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 
 	body.PartnerUid = customerUser.PartnerUid
 	body.CourseUid = customerUser.CourseUid
-	if body.Phone != customerUser.Phone && body.IsDuplicated() {
+	if body.Phone != customerUser.Phone && body.IsDuplicated(db) {
 		response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
@@ -170,7 +174,7 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 				Phone:      body.Phone,
 			}
 
-			errFind := cusTemp.FindFirst()
+			errFind := cusTemp.FindFirst(db)
 			if errFind == nil || cusTemp.Uid != "" {
 				// đã tồn tại
 				res := map[string]interface{}{
@@ -199,7 +203,7 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 				Identify:   body.Identify,
 			}
 
-			errFind := cusTemp.FindFirst()
+			errFind := cusTemp.FindFirst(db)
 			if errFind == nil || cusTemp.Uid != "" {
 				// đã tồn tại
 				res := map[string]interface{}{
@@ -263,7 +267,7 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		// Check agency Valid
 		agency := models.Agency{}
 		agency.Id = body.AgencyId
-		errFind := agency.FindFirst()
+		errFind := agency.FindFirst(db)
 		if errFind != nil || agency.Id == 0 {
 			response_message.BadRequest(c, "agency "+errFind.Error())
 			return
@@ -273,7 +277,7 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		customerUser.Type = constants.CUSTOMER_TYPE_AGENCY
 	}
 
-	errUdp := customerUser.Update()
+	errUdp := customerUser.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -283,6 +287,7 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 }
 
 func (_ *CCustomerUser) DeleteCustomerUser(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	customerUserUidStr := c.Param("uid")
 	if customerUserUidStr == "" {
 		response_message.BadRequest(c, errors.New("uid not valid").Error())
@@ -291,13 +296,13 @@ func (_ *CCustomerUser) DeleteCustomerUser(c *gin.Context, prof models.CmsUser) 
 
 	customerUser := models.CustomerUser{}
 	customerUser.Uid = customerUserUidStr
-	errF := customerUser.FindFirst()
+	errF := customerUser.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := customerUser.Delete()
+	errDel := customerUser.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
@@ -308,6 +313,7 @@ func (_ *CCustomerUser) DeleteCustomerUser(c *gin.Context, prof models.CmsUser) 
 
 // Get chi tiết khách hàng
 func (_ *CCustomerUser) GetCustomerUserDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	customerUserUidStr := c.Param("uid")
 	if customerUserUidStr == "" {
 		response_message.BadRequest(c, errors.New("uid not valid").Error())
@@ -316,7 +322,7 @@ func (_ *CCustomerUser) GetCustomerUserDetail(c *gin.Context, prof models.CmsUse
 
 	customerUser := models.CustomerUser{}
 	customerUser.Uid = customerUserUidStr
-	errF := customerUser.FindFirst()
+	errF := customerUser.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -353,6 +359,7 @@ func (_ *CCustomerUser) GetCustomerUserDetail(c *gin.Context, prof models.CmsUse
 
 // Delete agency customer
 func (_ *CCustomerUser) DeleteAgencyCustomerUser(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.DeleteAgencyCustomerUser{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -367,11 +374,11 @@ func (_ *CCustomerUser) DeleteAgencyCustomerUser(c *gin.Context, prof models.Cms
 	for _, v := range body.CusUserUids {
 		cusUser := models.CustomerUser{}
 		cusUser.Uid = v
-		errF := cusUser.FindFirst()
+		errF := cusUser.FindFirst(db)
 		if errF == nil {
 			cusUser.AgencyId = 0
 			cusUser.GolfBag = ""
-			errUdp := cusUser.Update()
+			errUdp := cusUser.Update(db)
 			if errUdp != nil {
 				log.Println("DeleteAgencyCustomerUser errUdp", errUdp.Error())
 			}
@@ -384,6 +391,7 @@ func (_ *CCustomerUser) DeleteAgencyCustomerUser(c *gin.Context, prof models.Cms
 }
 
 func (_ CCustomerUser) GetBirthday(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetBirthdayList{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -402,7 +410,7 @@ func (_ CCustomerUser) GetBirthday(c *gin.Context, prof models.CmsUser) {
 	customer.FromBirthDate = query.FromDate
 	customer.ToBirthDate = query.ToDate
 
-	list, total, err := customer.FindCustomerList(page)
+	list, total, err := customer.FindCustomerList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

@@ -7,6 +7,7 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils/response_message"
@@ -18,6 +19,7 @@ import (
 type CBookingServiceItem struct{}
 
 func (_ *CBookingServiceItem) GetBookingServiceItemList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetBookingServiceItem{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -39,7 +41,7 @@ func (_ *CBookingServiceItem) GetBookingServiceItemList(c *gin.Context, prof mod
 		ItemCode:  query.ItemCode,
 	}
 
-	list, total, err := bookingServiceItem.FindList(page)
+	list, total, err := bookingServiceItem.FindList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -55,6 +57,7 @@ func (_ *CBookingServiceItem) GetBookingServiceItemList(c *gin.Context, prof mod
 }
 
 func (_ *CBookingServiceItem) AddBookingServiceItemToBag(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.AddBookingServiceItem{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -69,7 +72,7 @@ func (_ *CBookingServiceItem) AddBookingServiceItemToBag(c *gin.Context, prof mo
 	//Find booking
 	booking := model_booking.Booking{}
 	booking.Uid = body.BookingUid
-	errFB := booking.FindFirst()
+	errFB := booking.FindFirst(db)
 	if errFB != nil {
 		response_message.InternalServerError(c, errFB.Error())
 		return
@@ -96,7 +99,7 @@ func (_ *CBookingServiceItem) AddBookingServiceItemToBag(c *gin.Context, prof mo
 	serviceItem.BookingUid = booking.Uid
 	serviceItem.PlayerName = booking.CustomerName
 
-	errC := serviceItem.Create()
+	errC := serviceItem.Create(db)
 	if errC != nil {
 		response_message.BadRequest(c, errC.Error())
 		return
@@ -109,6 +112,7 @@ func (_ *CBookingServiceItem) AddBookingServiceItemToBag(c *gin.Context, prof mo
 }
 
 func (_ *CBookingServiceItem) UdpBookingServiceItemToBag(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	bookingServiceIdStr := c.Param("id")
 	bookingServiceId, err := strconv.ParseInt(bookingServiceIdStr, 10, 64)
 	if err != nil || bookingServiceId <= 0 {
@@ -124,7 +128,7 @@ func (_ *CBookingServiceItem) UdpBookingServiceItemToBag(c *gin.Context, prof mo
 
 	serviceItem := model_booking.BookingServiceItem{}
 	serviceItem.Id = bookingServiceId
-	errF := serviceItem.FindFirst()
+	errF := serviceItem.FindFirst(db)
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
@@ -134,7 +138,7 @@ func (_ *CBookingServiceItem) UdpBookingServiceItemToBag(c *gin.Context, prof mo
 	serviceItem.Amount = body.Amount
 	serviceItem.Input = body.Input
 
-	errUdp := serviceItem.Update()
+	errUdp := serviceItem.Update(db)
 
 	if errUdp != nil {
 		response_message.BadRequest(c, errUdp.Error())
@@ -145,6 +149,7 @@ func (_ *CBookingServiceItem) UdpBookingServiceItemToBag(c *gin.Context, prof mo
 }
 
 func (_ *CBookingServiceItem) DelBookingServiceItemToBag(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	bookingServiceIdStr := c.Param("id")
 	bookingServiceId, err := strconv.ParseInt(bookingServiceIdStr, 10, 64)
 	if err != nil || bookingServiceId <= 0 {
@@ -154,13 +159,13 @@ func (_ *CBookingServiceItem) DelBookingServiceItemToBag(c *gin.Context, prof mo
 
 	serviceItem := model_booking.BookingServiceItem{}
 	serviceItem.Id = bookingServiceId
-	errF := serviceItem.FindFirst()
+	errF := serviceItem.FindFirst(db)
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
 
-	errDel := serviceItem.Delete()
+	errDel := serviceItem.Delete(db)
 
 	if errDel != nil {
 		response_message.BadRequest(c, errDel.Error())
@@ -171,7 +176,7 @@ func (_ *CBookingServiceItem) DelBookingServiceItemToBag(c *gin.Context, prof mo
 	booking := model_booking.Booking{}
 	booking.Uid = serviceItem.BookingUid
 
-	errFB := booking.FindFirst()
+	errFB := booking.FindFirst(db)
 	if errFB != nil {
 		log.Println("DelBookingServiceItemToBag", errFB.Error())
 	} else {

@@ -3,9 +3,10 @@ package model_service
 import (
 	"errors"
 	"start/constants"
-	"start/datasources"
 	"start/models"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type GroupServices struct {
@@ -18,7 +19,7 @@ type GroupServices struct {
 	Type        string `json:"type" gorm:"type:varchar(100)"`              // Loại service, kiosk, proshop.
 }
 
-func (item *GroupServices) Create() error {
+func (item *GroupServices) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -26,35 +27,32 @@ func (item *GroupServices) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *GroupServices) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *GroupServices) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *GroupServices) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *GroupServices) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *GroupServices) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(GroupServices{})
+func (item *GroupServices) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(GroupServices{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *GroupServices) FindList(page models.Page) ([]GroupServices, int64, error) {
-	db := datasources.GetDatabase().Model(GroupServices{})
+func (item *GroupServices) FindList(database *gorm.DB, page models.Page) ([]GroupServices, int64, error) {
+	db := database.Model(GroupServices{})
 	list := []GroupServices{}
 	total := int64(0)
 	if item.CourseUid != "" {
@@ -81,9 +79,9 @@ func (item *GroupServices) FindList(page models.Page) ([]GroupServices, int64, e
 	return list, total, db.Error
 }
 
-func (item *GroupServices) Delete() error {
+func (item *GroupServices) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

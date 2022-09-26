@@ -1,22 +1,25 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
-	"gorm.io/datatypes"
 	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 )
 
 type CCaddieWorkingCalendar struct{}
 
 func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CreateCaddieWorkingCalendarBody
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("CreateCaddieWorkingCalendar BindJSON error")
@@ -27,7 +30,7 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 	// validate caddie_uid
 	caddie := models.Caddie{}
 	caddie.Id, _ = strconv.ParseInt(body.CaddieUid, 10, 64)
-	if err := caddie.FindFirst(); err != nil {
+	if err := caddie.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -56,7 +59,7 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 		ApplyDate:    datatypes.Date(applyDate),
 	}
 
-	if err := caddieWorkingCalendar.Create(); err != nil {
+	if err := caddieWorkingCalendar.Create(db); err != nil {
 		log.Print("CreateCaddieWorkingCalendar.Create()")
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -65,6 +68,7 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 }
 
 func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	// TODO: filter by from and to
 
 	query := request.GetCaddieWorkingCalendarList{}
@@ -84,7 +88,7 @@ func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, pr
 	caddieWorkingCalendar.CourseUid = prof.CourseUid
 	caddieWorkingCalendar.ApplyDate = query.ApplyDate
 
-	list, total, err := caddieWorkingCalendar.FindList(page)
+	list, total, err := caddieWorkingCalendar.FindList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -100,6 +104,7 @@ func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, pr
 }
 
 func (_ *CCaddieWorkingCalendar) UpdateCaddieWorkingCalendar(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.UpdateCaddieWorkingCalendarBody
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("UpdateCaddieWorkingCalendar BindJSON error")
@@ -110,7 +115,7 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieWorkingCalendar(c *gin.Context, pro
 	caddie := models.Caddie{}
 	caddie.Id, _ = strconv.ParseInt(body.CaddieUid, 10, 64)
 	caddie.Code = body.CaddieCode
-	if err := caddie.FindFirst(); err != nil {
+	if err := caddie.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -132,7 +137,7 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieWorkingCalendar(c *gin.Context, pro
 	caddieWorkingCalendar.CaddieRow = body.CaddieRow
 	caddieWorkingCalendar.RowTime = datatypes.NewTime(int(rowTimeHour), int(rowTimeMinute), 0, 0)
 
-	if err := caddieWorkingCalendar.FindFirst(); err != nil {
+	if err := caddieWorkingCalendar.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -141,7 +146,7 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieWorkingCalendar(c *gin.Context, pro
 	caddieWorkingCalendar.CaddieCode = body.CaddieCode
 	caddieWorkingCalendar.CaddieLabel = body.CaddieLabel
 
-	if err := caddieWorkingCalendar.Update(); err != nil {
+	if err := caddieWorkingCalendar.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}

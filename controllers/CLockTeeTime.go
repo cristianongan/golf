@@ -5,6 +5,7 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	"start/utils"
 	"start/utils/response_message"
@@ -13,11 +14,13 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type CLockTeeTime struct{}
 
 func (_ *CLockTeeTime) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateTeeTimeSettings{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -40,18 +43,18 @@ func (_ *CLockTeeTime) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser
 		TeeType:        body.TeeType,
 	}
 
-	errFind := teeTimeSetting.FindFirst()
+	errFind := teeTimeSetting.FindFirst(db)
 	teeTimeSetting.TeeTimeStatus = body.TeeTimeStatus
 	teeTimeSetting.Note = body.Note
 
 	if errFind == nil {
-		errC := teeTimeSetting.Update()
+		errC := teeTimeSetting.Update(db)
 		if errC != nil {
 			response_message.InternalServerError(c, errC.Error())
 			return
 		}
 	} else {
-		errC := teeTimeSetting.Create()
+		errC := teeTimeSetting.Create(db)
 		if errC != nil {
 			response_message.InternalServerError(c, errC.Error())
 			return
@@ -60,6 +63,7 @@ func (_ *CLockTeeTime) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser
 	okResponse(c, teeTimeSetting)
 }
 func (_ *CLockTeeTime) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetListTeeTimeSettings{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -80,7 +84,7 @@ func (_ *CLockTeeTime) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
 		teeTimeSetting.DateTime = query.DateTime
 	}
 
-	list, total, err := teeTimeSetting.FindList(query.RequestType)
+	list, total, err := teeTimeSetting.FindList(db, query.RequestType)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -95,9 +99,10 @@ func (_ *CLockTeeTime) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
 	c.JSON(200, res)
 }
 func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, prof models.CmsUser) error {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	course := models.Course{}
 	course.Uid = body.CourseUid
-	errCourse := course.FindFirst()
+	errCourse := course.FindFirst(db)
 	if errCourse != nil {
 		return errCourse
 	}
@@ -108,7 +113,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 	}
 
 	cBookingSetting := CBookingSetting{}
-	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(form)
+	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
 	weekday := strconv.Itoa(int(time.Now().Weekday()))
 	turnTimeH := 2
 	endTime := ""
@@ -179,7 +184,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 			CurrentTeeTime: body.TeeTime,
 			TeeType:        data,
 		}
-		errC := lockTeeTime.Create()
+		errC := lockTeeTime.Create(db)
 		if errC != nil {
 			return errC
 		}
@@ -187,15 +192,15 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 
 	return nil
 }
-func (_ *CLockTeeTime) DeleteLockTurn(teeTime string, bookingDate string) error {
+func (_ *CLockTeeTime) DeleteLockTurn(db *gorm.DB, teeTime string, bookingDate string) error {
 	lockTeeTime := models.LockTeeTime{
 		CurrentTeeTime: teeTime,
 		DateTime:       bookingDate,
 	}
-	list, _, _ := lockTeeTime.FindList("TURN_TIME")
+	list, _, _ := lockTeeTime.FindList(db, "TURN_TIME")
 
 	for _, data := range list {
-		err := data.Delete()
+		err := data.Delete(db)
 		if err != nil {
 			return err
 		}
@@ -204,6 +209,7 @@ func (_ *CLockTeeTime) DeleteLockTurn(teeTime string, bookingDate string) error 
 }
 
 func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.DeleteLockRequest{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -215,7 +221,7 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 		DateTime:       query.BookingDate,
 	}
 
-	list, _, _ := lockTeeTime.FindList(query.RequestType)
+	list, _, _ := lockTeeTime.FindList(db, query.RequestType)
 
 	if len(list) == 0 {
 		response_message.BadRequest(c, "TeeTime not found")
@@ -223,7 +229,7 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 	}
 
 	for _, data := range list {
-		err := data.Delete()
+		err := data.Delete(db)
 		if err != nil {
 			response_message.BadRequest(c, err.Error())
 			return

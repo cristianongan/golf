@@ -1,30 +1,34 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
-	"gorm.io/datatypes"
 	"log"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils/response_message"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 type CCaddieEvaluation struct{}
 
-func (_ *CCaddieEvaluation) validateBooking(c *gin.Context, bookingUid string, caddieUid string, caddieCode string) (model_booking.Booking, error) {
+func (_ *CCaddieEvaluation) validateBooking(c *gin.Context, db *gorm.DB, bookingUid string, caddieUid string, caddieCode string) (model_booking.Booking, error) {
 	bookingList := model_booking.BookingList{}
 	bookingList.BookingUid = bookingUid
 	bookingList.CaddieUid = caddieUid
 	bookingList.CaddieCode = caddieCode
 
-	return bookingList.FindFirst()
+	return bookingList.FindFirst(db)
 }
 
 func (cCaddieEvaluation *CCaddieEvaluation) CreateCaddieEvaluation(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CreateCaddieEvaluationBody
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("CreateCaddieEvaluation BindJSON error")
@@ -33,7 +37,7 @@ func (cCaddieEvaluation *CCaddieEvaluation) CreateCaddieEvaluation(c *gin.Contex
 	}
 
 	// validate booking_uid, caddie_uid, caddie_code
-	booking, err := cCaddieEvaluation.validateBooking(c, body.BookingUid, body.CaddieUid, body.CaddieCode)
+	booking, err := cCaddieEvaluation.validateBooking(c, db, body.BookingUid, body.CaddieUid, body.CaddieCode)
 	if err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
@@ -42,7 +46,7 @@ func (cCaddieEvaluation *CCaddieEvaluation) CreateCaddieEvaluation(c *gin.Contex
 	// validate duplicate
 	caddieEvaluationList := models.CaddieEvaluationList{}
 	caddieEvaluationList.BookingUid = body.BookingUid
-	if _, err = caddieEvaluationList.FindFirst(); err == nil {
+	if _, err = caddieEvaluationList.FindFirst(db); err == nil {
 		response_message.BadRequest(c, "record duplicate")
 		return
 	}
@@ -61,7 +65,7 @@ func (cCaddieEvaluation *CCaddieEvaluation) CreateCaddieEvaluation(c *gin.Contex
 		RankType:    body.RankType,
 	}
 
-	if err := caddieEvaluation.Create(); err != nil {
+	if err := caddieEvaluation.Create(db); err != nil {
 		log.Print("CaddieEvaluation.Create()")
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -70,6 +74,7 @@ func (cCaddieEvaluation *CCaddieEvaluation) CreateCaddieEvaluation(c *gin.Contex
 }
 
 func (_ *CCaddieEvaluation) GetCaddieEvaluationList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetCaddieEvaluationList{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -90,7 +95,7 @@ func (_ *CCaddieEvaluation) GetCaddieEvaluationList(c *gin.Context, prof models.
 	caddieEvaluation.CaddieCode = query.CaddieCode
 	caddieEvaluation.Month = query.Month
 
-	list, total, err := caddieEvaluation.FindList(page)
+	list, total, err := caddieEvaluation.FindList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -106,6 +111,7 @@ func (_ *CCaddieEvaluation) GetCaddieEvaluationList(c *gin.Context, prof models.
 }
 
 func (_ *CCaddieEvaluation) UpdateCaddieEvaluation(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.UpdateCaddieEvaluationBody
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("UpdateCaddieEvaluation BindJSON error")
@@ -119,14 +125,14 @@ func (_ *CCaddieEvaluation) UpdateCaddieEvaluation(c *gin.Context, prof models.C
 	caddieEvaluation.CaddieCode = body.CaddieCode
 	caddieEvaluation.Id, _ = strconv.ParseInt(c.Param("id"), 10, 64)
 
-	if err := caddieEvaluation.FindFirst(); err != nil {
+	if err := caddieEvaluation.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
 
 	caddieEvaluation.RankType = body.RankType
 
-	if err := caddieEvaluation.Update(); err != nil {
+	if err := caddieEvaluation.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}

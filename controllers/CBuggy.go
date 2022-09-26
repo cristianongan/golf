@@ -5,6 +5,7 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/logger"
 	"start/models"
 	"start/utils/response_message"
@@ -16,6 +17,7 @@ import (
 type CBuggy struct{}
 
 func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CreateBuggyBody
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		response_message.BadRequest(c, "")
@@ -24,7 +26,7 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 
 	courseRequest := models.Course{}
 	courseRequest.Uid = body.CourseUid
-	errFind := courseRequest.FindFirst()
+	errFind := courseRequest.FindFirst(db)
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
@@ -42,7 +44,7 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 	buggyRequest.CourseUid = body.CourseUid
 	buggyRequest.PartnerUid = body.PartnerUid
 	buggyRequest.Code = body.Code // Id Buggy vận hành
-	errExist := buggyRequest.FindFirst()
+	errExist := buggyRequest.FindFirst(db)
 
 	if errExist == nil && buggyRequest.ModelId.Id > 0 {
 		response_message.BadRequest(c, "Code existed in course")
@@ -69,7 +71,7 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 		buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_ACTIVE
 	}
 
-	err := buggy.Create()
+	err := buggy.Create(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -78,6 +80,7 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBuggyForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -121,7 +124,7 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 		buggyRequest.PartnerUid = ""
 	}
 
-	list, total, err := buggyRequest.FindList(page)
+	list, total, err := buggyRequest.FindList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -137,6 +140,7 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CBuggy) DeleteBuggy(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	buggyIdStr := c.Param("id")
 	buggyId, errId := strconv.ParseInt(buggyIdStr, 10, 64)
 	if errId != nil {
@@ -146,14 +150,14 @@ func (_ *CBuggy) DeleteBuggy(c *gin.Context, prof models.CmsUser) {
 
 	buggyRequest := models.Buggy{}
 	buggyRequest.Id = buggyId
-	errF := buggyRequest.FindFirst()
+	errF := buggyRequest.FindFirst(db)
 
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
 
-	err := buggyRequest.Delete()
+	err := buggyRequest.Delete(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -163,6 +167,7 @@ func (_ *CBuggy) DeleteBuggy(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	buggyIdStr := c.Param("id")
 	buggyId, errId := strconv.ParseInt(buggyIdStr, 10, 64)
 	if errId != nil {
@@ -179,7 +184,7 @@ func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
 	buggyRequest := models.Buggy{}
 	buggyRequest.Id = buggyId
 
-	errF := buggyRequest.FindFirst()
+	errF := buggyRequest.FindFirst(db)
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
@@ -187,7 +192,7 @@ func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
 	if body.CourseUid != nil {
 		courseRequest := models.Course{}
 		courseRequest.Uid = *body.CourseUid
-		errFind := courseRequest.FindFirst()
+		errFind := courseRequest.FindFirst(db)
 		if errFind != nil {
 			response_message.BadRequest(c, "course_uid not found")
 			return
@@ -237,7 +242,7 @@ func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
 	}
 	// + END: update data
 
-	err := buggyRequest.Update()
+	err := buggyRequest.Update(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

@@ -1,8 +1,9 @@
 package model_gostarter
 
 import (
-	"start/datasources"
 	"start/models"
+
+	"gorm.io/gorm"
 	// "gorm.io/gorm"
 )
 
@@ -18,11 +19,11 @@ type FlightList struct {
 	PeopleNumberInFlight *int
 }
 
-func (item *FlightList) FindFlightList(page models.Page) ([]Flight, int64, error) {
+func (item *FlightList) FindFlightList(database *gorm.DB, page models.Page) ([]Flight, int64, error) {
 	var list []Flight
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(Flight{})
+	db := database.Model(Flight{})
 	db = db.Joins("INNER JOIN bookings ON bookings.flight_id = flights.id").Group("flights.id")
 
 	if item.GolfBag != "" {

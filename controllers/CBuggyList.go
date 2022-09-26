@@ -2,18 +2,21 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils/response_message"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CBuggyList struct{}
 
 func (_ *CBuggyList) GetBuggyList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetBuggyList{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -42,7 +45,7 @@ func (_ *CBuggyList) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 	// add course_uid
 	bookings.CourseUid = prof.CourseUid
 
-	db, total, err := bookings.FindBookingListWithSelect(page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page)
 
 	var list []response.BuggyListResponse
 	db.Find(&list)

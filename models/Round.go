@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"start/constants"
-	"start/datasources"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Hãng Golf
@@ -40,7 +41,7 @@ func (item ListRound) Value() (driver.Value, error) {
 }
 
 // ======= CRUD ===========
-func (item *Round) Create() error {
+func (item *Round) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
@@ -49,35 +50,32 @@ func (item *Round) Create() error {
 		item.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *Round) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *Round) Update(db *gorm.DB) error {
 	item.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *Round) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *Round) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *Round) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(Round{})
+func (item *Round) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(Round{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *Round) CountWithBillCode() (int64, error) {
-	db := datasources.GetDatabase().Model(Round{})
+func (item *Round) CountWithBillCode(database *gorm.DB) (int64, error) {
+	db := database.Model(Round{})
 	total := int64(0)
 	if item.BillCode != "" {
 		db = db.Where("bill_code = ?", item.BillCode)
@@ -86,8 +84,8 @@ func (item *Round) CountWithBillCode() (int64, error) {
 	return total, db.Error
 }
 
-func (item *Round) FindList(page Page) ([]Round, int64, error) {
-	db := datasources.GetDatabase().Model(Round{})
+func (item *Round) FindList(database *gorm.DB,page Page) ([]Round, int64, error) {
+	db := database.Model(Round{})
 	list := []Round{}
 	total := int64(0)
 	status := item.Status
@@ -105,8 +103,8 @@ func (item *Round) FindList(page Page) ([]Round, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *Round) FindAll() ([]Round, error) {
-	db := datasources.GetDatabase().Model(Round{})
+func (item *Round) FindAll(database *gorm.DB) ([]Round, error) {
+	db := database.Model(Round{})
 	list := []Round{}
 	item.Status = ""
 
@@ -118,9 +116,9 @@ func (item *Round) FindAll() ([]Round, error) {
 	return list, db.Error
 }
 
-func (item *Round) Delete() error {
+func (item *Round) Delete(db *gorm.DB) error {
 	if item.Id == 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

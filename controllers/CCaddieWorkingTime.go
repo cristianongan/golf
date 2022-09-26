@@ -5,6 +5,7 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -16,6 +17,7 @@ import (
 type CCaddieWorkingTime struct{}
 
 func (_ *CCaddieWorkingTime) CaddieCheckInWorkingTime(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CaddieCheckInWorkingTimeBody
 
 	if bindErr := c.BindJSON(&body); bindErr != nil {
@@ -26,7 +28,7 @@ func (_ *CCaddieWorkingTime) CaddieCheckInWorkingTime(c *gin.Context, prof model
 
 	caddieRequest := models.Caddie{}
 	// caddieRequest.Uid = body.CaddieId
-	errExist := caddieRequest.FindFirst()
+	errExist := caddieRequest.FindFirst(db)
 
 	if errExist != nil {
 		response_message.BadRequest(c, "Caddie IdentityCard did not exist")
@@ -45,7 +47,7 @@ func (_ *CCaddieWorkingTime) CaddieCheckInWorkingTime(c *gin.Context, prof model
 		CheckInTime: checkInTime,
 	}
 
-	err := caddieWorkingTime.Create()
+	err := caddieWorkingTime.Create(db)
 	if err != nil {
 		log.Print("Create caddieNote error")
 		response_message.InternalServerError(c, err.Error())
@@ -55,6 +57,7 @@ func (_ *CCaddieWorkingTime) CaddieCheckInWorkingTime(c *gin.Context, prof model
 }
 
 func (_ *CCaddieWorkingTime) CaddieCheckOutWorkingTime(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CaddieCheckOutWorkingTimeBody
 
 	if bindErr := c.BindJSON(&body); bindErr != nil {
@@ -65,7 +68,7 @@ func (_ *CCaddieWorkingTime) CaddieCheckOutWorkingTime(c *gin.Context, prof mode
 
 	caddieWorkingTimeRequest := models.CaddieWorkingTime{}
 	caddieWorkingTimeRequest.Id = body.Id
-	response := caddieWorkingTimeRequest.FindCaddieWorkingTimeDetail()
+	response := caddieWorkingTimeRequest.FindCaddieWorkingTimeDetail(db)
 
 	if response == nil {
 		response_message.BadRequest(c, "Caddie IdentityCard did not exist")
@@ -81,7 +84,7 @@ func (_ *CCaddieWorkingTime) CaddieCheckOutWorkingTime(c *gin.Context, prof mode
 		CheckOutTime: checkOutTime,
 	}
 
-	err := caddieWorkingTime.Update()
+	err := caddieWorkingTime.Update(db)
 	if err != nil {
 		log.Print("Create caddieNote error")
 		response_message.InternalServerError(c, err.Error())
@@ -91,6 +94,7 @@ func (_ *CCaddieWorkingTime) CaddieCheckOutWorkingTime(c *gin.Context, prof mode
 }
 
 func (_ *CCaddieWorkingTime) GetCaddieWorkingTimeDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListCaddieWorkingTimeForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -114,7 +118,7 @@ func (_ *CCaddieWorkingTime) GetCaddieWorkingTimeDetail(c *gin.Context, prof mod
 		caddieWorkingTimeRequest.CaddieName = form.CaddieName
 	}
 
-	list, total, err := caddieWorkingTimeRequest.FindList(page, form.From, form.To)
+	list, total, err := caddieWorkingTimeRequest.FindList(db, page, form.From, form.To)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -130,6 +134,7 @@ func (_ *CCaddieWorkingTime) GetCaddieWorkingTimeDetail(c *gin.Context, prof mod
 }
 
 func (_ *CCaddieWorkingTime) DeleteCaddieWorkingTime(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	idRequest := c.Param("id")
 	caddieIdIncrement, errId := strconv.ParseInt(idRequest, 10, 64)
 	if errId != nil {
@@ -139,14 +144,14 @@ func (_ *CCaddieWorkingTime) DeleteCaddieWorkingTime(c *gin.Context, prof models
 
 	caddieWorkingTimeRequest := models.CaddieWorkingTime{}
 	caddieWorkingTimeRequest.Id = caddieIdIncrement
-	errF := caddieWorkingTimeRequest.FindFirst()
+	errF := caddieWorkingTimeRequest.FindFirst(db)
 
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
 
-	err := caddieWorkingTimeRequest.Delete()
+	err := caddieWorkingTimeRequest.Delete(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -156,6 +161,7 @@ func (_ *CCaddieWorkingTime) DeleteCaddieWorkingTime(c *gin.Context, prof models
 }
 
 func (_ *CCaddieWorkingTime) UpdateCaddieWorkingTime(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	idStr := c.Param("id")
 	caddieId, errId := strconv.ParseInt(idStr, 10, 64)
 	if errId != nil {
@@ -172,7 +178,7 @@ func (_ *CCaddieWorkingTime) UpdateCaddieWorkingTime(c *gin.Context, prof models
 	caddieRequest := models.CaddieWorkingTime{}
 	caddieRequest.Id = caddieId
 
-	errF := caddieRequest.FindFirst()
+	errF := caddieRequest.FindFirst(db)
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
@@ -187,7 +193,7 @@ func (_ *CCaddieWorkingTime) UpdateCaddieWorkingTime(c *gin.Context, prof models
 		caddieRequest.CheckInTime = *body.CheckInTime
 	}
 
-	err := caddieRequest.Update()
+	err := caddieRequest.Update(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

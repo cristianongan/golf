@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Booking
@@ -461,20 +462,20 @@ type NumberPeopleInFlight struct {
 /*
 	Lấy service item của main bag và sub bag nếu có
 */
-func (item *Booking) FindServiceItems() {
+func (item *Booking) FindServiceItems(db *gorm.DB) {
 	//MainBag
 	listServiceItems := ListBookingServiceItems{}
 	serviceGolfs := BookingServiceItem{
 		BillCode: item.BillCode,
 	}
-	listGolfService, _ := serviceGolfs.FindAll()
+	listGolfService, _ := serviceGolfs.FindAll(db)
 	if len(listGolfService) > 0 {
 		for _, v := range listGolfService {
 			// Check trạng thái bill
 			serviceCart := models.ServiceCart{}
 			serviceCart.Id = v.ServiceBill
 
-			errSC := serviceCart.FindFirst()
+			errSC := serviceCart.FindFirst(db)
 			if errSC != nil {
 				log.Println("FindFristServiceCart errSC", errSC.Error())
 				return
@@ -497,7 +498,7 @@ func (item *Booking) FindServiceItems() {
 			serviceGolfsTemp := BookingServiceItem{
 				BillCode: v.BillCode,
 			}
-			listGolfServiceTemp, _ := serviceGolfsTemp.FindAll()
+			listGolfServiceTemp, _ := serviceGolfsTemp.FindAll(db)
 
 			for _, v1 := range listGolfServiceTemp {
 				isCanAdd := false
@@ -507,7 +508,7 @@ func (item *Booking) FindServiceItems() {
 						serviceCart := models.ServiceCart{}
 						serviceCart.Id = v1.ServiceBill
 
-						errSC := serviceCart.FindFirst()
+						errSC := serviceCart.FindFirst(db)
 						if errSC != nil {
 							log.Println("FindFristServiceCart errSC", errSC.Error())
 							return
@@ -575,7 +576,7 @@ func (item *Booking) UpdateBagGolfFee() {
 }
 
 // Udp MushPay
-func (item *Booking) UpdateMushPay() {
+func (item *Booking) UpdateMushPay(db *gorm.DB) {
 	mushPay := BookingMushPay{}
 
 	totalGolfFee := int64(0)
@@ -589,7 +590,7 @@ func (item *Booking) UpdateMushPay() {
 	// Sub Service Item của current Bag
 	// Get item for current Bag
 	// update lại lấy service items mới
-	item.FindServiceItems()
+	item.FindServiceItems(db)
 	for _, v := range item.ListServiceItems {
 		isNeedPay := false
 		if len(item.MainBagPay) > 0 && item.BillCode != v.BillCode {
@@ -627,10 +628,10 @@ func (item *Booking) UpdateMushPay() {
 /*
 Update mush price bag have main bag
 */
-func (item *Booking) UpdatePriceForBagHaveMainBags() {
+func (item *Booking) UpdatePriceForBagHaveMainBags(db *gorm.DB) {
 	mainBook := Booking{}
 	mainBook.Uid = item.MainBags[0].BookingUid
-	errFMB := mainBook.FindFirst()
+	errFMB := mainBook.FindFirst(db)
 	if errFMB != nil {
 		log.Println("UpdatePriceForBagHaveMainBags errFMB", errFMB.Error())
 		return
@@ -665,7 +666,7 @@ func (item *Booking) UpdatePriceForBagHaveMainBags() {
 	// Tính total golf fee cho sub
 	mushPay.TotalGolfFee = totalGolfFee
 
-	item.FindServiceItems()
+	item.FindServiceItems(db)
 	for _, v := range item.ListServiceItems {
 		isCon := utils.ContainString(listPay, v.Type)
 		if isCon < 0 {
@@ -740,9 +741,9 @@ func (item *Booking) UpdatePriceForBagHaveMainBags() {
 			mainBook.ListGolfFee = listTempGF1
 		}
 	}
-	mainBook.UpdateMushPay()
-	mainBook.UpdatePriceDetailCurrentBag()
-	errUdpMB := mainBook.Update()
+	mainBook.UpdateMushPay(db)
+	mainBook.UpdatePriceDetailCurrentBag(db)
+	errUdpMB := mainBook.Update(db)
 	if errUdpMB != nil {
 		log.Println("UpdatePriceForBagHaveMainBags errUdpMB", errUdpMB.Error())
 	}
@@ -750,13 +751,13 @@ func (item *Booking) UpdatePriceForBagHaveMainBags() {
 
 // Udp lại giá cho Booking
 // Udp sub bag price
-func (item *Booking) UpdatePriceDetailCurrentBag() {
+func (item *Booking) UpdatePriceDetailCurrentBag(db *gorm.DB) {
 	priceDetail := BookingCurrentBagPriceDetail{}
 
 	if len(item.ListGolfFee) > 0 {
 		priceDetail.GolfFee = item.ListGolfFee[0].BuggyFee + item.ListGolfFee[0].CaddieFee + item.ListGolfFee[0].GreenFee
 	}
-	item.FindServiceItems()
+	item.FindServiceItems(db)
 	for _, serviceItem := range item.ListServiceItems {
 		if serviceItem.BillCode == item.BillCode {
 			// Udp service detail cho booking uid
@@ -781,7 +782,7 @@ func (item *Booking) UpdatePriceDetailCurrentBag() {
 }
 
 // Check Duplicated
-func (item *Booking) IsDuplicated(checkTeeTime, checkBag bool) (bool, error) {
+func (item *Booking) IsDuplicated(db *gorm.DB, checkTeeTime, checkBag bool) (bool, error) {
 	//Check Bag đã tồn tại trước
 	if checkBag {
 		if item.Bag != "" {
@@ -791,7 +792,7 @@ func (item *Booking) IsDuplicated(checkTeeTime, checkBag bool) (bool, error) {
 				BookingDate: item.BookingDate,
 				Bag:         item.Bag,
 			}
-			errBagFind := booking.FindFirst()
+			errBagFind := booking.FindFirst(db)
 			if errBagFind == nil || booking.Uid != "" {
 				return true, errors.New("Duplicated Bag")
 			}
@@ -813,7 +814,7 @@ func (item *Booking) IsDuplicated(checkTeeTime, checkBag bool) (bool, error) {
 			TeeType:     item.TeeType,
 		}
 
-		errFind := booking.FindFirstNotCancel()
+		errFind := booking.FindFirstNotCancel(db)
 		if errFind == nil || booking.Uid != "" {
 			return true, errors.New("Duplicated TeeTime")
 		}
@@ -822,7 +823,7 @@ func (item *Booking) IsDuplicated(checkTeeTime, checkBag bool) (bool, error) {
 	return false, nil
 }
 
-func (item *Booking) CheckDuplicatedCaddieInTeeTime() bool {
+func (item *Booking) CheckDuplicatedCaddieInTeeTime(db *gorm.DB) bool {
 	if item.TeeTime == "" {
 		return false
 	}
@@ -835,12 +836,12 @@ func (item *Booking) CheckDuplicatedCaddieInTeeTime() bool {
 		CaddieId:    item.CaddieId,
 	}
 
-	errFind := booking.FindFirstNotCancel()
+	errFind := booking.FindFirstNotCancel(db)
 	return errFind == nil
 }
 
 // ----------- CRUD ------------
-func (item *Booking) Create(uid string) error {
+func (item *Booking) Create(db *gorm.DB, uid string) error {
 	item.Model.Uid = uid
 	now := time.Now()
 	item.Model.CreatedAt = now.Unix()
@@ -849,21 +850,19 @@ func (item *Booking) Create(uid string) error {
 		item.Model.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *Booking) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *Booking) Update(db *gorm.DB) error {
 	item.Model.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *Booking) CreateBatch(bookings []Booking) error {
+func (item *Booking) CreateBatch(db *gorm.DB, bookings []Booking) error {
 	now := time.Now()
 	for i := range bookings {
 		c := &bookings[i]
@@ -872,33 +871,30 @@ func (item *Booking) CreateBatch(bookings []Booking) error {
 		c.Model.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.CreateInBatches(bookings, 100).Error
 }
 
-func (item *Booking) FindFirst() error {
-	db := datasources.GetDatabase()
-	db = db.Order("created_at desc")
+func (item *Booking) FindFirst(database *gorm.DB) error {
+	db := database.Order("created_at desc")
 	return db.Where(item).First(item).Error
 }
 
-func (item *Booking) FindFirstNotCancel() error {
-	db := datasources.GetDatabase()
+func (item *Booking) FindFirstNotCancel(db *gorm.DB) error {
 	db = db.Where(item)
 	db = db.Not("bag_status = ?", constants.BAG_STATUS_CANCEL)
 	return db.Where(item).First(item).Error
 }
 
-func (item *Booking) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(Booking{})
+func (item *Booking) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(Booking{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *Booking) FindAllBookingCheckIn(bookingDate string) ([]Booking, error) {
-	db := datasources.GetDatabase().Model(Booking{})
+func (item *Booking) FindAllBookingCheckIn(database *gorm.DB, bookingDate string) ([]Booking, error) {
+	db := database.Model(Booking{})
 	list := []Booking{}
 
 	if bookingDate != "" {
@@ -910,8 +906,8 @@ func (item *Booking) FindAllBookingCheckIn(bookingDate string) ([]Booking, error
 	return list, db.Error
 }
 
-func (item *Booking) FindList(page models.Page, from int64, to int64, agencyType string) ([]Booking, int64, error) {
-	db := datasources.GetDatabase().Model(Booking{})
+func (item *Booking) FindList(database *gorm.DB, page models.Page, from int64, to int64, agencyType string) ([]Booking, int64, error) {
+	db := database.Model(Booking{})
 	list := []Booking{}
 	total := int64(0)
 	status := item.Model.Status
@@ -981,8 +977,8 @@ func (item *Booking) FindList(page models.Page, from int64, to int64, agencyType
 	return list, total, db.Error
 }
 
-func (item *Booking) FindBookingTeeTimeList() ([]BookingTeeResponse, int64, error) {
-	db := datasources.GetDatabase().Model(Booking{})
+func (item *Booking) FindBookingTeeTimeList(database *gorm.DB) ([]BookingTeeResponse, int64, error) {
+	db := database.Model(Booking{})
 	list := []BookingTeeResponse{}
 	total := int64(0)
 	item.Model.Status = ""
@@ -1007,8 +1003,8 @@ func (item *Booking) FindBookingTeeTimeList() ([]BookingTeeResponse, int64, erro
 	return list, total, db.Error
 }
 
-func (item *Booking) FindListForSubBag() ([]BookingForSubBag, error) {
-	db := datasources.GetDatabase().Table("bookings")
+func (item *Booking) FindListForSubBag(database *gorm.DB) ([]BookingForSubBag, error) {
+	db := database.Table("bookings")
 	list := []BookingForSubBag{}
 	status := item.Model.Status
 	item.Model.Status = ""
@@ -1042,8 +1038,8 @@ func (item *Booking) FindListForSubBag() ([]BookingForSubBag, error) {
 	return list, db.Error
 }
 
-func (item *Booking) FindListWithBookingCode() ([]Booking, error) {
-	db := datasources.GetDatabase().Table("bookings")
+func (item *Booking) FindListWithBookingCode(database *gorm.DB) ([]Booking, error) {
+	db := database.Table("bookings")
 	list := []Booking{}
 	if item.BookingCode != "" {
 		db = db.Where("booking_code = ?", item.BookingCode)
@@ -1055,8 +1051,8 @@ func (item *Booking) FindListWithBookingCode() ([]Booking, error) {
 /*
 Find bookings in Flight
 */
-func (item *Booking) FindListInFlight() ([]Booking, error) {
-	db := datasources.GetDatabase().Table("bookings")
+func (item *Booking) FindListInFlight(database *gorm.DB) ([]Booking, error) {
+	db := database.Table("bookings")
 	list := []Booking{}
 
 	if item.PartnerUid != "" {
@@ -1077,15 +1073,15 @@ func (item *Booking) FindListInFlight() ([]Booking, error) {
 	return list, db.Error
 }
 
-func (item *Booking) Delete() error {
+func (item *Booking) Delete(db *gorm.DB) error {
 	if item.Model.Uid == "" {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }
 
-func (item *Booking) FindForCaddieOnCourse(InFlight string) []Booking {
-	db := datasources.GetDatabase().Model(Booking{})
+func (item *Booking) FindForCaddieOnCourse(database *gorm.DB, InFlight string) []Booking {
+	db := database.Model(Booking{})
 	list := []Booking{}
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
@@ -1138,8 +1134,8 @@ func (item *Booking) FindForCaddieOnCourse(InFlight string) []Booking {
 /*
 Get List for Flight Data
 */
-func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numberPeopleInFlight *int64, page models.Page) []BookingForFlightRes {
-	db := datasources.GetDatabase().Table("bookings")
+func (item *Booking) FindForFlightAll(database *gorm.DB, caddieCode string, caddieName string, numberPeopleInFlight *int64, page models.Page) []BookingForFlightRes {
+	db := database.Table("bookings")
 	list := []BookingForFlightRes{}
 	listFlightWithNumberPeople := []int64{}
 	total := int64(0)
@@ -1194,8 +1190,8 @@ func (item *Booking) FindForFlightAll(caddieCode string, caddieName string, numb
 /*
 For report MainBag SubBag
 */
-func (item *Booking) FindListForReportForMainBagSubBag() ([]BookingForReportMainBagSubBags, error) {
-	db := datasources.GetDatabase().Table("bookings")
+func (item *Booking) FindListForReportForMainBagSubBag(database *gorm.DB) ([]BookingForReportMainBagSubBags, error) {
+	db := database.Table("bookings")
 	list := []BookingForReportMainBagSubBags{}
 
 	if item.PartnerUid != "" {
@@ -1216,8 +1212,8 @@ func (item *Booking) FindListForReportForMainBagSubBag() ([]BookingForReportMain
 /*
 For report List Service Items
 */
-func (item *Booking) FindListServiceItems(param GetListBookingWithListServiceItems, page models.Page) ([]BookingForListServiceIems, int64, error) {
-	db := datasources.GetDatabase().Table("bookings")
+func (item *Booking) FindListServiceItems(database *gorm.DB, param GetListBookingWithListServiceItems, page models.Page) ([]BookingForListServiceIems, int64, error) {
+	db := database.Table("bookings")
 	list := []Booking{}
 	total := int64(0)
 

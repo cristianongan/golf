@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 
@@ -13,6 +14,7 @@ import (
 type CCourse struct{}
 
 func (_ *CCourse) CreateCourse(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.Course{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -38,7 +40,7 @@ func (_ *CCourse) CreateCourse(c *gin.Context, prof models.CmsUser) {
 	course := models.Course{}
 	course.Uid = udpCourseUid(body.Uid, body.PartnerUid)
 
-	errFind1 := course.FindFirst()
+	errFind1 := course.FindFirst(db)
 	if errFind1 == nil || course.Name != "" {
 		response_message.DuplicateRecord(c, errors.New("Duplicate uid").Error())
 		return
@@ -55,7 +57,7 @@ func (_ *CCourse) CreateCourse(c *gin.Context, prof models.CmsUser) {
 	course.Hole = body.Hole
 	course.RateGolfFee = body.RateGolfFee
 
-	errC := course.Create()
+	errC := course.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -66,6 +68,7 @@ func (_ *CCourse) CreateCourse(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCourse) GetListCourse(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListCourseForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -91,7 +94,7 @@ func (_ *CCourse) GetListCourse(c *gin.Context, prof models.CmsUser) {
 		courseR.Status = form.Status
 	}
 
-	list, total, err := courseR.FindList(page)
+	list, total, err := courseR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -106,6 +109,7 @@ func (_ *CCourse) GetListCourse(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCourse) UpdateCourse(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	courseUidStr := c.Param("uid")
 	if courseUidStr == "" {
 		response_message.BadRequest(c, errors.New("uid not valid").Error())
@@ -115,7 +119,7 @@ func (_ *CCourse) UpdateCourse(c *gin.Context, prof models.CmsUser) {
 	//Check tồn tại
 	course := models.Course{}
 	course.Uid = courseUidStr
-	errF := course.FindFirst()
+	errF := course.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -152,7 +156,7 @@ func (_ *CCourse) UpdateCourse(c *gin.Context, prof models.CmsUser) {
 		course.RateGolfFee = body.RateGolfFee
 	}
 
-	errUdp := course.Update()
+	errUdp := course.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -162,6 +166,7 @@ func (_ *CCourse) UpdateCourse(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCourse) DeleteCourse(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	courseUidStr := c.Param("uid")
 	if courseUidStr == "" {
 		response_message.BadRequest(c, errors.New("uid not valid").Error())
@@ -170,13 +175,13 @@ func (_ *CCourse) DeleteCourse(c *gin.Context, prof models.CmsUser) {
 
 	course := models.Course{}
 	course.Uid = courseUidStr
-	errF := course.FindFirst()
+	errF := course.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := course.Delete()
+	errDel := course.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
@@ -186,6 +191,7 @@ func (_ *CCourse) DeleteCourse(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCourse) GetCourseDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	courseUidStr := c.Param("uid")
 	if courseUidStr == "" {
 		response_message.BadRequest(c, errors.New("uid not valid").Error())
@@ -194,7 +200,7 @@ func (_ *CCourse) GetCourseDetail(c *gin.Context, prof models.CmsUser) {
 
 	course := models.Course{}
 	course.Uid = courseUidStr
-	errF := course.FindFirst()
+	errF := course.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return

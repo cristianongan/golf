@@ -1,10 +1,11 @@
 package models
 
 import (
-	"gorm.io/datatypes"
 	"start/constants"
-	"start/datasources"
 	"time"
+
+	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 type Deposit struct {
@@ -30,24 +31,20 @@ type Deposit struct {
 	Note             string         `json:"note"`
 }
 
-func (item *Deposit) Create() error {
+func (item *Deposit) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *Deposit) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *Deposit) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *Deposit) Update() error {
+func (item *Deposit) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-
-	db := datasources.GetDatabase()
 	return db.Save(item).Error
 }

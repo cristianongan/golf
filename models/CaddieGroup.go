@@ -4,6 +4,8 @@ import (
 	"start/constants"
 	"start/datasources"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type CaddieGroup struct {
@@ -15,30 +17,29 @@ type CaddieGroup struct {
 	Caddies    []Caddie `json:"caddies" gorm:"foreignKey:GroupId"`
 }
 
-func (item *CaddieGroup) Create() error {
+func (item *CaddieGroup) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
 
-	db := datasources.GetDatabase()
+	// db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *CaddieGroup) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *CaddieGroup) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *CaddieGroup) Delete() error {
+func (item *CaddieGroup) Delete(db *gorm.DB) error {
 	return datasources.GetDatabase().Delete(item).Error
 }
 
-func (item *CaddieGroup) FindList(page Page) ([]CaddieGroup, int64, error) {
+func (item *CaddieGroup) FindList(database *gorm.DB, page Page) ([]CaddieGroup, int64, error) {
 	var list []CaddieGroup
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(CaddieGroup{})
+	db := database.Model(CaddieGroup{})
 
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)

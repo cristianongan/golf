@@ -1,9 +1,10 @@
 package logger
 
 import (
-	"gorm.io/datatypes"
-	"start/datasources"
 	"start/models"
+
+	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 type UpdateActivityLog struct {
@@ -21,11 +22,11 @@ type UpdateActivityLogData struct {
 	Value datatypes.JSON `json:"value"`
 }
 
-func (item *UpdateActivityLogData) FindList(page models.Page) ([]UpdateActivityLogData, int64, error) {
+func (item *UpdateActivityLogData) FindList(database *gorm.DB, page models.Page) ([]UpdateActivityLogData, int64, error) {
 	var list []UpdateActivityLogData
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(ActivityLog{})
+	db := database.Model(ActivityLog{})
 
 	if item.Category != "" {
 		db = db.Where("category = ?", item.Category)

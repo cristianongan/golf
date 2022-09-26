@@ -5,6 +5,7 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	"start/utils"
 	"start/utils/response_message"
@@ -19,6 +20,7 @@ import (
 type CCaddieCalendar struct{}
 
 func (_ *CCaddieCalendar) CreateCaddieCalendar(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CreateCaddieCalendarBody
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("CreateCaddieCalendar BindJSON error")
@@ -60,7 +62,7 @@ func (_ *CCaddieCalendar) CreateCaddieCalendar(c *gin.Context, prof models.CmsUs
 		caddie := models.Caddie{}
 		caddie.Id = caddieUid
 
-		if err := caddie.FindFirst(); err != nil {
+		if err := caddie.FindFirst(db); err != nil {
 			response_message.BadRequest(c, err.Error())
 			return
 		}
@@ -94,7 +96,7 @@ func (_ *CCaddieCalendar) CreateCaddieCalendar(c *gin.Context, prof models.CmsUs
 				Note:       body.Note,
 			}
 
-			if err := caddieCalendar.Create(); err != nil {
+			if err := caddieCalendar.Create(db); err != nil {
 				log.Print("CCaddieCalendar.Create()")
 				response_message.InternalServerError(c, err.Error())
 				return
@@ -108,6 +110,7 @@ func (_ *CCaddieCalendar) CreateCaddieCalendar(c *gin.Context, prof models.CmsUs
 }
 
 func (_ *CCaddieCalendar) GetCaddieCalendarList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	// TODO: filter by month
 
 	query := request.GetCaddieCalendarList{}
@@ -129,7 +132,7 @@ func (_ *CCaddieCalendar) GetCaddieCalendarList(c *gin.Context, prof models.CmsU
 	caddie.CaddieCode = query.CaddieCode
 	caddie.Month = query.Month
 
-	list, total, err := caddie.FindList(page)
+	list, total, err := caddie.FindList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -145,6 +148,7 @@ func (_ *CCaddieCalendar) GetCaddieCalendarList(c *gin.Context, prof models.CmsU
 }
 
 func (_ *CCaddieCalendar) UpdateCaddieCalendar(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.UpdateCaddieCalendarBody
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("UpdateCaddieCalendar BindJSON error")
@@ -159,7 +163,7 @@ func (_ *CCaddieCalendar) UpdateCaddieCalendar(c *gin.Context, prof models.CmsUs
 	caddieCalendar.ApplyDate = datatypes.Date(applyDate)
 	caddieCalendar.Id, _ = strconv.ParseInt(c.Param("id"), 10, 64)
 
-	if err := caddieCalendar.FindFirst(); err != nil {
+	if err := caddieCalendar.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -168,7 +172,7 @@ func (_ *CCaddieCalendar) UpdateCaddieCalendar(c *gin.Context, prof models.CmsUs
 	caddieCalendar.DayOffType = body.DayOffType
 	caddieCalendar.Note = body.Note
 
-	if err := caddieCalendar.Update(); err != nil {
+	if err := caddieCalendar.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
@@ -209,6 +213,7 @@ func (_ *CCaddieCalendar) DeleteMonthCaddieCalendar(c *gin.Context, prof models.
 
 func (_ *CCaddieCalendar) DeleteDateCaddieCalendar(c *gin.Context, prof models.CmsUser) {
 	var body request.DeleteDateCaddieCalendarBody
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("DeleteDateCaddieCalendar BindJSON error")
@@ -232,12 +237,12 @@ func (_ *CCaddieCalendar) DeleteDateCaddieCalendar(c *gin.Context, prof models.C
 	if body.DayOffType != "" && body.DayOffType != constants.DAY_OFF_TYPE_SICK {
 		caddieCalendar.DayOffType = body.DayOffType
 	}
-	if err := caddieCalendar.FindFirst(); err != nil {
+	if err := caddieCalendar.FindFirst(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
-	if err := caddieCalendar.Delete(); err != nil {
+	if err := caddieCalendar.Delete(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}

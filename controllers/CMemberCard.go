@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 
@@ -13,6 +14,7 @@ import (
 type CMemberCard struct{}
 
 func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.MemberCard{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -27,7 +29,7 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 	// Check Member Card Type Exit
 	mcType := models.MemberCardType{}
 	mcType.Id = body.McTypeId
-	errFind := mcType.FindFirst()
+	errFind := mcType.FindFirst(db)
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
@@ -36,14 +38,14 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 	// Check Owner Invalid
 	owner := models.CustomerUser{}
 	owner.Uid = body.OwnerUid
-	errFind = owner.FindFirst()
+	errFind = owner.FindFirst(db)
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
 	}
 
 	// Check duplicated
-	if body.IsDuplicated() {
+	if body.IsDuplicated(db) {
 		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
@@ -72,7 +74,7 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 	memberCard.AdjustPlayCount = body.AdjustPlayCount
 	memberCard.Float = body.Float
 
-	errC := memberCard.Create()
+	errC := memberCard.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -83,6 +85,7 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CMemberCard) GetListMemberCard(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListMemberCardForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -104,7 +107,7 @@ func (_ *CMemberCard) GetListMemberCard(c *gin.Context, prof models.CmsUser) {
 		CardId:     form.CardId,
 	}
 	memberCardR.Status = form.Status
-	list, total, err := memberCardR.FindList(page, form.PlayerName)
+	list, total, err := memberCardR.FindList(db, page, form.PlayerName)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -119,6 +122,7 @@ func (_ *CMemberCard) GetListMemberCard(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	memberCardUidStr := c.Param("uid")
 	if memberCardUidStr == "" {
 		response_message.BadRequest(c, errors.New("uid not valid").Error())
@@ -127,7 +131,7 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 
 	memberCard := models.MemberCard{}
 	memberCard.Uid = memberCardUidStr
-	errF := memberCard.FindFirst()
+	errF := memberCard.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -163,7 +167,7 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 	memberCard.PromotionCode = body.PromotionCode
 	memberCard.UserEdit = body.UserEdit
 
-	errUdp := memberCard.Update()
+	errUdp := memberCard.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -173,6 +177,7 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CMemberCard) DeleteMemberCard(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	memberCardUidStr := c.Param("uid")
 	if memberCardUidStr == "" {
 		response_message.BadRequest(c, errors.New("uid not valid").Error())
@@ -181,13 +186,13 @@ func (_ *CMemberCard) DeleteMemberCard(c *gin.Context, prof models.CmsUser) {
 
 	member := models.MemberCard{}
 	member.Uid = memberCardUidStr
-	errF := member.FindFirst()
+	errF := member.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := member.Delete()
+	errDel := member.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
@@ -197,6 +202,7 @@ func (_ *CMemberCard) DeleteMemberCard(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CMemberCard) GetDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	memberCardUidStr := c.Param("uid")
 	if memberCardUidStr == "" {
 		response_message.BadRequest(c, errors.New("uid not valid").Error())
@@ -205,13 +211,13 @@ func (_ *CMemberCard) GetDetail(c *gin.Context, prof models.CmsUser) {
 
 	memberCard := models.MemberCard{}
 	memberCard.Uid = memberCardUidStr
-	errF := memberCard.FindFirst()
+	errF := memberCard.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	memberDetailRes, errFind := memberCard.FindDetail()
+	memberDetailRes, errFind := memberCard.FindDetail(db)
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
@@ -221,6 +227,7 @@ func (_ *CMemberCard) GetDetail(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CMemberCard) UnactiveMemberCard(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.LockMemberCardBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -229,7 +236,7 @@ func (_ *CMemberCard) UnactiveMemberCard(c *gin.Context, prof models.CmsUser) {
 
 	memberCard := models.MemberCard{}
 	memberCard.Uid = body.MemberCardUid
-	errF := memberCard.FindFirst()
+	errF := memberCard.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -238,7 +245,7 @@ func (_ *CMemberCard) UnactiveMemberCard(c *gin.Context, prof models.CmsUser) {
 	memberCard.Status = body.Status
 	memberCard.ReasonUnactive = body.ReasonUnactive
 
-	errUdp := memberCard.Update()
+	errUdp := memberCard.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return

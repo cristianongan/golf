@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 
@@ -11,6 +12,7 @@ import (
 type CLocker struct{}
 
 func (_ *CLocker) GetListLocker(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListLockerForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -33,7 +35,7 @@ func (_ *CLocker) GetListLocker(c *gin.Context, prof models.CmsUser) {
 
 	if form.PageRequest.Limit == 0 {
 		// Lấy full theo ngày hôm nay
-		list, total, err := lockerR.FindList(page, form.From, form.To, true)
+		list, total, err := lockerR.FindList(db, page, form.From, form.To, true)
 		if err != nil {
 			response_message.InternalServerError(c, err.Error())
 			return
@@ -49,7 +51,7 @@ func (_ *CLocker) GetListLocker(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	list, total, err := lockerR.FindList(page, form.From, form.To, false)
+	list, total, err := lockerR.FindList(db, page, form.From, form.To, false)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

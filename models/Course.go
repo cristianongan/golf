@@ -3,9 +3,10 @@ package models
 import (
 	"errors"
 	"start/constants"
-	"start/datasources"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Sân Golf
@@ -22,7 +23,7 @@ type Course struct {
 }
 
 // ======= CRUD ===========
-func (item *Course) Create() error {
+func (item *Course) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
@@ -30,35 +31,32 @@ func (item *Course) Create() error {
 		item.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *Course) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *Course) Update(db *gorm.DB) error {
 	item.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *Course) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *Course) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *Course) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(Course{})
+func (item *Course) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(Course{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *Course) FindList(page Page) ([]Course, int64, error) {
-	db := datasources.GetDatabase().Model(Course{})
+func (item *Course) FindList(database *gorm.DB, page Page) ([]Course, int64, error) {
+	db := database.Model(Course{})
 	list := []Course{}
 	total := int64(0)
 	status := item.Status
@@ -80,9 +78,9 @@ func (item *Course) FindList(page Page) ([]Course, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *Course) Delete() error {
+func (item *Course) Delete(db *gorm.DB) error {
 	if item.Uid == "" {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

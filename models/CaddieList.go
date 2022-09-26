@@ -2,9 +2,10 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"strconv"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type CaddieList struct {
@@ -27,11 +28,11 @@ type CaddieList struct {
 	CurrentStatus         string
 }
 
-func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
+func (item *CaddieList) FindList(database *gorm.DB,page Page) ([]Caddie, int64, error) {
 	var list []Caddie
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(Caddie{})
+	db := database.Model(Caddie{})
 
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
@@ -120,10 +121,10 @@ func (item *CaddieList) FindList(page Page) ([]Caddie, int64, error) {
 	return list, total, db.Error
 }
 
-func (item CaddieList) FindListWithoutPage() ([]Caddie, error) {
+func (item CaddieList) FindListWithoutPage(database *gorm.DB) ([]Caddie, error) {
 	var list []Caddie
 
-	db := datasources.GetDatabase().Model(Caddie{})
+	db := database.Model(Caddie{})
 
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
@@ -154,9 +155,9 @@ func (item CaddieList) FindListWithoutPage() ([]Caddie, error) {
 	return list, nil
 }
 
-func (item CaddieList) FindFirst() (Caddie, error) {
+func (item CaddieList) FindFirst(database *gorm.DB) (Caddie, error) {
 	var result Caddie
-	db := datasources.GetDatabase().Model(Caddie{})
+	db := database.Model(Caddie{})
 
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
