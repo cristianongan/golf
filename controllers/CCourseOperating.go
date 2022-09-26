@@ -123,10 +123,12 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 
 	// Validate trùng cadddie
 	for _, item1 := range body.ListData {
-		for _, item2 := range body.ListData {
-			if item1.Bag != item2.Bag && item2.CaddieCode == item1.CaddieCode {
-				response_message.BadRequest(c, "Caddie chỉ được ghép cho một người ")
-				return
+		if item1.CaddieCode != "" {
+			for _, item2 := range body.ListData {
+				if item1.Bag != item2.Bag && item2.CaddieCode == item1.CaddieCode {
+					response_message.BadRequest(c, "Caddie chỉ được ghép cho một người ")
+					return
+				}
 			}
 		}
 	}
@@ -135,9 +137,11 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	countBuggy := 0
 	for _, item1 := range body.ListData {
 		countBuggy = 0
-		for _, item2 := range body.ListData {
-			if item1.Bag != item2.Bag && item2.BuggyCode == item1.BuggyCode {
-				countBuggy += 1
+		if item1.BuggyCode != "" {
+			for _, item2 := range body.ListData {
+				if item1.Bag != item2.Bag && item2.BuggyCode == item1.BuggyCode {
+					countBuggy += 1
+				}
 			}
 		}
 	}

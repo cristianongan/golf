@@ -167,6 +167,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	// Booking Uid
 	bookingUid := uuid.New()
 	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
+	booking.BillCode = utils.HashCodeUuid(bookingUid.String())
 
 	// Checkin Time
 	checkInTime := time.Now().Unix()
@@ -379,7 +380,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		bookingCode := utils.HashCodeUuid(bookingUid.String())
 		booking.BookingCode = bookingCode
 	}
-	booking.BillCode = utils.HashCodeUuid(bookingUid.String())
 
 	errC := booking.Create(bUid)
 
