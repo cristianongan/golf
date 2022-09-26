@@ -125,7 +125,8 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 
 	courseInfo := models.Course{}
 	courseInfo.Uid = user.CourseUid
-	errFindCourse := courseInfo.FindFirst()
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	errFindCourse := courseInfo.FindFirst(db)
 	if errFindCourse != nil {
 		response_message.BadRequest(c, errFindCourse.Error())
 		return

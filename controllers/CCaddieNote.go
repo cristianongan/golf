@@ -5,6 +5,7 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -15,6 +16,7 @@ import (
 type CCaddieNote struct{}
 
 func (_ *CCaddieNote) CreateCaddieNote(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CreateCaddieNoteBody
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		log.Print("BindJSON CaddieNote error")
@@ -24,7 +26,7 @@ func (_ *CCaddieNote) CreateCaddieNote(c *gin.Context, prof models.CmsUser) {
 
 	caddie := models.Caddie{}
 	caddie.Id = body.CaddieId
-	if err := caddie.FindFirst(); err != nil {
+	if err := caddie.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Caddie number did not exist in course")
 		return
 	}
@@ -42,7 +44,7 @@ func (_ *CCaddieNote) CreateCaddieNote(c *gin.Context, prof models.CmsUser) {
 		AtDate:     body.AtDate,
 	}
 
-	err := caddieNote.Create()
+	err := caddieNote.Create(db)
 	if err != nil {
 		log.Print("Create caddieNote error")
 		response_message.InternalServerError(c, err.Error())
@@ -52,6 +54,7 @@ func (_ *CCaddieNote) CreateCaddieNote(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCaddieNote) GetCaddieNoteList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListCaddieNoteForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -67,7 +70,7 @@ func (_ *CCaddieNote) GetCaddieNoteList(c *gin.Context, prof models.CmsUser) {
 
 	caddieNoteRequest := models.CaddieNote{}
 
-	list, total, err := caddieNoteRequest.FindList(page, form.From, form.To)
+	list, total, err := caddieNoteRequest.FindList(db, page, form.From, form.To)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -83,6 +86,7 @@ func (_ *CCaddieNote) GetCaddieNoteList(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCaddieNote) DeleteCaddieNote(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	caddieNoteIdStr := c.Param("id")
 	caddieNoteId, errId := strconv.ParseInt(caddieNoteIdStr, 10, 64)
 	if errId != nil {
@@ -92,14 +96,14 @@ func (_ *CCaddieNote) DeleteCaddieNote(c *gin.Context, prof models.CmsUser) {
 
 	caddieNoteRequest := models.CaddieNote{}
 	caddieNoteRequest.Id = caddieNoteId
-	errF := caddieNoteRequest.FindFirst()
+	errF := caddieNoteRequest.FindFirst(db)
 
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
 
-	err := caddieNoteRequest.Delete()
+	err := caddieNoteRequest.Delete(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -109,6 +113,7 @@ func (_ *CCaddieNote) DeleteCaddieNote(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCaddieNote) UpdateCaddieNote(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	caddieNoteIdStr := c.Param("id")
 	caddieNoteId, errId := strconv.ParseInt(caddieNoteIdStr, 10, 64)
 	if errId != nil {
@@ -125,7 +130,7 @@ func (_ *CCaddieNote) UpdateCaddieNote(c *gin.Context, prof models.CmsUser) {
 	caddieNoteRequest := models.CaddieNote{}
 	caddieNoteRequest.Id = caddieNoteId
 
-	errF := caddieNoteRequest.FindFirst()
+	errF := caddieNoteRequest.FindFirst(db)
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
@@ -141,7 +146,7 @@ func (_ *CCaddieNote) UpdateCaddieNote(c *gin.Context, prof models.CmsUser) {
 		caddieNoteRequest.Note = *body.Note
 	}
 
-	err := caddieNoteRequest.Update()
+	err := caddieNoteRequest.Update(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

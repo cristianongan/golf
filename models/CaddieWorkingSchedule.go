@@ -1,10 +1,11 @@
 package models
 
 import (
-	"gorm.io/datatypes"
 	"start/constants"
-	"start/datasources"
 	"time"
+
+	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 type CaddieWorkingSchedule struct {
@@ -18,27 +19,25 @@ type CaddieWorkingSchedule struct {
 	IsDayOff        *bool           `json:"is_day_off"`
 }
 
-func (item *CaddieWorkingSchedule) Create() error {
+func (item *CaddieWorkingSchedule) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *CaddieWorkingSchedule) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *CaddieWorkingSchedule) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *CaddieWorkingSchedule) FindList(page Page) ([]CaddieWorkingSchedule, int64, error) {
+func (item *CaddieWorkingSchedule) FindList(database *gorm.DB, page Page) ([]CaddieWorkingSchedule, int64, error) {
 	var list []CaddieWorkingSchedule
 	total := int64(0)
 
-	db1 := datasources.GetDatabase().Model(CaddieWorkingSchedule{})
-	db2 := datasources.GetDatabase().Model(CaddieWorkingSchedule{})
+	db1 := database.Model(CaddieWorkingSchedule{})
+	db2 := database.Model(CaddieWorkingSchedule{})
 
 	if item.WeekId != "" {
 		db1 = db1.Where("week_id = ?", item.WeekId)
@@ -62,11 +61,11 @@ func (item *CaddieWorkingSchedule) FindList(page Page) ([]CaddieWorkingSchedule,
 	return list, total, db2.Error
 }
 
-func (item *CaddieWorkingSchedule) FindListWithoutPage() ([]CaddieWorkingSchedule, error) {
+func (item *CaddieWorkingSchedule) FindListWithoutPage(database *gorm.DB) ([]CaddieWorkingSchedule, error) {
 	var list []CaddieWorkingSchedule
 
-	db1 := datasources.GetDatabase().Model(CaddieWorkingSchedule{})
-	db2 := datasources.GetDatabase().Model(CaddieWorkingSchedule{})
+	db1 := database.Model(CaddieWorkingSchedule{})
+	db2 := database.Model(CaddieWorkingSchedule{})
 
 	if item.WeekId != "" {
 		db1 = db1.Where("week_id = ?", item.WeekId)
@@ -100,8 +99,7 @@ func (item *CaddieWorkingSchedule) FindListWithoutPage() ([]CaddieWorkingSchedul
 	return list, err
 }
 
-func (item *CaddieWorkingSchedule) Update() error {
+func (item *CaddieWorkingSchedule) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	db := datasources.GetDatabase()
 	return db.Save(item).Error
 }

@@ -27,9 +27,10 @@ func runReportCaddieFeeToDay() {
 	now := time.Now().Format("02/01/2006")
 
 	log.Println("runReportCaddieFeeToDay", time.Now().UnixNano())
+	db := datasources.GetDatabase()
 
 	caddieIONRequest := model_gostarter.CaddieInOutNote{}
-	listCaddieION, err := caddieIONRequest.FindAllCaddieInOutNotes()
+	listCaddieION, err := caddieIONRequest.FindAllCaddieInOutNotes(db)
 
 	if err != nil {
 		log.Println("runCreateCaddieFeeOnDay err", err.Error())
@@ -45,7 +46,7 @@ func runReportCaddieFeeToDay() {
 			caddieFeeGroupSetting.PartnerUid = v.PartnerUid
 			caddieFeeGroupSetting.CourseUid = v.CourseUid
 
-			err = caddieFeeGroupSetting.FindFirstByDate(date)
+			err = caddieFeeGroupSetting.FindFirstByDate(db, date)
 			if err != nil {
 				log.Println("get caddie fee setting group err", err.Error())
 				return
@@ -57,7 +58,7 @@ func runReportCaddieFeeToDay() {
 			caddieFeeSetting.CourseUid = v.CourseUid
 			caddieFeeSetting.GroupId = caddieFeeGroupSetting.Id
 
-			listCFSeting, err := caddieFeeSetting.FindAll()
+			listCFSeting, err := caddieFeeSetting.FindAll(db)
 			if err != nil {
 				log.Println("get  list caddie fee setting err", err.Error())
 				return
@@ -67,13 +68,13 @@ func runReportCaddieFeeToDay() {
 			caddieFee := models.CaddieFee{}
 			caddieFee.CaddieId = v.CaddieId
 			caddieFee.BookingDate = now
-			err = caddieFee.FindFirst()
+			err = caddieFee.FindFirst(db)
 
 			if err != nil {
 				// find caddie name
 				caddie := models.Caddie{}
 				caddie.Id = v.CaddieId
-				err = caddie.FindFirst()
+				err = caddie.FindFirst(db)
 				if err != nil {
 					log.Println("find first caddie err", err.Error())
 					return
@@ -94,7 +95,7 @@ func runReportCaddieFeeToDay() {
 				caddieFee.Hole = v.Hole
 				caddieFee.Round = 1
 
-				err = caddieFee.Create()
+				err = caddieFee.Create(db)
 				if err != nil {
 					log.Println("Create report caddie err", err.Error())
 					return
@@ -113,7 +114,7 @@ func runReportCaddieFeeToDay() {
 					caddieFee.Round += 1
 				}
 
-				err = caddieFee.Update()
+				err = caddieFee.Update(db)
 				if err != nil {
 					log.Println("Update report caddie err", err.Error())
 					return

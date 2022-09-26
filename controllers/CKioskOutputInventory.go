@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type CKioskOutputInventory struct{}
@@ -56,6 +58,7 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 }
 
 func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.CmsUser, body request.CreateOutputBillBody, billtype string, billcode string) error {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	inventoryStatus := kiosk_inventory.OutputInventoryBill{}
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
@@ -73,7 +76,7 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = body.SourceId
 
-	if errFind := kiosk.FindFirst(); errFind != nil {
+	if errFind := kiosk.FindFirst(db); errFind != nil {
 		return errors.New("SourceId" + strconv.Itoa(int(body.SourceId)) + "not found")
 	}
 	inventoryStatus.ServiceImportName = kiosk.KioskName
@@ -90,7 +93,7 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 			CourseUid:  body.CourseUid,
 		}
 
-		if errInventory := itemInInventory.FindFirst(); errInventory != nil {
+		if errInventory := itemInInventory.FindFirst(db); errInventory != nil {
 			message := data.ItemCode + " không tìm thấy "
 			return errors.New(message)
 		}
@@ -104,7 +107,7 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 			GroupCode: data.GroupCode,
 		}
 
-		errFindGoodsService := goodsService.FindFirst()
+		errFindGoodsService := goodsService.FindFirst(db)
 		if errFindGoodsService != nil {
 			return errFindGoodsService
 		}
@@ -116,12 +119,12 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 				FBCode: data.ItemCode,
 			}
 
-			if err := fb.FindFirst(); err == nil {
+			if err := fb.FindFirst(db); err == nil {
 				itemType = fb.Type
 			}
 		}
 
-		if errFindGoodsService := goodsService.FindFirst(); errFindGoodsService != nil {
+		if errFindGoodsService := goodsService.FindFirst(db); errFindGoodsService != nil {
 			return errFindGoodsService
 		}
 
@@ -150,12 +153,12 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 
 		outputItem.OutputDate = time.Now().Format(constants.DATE_FORMAT_1)
 
-		if err := outputItem.Create(); err != nil {
+		if err := outputItem.Create(db); err != nil {
 			return err
 		}
 
 		itemInInventory.Quantity = itemInInventory.Quantity - data.Quantity
-		if errUpd := itemInInventory.Update(); errUpd != nil {
+		if errUpd := itemInInventory.Update(db); errUpd != nil {
 			return errUpd
 		}
 
@@ -163,7 +166,7 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 	}
 
 	inventoryStatus.Quantity = int64(quantity)
-	err := inventoryStatus.Create()
+	err := inventoryStatus.Create(db)
 	if err != nil {
 		response_message.BadRequest(c, err.Error())
 		return err
@@ -172,11 +175,11 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 	return nil
 }
 
-func (_ CKioskOutputInventory) removeItemFromInventory(serviceId int64, code string, courseUid string, partnerUid string) error {
+func (_ CKioskOutputInventory) removeItemFromInventory(db *gorm.DB, serviceId int64, code string, courseUid string, partnerUid string) error {
 	// Get danh sách item của bill
 	item := kiosk_inventory.InventoryOutputItem{}
 	item.Code = code
-	list, _, _ := item.FindAllList()
+	list, _, _ := item.FindAllList(db)
 
 	for _, data := range list {
 		item := kiosk_inventory.InventoryItem{
@@ -186,9 +189,9 @@ func (_ CKioskOutputInventory) removeItemFromInventory(serviceId int64, code str
 			CourseUid:  courseUid,
 		}
 
-		if err := item.FindFirst(); err != nil {
+		if err := item.FindFirst(db); err != nil {
 			item.Quantity = item.Quantity - data.Quantity
-			if errUpd := item.Update(); errUpd != nil {
+			if errUpd := item.Update(db); errUpd != nil {
 				return errUpd
 			}
 		}
@@ -196,11 +199,11 @@ func (_ CKioskOutputInventory) removeItemFromInventory(serviceId int64, code str
 	return nil
 }
 
-func (_ CKioskOutputInventory) returnItemToInventory(serviceId int64, code string, courseUid string, partnerUid string) error {
+func (_ CKioskOutputInventory) returnItemToInventory(db *gorm.DB, serviceId int64, code string, courseUid string, partnerUid string) error {
 	// Get danh sách item của bill
 	item := kiosk_inventory.InventoryInputItem{}
 	item.Code = code
-	list, _, _ := item.FindAllList()
+	list, _, _ := item.FindAllList(db)
 
 	for _, data := range list {
 		item := kiosk_inventory.InventoryItem{
@@ -210,9 +213,9 @@ func (_ CKioskOutputInventory) returnItemToInventory(serviceId int64, code strin
 			CourseUid:  courseUid,
 		}
 
-		if err := item.FindFirst(); err != nil {
+		if err := item.FindFirst(db); err != nil {
 			item.Quantity = item.Quantity + data.Quantity
-			if errUpd := item.Update(); errUpd != nil {
+			if errUpd := item.Update(db); errUpd != nil {
 				return errUpd
 			}
 		}
@@ -221,6 +224,7 @@ func (_ CKioskOutputInventory) returnItemToInventory(serviceId int64, code strin
 }
 
 func (_ CKioskOutputInventory) GetOutputBills(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var form request.GetBill
 	if err := c.ShouldBind(&form); err != nil {
 		response_message.BadRequest(c, "")
@@ -240,7 +244,7 @@ func (_ CKioskOutputInventory) GetOutputBills(c *gin.Context, prof models.CmsUse
 	outputItems.PartnerUid = form.PartnerUid
 	outputItems.CourseUid = form.CourseUid
 	outputItems.Code = form.BillCode
-	list, total, err := outputItems.FindList(page, form.BillStatus)
+	list, total, err := outputItems.FindList(db, page, form.BillStatus)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -255,6 +259,7 @@ func (_ CKioskOutputInventory) GetOutputBills(c *gin.Context, prof models.CmsUse
 	okResponse(c, res)
 }
 func (_ CKioskOutputInventory) GetOutputItems(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var form request.GetInOutItems
 	if err := c.ShouldBind(&form); err != nil {
 		response_message.BadRequest(c, "")
@@ -273,7 +278,7 @@ func (_ CKioskOutputInventory) GetOutputItems(c *gin.Context, prof models.CmsUse
 	outputItems.PartnerUid = form.PartnerUid
 	outputItems.CourseUid = form.CourseUid
 	outputItems.ItemCode = form.ItemCode
-	list, total, err := outputItems.FindList(page)
+	list, total, err := outputItems.FindList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -289,6 +294,7 @@ func (_ CKioskOutputInventory) GetOutputItems(c *gin.Context, prof models.CmsUse
 }
 
 func (_ CKioskOutputInventory) GetOutputItemsForStatistic(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var form request.GetInOutItems
 	if err := c.ShouldBind(&form); err != nil {
 		response_message.BadRequest(c, "")
@@ -319,7 +325,7 @@ func (_ CKioskOutputInventory) GetOutputItemsForStatistic(c *gin.Context, prof m
 		toDateInt = utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, form.ToDate)
 	}
 
-	list, total, err := outputItems.FindListForStatistic(page, fromDateInt, toDateInt)
+	list, total, err := outputItems.FindListForStatistic(db, page, fromDateInt, toDateInt)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

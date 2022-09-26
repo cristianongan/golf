@@ -96,6 +96,35 @@ func GetIsMigrated() bool {
 	return config.GetBool("mysql.is_migrated")
 }
 
+// =============== Get database2 config ========================
+func GetDbName2() string {
+	return config.GetString("mysql2.db_name")
+}
+
+func GetDbUser2() string {
+	return config.GetString("mysql2.user")
+}
+
+func GetDbPassword2() string {
+	return config.GetString("mysql2.password")
+}
+
+func GetDbHost2() string {
+	return config.GetString("mysql2.host")
+}
+
+func GetDbPort2() string {
+	return config.GetString("mysql2.port")
+}
+
+func GetDbDebug2() bool {
+	return config.GetBool("mysql2.debug")
+}
+
+func GetIsMigrated2() bool {
+	return config.GetBool("mysql2.is_migrated")
+}
+
 // ================================================
 func GetKibanaLog() bool {
 	return config.GetBool("kibana_log")

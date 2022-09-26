@@ -2,12 +2,12 @@ package model_gostarter
 
 import (
 	"start/constants"
-	"start/datasources"
 	"start/models"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 type CaddieInOutNote struct {
@@ -22,7 +22,7 @@ type CaddieInOutNote struct {
 	Hole       int    `json:"hole" gorm:"type:bigint"`
 }
 
-func (item *CaddieInOutNote) Create() error {
+func (item *CaddieInOutNote) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -30,41 +30,38 @@ func (item *CaddieInOutNote) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *CaddieInOutNote) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *CaddieInOutNote) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *CaddieInOutNote) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *CaddieInOutNote) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *CaddieInOutNote) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(CaddieInOutNote{})
+func (item *CaddieInOutNote) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(CaddieInOutNote{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *CaddieInOutNote) FindAllCaddieInOutNotes() ([]CaddieInOutNote, error) {
+func (item *CaddieInOutNote) FindAllCaddieInOutNotes(database *gorm.DB) ([]CaddieInOutNote, error) {
 	now := time.Now().Format("02/01/2006")
 
 	from, _ := time.Parse("02/01/2006 15:04:05", now+" 17:00:00")
 
 	to, _ := time.Parse("02/01/2006 15:04:05", now+" 16:59:59")
 
-	db := datasources.GetDatabase().Model(CaddieInOutNote{})
+	db := database.Model(CaddieInOutNote{})
 	list := []CaddieInOutNote{}
 
 	db = db.Where("type = ?", constants.STATUS_OUT)
@@ -75,8 +72,8 @@ func (item *CaddieInOutNote) FindAllCaddieInOutNotes() ([]CaddieInOutNote, error
 	return list, db.Error
 }
 
-func (item *CaddieInOutNote) FindList(page models.Page, from, to int64) ([]CaddieInOutNote, int64, error) {
-	db := datasources.GetDatabase().Model(CaddieInOutNote{})
+func (item *CaddieInOutNote) FindList(database *gorm.DB, page models.Page, from, to int64) ([]CaddieInOutNote, int64, error) {
+	db := database.Model(CaddieInOutNote{})
 	list := []CaddieInOutNote{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -100,9 +97,9 @@ func (item *CaddieInOutNote) FindList(page models.Page, from, to int64) ([]Caddi
 	return list, total, db.Error
 }
 
-func (item *CaddieInOutNote) Delete() error {
+func (item *CaddieInOutNote) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

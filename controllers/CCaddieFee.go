@@ -3,6 +3,7 @@ package controllers
 import (
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 
@@ -12,6 +13,7 @@ import (
 type CCaddieFee struct{}
 
 func (_ *CCaddieFee) GetDetalListCaddieFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetDetailListCaddieFee{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -23,7 +25,7 @@ func (_ *CCaddieFee) GetDetalListCaddieFee(c *gin.Context, prof models.CmsUser) 
 	caddieFee.PartnerUid = query.PartnerUid
 	caddieFee.CaddieCode = query.CaddieCode
 
-	list, total, err := caddieFee.FindAll(query.Month)
+	list, total, err := caddieFee.FindAll(db, query.Month)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -39,6 +41,7 @@ func (_ *CCaddieFee) GetDetalListCaddieFee(c *gin.Context, prof models.CmsUser) 
 }
 
 func (_ *CCaddieFee) GetListCaddieFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetListCaddieFee{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -58,7 +61,7 @@ func (_ *CCaddieFee) GetListCaddieFee(c *gin.Context, prof models.CmsUser) {
 	caddieFee.CaddieCode = query.CaddieCode
 	caddieFee.CaddieName = query.CaddieName
 
-	list, total, err := caddieFee.FindAllGroupBy(page, query.Month)
+	list, total, err := caddieFee.FindAllGroupBy(db, page, query.Month)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

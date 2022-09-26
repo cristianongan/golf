@@ -3,9 +3,10 @@ package models
 import (
 	"errors"
 	"start/constants"
-	"start/datasources"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // System config job
@@ -17,7 +18,7 @@ type SystemConfigJob struct {
 }
 
 // ======= CRUD ===========
-func (item *SystemConfigJob) Create() error {
+func (item *SystemConfigJob) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
@@ -26,35 +27,32 @@ func (item *SystemConfigJob) Create() error {
 		item.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *SystemConfigJob) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *SystemConfigJob) Update(db *gorm.DB) error {
 	item.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *SystemConfigJob) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *SystemConfigJob) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *SystemConfigJob) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(SystemConfigJob{})
+func (item *SystemConfigJob) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(SystemConfigJob{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *SystemConfigJob) FindList(page Page) ([]SystemConfigJob, int64, error) {
-	db := datasources.GetDatabase().Model(SystemConfigJob{})
+func (item *SystemConfigJob) FindList(database *gorm.DB, page Page) ([]SystemConfigJob, int64, error) {
+	db := database.Model(SystemConfigJob{})
 	list := []SystemConfigJob{}
 	total := int64(0)
 	status := item.Status
@@ -72,9 +70,9 @@ func (item *SystemConfigJob) FindList(page Page) ([]SystemConfigJob, int64, erro
 	return list, total, db.Error
 }
 
-func (item *SystemConfigJob) Delete() error {
+func (item *SystemConfigJob) Delete(db *gorm.DB) error {
 	if item.Id == 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

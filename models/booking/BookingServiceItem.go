@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"log"
 	"start/constants"
-	"start/datasources"
 	"start/models"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 type BookingServiceItem struct {
@@ -60,12 +60,12 @@ func (item ListBookingServiceItems) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
-func (item *BookingServiceItem) IsDuplicated() bool {
-	errFind := item.FindFirst()
+func (item *BookingServiceItem) IsDuplicated(db *gorm.DB) bool {
+	errFind := item.FindFirst(db)
 	return errFind == nil
 }
 
-func (item *BookingServiceItem) Create() error {
+func (item *BookingServiceItem) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -73,35 +73,32 @@ func (item *BookingServiceItem) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *BookingServiceItem) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *BookingServiceItem) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *BookingServiceItem) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *BookingServiceItem) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *BookingServiceItem) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(BookingServiceItem{})
+func (item *BookingServiceItem) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(BookingServiceItem{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *BookingServiceItem) FindAll() ([]BookingServiceItem, error) {
-	db := datasources.GetDatabase().Model(BookingServiceItem{})
+func (item *BookingServiceItem) FindAll(database *gorm.DB) ([]BookingServiceItem, error) {
+	db := database.Model(BookingServiceItem{})
 	list := []BookingServiceItem{}
 	item.Status = ""
 
@@ -118,8 +115,8 @@ func (item *BookingServiceItem) FindAll() ([]BookingServiceItem, error) {
 	return list, db.Error
 }
 
-func (item *BookingServiceItem) FindList(page models.Page) ([]BookingServiceItemResponse, int64, error) {
-	db := datasources.GetDatabase().Model(BookingServiceItem{})
+func (item *BookingServiceItem) FindList(database *gorm.DB, page models.Page) ([]BookingServiceItemResponse, int64, error) {
+	db := database.Model(BookingServiceItem{})
 	list := []BookingServiceItemResponse{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -151,16 +148,16 @@ func (item *BookingServiceItem) FindList(page models.Page) ([]BookingServiceItem
 	return list, total, db.Error
 }
 
-func (item *BookingServiceItem) Delete() error {
+func (item *BookingServiceItem) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }
 
 // / ------- BookingServiceItem batch insert to db ------
-func (item *BookingServiceItem) BatchInsert(list []BookingServiceItem) error {
-	db := datasources.GetDatabase().Table("booking_service_items")
+func (item *BookingServiceItem) BatchInsert(database *gorm.DB, list []BookingServiceItem) error {
+	db := database.Table("booking_service_items")
 	var err error
 	err = db.Create(&list).Error
 
@@ -171,8 +168,8 @@ func (item *BookingServiceItem) BatchInsert(list []BookingServiceItem) error {
 }
 
 // ------ Batch Update ------
-func (item *BookingServiceItem) BatchUpdate(list []BookingServiceItem) error {
-	db := datasources.GetDatabase().Table("booking_service_items")
+func (item *BookingServiceItem) BatchUpdate(database *gorm.DB, list []BookingServiceItem) error {
+	db := database.Table("booking_service_items")
 	var err error
 	err = db.Updates(&list).Error
 
@@ -183,12 +180,12 @@ func (item *BookingServiceItem) BatchUpdate(list []BookingServiceItem) error {
 }
 
 // ------ Find Best Item ------
-func (item *BookingServiceItem) FindBestCartItem(page models.Page) ([]BookingServiceItem, int64, error) {
+func (item *BookingServiceItem) FindBestCartItem(database *gorm.DB, page models.Page) ([]BookingServiceItem, int64, error) {
 	now := time.Now().Format("02/01/2006")
 
 	from, _ := time.Parse("02/01/2006 15:04:05", now+" 17:00:00")
 
-	db := datasources.GetDatabase().Model(BookingServiceItem{})
+	db := database.Model(BookingServiceItem{})
 	list := []BookingServiceItem{}
 	total := int64(0)
 

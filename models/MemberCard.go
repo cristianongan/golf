@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"log"
 	"start/constants"
-	"start/datasources"
 	"start/utils"
 	"strconv"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Thẻ thành viên
@@ -82,7 +82,7 @@ type MemberCardDetailRes struct {
 }
 
 /*
- Check time có thể sử dụng giá riêng
+Check time có thể sử dụng giá riêng
 */
 func (item *MemberCard) IsValidTimePrecial() bool {
 
@@ -114,7 +114,7 @@ func (item *MemberCard) IsValidTimePrecial() bool {
 }
 
 // Find member card detail with info card type and owner
-func (item *MemberCard) FindDetail() (MemberCardDetailRes, error) {
+func (item *MemberCard) FindDetail(db *gorm.DB) (MemberCardDetailRes, error) {
 	memberCardDetailRes := MemberCardDetailRes{}
 	memberCardByte, err := json.Marshal(item)
 	if err != nil {
@@ -129,7 +129,7 @@ func (item *MemberCard) FindDetail() (MemberCardDetailRes, error) {
 	//Find MemberCardType
 	memberCardType := MemberCardType{}
 	memberCardType.Id = item.McTypeId
-	errFind := memberCardType.FindFirst()
+	errFind := memberCardType.FindFirst(db)
 	if errFind != nil {
 		log.Println("FindDetail errFind ", errFind.Error())
 	}
@@ -137,7 +137,7 @@ func (item *MemberCard) FindDetail() (MemberCardDetailRes, error) {
 	//Find Owner
 	owner := CustomerUser{}
 	owner.Uid = item.OwnerUid
-	errFind1 := owner.FindFirst()
+	errFind1 := owner.FindFirst(db)
 	if errFind1 != nil {
 		log.Println("FindDetail errFind1", errFind1.Error())
 	}
@@ -167,20 +167,20 @@ func (item *MemberCard) IsValidated() bool {
 	return true
 }
 
-func (item *MemberCard) IsDuplicated() bool {
+func (item *MemberCard) IsDuplicated(db *gorm.DB) bool {
 	memberCard := MemberCard{
 		CardId:   item.CardId,
 		McTypeId: item.McTypeId,
 	}
 	//Check Duplicated
-	errFind := memberCard.FindFirst()
+	errFind := memberCard.FindFirst(db)
 	if errFind == nil || memberCard.Uid != "" {
 		return true
 	}
 	return false
 }
 
-func (item *MemberCard) Create() error {
+func (item *MemberCard) Create(db *gorm.DB) error {
 	uid := uuid.New()
 	now := time.Now()
 	item.Model.Uid = uid.String()
@@ -190,22 +190,20 @@ func (item *MemberCard) Create() error {
 		item.Model.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *MemberCard) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *MemberCard) Update(db *gorm.DB) error {
 	item.Model.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *MemberCard) FindAll() (error, []MemberCard) {
-	db := datasources.GetDatabase().Model(MemberCard{})
+func (item *MemberCard) FindAll(database *gorm.DB) (error, []MemberCard) {
+	db := database.Model(MemberCard{})
 	list := []MemberCard{}
 	if item.OwnerUid != "" {
 		db = db.Where("owner_uid = ?", item.OwnerUid)
@@ -214,30 +212,28 @@ func (item *MemberCard) FindAll() (error, []MemberCard) {
 	return db.Error, list
 }
 
-func (item *MemberCard) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *MemberCard) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *MemberCard) FindFirstWithMemberCardType() (error, error, MemberCardType) {
-	db := datasources.GetDatabase()
+func (item *MemberCard) FindFirstWithMemberCardType(db *gorm.DB) (error, error, MemberCardType) {
 	err1 := db.Where(item).First(item).Error
 	memberCardType := MemberCardType{}
 	memberCardType.Id = item.McTypeId
-	err2 := memberCardType.FindFirst()
+	err2 := memberCardType.FindFirst(db)
 	return err1, err2, memberCardType
 }
 
-func (item *MemberCard) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(MemberCard{})
+func (item *MemberCard) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(MemberCard{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *MemberCard) FindList(page Page, playerName string) ([]map[string]interface{}, int64, error) {
-	db := datasources.GetDatabase().Table("member_cards")
+func (item *MemberCard) FindList(database *gorm.DB, page Page, playerName string) ([]map[string]interface{}, int64, error) {
+	db := database.Table("member_cards")
 	list := []map[string]interface{}{}
 	total := int64(0)
 
@@ -327,31 +323,31 @@ func (item *MemberCard) FindList(page Page, playerName string) ([]map[string]int
 	return list, total, db.Error
 }
 
-func (item *MemberCard) Delete() error {
+func (item *MemberCard) Delete(db *gorm.DB) error {
 	if item.Model.Uid == "" {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }
 
-func (item *MemberCard) GetOwner() (CustomerUser, error) {
+func (item *MemberCard) GetOwner(db *gorm.DB) (CustomerUser, error) {
 	cusUser := CustomerUser{}
 	if item.OwnerUid == "" {
 		return cusUser, errors.New("Customer uid invalid")
 	}
 	cusUser.Uid = item.OwnerUid
-	errFind := cusUser.FindFirst()
+	errFind := cusUser.FindFirst(db)
 	if errFind != nil {
 		return cusUser, errFind
 	}
 	return cusUser, nil
 }
 
-func (item *MemberCard) GetGuestStyle() string {
+func (item *MemberCard) GetGuestStyle(db *gorm.DB) string {
 	// Get Member card Type
 	memberCardType := MemberCardType{}
 	memberCardType.Id = item.McTypeId
-	err := memberCardType.FindFirst()
+	err := memberCardType.FindFirst(db)
 	if err != nil {
 		log.Println("Member card get guestStyle err", err.Error())
 		return ""

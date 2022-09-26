@@ -2,11 +2,11 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // CaddieFee setting
@@ -20,7 +20,7 @@ type CaddieFeeSetting struct {
 	Type       string `json:"type" gorm:"type:varchar(256)"`              // Type setting caddie fee
 }
 
-func (item *CaddieFeeSetting) IsDuplicated() bool {
+func (item *CaddieFeeSetting) IsDuplicated(db *gorm.DB) bool {
 	CaddieFeeSetting := CaddieFeeSetting{
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
@@ -28,7 +28,7 @@ func (item *CaddieFeeSetting) IsDuplicated() bool {
 		Hole:       item.Hole,
 	}
 
-	errFind := CaddieFeeSetting.FindFirst()
+	errFind := CaddieFeeSetting.FindFirst(db)
 	if errFind == nil || CaddieFeeSetting.Id > 0 {
 		return true
 	}
@@ -57,7 +57,7 @@ func (item *CaddieFeeSetting) IsValidated() bool {
 	return true
 }
 
-func (item *CaddieFeeSetting) Create() error {
+func (item *CaddieFeeSetting) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -65,35 +65,32 @@ func (item *CaddieFeeSetting) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *CaddieFeeSetting) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *CaddieFeeSetting) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *CaddieFeeSetting) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *CaddieFeeSetting) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *CaddieFeeSetting) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(CaddieFeeSetting{})
+func (item *CaddieFeeSetting) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(CaddieFeeSetting{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *CaddieFeeSetting) FindAll() ([]CaddieFeeSetting, error) {
-	db := datasources.GetDatabase().Model(CaddieFeeSetting{})
+func (item *CaddieFeeSetting) FindAll(database *gorm.DB) ([]CaddieFeeSetting, error) {
+	db := database.Model(CaddieFeeSetting{})
 	list := []CaddieFeeSetting{}
 
 	if item.PartnerUid != "" {
@@ -112,8 +109,8 @@ func (item *CaddieFeeSetting) FindAll() ([]CaddieFeeSetting, error) {
 	return list, db.Error
 }
 
-func (item *CaddieFeeSetting) FindList(page Page) ([]CaddieFeeSetting, int64, error) {
-	db := datasources.GetDatabase().Model(CaddieFeeSetting{})
+func (item *CaddieFeeSetting) FindList(database *gorm.DB, page Page) ([]CaddieFeeSetting, int64, error) {
+	db := database.Model(CaddieFeeSetting{})
 	list := []CaddieFeeSetting{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -130,9 +127,9 @@ func (item *CaddieFeeSetting) FindList(page Page) ([]CaddieFeeSetting, int64, er
 	return list, total, db.Error
 }
 
-func (item *CaddieFeeSetting) Delete() error {
+func (item *CaddieFeeSetting) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

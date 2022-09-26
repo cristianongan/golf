@@ -3,12 +3,12 @@ package models
 import (
 	"log"
 	"start/constants"
-	"start/datasources"
 	"start/utils"
 	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Phí thường niên
@@ -36,14 +36,14 @@ type AnnualFee struct {
 	CountPaid int    `json:"count_paid"`                         // Số lần thanh toán
 }
 
-func (item *AnnualFee) IsDuplicated() bool {
+func (item *AnnualFee) IsDuplicated(db *gorm.DB) bool {
 	modelCheck := AnnualFee{
 		PartnerUid:    item.PartnerUid,
 		CourseUid:     item.CourseUid,
 		MemberCardUid: item.MemberCardUid,
 		Year:          item.Year,
 	}
-	errFind := modelCheck.FindFirst()
+	errFind := modelCheck.FindFirst(db)
 	if errFind == nil || modelCheck.Id > 0 {
 		return true
 	}
@@ -66,7 +66,7 @@ func (item *AnnualFee) IsValidated() bool {
 	return true
 }
 
-func (item *AnnualFee) Create() error {
+func (item *AnnualFee) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -74,35 +74,32 @@ func (item *AnnualFee) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *AnnualFee) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *AnnualFee) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *AnnualFee) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *AnnualFee) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *AnnualFee) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(AnnualFee{})
+func (item *AnnualFee) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(AnnualFee{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *AnnualFee) FindListWithGroupMemberCard(page Page) ([]map[string]interface{}, int64, error) {
-	db := datasources.GetDatabase().Table("annual_fees")
+func (item *AnnualFee) FindListWithGroupMemberCard(database *gorm.DB, page Page) ([]map[string]interface{}, int64, error) {
+	db := database.Table("annual_fees")
 	list := []map[string]interface{}{}
 	total := int64(0)
 
@@ -176,8 +173,8 @@ func (item *AnnualFee) FindListWithGroupMemberCard(page Page) ([]map[string]inte
 	return list, total, db.Error
 }
 
-func (item *AnnualFee) FindList(page Page, cardId string) ([]map[string]interface{}, utils.CountAnnualFeeStruct, int64, error) {
-	db := datasources.GetDatabase().Table("annual_fees")
+func (item *AnnualFee) FindList(database *gorm.DB, page Page, cardId string) ([]map[string]interface{}, utils.CountAnnualFeeStruct, int64, error) {
+	db := database.Table("annual_fees")
 	list := []map[string]interface{}{}
 	var countTotalAnnualFee utils.CountAnnualFeeStruct
 	total := int64(0)
@@ -265,9 +262,9 @@ func (item *AnnualFee) FindList(page Page, cardId string) ([]map[string]interfac
 	return list, countTotalAnnualFee, total, db.Error
 }
 
-func (item *AnnualFee) Delete() error {
+func (item *AnnualFee) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

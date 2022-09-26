@@ -3,6 +3,7 @@ package controllers
 import (
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils/response_message"
@@ -14,6 +15,7 @@ import (
 type CBookingSource struct{}
 
 func (_ *CBookingSource) CreateBookingSource(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body model_booking.BookingSource
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		response_message.BadRequest(c, "")
@@ -22,7 +24,7 @@ func (_ *CBookingSource) CreateBookingSource(c *gin.Context, prof models.CmsUser
 	bookingSource := model_booking.BookingSource{
 		AgencyId: body.AgencyId,
 	}
-	error := bookingSource.FindFirst()
+	error := bookingSource.FindFirst(db)
 	if error == nil {
 		response_message.BadRequest(c, "Agency trong Booking Source đã tồn tại!")
 		return
@@ -44,7 +46,7 @@ func (_ *CBookingSource) CreateBookingSource(c *gin.Context, prof models.CmsUser
 		bookingSource.Status = body.Status
 	}
 
-	err := bookingSource.Create()
+	err := bookingSource.Create(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -53,6 +55,7 @@ func (_ *CBookingSource) CreateBookingSource(c *gin.Context, prof models.CmsUser
 }
 
 func (_ *CBookingSource) GetBookingSourceList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingSource{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -79,7 +82,7 @@ func (_ *CBookingSource) GetBookingSourceList(c *gin.Context, prof models.CmsUse
 		bookingSourceRequest.Status = form.Status
 	}
 
-	list, total, err := bookingSourceRequest.FindList(page)
+	list, total, err := bookingSourceRequest.FindList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -95,6 +98,7 @@ func (_ *CBookingSource) GetBookingSourceList(c *gin.Context, prof models.CmsUse
 }
 
 func (_ *CBookingSource) DeleteBookingSource(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	bookingIdStr := c.Param("id")
 	bookingId, errId := strconv.ParseInt(bookingIdStr, 10, 64)
 	if errId != nil {
@@ -104,14 +108,14 @@ func (_ *CBookingSource) DeleteBookingSource(c *gin.Context, prof models.CmsUser
 
 	bookingSourceRequest := model_booking.BookingSource{}
 	bookingSourceRequest.Id = bookingId
-	errF := bookingSourceRequest.FindFirst()
+	errF := bookingSourceRequest.FindFirst(db)
 
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
 
-	err := bookingSourceRequest.Delete()
+	err := bookingSourceRequest.Delete(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -121,6 +125,7 @@ func (_ *CBookingSource) DeleteBookingSource(c *gin.Context, prof models.CmsUser
 }
 
 func (_ *CBookingSource) UpdateBookingSource(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	bookingSourceIdStr := c.Param("id")
 	bookingSourceId, errId := strconv.ParseInt(bookingSourceIdStr, 10, 64)
 	if errId != nil {
@@ -137,7 +142,7 @@ func (_ *CBookingSource) UpdateBookingSource(c *gin.Context, prof models.CmsUser
 	bookingSourceRequest := model_booking.BookingSource{}
 	bookingSourceRequest.Id = bookingSourceId
 
-	errF := bookingSourceRequest.FindFirst()
+	errF := bookingSourceRequest.FindFirst(db)
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
@@ -170,7 +175,7 @@ func (_ *CBookingSource) UpdateBookingSource(c *gin.Context, prof models.CmsUser
 		bookingSourceRequest.AgencyId = body.AgencyId
 	}
 
-	err := bookingSourceRequest.Update()
+	err := bookingSourceRequest.Update(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

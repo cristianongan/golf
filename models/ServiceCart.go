@@ -2,10 +2,10 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"time"
 
 	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 /*
@@ -41,34 +41,30 @@ type ServiceCart struct {
 	ResFloor        int            `json:"res_floor"`                                   // Số tầng bàn được đặt
 }
 
-func (item *ServiceCart) Create() error {
+func (item *ServiceCart) Create(db *gorm.DB) error {
 	now := time.Now()
 
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *ServiceCart) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *ServiceCart) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *ServiceCart) Update() error {
+func (item *ServiceCart) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-
-	db := datasources.GetDatabase()
 	return db.Save(item).Error
 }
 
-func (item *ServiceCart) FindList(page Page) ([]ServiceCart, int64, error) {
+func (item *ServiceCart) FindList(database *gorm.DB, page Page) ([]ServiceCart, int64, error) {
 	var list []ServiceCart
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(ServiceCart{})
+	db := database.Model(ServiceCart{})
 
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)

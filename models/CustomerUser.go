@@ -2,13 +2,13 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"start/utils"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // User  khách hàng
@@ -42,14 +42,14 @@ type CustomerUser struct {
 	Note     string `json:"note" gorm:"type:varchar(500)"`    // Ghi chu them
 }
 
-func (item *CustomerUser) IsDuplicated() bool {
+func (item *CustomerUser) IsDuplicated(db *gorm.DB) bool {
 	cusTemp := CustomerUser{
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
 		Phone:      item.Phone,
 	}
 
-	errF := cusTemp.FindFirst()
+	errF := cusTemp.FindFirst(db)
 	if errF != nil || cusTemp.Uid == "" {
 		return false
 	}
@@ -57,7 +57,7 @@ func (item *CustomerUser) IsDuplicated() bool {
 	return true
 }
 
-func (item *CustomerUser) Create() error {
+func (item *CustomerUser) Create(db *gorm.DB) error {
 	uid := uuid.New()
 	now := time.Now()
 	item.Model.Uid = item.CourseUid + "-" + utils.HashCodeUuid(uid.String())
@@ -67,35 +67,32 @@ func (item *CustomerUser) Create() error {
 		item.Model.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *CustomerUser) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *CustomerUser) Update(db *gorm.DB) error {
 	item.Model.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *CustomerUser) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *CustomerUser) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *CustomerUser) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(CustomerUser{})
+func (item *CustomerUser) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(CustomerUser{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *CustomerUser) FindList(page Page, partnerUid, courseUid, typeCus, customerUid, name string) ([]CustomerUser, int64, error) {
-	db := datasources.GetDatabase().Table("customer_users")
+func (item *CustomerUser) FindList(database *gorm.DB, page Page, partnerUid, courseUid, typeCus, customerUid, name string) ([]CustomerUser, int64, error) {
+	db := database.Table("customer_users")
 	list := []CustomerUser{}
 	total := int64(0)
 	status := item.Model.Status
@@ -137,9 +134,9 @@ func (item *CustomerUser) FindList(page Page, partnerUid, courseUid, typeCus, cu
 	return list, total, db.Error
 }
 
-func (item *CustomerUser) Delete() error {
+func (item *CustomerUser) Delete(db *gorm.DB) error {
 	if item.Model.Uid == "" {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

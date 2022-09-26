@@ -2,7 +2,6 @@ package model_booking
 
 import (
 	"start/constants"
-	"start/datasources"
 	"start/models"
 	"start/utils"
 	"strconv"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Booking setting
@@ -22,7 +22,7 @@ type BookingSettingGroup struct {
 	ToDate     int64  `json:"to_date" gorm:"index"`                       // Áp dụng tới ngày
 }
 
-func (item *BookingSettingGroup) IsDuplicated() bool {
+func (item *BookingSettingGroup) IsDuplicated(db *gorm.DB) bool {
 	bookingSettingGroup := BookingSettingGroup{
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
@@ -31,7 +31,7 @@ func (item *BookingSettingGroup) IsDuplicated() bool {
 		ToDate:     item.ToDate,
 	}
 
-	errFind := bookingSettingGroup.FindFirst()
+	errFind := bookingSettingGroup.FindFirst(db)
 	if errFind == nil || bookingSettingGroup.Id > 0 {
 		return true
 	}
@@ -51,7 +51,7 @@ func (item *BookingSettingGroup) IsValidated() bool {
 	return true
 }
 
-func (item *BookingSettingGroup) Create() error {
+func (item *BookingSettingGroup) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -59,35 +59,32 @@ func (item *BookingSettingGroup) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *BookingSettingGroup) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *BookingSettingGroup) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *BookingSettingGroup) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *BookingSettingGroup) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *BookingSettingGroup) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(BookingSettingGroup{})
+func (item *BookingSettingGroup) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(BookingSettingGroup{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *BookingSettingGroup) FindList(page models.Page, from, to int64) ([]BookingSettingGroup, int64, error) {
-	db := datasources.GetDatabase().Model(BookingSettingGroup{})
+func (item *BookingSettingGroup) FindList(database *gorm.DB, page models.Page, from, to int64) ([]BookingSettingGroup, int64, error) {
+	db := database.Model(BookingSettingGroup{})
 	list := []BookingSettingGroup{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -123,14 +120,14 @@ func (item *BookingSettingGroup) FindList(page models.Page, from, to int64) ([]B
 	return list, total, db.Error
 }
 
-func (item *BookingSettingGroup) Delete() error {
+func (item *BookingSettingGroup) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }
 
-func (item *BookingSettingGroup) ValidateClose1ST(BookingDate string) error {
+func (item *BookingSettingGroup) ValidateClose1ST(db *gorm.DB, BookingDate string) error {
 	bookingSetting := BookingSettingGroup{
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
@@ -144,7 +141,7 @@ func (item *BookingSettingGroup) ValidateClose1ST(BookingDate string) error {
 		SortDir: "desc",
 	}
 	println(item.PartnerUid)
-	listBSG, _, errLBSG := bookingSetting.FindList(page, from, to)
+	listBSG, _, errLBSG := bookingSetting.FindList(db, page, from, to)
 	if errLBSG != nil || len(listBSG) == 0 {
 		return nil
 	}
@@ -156,7 +153,7 @@ func (item *BookingSettingGroup) ValidateClose1ST(BookingDate string) error {
 			BookingSettingId: bookingSettingGroup.Id,
 			DateTime:         BookingDate,
 		}
-		if err := teeTypeClose.FindFirst(); err == nil {
+		if err := teeTypeClose.FindFirst(db); err == nil {
 			return errors.New("Tee 1 is closed")
 		}
 	}

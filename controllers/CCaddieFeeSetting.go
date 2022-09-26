@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -13,8 +14,9 @@ import (
 
 type CCaddieFeeSetting struct{}
 
-/// --------- CaddieFee Setting Group ----------
+// / --------- CaddieFee Setting Group ----------
 func (_ *CCaddieFeeSetting) CreateCaddieFeeSettingGroup(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.CaddieFeeSettingGroup{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -26,7 +28,7 @@ func (_ *CCaddieFeeSetting) CreateCaddieFeeSettingGroup(c *gin.Context, prof mod
 		return
 	}
 
-	if body.IsDuplicated() {
+	if body.IsDuplicated(db) {
 		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
@@ -39,7 +41,7 @@ func (_ *CCaddieFeeSetting) CreateCaddieFeeSettingGroup(c *gin.Context, prof mod
 		ToDate:     body.ToDate,
 	}
 
-	errC := CaddieFeeSettingGroup.Create()
+	errC := CaddieFeeSettingGroup.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -50,6 +52,7 @@ func (_ *CCaddieFeeSetting) CreateCaddieFeeSettingGroup(c *gin.Context, prof mod
 }
 
 func (_ *CCaddieFeeSetting) GetListCaddieFeeSettingGroup(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListCaddieFeeSettingGroupForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -67,7 +70,7 @@ func (_ *CCaddieFeeSetting) GetListCaddieFeeSettingGroup(c *gin.Context, prof mo
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
-	list, total, err := CaddieFeeSettingGroupR.FindList(page, 0, 0)
+	list, total, err := CaddieFeeSettingGroupR.FindList(db, page, 0, 0)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -82,6 +85,7 @@ func (_ *CCaddieFeeSetting) GetListCaddieFeeSettingGroup(c *gin.Context, prof mo
 }
 
 func (_ *CCaddieFeeSetting) UpdateCaddieFeeSettingGroup(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	CaddieFeeSettingGroupIdStr := c.Param("id")
 	CaddieFeeSettingGroupId, err := strconv.ParseInt(CaddieFeeSettingGroupIdStr, 10, 64)
 	if err != nil || CaddieFeeSettingGroupId <= 0 {
@@ -91,7 +95,7 @@ func (_ *CCaddieFeeSetting) UpdateCaddieFeeSettingGroup(c *gin.Context, prof mod
 
 	CaddieFeeSettingGroup := models.CaddieFeeSettingGroup{}
 	CaddieFeeSettingGroup.Id = CaddieFeeSettingGroupId
-	errF := CaddieFeeSettingGroup.FindFirst()
+	errF := CaddieFeeSettingGroup.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -104,7 +108,7 @@ func (_ *CCaddieFeeSetting) UpdateCaddieFeeSettingGroup(c *gin.Context, prof mod
 	}
 
 	if CaddieFeeSettingGroup.Name != body.Name || CaddieFeeSettingGroup.FromDate != body.FromDate || CaddieFeeSettingGroup.ToDate != body.ToDate {
-		if body.IsDuplicated() {
+		if body.IsDuplicated(db) {
 			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 			return
 		}
@@ -123,7 +127,7 @@ func (_ *CCaddieFeeSetting) UpdateCaddieFeeSettingGroup(c *gin.Context, prof mod
 		CaddieFeeSettingGroup.ToDate = body.ToDate
 	}
 
-	errUdp := CaddieFeeSettingGroup.Update()
+	errUdp := CaddieFeeSettingGroup.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -133,6 +137,7 @@ func (_ *CCaddieFeeSetting) UpdateCaddieFeeSettingGroup(c *gin.Context, prof mod
 }
 
 func (_ *CCaddieFeeSetting) DeleteCaddieFeeSettingGroup(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	CaddieFeeSettingGroupIdStr := c.Param("id")
 	CaddieFeeSettingGroupId, err := strconv.ParseInt(CaddieFeeSettingGroupIdStr, 10, 64)
 	if err != nil || CaddieFeeSettingGroupId <= 0 {
@@ -142,13 +147,13 @@ func (_ *CCaddieFeeSetting) DeleteCaddieFeeSettingGroup(c *gin.Context, prof mod
 
 	CaddieFeeSettingGroup := models.CaddieFeeSettingGroup{}
 	CaddieFeeSettingGroup.Id = CaddieFeeSettingGroupId
-	errF := CaddieFeeSettingGroup.FindFirst()
+	errF := CaddieFeeSettingGroup.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := CaddieFeeSettingGroup.Delete()
+	errDel := CaddieFeeSettingGroup.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
@@ -160,6 +165,7 @@ func (_ *CCaddieFeeSetting) DeleteCaddieFeeSettingGroup(c *gin.Context, prof mod
 /// --------- CaddieFee Setting ----------
 
 func (_ *CCaddieFeeSetting) CreateCaddieFeeSetting(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.CaddieFeeSetting{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -171,7 +177,7 @@ func (_ *CCaddieFeeSetting) CreateCaddieFeeSetting(c *gin.Context, prof models.C
 		return
 	}
 
-	if body.IsDuplicated() {
+	if body.IsDuplicated(db) {
 		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
@@ -179,7 +185,7 @@ func (_ *CCaddieFeeSetting) CreateCaddieFeeSetting(c *gin.Context, prof models.C
 	//Check Group Id avaible
 	caddieFeeSettingGroup := models.CaddieFeeSettingGroup{}
 	caddieFeeSettingGroup.Id = body.GroupId
-	errFind := caddieFeeSettingGroup.FindFirst()
+	errFind := caddieFeeSettingGroup.FindFirst(db)
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
@@ -196,7 +202,7 @@ func (_ *CCaddieFeeSetting) CreateCaddieFeeSetting(c *gin.Context, prof models.C
 
 	CaddieFeeSetting.Status = body.Status
 
-	errC := CaddieFeeSetting.Create()
+	errC := CaddieFeeSetting.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -207,6 +213,7 @@ func (_ *CCaddieFeeSetting) CreateCaddieFeeSetting(c *gin.Context, prof models.C
 }
 
 func (_ *CCaddieFeeSetting) GetListCaddieFeeSetting(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListCaddieFeeSettingForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -225,7 +232,7 @@ func (_ *CCaddieFeeSetting) GetListCaddieFeeSetting(c *gin.Context, prof models.
 		CourseUid:  form.CourseUid,
 		GroupId:    form.GroupId,
 	}
-	list, total, err := CaddieFeeSettingR.FindList(page)
+	list, total, err := CaddieFeeSettingR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -240,6 +247,7 @@ func (_ *CCaddieFeeSetting) GetListCaddieFeeSetting(c *gin.Context, prof models.
 }
 
 func (_ *CCaddieFeeSetting) UpdateCaddieFeeSetting(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	CaddieFeeSettingIdStr := c.Param("id")
 	CaddieFeeSettingId, err := strconv.ParseInt(CaddieFeeSettingIdStr, 10, 64)
 	if err != nil || CaddieFeeSettingId <= 0 {
@@ -249,7 +257,7 @@ func (_ *CCaddieFeeSetting) UpdateCaddieFeeSetting(c *gin.Context, prof models.C
 
 	CaddieFeeSetting := models.CaddieFeeSetting{}
 	CaddieFeeSetting.Id = CaddieFeeSettingId
-	errF := CaddieFeeSetting.FindFirst()
+	errF := CaddieFeeSetting.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -269,7 +277,7 @@ func (_ *CCaddieFeeSetting) UpdateCaddieFeeSetting(c *gin.Context, prof models.C
 	CaddieFeeSetting.Hole = body.Hole
 	CaddieFeeSetting.Fee = body.Fee
 
-	errUdp := CaddieFeeSetting.Update()
+	errUdp := CaddieFeeSetting.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -279,6 +287,7 @@ func (_ *CCaddieFeeSetting) UpdateCaddieFeeSetting(c *gin.Context, prof models.C
 }
 
 func (_ *CCaddieFeeSetting) DeleteCaddieFeeSetting(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	CaddieFeeSettingIdStr := c.Param("id")
 	CaddieFeeSettingId, err := strconv.ParseInt(CaddieFeeSettingIdStr, 10, 64)
 	if err != nil || CaddieFeeSettingId <= 0 {
@@ -288,13 +297,13 @@ func (_ *CCaddieFeeSetting) DeleteCaddieFeeSetting(c *gin.Context, prof models.C
 
 	CaddieFeeSetting := models.CaddieFeeSetting{}
 	CaddieFeeSetting.Id = CaddieFeeSettingId
-	errF := CaddieFeeSetting.FindFirst()
+	errF := CaddieFeeSetting.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := CaddieFeeSetting.Delete()
+	errDel := CaddieFeeSetting.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

@@ -4,6 +4,7 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils"
@@ -16,6 +17,7 @@ import (
 type CReport struct{}
 
 func (_ *CReport) GetListReportMainBagSubBagToDay(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingSettingGroupForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -40,7 +42,7 @@ func (_ *CReport) GetListReportMainBagSubBagToDay(c *gin.Context, prof models.Cm
 		CourseUid:   form.CourseUid,
 		BookingDate: dateDisplay,
 	}
-	listBook, _ := mainBagR.FindListForReportForMainBagSubBag()
+	listBook, _ := mainBagR.FindListForReportForMainBagSubBag(db)
 	listHaveMainBags := []model_booking.BookingForReportMainBagSubBags{}
 	listHaveSubBags := []model_booking.BookingForReportMainBagSubBags{}
 

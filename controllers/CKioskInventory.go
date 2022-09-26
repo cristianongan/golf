@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
@@ -15,6 +16,7 @@ import (
 type CKioskInventory struct{}
 
 func (_ CKioskInventory) GetKioskInventory(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var form request.GetInOutItems
 	if err := c.ShouldBind(&form); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -40,7 +42,7 @@ func (_ CKioskInventory) GetKioskInventory(c *gin.Context, prof models.CmsUser) 
 		ProductName: form.ProductName,
 	}
 
-	list, total, err := inputItems.FindList(page, param)
+	list, total, err := inputItems.FindList(db, page, param)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -56,6 +58,7 @@ func (_ CKioskInventory) GetKioskInventory(c *gin.Context, prof models.CmsUser) 
 }
 
 func (_ CKioskInventory) AddItemToInventory(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var data request.AddItemToInventoryBody
 	if err := c.ShouldBind(&data); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -75,7 +78,7 @@ func (_ CKioskInventory) AddItemToInventory(c *gin.Context, prof models.CmsUser)
 				ProShopId: body.ItemCode,
 			}
 
-			if err := proshop.FindFirst(); err == nil {
+			if err := proshop.FindFirst(db); err == nil {
 				groupCode = proshop.GroupCode
 				price = proshop.Price
 				unit = proshop.Unit
@@ -89,7 +92,7 @@ func (_ CKioskInventory) AddItemToInventory(c *gin.Context, prof models.CmsUser)
 				FBCode: body.ItemCode,
 			}
 
-			if err := fb.FindFirst(); err == nil {
+			if err := fb.FindFirst(db); err == nil {
 				groupCode = fb.GroupCode
 				price = fb.Price
 				unit = fb.Unit
@@ -103,7 +106,7 @@ func (_ CKioskInventory) AddItemToInventory(c *gin.Context, prof models.CmsUser)
 				RentalId: body.ItemCode,
 			}
 
-			if err := rental.FindFirst(); err == nil {
+			if err := rental.FindFirst(db); err == nil {
 				groupCode = rental.GroupCode
 				price = rental.Price
 				unit = rental.Unit
@@ -118,7 +121,7 @@ func (_ CKioskInventory) AddItemToInventory(c *gin.Context, prof models.CmsUser)
 			GroupCode: groupCode,
 		}
 
-		errFindGoodsService := goodsService.FindFirst()
+		errFindGoodsService := goodsService.FindFirst(db)
 		if errFindGoodsService != nil {
 			return
 		}
@@ -139,15 +142,15 @@ func (_ CKioskInventory) AddItemToInventory(c *gin.Context, prof models.CmsUser)
 			CourseUid:  data.CourseUid,
 		}
 
-		if err := item.FindFirst(); err != nil {
+		if err := item.FindFirst(db); err != nil {
 			item.ItemInfo = itemInfo
 			item.Quantity = body.Quantity
-			if errCre := item.Create(); errCre != nil {
+			if errCre := item.Create(db); errCre != nil {
 				return
 			}
 		} else {
 			item.Quantity = item.Quantity + body.Quantity
-			if errUpd := item.Update(); errUpd != nil {
+			if errUpd := item.Update(db); errUpd != nil {
 				return
 			}
 		}

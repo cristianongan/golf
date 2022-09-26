@@ -2,10 +2,10 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 type CaddieNote struct {
@@ -18,27 +18,25 @@ type CaddieNote struct {
 	Note       string `json:"note" gorm:"type:varchar(200)"`
 }
 
-func (item *CaddieNote) Create() error {
+func (item *CaddieNote) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *CaddieNote) Delete() error {
+func (item *CaddieNote) Delete(db *gorm.DB) error {
 	if item.ModelId.Id < 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }
 
-func (item *CaddieNote) Update() error {
+func (item *CaddieNote) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
 
-	db := datasources.GetDatabase()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -46,25 +44,24 @@ func (item *CaddieNote) Update() error {
 	return nil
 }
 
-func (item *CaddieNote) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *CaddieNote) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *CaddieNote) Count() (int64, error) {
+func (item *CaddieNote) Count(database *gorm.DB) (int64, error) {
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(CaddieNote{})
+	db := database.Model(CaddieNote{})
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *CaddieNote) FindList(page Page, from int64, to int64) ([]CaddieNote, int64, error) {
+func (item *CaddieNote) FindList(database *gorm.DB, page Page, from int64, to int64) ([]CaddieNote, int64, error) {
 	var list []CaddieNote
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(CaddieNote{})
+	db := database.Model(CaddieNote{})
 	db = db.Where(item)
 
 	print(from, to)

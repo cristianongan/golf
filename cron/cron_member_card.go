@@ -19,10 +19,11 @@ func runResetDataMemberCardJob() {
 
 // Reset số guest của member trong ngày
 func resetDataMemberCard() {
+	db := datasources.GetDatabase()
 	//Lấy list member Card
 	memberCardR := models.MemberCard{}
 	// TODO: Udp theo lấy theo Page, sau lượng membercard lên nhiều
-	err, list := memberCardR.FindAll()
+	err, list := memberCardR.FindAll(db)
 	if err != nil {
 		log.Println("resetDataMemberCard err or empty", err.Error())
 		return
@@ -31,7 +32,7 @@ func resetDataMemberCard() {
 	for _, v := range list {
 		if v.TotalGuestOfDay > 0 {
 			v.TotalGuestOfDay = 0
-			errU := v.Update()
+			errU := v.Update(db)
 			if errU != nil {
 				log.Println("resetDataMemberCard errU", errU.Error())
 			}
