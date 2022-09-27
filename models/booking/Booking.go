@@ -26,8 +26,9 @@ type Booking struct {
 	BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
 
 	Bag            string `json:"bag" gorm:"type:varchar(100);index"`         // Golf Bag
-	Hole           int    `json:"hole"`                                       // Số hố dùng full luồng
+	Hole           int    `json:"hole"`                                       // Số hố check in
 	HoleBooking    int    `json:"hole_booking"`                               // Số hố khi booking
+	HoleTimeOut    int    `json:"hole_time_out"`                              // Số hố khi time out
 	GuestStyle     string `json:"guest_style" gorm:"type:varchar(200);index"` // Guest Style
 	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Guest Style Name
 
@@ -100,6 +101,7 @@ type Booking struct {
 	InitType string `json:"init_type" gorm:"type:varchar(50);index"` // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
 
 	CaddieInOut       []CaddieInOutNote       `json:"caddie_in_out" gorm:"foreignKey:BookingUid;references:Uid"`
+	BuggyInOut        []BuggyInOut            `json:"buggy_in_out" gorm:"foreignKey:BookingUid;references:Uid"`
 	BookingCode       string                  `json:"booking_code" gorm:"type:varchar(100);index"` // cho case tạo nhiều booking có cùng booking code
 	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant,omitempty" gorm:"type:json"`
 	BookingRetal      utils.BookingRental     `json:"booking_retal,omitempty" gorm:"type:json"`
@@ -186,6 +188,19 @@ type CaddieInOutNoteForBooking struct {
 	Note       string `json:"note"`
 	Type       string `json:"type"`
 	Hole       int    `json:"hole"`
+}
+
+type BuggyInOut BuggyInOutNoteForBooking
+
+type BuggyInOutNoteForBooking struct {
+	models.ModelId
+	PartnerUid string `json:"partner_uid"`
+	CourseUid  string `json:"course_uid"`
+	BookingUid string `json:"booking_uid"`
+	BuggyId    int64  `json:"buggy_id"`
+	BuggyCode  string `json:"buggy_code"`
+	Note       string `json:"note"`
+	Type       string `json:"type"`
 }
 
 type BookingForFlightRes struct {

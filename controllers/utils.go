@@ -850,9 +850,23 @@ func udpCaddieOut(db *gorm.DB, caddieId int64) error {
 add Caddie In Out Note
 */
 func addCaddieInOutNote(db *gorm.DB, caddieInOut model_gostarter.CaddieInOutNote) {
-	err := caddieInOut.Create(db)
-	if err != nil {
-		log.Println("err addCaddieInOutNote", err.Error())
+	if caddieInOut.CaddieId != 0 {
+		err := caddieInOut.Create(db)
+		if err != nil {
+			log.Println("err addCaddieInOutNote", err.Error())
+		}
+	}
+}
+
+/*
+add Buggy In Out Note
+*/
+func addBuggyInOutNote(db *gorm.DB, buggyInOut model_gostarter.BuggyInOut) {
+	if buggyInOut.BuggyId != 0 {
+		err := buggyInOut.Create(db)
+		if err != nil {
+			log.Println("err addCaddieInOutNote", err.Error())
+		}
 	}
 }
 

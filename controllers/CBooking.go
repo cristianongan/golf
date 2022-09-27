@@ -572,6 +572,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	if form.HasCaddieInOut != "" {
 		db = db.Preload("CaddieInOut")
 	}
+	db = db.Preload("BuggyInOut")
 
 	res := response.PageResponse{}
 
