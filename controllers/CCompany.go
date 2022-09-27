@@ -86,6 +86,7 @@ func (_ *CCompany) GetListCompany(c *gin.Context, prof models.CmsUser) {
 		Name:          form.Name,
 		CompanyTypeId: form.CompanyTypeId,
 		Phone:         form.Phone,
+		Code:          form.Code,
 	}
 	companyR.Status = form.Status
 	list, total, err := companyR.FindList(db, page)
