@@ -12,13 +12,14 @@ import (
 // Bag Note
 type BagsNote struct {
 	ModelId
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	GolfBag    string `json:"golf_bag" gorm:"type:varchar(200)"`
-	BookingUid string `json:"booking_uid" gorm:"type:varchar(50);index"`
-	Note       string `json:"note" gorm:"type:varchar(2000)"`
-	PlayerName string `json:"player_name" gorm:"type:varchar(256)"`
-	Type       string `json:"type" gorm:"type:varchar(50)"`
+	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	GolfBag     string `json:"golf_bag" gorm:"type:varchar(200)"`
+	BookingUid  string `json:"booking_uid" gorm:"type:varchar(50);index"`
+	Note        string `json:"note" gorm:"type:varchar(2000)"`
+	PlayerName  string `json:"player_name" gorm:"type:varchar(256)"`
+	Type        string `json:"type" gorm:"type:varchar(50)"`
+	BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
 }
 
 // ======= CRUD ===========
@@ -73,6 +74,9 @@ func (item *BagsNote) FindList(database *gorm.DB, page Page) ([]BagsNote, int64,
 	}
 	if item.GolfBag != "" {
 		db = db.Where("golf_bag = ?", item.GolfBag)
+	}
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
 	}
 
 	db.Count(&total)
