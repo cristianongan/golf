@@ -517,9 +517,31 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 Init List Round
 */
 func initListRound(db *gorm.DB, booking model_booking.Booking, bookingGolfFee model_booking.BookingGolfFee, checkInTime int64) {
+
 	// create round and add round
 	round := models.Round{}
 	round.BillCode = booking.BillCode
+	round.Index = 1
+
+	// Check Tồn tại chưa
+	errFind := round.FindFirst(db)
+	if errFind == nil {
+		round.GuestStyle = booking.GuestStyle
+		round.BuggyFee = bookingGolfFee.BuggyFee
+		round.CaddieFee = bookingGolfFee.CaddieFee
+		round.GreenFee = bookingGolfFee.GreenFee
+		round.Hole = booking.Hole
+		round.MemberCardUid = booking.MemberCardUid
+		round.TeeOffTime = booking.CheckInTime
+
+		errUdp := round.Update(db)
+		if errUdp != nil {
+			log.Println("createBagsNote errUdp", errUdp.Error())
+		}
+
+		return
+	}
+
 	round.Bag = booking.Bag
 	round.PartnerUid = booking.PartnerUid
 	round.CourseUid = booking.CourseUid
@@ -531,7 +553,6 @@ func initListRound(db *gorm.DB, booking model_booking.Booking, bookingGolfFee mo
 	round.MemberCardUid = booking.MemberCardUid
 	round.TeeOffTime = booking.CheckInTime
 	round.Pax = 1
-	round.Index = 1
 
 	errCreateRound := round.Create(db)
 	if errCreateRound != nil {

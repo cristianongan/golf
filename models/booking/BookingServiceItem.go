@@ -206,7 +206,7 @@ func (item *BookingServiceItem) FindBestCartItem(database *gorm.DB, page models.
 
 	db = db.Where("created_at >= ?", from.AddDate(0, 0, -8).Unix())
 
-	db.Group("order")
+	db.Group("item_code")
 
 	db.Count(&total)
 

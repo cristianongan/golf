@@ -113,6 +113,7 @@ type Booking struct {
 	HasBookCaddie bool   `json:"has_book_caddie" gorm:"default:0"`
 	TimeOutFlight int64  `json:"time_out_flight,omitempty"`                // Thời gian out Flight
 	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"` // hỗ trợ query tính giá
+	SeparatePrice bool   `json:"separate_price" gorm:"default:0"`          // Giá riêng
 
 	ListServiceItems []BookingServiceItem `json:"list_service_items,omitempty" gorm:"-:migration"` // List service item: rental, proshop, restaurant, kiosk
 	// Rounds           ListBookingRound             `json:"rounds,omitempty" gorm:"type:json"`             // List Rounds: Sẽ sinh golf Fee với List GolfFee
