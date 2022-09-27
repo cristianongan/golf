@@ -27,9 +27,10 @@ func (_ *CBagsNote) GetListBagsNote(c *gin.Context, prof models.CmsUser) {
 	}
 
 	bagsNoteR := models.BagsNote{
-		PartnerUid: form.PartnerUid,
-		CourseUid:  form.CourseUid,
-		GolfBag:    form.GolfBag,
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		GolfBag:     form.GolfBag,
+		BookingDate: form.BookingDate,
 	}
 	list, total, err := bagsNoteR.FindList(db, page)
 	if err != nil {
