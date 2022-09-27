@@ -2,8 +2,9 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Caddie struct {
@@ -44,17 +45,16 @@ type CaddieResponse struct {
 	Booking int64 `json:"booking"`
 }
 
-func (item *Caddie) Create() error {
+func (item *Caddie) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *Caddie) CreateBatch(caddies []Caddie) error {
+func (item *Caddie) CreateBatch(db *gorm.DB, caddies []Caddie) error {
 	now := time.Now()
 	for i := range caddies {
 		c := &caddies[i]
@@ -63,18 +63,16 @@ func (item *Caddie) CreateBatch(caddies []Caddie) error {
 		c.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.CreateInBatches(caddies, 100).Error
 }
 
-func (item *Caddie) Delete() error {
-	return datasources.GetDatabase().Delete(item).Error
+func (item *Caddie) Delete(db *gorm.DB) error {
+	return db.Delete(item).Error
 }
 
-func (item *Caddie) SolfDelete() error {
+func (item *Caddie) SolfDelete(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
 	item.ModelId.Status = constants.STATUS_DELETED
-	db := datasources.GetDatabase()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -82,10 +80,9 @@ func (item *Caddie) SolfDelete() error {
 	return nil
 }
 
-func (item *Caddie) Update() error {
+func (item *Caddie) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
 
-	db := datasources.GetDatabase()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -93,21 +90,20 @@ func (item *Caddie) Update() error {
 	return nil
 }
 
-func (item *Caddie) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *Caddie) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *Caddie) FindCaddieDetail() (CaddieResponse, error) {
+func (item *Caddie) FindCaddieDetail(database *gorm.DB) (CaddieResponse, error) {
 	total := int64(0)
 	var caddieObj Caddie
-	db1 := datasources.GetDatabase().Model(Caddie{})
+	db1 := database.Model(Caddie{})
 	db1 = db1.Where("caddies.id = ?", item.Id)
 	db1.Preload("GroupInfo")
 	db1.Find(&caddieObj)
 
 	// Đếm lượt booking của caddie
-	db2 := datasources.GetDatabase().Model(Caddie{})
+	db2 := database.Model(Caddie{})
 	db2 = db2.Joins("JOIN bookings ON bookings.caddie_id = caddies.id")
 	db2.Count(&total)
 
@@ -119,20 +115,20 @@ func (item *Caddie) FindCaddieDetail() (CaddieResponse, error) {
 	return caddieResponse, db1.Error
 }
 
-func (item *Caddie) Count() (int64, error) {
+func (item *Caddie) Count(database *gorm.DB) (int64, error) {
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(Caddie{})
+	db := database.Model(Caddie{})
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *Caddie) FindList(page Page) ([]Caddie, int64, error) {
+func (item *Caddie) FindList(database *gorm.DB, page Page) ([]Caddie, int64, error) {
 	var list []Caddie
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(Caddie{})
+	db := database.Model(Caddie{})
 
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)

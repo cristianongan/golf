@@ -2,11 +2,11 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Group Fee
@@ -18,7 +18,7 @@ type GroupFee struct {
 	CategoryType string `json:"category_type" gorm:"type:varchar(100)"`     // Category Type
 }
 
-func (item *GroupFee) Create() error {
+func (item *GroupFee) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -26,35 +26,32 @@ func (item *GroupFee) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *GroupFee) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *GroupFee) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *GroupFee) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *GroupFee) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *GroupFee) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(GroupFee{})
+func (item *GroupFee) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(GroupFee{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *GroupFee) FindList(page Page) ([]GroupFee, int64, error) {
-	db := datasources.GetDatabase().Model(GroupFee{})
+func (item *GroupFee) FindList(database *gorm.DB,page Page) ([]GroupFee, int64, error) {
+	db := database.Model(GroupFee{})
 	list := []GroupFee{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -71,9 +68,9 @@ func (item *GroupFee) FindList(page Page) ([]GroupFee, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *GroupFee) Delete() error {
+func (item *GroupFee) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

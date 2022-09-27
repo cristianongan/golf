@@ -1,10 +1,11 @@
 package models
 
 import (
-	"gorm.io/datatypes"
 	"start/constants"
-	"start/datasources"
 	"time"
+
+	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 type CaddieCalendar struct {
@@ -20,28 +21,25 @@ type CaddieCalendar struct {
 	Note       string         `json:"note" gorm:"type:text"`
 }
 
-func (item *CaddieCalendar) Create() error {
+func (item *CaddieCalendar) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *CaddieCalendar) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *CaddieCalendar) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *CaddieCalendar) Update() error {
+func (item *CaddieCalendar) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
 
-	db := datasources.GetDatabase()
 	return db.Save(item).Error
 }
 
-func (item *CaddieCalendar) Delete() error {
-	return datasources.GetDatabase().Delete(item).Error
+func (item *CaddieCalendar) Delete(db *gorm.DB) error {
+	return db.Delete(item).Error
 }

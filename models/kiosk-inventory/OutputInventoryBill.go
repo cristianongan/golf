@@ -2,9 +2,10 @@ package kiosk_inventory
 
 import (
 	"start/constants"
-	"start/datasources"
 	"start/models"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 /*
@@ -29,7 +30,7 @@ type OutputInventoryBill struct {
 	ListItem          []InventoryOutputItem `json:"list_item,omitempty" gorm:"foreignKey:Code;references:Code"`
 }
 
-func (item *OutputInventoryBill) IsDuplicated() bool {
+func (item *OutputInventoryBill) IsDuplicated(db *gorm.DB) bool {
 	bill := OutputInventoryBill{
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
@@ -37,35 +38,32 @@ func (item *OutputInventoryBill) IsDuplicated() bool {
 		Code:       item.Code,
 	}
 
-	errFind := bill.FindFirst()
+	errFind := bill.FindFirst(db)
 	if errFind == nil || bill.Id > 0 {
 		return true
 	}
 	return false
 }
 
-func (item *OutputInventoryBill) Create() error {
+func (item *OutputInventoryBill) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *OutputInventoryBill) Update() error {
+func (item *OutputInventoryBill) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
 
-	db := datasources.GetDatabase()
 	return db.Save(item).Error
 }
-func (item *OutputInventoryBill) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *OutputInventoryBill) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
-func (item *OutputInventoryBill) FindList(page models.Page, status string) ([]OutputInventoryBill, int64, error) {
-	db := datasources.GetDatabase().Model(OutputInventoryBill{})
+func (item *OutputInventoryBill) FindList(database *gorm.DB, page models.Page, status string) ([]OutputInventoryBill, int64, error) {
+	db := database.Model(OutputInventoryBill{})
 	list := []OutputInventoryBill{}
 	total := int64(0)
 

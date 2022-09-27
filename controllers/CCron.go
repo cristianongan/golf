@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"start/constants"
+	"start/datasources"
 	"start/models"
 	"strconv"
 	"time"
@@ -16,6 +17,7 @@ import (
 type CCron struct{}
 
 func (_ CCron) CreateCaddieWorkingCalendar(c *gin.Context) {
+	db := datasources.GetDatabase()
 	var err error
 
 	// get caddie groups
@@ -26,7 +28,7 @@ func (_ CCron) CreateCaddieWorkingCalendar(c *gin.Context) {
 	caddieWorkingSchedule := models.CaddieWorkingSchedule{}
 	caddieWorkingSchedule.ApplyDate = &today
 	caddieWorkingSchedule.IsDayOff = &idDayOff
-	caddieWorkingScheduleList, err = caddieWorkingSchedule.FindListWithoutPage()
+	caddieWorkingScheduleList, err = caddieWorkingSchedule.FindListWithoutPage(db)
 
 	if err != nil {
 		fmt.Println("[CRON_JOB] [CREATE_CADDIE_WORKING_CALENDAR] [ERROR]", err.Error())
@@ -37,7 +39,7 @@ func (_ CCron) CreateCaddieWorkingCalendar(c *gin.Context) {
 	for _, item := range caddieWorkingScheduleList {
 		caddieGroup := models.CaddieGroup{}
 		caddieGroup.Code = item.CaddieGroupCode
-		if err = caddieGroup.FindFirst(); err != nil {
+		if err = caddieGroup.FindFirst(db); err != nil {
 			continue
 		}
 		groupIds = append(groupIds, int(caddieGroup.Id))
@@ -57,7 +59,7 @@ func (_ CCron) CreateCaddieWorkingCalendar(c *gin.Context) {
 
 	for i := 0; i < countGroup; i++ {
 		caddieList.GroupId = int64(groupIds[i])
-		caddies[i], err = caddieList.FindListWithoutPage()
+		caddies[i], err = caddieList.FindListWithoutPage(db)
 
 		if err != nil {
 			fmt.Println("[CRON_JOB] [CREATE_CADDIE_WORKING_CALENDAR] [ERROR]", err.Error())
@@ -106,7 +108,7 @@ func (_ CCron) CreateCaddieWorkingCalendar(c *gin.Context) {
 		caddieWorkingCalendar.CaddieRow = "H" + strconv.FormatInt(int64(math.Round(float64(i+1)/float64(10))), 10)
 		caddieWorkingCalendar.ApplyDate = datatypes.Date(time.Now())
 
-		if err := caddieWorkingCalendar.Create(); err != nil {
+		if err := caddieWorkingCalendar.Create(db); err != nil {
 			fmt.Println("[CRON_JOB] [CREATE_CADDIE_WORKING_CALENDAR] [ERROR]", err.Error())
 		}
 	}

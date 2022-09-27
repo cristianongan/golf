@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Locker
@@ -23,7 +24,7 @@ type Locker struct {
 }
 
 // ======= CRUD ===========
-func (item *Locker) Create() error {
+func (item *Locker) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
@@ -32,22 +33,19 @@ func (item *Locker) Create() error {
 		item.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *Locker) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *Locker) Update(db *gorm.DB) error {
 	item.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *Locker) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *Locker) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
@@ -59,8 +57,8 @@ func (item *Locker) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *Locker) FindList(page Page, from, to int64, isFullDay bool) ([]Locker, int64, error) {
-	db := datasources.GetDatabase().Model(Locker{})
+func (item *Locker) FindList(database *gorm.DB, page Page, from, to int64, isFullDay bool) ([]Locker, int64, error) {
+	db := database.Model(Locker{})
 	list := []Locker{}
 	total := int64(0)
 
@@ -103,9 +101,9 @@ func (item *Locker) FindList(page Page, from, to int64, isFullDay bool) ([]Locke
 	return list, total, db.Error
 }
 
-func (item *Locker) Delete() error {
+func (item *Locker) Delete(db *gorm.DB) error {
 	if item.Id < 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

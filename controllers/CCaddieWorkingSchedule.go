@@ -2,23 +2,26 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/nleeper/goment"
-	"gorm.io/datatypes"
 	"log"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/nleeper/goment"
+	"gorm.io/datatypes"
 )
 
 type CCaddieWorkingSchedule struct {
 }
 
 func (_ *CCaddieWorkingSchedule) CreateCaddieWorkingSchedule(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CreateWorkingScheduleBody
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("CreateCaddieWorkingSchedule BindJSON error")
@@ -32,7 +35,7 @@ func (_ *CCaddieWorkingSchedule) CreateCaddieWorkingSchedule(c *gin.Context, pro
 		// validate caddie_group
 		caddieGroup := models.CaddieGroup{}
 		caddieGroup.Code = item.CaddieGroupCode
-		if err := caddieGroup.FindFirst(); err != nil {
+		if err := caddieGroup.FindFirst(db); err != nil {
 			response_message.BadRequest(c, err.Error())
 			hasError = true
 			break
@@ -75,7 +78,7 @@ func (_ *CCaddieWorkingSchedule) CreateCaddieWorkingSchedule(c *gin.Context, pro
 				CourseUid:       prof.CourseUid,
 			}
 
-			if err := caddieWorkingSchedule.Create(); err != nil {
+			if err := caddieWorkingSchedule.Create(db); err != nil {
 				response_message.InternalServerError(c, err.Error())
 				hasError2 = true
 				break
@@ -97,6 +100,7 @@ func (_ *CCaddieWorkingSchedule) CreateCaddieWorkingSchedule(c *gin.Context, pro
 }
 
 func (_ CCaddieWorkingSchedule) GetCaddieWorkingScheduleList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var query request.GetCaddieWorkingScheduleList
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -117,7 +121,7 @@ func (_ CCaddieWorkingSchedule) GetCaddieWorkingScheduleList(c *gin.Context, pro
 	caddieWorkingSchedule.CourseUid = prof.CourseUid
 	caddieWorkingSchedule.WeekId = query.WeekId
 
-	list, total, err := caddieWorkingSchedule.FindList(page)
+	list, total, err := caddieWorkingSchedule.FindList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -133,6 +137,7 @@ func (_ CCaddieWorkingSchedule) GetCaddieWorkingScheduleList(c *gin.Context, pro
 }
 
 func (_ *CCaddieWorkingSchedule) UpdateCaddieWorkingSchedule(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.UpdateWorkingScheduleBody
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("UpdateCaddieWorkingSchedule BindJSON error")
@@ -143,7 +148,7 @@ func (_ *CCaddieWorkingSchedule) UpdateCaddieWorkingSchedule(c *gin.Context, pro
 	// validate caddie_group
 	caddieGroup := models.CaddieGroup{}
 	caddieGroup.Code = body.CaddieGroupCode
-	if err := caddieGroup.FindFirst(); err != nil {
+	if err := caddieGroup.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -188,13 +193,13 @@ func (_ *CCaddieWorkingSchedule) UpdateCaddieWorkingSchedule(c *gin.Context, pro
 			ApplyDate:       &applyDate2,
 		}
 
-		if err := caddieWorkingSchedule.FindFirst(); err != nil {
+		if err := caddieWorkingSchedule.FindFirst(db); err != nil {
 
 		}
 
 		caddieWorkingSchedule.IsDayOff = &applyDayOff.IsDayOff
 
-		if err := caddieWorkingSchedule.Update(); err != nil {
+		if err := caddieWorkingSchedule.Update(db); err != nil {
 			response_message.InternalServerError(c, err.Error())
 			hasError = true
 			break

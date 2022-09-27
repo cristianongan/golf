@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 type CCompany struct{}
 
 func (_ *CCompany) CreateCompany(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.Company{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -28,7 +30,7 @@ func (_ *CCompany) CreateCompany(c *gin.Context, prof models.CmsUser) {
 	// Check company type
 	companyType := models.CompanyType{}
 	companyType.Id = body.CompanyTypeId
-	errF := companyType.FindFirst()
+	errF := companyType.FindFirst(db)
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
@@ -40,7 +42,7 @@ func (_ *CCompany) CreateCompany(c *gin.Context, prof models.CmsUser) {
 	company.Code = body.Code
 
 	// Check duplicate code trong 1 hãng
-	if company.IsDuplicated() {
+	if company.IsDuplicated(db) {
 		response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
@@ -53,7 +55,7 @@ func (_ *CCompany) CreateCompany(c *gin.Context, prof models.CmsUser) {
 	company.CompanyTypeId = companyType.Id
 	company.CompanyTypeName = companyType.Name
 
-	errC := company.Create()
+	errC := company.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -64,6 +66,7 @@ func (_ *CCompany) CreateCompany(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCompany) GetListCompany(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListCompanyForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -85,7 +88,7 @@ func (_ *CCompany) GetListCompany(c *gin.Context, prof models.CmsUser) {
 		Phone:         form.Phone,
 	}
 	companyR.Status = form.Status
-	list, total, err := companyR.FindList(page)
+	list, total, err := companyR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -100,6 +103,7 @@ func (_ *CCompany) GetListCompany(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCompany) UpdateCompany(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	companyIdStr := c.Param("id")
 	companyId, err := strconv.ParseInt(companyIdStr, 10, 64) // Nếu uid là int64 mới cần convert
 	if err != nil || companyId == 0 {
@@ -109,7 +113,7 @@ func (_ *CCompany) UpdateCompany(c *gin.Context, prof models.CmsUser) {
 
 	company := models.Company{}
 	company.Id = companyId
-	errF := company.FindFirst()
+	errF := company.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -122,7 +126,7 @@ func (_ *CCompany) UpdateCompany(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.Code != "" && body.Code != company.Code {
-		if body.IsDuplicated() {
+		if body.IsDuplicated(db) {
 			response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
 			return
 		}
@@ -148,7 +152,7 @@ func (_ *CCompany) UpdateCompany(c *gin.Context, prof models.CmsUser) {
 		company.FaxCode = body.FaxCode
 	}
 
-	errUdp := company.Update()
+	errUdp := company.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -158,6 +162,7 @@ func (_ *CCompany) UpdateCompany(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCompany) DeleteCompany(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	companyIdStr := c.Param("id")
 	companyId, err := strconv.ParseInt(companyIdStr, 10, 64) // Nếu uid là int64 mới cần convert
 	if err != nil || companyId == 0 {
@@ -167,13 +172,13 @@ func (_ *CCompany) DeleteCompany(c *gin.Context, prof models.CmsUser) {
 
 	company := models.Company{}
 	company.Id = companyId
-	errF := company.FindFirst()
+	errF := company.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := company.Delete()
+	errDel := company.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

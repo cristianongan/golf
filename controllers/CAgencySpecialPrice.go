@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 type CAgencySpecialPrice struct{}
 
 func (_ *CAgencySpecialPrice) CreateAgencySpecialPrice(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.AgencySpecialPrice{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -25,13 +27,13 @@ func (_ *CAgencySpecialPrice) CreateAgencySpecialPrice(c *gin.Context, prof mode
 		return
 	}
 
-	if body.IsDuplicated() {
+	if body.IsDuplicated(db) {
 		response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
 
 	body.Input = prof.UserName
-	errC := body.Create()
+	errC := body.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -42,6 +44,7 @@ func (_ *CAgencySpecialPrice) CreateAgencySpecialPrice(c *gin.Context, prof mode
 }
 
 func (_ *CAgencySpecialPrice) GetListAgencySpecialPrice(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListAgencySpecialPriceForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -61,7 +64,7 @@ func (_ *CAgencySpecialPrice) GetListAgencySpecialPrice(c *gin.Context, prof mod
 	agencyR.Status = form.Status
 
 	if agencyR.AgencyId > 0 {
-		list, total, err := agencyR.FindListByAgencyId()
+		list, total, err := agencyR.FindListByAgencyId(db)
 		if err != nil {
 			response_message.InternalServerError(c, err.Error())
 			return
@@ -76,7 +79,7 @@ func (_ *CAgencySpecialPrice) GetListAgencySpecialPrice(c *gin.Context, prof mod
 		return
 	}
 
-	list, total, err := agencyR.FindList(page, form.AgencyIdStr, form.Name)
+	list, total, err := agencyR.FindList(db, page, form.AgencyIdStr, form.Name)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -91,6 +94,7 @@ func (_ *CAgencySpecialPrice) GetListAgencySpecialPrice(c *gin.Context, prof mod
 }
 
 func (_ *CAgencySpecialPrice) UpdateAgencySpecialPrice(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	agencyIdStr := c.Param("id")
 	agencyId, err := strconv.ParseInt(agencyIdStr, 10, 64)
 	if err != nil || agencyId <= 0 {
@@ -100,7 +104,7 @@ func (_ *CAgencySpecialPrice) UpdateAgencySpecialPrice(c *gin.Context, prof mode
 
 	agency := models.AgencySpecialPrice{}
 	agency.Id = agencyId
-	errF := agency.FindFirst()
+	errF := agency.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -113,7 +117,7 @@ func (_ *CAgencySpecialPrice) UpdateAgencySpecialPrice(c *gin.Context, prof mode
 	}
 
 	if body.Dow != agency.Dow {
-		if body.IsDuplicated() {
+		if body.IsDuplicated(db) {
 			response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
 			return
 		}
@@ -143,7 +147,7 @@ func (_ *CAgencySpecialPrice) UpdateAgencySpecialPrice(c *gin.Context, prof mode
 
 	agency.Note = body.Note
 
-	errUdp := agency.Update()
+	errUdp := agency.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -153,6 +157,7 @@ func (_ *CAgencySpecialPrice) UpdateAgencySpecialPrice(c *gin.Context, prof mode
 }
 
 func (_ *CAgencySpecialPrice) DeleteAgencySpecialPrice(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	agencyIdStr := c.Param("id")
 	agencyId, err := strconv.ParseInt(agencyIdStr, 10, 64)
 	if err != nil || agencyId <= 0 {
@@ -162,13 +167,13 @@ func (_ *CAgencySpecialPrice) DeleteAgencySpecialPrice(c *gin.Context, prof mode
 
 	agency := models.AgencySpecialPrice{}
 	agency.Id = agencyId
-	errF := agency.FindFirst()
+	errF := agency.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := agency.Delete()
+	errDel := agency.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

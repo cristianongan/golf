@@ -2,12 +2,12 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // CaddieFee setting
@@ -20,7 +20,7 @@ type CaddieFeeSettingGroup struct {
 	ToDate     int64  `json:"to_date" gorm:"index"`                       // Áp dụng tới ngày
 }
 
-func (item *CaddieFeeSettingGroup) IsDuplicated() bool {
+func (item *CaddieFeeSettingGroup) IsDuplicated(db *gorm.DB) bool {
 	CaddieFeeSettingGroup := CaddieFeeSettingGroup{
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
@@ -29,7 +29,7 @@ func (item *CaddieFeeSettingGroup) IsDuplicated() bool {
 		ToDate:     item.ToDate,
 	}
 
-	errFind := CaddieFeeSettingGroup.FindFirst()
+	errFind := CaddieFeeSettingGroup.FindFirst(db)
 	if errFind == nil || CaddieFeeSettingGroup.Id > 0 {
 		return true
 	}
@@ -49,7 +49,7 @@ func (item *CaddieFeeSettingGroup) IsValidated() bool {
 	return true
 }
 
-func (item *CaddieFeeSettingGroup) Create() error {
+func (item *CaddieFeeSettingGroup) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -57,27 +57,24 @@ func (item *CaddieFeeSettingGroup) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *CaddieFeeSettingGroup) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *CaddieFeeSettingGroup) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *CaddieFeeSettingGroup) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *CaddieFeeSettingGroup) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *CaddieFeeSettingGroup) FindFirstByDate(date int64) error {
-	db := datasources.GetDatabase()
+func (item *CaddieFeeSettingGroup) FindFirstByDate(database *gorm.DB, date int64) error {
+	db := database
 
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
@@ -93,16 +90,16 @@ func (item *CaddieFeeSettingGroup) FindFirstByDate(date int64) error {
 	return db.Find(item).Error
 }
 
-func (item *CaddieFeeSettingGroup) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(CaddieFeeSettingGroup{})
+func (item *CaddieFeeSettingGroup) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(CaddieFeeSettingGroup{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *CaddieFeeSettingGroup) FindList(page Page, from, to int64) ([]CaddieFeeSettingGroup, int64, error) {
-	db := datasources.GetDatabase().Model(CaddieFeeSettingGroup{})
+func (item *CaddieFeeSettingGroup) FindList(database *gorm.DB, page Page, from, to int64) ([]CaddieFeeSettingGroup, int64, error) {
+	db := database.Model(CaddieFeeSettingGroup{})
 	list := []CaddieFeeSettingGroup{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -138,9 +135,9 @@ func (item *CaddieFeeSettingGroup) FindList(page Page, from, to int64) ([]Caddie
 	return list, total, db.Error
 }
 
-func (item *CaddieFeeSettingGroup) Delete() error {
+func (item *CaddieFeeSettingGroup) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

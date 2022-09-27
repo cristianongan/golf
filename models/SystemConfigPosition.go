@@ -3,9 +3,10 @@ package models
 import (
 	"errors"
 	"start/constants"
-	"start/datasources"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // System config Position
@@ -17,7 +18,7 @@ type SystemConfigPosition struct {
 }
 
 // ========== CRUD ===========
-func (item *SystemConfigPosition) Create() error {
+func (item *SystemConfigPosition) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
@@ -25,36 +26,33 @@ func (item *SystemConfigPosition) Create() error {
 	if item.Status == "" {
 		item.Status = constants.STATUS_ENABLE
 	}
-
-	db := datasources.GetDatabase()
+	
 	return db.Create(item).Error
 }
 
-func (item *SystemConfigPosition) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *SystemConfigPosition) Update(db *gorm.DB) error {
 	item.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *SystemConfigPosition) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *SystemConfigPosition) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *SystemConfigPosition) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(SystemConfigPosition{})
+func (item *SystemConfigPosition) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(SystemConfigPosition{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *SystemConfigPosition) FindList(page Page) ([]SystemConfigPosition, int64, error) {
-	db := datasources.GetDatabase().Model(SystemConfigPosition{})
+func (item *SystemConfigPosition) FindList(database *gorm.DB,page Page) ([]SystemConfigPosition, int64, error) {
+	db := database.Model(SystemConfigPosition{})
 	list := []SystemConfigPosition{}
 	total := int64(0)
 	status := item.Status
@@ -72,9 +70,9 @@ func (item *SystemConfigPosition) FindList(page Page) ([]SystemConfigPosition, i
 	return list, total, db.Error
 }
 
-func (item *SystemConfigPosition) Delete() error {
+func (item *SystemConfigPosition) Delete(db *gorm.DB) error {
 	if item.Id == 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

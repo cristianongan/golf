@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils"
@@ -13,14 +14,15 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/twharmon/slices"
+	"gorm.io/gorm"
 )
 
 type CRound struct{}
 
-func (_ CRound) validateBooking(bookindUid string) (model_booking.Booking, error) {
+func (_ CRound) validateBooking(db *gorm.DB, bookindUid string) (model_booking.Booking, error) {
 	booking := model_booking.Booking{}
 	booking.Uid = bookindUid
-	if err := booking.FindFirst(); err != nil {
+	if err := booking.FindFirst(db); err != nil {
 		return booking, err
 	}
 
@@ -31,12 +33,12 @@ func (_ CRound) validateBooking(bookindUid string) (model_booking.Booking, error
 	return booking, nil
 }
 
-func (_ CRound) createRound(booking model_booking.Booking, newHole int, isMerge bool) error {
+func (_ CRound) createRound(db *gorm.DB, booking model_booking.Booking, newHole int, isMerge bool) error {
 	round := models.Round{}
 	if isMerge {
 		round.Index = 0
 	} else {
-		totalRound, _ := round.CountWithBillCode()
+		totalRound, _ := round.CountWithBillCode(db)
 		round.Index = int(totalRound + 1)
 	}
 	round.BillCode = booking.BillCode
@@ -54,7 +56,7 @@ func (_ CRound) createRound(booking model_booking.Booking, newHole int, isMerge 
 		round.GreenFee = booking.ListGolfFee[0].GreenFee
 	}
 
-	errCreateRound := round.Create()
+	errCreateRound := round.Create(db)
 	if errCreateRound != nil {
 		return errCreateRound
 	}
@@ -78,6 +80,7 @@ func (_ CRound) updateMustPayInfo(booking model_booking.Booking) (model_booking.
 }
 
 func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.AddRoundBody
 	var booking model_booking.Booking
 	var err error
@@ -96,7 +99,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 
 	for _, data := range body.BookUidList {
 		// validate booking_uid
-		booking, err = cRound.validateBooking(data)
+		booking, err = cRound.validateBooking(db, data)
 		if err != nil {
 			response_message.BadRequest(c, err.Error())
 			return
@@ -115,7 +118,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 				GuestStyle: booking.GuestStyle,
 			}
 			// Lấy phí bởi Guest style với ngày tạo
-			golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay()
+			golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)
 			if errFindGF != nil {
 				response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
 				return
@@ -126,7 +129,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 			// Get config course
 			course := models.Course{}
 			course.Uid = booking.CourseUid
-			errCourse := course.FindFirst()
+			errCourse := course.FindFirst(db)
 			if errCourse != nil {
 				response_message.BadRequest(c, errCourse.Error())
 				return
@@ -136,7 +139,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 				// Get Member Card
 				memberCard := models.MemberCard{}
 				memberCard.Uid = booking.MemberCardUid
-				errFind := memberCard.FindFirst()
+				errFind := memberCard.FindFirst(db)
 				if errFind != nil {
 					response_message.BadRequest(c, errFind.Error())
 					return
@@ -151,7 +154,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 			if booking.AgencyId > 0 {
 				agency := models.Agency{}
 				agency.Id = booking.AgencyId
-				errFindAgency := agency.FindFirst()
+				errFindAgency := agency.FindFirst(db)
 				if errFindAgency != nil || agency.Id == 0 {
 					response_message.BadRequest(c, "agency"+errFindAgency.Error())
 					return
@@ -160,7 +163,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 				agencySpecialPrice := models.AgencySpecialPrice{
 					AgencyId: agency.Id,
 				}
-				errFSP := agencySpecialPrice.FindFirst()
+				errFSP := agencySpecialPrice.FindFirst(db)
 				if errFSP == nil && agencySpecialPrice.Id > 0 {
 					// Tính lại giá
 					// List Booking GolfFee
@@ -173,7 +176,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 			// Get data main bag
 			bookingMain := model_booking.Booking{}
 			bookingMain.Uid = booking.MainBags[0].BookingUid
-			if err := bookingMain.FindFirst(); err != nil {
+			if err := bookingMain.FindFirst(db); err != nil {
 				return
 			}
 
@@ -203,7 +206,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 					bookingMain.MushPayInfo.MushPay += totalPayChange
 					bookingMain.MushPayInfo.TotalGolfFee += totalPayChange
 
-					errUpdateBooking := bookingMain.Update()
+					errUpdateBooking := bookingMain.Update(db)
 
 					if errUpdateBooking != nil {
 						response_message.BadRequest(c, errUpdateBooking.Error())
@@ -216,7 +219,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 
 		}
 
-		err = cRound.createRound(booking, hole, false)
+		err = cRound.createRound(db, booking, hole, false)
 		if err != nil {
 			response_message.BadRequest(c, err.Error())
 			return
@@ -239,7 +242,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		newBooking.FlightId = 0
 		newBooking.TimeOutFlight = 0
 		newBooking.CourseType = body.CourseType
-		errCreateBooking := newBooking.Create(bUid)
+		errCreateBooking := newBooking.Create(db, bUid)
 
 		if errCreateBooking != nil {
 			response_message.BadRequest(c, errCreateBooking.Error())
@@ -248,15 +251,16 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 
 		// Update lại bag_status của booking cũ
 		booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
-		go booking.Update()
+		go booking.Update(db)
 	}
 
-	res := getBagDetailFromBooking(booking)
+	res := getBagDetailFromBooking(db, booking)
 
 	okResponse(c, res)
 }
 
 func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.SplitRoundBody
 	var booking model_booking.Booking
 	var err error
@@ -273,7 +277,7 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking, err = cRound.validateBooking(body.BookingUid)
+	booking, err = cRound.validateBooking(db, body.BookingUid)
 	if err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
@@ -281,7 +285,7 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 
 	currentRound := models.Round{}
 	currentRound.Id = body.RoundId
-	errRound := currentRound.FindFirst()
+	errRound := currentRound.FindFirst(db)
 
 	if errRound != nil {
 		response_message.BadRequest(c, errRound.Error())
@@ -298,16 +302,16 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 	currentRound.Hole = currentRound.Hole - newRound.Hole
 
 	// Update giá cho current round và new round
-	updateListGolfFeeWithRound(&currentRound, booking, currentRound.Hole)
-	updateListGolfFeeWithRound(&newRound, booking, newRound.Hole)
+	updateListGolfFeeWithRound(db, &currentRound, booking, currentRound.Hole)
+	updateListGolfFeeWithRound(db, &newRound, booking, newRound.Hole)
 
-	errUpdate := currentRound.Update()
+	errUpdate := currentRound.Update(db)
 	if errUpdate != nil {
 		response_message.BadRequest(c, errUpdate.Error())
 		return
 	}
 
-	errCreate := newRound.Create()
+	errCreate := newRound.Create(db)
 	if errCreate != nil {
 		response_message.BadRequest(c, errCreate.Error())
 		return
@@ -324,7 +328,7 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 		// Get data main bag
 		bookingMain := model_booking.Booking{}
 		bookingMain.Uid = booking.MainBags[0].BookingUid
-		if err := bookingMain.FindFirst(); err != nil {
+		if err := bookingMain.FindFirst(db); err != nil {
 			return
 		}
 
@@ -337,7 +341,7 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 			BillCode: booking.BillCode,
 		}
 
-		rounds, errR := round.FindAll()
+		rounds, errR := round.FindAll(db)
 		if errR != nil {
 			response_message.BadRequest(c, errR.Error())
 			return
@@ -385,7 +389,7 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 		bookingMain.MushPayInfo.MushPay += totalFeeBefore - totalFeeAfter
 		bookingMain.MushPayInfo.TotalGolfFee += totalFeeBefore - totalFeeAfter
 
-		errUpdateBooking := bookingMain.Update()
+		errUpdateBooking := bookingMain.Update(db)
 
 		if errUpdateBooking != nil {
 			response_message.BadRequest(c, errUpdateBooking.Error())
@@ -394,11 +398,12 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 
 	}
 
-	res := getBagDetailFromBooking(booking)
+	res := getBagDetailFromBooking(db, booking)
 	okResponse(c, res)
 }
 
 func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.MergeRoundBody
 	var booking model_booking.Booking
 	var err error
@@ -415,14 +420,14 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking, err = cRound.validateBooking(body.BookingUid)
+	booking, err = cRound.validateBooking(db, body.BookingUid)
 	if err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
 
 	round := models.Round{BillCode: booking.BillCode}
-	listRound, _ := round.FindAll()
+	listRound, _ := round.FindAll(db)
 
 	// create round
 	totalHoles := slices.Reduce(listRound, func(prev int, item models.Round) int {
@@ -430,7 +435,7 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	})
 
 	// Update giá cho current round và new round
-	updateListGolfFeeWithRound(&round, booking, totalHoles)
+	updateListGolfFeeWithRound(db, &round, booking, totalHoles)
 
 	// update fee booking
 	totalPayChange := round.BuggyFee + round.CaddieFee + round.CaddieFee
@@ -444,13 +449,13 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	booking.CurrentBagPrice.Amount += totalPayChange
 	booking.CurrentBagPrice.GolfFee += totalPayChange
 
-	err = cRound.createRound(booking, totalHoles, true)
+	err = cRound.createRound(db, booking, totalHoles, true)
 	if err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
 
-	err = booking.Update()
+	err = booking.Update(db)
 	if err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
@@ -465,7 +470,7 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 		// Get data main bag
 		bookingMain := model_booking.Booking{}
 		bookingMain.Uid = booking.MainBags[0].BookingUid
-		if err := bookingMain.FindFirst(); err != nil {
+		if err := bookingMain.FindFirst(db); err != nil {
 			return
 		}
 
@@ -512,7 +517,7 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 			bookingMain.MushPayInfo.TotalGolfFee -= totalFeeAfter
 		}
 
-		errUpdateBooking := bookingMain.Update()
+		errUpdateBooking := bookingMain.Update(db)
 
 		if errUpdateBooking != nil {
 			response_message.BadRequest(c, errUpdateBooking.Error())
@@ -521,6 +526,6 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 
 	}
 
-	res := getBagDetailFromBooking(booking)
+	res := getBagDetailFromBooking(db, booking)
 	okResponse(c, res)
 }

@@ -2,11 +2,11 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Bảng phí
@@ -19,7 +19,7 @@ type TablePrice struct {
 	Year       int    `json:"year" gorm:"index"`
 }
 
-func (item *TablePrice) Create() error {
+func (item *TablePrice) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -27,35 +27,32 @@ func (item *TablePrice) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *TablePrice) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *TablePrice) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *TablePrice) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *TablePrice) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *TablePrice) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(TablePrice{})
+func (item *TablePrice) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(TablePrice{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *TablePrice) FindList(page Page) ([]TablePrice, int64, error) {
-	db := datasources.GetDatabase().Model(TablePrice{})
+func (item *TablePrice) FindList(database *gorm.DB, page Page) ([]TablePrice, int64, error) {
+	db := database.Model(TablePrice{})
 	list := []TablePrice{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -84,8 +81,8 @@ func (item *TablePrice) FindList(page Page) ([]TablePrice, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *TablePrice) FindCurrentUse() (TablePrice, error) {
-	db := datasources.GetDatabase().Model(TablePrice{})
+func (item *TablePrice) FindCurrentUse(database *gorm.DB) (TablePrice, error) {
+	db := database.Model(TablePrice{})
 	list := []TablePrice{}
 
 	db = db.Where("partner_uid = ?", item.PartnerUid)
@@ -132,9 +129,9 @@ func (item *TablePrice) FindCurrentUse() (TablePrice, error) {
 	return list[indexCurrent], nil
 }
 
-func (item *TablePrice) Delete() error {
+func (item *TablePrice) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

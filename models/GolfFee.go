@@ -2,7 +2,6 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"strconv"
 	"strings"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"start/utils"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Phí Golf
@@ -47,7 +47,7 @@ type GuestStyle struct {
 	Dow              string `json:"dow"`               // Dow
 }
 
-func (item *GolfFee) Create() error {
+func (item *GolfFee) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -55,27 +55,24 @@ func (item *GolfFee) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *GolfFee) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *GolfFee) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *GolfFee) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *GolfFee) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *GolfFee) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(GolfFee{})
+func (item *GolfFee) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(GolfFee{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
@@ -85,7 +82,7 @@ func (item *GolfFee) Count() (int64, error) {
 /*
 Get Golf Fee valid in to day
 */
-func (item *GolfFee) GetGuestStyleOnDay() (GolfFee, error) {
+func (item *GolfFee) GetGuestStyleOnDay(database *gorm.DB) (GolfFee, error) {
 	golfFee := GolfFee{
 		GuestStyle: item.GuestStyle,
 	}
@@ -99,13 +96,13 @@ func (item *GolfFee) GetGuestStyleOnDay() (GolfFee, error) {
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
 	}
-	tablePrice, errFTB := tablePriceR.FindCurrentUse()
+	tablePrice, errFTB := tablePriceR.FindCurrentUse(database)
 	if errFTB != nil {
 		return golfFee, errFTB
 	}
 
 	list := []GolfFee{}
-	db := datasources.GetDatabase().Model(GolfFee{})
+	db := database.Model(GolfFee{})
 	db = db.Where("partner_uid = ?", item.PartnerUid)
 	db = db.Where("course_uid = ?", item.CourseUid)
 	db = db.Where("guest_style = ?", item.GuestStyle)
@@ -162,8 +159,8 @@ func (item *GolfFee) GetGuestStyleOnDay() (GolfFee, error) {
 	return golfFee, errors.New("No guest style on day")
 }
 
-func (item *GolfFee) FindList(page Page) ([]GolfFee, int64, error) {
-	db := datasources.GetDatabase().Model(GolfFee{})
+func (item *GolfFee) FindList(database *gorm.DB, page Page) ([]GolfFee, int64, error) {
+	db := database.Model(GolfFee{})
 	list := []GolfFee{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -197,15 +194,15 @@ func (item *GolfFee) FindList(page Page) ([]GolfFee, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *GolfFee) Delete() error {
+func (item *GolfFee) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }
 
-func (item *GolfFee) GetGuestStyleList() []GuestStyle {
-	db := datasources.GetDatabase().Table("golf_fees")
+func (item *GolfFee) GetGuestStyleList(database *gorm.DB) []GuestStyle {
+	db := database.Table("golf_fees")
 	list := []GuestStyle{}
 	status := item.ModelId.Status
 	if status != "" {
@@ -239,8 +236,8 @@ func (item *GolfFee) GetGuestStyleList() []GuestStyle {
 	return list
 }
 
-func (item *GolfFee) GetGuestStyleGolfFeeByGuestStyle() []GolfFee {
-	db := datasources.GetDatabase().Table("golf_fees")
+func (item *GolfFee) GetGuestStyleGolfFeeByGuestStyle(database *gorm.DB) []GolfFee {
+	db := database.Table("golf_fees")
 	list := []GolfFee{}
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)

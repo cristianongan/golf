@@ -2,10 +2,10 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 /*
@@ -31,41 +31,38 @@ type RestaurantItem struct {
 	TotalProcess     int    `json:"total_process"`                              // Tổng số lượng đang làm
 }
 
-func (item *RestaurantItem) Create() error {
+func (item *RestaurantItem) Create(db *gorm.DB) error {
 	now := time.Now()
 
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *RestaurantItem) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *RestaurantItem) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *RestaurantItem) Update() error {
+func (item *RestaurantItem) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
 
-	db := datasources.GetDatabase()
 	return db.Save(item).Error
 }
 
-func (item *RestaurantItem) Delete() error {
+func (item *RestaurantItem) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }
 
-func (item *RestaurantItem) FindList(page Page) ([]RestaurantItem, int64, error) {
+func (item *RestaurantItem) FindList(database *gorm.DB, page Page) ([]RestaurantItem, int64, error) {
 	var list []RestaurantItem
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(RestaurantItem{})
+	db := database.Model(RestaurantItem{})
 
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
@@ -94,10 +91,10 @@ func (item *RestaurantItem) FindList(page Page) ([]RestaurantItem, int64, error)
 	return list, total, db.Error
 }
 
-func (item *RestaurantItem) FindAll() ([]RestaurantItem, error) {
+func (item *RestaurantItem) FindAll(database *gorm.DB) ([]RestaurantItem, error) {
 	var list []RestaurantItem
 
-	db := datasources.GetDatabase().Model(RestaurantItem{})
+	db := database.Model(RestaurantItem{})
 
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
@@ -132,8 +129,8 @@ func (item *RestaurantItem) FindAll() ([]RestaurantItem, error) {
 	return list, db.Error
 }
 
-func (item *RestaurantItem) FindAllGroupBy() ([]RestaurantItem, error) {
-	db := datasources.GetDatabase().Model(RestaurantItem{})
+func (item *RestaurantItem) FindAllGroupBy(database *gorm.DB) ([]RestaurantItem, error) {
+	db := database.Model(RestaurantItem{})
 	list := []RestaurantItem{}
 
 	db.Select("*, sum(quantity_progress) as total_process")

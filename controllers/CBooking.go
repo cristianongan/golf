@@ -6,6 +6,7 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
@@ -18,6 +19,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type CBooking struct{}
@@ -42,12 +44,12 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 }
 
 func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *gin.Context, prof models.CmsUser) *model_booking.Booking {
-
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	// validate caddie_code
 	var caddie models.Caddie
 	var err error
 	if body.CaddieCode != "" {
-		caddie, err = cBooking.validateCaddie(prof.CourseUid, body.CaddieCode)
+		caddie, err = cBooking.validateCaddie(db, prof.CourseUid, body.CaddieCode)
 		if err != nil {
 			response_message.InternalServerError(c, err.Error())
 			return nil
@@ -58,7 +60,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	teeList := []string{constants.TEE_TYPE_1, constants.TEE_TYPE_1A, constants.TEE_TYPE_1B, constants.TEE_TYPE_1C}
 	if utils.Contains(teeList, body.TeeType) {
 		cBookingSetting := CBookingSetting{}
-		if errors := cBookingSetting.ValidateClose1ST(body.BookingDate, body.PartnerUid, body.CourseUid); errors != nil {
+		if errors := cBookingSetting.ValidateClose1ST(db, body.BookingDate, body.PartnerUid, body.CourseUid); errors != nil {
 			response_message.InternalServerError(c, errors.Error())
 			return nil
 		}
@@ -72,7 +74,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		teeTime.CourseUid = body.CourseUid
 		teeTime.PartnerUid = body.PartnerUid
 		teeTime.DateTime = body.BookingDate
-		errFind := teeTime.FindFirst()
+		errFind := teeTime.FindFirst(db)
 		if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_LOCKED) {
 			response_message.BadRequest(c, "Tee Time đã bị khóa")
 			return nil
@@ -87,7 +89,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 		bookingSource := model_booking.BookingSource{}
 		bookingSource.Id = bookingSourceId
-		errorTime := bookingSource.ValidateTimeRuleInBookingSource(body.BookingDate, body.TeePath)
+		errorTime := bookingSource.ValidateTimeRuleInBookingSource(db, body.BookingDate, body.TeePath)
 		if errorTime != nil {
 			response_message.BadRequest(c, errorTime.Error())
 			return nil
@@ -126,7 +128,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	if body.MemberUidOfGuest != "" && body.GuestStyle != "" {
 		var errCheckMember error
 		customerName := ""
-		errCheckMember, memberCard, customerName = handleCheckMemberCardOfGuest(body.MemberUidOfGuest, body.GuestStyle)
+		errCheckMember, memberCard, customerName = handleCheckMemberCardOfGuest(db, body.MemberUidOfGuest, body.GuestStyle)
 		if errCheckMember != nil {
 			response_message.InternalServerError(c, errCheckMember.Error())
 			return nil
@@ -154,7 +156,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	//Check duplicated
-	isDuplicated, errDupli := booking.IsDuplicated(true, true)
+	isDuplicated, errDupli := booking.IsDuplicated(db, true, true)
 	if isDuplicated {
 		if errDupli != nil {
 			response_message.DuplicateRecord(c, errDupli.Error())
@@ -178,7 +180,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		// Get config course
 		course := models.Course{}
 		course.Uid = body.CourseUid
-		errCourse := course.FindFirst()
+		errCourse := course.FindFirst(db)
 		if errCourse != nil {
 			response_message.BadRequest(c, errCourse.Error())
 			return nil
@@ -187,14 +189,14 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		// Get Member Card
 		memberCard := models.MemberCard{}
 		memberCard.Uid = body.MemberCardUid
-		errFind := memberCard.FindFirst()
+		errFind := memberCard.FindFirst(db)
 		if errFind != nil {
 			response_message.BadRequest(c, errFind.Error())
 			return nil
 		}
 
 		// Get Owner
-		owner, errOwner := memberCard.GetOwner()
+		owner, errOwner := memberCard.GetOwner(db)
 		if errOwner != nil {
 			response_message.BadRequest(c, errOwner.Error())
 			return nil
@@ -220,13 +222,13 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 				GreenFee:     memberCard.GreenFee,
 			}
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
-			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
+			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 			if body.GuestStyle != "" {
 				body.GuestStyle = ""
 			}
 		} else {
 			// Lấy theo GuestStyle
-			body.GuestStyle = memberCard.GetGuestStyle()
+			body.GuestStyle = memberCard.GetGuestStyle(db)
 		}
 	} else {
 		if strings.TrimSpace(body.CustomerName) != "" {
@@ -242,7 +244,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		// Get config course
 		course := models.Course{}
 		course.Uid = body.CourseUid
-		errCourse := course.FindFirst()
+		errCourse := course.FindFirst(db)
 		if errCourse != nil {
 			response_message.BadRequest(c, errCourse.Error())
 			return nil
@@ -250,7 +252,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 		agency := models.Agency{}
 		agency.Id = body.AgencyId
-		errFindAgency := agency.FindFirst()
+		errFindAgency := agency.FindFirst(db)
 		if errFindAgency != nil || agency.Id == 0 {
 			response_message.BadRequest(c, "agency"+errFindAgency.Error())
 			return nil
@@ -263,7 +265,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		agencySpecialPrice := models.AgencySpecialPrice{
 			AgencyId: agency.Id,
 		}
-		errFSP := agencySpecialPrice.FindFirst()
+		errFSP := agencySpecialPrice.FindFirst(db)
 		if errFSP == nil && agencySpecialPrice.Id > 0 {
 			// Tính lại giá
 			// List Booking GolfFee
@@ -279,7 +281,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 				GreenFee:     agencySpecialPrice.GreenFee,
 			}
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
-			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
+			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 
 		} else {
 			body.GuestStyle = agency.GuestStyle
@@ -294,7 +296,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		//check customer
 		customer := models.CustomerUser{}
 		customer.Uid = body.CustomerUid
-		errFindCus := customer.FindFirst()
+		errFindCus := customer.FindFirst(db)
 		if errFindCus != nil || customer.Uid == "" {
 			response_message.BadRequest(c, "customer"+errFindCus.Error())
 			return nil
@@ -317,7 +319,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			GuestStyle: body.GuestStyle,
 		}
 
-		if errGS := golfFeeModel.FindFirst(); errGS != nil {
+		if errGS := golfFeeModel.FindFirst(db); errGS != nil {
 			response_message.InternalServerError(c, "guest style not found ")
 			return nil
 		}
@@ -325,7 +327,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.CustomerType = golfFeeModel.CustomerType
 
 		// Lấy phí bởi Guest style với ngày tạo
-		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay()
+		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)
 		if errFindGF != nil {
 			response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
 			return nil
@@ -342,7 +344,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 
 		listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(param, golfFee)
-		initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
+		initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 	}
 
 	// Check In Out
@@ -361,7 +363,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	// Update caddie
 	if body.CaddieCode != "" {
-		cBooking.UpdateBookingCaddieCommon(body.PartnerUid, body.CourseUid, &booking, caddie)
+		cBooking.UpdateBookingCaddieCommon(db, body.PartnerUid, body.CourseUid, &booking, caddie)
 	}
 
 	if body.CustomerBookingName != "" {
@@ -381,7 +383,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.BookingCode = bookingCode
 	}
 
-	errC := booking.Create(bUid)
+	errC := booking.Create(db, bUid)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -389,7 +391,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	if body.MemberUidOfGuest != "" && body.GuestStyle != "" && memberCard.Uid != "" {
-		go updateMemberCard(memberCard)
+		go updateMemberCard(db, memberCard)
 	}
 
 	if body.TeeTime != "" {
@@ -415,6 +417,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 Get booking Detail With Uid
 */
 func (_ *CBooking) GetBookingDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	bookingIdStr := c.Param("uid")
 	if bookingIdStr == "" {
 		response_message.BadRequest(c, errors.New("uid not valid").Error())
@@ -423,7 +426,7 @@ func (_ *CBooking) GetBookingDetail(c *gin.Context, prof models.CmsUser) {
 
 	booking := model_booking.Booking{}
 	booking.Uid = bookingIdStr
-	errF := booking.FindFirst()
+	errF := booking.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -437,6 +440,7 @@ Get booking by Bag
 Get Booking Bag trong ngày
 */
 func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -464,14 +468,14 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 		booking.BookingDate = toDayDate
 	}
 
-	errF := booking.FindFirst()
+	errF := booking.FindFirst(db)
 	if errF != nil {
 		// response_message.InternalServerError(c, errF.Error())
 		response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
 		return
 	}
 
-	res := getBagDetailFromBooking(booking)
+	res := getBagDetailFromBooking(db, booking)
 
 	okResponse(c, res)
 }
@@ -480,6 +484,7 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 Danh sách booking
 */
 func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -505,7 +510,7 @@ func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 		FlightId:     form.FlightId,
 	}
 
-	list, total, err := bookingR.FindList(page, form.From, form.To, form.AgencyType)
+	list, total, err := bookingR.FindList(db, page, form.From, form.To, form.AgencyType)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -523,6 +528,7 @@ func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
 Danh sách booking với select
 */
 func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingWithSelectForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -561,7 +567,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.TeeType = form.TeeType
 	bookings.IsCheckIn = form.IsCheckIn
 
-	db, total, err := bookings.FindBookingListWithSelect(page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page)
 
 	if form.HasCaddieInOut != "" {
 		db = db.Preload("CaddieInOut")
@@ -588,6 +594,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 Danh sách booking với thông tin flight
 */
 func (_ *CBooking) GetListBookingWithFightInfo(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingWithSelectForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -623,7 +630,7 @@ func (_ *CBooking) GetListBookingWithFightInfo(c *gin.Context, prof models.CmsUs
 	bookings.CustomerName = form.PlayerName
 	bookings.HasFlightInfo = form.HasFlightInfo
 
-	db, total, err := bookings.FindBookingListWithSelect(page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page)
 	res := response.PageResponse{}
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -650,6 +657,7 @@ Danh sách Booking với thông tin service item
 */
 
 func (_ *CBooking) GetListBookingWithListServiceItems(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingWithListServiceItems{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -673,7 +681,7 @@ func (_ *CBooking) GetListBookingWithListServiceItems(c *gin.Context, prof model
 		GolfBag:     form.GolfBag,
 		PlayerName:  form.PlayerName,
 	}
-	list, total, err := booking.FindListServiceItems(param, page)
+	list, total, err := booking.FindListServiceItems(db, param, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -692,6 +700,7 @@ func (_ *CBooking) GetListBookingWithListServiceItems(c *gin.Context, prof model
 Danh sách booking tee time
 */
 func (_ *CBooking) GetListBookingTeeTime(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingTeeTimeForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -705,7 +714,7 @@ func (_ *CBooking) GetListBookingTeeTime(c *gin.Context, prof models.CmsUser) {
 		TeeTime:     form.TeeTime,
 	}
 
-	list, total, err := bookingR.FindBookingTeeTimeList()
+	list, total, err := bookingR.FindBookingTeeTimeList(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -719,11 +728,11 @@ func (_ *CBooking) GetListBookingTeeTime(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, res)
 }
 
-func (_ CBooking) validateCaddie(courseUid string, caddieCode string) (models.Caddie, error) {
+func (_ CBooking) validateCaddie(db *gorm.DB, courseUid string, caddieCode string) (models.Caddie, error) {
 	caddieList := models.CaddieList{}
 	caddieList.CourseUid = courseUid
 	caddieList.CaddieCode = caddieCode
-	caddieNew, err := caddieList.FindFirst()
+	caddieNew, err := caddieList.FindFirst(db)
 
 	if err != nil {
 		return caddieNew, err
@@ -737,6 +746,7 @@ Cập nhật booking
 Thêm Service item
 */
 func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	bookingIdStr := c.Param("uid")
 	if bookingIdStr == "" {
 		response_message.BadRequest(c, errors.New("uid not valid").Error())
@@ -745,7 +755,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	booking := model_booking.Booking{}
 	booking.Uid = bookingIdStr
-	errF := booking.FindFirst()
+	errF := booking.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -761,7 +771,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	var caddie models.Caddie
 	var err error
 	if body.CaddieCode != "" {
-		caddie, err = cBooking.validateCaddie(prof.CourseUid, body.CaddieCode)
+		caddie, err = cBooking.validateCaddie(db, prof.CourseUid, body.CaddieCode)
 		if err != nil {
 			response_message.InternalServerError(c, err.Error())
 			return
@@ -779,7 +789,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	if body.LockerNo != "" {
 		booking.LockerNo = body.LockerNo
-		go createLocker(booking)
+		go createLocker(db, booking)
 	}
 
 	if body.ReportNo != "" {
@@ -798,14 +808,14 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		// Get Member Card
 		memberCard := models.MemberCard{}
 		memberCard.Uid = body.MemberCardUid
-		errFind := memberCard.FindFirst()
+		errFind := memberCard.FindFirst(db)
 		if errFind != nil {
 			response_message.BadRequest(c, errFind.Error())
 			return
 		}
 
 		// Get Owner
-		owner, errOwner := memberCard.GetOwner()
+		owner, errOwner := memberCard.GetOwner(db)
 		if errOwner != nil {
 			response_message.BadRequest(c, errOwner.Error())
 			return
@@ -820,7 +830,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		if memberCard.PriceCode == 1 && memberCard.IsValidTimePrecial() {
 			course := models.Course{}
 			course.Uid = body.CourseUid
-			errCourse := course.FindFirst()
+			errCourse := course.FindFirst(db)
 			if errCourse != nil {
 				response_message.BadRequest(c, errCourse.Error())
 				return
@@ -836,13 +846,13 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 				Hole:         booking.Hole,
 			}
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
-			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
+			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
 			if body.GuestStyle != "" {
 				body.GuestStyle = ""
 			}
 		} else {
 			// Lấy theo GuestStyle
-			body.GuestStyle = memberCard.GetGuestStyle()
+			body.GuestStyle = memberCard.GetGuestStyle(db)
 		}
 	} else {
 		if body.CustomerName != "" {
@@ -855,7 +865,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		// Get config course
 		course := models.Course{}
 		course.Uid = body.CourseUid
-		errCourse := course.FindFirst()
+		errCourse := course.FindFirst(db)
 		if errCourse != nil {
 			response_message.BadRequest(c, errCourse.Error())
 			return
@@ -863,7 +873,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 		agency := models.Agency{}
 		agency.Id = body.AgencyId
-		errFindAgency := agency.FindFirst()
+		errFindAgency := agency.FindFirst(db)
 		if errFindAgency != nil || agency.Id == 0 {
 			response_message.BadRequest(c, "agency"+errFindAgency.Error())
 			return
@@ -876,7 +886,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		agencySpecialPrice := models.AgencySpecialPrice{
 			AgencyId: agency.Id,
 		}
-		errFSP := agencySpecialPrice.FindFirst()
+		errFSP := agencySpecialPrice.FindFirst(db)
 		if errFSP == nil && agencySpecialPrice.Id > 0 {
 			// Tính lại giá
 			// List Booking GolfFee
@@ -892,7 +902,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 				GreenFee:     agencySpecialPrice.GreenFee,
 			}
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
-			initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
+			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
 
 		} else {
 			body.GuestStyle = agency.GuestStyle
@@ -907,7 +917,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			GuestStyle: body.GuestStyle,
 		}
 
-		if errGS := golfFeeModel.FindFirst(); errGS != nil {
+		if errGS := golfFeeModel.FindFirst(db); errGS != nil {
 			response_message.InternalServerError(c, "guest style not found ")
 			return
 		}
@@ -915,7 +925,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerType = golfFeeModel.CustomerType
 
 		// Lấy phí bởi Guest style với ngày tạo
-		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay()
+		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)
 		if errFindGF != nil {
 			response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
 			return
@@ -931,10 +941,10 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			Hole:         body.Hole,
 		}
 		listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(param, golfFee)
-		initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
+		initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
 	}
 	//Find Booking Code
-	list, _ := booking.FindListWithBookingCode()
+	list, _ := booking.FindListWithBookingCode(db)
 	if len(list) == 1 {
 		booking.CustomerBookingName = booking.CustomerName
 		booking.CustomerBookingPhone = booking.CustomerInfo.Phone
@@ -943,21 +953,21 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	// Booking Note
 	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
 		booking.NoteOfBag = body.NoteOfBag
-		go createBagsNoteNoteOfBag(booking)
+		go createBagsNoteNoteOfBag(db, booking)
 	}
 
 	if body.NoteOfBooking != "" && body.NoteOfBooking != booking.NoteOfBooking {
 		booking.NoteOfBooking = body.NoteOfBooking
-		go createBagsNoteNoteOfBooking(booking)
+		go createBagsNoteNoteOfBooking(db, booking)
 	}
 
 	// Update caddie
 	if body.CaddieCode != "" {
-		cBooking.UpdateBookingCaddieCommon(body.PartnerUid, body.CourseUid, &booking, caddie)
+		cBooking.UpdateBookingCaddieCommon(db, body.PartnerUid, body.CourseUid, &booking, caddie)
 	}
 
 	// Update các thông tin khác trước
-	errUdpBook := booking.Update()
+	errUdpBook := booking.Update(db)
 	if errUdpBook != nil {
 		response_message.InternalServerError(c, errUdpBook.Error())
 		return
@@ -969,9 +979,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	// Get lai booking mới nhất trong DB
 	bookLast := model_booking.Booking{}
 	bookLast.Uid = booking.Uid
-	bookLast.FindFirst()
+	bookLast.FindFirst(db)
 
-	res := getBagDetailFromBooking(bookLast)
+	res := getBagDetailFromBooking(db, bookLast)
 
 	okResponse(c, res)
 }
@@ -979,7 +989,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 /*
 Update booking caddie when create booking or update
 */
-func (_ *CBooking) UpdateBookingCaddieCommon(PartnerUid string, CourseUid string, booking *model_booking.Booking, caddie models.Caddie) {
+func (_ *CBooking) UpdateBookingCaddieCommon(db *gorm.DB, PartnerUid string, CourseUid string, booking *model_booking.Booking, caddie models.Caddie) {
 	booking.CaddieId = caddie.Id
 
 	// if booking.CheckDuplicatedCaddieInTeeTime() {
@@ -997,7 +1007,7 @@ func (_ *CBooking) UpdateBookingCaddieCommon(PartnerUid string, CourseUid string
 
 	// udp trạng thái caddie sang LOCK
 	caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
-	if errCad := caddie.Update(); errCad != nil {
+	if errCad := caddie.Update(db); errCad != nil {
 		log.Println("err addCaddieInOutNote", errCad.Error())
 	}
 
@@ -1012,13 +1022,14 @@ func (_ *CBooking) UpdateBookingCaddieCommon(PartnerUid string, CourseUid string
 		Note:       "",
 	}
 
-	go addCaddieInOutNote(caddieInNote)
+	go addCaddieInOutNote(db, caddieInNote)
 }
 
 /*
 Check in
 */
 func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	// Body request
 	body := request.CheckInBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -1028,7 +1039,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	booking := model_booking.Booking{}
 	booking.Uid = body.BookingUid
-	errF := booking.FindFirst()
+	errF := booking.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -1039,7 +1050,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	if body.MemberUidOfGuest != "" && body.GuestStyle != "" {
 		var errCheckMember error
 		customerName := ""
-		errCheckMember, memberCard, customerName = handleCheckMemberCardOfGuest(body.MemberUidOfGuest, body.GuestStyle)
+		errCheckMember, memberCard, customerName = handleCheckMemberCardOfGuest(db, body.MemberUidOfGuest, body.GuestStyle)
 		if errCheckMember != nil {
 			response_message.InternalServerError(c, errCheckMember.Error())
 			return
@@ -1052,7 +1063,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	if body.Bag != "" {
 		booking.Bag = body.Bag
 		//Check duplicated
-		isDuplicated, errDupli := booking.IsDuplicated(false, true)
+		isDuplicated, errDupli := booking.IsDuplicated(db, false, true)
 		if isDuplicated {
 			if errDupli != nil {
 				response_message.InternalServerErrorWithKey(c, errDupli.Error(), "BAG_NOT_FOUND")
@@ -1079,7 +1090,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			GuestStyle: body.GuestStyle,
 		}
 
-		if errGS := golfFeeModel.FindFirst(); errGS != nil {
+		if errGS := golfFeeModel.FindFirst(db); errGS != nil {
 			response_message.InternalServerError(c, "guest style not found ")
 			return
 		}
@@ -1087,7 +1098,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerType = golfFeeModel.CustomerType
 
 		// Lấy phí bởi Guest style với ngày tạo
-		golfFee, errFind := golfFeeModel.GetGuestStyleOnDay()
+		golfFee, errFind := golfFeeModel.GetGuestStyleOnDay(db)
 		if errFind != nil {
 			response_message.InternalServerError(c, "golf fee err "+errFind.Error())
 			return
@@ -1103,12 +1114,12 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			Hole:         booking.Hole,
 		}
 		listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(param, golfFee)
-		initPriceForBooking(&booking, listBookingGolfFee, bookingGolfFee, checkInTime)
+		initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 	}
 
 	if body.Locker != "" {
 		booking.LockerNo = body.Locker
-		go createLocker(booking)
+		go createLocker(db, booking)
 	}
 
 	booking.CmsUser = prof.UserName
@@ -1116,21 +1127,21 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	booking.CheckInTime = time.Now().Unix()
 	booking.BagStatus = constants.BAG_STATUS_WAITING
 
-	errUdp := booking.Update()
+	errUdp := booking.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
 
 	if body.MemberUidOfGuest != "" && body.GuestStyle != "" && memberCard.Uid != "" {
-		go updateMemberCard(memberCard)
+		go updateMemberCard(db, memberCard)
 	}
 
 	if booking.CustomerUid != "" {
 		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
 	}
 
-	res := getBagDetailFromBooking(booking)
+	res := getBagDetailFromBooking(db, booking)
 
 	okResponse(c, res)
 }
@@ -1139,6 +1150,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 Add Sub bag to Booking
 */
 func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	// Body request
 	body := request.AddSubBagToBooking{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -1148,7 +1160,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 
 	booking := model_booking.Booking{}
 	booking.Uid = body.BookingUid
-	errF := booking.FindFirst()
+	errF := booking.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -1182,7 +1194,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		} else {
 			subBooking := model_booking.Booking{}
 			subBooking.Uid = v.BookingUid
-			err1 := subBooking.FindFirst()
+			err1 := subBooking.FindFirst(db)
 			if err1 == nil {
 				//Subbag
 				subBag := utils.BookingSubBag{
@@ -1201,7 +1213,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	booking.CmsUser = prof.UserName
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
-	errUdp := booking.Update()
+	errUdp := booking.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -1209,7 +1221,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 
 	// Tính lại giá
 	// Cập nhật Main bag cho subbag
-	err := updateMainBagForSubBag(booking)
+	err := updateMainBagForSubBag(db, booking)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -1217,13 +1229,13 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 
 	bookRes := model_booking.Booking{}
 	bookRes.Uid = booking.Uid
-	errFRes := bookRes.FindFirst()
+	errFRes := bookRes.FindFirst(db)
 	if errFRes != nil {
 		response_message.InternalServerError(c, errFRes.Error())
 		return
 	}
 
-	res := getBagDetailFromBooking(bookRes)
+	res := getBagDetailFromBooking(db, bookRes)
 
 	okResponse(c, res)
 }
@@ -1232,6 +1244,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 Edit Sub bag to Booking
 */
 func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	// Body request
 	body := request.EditSubBagToBooking{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -1241,7 +1254,7 @@ func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 
 	booking := model_booking.Booking{}
 	booking.Uid = body.BookingUid
-	errF := booking.FindFirst()
+	errF := booking.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -1264,7 +1277,7 @@ func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		// Get Booking Detail
 		subBooking := model_booking.Booking{}
 		subBooking.Uid = v.BookingUid
-		errFSB := subBooking.FindFirst()
+		errFSB := subBooking.FindFirst(db)
 
 		if errFSB != nil {
 			log.Println("EditSubBagToBooking errFSB", errF.Error())
@@ -1274,7 +1287,7 @@ func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 			//remove di
 			// Remove main bag
 			subBooking.MainBags = utils.ListSubBag{}
-			errSBUdp := subBooking.Update()
+			errSBUdp := subBooking.Update(db)
 			if errSBUdp != nil {
 				log.Println("EditSubBagToBooking errSBUdp", errSBUdp.Error())
 			}
@@ -1320,7 +1333,7 @@ func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 			}
 
 			if isCanUdp {
-				errSBUdp := subBooking.Update()
+				errSBUdp := subBooking.Update(db)
 				if errSBUdp != nil {
 					log.Println("EditSubBagToBooking errSBUdp", errSBUdp.Error())
 				}
@@ -1329,20 +1342,20 @@ func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if isUpdPrice {
-		booking.UpdateMushPay()
+		booking.UpdateMushPay(db)
 	}
 
 	booking.CmsUser = prof.UserName
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
-	errUdp := booking.Update()
+	errUdp := booking.Update(db)
 
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
 
-	res := getBagDetailFromBooking(booking)
+	res := getBagDetailFromBooking(db, booking)
 	okResponse(c, res)
 }
 
@@ -1350,6 +1363,7 @@ func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 Danh sách booking cho Add sub bag
 */
 func (_ *CBooking) GetListBookingForAddSubBag(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -1373,7 +1387,7 @@ func (_ *CBooking) GetListBookingForAddSubBag(c *gin.Context, prof models.CmsUse
 		log.Println("GetListBookingForAddSubBag booking date display err ", errDate.Error())
 	}
 
-	list, errF := bookingR.FindListForSubBag()
+	list, errF := bookingR.FindListForSubBag(db)
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
@@ -1396,6 +1410,7 @@ func (_ *CBooking) GetListBookingForAddSubBag(c *gin.Context, prof models.CmsUse
 }
 
 func (_ *CBooking) GetSubBagDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	bookingIdStr := c.Param("uid")
 	if bookingIdStr == "" {
 		response_message.BadRequest(c, errors.New("uid not valid").Error())
@@ -1404,7 +1419,7 @@ func (_ *CBooking) GetSubBagDetail(c *gin.Context, prof models.CmsUser) {
 
 	booking := model_booking.Booking{}
 	booking.Uid = bookingIdStr
-	errF := booking.FindFirst()
+	errF := booking.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -1420,7 +1435,7 @@ func (_ *CBooking) GetSubBagDetail(c *gin.Context, prof models.CmsUser) {
 	for _, v := range booking.SubBags {
 		bookingTemp := model_booking.Booking{}
 		bookingTemp.Uid = v.BookingUid
-		errFind := bookingTemp.FindFirst()
+		errFind := bookingTemp.FindFirst(db)
 		if errFind != nil {
 			log.Println("GetListSubBagDetail err", errFind.Error())
 		}
@@ -1434,6 +1449,7 @@ func (_ *CBooking) GetSubBagDetail(c *gin.Context, prof models.CmsUser) {
 Other Paid
 */
 func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	// Body request
 	body := request.AddOtherPaidBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -1453,7 +1469,7 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 
 	booking := model_booking.Booking{}
 	booking.Uid = body.BookingUid
-	errF := booking.FindFirst()
+	errF := booking.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -1466,14 +1482,14 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 			Name:     v.Reason,
 			BillCode: booking.BillCode,
 		}
-		errF := serviceItem.FindFirst()
+		errF := serviceItem.FindFirst(db)
 		if errF != nil {
 			//Chưa có thì tạo mới
 			serviceItem.Amount = v.Amount
 			serviceItem.PlayerName = booking.CustomerName
 			serviceItem.Bag = booking.Bag
 			serviceItem.BookingUid = booking.Uid
-			errC := serviceItem.Create()
+			errC := serviceItem.Create(db)
 			if errC != nil {
 				log.Println("AddOtherPaid errC", errC.Error())
 			}
@@ -1481,7 +1497,7 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 			// Check đã có thì udp
 			if serviceItem.Amount != v.Amount {
 				serviceItem.Amount = v.Amount
-				errUdp := serviceItem.Update()
+				errUdp := serviceItem.Update(db)
 				if errUdp != nil {
 					log.Println("AddOtherPaid errUdp", errUdp.Error())
 				}
@@ -1496,14 +1512,14 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 	booking.CmsUser = prof.UserName
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
-	errUdp := booking.Update()
+	errUdp := booking.Update(db)
 
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
 
-	res := getBagDetailFromBooking(booking)
+	res := getBagDetailFromBooking(db, booking)
 
 	okResponse(c, res)
 }
@@ -1513,6 +1529,7 @@ Cancel Booking
 - check chưa check-in mới cancel dc
 */
 func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CancelBookingBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -1526,7 +1543,7 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 
 	booking := model_booking.Booking{}
 	booking.Uid = body.BookingUid
-	errF := booking.FindFirst()
+	errF := booking.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -1538,7 +1555,7 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 	}
 	// Kiểm tra xem đủ điều kiện cancel booking không
 	cancelBookingSetting := model_booking.CancelBookingSetting{}
-	if err := cancelBookingSetting.ValidateBookingCancel(booking); err != nil {
+	if err := cancelBookingSetting.ValidateBookingCancel(db, booking); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
@@ -1547,7 +1564,7 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 	booking.CancelNote = body.Note
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
-	errUdp := booking.Update()
+	errUdp := booking.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -1561,6 +1578,7 @@ Moving Booking
 - check chưa check-in mới moving dc
 */
 func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.MovingBookingBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -1585,7 +1603,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 
 		booking := model_booking.Booking{}
 		booking.Uid = BookingUid
-		errF := booking.FindFirst()
+		errF := booking.FindFirst(db)
 		if errF != nil {
 			response_message.InternalServerError(c, errF.Error())
 			return
@@ -1606,7 +1624,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		}
 
 		//Check duplicated
-		isDuplicated, errDupli := booking.IsDuplicated(true, false)
+		isDuplicated, errDupli := booking.IsDuplicated(db, true, false)
 		if isDuplicated {
 			if errDupli != nil {
 				response_message.DuplicateRecord(c, errDupli.Error())
@@ -1619,7 +1637,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			booking.Hole = body.Hole
 		}
 
-		errUdp := booking.Update()
+		errUdp := booking.Update(db)
 		if errUdp != nil {
 			response_message.InternalServerError(c, errUdp.Error())
 			return
@@ -1629,10 +1647,10 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
-func (_ CBooking) validateBooking(bookindUid string) (model_booking.Booking, error) {
+func (_ CBooking) validateBooking(db *gorm.DB, bookindUid string) (model_booking.Booking, error) {
 	booking := model_booking.Booking{}
 	booking.Uid = bookindUid
-	if err := booking.FindFirst(); err != nil {
+	if err := booking.FindFirst(db); err != nil {
 		return booking, err
 	}
 
@@ -1640,6 +1658,7 @@ func (_ CBooking) validateBooking(bookindUid string) (model_booking.Booking, err
 }
 
 func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CheckoutBody{}
 	if err := c.BindJSON(&body); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -1653,7 +1672,7 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate booking_uid
-	booking, err := cBooking.validateBooking(body.BookingUid)
+	booking, err := cBooking.validateBooking(db, body.BookingUid)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -1667,17 +1686,17 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 	booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
 	booking.CheckOutTime = time.Now().Unix()
 
-	if err := booking.Update(); err != nil {
+	if err := booking.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
 	// udp trạng thái caddie
-	udpOutCaddieBooking(&booking)
+	udpOutCaddieBooking(db, &booking)
 
 	// delete tee time locked theo booking date
 	if booking.TeeTime != "" {
-		go unlockTurnTime(booking)
+		go unlockTurnTime(db, booking)
 	}
 
 	okResponse(c, booking)
@@ -1737,6 +1756,7 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 	okResponse(c, list)
 }
 func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.CancelAllBookingBody{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -1751,7 +1771,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 		BookingCode: form.BookingCode,
 	}
 
-	db, _, err := bookingR.FindAllBookingList()
+	db, _, err := bookingR.FindAllBookingList(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -1770,7 +1790,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CancelNote = form.Reason
 		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
-		errUdp := booking.Update()
+		errUdp := booking.Update(db)
 		if errUdp != nil {
 			response_message.InternalServerError(c, errUdp.Error())
 			return
@@ -1783,6 +1803,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 Update booking fee by hole price formula
 */
 func (_ *CBooking) ChangeBookingHole(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	bookingIdStr := c.Param("uid")
 	if bookingIdStr == "" {
 		response_message.BadRequest(c, errors.New("uid not valid").Error())
@@ -1791,7 +1812,7 @@ func (_ *CBooking) ChangeBookingHole(c *gin.Context, prof models.CmsUser) {
 
 	booking := model_booking.Booking{}
 	booking.Uid = bookingIdStr
-	errF := booking.FindFirst()
+	errF := booking.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -1806,7 +1827,7 @@ func (_ *CBooking) ChangeBookingHole(c *gin.Context, prof models.CmsUser) {
 	// Booking Note
 	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
 		booking.NoteOfBag = body.NoteOfBag
-		go createBagsNoteNoteOfBag(booking)
+		go createBagsNoteNoteOfBag(db, booking)
 	}
 
 	// Update hole and type change hole
@@ -1827,16 +1848,16 @@ func (_ *CBooking) ChangeBookingHole(c *gin.Context, prof models.CmsUser) {
 		CourseUid:  booking.CourseUid,
 		GuestStyle: booking.GuestStyle,
 	}
-	golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay()
+	golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)
 	if errFindGF != nil {
 		response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
 		return
 	}
 
-	bookingGolfFee := getInitGolfFeeForChangeHole(body, golfFee)
+	bookingGolfFee := getInitGolfFeeForChangeHole(db, body, golfFee)
 	initUpdatePriceBookingForChanegHole(&booking, bookingGolfFee)
 
-	errUdp := booking.Update()
+	errUdp := booking.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return

@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -12,7 +13,7 @@ import (
 
 type CSystem struct{}
 
-//Nationality
+// Nationality
 func (_ *CSystem) GetListNationality(c *gin.Context, prof models.CmsUser) {
 	nationalityGet := models.Nationality{}
 
@@ -32,9 +33,10 @@ func (_ *CSystem) GetListNationality(c *gin.Context, prof models.CmsUser) {
 
 // Category Type
 func (_ *CSystem) GetListCategoryType(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	cusTypesGet := models.CustomerType{}
 
-	list, err := cusTypesGet.FindAll()
+	list, err := cusTypesGet.FindAll(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -50,6 +52,7 @@ func (_ *CSystem) GetListCategoryType(c *gin.Context, prof models.CmsUser) {
 
 // ---------- Job -----------
 func (_ *CSystem) CreateJob(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.SystemConfigJob{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -62,7 +65,7 @@ func (_ *CSystem) CreateJob(c *gin.Context, prof models.CmsUser) {
 	job.Name = body.Name
 
 	//Check Exits
-	errFind := job.FindFirst()
+	errFind := job.FindFirst(db)
 	if errFind == nil || job.Id > 0 {
 		response_message.DuplicateRecord(c, errors.New("Duplicate name").Error())
 		return
@@ -70,7 +73,7 @@ func (_ *CSystem) CreateJob(c *gin.Context, prof models.CmsUser) {
 
 	job.Status = body.Status
 
-	errC := job.Create()
+	errC := job.Create(db)
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
 		return
@@ -80,6 +83,7 @@ func (_ *CSystem) CreateJob(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CSystem) GetListJob(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GeneralPageRequest{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -97,7 +101,7 @@ func (_ *CSystem) GetListJob(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
-	list, total, err := jobR.FindList(page)
+	list, total, err := jobR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -112,6 +116,7 @@ func (_ *CSystem) GetListJob(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CSystem) UpdateJob(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	jobIdStr := c.Param("id")
 	jobId, err := strconv.ParseInt(jobIdStr, 10, 64) // Nếu uid là int64 mới cần convert
 	if err != nil || jobId == 0 {
@@ -121,7 +126,7 @@ func (_ *CSystem) UpdateJob(c *gin.Context, prof models.CmsUser) {
 
 	job := models.SystemConfigJob{}
 	job.Id = jobId
-	errF := job.FindFirst()
+	errF := job.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -140,7 +145,7 @@ func (_ *CSystem) UpdateJob(c *gin.Context, prof models.CmsUser) {
 		job.Status = body.Status
 	}
 
-	errUdp := job.Update()
+	errUdp := job.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -150,6 +155,7 @@ func (_ *CSystem) UpdateJob(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CSystem) DeleteJob(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	jobIdStr := c.Param("id")
 	jobId, err := strconv.ParseInt(jobIdStr, 10, 64) // Nếu uid là int64 mới cần convert
 	if err != nil || jobId == 0 {
@@ -159,13 +165,13 @@ func (_ *CSystem) DeleteJob(c *gin.Context, prof models.CmsUser) {
 
 	job := models.SystemConfigJob{}
 	job.Id = jobId
-	errF := job.FindFirst()
+	errF := job.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := job.Delete()
+	errDel := job.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
@@ -176,6 +182,7 @@ func (_ *CSystem) DeleteJob(c *gin.Context, prof models.CmsUser) {
 
 // ---------- Position -----------
 func (_ *CSystem) CreatePosition(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.SystemConfigPosition{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -188,7 +195,7 @@ func (_ *CSystem) CreatePosition(c *gin.Context, prof models.CmsUser) {
 	position.CourseUid = body.CourseUid
 
 	//Check Exits
-	errFind := position.FindFirst()
+	errFind := position.FindFirst(db)
 	if errFind == nil || position.Id > 0 {
 		response_message.DuplicateRecord(c, errors.New("Duplicate name").Error())
 		return
@@ -196,7 +203,7 @@ func (_ *CSystem) CreatePosition(c *gin.Context, prof models.CmsUser) {
 
 	position.Status = body.Status
 
-	errC := position.Create()
+	errC := position.Create(db)
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
 		return
@@ -206,6 +213,7 @@ func (_ *CSystem) CreatePosition(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CSystem) GetListPosition(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GeneralPageRequest{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -223,7 +231,7 @@ func (_ *CSystem) GetListPosition(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
-	list, total, err := positionR.FindList(page)
+	list, total, err := positionR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -238,6 +246,7 @@ func (_ *CSystem) GetListPosition(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CSystem) UpdatePosition(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	positionIdStr := c.Param("id")
 	positionId, err := strconv.ParseInt(positionIdStr, 10, 64) // Nếu uid là int64 mới cần convert
 	if err != nil || positionId == 0 {
@@ -247,7 +256,7 @@ func (_ *CSystem) UpdatePosition(c *gin.Context, prof models.CmsUser) {
 
 	position := models.SystemConfigPosition{}
 	position.Id = positionId
-	errF := position.FindFirst()
+	errF := position.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -266,7 +275,7 @@ func (_ *CSystem) UpdatePosition(c *gin.Context, prof models.CmsUser) {
 		position.Status = body.Status
 	}
 
-	errUdp := position.Update()
+	errUdp := position.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -276,6 +285,7 @@ func (_ *CSystem) UpdatePosition(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CSystem) DeletePosition(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	positionIdStr := c.Param("id")
 	positionId, err := strconv.ParseInt(positionIdStr, 10, 64) // Nếu uid là int64 mới cần convert
 	if err != nil || positionId == 0 {
@@ -285,13 +295,13 @@ func (_ *CSystem) DeletePosition(c *gin.Context, prof models.CmsUser) {
 
 	position := models.SystemConfigPosition{}
 	position.Id = positionId
-	errF := position.FindFirst()
+	errF := position.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := position.Delete()
+	errDel := position.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
@@ -302,6 +312,7 @@ func (_ *CSystem) DeletePosition(c *gin.Context, prof models.CmsUser) {
 
 // ---------- Company Type -----------
 func (_ *CSystem) CreateCompanyType(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.CompanyType{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -314,7 +325,7 @@ func (_ *CSystem) CreateCompanyType(c *gin.Context, prof models.CmsUser) {
 	companyType.CourseUid = body.CourseUid
 
 	//Check Exits
-	errFind := companyType.FindFirst()
+	errFind := companyType.FindFirst(db)
 	if errFind == nil || companyType.Id > 0 {
 		response_message.DuplicateRecord(c, errors.New("Duplicate name").Error())
 		return
@@ -322,7 +333,7 @@ func (_ *CSystem) CreateCompanyType(c *gin.Context, prof models.CmsUser) {
 
 	companyType.Status = body.Status
 
-	errC := companyType.Create()
+	errC := companyType.Create(db)
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
 		return
@@ -332,6 +343,7 @@ func (_ *CSystem) CreateCompanyType(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CSystem) GetListCompanyType(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GeneralPageRequest{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -349,7 +361,7 @@ func (_ *CSystem) GetListCompanyType(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
-	list, total, err := companyTypeR.FindList(page)
+	list, total, err := companyTypeR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -364,6 +376,7 @@ func (_ *CSystem) GetListCompanyType(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CSystem) UpdateCompanyType(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	companyTypeIdStr := c.Param("id")
 	companyTypeId, err := strconv.ParseInt(companyTypeIdStr, 10, 64) // Nếu uid là int64 mới cần convert
 	if err != nil || companyTypeId == 0 {
@@ -373,7 +386,7 @@ func (_ *CSystem) UpdateCompanyType(c *gin.Context, prof models.CmsUser) {
 
 	companyType := models.CompanyType{}
 	companyType.Id = companyTypeId
-	errF := companyType.FindFirst()
+	errF := companyType.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -392,7 +405,7 @@ func (_ *CSystem) UpdateCompanyType(c *gin.Context, prof models.CmsUser) {
 		companyType.Status = body.Status
 	}
 
-	errUdp := companyType.Update()
+	errUdp := companyType.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -402,6 +415,7 @@ func (_ *CSystem) UpdateCompanyType(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CSystem) DeleteCompanyType(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	companyTypeIdStr := c.Param("id")
 	companyTypeId, err := strconv.ParseInt(companyTypeIdStr, 10, 64) // Nếu uid là int64 mới cần convert
 	if err != nil || companyTypeId == 0 {
@@ -411,13 +425,13 @@ func (_ *CSystem) DeleteCompanyType(c *gin.Context, prof models.CmsUser) {
 
 	companyType := models.CompanyType{}
 	companyType.Id = companyTypeId
-	errF := companyType.FindFirst()
+	errF := companyType.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := companyType.Delete()
+	errDel := companyType.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
