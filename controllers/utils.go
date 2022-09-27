@@ -578,13 +578,14 @@ func createBagsNoteNoteOfBag(db *gorm.DB, booking model_booking.Booking) {
 	}
 
 	bagsNote := models.BagsNote{
-		BookingUid: booking.Uid,
-		GolfBag:    booking.Bag,
-		Note:       booking.NoteOfBag,
-		PlayerName: booking.CustomerName,
-		Type:       constants.BAGS_NOTE_TYPE_BAG,
-		PartnerUid: booking.PartnerUid,
-		CourseUid:  booking.CourseUid,
+		BookingUid:  booking.Uid,
+		GolfBag:     booking.Bag,
+		Note:        booking.NoteOfBag,
+		PlayerName:  booking.CustomerName,
+		Type:        constants.BAGS_NOTE_TYPE_BAG,
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		BookingDate: booking.BookingDate,
 	}
 
 	errC := bagsNote.Create(db)
@@ -602,13 +603,14 @@ func createBagsNoteNoteOfBooking(db *gorm.DB, booking model_booking.Booking) {
 	}
 
 	bagsNote := models.BagsNote{
-		BookingUid: booking.Uid,
-		GolfBag:    booking.Bag,
-		Note:       booking.NoteOfBooking,
-		PlayerName: booking.CustomerName,
-		Type:       constants.BAGS_NOTE_TYPE_BOOKING,
-		PartnerUid: booking.PartnerUid,
-		CourseUid:  booking.CourseUid,
+		BookingUid:  booking.Uid,
+		GolfBag:     booking.Bag,
+		Note:        booking.NoteOfBooking,
+		PlayerName:  booking.CustomerName,
+		Type:        constants.BAGS_NOTE_TYPE_BOOKING,
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		BookingDate: booking.BookingDate,
 	}
 
 	errC := bagsNote.Create(db)
