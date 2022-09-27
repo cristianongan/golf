@@ -223,9 +223,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			}
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
 			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
-			if body.GuestStyle != "" {
-				body.GuestStyle = ""
-			}
+			// if body.GuestStyle != "" {
+			// 	body.GuestStyle = ""
+			// }
+			booking.SeparatePrice = true
+			body.GuestStyle = memberCard.GetGuestStyle(db)
 		} else {
 			// Lấy theo GuestStyle
 			body.GuestStyle = memberCard.GetGuestStyle(db)
@@ -282,7 +284,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			}
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
 			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
-
+			booking.SeparatePrice = true
 		} else {
 			body.GuestStyle = agency.GuestStyle
 		}
@@ -311,7 +313,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
 	// GuestStyle
-	if body.GuestStyle != "" {
+	if body.GuestStyle != "" && !booking.SeparatePrice {
 		//Guest style
 		golfFeeModel := models.GolfFee{
 			PartnerUid: body.PartnerUid,
@@ -847,9 +849,8 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			}
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
 			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
-			if body.GuestStyle != "" {
-				body.GuestStyle = ""
-			}
+			booking.SeparatePrice = true
+			booking.GuestStyle = memberCard.GetGuestStyle(db)
 		} else {
 			// Lấy theo GuestStyle
 			body.GuestStyle = memberCard.GetGuestStyle(db)
@@ -903,13 +904,13 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			}
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
 			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
-
+			booking.SeparatePrice = true
 		} else {
 			body.GuestStyle = agency.GuestStyle
 		}
 	}
 	// GuestStyle
-	if body.GuestStyle != "" {
+	if body.GuestStyle != "" && !booking.SeparatePrice {
 		//Guest style
 		golfFeeModel := models.GolfFee{
 			PartnerUid: body.PartnerUid,
