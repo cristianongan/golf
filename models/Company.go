@@ -98,6 +98,9 @@ func (item *Company) FindList(database *gorm.DB, page Page) ([]Company, int64, e
 	if item.Phone != "" {
 		db = db.Where("phone LIKE ?", "%"+item.Phone+"%")
 	}
+	if item.Code != "" {
+		db = db.Where("code LIKE ?", "%"+item.Code+"%")
+	}
 
 	db.Count(&total)
 
