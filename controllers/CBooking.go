@@ -1086,7 +1086,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	checkInTime := time.Now().Unix()
 
-	if body.GuestStyle != "" {
+	if !booking.SeparatePrice && body.GuestStyle != "" {
 		// Tính giá
 		golfFeeModel := models.GolfFee{
 			PartnerUid: booking.PartnerUid,
