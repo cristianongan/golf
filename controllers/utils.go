@@ -840,9 +840,6 @@ func udpOutBuggy(db *gorm.DB, booking *model_booking.Booking, isOutAll bool) err
 		return errBuggy
 	}
 
-	booking.BuggyId = 0
-	booking.BuggyInfo = cloneToBuggyBooking(models.Buggy{})
-
 	return nil
 }
 
