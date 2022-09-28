@@ -116,7 +116,7 @@ type Booking struct {
 	SeparatePrice bool   `json:"separate_price" gorm:"default:0"`          // Giá riêng
 
 	ListServiceItems []BookingServiceItem `json:"list_service_items,omitempty" gorm:"-:migration"` // List service item: rental, proshop, restaurant, kiosk
-	HasAddRound      bool                 `json:"has_add_round" gorm:"default:0"`
+	ShowCaddieBuggy  bool                 `json:"show_caddie_buggy" gorm:"default:0"`              // Sau add round thì không hiển thị caddie buggy
 	// Rounds           ListBookingRound             `json:"rounds,omitempty" gorm:"type:json"`             // List Rounds: Sẽ sinh golf Fee với List GolfFee
 }
 

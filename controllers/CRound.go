@@ -243,7 +243,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		newBooking.FlightId = 0
 		newBooking.TimeOutFlight = 0
 		newBooking.CourseType = body.CourseType
-		newBooking.HasAddRound = true
+		newBooking.ShowCaddieBuggy = false
 		errCreateBooking := newBooking.Create(db, bUid)
 
 		if errCreateBooking != nil {

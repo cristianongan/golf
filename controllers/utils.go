@@ -797,6 +797,7 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 		booking.BuggyInfo = cloneToBuggyBooking(buggy)
 	}
 
+	booking.ShowCaddieBuggy = true
 	return nil, booking, caddie, buggy
 }
 
