@@ -1237,11 +1237,10 @@ Check Buggy có đang sẵn sàng để ghép không
 */
 func checkBuggyReady(db *gorm.DB, buggy models.Buggy, booking model_booking.Booking) error {
 	bookingList := model_booking.BookingList{
-		PartnerUid:            booking.PartnerUid,
-		CourseUid:             booking.CourseUid,
-		BuggyCode:             buggy.Code,
-		BookingDate:           booking.BookingDate,
-		IsBuggyPrepareForJoin: "1",
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		BuggyCode:   buggy.Code,
+		BookingDate: booking.BookingDate,
 	}
 
 	dbResponse, total, _ := bookingList.FindAllBookingList(db)
