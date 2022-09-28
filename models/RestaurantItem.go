@@ -120,6 +120,10 @@ func (item *RestaurantItem) FindAll(database *gorm.DB) ([]RestaurantItem, error)
 		db = db.Where("item_code = ?", item.ItemCode)
 	}
 
+	if item.ItemId != 0 {
+		db = db.Where("item_id = ?", item.ItemCode)
+	}
+
 	if item.ItemStatus != "" {
 		db = db.Where("item_status = ?", item.ItemStatus)
 	}
