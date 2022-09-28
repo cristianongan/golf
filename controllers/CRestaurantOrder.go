@@ -78,7 +78,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
 	serviceCart.ServiceId = body.ServiceId
 	serviceCart.ServiceType = kiosk.KioskType
-	serviceCart.BillCode = "NONE"
+	serviceCart.BillCode = constants.BILL_NONE
 	serviceCart.BillStatus = constants.RES_STATUS_ORDER
 	serviceCart.StaffOrder = prof.FullName
 	serviceCart.PlayerName = booking.CustomerName
@@ -109,25 +109,27 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = body.BillId
-	serviceCart.BillCode = "NONE"
 
 	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
 
-	serviceCart.BillCode = "OD-" + strconv.Itoa(int(body.BillId))
-	serviceCart.TimeProcess = time.Now().Unix()
-	serviceCart.BillStatus = constants.RES_STATUS_PROCESS
+	if serviceCart.BillCode == constants.BILL_NONE {
+		serviceCart.BillCode = "OD-" + strconv.Itoa(int(body.BillId))
+		serviceCart.TimeProcess = time.Now().Unix()
+		serviceCart.BillStatus = constants.RES_STATUS_PROCESS
 
-	if err := serviceCart.Update(db); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
+		if err := serviceCart.Update(db); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
 	}
 
 	//find all item in bill
 	restaurantItem := models.RestaurantItem{}
 	restaurantItem.BillId = body.BillId
+	restaurantItem.ItemStatus = constants.RES_STATUS_ORDER
 
 	list, err := restaurantItem.FindAll(db)
 
@@ -185,6 +187,26 @@ func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsU
 		return
 	}
 
+	//find all item in bill
+	restaurantItem := models.RestaurantItem{}
+	restaurantItem.BillId = serviceCart.Id
+
+	list, err := restaurantItem.FindAll(db)
+
+	if err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	for _, item := range list {
+		item.ItemStatus = constants.RES_STATUS_CANCEL
+
+		if err := item.Update(db); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+	}
+
 	//Update lại giá trong booking
 	updatePriceWithServiceItem(booking, prof)
 
@@ -206,7 +228,7 @@ func (_ CRestaurantOrder) GetListBill(c *gin.Context, prof models.CmsUser) {
 		SortDir: query.PageRequest.SortDir,
 	}
 
-	bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
+	bookingDate, _ := time.Parse(constants.DATE_FORMAT, query.BookingDate)
 
 	serviceCart := models.ServiceCart{}
 	serviceCart.PartnerUid = query.PartnerUid
@@ -367,6 +389,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		serviceCartItem.Type = kiosk.KioskType
 		serviceCartItem.GroupCode = fb.GroupCode
 		serviceCartItem.Name = fb.VieName
+		serviceCartItem.EngName = fb.EnglishName
 		serviceCartItem.UnitPrice = int64(fb.Price)
 		serviceCartItem.Unit = fb.Unit
 
@@ -573,7 +596,8 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 	restaurantItem.BillId = serviceCart.Id
 	restaurantItem.ItemId = serviceCartItem.Id
 
-	if err := restaurantItem.FindFirst(db); err != nil {
+	resList, err := restaurantItem.FindAll(db)
+	if err != nil {
 		response_message.BadRequest(c, "Find res item"+err.Error())
 		return
 	}
@@ -592,20 +616,25 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS {
-
 		// Update res item
-		restaurantItem.ItemStatus = constants.RES_STATUS_CANCEL
+		for _, item := range resList {
+			item.ItemStatus = constants.RES_STATUS_CANCEL
 
-		if err := restaurantItem.Update(db); err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
+			if err := item.Update(db); err != nil {
+				response_message.BadRequest(c, err.Error())
+				return
+			}
 		}
 	} else {
 		// Delete res item
-		if err := restaurantItem.Delete(db); err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
+		for _, item := range resList {
+
+			if err := item.Delete(db); err != nil {
+				response_message.BadRequest(c, err.Error())
+				return
+			}
 		}
+
 	}
 
 	//Update lại giá trong booking
@@ -628,15 +657,6 @@ func (_ CRestaurantOrder) GetListItemOrder(c *gin.Context, prof models.CmsUser) 
 		Page:    query.PageRequest.Page,
 		SortBy:  query.PageRequest.SortBy,
 		SortDir: query.PageRequest.SortDir,
-	}
-
-	// validate res order
-	serviceCart := models.ServiceCart{}
-	serviceCart.Id = query.BillId
-
-	if err := serviceCart.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Find res order"+err.Error())
-		return
 	}
 
 	serviceCartItem := model_booking.BookingServiceItem{}
@@ -717,14 +737,6 @@ func (_ CRestaurantOrder) GetFoodProcess(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// validate kiosk
-	kiosk := model_service.Kiosk{}
-	kiosk.Id = body.ServiceId
-	if err := kiosk.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Find kiosk "+err.Error())
-		return
-	}
-
 	// validate restaurant item
 	resItem := models.RestaurantItem{}
 	resItem.ServiceId = body.ServiceId
@@ -758,14 +770,6 @@ func (_ CRestaurantOrder) GetDetailFoodProcess(c *gin.Context, prof models.CmsUs
 		return
 	}
 
-	// validate kiosk
-	kiosk := model_service.Kiosk{}
-	kiosk.Id = body.ServiceId
-	if err := kiosk.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Find kiosk "+err.Error())
-		return
-	}
-
 	// validate restaurant item
 	resItem := models.RestaurantItem{}
 	resItem.ServiceId = body.ServiceId
@@ -796,14 +800,6 @@ func (_ CRestaurantOrder) FinishAllResItem(c *gin.Context, prof models.CmsUser) 
 
 	if err := validate.Struct(body); err != nil {
 		response_message.BadRequest(c, err.Error())
-		return
-	}
-
-	// validate kiosk
-	kiosk := model_service.Kiosk{}
-	kiosk.Id = body.ServiceId
-	if err := kiosk.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Find kiosk "+err.Error())
 		return
 	}
 
@@ -913,7 +909,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
 	serviceCart.ServiceId = body.ServiceId
 	serviceCart.ServiceType = kiosk.KioskType
-	serviceCart.BillCode = "NONE"
+	serviceCart.BillCode = constants.BILL_NONE
 	serviceCart.BillStatus = constants.RES_BILL_STATUS_BOOKING
 	serviceCart.Type = constants.RES_TYPE_TABLE
 	serviceCart.TypeCode = body.Table

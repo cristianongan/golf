@@ -80,6 +80,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCartItem.Type = kiosk.KioskType
 		serviceCartItem.GroupCode = fb.GroupCode
 		serviceCartItem.Name = fb.VieName
+		serviceCartItem.EngName = fb.EnglishName
 		serviceCartItem.UnitPrice = int64(fb.Price)
 		serviceCartItem.Unit = fb.Unit
 	}
@@ -98,6 +99,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCartItem.Type = kiosk.KioskType
 		serviceCartItem.GroupCode = proshop.GroupCode
 		serviceCartItem.Name = proshop.VieName
+		serviceCartItem.EngName = proshop.EnglishName
 		serviceCartItem.UnitPrice = int64(proshop.Price)
 		serviceCartItem.Unit = proshop.Unit
 	}
@@ -116,6 +118,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCartItem.Type = kiosk.KioskType
 		serviceCartItem.GroupCode = rental.GroupCode
 		serviceCartItem.Name = rental.VieName
+		serviceCartItem.EngName = rental.EnglishName
 		serviceCartItem.UnitPrice = int64(rental.Price)
 		serviceCartItem.Unit = rental.Unit
 	}
@@ -132,7 +135,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	if body.BillId != 0 {
 		serviceCart.Id = body.BillId
 	} else {
-		serviceCart.BillCode = "NONE"
+		serviceCart.BillCode = constants.BILL_NONE
 		serviceCart.StaffOrder = prof.UserName
 		serviceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
 	}
@@ -271,7 +274,7 @@ func (_ CServiceCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
 		SortDir: query.PageRequest.SortDir,
 	}
 
-	bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
+	bookingDate, _ := time.Parse(constants.DATE_FORMAT, query.BookingDate)
 
 	serviceCart := models.ServiceCart{}
 	serviceCart.PartnerUid = query.PartnerUid
@@ -365,7 +368,7 @@ func (_ CServiceCart) GetListCart(c *gin.Context, prof models.CmsUser) {
 		SortDir: query.PageRequest.SortDir,
 	}
 
-	bookingDate, _ := time.Parse("2006-01-02", query.BookingDate)
+	bookingDate, _ := time.Parse(constants.DATE_FORMAT, query.BookingDate)
 
 	serviceCart := models.ServiceCart{}
 	serviceCart.PartnerUid = query.PartnerUid
@@ -600,7 +603,7 @@ func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 	serviceCart.ServiceId = body.ServiceId
 	serviceCart.GolfBag = body.GolfBag
 	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
-	serviceCart.BillCode = "NONE"
+	serviceCart.BillCode = constants.BILL_NONE
 
 	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -643,12 +646,16 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
 	// validate cart code
 	sourceServiceCart := models.ServiceCart{}
 	sourceServiceCart.Id = body.ServiceCartId
 	sourceServiceCart.PartnerUid = prof.PartnerUid
 	sourceServiceCart.CourseUid = prof.CourseUid
-	sourceServiceCart.BillCode = "NONE"
 
 	if err := sourceServiceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -662,7 +669,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	targetServiceCart.GolfBag = body.GolfBag
 	targetServiceCart.BookingDate = datatypes.Date(time.Now().UTC())
 	targetServiceCart.ServiceId = sourceServiceCart.ServiceId
-	targetServiceCart.BillCode = "NONE"
+	targetServiceCart.BillCode = constants.BILL_NONE
 
 	err := targetServiceCart.FindFirst(db)
 

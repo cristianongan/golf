@@ -94,7 +94,7 @@ func (item *ServiceCart) FindList(database *gorm.DB, page Page) ([]ServiceCart, 
 		db = db.Where("type = ?", item.Type)
 	}
 
-	if item.BillStatus == "Active" {
+	if item.BillStatus == constants.RES_BILL_STATUS_ACTIVE {
 		db = db.Where("bill_status = ? OR bill_status = ?", constants.RES_STATUS_PROCESS, constants.RES_STATUS_DONE)
 	} else if item.BillStatus != "" {
 		db = db.Where("bill_status = ?", item.BillStatus)

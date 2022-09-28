@@ -200,6 +200,7 @@ const (
 Các trạng thái đơn của nhà hàng
 */
 const (
+	RES_BILL_STATUS_ACTIVE  = "ACTIVE"  // Trạng thái bao gồm các đơn PROCESS, FINISH
 	RES_BILL_STATUS_BOOKING = "BOOKING" // Trạng thái là người booking bàn nhưng chưa vào nhà hàng dùng món
 	RES_BILL_STATUS_ORDER   = "ORDER"   // Trạng thái là người đã đặt món và đang chờ đồ ăn
 	RES_BILL_STATUS_PROCESS = "PROCESS" // Trạng thái món ăn đang được chế biến chưa được phục vụ
@@ -212,9 +213,9 @@ const (
 Các trạng thái đơn của point of sale
 */
 const (
-	POS_BILL_STATUS_PENDING = "PENDING"   // Đơn hàng đang ở trạng thái chưa xác nhận
-	POS_BILL_STATUS_ACTIVE  = "ACTIVE"    // Đơn hàng đã được xác nhận và chốt đơn
-	POS_BILL_STATUS_OUT     = "CHECK_OUT" // Đơn hàng đã hủy
+	POS_BILL_STATUS_PENDING = "PENDING" // Đơn hàng đang ở trạng thái chưa xác nhận
+	POS_BILL_STATUS_ACTIVE  = "ACTIVE"  // Đơn hàng đã được xác nhận và chốt đơn
+	POS_BILL_STATUS_OUT     = "CANCEL"  // Đơn hàng đã hủy
 )
 
 /*
@@ -234,6 +235,8 @@ const (
 	DAY_OFF_TYPE_MORNING   = "H_MORNING"
 	DAY_OFF_TYPE_SICK      = "SICK"
 )
+
+const BILL_NONE = "NONE"
 
 const BOOKING_OTHER_FEE = "OTHER_FEE"
 
