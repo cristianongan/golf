@@ -797,6 +797,7 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 		booking.BuggyInfo = cloneToBuggyBooking(buggy)
 	}
 
+	booking.ShowCaddieBuggy = true
 	return nil, booking, caddie, buggy
 }
 
@@ -839,9 +840,6 @@ func udpOutBuggy(db *gorm.DB, booking *model_booking.Booking, isOutAll bool) err
 	if errBuggy != nil {
 		return errBuggy
 	}
-
-	booking.BuggyId = 0
-	booking.BuggyInfo = cloneToBuggyBooking(models.Buggy{})
 
 	return nil
 }

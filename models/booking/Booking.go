@@ -116,6 +116,7 @@ type Booking struct {
 	SeparatePrice bool   `json:"separate_price" gorm:"default:0"`          // Giá riêng
 
 	ListServiceItems []BookingServiceItem `json:"list_service_items,omitempty" gorm:"-:migration"` // List service item: rental, proshop, restaurant, kiosk
+	ShowCaddieBuggy  bool                 `json:"show_caddie_buggy" gorm:"default:0"`              // Sau add round thì không hiển thị caddie buggy
 	// Rounds           ListBookingRound             `json:"rounds,omitempty" gorm:"type:json"`             // List Rounds: Sẽ sinh golf Fee với List GolfFee
 }
 
@@ -1105,14 +1106,6 @@ func (item *Booking) FindForCaddieOnCourse(database *gorm.DB, InFlight string) [
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
-	//if item.BookingDate == "" {
-	//	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-	//	if errDate == nil {
-	//		item.BookingDate = dateDisplay
-	//	} else {
-	//		log.Println("FindForCaddieOnCourse BookingDate err ", errDate.Error())
-	//	}
-	//}
 	if item.BuggyId != 0 {
 		db = db.Where("buggy_id = ?", item.BuggyId)
 	}

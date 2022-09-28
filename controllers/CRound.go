@@ -83,6 +83,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.AddRoundBody
 	var booking model_booking.Booking
+	var newBooking model_booking.Booking
 	var err error
 
 	if err := c.BindJSON(&body); err != nil {
@@ -236,12 +237,13 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		}
 
 		// Tạo booking mới khi add round
-		newBooking := cloneToBooking(booking)
+		newBooking = cloneToBooking(booking)
 		newBooking.BagStatus = constants.BAG_STATUS_WAITING
 		newBooking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
 		newBooking.FlightId = 0
 		newBooking.TimeOutFlight = 0
 		newBooking.CourseType = body.CourseType
+		newBooking.ShowCaddieBuggy = false
 		errCreateBooking := newBooking.Create(db, bUid)
 
 		if errCreateBooking != nil {
@@ -254,7 +256,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		go booking.Update(db)
 	}
 
-	res := getBagDetailFromBooking(db, booking)
+	res := getBagDetailFromBooking(db, newBooking)
 
 	okResponse(c, res)
 }
