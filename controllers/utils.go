@@ -747,7 +747,7 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 		return err, booking, models.Caddie{}, models.Buggy{}
 	}
 
-	if !booking.ShowCaddieBuggy {
+	if !(*booking.ShowCaddieBuggy) {
 		booking.ResetCaddieBuggy()
 	}
 
@@ -801,7 +801,7 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 		booking.BuggyInfo = cloneToBuggyBooking(buggy)
 	}
 
-	booking.ShowCaddieBuggy = true
+	booking.ShowCaddieBuggy = newTrue(true)
 	return nil, booking, caddie, buggy
 }
 
@@ -1237,11 +1237,11 @@ Check Buggy có đang sẵn sàng để ghép không
 */
 func checkBuggyReady(db *gorm.DB, buggy models.Buggy, booking model_booking.Booking) error {
 	bookingList := model_booking.BookingList{
-		PartnerUid:  booking.PartnerUid,
-		CourseUid:   booking.CourseUid,
-		BuggyCode:   buggy.Code,
-		BookingDate: booking.BookingDate,
-		BagStatus:   constants.BAG_STATUS_IN_COURSE,
+		PartnerUid:            booking.PartnerUid,
+		CourseUid:             booking.CourseUid,
+		BuggyCode:             buggy.Code,
+		BookingDate:           booking.BookingDate,
+		IsBuggyPrepareForJoin: "1",
 	}
 
 	dbResponse, total, _ := bookingList.FindAllBookingList(db)
@@ -1387,4 +1387,8 @@ func validateItemCodeInService(db *gorm.DB, serviceType string, itemCode string)
 		}
 	}
 	return nil
+}
+func newTrue(b bool) *bool {
+	boolVar := b
+	return &boolVar
 }
