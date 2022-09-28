@@ -747,6 +747,10 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 		return err, booking, models.Caddie{}, models.Buggy{}
 	}
 
+	if !booking.ShowCaddieBuggy {
+		booking.ResetCaddieBuggy()
+	}
+
 	//Check caddie
 	var caddie models.Caddie
 	if caddieCode != "" {
