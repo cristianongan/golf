@@ -893,7 +893,7 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Update trạng thái
-	serviceCart.BillStatus = constants.POS_BILL_STATUS_OUT
+	serviceCart.BillStatus = constants.POS_BILL_STATUS_ACTIVE
 	if err := serviceCart.Update(db); err != nil {
 		response_message.BadRequest(c, "Update service Cart "+err.Error())
 		return
