@@ -29,6 +29,7 @@ type CreateFlightBody struct {
 	Note        string                 `json:"note"`
 	Tee         int                    `json:"tee"`     // Tee
 	TeeOff      string                 `json:"tee_off"` // Tee Off
+	CourseType  string                 `json:"course_type"`
 }
 
 type CaddieBuggyToBooking struct {

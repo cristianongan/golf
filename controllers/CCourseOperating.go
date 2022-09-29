@@ -210,6 +210,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 			listError = append(listError, errB.Error())
 		}
 
+		bookingTemp.CourseType = body.CourseType
 		listCaddieInOut = append(listCaddieInOut, caddieBuggyInNote)
 		listBooking = append(listBooking, bookingTemp)
 	}
