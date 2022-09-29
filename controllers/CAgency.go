@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -189,4 +190,59 @@ func (_ *CAgency) GetAgencyDetail(c *gin.Context, prof models.CmsUser) {
 	agencyDetail.NumberOfCustomer = numberCustomer
 
 	okResponse(c, agencyDetail)
+}
+
+/*
+	Get base other price
+*/
+func (_ *CAgency) GetOtherBasePrice(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetOtherBasePriceForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.Type == constants.OTHER_BASE_PRICE_AGENCY && form.Id > 0 {
+		// Get cho other price cho agency
+		agencyPriceR := models.AgencySpecialPrice{
+			AgencyId: form.Id,
+		}
+
+		agenPrice, errF := agencyPriceR.FindOtherPriceOnTime(db)
+		if errF != nil {
+			log.Println("GetOtherBasePrice errF", errF.Error())
+		}
+
+		res := map[string]interface{}{
+			"green_fee":  agenPrice.GreenFee,
+			"caddie_fee": agenPrice.CaddieFee,
+			"buggy_fee":  agenPrice.BuggyFee,
+		}
+		okResponse(c, res)
+		return
+	} else if form.Type == constants.OTHER_BASE_PRICE_MEMBER_CARD && form.Uid != "" {
+		memberCard := models.MemberCard{}
+		memberCard.Uid = form.Uid
+		errF := memberCard.FindFirst(db)
+		if errF == nil {
+			if memberCard.IsValidTimePrecial() {
+				res := map[string]interface{}{
+					"green_fee":  memberCard.GreenFee,
+					"caddie_fee": memberCard.CaddieFee,
+					"buggy_fee":  memberCard.BuggyFee,
+				}
+				okResponse(c, res)
+				return
+			}
+		}
+	}
+
+	res := map[string]interface{}{
+		"green_fee":  0,
+		"caddie_fee": 0,
+		"buggy_fee":  0,
+	}
+
+	okResponse(c, res)
 }
