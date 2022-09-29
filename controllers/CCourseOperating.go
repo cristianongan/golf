@@ -98,19 +98,6 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 			response_message.InternalServerError(c, err.Error())
 			return
 		}
-
-		// Udp Note
-		buggyInNote := model_gostarter.BuggyInOut{
-			PartnerUid: booking.PartnerUid,
-			CourseUid:  booking.CourseUid,
-			BookingUid: booking.Uid,
-			BuggyId:    booking.BuggyId,
-			BuggyCode:  booking.BuggyInfo.Code,
-			Type:       constants.STATUS_IN,
-			Note:       "",
-		}
-
-		go addBuggyInOutNote(db, buggyInNote)
 	}
 
 	okResponse(c, booking)
@@ -197,6 +184,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		}
 
 		if buggyTemp.Id > 0 {
+			bookingTemp.IsPrivateBuggy = newTrue(v.IsPrivateBuggy)
 			buggyTemp.BuggyStatus = constants.BUGGY_CURRENT_STATUS_IN_COURSE
 
 			caddieBuggyInNote.BuggyId = buggyTemp.Id
@@ -883,6 +871,7 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 	// set new buggy
 	booking.BuggyId = buggyNew.Id
 	booking.BuggyInfo = cloneToBuggyBooking(buggyNew)
+	booking.IsPrivateBuggy = newTrue(body.IsPrivateBuggy)
 	//booking.BuggyStatus
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
