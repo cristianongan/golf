@@ -129,6 +129,7 @@ func (item *CaddieBuggyInOut) FindOrderByDateList(database *gorm.DB) ([]CaddieBu
 	}
 
 	db = db.Order("updated_at desc")
+	db.Count(&total)
 	db.Find(&list)
 	return list, total, db.Error
 }
