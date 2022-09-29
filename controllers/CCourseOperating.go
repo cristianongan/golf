@@ -417,28 +417,23 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 				PartnerUid: booking.PartnerUid,
 				CourseUid:  booking.CourseUid,
 				BookingUid: booking.Uid,
-				CaddieId:   booking.CaddieId,
-				CaddieCode: booking.CaddieInfo.Code,
-				BuggyId:    booking.BuggyId,
-				BuggyCode:  booking.BuggyInfo.Code,
-				CaddieType: constants.STATUS_OUT,
-				BuggyType:  constants.STATUS_OUT,
-				Hole:       body.CaddieHoles,
 				Note:       body.Note,
 			}
 
-			go addBuggyCaddieInOutNote(db, caddieOutNote)
-
-			buggyInNote := model_gostarter.BuggyInOut{
-				PartnerUid: booking.PartnerUid,
-				CourseUid:  booking.CourseUid,
-				BookingUid: booking.Uid,
-				BuggyId:    booking.BuggyId,
-				BuggyCode:  booking.BuggyInfo.Code,
-				Type:       constants.STATUS_OUT,
-				Note:       "",
+			if booking.CaddieId > 0 {
+				caddieOutNote.CaddieId = booking.CaddieId
+				caddieOutNote.CaddieCode = booking.CaddieInfo.Code
+				caddieOutNote.CaddieType = constants.STATUS_OUT
+				caddieOutNote.Hole = body.CaddieHoles
 			}
-			go addBuggyInOutNote(db, buggyInNote)
+
+			if booking.BuggyId > 0 {
+				caddieOutNote.BuggyId = booking.BuggyId
+				caddieOutNote.BuggyCode = booking.BuggyInfo.Code
+				caddieOutNote.BuggyType = constants.STATUS_OUT
+			}
+
+			go addBuggyCaddieInOutNote(db, caddieOutNote)
 
 		} else {
 			log.Println("OutAllFlight err out caddie ", errOut.Error())
@@ -495,28 +490,23 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 			PartnerUid: booking.PartnerUid,
 			CourseUid:  booking.CourseUid,
 			BookingUid: booking.Uid,
-			CaddieId:   booking.CaddieId,
-			CaddieCode: booking.CaddieInfo.Code,
-			BuggyId:    booking.BuggyId,
-			BuggyCode:  booking.BuggyInfo.Code,
-			CaddieType: constants.STATUS_OUT,
-			BuggyType:  constants.STATUS_OUT,
-			Hole:       body.CaddieHoles,
 			Note:       body.Note,
 		}
 
-		go addBuggyCaddieInOutNote(db, caddieOutNote)
-
-		buggyInNote := model_gostarter.BuggyInOut{
-			PartnerUid: booking.PartnerUid,
-			CourseUid:  booking.CourseUid,
-			BookingUid: booking.Uid,
-			BuggyId:    booking.BuggyId,
-			BuggyCode:  booking.BuggyInfo.Code,
-			Type:       constants.STATUS_OUT,
-			Note:       "",
+		if booking.CaddieId > 0 {
+			caddieOutNote.CaddieId = booking.CaddieId
+			caddieOutNote.CaddieCode = booking.CaddieInfo.Code
+			caddieOutNote.CaddieType = constants.STATUS_OUT
+			caddieOutNote.Hole = body.CaddieHoles
 		}
-		go addBuggyInOutNote(db, buggyInNote)
+
+		if booking.BuggyId > 0 {
+			caddieOutNote.BuggyId = booking.BuggyId
+			caddieOutNote.BuggyCode = booking.BuggyInfo.Code
+			caddieOutNote.BuggyType = constants.STATUS_OUT
+		}
+
+		go addBuggyCaddieInOutNote(db, caddieOutNote)
 
 		if booking.TeeTime != "" {
 			go unlockTurnTime(db, booking)

@@ -479,6 +479,58 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
+Get Round Bag trong ngày
+*/
+func (_ *CBooking) GetRoundOfBag(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.GolfBag == "" {
+		response_message.BadRequest(c, errors.New("Bag invalid").Error())
+		return
+	}
+
+	booking := model_booking.BookingList{}
+	booking.PartnerUid = form.PartnerUid
+	booking.CourseUid = form.CourseUid
+	booking.GolfBag = form.GolfBag
+	booking.BookingDate = form.BookingDate
+
+	if form.BookingDate != "" {
+		booking.BookingDate = form.BookingDate
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+		booking.BookingDate = toDayDate
+	}
+
+	db, total, err := booking.FindAllBookingList(db)
+
+	db = db.Preload("CaddieInOut")
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+	okResponse(c, res)
+}
+
+/*
 Danh sách booking
 */
 func (_ *CBooking) GetListBooking(c *gin.Context, prof models.CmsUser) {
@@ -570,7 +622,6 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	if form.HasCaddieInOut != "" {
 		db = db.Preload("CaddieInOut")
 	}
-	db = db.Preload("BuggyInOut")
 
 	res := response.PageResponse{}
 

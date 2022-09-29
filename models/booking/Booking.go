@@ -100,7 +100,7 @@ type Booking struct {
 
 	InitType string `json:"init_type" gorm:"type:varchar(50);index"` // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
 
-	CaddieInOut       []CaddieInOutNote       `json:"caddie_in_out" gorm:"foreignKey:BookingUid;references:Uid"`
+	CaddieInOut       []CaddieBuggyInOut      `json:"caddie_in_out" gorm:"foreignKey:BookingUid;references:Uid"`
 	BuggyInOut        []BuggyInOut            `json:"buggy_in_out" gorm:"foreignKey:BookingUid;references:Uid"`
 	BookingCode       string                  `json:"booking_code" gorm:"type:varchar(100);index"` // cho case tạo nhiều booking có cùng booking code
 	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant,omitempty" gorm:"type:json"`
@@ -179,17 +179,20 @@ type BookingForReportMainBagSubBags struct {
 	CurrentBagPrice BookingCurrentBagPriceDetail `json:"current_bag_price,omitempty"`
 }
 
-type CaddieInOutNote CaddieInOutNoteForBooking
+type CaddieBuggyInOut CaddieBuggyInOutNoteForBooking
 
-type CaddieInOutNoteForBooking struct {
+type CaddieBuggyInOutNoteForBooking struct {
 	models.ModelId
 	PartnerUid string `json:"partner_uid"`
 	CourseUid  string `json:"course_uid"`
 	BookingUid string `json:"booking_uid"`
 	CaddieId   int64  `json:"caddie_id"`
 	CaddieCode string `json:"caddie_code"`
+	BuggyId    int64  `json:"buggy_id"`
+	BuggyCode  string `json:"buggy_code"`
 	Note       string `json:"note"`
-	Type       string `json:"type"`
+	CaddieType string `json:"caddie_type"`
+	BuggyType  string `json:"buggy_type"`
 	Hole       int    `json:"hole"`
 }
 
@@ -1140,7 +1143,7 @@ func (item *Booking) FindForCaddieOnCourse(database *gorm.DB, InFlight string) [
 			db = db.Where("flight_id > ?", 0)
 		}
 	}
-
+	db = db.Preload("CaddieBuggyInOut")
 	db.Find(&list)
 	return list
 }
