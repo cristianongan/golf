@@ -19,3 +19,9 @@ type GetListAgencySpecialPriceForm struct {
 	AgencyId    int64  `form:"agency_id"`
 	AgencyIdStr string `form:"agency_id_str"`
 }
+
+type GetOtherBasePriceForm struct {
+	Type string `form:"type"`
+	Uid  string `form:"uid"`
+	Id   int64  `form:"id"`
+}
