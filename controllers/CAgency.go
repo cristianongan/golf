@@ -233,6 +233,7 @@ func (_ *CAgency) GetOtherBasePrice(c *gin.Context, prof models.CmsUser) {
 					"buggy_fee":  memberCard.BuggyFee,
 				}
 				okResponse(c, res)
+				return
 			}
 		}
 	}
