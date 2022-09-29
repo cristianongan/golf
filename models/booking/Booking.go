@@ -830,6 +830,7 @@ func (item *Booking) IsDuplicated(db *gorm.DB, checkTeeTime, checkBag bool) (boo
 			BookingDate: item.BookingDate,
 			RowIndex:    item.RowIndex,
 			TeeType:     item.TeeType,
+			CourseType:  item.CourseType,
 		}
 
 		errFind := booking.FindFirstNotCancel(db)
