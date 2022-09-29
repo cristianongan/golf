@@ -43,6 +43,12 @@ type GetListCaddieForm struct {
 	IsReadyForJoin    string `form:"is_ready_for_join"`
 }
 
+type GetListCaddieReady struct {
+	CourseId   string `form:"course_uid" json:"course_uid" binding:"required"`
+	PartnerUid string `form:"partner_uid" json:"partner_uid" binding:"required"`
+	DateTime   string `form:"date_time"`
+}
+
 type UpdateCaddieBody struct {
 	Code           string  `json:"code"` // id caddie
 	CourseId       *string `json:"course_uid"`

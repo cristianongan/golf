@@ -183,6 +183,10 @@ func (_ *CCaddie) GetCaddieList(c *gin.Context, prof models.CmsUser) {
 
 	caddie := models.CaddieList{}
 
+	if form.PartnerUid != "" {
+		caddie.PartnerUid = form.PartnerUid
+	}
+
 	if form.CourseId != "" {
 		caddie.CourseUid = form.CourseId
 	}
@@ -230,15 +234,8 @@ func (_ *CCaddie) GetCaddieList(c *gin.Context, prof models.CmsUser) {
 	if form.IsReadyForJoin != "" {
 		caddie.IsReadyForJoin = form.IsReadyForJoin
 	}
-	list := []models.Caddie{}
-	var total int64
-	var err error
 
-	if form.IsReadyForJoin != "" {
-		list, total, err = caddie.FindAllCaddieReadyOnDayList(db, page)
-	} else {
-		list, total, err = caddie.FindList(db, page)
-	}
+	list, total, err := caddie.FindList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -248,6 +245,39 @@ func (_ *CCaddie) GetCaddieList(c *gin.Context, prof models.CmsUser) {
 	res := response.PageResponse{
 		Total: total,
 		Data:  list,
+	}
+
+	c.JSON(200, res)
+}
+
+func (_ *CCaddie) GetCaddieReadyOnDay(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListCaddieReady{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	caddie := models.CaddieList{}
+
+	if form.PartnerUid != "" {
+		caddie.PartnerUid = form.PartnerUid
+	}
+
+	if form.CourseId != "" {
+		caddie.CourseUid = form.CourseId
+	}
+
+	caddie.IsReadyForJoin = "1"
+	list, _, err := caddie.FindAllCaddieReadyOnDayList(db, form.DateTime)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"data": list,
 	}
 
 	c.JSON(200, res)

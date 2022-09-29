@@ -12,7 +12,6 @@ import (
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -229,12 +228,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			body.GuestStyle = memberCard.GetGuestStyle(db)
 		}
 	} else {
-		if strings.TrimSpace(body.CustomerName) != "" {
-			booking.CustomerName = body.CustomerName
-		} else {
-			response_message.BadRequest(c, "CustomerName not empty")
-			return nil
-		}
+		booking.CustomerName = body.CustomerName
 	}
 
 	//Agency id
@@ -781,6 +775,10 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.InternalServerError(c, err.Error())
 			return
 		}
+	}
+
+	if body.CourseType != "" {
+		booking.CourseType = body.CourseType
 	}
 
 	if body.GuestStyle != "" {
