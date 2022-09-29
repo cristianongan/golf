@@ -1,5 +1,13 @@
 package constants
 
+/*
+Get base price cho type agency họăc member card
+*/
+const (
+	OTHER_BASE_PRICE_AGENCY      = "AGENCY"
+	OTHER_BASE_PRICE_MEMBER_CARD = "MEMBER_CARD"
+)
+
 const (
 	CADDIE_CURRENT_STATUS_WORKING_ONLY = "WORKING_ONLY"
 	CADDIE_CURRENT_STATUS_JOB          = "JOB"

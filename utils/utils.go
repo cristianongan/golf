@@ -321,7 +321,7 @@ func CheckDow(dow, hour string, timeCheck time.Time) bool {
 }
 
 /*
-Check giờ
+Check giờ: format 13:00,23:00
 */
 func CheckHour(hour string, timeCheck time.Time) bool {
 

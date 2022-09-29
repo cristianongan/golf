@@ -256,6 +256,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/agency/:id", middlewares.AuthorizedCmsUserHandler(cAgency.UpdateAgency))
 			cmsApiAuthorized.DELETE("/agency/:id", middlewares.AuthorizedCmsUserHandler(cAgency.DeleteAgency))
 			cmsApiAuthorized.GET("/agency/:id", middlewares.AuthorizedCmsUserHandler(cAgency.GetAgencyDetail))
+			cmsApiAuthorized.GET("/agency/other-base-price", middlewares.AuthorizedCmsUserHandler(cAgency.GetOtherBasePrice))
 
 			cAgencySpecialPrice := new(controllers.CAgencySpecialPrice)
 			cmsApiAuthorized.POST("/agency-special-price", middlewares.AuthorizedCmsUserHandler(cAgencySpecialPrice.CreateAgencySpecialPrice))

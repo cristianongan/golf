@@ -28,6 +28,40 @@ type AgencySpecialPrice struct {
 	Input      string `json:"input" gorm:"type:varchar(100)"`
 }
 
+/*
+	check giá riêng agency có thoả mãn dk time
+*/
+func (item *AgencySpecialPrice) FindOtherPriceOnTime(db *gorm.DB) (AgencySpecialPrice, error) {
+	listAgency, _, err := item.FindListByAgencyId(db)
+
+	if err != nil {
+		return AgencySpecialPrice{}, err
+	}
+	idx := -1
+	// check for today
+	for i, v := range listAgency {
+		fromH := "00:00"
+		if v.FromHour != "" {
+			fromH = v.FromHour
+		}
+		toH := "00:00"
+		if v.ToHour != "" {
+			toH = v.ToHour
+		}
+
+		hourLast := fromH + "," + toH
+		if utils.CheckDow(v.Dow, hourLast, time.Now()) {
+			idx = i
+		}
+	}
+
+	if idx >= 0 {
+		return listAgency[idx], nil
+	}
+
+	return AgencySpecialPrice{}, errors.New("")
+}
+
 func (item *AgencySpecialPrice) IsDuplicated(db *gorm.DB) bool {
 	modelCheck := AgencySpecialPrice{
 		PartnerUid: item.PartnerUid,
