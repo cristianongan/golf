@@ -30,11 +30,13 @@ type Booking BookingForFlight
 
 type BookingForFlight struct {
 	models.Model
+	HoleTimeOut    int                         `json:"hole_time_out"`
+	CourseType     string                      `json:"course_type"`
 	PartnerUid     string                      `json:"partner_uid,omitempty"`
 	CourseUid      string                      `json:"course_uid,omitempty"`
 	BookingDate    string                      `json:"booking_date,omitempty"`
 	Bag            string                      `json:"bag,omitempty"`
-	Hole           int                         `json:"hole"` // Số hố
+	Hole           int                         `json:"hole"`
 	CustomerName   string                      `json:"customer_name,omitempty"`
 	CustomerUid    string                      `json:"customer_uid,omitempty"`
 	CustomerInfo   model_booking.CustomerInfo  `json:"customer_info,omitempty"`
