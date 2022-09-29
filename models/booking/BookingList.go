@@ -12,39 +12,40 @@ import (
 )
 
 type BookingList struct {
-	PartnerUid     string
-	CourseUid      string
-	BookingCode    string
-	BookingDate    string
-	CaddieUid      string
-	CaddieName     string
-	CaddieCode     string
-	InitType       string
-	AgencyId       int64
-	IsAgency       string
-	Status         string
-	FromDate       string
-	ToDate         string
-	BuggyId        int64
-	BuggyCode      string
-	GolfBag        string
-	Month          string
-	IsToday        string
-	BookingUid     string
-	IsFlight       string
-	BagStatus      string
-	HaveBag        *string
-	TeeTime        string
-	HasBuggy       string
-	IsTimeOut      string
-	HasBookCaddie  string
-	HasCaddie      string
-	HasFlightInfo  string
-	HasCaddieInOut string
-	CustomerName   string
-	TeeType        string
-	FlightId       int64
-	IsCheckIn      string
+	PartnerUid            string
+	CourseUid             string
+	BookingCode           string
+	BookingDate           string
+	CaddieUid             string
+	CaddieName            string
+	CaddieCode            string
+	InitType              string
+	AgencyId              int64
+	IsAgency              string
+	Status                string
+	FromDate              string
+	ToDate                string
+	BuggyId               int64
+	BuggyCode             string
+	GolfBag               string
+	Month                 string
+	IsToday               string
+	BookingUid            string
+	IsFlight              string
+	BagStatus             string
+	HaveBag               *string
+	TeeTime               string
+	HasBuggy              string
+	IsTimeOut             string
+	HasBookCaddie         string
+	HasCaddie             string
+	HasFlightInfo         string
+	HasCaddieInOut        string
+	CustomerName          string
+	TeeType               string
+	FlightId              int64
+	IsCheckIn             string
+	IsBuggyPrepareForJoin string
 }
 
 func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
@@ -205,10 +206,19 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 		db = db.Where("bag_status IN (?) ", bagStatus)
 	}
 
+	if item.IsBuggyPrepareForJoin != "" {
+		bagStatus := []string{
+			constants.BAG_STATUS_IN_COURSE,
+			constants.BAG_STATUS_WAITING,
+		}
+
+		db = db.Where("bag_status IN (?) ", bagStatus)
+	}
+
 	return db
 }
 
-func (item *BookingList) FindBookingList(database *gorm.DB,page models.Page) ([]Booking, int64, error) {
+func (item *BookingList) FindBookingList(database *gorm.DB, page models.Page) ([]Booking, int64, error) {
 	var list []Booking
 	total := int64(0)
 
@@ -225,7 +235,7 @@ func (item *BookingList) FindBookingList(database *gorm.DB,page models.Page) ([]
 	return list, total, db.Error
 }
 
-func (item *BookingList) FindBookingListWithSelect(database *gorm.DB,page models.Page) (*gorm.DB, int64, error) {
+func (item *BookingList) FindBookingListWithSelect(database *gorm.DB, page models.Page) (*gorm.DB, int64, error) {
 	total := int64(0)
 
 	db := database.Model(Booking{})

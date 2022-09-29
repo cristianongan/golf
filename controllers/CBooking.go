@@ -9,7 +9,6 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
-	model_gostarter "start/models/go-starter"
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
@@ -1013,21 +1012,9 @@ func (_ *CBooking) UpdateBookingCaddieCommon(db *gorm.DB, PartnerUid string, Cou
 	// udp trạng thái caddie sang LOCK
 	caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
 	if errCad := caddie.Update(db); errCad != nil {
-		log.Println("err addCaddieInOutNote", errCad.Error())
+		log.Println("err udp caddie", errCad.Error())
 	}
 
-	// Udp Note
-	caddieInNote := model_gostarter.CaddieInOutNote{
-		PartnerUid: PartnerUid,
-		CourseUid:  CourseUid,
-		BookingUid: booking.Uid,
-		CaddieId:   booking.CaddieId,
-		CaddieCode: booking.CaddieInfo.Code,
-		Type:       constants.STATUS_IN,
-		Note:       "",
-	}
-
-	go addCaddieInOutNote(db, caddieInNote)
 }
 
 /*
@@ -1626,6 +1613,9 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		}
 		if body.BookingDate != "" {
 			booking.BookingDate = body.BookingDate
+		}
+		if body.CourseType != "" {
+			booking.CourseType = body.CourseType
 		}
 
 		//Check duplicated

@@ -43,7 +43,7 @@ type BookingForFlight struct {
 	BuggyId        int64                       `json:"buggy_id,omitempty"`
 	BuggyInfo      model_booking.BookingBuggy  `json:"buggy_info,omitempty"`
 	CaddieStatus   string                      `json:"caddie_status,omitempty"`
-	CaddieInOut    []CaddieInOutNote           `json:"caddie_in_out" gorm:"foreignKey:BookingUid;references:Uid"`
+	CaddieInOut    []CaddieBuggyInOut          `json:"caddie_in_out" gorm:"foreignKey:BookingUid;references:Uid"`
 	FlightId       int64                       `json:"flight_id"`
 	CheckOutTime   int64                       `json:"check_out_time,omitempty"`
 	CheckInTime    int64                       `json:"check_in_time,omitempty"`

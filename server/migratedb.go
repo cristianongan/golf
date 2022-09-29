@@ -75,8 +75,8 @@ func MigrateDb() {
 
 		// ------- GO --------
 		db.AutoMigrate(&model_gostarter.Flight{})
-		db.AutoMigrate(&model_gostarter.CaddieInOutNote{})
 		db.AutoMigrate(&model_gostarter.BagFlight{})
+		db.AutoMigrate(&model_gostarter.CaddieBuggyInOut{})
 
 		// ------- Service ------
 		db.AutoMigrate(&model_service.Kiosk{})
@@ -205,7 +205,7 @@ func MigrateDb() {
 
 		// ------- GO --------
 		db.AutoMigrate(&model_gostarter.Flight{})
-		db.AutoMigrate(&model_gostarter.CaddieInOutNote{})
+		db.AutoMigrate(&model_gostarter.CaddieBuggyInOut{})
 		db.AutoMigrate(&model_gostarter.BagFlight{})
 
 		// ------- Service ------
