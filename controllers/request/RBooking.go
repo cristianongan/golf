@@ -208,8 +208,10 @@ type CheckInBody struct {
 	Locker         string `json:"locker"`
 	Hole           int    `json:"hole"`             // Số hố
 	CourseType     string `json:"course_type"`      // Sân nào : A,B,C
+	TeeType        string `json:"tee_type"`         // Tee nào : 1, 10
 	GuestStyle     string `json:"guest_style"`      // Guest Style
 	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
+	CustomerName   string `json:"customer_name"`    // Player Name
 
 	MemberUidOfGuest string `json:"member_uid_of_guest"` // Member của Guest đến chơi cùng
 }

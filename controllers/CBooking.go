@@ -1120,10 +1120,19 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		go createLocker(db, booking)
 	}
 
+	if body.TeeType != "" {
+		booking.TeeType = body.TeeType
+	}
+
+	if body.CustomerName != "" {
+		booking.CustomerName = body.CustomerName
+	}
+
 	booking.CmsUser = prof.UserName
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 	booking.CheckInTime = time.Now().Unix()
 	booking.BagStatus = constants.BAG_STATUS_WAITING
+	booking.CourseType = body.CourseType
 
 	errUdp := booking.Update(db)
 	if errUdp != nil {
