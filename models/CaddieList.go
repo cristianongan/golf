@@ -1,10 +1,12 @@
 package models
 
 import (
+	"log"
 	"start/constants"
 	"strconv"
 	"time"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -28,12 +30,7 @@ type CaddieList struct {
 	CurrentStatus         string
 }
 
-func (item *CaddieList) FindList(database *gorm.DB,page Page) ([]Caddie, int64, error) {
-	var list []Caddie
-	total := int64(0)
-
-	db := database.Model(Caddie{})
-
+func addFilter(db *gorm.DB, item *CaddieList) *gorm.DB {
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
@@ -107,6 +104,17 @@ func (item *CaddieList) FindList(database *gorm.DB,page Page) ([]Caddie, int64, 
 		db = db.Where("current_status IN (?) ", caddieStatus)
 	}
 
+	return db
+}
+
+func (item *CaddieList) FindList(database *gorm.DB, page Page) ([]Caddie, int64, error) {
+	var list []Caddie
+	total := int64(0)
+
+	db := database.Model(Caddie{})
+
+	db = addFilter(db, item)
+
 	db.Not("status = ?", constants.STATUS_DELETE)
 	db.Count(&total)
 
@@ -119,6 +127,46 @@ func (item *CaddieList) FindList(database *gorm.DB,page Page) ([]Caddie, int64, 
 	}
 
 	return list, total, db.Error
+}
+
+func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB, page Page) ([]Caddie, int64, error) {
+	var list []Caddie
+	total := int64(0)
+
+	db := database.Model(Caddie{})
+
+	db = addFilter(db, item)
+
+	db.Not("status = ?", constants.STATUS_DELETE)
+
+	if total > 0 && int64(page.Offset()) < total {
+		if item.Month != "" {
+			db = page.Setup(db).Preload("CaddieCalendar", "DATE_FORMAT(apply_date, '%Y-%m') = ?", item.Month).Debug().Find(&list)
+		} else {
+			db = page.Setup(db).Preload("CaddieCalendar", "DATE_FORMAT(apply_date, '%Y-%m') = ?", time.Now().Format("2006-01")).Preload("GroupInfo").Find(&list)
+		}
+	}
+
+	timeNow := datatypes.Date(time.Now())
+
+	log.Print(time.Now().Date())
+	listResponse := []Caddie{}
+
+	dbCaddieWorkingSchedule := database.Model(CaddieWorkingSchedule{})
+	for _, data := range list {
+		caddieSchedules := CaddieWorkingSchedule{
+			ApplyDate:       &timeNow,
+			PartnerUid:      data.PartnerUid,
+			CourseUid:       data.CourseUid,
+			CaddieGroupCode: data.GroupInfo.Code,
+		}
+
+		if caddieSchedules.CheckCaddieWorkOnDay(dbCaddieWorkingSchedule) {
+			listResponse = append(listResponse, data)
+		}
+	}
+
+	return listResponse, int64(len(listResponse)), db.Error
 }
 
 func (item CaddieList) FindListWithoutPage(database *gorm.DB) ([]Caddie, error) {

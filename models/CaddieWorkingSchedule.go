@@ -79,6 +79,10 @@ func (item *CaddieWorkingSchedule) FindListWithoutPage(database *gorm.DB) ([]Cad
 		db1 = db1.Where("partner_uid = ?", item.PartnerUid)
 	}
 
+	if item.CaddieGroupCode != "" {
+		db1 = db1.Where("caddie_group_code = ?", item.CaddieGroupCode)
+	}
+
 	if item.ApplyDate != nil {
 		db1 = db1.Where("apply_date = ?", time.Time(*item.ApplyDate).Format("2006-01-02"))
 	}
@@ -97,6 +101,38 @@ func (item *CaddieWorkingSchedule) FindListWithoutPage(database *gorm.DB) ([]Cad
 	err := db2.Joins("JOIN (?) q ON caddie_working_schedules.id = q.id_latest", query).Find(&list).Error
 
 	return list, err
+}
+
+func (item *CaddieWorkingSchedule) CheckCaddieWorkOnDay(database *gorm.DB) bool {
+	var list []CaddieWorkingSchedule
+
+	db1 := database.Model(CaddieWorkingSchedule{})
+
+	if item.CourseUid != "" {
+		db1 = db1.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.PartnerUid != "" {
+		db1 = db1.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CaddieGroupCode != "" {
+		db1 = db1.Where("caddie_group_code = ?", item.CaddieGroupCode)
+	}
+
+	if item.ApplyDate != nil {
+		db1 = db1.Where("apply_date = ?", time.Time(*item.ApplyDate).Format("2006-01-02"))
+	}
+
+	db1 = db1.Order("created_at desc")
+	db1.Find(&list)
+
+	if len(list) > 0 {
+		firstItem := list[0]
+		return !*firstItem.IsDayOff
+	}
+
+	return false
 }
 
 func (item *CaddieWorkingSchedule) Update(db *gorm.DB) error {

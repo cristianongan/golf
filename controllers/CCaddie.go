@@ -230,8 +230,15 @@ func (_ *CCaddie) GetCaddieList(c *gin.Context, prof models.CmsUser) {
 	if form.IsReadyForJoin != "" {
 		caddie.IsReadyForJoin = form.IsReadyForJoin
 	}
+	list := []models.Caddie{}
+	var total int64
+	var err error
 
-	list, total, err := caddie.FindList(db, page)
+	if form.IsReadyForJoin != "" {
+		list, total, err = caddie.FindAllCaddieReadyOnDayList(db, page)
+	} else {
+		list, total, err = caddie.FindList(db, page)
+	}
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
