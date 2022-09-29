@@ -30,11 +30,13 @@ type Booking BookingForFlight
 
 type BookingForFlight struct {
 	models.Model
+	HoleTimeOut    int                         `json:"hole_time_out"`
+	CourseType     string                      `json:"course_type"`
 	PartnerUid     string                      `json:"partner_uid,omitempty"`
 	CourseUid      string                      `json:"course_uid,omitempty"`
 	BookingDate    string                      `json:"booking_date,omitempty"`
 	Bag            string                      `json:"bag,omitempty"`
-	Hole           int                         `json:"hole"` // Số hố
+	Hole           int                         `json:"hole"`
 	CustomerName   string                      `json:"customer_name,omitempty"`
 	CustomerUid    string                      `json:"customer_uid,omitempty"`
 	CustomerInfo   model_booking.CustomerInfo  `json:"customer_info,omitempty"`
@@ -43,7 +45,7 @@ type BookingForFlight struct {
 	BuggyId        int64                       `json:"buggy_id,omitempty"`
 	BuggyInfo      model_booking.BookingBuggy  `json:"buggy_info,omitempty"`
 	CaddieStatus   string                      `json:"caddie_status,omitempty"`
-	CaddieInOut    []CaddieInOutNote           `json:"caddie_in_out" gorm:"foreignKey:BookingUid;references:Uid"`
+	CaddieInOut    []CaddieBuggyInOut          `json:"caddie_in_out" gorm:"foreignKey:BookingUid;references:Uid"`
 	FlightId       int64                       `json:"flight_id"`
 	CheckOutTime   int64                       `json:"check_out_time,omitempty"`
 	CheckInTime    int64                       `json:"check_in_time,omitempty"`

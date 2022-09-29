@@ -29,7 +29,7 @@ func runReportCaddieFeeToDay() {
 	log.Println("runReportCaddieFeeToDay", time.Now().UnixNano())
 	db := datasources.GetDatabase()
 
-	caddieIONRequest := model_gostarter.CaddieInOutNote{}
+	caddieIONRequest := model_gostarter.CaddieBuggyInOut{}
 	listCaddieION, err := caddieIONRequest.FindAllCaddieInOutNotes(db)
 
 	if err != nil {

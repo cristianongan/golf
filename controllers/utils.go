@@ -872,13 +872,55 @@ func udpCaddieOut(db *gorm.DB, caddieId int64) error {
 /*
 add Caddie In Out Note
 */
-func addCaddieInOutNote(db *gorm.DB, caddieInOut model_gostarter.CaddieInOutNote) {
-	if caddieInOut.CaddieId != 0 {
+func addBuggyCaddieInOutNote(db *gorm.DB, caddieInOut model_gostarter.CaddieBuggyInOut) {
+	newCaddieInOut := model_gostarter.CaddieBuggyInOut{
+		PartnerUid: caddieInOut.PartnerUid,
+		CourseUid:  caddieInOut.CourseUid,
+		BookingUid: caddieInOut.BookingUid,
+	}
+
+	list, total, _ := newCaddieInOut.FindOrderByDateList(db)
+	if total > 0 {
+		lastItem := list[0]
+		if caddieInOut.BuggyId > 0 && caddieInOut.CaddieId > 0 {
+			err := caddieInOut.Create(db)
+			if err != nil {
+				log.Println("Create addBuggyCaddieInOutNote", err.Error())
+			}
+		} else if caddieInOut.CaddieId > 0 {
+			if (lastItem.BuggyId > 0 && lastItem.CaddieId > 0) || lastItem.CaddieId > 0 {
+				err := caddieInOut.Create(db)
+				if err != nil {
+					log.Println("Create addBuggyCaddieInOutNote", err.Error())
+				}
+			} else if lastItem.BuggyId > 0 {
+				lastItem.CaddieId = caddieInOut.CaddieId
+				err := caddieInOut.Update(db)
+				if err != nil {
+					log.Println("Update addBuggyCaddieInOutNote", err.Error())
+				}
+			}
+		} else if caddieInOut.BuggyId > 0 {
+			if (lastItem.BuggyId > 0 && lastItem.CaddieId > 0) || lastItem.BuggyId > 0 {
+				err := caddieInOut.Create(db)
+				if err != nil {
+					log.Println("Create addBuggyCaddieInOutNote", err.Error())
+				}
+			} else if lastItem.CaddieId > 0 {
+				lastItem.BuggyId = caddieInOut.BuggyId
+				err := caddieInOut.Update(db)
+				if err != nil {
+					log.Println("Update addBuggyCaddieInOutNote", err.Error())
+				}
+			}
+		}
+	} else {
 		err := caddieInOut.Create(db)
 		if err != nil {
-			log.Println("err addCaddieInOutNote", err.Error())
+			log.Println("err addBuggyCaddieInOutNote", err.Error())
 		}
 	}
+
 }
 
 /*
@@ -888,7 +930,7 @@ func addBuggyInOutNote(db *gorm.DB, buggyInOut model_gostarter.BuggyInOut) {
 	if buggyInOut.BuggyId != 0 {
 		err := buggyInOut.Create(db)
 		if err != nil {
-			log.Println("err addCaddieInOutNote", err.Error())
+			log.Println("err", err.Error())
 		}
 	}
 }
@@ -1237,10 +1279,11 @@ Check Buggy có đang sẵn sàng để ghép không
 */
 func checkBuggyReady(db *gorm.DB, buggy models.Buggy, booking model_booking.Booking) error {
 	bookingList := model_booking.BookingList{
-		PartnerUid:  booking.PartnerUid,
-		CourseUid:   booking.CourseUid,
-		BuggyCode:   buggy.Code,
-		BookingDate: booking.BookingDate,
+		PartnerUid:            booking.PartnerUid,
+		CourseUid:             booking.CourseUid,
+		BuggyCode:             buggy.Code,
+		BookingDate:           booking.BookingDate,
+		IsBuggyPrepareForJoin: "1",
 	}
 
 	dbResponse, total, _ := bookingList.FindAllBookingList(db)

@@ -234,6 +234,7 @@ type MovingBookingBody struct {
 	BookUidList []string `json:"booking_uid_list" validate:"required"`
 	BookingDate string   `json:"booking_date" validate:"required"`
 	TeeType     string   `json:"tee_type" validate:"required"`
+	CourseType  string   `json:"course_type"`
 	TeeTime     string   `json:"tee_time" validate:"required"`
 	TeePath     string   `json:"tee_path" validate:"required"`
 	Hole        int      `json:"hole"`

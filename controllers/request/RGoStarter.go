@@ -29,12 +29,14 @@ type CreateFlightBody struct {
 	Note        string                 `json:"note"`
 	Tee         int                    `json:"tee"`     // Tee
 	TeeOff      string                 `json:"tee_off"` // Tee Off
+	CourseType  string                 `json:"course_type"`
 }
 
 type CaddieBuggyToBooking struct {
-	Bag        string `json:"bag"`
-	CaddieCode string `json:"caddie_code"`
-	BuggyCode  string `json:"buggy_code"`
+	Bag            string `json:"bag"`
+	CaddieCode     string `json:"caddie_code"`
+	BuggyCode      string `json:"buggy_code"`
+	IsPrivateBuggy bool   `json:"is_private_buggy"`
 }
 
 type OutCaddieBody struct {
@@ -93,10 +95,11 @@ type ChangeCaddieBody struct {
 }
 
 type ChangeBuggyBody struct {
-	BookingUid string `json:"booking_uid"`
-	BuggyCode  string `json:"buggy_code"`
-	Reason     string `json:"reason"`
-	Note       string `json:"note"`
+	BookingUid     string `json:"booking_uid"`
+	BuggyCode      string `json:"buggy_code"`
+	Reason         string `json:"reason"`
+	Note           string `json:"note"`
+	IsPrivateBuggy bool   `json:"is_private_buggy"`
 }
 
 type EditHolesOfCaddiesBody struct {
