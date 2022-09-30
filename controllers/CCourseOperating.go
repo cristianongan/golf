@@ -1116,6 +1116,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	// Chuyển booking cũ sang time out
 	booking.BagStatus = constants.BAG_STATUS_TIMEOUT
 	booking.TimeOutFlight = time.Now().Unix()
+	booking.HoleTimeOut = int(body.HolePlayed)
 	errBookingUpd := booking.Update(db)
 	if errBookingUpd != nil {
 		response_message.InternalServerError(c, errBookingUpd.Error())
@@ -1125,6 +1126,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	// Tạo booking mới với flightID và bag_status in course
 	bookingUid := uuid.New()
 	newBooking := cloneToBooking(booking)
+	newBooking.HoleTimeOut = 0
 	newBooking.BagStatus = constants.BAG_STATUS_IN_COURSE
 	newBooking.FlightId = body.FlightId
 	newBooking.TimeOutFlight = 0
