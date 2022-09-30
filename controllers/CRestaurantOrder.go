@@ -207,9 +207,6 @@ func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsU
 		}
 	}
 
-	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
-
 	okRes(c)
 }
 
@@ -299,13 +296,6 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 	serviceCart.Id = body.BillId
 	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find service Cart "+err.Error())
-		return
-	}
-
-	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
-		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
-
-		response_message.BadRequest(c, "Bill status invalid")
 		return
 	}
 
@@ -453,9 +443,6 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
-
 	okRes(c)
 }
 
@@ -549,9 +536,6 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
-
 	okRes(c)
 }
 
@@ -636,9 +620,6 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 		}
 
 	}
-
-	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
 
 	okRes(c)
 }
@@ -1085,6 +1066,19 @@ func (_ CRestaurantOrder) FinishRestaurantOrder(c *gin.Context, prof models.CmsU
 		response_message.BadRequest(c, "Update service Cart "+err.Error())
 		return
 	}
+
+	// validate golf bag
+	booking := model_booking.Booking{}
+	booking.PartnerUid = serviceCart.PartnerUid
+	booking.CourseUid = serviceCart.CourseUid
+	booking.Uid = serviceCart.BookingUid
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
 
 	okRes(c)
 }

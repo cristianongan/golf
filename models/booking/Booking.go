@@ -502,11 +502,8 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 				return
 			}
 
-			if serviceCart.BillStatus != constants.POS_BILL_STATUS_OUT &&
-				serviceCart.BillStatus != constants.POS_BILL_STATUS_ACTIVE &&
-				serviceCart.BillStatus != constants.RES_BILL_STATUS_BOOKING &&
-				serviceCart.BillStatus != constants.RES_BILL_STATUS_OUT &&
-				serviceCart.BillStatus != constants.RES_BILL_STATUS_CANCEL {
+			if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
+				serviceCart.BillStatus != constants.RES_BILL_STATUS_OUT {
 				listServiceItems = append(listServiceItems, v)
 			}
 		}

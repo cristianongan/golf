@@ -208,9 +208,6 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
-	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
-
 	c.JSON(200, serviceCart)
 }
 
@@ -489,9 +486,6 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
-
 	okRes(c)
 }
 
@@ -564,9 +558,6 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
-
-	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
 
 	okRes(c)
 }
@@ -731,9 +722,6 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	//Update lại giá trong booking target
-	updatePriceWithServiceItem(booking, prof)
-
 	// Update amount target bill
 	sourceServiceCart.Amount = sourceServiceCart.Amount - totalAmount
 
@@ -741,9 +729,6 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, "Update target cart "+err.Error())
 		return
 	}
-
-	//Update lại giá trong booking target
-	updatePriceWithServiceItem(bookingSourse, prof)
 
 	okRes(c)
 }
@@ -781,9 +766,6 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
-
-	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
 
 	okRes(c)
 }
@@ -929,12 +911,25 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// validate golf bag
+	booking := model_booking.Booking{}
+	booking.PartnerUid = serviceCart.PartnerUid
+	booking.CourseUid = serviceCart.CourseUid
+	booking.Uid = serviceCart.BookingUid
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
 	// Update trạng thái
 	serviceCart.BillStatus = constants.POS_BILL_STATUS_ACTIVE
 	if err := serviceCart.Update(db); err != nil {
 		response_message.BadRequest(c, "Update service Cart "+err.Error())
 		return
 	}
+
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
 
 	okRes(c)
 }
