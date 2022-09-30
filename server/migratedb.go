@@ -11,6 +11,7 @@ import (
 	kiosk_inventory "start/models/kiosk-inventory"
 	model_report "start/models/report"
 	model_service "start/models/service"
+	model_service_restaurant_setup "start/models/service/restaurant_setup"
 
 	"gorm.io/plugin/dbresolver"
 )
@@ -142,6 +143,10 @@ func MigrateDb() {
 		// ------- Report -------
 		db.AutoMigrate(&model_report.ReportCustomerPlay{})
 
+		// Restaurant Setup
+		db.AutoMigrate(&model_service_restaurant_setup.RestaurantTableSetup{})
+		db.AutoMigrate(&model_service_restaurant_setup.RestaurantTimeSetup{})
+
 		log.Println("migrated db")
 	}
 
@@ -271,6 +276,10 @@ func MigrateDb() {
 
 		// ------- Report -------
 		db.AutoMigrate(&model_report.ReportCustomerPlay{})
+
+		// Restaurant Setup
+		db.AutoMigrate(&model_service_restaurant_setup.RestaurantTableSetup{})
+		db.AutoMigrate(&model_service_restaurant_setup.RestaurantTimeSetup{})
 
 		log.Println("migrated db2")
 	}
