@@ -5,7 +5,7 @@ type CreateProshopBody struct {
 	PartnerUid    string  `json:"partner_uid" binding:"required"`
 	CourseUid     string  `json:"course_uid" binding:"required"`
 	GroupCode     string  `json:"group_code" binding:"required"`
-	AccountCode   string  `json:"account_code" binding:"required"`
+	AccountCode   string  `json:"account_code"`
 	Brand         string  `json:"brand"`
 	EnglishName   string  `json:"english_name"`
 	VieName       string  `json:"vietnamese_name"`
