@@ -211,7 +211,7 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 			constants.BAG_STATUS_IN_COURSE,
 			constants.BAG_STATUS_WAITING,
 		}
-		db = db.Where("is_private_buggy = ?", true)
+		db = db.Where("show_caddie_buggy = ?", true)
 		db = db.Where("bag_status IN (?) ", bagStatus)
 	}
 

@@ -1,8 +1,8 @@
 package models
 
 import (
-	"log"
 	"start/constants"
+	"start/utils"
 	"strconv"
 	"time"
 
@@ -129,9 +129,8 @@ func (item *CaddieList) FindList(database *gorm.DB, page Page) ([]Caddie, int64,
 	return list, total, db.Error
 }
 
-func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB, page Page) ([]Caddie, int64, error) {
+func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB, date string) ([]Caddie, int64, error) {
 	var list []Caddie
-	total := int64(0)
 
 	db := database.Model(Caddie{})
 
@@ -139,17 +138,16 @@ func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB, page Page
 
 	db.Not("status = ?", constants.STATUS_DELETE)
 
-	if total > 0 && int64(page.Offset()) < total {
-		if item.Month != "" {
-			db = page.Setup(db).Preload("CaddieCalendar", "DATE_FORMAT(apply_date, '%Y-%m') = ?", item.Month).Debug().Find(&list)
-		} else {
-			db = page.Setup(db).Preload("CaddieCalendar", "DATE_FORMAT(apply_date, '%Y-%m') = ?", time.Now().Format("2006-01")).Preload("GroupInfo").Find(&list)
-		}
+	db.Preload("GroupInfo").Find(&list)
+
+	var timeNow datatypes.Date
+	if date != "" {
+		timeUnix := time.Unix(utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, date), 0)
+		timeNow = datatypes.Date(timeUnix)
+	} else {
+		timeNow = datatypes.Date(time.Now())
 	}
 
-	timeNow := datatypes.Date(time.Now())
-
-	log.Print(time.Now().Date())
 	listResponse := []Caddie{}
 
 	dbCaddieWorkingSchedule := database.Model(CaddieWorkingSchedule{})
