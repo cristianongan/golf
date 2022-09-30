@@ -106,8 +106,8 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 
 	if kiosk.ServiceType == constants.GROUP_RENTAL {
 		rental := model_service.Rental{}
-		rental.PartnerUid = prof.PartnerUid
-		rental.CourseUid = prof.CourseUid
+		rental.PartnerUid = body.PartnerUid
+		rental.CourseUid = body.CourseUid
 		rental.RentalId = body.ItemCode
 
 		if err := rental.FindFirst(db); err != nil {
@@ -125,8 +125,8 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 
 	// check service cart
 	serviceCart := models.ServiceCart{}
-	serviceCart.PartnerUid = prof.PartnerUid
-	serviceCart.CourseUid = prof.CourseUid
+	serviceCart.PartnerUid = body.PartnerUid
+	serviceCart.CourseUid = body.CourseUid
 	serviceCart.GolfBag = body.GolfBag
 	serviceCart.BookingUid = booking.Uid
 	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
@@ -189,8 +189,8 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	}
 
 	// add infor cart item
-	serviceCartItem.PartnerUid = prof.PartnerUid
-	serviceCartItem.CourseUid = prof.CourseUid
+	serviceCartItem.PartnerUid = body.PartnerUid
+	serviceCartItem.CourseUid = body.CourseUid
 	serviceCartItem.ServiceType = kiosk.ServiceType
 	serviceCartItem.Bag = booking.Bag
 	serviceCartItem.BillCode = booking.BillCode
@@ -654,28 +654,38 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	// validate cart code
 	sourceServiceCart := models.ServiceCart{}
 	sourceServiceCart.Id = body.ServiceCartId
-	sourceServiceCart.PartnerUid = prof.PartnerUid
-	sourceServiceCart.CourseUid = prof.CourseUid
 
 	if err := sourceServiceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
 
+	// validate golf bag source
+	bookingSourse := model_booking.Booking{}
+	bookingSourse.Bag = sourceServiceCart.GolfBag
+	bookingSourse.BookingDate = time.Now().Format("02/01/2006")
+	if err := bookingSourse.FindFirst(db); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
 	// validate cart by golf bag
 	targetServiceCart := models.ServiceCart{}
-	targetServiceCart.PartnerUid = prof.PartnerUid
-	targetServiceCart.CourseUid = prof.CourseUid
+	targetServiceCart.PartnerUid = body.PartnerUid
+	targetServiceCart.CourseUid = body.CourseUid
 	targetServiceCart.GolfBag = body.GolfBag
 	targetServiceCart.BookingDate = datatypes.Date(time.Now().UTC())
 	targetServiceCart.ServiceId = sourceServiceCart.ServiceId
-	targetServiceCart.BillCode = constants.BILL_NONE
 
 	err := targetServiceCart.FindFirst(db)
 
 	// no cart
 	if err != nil {
 		// create cart
+		targetServiceCart.BillCode = constants.BILL_NONE
+		targetServiceCart.StaffOrder = prof.UserName
+		targetServiceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
+
 		if err := targetServiceCart.Create(db); err != nil {
 			response_message.InternalServerError(c, err.Error())
 			return
@@ -683,7 +693,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	hasError := false
-
+	var totalAmount int64
 	var errFor error
 
 	for _, cartItemId := range body.CartItemIdList {
@@ -696,6 +706,11 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		}
 
 		serviceCartItem.ServiceBill = targetServiceCart.Id
+		serviceCartItem.Bag = booking.Bag
+		serviceCartItem.BillCode = booking.BillCode
+		serviceCartItem.BookingUid = booking.Uid
+		serviceCartItem.PlayerName = booking.CustomerName
+		totalAmount += (serviceCartItem.Amount - serviceCartItem.DiscountValue)
 
 		if errFor = serviceCartItem.Update(db); errFor != nil {
 			hasError = true
@@ -707,6 +722,26 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errFor.Error())
 		return
 	}
+
+	// Update amount target bill
+	targetServiceCart.Amount += totalAmount
+	if err := targetServiceCart.Update(db); err != nil {
+		response_message.InternalServerError(c, "Update target cart "+err.Error())
+		return
+	}
+
+	//Update lại giá trong booking target
+	updatePriceWithServiceItem(booking, prof)
+
+	// Update amount target bill
+	sourceServiceCart.Amount -= totalAmount
+	if err := sourceServiceCart.Update(db); err != nil {
+		response_message.InternalServerError(c, "Update target cart "+err.Error())
+		return
+	}
+
+	//Update lại giá trong booking target
+	updatePriceWithServiceItem(bookingSourse, prof)
 
 	okRes(c)
 }
