@@ -887,28 +887,26 @@ func addBuggyCaddieInOutNote(db *gorm.DB, caddieInOut model_gostarter.CaddieBugg
 			if err != nil {
 				log.Println("Create addBuggyCaddieInOutNote", err.Error())
 			}
-		} else if caddieInOut.CaddieId > 0 {
-			if (lastItem.BuggyId > 0 && lastItem.CaddieId > 0) || lastItem.CaddieId > 0 {
+		} else {
+			if (lastItem.BuggyId > 0 && lastItem.CaddieId > 0) ||
+				lastItem.CaddieType == constants.STATUS_OUT ||
+				lastItem.BuggyType == constants.STATUS_OUT {
 				err := caddieInOut.Create(db)
 				if err != nil {
 					log.Println("Create addBuggyCaddieInOutNote", err.Error())
 				}
-			} else if lastItem.BuggyId > 0 {
-				lastItem.CaddieId = caddieInOut.CaddieId
-				err := caddieInOut.Update(db)
-				if err != nil {
-					log.Println("Update addBuggyCaddieInOutNote", err.Error())
+			} else {
+				if caddieInOut.CaddieId > 0 {
+					lastItem.CaddieId = caddieInOut.CaddieId
+					lastItem.CaddieCode = caddieInOut.CaddieCode
+					lastItem.CaddieType = caddieInOut.CaddieType
 				}
-			}
-		} else if caddieInOut.BuggyId > 0 {
-			if (lastItem.BuggyId > 0 && lastItem.CaddieId > 0) || lastItem.BuggyId > 0 {
-				err := caddieInOut.Create(db)
-				if err != nil {
-					log.Println("Create addBuggyCaddieInOutNote", err.Error())
+				if caddieInOut.BuggyId > 0 {
+					lastItem.BuggyId = caddieInOut.BuggyId
+					lastItem.BuggyCode = caddieInOut.BuggyCode
+					lastItem.BuggyType = caddieInOut.BuggyType
 				}
-			} else if lastItem.CaddieId > 0 {
-				lastItem.BuggyId = caddieInOut.BuggyId
-				err := caddieInOut.Update(db)
+				err := lastItem.Update(db)
 				if err != nil {
 					log.Println("Update addBuggyCaddieInOutNote", err.Error())
 				}
