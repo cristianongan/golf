@@ -1129,7 +1129,144 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	checkInTime := time.Now().Unix()
 
-	if !booking.SeparatePrice && body.GuestStyle != "" {
+	if body.MemberCardUid != booking.MemberCardUid ||
+		body.AgencyId != booking.AgencyId {
+		booking.SeparatePrice = false
+	}
+
+	if body.MemberCardUid != "" && body.MemberCardUid != booking.MemberCardUid {
+		// Get Member Card
+		memberCard := models.MemberCard{}
+		memberCard.Uid = body.MemberCardUid
+		errFind := memberCard.FindFirst(db)
+		if errFind != nil {
+			response_message.BadRequest(c, errFind.Error())
+			return
+		}
+
+		// Get Owner
+		owner, errOwner := memberCard.GetOwner(db)
+		if errOwner != nil {
+			response_message.BadRequest(c, errOwner.Error())
+			return
+		}
+
+		booking.MemberCardUid = body.MemberCardUid
+		booking.CardId = memberCard.CardId
+		booking.CustomerName = owner.Name
+		booking.CustomerUid = owner.Uid
+		booking.CustomerType = owner.Type
+		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
+		if memberCard.PriceCode == 1 && memberCard.IsValidTimePrecial() {
+			course := models.Course{}
+			course.Uid = booking.CourseUid
+			errCourse := course.FindFirst(db)
+			if errCourse != nil {
+				response_message.BadRequest(c, errCourse.Error())
+				return
+			}
+			param := request.GolfFeeGuestyleParam{
+				Uid:          booking.Uid,
+				Rate:         course.RateGolfFee,
+				Bag:          booking.Bag,
+				CustomerName: body.CustomerName,
+				CaddieFee:    memberCard.CaddieFee,
+				BuggyFee:     memberCard.BuggyFee,
+				GreenFee:     memberCard.GreenFee,
+				Hole:         booking.Hole,
+			}
+			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
+			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
+			booking.SeparatePrice = true
+			body.GuestStyle = memberCard.GetGuestStyle(db)
+		} else {
+			// Lấy theo GuestStyle
+			body.GuestStyle = memberCard.GetGuestStyle(db)
+		}
+	} else {
+		if body.CustomerName != "" {
+			booking.CustomerName = body.CustomerName
+		}
+	}
+
+	//Agency id
+	if body.AgencyId > 0 && body.AgencyId != booking.AgencyId {
+		// Get config course
+		course := models.Course{}
+		course.Uid = booking.CourseUid
+		errCourse := course.FindFirst(db)
+		if errCourse != nil {
+			response_message.BadRequest(c, errCourse.Error())
+			return
+		}
+
+		agency := models.Agency{}
+		agency.Id = body.AgencyId
+		errFindAgency := agency.FindFirst(db)
+		if errFindAgency != nil || agency.Id == 0 {
+			response_message.BadRequest(c, "agency"+errFindAgency.Error())
+			return
+		}
+
+		agencyBooking := cloneToAgencyBooking(agency)
+		booking.AgencyInfo = agencyBooking
+		booking.AgencyId = body.AgencyId
+
+		if booking.MemberCardUid == "" {
+			// Update member card
+			booking.MemberCardUid = ""
+			booking.CardId = ""
+			booking.CustomerUid = ""
+			booking.CustomerType = ""
+			booking.CustomerInfo = model_booking.CustomerInfo{}
+
+			// Nếu có cả member card thì ưu tiên giá member card
+			agencySpecialPriceR := models.AgencySpecialPrice{
+				AgencyId: agency.Id,
+			}
+			// Tính lại giá riêng nếu thoả mãn các dk time
+			agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnTime(db)
+			if errFSP == nil && agencySpecialPrice.Id > 0 {
+				// Tính lại giá
+				// List Booking GolfFee
+				param := request.GolfFeeGuestyleParam{
+					Uid:          booking.Uid,
+					Rate:         course.RateGolfFee,
+					Bag:          booking.Bag,
+					CustomerName: body.CustomerName,
+					Hole:         booking.Hole,
+					CaddieFee:    agencySpecialPrice.CaddieFee,
+					BuggyFee:     agencySpecialPrice.BuggyFee,
+					GreenFee:     agencySpecialPrice.GreenFee,
+				}
+				listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
+				initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
+				booking.SeparatePrice = true
+				body.GuestStyle = agency.GuestStyle
+			} else {
+				body.GuestStyle = agency.GuestStyle
+			}
+		}
+	}
+
+	if body.GuestStyle != "" {
+		if body.MemberCardUid == "" {
+			// Update member card
+			booking.MemberCardUid = ""
+			booking.CardId = ""
+			booking.CustomerUid = ""
+			booking.CustomerType = ""
+			booking.CustomerInfo = model_booking.CustomerInfo{}
+		}
+
+		//Update Agency
+		if body.AgencyId == 0 {
+			booking.AgencyInfo = model_booking.BookingAgency{}
+			booking.AgencyId = 0
+		}
+
+		//Update giá đặc biệt nếu có
+
 		// Tính giá
 		golfFeeModel := models.GolfFee{
 			PartnerUid: booking.PartnerUid,
@@ -1153,15 +1290,18 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.GuestStyle = body.GuestStyle
 		booking.GuestStyleName = golfFee.GuestStyleName
 
-		// List Booking GolfFee
-		param := request.GolfFeeGuestyleParam{
-			Uid:          booking.Uid,
-			Bag:          booking.Bag,
-			CustomerName: booking.CustomerName,
-			Hole:         booking.Hole,
+		if !booking.SeparatePrice {
+			// List Booking GolfFee
+			param := request.GolfFeeGuestyleParam{
+				Uid:          booking.Uid,
+				Bag:          booking.Bag,
+				CustomerName: booking.CustomerName,
+				Hole:         booking.Hole,
+			}
+			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(param, golfFee)
+			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
 		}
-		listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(param, golfFee)
-		initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
+
 	}
 
 	if body.Locker != "" {
