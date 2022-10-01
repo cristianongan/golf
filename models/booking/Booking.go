@@ -29,6 +29,7 @@ type Booking struct {
 	Hole           int    `json:"hole"`                                       // Số hố check in
 	HoleBooking    int    `json:"hole_booking"`                               // Số hố khi booking
 	HoleTimeOut    int    `json:"hole_time_out"`                              // Số hố khi time out
+	HoleMoveFlight int    `json:"hole_move_flight"`                           // Số hố trong đã chơi của flight khi bag move sang
 	GuestStyle     string `json:"guest_style" gorm:"type:varchar(200);index"` // Guest Style
 	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Guest Style Name
 

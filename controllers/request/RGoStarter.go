@@ -135,10 +135,11 @@ type GetFlightList struct {
 }
 
 type MoveBagToFlightBody struct {
-	BookingUid string `json:"booking_uid"`
-	GolfBag    string `json:"golf_bag"`
-	FlightId   int64  `json:"flight_id"`
-	HolePlayed int64  `json:"hole_played"`
+	BookingUid     string `json:"booking_uid"`
+	GolfBag        string `json:"golf_bag"`
+	FlightId       int64  `json:"flight_id"`
+	HolePlayed     int    `json:"hole_played"`
+	HoleMoveFlight int    `json:"hole_move_flight"`
 }
 
 type CheckoutBody struct {
