@@ -570,6 +570,17 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/restaurant/finish-res-order", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.FinishRestaurantOrder))
 			cmsApiAuthorized.DELETE("/restaurant/item/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteItemOrder))
 			cmsApiAuthorized.DELETE("/restaurant/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteRestaurantOrder))
+
+			cRestaurantSetup := new(controllers.CRestaurantSetup)
+			cmsApiAuthorized.GET("/restaurant/set-up/list", middlewares.AuthorizedCmsUserHandler(cRestaurantSetup.GetRestaurantSetupList))
+
+			cmsApiAuthorized.POST("/restaurant/table-set-up", middlewares.AuthorizedCmsUserHandler(cRestaurantSetup.CreateRestaurantTableSetup))
+			cmsApiAuthorized.PUT("/restaurant/table-set-up", middlewares.AuthorizedCmsUserHandler(cRestaurantSetup.UpdateRestaurantTableSetup))
+			cmsApiAuthorized.DELETE("/restaurant/table-set-up/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantSetup.DeleteRestaurantTableSetup))
+
+			cmsApiAuthorized.POST("/restaurant/time-set-up", middlewares.AuthorizedCmsUserHandler(cRestaurantSetup.CreateRestaurantTimeSetup))
+			cmsApiAuthorized.PUT("/restaurant/time-set-up", middlewares.AuthorizedCmsUserHandler(cRestaurantSetup.UpdateRestaurantTimeSetup))
+			cmsApiAuthorized.DELETE("/restaurant/time-set-up/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantSetup.DeleteRestaurantTimeSetup))
 		}
 
 		// ----------------------------------------------------------
