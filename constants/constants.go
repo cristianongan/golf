@@ -1,6 +1,14 @@
 package constants
 
 /*
+Get base price cho type agency họăc member card
+*/
+const (
+	PAYMENT_TYPE_CASH = "CASH"
+	PAYMENT_TYPE_VISA = "VISA"
+)
+
+/*
 Trạng thái thanh toán
 */
 const (
