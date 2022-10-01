@@ -172,3 +172,8 @@ func GetCronJobSecretKey() string {
 func GetCronJobPageLimit() int {
 	return config.GetInt("cronjob_page_limit")
 }
+
+// =============== Get Payment SecretKey ========================
+func GetPaymentSecretKey() string {
+	return config.GetString("payment_secret_key")
+}
