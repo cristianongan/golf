@@ -25,6 +25,7 @@ type GetItemServiceCartBody struct {
 	BookingDate string `form:"booking_date"`
 	ServiceId   int64  `form:"service_id"`
 	BillId      int64  `form:"bill_id"`
+	BillStatus  string `form:"bill_status"`
 }
 
 type GetBestItemBody struct {

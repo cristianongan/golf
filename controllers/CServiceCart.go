@@ -280,6 +280,7 @@ func (_ CServiceCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
 	serviceCart.GolfBag = query.GolfBag
 	serviceCart.BookingDate = datatypes.Date(bookingDate)
 	serviceCart.Id = query.BillId
+	serviceCart.BillStatus = query.BillStatus
 
 	if err := serviceCart.FindFirst(db); err != nil {
 		res := response.PageResponse{
