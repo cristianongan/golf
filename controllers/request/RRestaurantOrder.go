@@ -57,15 +57,17 @@ type GetItemResOrderBody struct {
 
 type GetListBillBody struct {
 	PageRequest
-	PartnerUid  string `json:"partner_uid"`
-	CourseUid   string `json:"course_uid"`
-	BookingDate string `form:"booking_date" binding:"required"`
-	ServiceId   int64  `form:"service_id" binding:"required"`
-	BillStatus  string `form:"bill_status"`
-	BillCode    string `form:"bill_code"`
-	Table       string `form:"table"`
-	Type        string `form:"type"`
-	Floor       int    `form:"floor"`
+	PartnerUid   string `json:"partner_uid"`
+	CourseUid    string `json:"course_uid"`
+	BookingDate  string `form:"booking_date" binding:"required"`
+	ServiceId    int64  `form:"service_id" binding:"required"`
+	BillStatus   string `form:"bill_status"`
+	BillCode     string `form:"bill_code"`
+	CustomerName string `form:"customer_name"`
+	GolfBag      string `form:"golf_bag"`
+	Table        string `form:"table"`
+	Type         string `form:"type"`
+	Floor        int    `form:"floor"`
 }
 
 type UpdateResItemBody struct {

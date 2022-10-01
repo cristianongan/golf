@@ -235,6 +235,8 @@ func (_ CRestaurantOrder) GetListBill(c *gin.Context, prof models.CmsUser) {
 	serviceCart.TypeCode = query.Table
 	serviceCart.Type = query.Type
 	serviceCart.ResFloor = query.Floor
+	serviceCart.PlayerName = query.CustomerName
+	serviceCart.GolfBag = query.GolfBag
 
 	list, total, err := serviceCart.FindList(db, page)
 
