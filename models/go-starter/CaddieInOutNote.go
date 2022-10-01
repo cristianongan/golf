@@ -12,17 +12,18 @@ import (
 
 type CaddieBuggyInOut struct {
 	models.ModelId
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	BookingUid string `json:"booking_uid" gorm:"type:varchar(50);index"`  // Ex: Booking Uid
-	CaddieId   int64  `json:"caddie_id" gorm:"index"`                     // Caddie Id
-	CaddieCode string `json:"caddie_code" gorm:"type:varchar(256)"`
-	BuggyId    int64  `json:"buggy_id"`                            // Buggy Id
-	BuggyCode  string `json:"buggy_code" gorm:"type:varchar(100)"` // Buggy Code
-	Note       string `json:"note" gorm:"type:varchar(500)"`       // note
-	CaddieType string `json:"caddie_type"`                         // Type: IN(undo), OUT, CHANGE
-	BuggyType  string `json:"buggy_type"`                          // Type: IN(undo), OUT, CHANGE
-	Hole       int    `json:"hole"`
+	PartnerUid    string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid     string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	BookingUid    string `json:"booking_uid" gorm:"type:varchar(50);index"`  // Ex: Booking Uid
+	CaddieId      int64  `json:"caddie_id" gorm:"index"`                     // Caddie Id
+	CaddieCode    string `json:"caddie_code" gorm:"type:varchar(256)"`
+	BuggyId       int64  `json:"buggy_id"`                            // Buggy Id
+	BuggyCode     string `json:"buggy_code" gorm:"type:varchar(100)"` // Buggy Code
+	Note          string `json:"note" gorm:"type:varchar(500)"`       // note
+	CaddieType    string `json:"caddie_type"`                         // Type: IN(undo), OUT, CHANGE
+	BuggyType     string `json:"buggy_type"`                          // Type: IN(undo), OUT, CHANGE
+	Hole          int    `json:"hole"`
+	BagShareBuggy string `json:"bag_share_buggy" gorm:"type:varchar(100)"` // Bag đi chung với buggy
 }
 
 func (item *CaddieBuggyInOut) Create(db *gorm.DB) error {

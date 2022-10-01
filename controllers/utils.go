@@ -840,9 +840,15 @@ func udpOutBuggy(db *gorm.DB, booking *model_booking.Booking, isOutAll bool) err
 		return errors.New("Buggy còn đang ghép với player khác")
 	}
 
-	errBuggy := udpBuggyOut(db, bookingR.BuggyId)
-	if errBuggy != nil {
-		return errBuggy
+	buggy := models.Buggy{}
+	buggy.Id = booking.BuggyId
+	err := buggy.FindFirst(db)
+	if err == nil {
+		buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_ACTIVE
+		if errUdp := buggy.Update(db); errUdp != nil {
+			log.Println("udpBuggyOut err", err.Error())
+			return errUdp
+		}
 	}
 
 	return nil
@@ -890,7 +896,9 @@ func addBuggyCaddieInOutNote(db *gorm.DB, caddieInOut model_gostarter.CaddieBugg
 		} else {
 			if (lastItem.BuggyId > 0 && lastItem.CaddieId > 0) ||
 				lastItem.CaddieType == constants.STATUS_OUT ||
-				lastItem.BuggyType == constants.STATUS_OUT {
+				lastItem.BuggyType == constants.STATUS_OUT ||
+				caddieInOut.BuggyType == constants.STATUS_OUT ||
+				caddieInOut.CaddieType == constants.STATUS_OUT {
 				err := caddieInOut.Create(db)
 				if err != nil {
 					log.Println("Create addBuggyCaddieInOutNote", err.Error())
@@ -939,20 +947,6 @@ unlock turn time
 func unlockTurnTime(db *gorm.DB, booking model_booking.Booking) {
 	cLockTeeTim := CLockTeeTime{}
 	cLockTeeTim.DeleteLockTurn(db, booking.TeeTime, booking.BookingDate)
-}
-
-func udpBuggyOut(db *gorm.DB, buggyId int64) error {
-	buggy := models.Buggy{}
-	buggy.Id = buggyId
-	err := buggy.FindFirst(db)
-	if err == nil {
-		buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_ACTIVE
-		if errUdp := buggy.Update(db); errUdp != nil {
-			log.Println("udpBuggyOut err", err.Error())
-			return errUdp
-		}
-	}
-	return err
 }
 
 /*

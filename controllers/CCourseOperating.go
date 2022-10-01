@@ -136,12 +136,13 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 
 	// Validate Buggy, Buggy ghép tối đa được 2 người trong 1 flight
 	countBuggy := 0
-	for _, item1 := range body.ListData {
+	for index, item1 := range body.ListData {
 		countBuggy = 0
 		if item1.BuggyCode != "" {
 			for _, item2 := range body.ListData {
 				if item1.Bag != item2.Bag && item2.BuggyCode == item1.BuggyCode {
 					countBuggy += 1
+					body.ListData[index].BagShare = item2.Bag
 				}
 			}
 		}
@@ -159,7 +160,6 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	listCaddie := []models.Caddie{}
 	listBuggy := []models.Buggy{}
 	listCaddieInOut := []model_gostarter.CaddieBuggyInOut{}
-	listBuggyInOut := []model_gostarter.BuggyInOut{}
 	for _, v := range body.ListData {
 		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(db, body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
 
@@ -179,7 +179,6 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 				caddieBuggyInNote.CaddieCode = caddieTemp.Code
 				caddieBuggyInNote.CaddieType = constants.STATUS_IN
 				listCaddie = append(listCaddie, caddieTemp)
-
 			}
 		}
 
@@ -190,20 +189,9 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 			caddieBuggyInNote.BuggyId = buggyTemp.Id
 			caddieBuggyInNote.BuggyCode = buggyTemp.Code
 			caddieBuggyInNote.BuggyType = constants.STATUS_IN
+			caddieBuggyInNote.BagShareBuggy = v.BagShare
 
 			listBuggy = append(listBuggy, buggyTemp)
-
-			buggyInNote := model_gostarter.BuggyInOut{
-				PartnerUid: bookingTemp.PartnerUid,
-				CourseUid:  bookingTemp.CourseUid,
-				BookingUid: bookingTemp.Uid,
-				BuggyId:    buggyTemp.Id,
-				BuggyCode:  buggyTemp.Code,
-				Type:       constants.STATUS_IN,
-				Note:       "",
-			}
-
-			listBuggyInOut = append(listBuggyInOut, buggyInNote)
 		}
 
 		if errB != nil {
@@ -273,11 +261,6 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	// Udp Caddie In Out Note
 	for _, data := range listCaddieInOut {
 		go addBuggyCaddieInOutNote(db, data)
-	}
-
-	// Udp Caddie In Out Note
-	for _, data := range listBuggyInOut {
-		go addBuggyInOutNote(db, data)
 	}
 
 	// Udp Caddie In Out Note
@@ -632,7 +615,6 @@ func (_ *CCourseOperating) DeleteAttach(c *gin.Context, prof models.CmsUser) {
 	}
 
 	caddieId := booking.CaddieId
-	buggyId := booking.BuggyId
 
 	if body.IsOutCaddie != nil && *body.IsOutCaddie == true {
 		// out caddie
@@ -651,7 +633,7 @@ func (_ *CCourseOperating) DeleteAttach(c *gin.Context, prof models.CmsUser) {
 	if body.IsOutBuggy != nil && *body.IsOutBuggy == true {
 		//Buggy
 
-		if err := udpBuggyOut(db, buggyId); err != nil {
+		if err := udpOutBuggy(db, &booking, false); err != nil {
 			response_message.InternalServerError(c, err.Error())
 			return
 		}
@@ -854,9 +836,24 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		return
 	}
 
-	if err := udpBuggyOut(db, booking.BuggyId); err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
+	if booking.BuggyId > 0 {
+		if err := udpOutBuggy(db, &booking, false); err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
+
+		// Udp Note
+		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
+			PartnerUid: prof.PartnerUid,
+			CourseUid:  prof.CourseUid,
+			BookingUid: booking.Uid,
+			BuggyId:    booking.BuggyId,
+			BuggyCode:  booking.BuggyInfo.Code,
+			BuggyType:  constants.STATUS_OUT,
+			Note:       "",
+		}
+
+		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
 	}
 
 	// set new buggy
@@ -871,17 +868,25 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		return
 	}
 
-	buggyInNote := model_gostarter.BuggyInOut{
-		PartnerUid: booking.PartnerUid,
-		CourseUid:  booking.CourseUid,
-		BookingUid: booking.Uid,
-		BuggyId:    buggyNew.Id,
-		BuggyCode:  buggyNew.Code,
-		Type:       constants.STATUS_IN,
-		Note:       body.Note,
+	buggyNew.BuggyStatus = constants.BUGGY_CURRENT_STATUS_IN_COURSE
+
+	if err := buggyNew.Update(db); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
 	}
 
-	go addBuggyInOutNote(db, buggyInNote)
+	// Udp Note
+	caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
+		PartnerUid: prof.PartnerUid,
+		CourseUid:  prof.CourseUid,
+		BookingUid: booking.Uid,
+		BuggyId:    booking.BuggyId,
+		BuggyCode:  booking.BuggyInfo.Code,
+		BuggyType:  constants.STATUS_IN,
+		Note:       "",
+	}
+
+	go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
 
 	okResponse(c, booking)
 }
