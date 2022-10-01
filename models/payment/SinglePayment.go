@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -59,6 +60,9 @@ func (item *SinglePayment) Create(db *gorm.DB) error {
 	if item.Model.Status == "" {
 		item.Model.Status = constants.STATUS_ENABLE
 	}
+
+	uid := uuid.New()
+	item.Model.Uid = uid.String()
 
 	return db.Create(item).Error
 }
