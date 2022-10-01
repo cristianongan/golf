@@ -2,7 +2,6 @@ package models
 
 import (
 	"start/constants"
-	"strconv"
 	"strings"
 	"time"
 
@@ -226,8 +225,7 @@ func (item *GolfFee) GetGuestStyleList(database *gorm.DB) []GuestStyle {
 	}
 
 	// Filter guest style theo ngày trong tuần
-	day := strconv.FormatInt(int64(time.Now().Weekday()), 10)
-	db = db.Where("dow LIKE ?", "%"+day+"%")
+	db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
 
 	db = db.Group("guest_style")
 
