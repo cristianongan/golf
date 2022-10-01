@@ -37,6 +37,7 @@ type CaddieBuggyToBooking struct {
 	CaddieCode     string `json:"caddie_code"`
 	BuggyCode      string `json:"buggy_code"`
 	IsPrivateBuggy bool   `json:"is_private_buggy"`
+	BagShare       string
 }
 
 type OutCaddieBody struct {

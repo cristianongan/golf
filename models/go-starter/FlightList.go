@@ -55,7 +55,7 @@ func (item *FlightList) FindFlightList(database *gorm.DB, page models.Page) ([]F
 	}
 
 	db.Count(&total)
-	db = db.Preload("Bookings").Preload("Bookings.CaddieInOut")
+	db = db.Preload("Bookings").Preload("Bookings.CaddieBuggyInOut")
 
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)
