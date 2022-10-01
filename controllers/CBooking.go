@@ -497,7 +497,7 @@ func (_ *CBooking) GetRoundOfBag(c *gin.Context, prof models.CmsUser) {
 	booking := model_booking.BookingList{}
 	booking.PartnerUid = form.PartnerUid
 	booking.CourseUid = form.CourseUid
-	booking.GolfBag = form.GolfBag
+	booking.GolfBag = "102"
 	booking.BookingDate = form.BookingDate
 
 	if form.BookingDate != "" {
@@ -513,7 +513,8 @@ func (_ *CBooking) GetRoundOfBag(c *gin.Context, prof models.CmsUser) {
 
 	db, total, err := booking.FindAllBookingList(db)
 
-	db = db.Preload("CaddieInOut")
+	db = db.Order("created_at asc")
+	db = db.Preload("CaddieBuggyInOut")
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -620,7 +621,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	db, total, err := bookings.FindBookingListWithSelect(db, page)
 
 	if form.HasCaddieInOut != "" {
-		db = db.Preload("CaddieInOut")
+		db = db.Preload("CaddieBuggyInOut")
 	}
 
 	res := response.PageResponse{}

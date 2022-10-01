@@ -22,13 +22,16 @@ type SinglePayment struct {
 	Bag         string         `json:"bag" gorm:"type:varchar(50)"`                // Golf bag
 	BillCode    string         `json:"bill_code" gorm:"type:varchar(100);index"`
 	BookingDate string         `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
+	PaymentDate string         `json:"payment_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
 	BagInfo     PaymentBagInfo `json:"bag_info,omitempty" gorm:"type:json"`
 
 	Invoice            string `json:"invoice" gorm:"type:varchar(100)"`             // Invoice
 	PaymentStatus      string `json:"payment_status" gorm:"type:varchar(50);index"` // PAID, UN_PAID, PARTIAL_PAID, DEBT
+	PaymentType        string `json:"payment_type" gorm:"type:varchar(50);index"`   // CASH, VISA
 	PrepaidFromBooking int64  `json:"prepaid_from_booking"`                         // Thanh toán trước từ khi booking (nếu có)
 	Cashiers           string `json:"cashiers" gorm:"type:varchar(100);index"`      // Thu ngân, lấy từ acc cms
 	TotalPaid          int64  `json:"total_paid" gorm:"type:varchar(100);index"`    // Số tiền thanh toán
+	Note               string `json:"note" gorm:"type:varchar(200)"`                // Note
 }
 
 type PaymentBagInfo struct {
@@ -81,7 +84,7 @@ func (item *SinglePayment) Count(db *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *SinglePayment) FindList(db *gorm.DB, page models.Page) ([]SinglePayment, int64, error) {
+func (item *SinglePayment) FindList(db *gorm.DB, page models.Page, playerName string) ([]SinglePayment, int64, error) {
 	db = db.Model(SinglePayment{})
 	list := []SinglePayment{}
 	total := int64(0)
@@ -96,6 +99,26 @@ func (item *SinglePayment) FindList(db *gorm.DB, page models.Page) ([]SinglePaym
 	}
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.Bag != "" {
+		db = db.Where("bag = ?", item.Bag)
+	}
+
+	if item.PaymentDate != "" {
+		db = db.Where("payment_date = ?", item.PaymentDate)
+	}
+
+	if item.PaymentDate != "" {
+		db = db.Where("booking_date = ?", item.PaymentDate)
+	}
+
+	if item.PaymentStatus != "" {
+		db = db.Where("payment_status = ?", item.PaymentStatus)
+	}
+
+	if playerName != "" {
+		db = db.Where("bag_info->'$.customer_name' LIKE ?", "%"+playerName+"%")
 	}
 
 	db.Count(&total)
