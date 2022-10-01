@@ -52,11 +52,20 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 	caddieRequest := models.Caddie{}
 	caddieRequest.CourseUid = body.CourseUid
 	caddieRequest.PartnerUid = body.PartnerUid
-	caddieRequest.Code = body.Code // Id Caddie vận hành
-	errExist := caddieRequest.FindFirst(db)
+	caddieRequest.Phone = body.Phone
+	errPhoneExist := caddieRequest.FindFirst(db)
 
-	if errExist == nil {
-		response_message.BadRequest(c, "Caddie Id existed in course")
+	if errPhoneExist == nil {
+		response_message.BadRequest(c, "Số điện thoại đã tồn tại")
+		return
+	}
+
+	caddieRequest.Phone = ""
+	caddieRequest.Code = body.Code // Id Caddie vận hành
+	errCodeExist := caddieRequest.FindFirst(db)
+
+	if errCodeExist == nil {
+		response_message.BadRequest(c, "Caddie Code đã tồn tại")
 		return
 	}
 

@@ -466,7 +466,7 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 		booking.BookingDate = toDayDate
 	}
 
-	errF := booking.FindFirst(db)
+	errF := booking.FindFirstWithJoin(db)
 	if errF != nil {
 		// response_message.InternalServerError(c, errF.Error())
 		response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
@@ -617,6 +617,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.FlightId = form.FlightId
 	bookings.TeeType = form.TeeType
 	bookings.IsCheckIn = form.IsCheckIn
+	bookings.GuestStyleName = form.GuestStyleName
 
 	db, total, err := bookings.FindBookingListWithSelect(db, page)
 
