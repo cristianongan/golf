@@ -614,7 +614,6 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 		isNeedPay := false
 		if len(item.MainBagPay) > 0 && item.BillCode != v.BillCode {
 			for _, v1 := range item.MainBagPay {
-				// TODO: Tính Fee cho sub bag fee
 				if v1 == constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS {
 					// Next Round
 				} else if v1 == constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND {
@@ -648,14 +647,14 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 Update mush price bag have main bag
 */
 func (item *Booking) UpdatePriceForBagHaveMainBags(db *gorm.DB) {
+	if item.MainBags == nil || len(item.MainBags) == 0 {
+		return
+	}
 	mainBook := Booking{}
 	mainBook.Uid = item.MainBags[0].BookingUid
 	errFMB := mainBook.FindFirst(db)
 	if errFMB != nil {
 		log.Println("UpdatePriceForBagHaveMainBags errFMB", errFMB.Error())
-		return
-	}
-	if item.MainBags == nil || len(item.MainBags) == 0 {
 		return
 	}
 	listPay := mainBook.MainBagPay
