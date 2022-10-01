@@ -9,6 +9,7 @@ import (
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
 	kiosk_inventory "start/models/kiosk-inventory"
+	model_payment "start/models/payment"
 	model_report "start/models/report"
 	model_service "start/models/service"
 	model_service_restaurant_setup "start/models/service/restaurant_setup"
@@ -58,6 +59,9 @@ func MigrateDb() {
 		db.AutoMigrate(&model_booking.BookingSettingGroup{})
 		db.AutoMigrate(&model_booking.BookingServiceItem{})
 		db.AutoMigrate(&model_booking.BookingSource{})
+
+		// ----- Payment -------
+		db.AutoMigrate(&model_payment.SinglePayment{})
 
 		// ---- Caddie ----
 		db.AutoMigrate(&models.Caddie{})
@@ -192,6 +196,9 @@ func MigrateDb() {
 		db.AutoMigrate(&model_booking.BookingSettingGroup{})
 		db.AutoMigrate(&model_booking.BookingServiceItem{})
 		db.AutoMigrate(&model_booking.BookingSource{})
+
+		// ----- Payment -------
+		db.AutoMigrate(&model_payment.SinglePayment{})
 
 		// ---- Caddie ----
 		db.AutoMigrate(&models.Caddie{})

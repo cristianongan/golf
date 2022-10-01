@@ -1,6 +1,19 @@
 package constants
 
 /*
+Trạng thái thanh toán
+*/
+const (
+	PAYMENT_STATUS_PAID         = "PAID"         //  Thanh toán (Paid)
+	PAYMENT_STATUS_UN_PAID      = "UN_PAID"      // Chưa thanh toán (Unpaid)
+	PAYMENT_STATUS_PARTIAL_PAID = "PARTIAL_PAID" // Thanh toán 1 phần (Partial Paid):
+	//Thanh toán 1 phần hiển thị thông tin khi khách thanh toán 1 phần tiền
+	//và chưa thanh toán tiền còn lại (MISS),
+	//Hoặc thanh toán 1 phần bằng hình thức thanh toán tiền + hình thức ghi nợ
+	PAYMENT_STATUS_DEBT = "DEBT" // là trạng thái sẽ ghi nhận ghi nợ toàn bộ số tiền cần thanh toán.
+)
+
+/*
 Get base price cho type agency họăc member card
 */
 const (

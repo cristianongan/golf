@@ -304,8 +304,7 @@ func (_ *CCaddie) GetCaddieDetail(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
-TODO: chuyen ve id
-*/
+ */
 func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	caddieIdStr := c.Param("id")
@@ -334,8 +333,7 @@ func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
-TODO: chuyen ve id
-*/
+ */
 func (_ *CCaddie) UpdateCaddie(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	caddieIdStr := c.Param("id")
