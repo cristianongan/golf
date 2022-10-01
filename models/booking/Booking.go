@@ -504,7 +504,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 			}
 
 			if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
-				serviceCart.BillStatus != constants.RES_BILL_STATUS_OUT {
+				serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
 				listServiceItems = append(listServiceItems, v)
 			}
 		}
@@ -534,7 +534,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 						}
 
 						// Check trong MainBag có trả mới add
-						if v2 == v1.Type && serviceCart.BillStatus != constants.POS_BILL_STATUS_OUT {
+						if v2 == v1.Type && (serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT || serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE) {
 							isCanAdd = true
 						}
 					}
