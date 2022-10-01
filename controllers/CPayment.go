@@ -88,7 +88,7 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
-func (_ *CPayment) GetListPayment(c *gin.Context, prof models.CmsUser) {
+func (_ *CPayment) GetListSinglePayment(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.GetListSinglePaymentBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {

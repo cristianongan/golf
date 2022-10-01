@@ -233,6 +233,11 @@ func NewRouter() *gin.Engine {
 			/// =================== Checkout ===================
 			cmsApiAuthorized.POST("/booking/checkout", middlewares.AuthorizedCmsUserHandler(cBooking.Checkout))
 
+			/// =================== Payment ===================
+			cPayment := new(controllers.CPayment)
+			cmsApiAuthorized.POST("/payment/single-payment/add", middlewares.AuthorizedCmsUserHandler(cPayment.CreateSinglePayment))
+			cmsApiAuthorized.POST("/payment/single-payment/list", middlewares.AuthorizedCmsUserHandler(cPayment.GetListSinglePayment))
+
 			/// =================== Rounds ===================
 			cRound := new(controllers.CRound)
 			cmsApiAuthorized.POST("/booking/rounds/add", middlewares.AuthorizedCmsUserHandler(cRound.AddRound))
