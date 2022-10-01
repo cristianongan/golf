@@ -214,7 +214,7 @@ const (
 	RES_BILL_STATUS_PROCESS = "PROCESS" // Trạng thái món ăn đang được chế biến chưa được phục vụ
 	RES_BILL_STATUS_FINISH  = "FINISH"  // Trạng thái món đã được phục vụ
 	RES_BILL_STATUS_CANCEL  = "CANCEL"  // Trạng thái món đã bị hủy
-	RES_BILL_STATUS_OUT     = "OUT"     //Trạng thái khách đã dùng xong món ăn và out khỏi nhà hàng.
+	RES_BILL_STATUS_OUT     = "OUT"     //Trạng thái khách đã dùng xong món ăn và out khỏi nhà hàng. (ở lễ tân lấy để tính tiền)
 )
 
 /*
@@ -222,7 +222,7 @@ Các trạng thái đơn của point of sale
 */
 const (
 	POS_BILL_STATUS_PENDING = "PENDING" // Đơn hàng đang ở trạng thái chưa xác nhận
-	POS_BILL_STATUS_ACTIVE  = "ACTIVE"  // Đơn hàng đã được xác nhận và chốt đơn
+	POS_BILL_STATUS_ACTIVE  = "ACTIVE"  // Đơn hàng đã được xác nhận và chốt đơn (ở lễ tân lấy để tính tiền)
 	POS_BILL_STATUS_OUT     = "CANCEL"  // Đơn hàng đã hủy
 )
 

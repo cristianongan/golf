@@ -1193,7 +1193,12 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 				subBook.Uid = v.BookingUid
 				errFSub := subBook.FindFirst(db)
 				if errFSub == nil {
-					go subBook.UpdatePriceForBagHaveMainBags(db)
+					// TODO: optimal và check xử lý udp cho subbag fail
+					subBook.UpdatePriceForBagHaveMainBags(db)
+					errUdpSubBag := subBook.Update(db)
+					if errUdpSubBag != nil {
+						log.Println("updatePriceWithServiceItem errUdpSubBag", errUdpSubBag.Error())
+					}
 				} else {
 					log.Println("updatePriceWithServiceItem errFSub", errFSub.Error())
 				}
