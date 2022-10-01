@@ -484,3 +484,44 @@ func CalculateFeeByHole(hole int, fee int64, rateRaw string) int64 {
 
 	return int64(float64(fee) * parseRate)
 }
+
+/* trong Go thì Sunday = 0
+		// A Weekday specifies a day of the week (Sunday = 0, ...).
+	type Weekday int
+
+	const (
+		Sunday Weekday = iota
+		Monday
+		Tuesday
+		Wednesday
+		Thursday
+		Friday
+		Saturday
+	)
+	Theo mockup dự án
+	Note
+
+D.O.W được quy định như sau
+
+là cấu hình bảng giá theo thứ
+
+1/ Chủ nhật
+
+2/Thứ 2
+
+3/Thứ 3
+
+4/Thứ 4
+
+5/Thứ 5
+
+6/ Thứ 6
+
+7/ Thứ 7
+
+0/ Ngày lễ, ngày nghỉ
+*/
+func GetCurrentDayStrWithMap() string {
+	day := strconv.FormatInt(int64(time.Now().Weekday())+1, 10)
+	return day
+}

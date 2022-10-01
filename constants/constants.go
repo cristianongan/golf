@@ -1,6 +1,19 @@
 package constants
 
 /*
+Trạng thái thanh toán
+*/
+const (
+	PAYMENT_STATUS_PAID         = "PAID"         //  Thanh toán (Paid)
+	PAYMENT_STATUS_UN_PAID      = "UN_PAID"      // Chưa thanh toán (Unpaid)
+	PAYMENT_STATUS_PARTIAL_PAID = "PARTIAL_PAID" // Thanh toán 1 phần (Partial Paid):
+	//Thanh toán 1 phần hiển thị thông tin khi khách thanh toán 1 phần tiền
+	//và chưa thanh toán tiền còn lại (MISS),
+	//Hoặc thanh toán 1 phần bằng hình thức thanh toán tiền + hình thức ghi nợ
+	PAYMENT_STATUS_DEBT = "DEBT" // là trạng thái sẽ ghi nhận ghi nợ toàn bộ số tiền cần thanh toán.
+)
+
+/*
 Get base price cho type agency họăc member card
 */
 const (
@@ -214,7 +227,7 @@ const (
 	RES_BILL_STATUS_PROCESS = "PROCESS" // Trạng thái món ăn đang được chế biến chưa được phục vụ
 	RES_BILL_STATUS_FINISH  = "FINISH"  // Trạng thái món đã được phục vụ
 	RES_BILL_STATUS_CANCEL  = "CANCEL"  // Trạng thái món đã bị hủy
-	RES_BILL_STATUS_OUT     = "OUT"     //Trạng thái khách đã dùng xong món ăn và out khỏi nhà hàng.
+	RES_BILL_STATUS_OUT     = "OUT"     //Trạng thái khách đã dùng xong món ăn và out khỏi nhà hàng. (ở lễ tân lấy để tính tiền)
 )
 
 /*
@@ -222,7 +235,7 @@ Các trạng thái đơn của point of sale
 */
 const (
 	POS_BILL_STATUS_PENDING = "PENDING" // Đơn hàng đang ở trạng thái chưa xác nhận
-	POS_BILL_STATUS_ACTIVE  = "ACTIVE"  // Đơn hàng đã được xác nhận và chốt đơn
+	POS_BILL_STATUS_ACTIVE  = "ACTIVE"  // Đơn hàng đã được xác nhận và chốt đơn (ở lễ tân lấy để tính tiền)
 	POS_BILL_STATUS_OUT     = "CANCEL"  // Đơn hàng đã hủy
 )
 
