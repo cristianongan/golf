@@ -144,7 +144,7 @@ func (item *CaddieBuggyInOut) FindOrderByDateList(database *gorm.DB) ([]CaddieBu
 	return list, total, db.Error
 }
 
-func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB, bag string, date string) ([]CaddieBuggyInOutWithBooking, int64, error) {
+func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB, bag string, date string, shareBuggy *bool) ([]CaddieBuggyInOutWithBooking, int64, error) {
 	db := database.Model(CaddieBuggyInOut{})
 	list := []CaddieBuggyInOutWithBooking{}
 	total := int64(0)
@@ -166,14 +166,17 @@ func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB,
 	if item.CaddieType != "" {
 		db = db.Where("caddie_buggy_in_outs.caddie_type = ?", item.CaddieType)
 	}
-	if item.CaddieId > 0 {
-		db = db.Where("caddie_buggy_in_outs.caddie_code = ?", item.CaddieId)
+	if item.CaddieCode != "" {
+		db = db.Where("caddie_buggy_in_outs.caddie_code = ?", item.CaddieCode)
 	}
-	if item.BuggyId > 0 {
-		db = db.Where("caddie_buggy_in_outs.buggy_code = ?", item.BuggyId)
+	if item.BuggyCode != "" {
+		db = db.Where("caddie_buggy_in_outs.buggy_code = ?", item.BuggyCode)
 	}
 	if bag != "" {
 		db = db.Where("bookings.bag = ?", bag)
+	}
+	if shareBuggy != nil {
+		db = db.Where("bookings.is_private_buggy = ?", *shareBuggy)
 	}
 	// localTime, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, time.Now().Unix())
 	if date != "" {

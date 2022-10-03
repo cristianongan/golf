@@ -8,4 +8,7 @@ type GetListCaddieBuggyInOut struct {
 	Bag         string `form:"bag"`
 	CaddieType  string `form:"caddie_type"`
 	BuggyType   string `form:"buggy_type"`
+	BuggCode    string `form:"buggy_code"`
+	CaddieCode  string `form:"caddie_code"`
+	ShareBuggy  *bool  `form:"share_buggy"`
 }
