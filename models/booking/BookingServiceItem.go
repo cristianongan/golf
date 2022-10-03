@@ -6,7 +6,6 @@ import (
 	"log"
 	"start/constants"
 	"start/models"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -45,9 +44,7 @@ type BookingServiceItem struct {
 // Response cho FE
 type BookingServiceItemResponse struct {
 	BookingServiceItem
-	CheckInTime  int64  `json:"check_in_time"` // Time Check In
-	Bag          string `json:"bag"`           // Golf Bag
-	CustomerName string `json:"customer_name"` // Tên khách hàng
+	CheckInTime int64 `json:"check_in_time"` // Time Check In
 }
 
 // ------- List Booking service ---------
@@ -120,12 +117,33 @@ func (item *BookingServiceItem) FindList(database *gorm.DB, page models.Page) ([
 	db := database.Model(BookingServiceItem{})
 	list := []BookingServiceItemResponse{}
 	total := int64(0)
-	status := item.ModelId.Status
-	item.ModelId.Status = ""
-	db = db.Where(item)
-	if status != "" {
-		db = db.Where("status in (?)", strings.Split(status, ","))
+
+	if item.GroupCode != "" {
+		db = db.Where("group_code = ?", item.GroupCode)
 	}
+	if item.ServiceId != "" {
+		db = db.Where("service_id = ?", item.ServiceId)
+	}
+	if item.Type != "" {
+		db = db.Where("type = ?", item.Type)
+	}
+	if item.ItemCode != "" {
+		db = db.Where("item_code = ?", item.ItemCode)
+	}
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+	return list, total, db.Error
+}
+
+func (item *BookingServiceItem) FindListWithBooking(database *gorm.DB, page models.Page, fromDate int64, toDate int64) ([]BookingServiceItemResponse, int64, error) {
+	db := database.Model(BookingServiceItem{})
+	list := []BookingServiceItemResponse{}
+	total := int64(0)
+
 	if item.GroupCode != "" {
 		db = db.Where("booking_service_items.group_code = ?", item.GroupCode)
 	}
@@ -139,8 +157,16 @@ func (item *BookingServiceItem) FindList(database *gorm.DB, page models.Page) ([
 		db = db.Where("item_code = ?", item.ItemCode)
 	}
 
+	if fromDate > 0 {
+		db = db.Where("booking_service_items.created_at >= ?", fromDate)
+	}
+
+	if toDate > 0 {
+		db = db.Where("booking_service_items.created_at <= ?", toDate)
+	}
+
 	db = db.Joins("JOIN bookings ON bookings.uid = booking_service_items.booking_uid")
-	db = db.Select("booking_service_items.*, bookings.bag, bookings.check_in_time, bookings.customer_name")
+	db = db.Select("booking_service_items.*, bookings.check_in_time")
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
