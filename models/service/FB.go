@@ -101,14 +101,11 @@ func (item *FoodBeverageRequest) FindList(database *gorm.DB, page models.Page) (
 	if item.CourseUid != "" {
 		db = db.Where("food_beverages.course_uid = ?", item.CourseUid)
 	}
-	if item.EnglishName != "" {
-		db = db.Or("food_beverages.english_name LIKE ?", "%"+item.EnglishName+"%")
+	if item.EnglishName != "" || item.FBCode != "" {
+		db = db.Or("food_beverages.english_name LIKE ?", "%"+item.EnglishName+"%").Or("food_beverages.fb_code = ?", item.FBCode)
 	}
 	if item.VieName != "" {
 		db = db.Where("food_beverages.vie_name LIKE ?", "%"+item.VieName+"%")
-	}
-	if item.FBCode != "" {
-		db = db.Or("food_beverages.fb_code = ?", item.FBCode)
 	}
 	if item.GroupCode != "" {
 		db = db.Where("food_beverages.group_code = ?", item.GroupCode)
