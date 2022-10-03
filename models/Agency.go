@@ -89,6 +89,23 @@ func (item *Agency) IsDuplicated(db *gorm.DB) bool {
 	return false
 }
 
+func (item *Agency) IsDuplicatedContract(database *gorm.DB, contractNo string) error {
+	db := database.Model(Agency{})
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if contractNo != "" {
+		db = db.Where("contract_detail->'$.contract_no' = ?", contractNo)
+	}
+
+	return db.First(item).Error
+}
+
 func (item *Agency) IsValidated() bool {
 	if item.Name == "" {
 		return false

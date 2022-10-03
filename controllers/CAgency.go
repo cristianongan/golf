@@ -33,6 +33,11 @@ func (_ *CAgency) CreateAgency(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if errContractNo := body.IsDuplicatedContract(db, body.ContractDetail.ContractNo); errContractNo == nil {
+		response_message.BadRequest(c, "Contract No đã tồn tại!")
+		return
+	}
+
 	errC := body.Create()
 
 	if errC != nil {
