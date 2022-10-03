@@ -46,6 +46,7 @@ type BookingList struct {
 	FlightId              int64
 	IsCheckIn             string
 	IsBuggyPrepareForJoin string
+	GuestStyleName        string
 }
 
 func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
@@ -194,6 +195,10 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 
 	if item.TeeType != "" {
 		db = db.Where("tee_type = ?", item.TeeType)
+	}
+
+	if item.GuestStyleName != "" {
+		db = db.Where("guest_style_name = ?", item.GuestStyleName)
 	}
 
 	if item.IsCheckIn != "" {

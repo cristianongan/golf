@@ -64,6 +64,7 @@ type GetListBookingWithSelectForm struct {
 	FlightId       int64   `form:"flight_id"`
 	TeeType        string  `form:"tee_type"`
 	IsCheckIn      string  `form:"is_check_in"`
+	GuestStyleName string  `form:"guest_style_name"`
 }
 
 type GetListBookingWithListServiceItems struct {

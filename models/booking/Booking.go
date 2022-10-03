@@ -897,6 +897,12 @@ func (item *Booking) FindFirst(database *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
+func (item *Booking) FindFirstWithJoin(database *gorm.DB) error {
+	db := database.Order("created_at desc")
+	db = db.Preload("CaddieBuggyInOut")
+	return db.Where(item).First(item).Error
+}
+
 func (item *Booking) FindFirstNotCancel(db *gorm.DB) error {
 	db = db.Where(item)
 	db = db.Not("bag_status = ?", constants.BAG_STATUS_CANCEL)
