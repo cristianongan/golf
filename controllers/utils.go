@@ -1197,6 +1197,8 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 					log.Println("updatePriceWithServiceItem errFSub", errFSub.Error())
 				}
 			}
+			// Co sub bag thì main bag dc udp ở trên rồi
+			return
 		}
 		booking.UpdateMushPay(db)
 		booking.UpdatePriceDetailCurrentBag(db)
@@ -1204,13 +1206,6 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 	errUdp := booking.Update(db)
 	if errUdp != nil {
 		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
-
-		booking.UpdateMushPay(db)
-		booking.UpdatePriceDetailCurrentBag(db)
-		errUdp := booking.Update(db)
-		if errUdp != nil {
-			log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
-		}
 	}
 }
 
