@@ -82,16 +82,12 @@ func (item *InventoryItem) FindList(database *gorm.DB, page models.Page, param I
 		db = db.Where("service_id = ?", param.ServiceId)
 	}
 
-	if param.ItemCode != "" {
-		db = db.Where("code = ?", param.ItemCode)
+	if param.ItemCode != "" || param.ProductName != "" {
+		db = db.Where("code = ?", param.ItemCode).Or("item_info->'$.item_name' LIKE ?", "%"+param.ProductName+"%")
 	}
 
 	if param.Type != "" {
 		db = db.Where("item_info->'$.group_type' = ?", param.Type)
-	}
-
-	if param.ProductName != "" {
-		db = db.Where("item_info->'$.item_name' LIKE ?", "%"+param.ProductName+"%")
 	}
 
 	db.Count(&total)
