@@ -860,7 +860,13 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerBookingPhone = body.CustomerBookingPhone
 	}
 
-	if body.MemberCardUid != "" {
+	if body.MemberCardUid != booking.MemberCardUid ||
+		body.AgencyId != booking.AgencyId {
+		booking.SeparatePrice = false
+	}
+
+	if body.MemberCardUid != "" && (body.MemberCardUid != booking.MemberCardUid ||
+		body.AgencyId != booking.AgencyId) {
 		// Get Member Card
 		memberCard := models.MemberCard{}
 		memberCard.Uid = body.MemberCardUid
@@ -910,13 +916,20 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			body.GuestStyle = memberCard.GetGuestStyle(db)
 		}
 	} else {
+		// Update member card
+		booking.MemberCardUid = ""
+		booking.CardId = ""
+		booking.CustomerUid = ""
+		booking.CustomerType = ""
+		booking.CustomerInfo = model_booking.CustomerInfo{}
+
 		if body.CustomerName != "" {
 			booking.CustomerName = body.CustomerName
 		}
 	}
 
 	//Agency id
-	if body.AgencyId > 0 {
+	if body.AgencyId > 0 && body.AgencyId != booking.AgencyId {
 		// Get config course
 		course := models.Course{}
 		course.Uid = body.CourseUid
@@ -969,6 +982,12 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 	// GuestStyle
 	if body.GuestStyle != "" {
+		//Update Agency
+		if body.AgencyId == 0 {
+			booking.AgencyInfo = model_booking.BookingAgency{}
+			booking.AgencyId = 0
+		}
+
 		//Guest style
 		golfFeeModel := models.GolfFee{
 			PartnerUid: body.PartnerUid,
@@ -1136,7 +1155,8 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.SeparatePrice = false
 	}
 
-	if body.MemberCardUid != "" && body.MemberCardUid != booking.MemberCardUid {
+	if body.MemberCardUid != "" && (body.MemberCardUid != booking.MemberCardUid ||
+		body.AgencyId != booking.AgencyId) {
 		// Get Member Card
 		memberCard := models.MemberCard{}
 		memberCard.Uid = body.MemberCardUid
@@ -1186,6 +1206,13 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			body.GuestStyle = memberCard.GetGuestStyle(db)
 		}
 	} else {
+		// Update member card
+		booking.MemberCardUid = ""
+		booking.CardId = ""
+		booking.CustomerUid = ""
+		booking.CustomerType = ""
+		booking.CustomerInfo = model_booking.CustomerInfo{}
+
 		if body.CustomerName != "" {
 			booking.CustomerName = body.CustomerName
 		}
@@ -1215,13 +1242,6 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.AgencyId = body.AgencyId
 
 		if booking.MemberCardUid == "" {
-			// Update member card
-			booking.MemberCardUid = ""
-			booking.CardId = ""
-			booking.CustomerUid = ""
-			booking.CustomerType = ""
-			booking.CustomerInfo = model_booking.CustomerInfo{}
-
 			// Nếu có cả member card thì ưu tiên giá member card
 			agencySpecialPriceR := models.AgencySpecialPrice{
 				AgencyId: agency.Id,
@@ -1252,15 +1272,6 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.GuestStyle != "" {
-		if body.MemberCardUid == "" {
-			// Update member card
-			booking.MemberCardUid = ""
-			booking.CardId = ""
-			booking.CustomerUid = ""
-			booking.CustomerType = ""
-			booking.CustomerInfo = model_booking.CustomerInfo{}
-		}
-
 		//Update Agency
 		if body.AgencyId == 0 {
 			booking.AgencyInfo = model_booking.BookingAgency{}

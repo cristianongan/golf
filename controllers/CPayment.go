@@ -135,3 +135,42 @@ func (_ *CPayment) GetListSinglePayment(c *gin.Context, prof models.CmsUser) {
 
 	okResponse(c, res)
 }
+
+func (_ *CPayment) UpdateSinglePayment(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.UpdateSinglePaymentBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// Check check_sum
+	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BookingUid + "|" + body.PaymentUid + "|" + body.DateStr
+	log.Println("UpdateSinglePayment checkSumMessage ", checkSumMessage)
+	checkSum := utils.GetSHA256Hash(checkSumMessage)
+	log.Println("UpdateSinglePayment checkSum ", checkSum)
+
+	if checkSum != body.CheckSum {
+		response_message.BadRequest(c, "checksum invalid")
+		return
+	}
+
+	// payment
+	payment := model_payment.SinglePayment{}
+	payment.Uid = body.PaymentUid
+	errF := payment.FindFirst(db)
+
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	payment.Note = body.Note
+	errUdp := payment.Update(db)
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okRes(c)
+}
