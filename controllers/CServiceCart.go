@@ -62,6 +62,31 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	// validate quantity
+	inventory := kiosk_inventory.InventoryItem{}
+	inventory.PartnerUid = body.PartnerUid
+	inventory.CourseUid = body.CourseUid
+	inventory.ServiceId = body.ServiceId
+	inventory.Code = body.ItemCode
+
+	if err := inventory.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Inventory "+err.Error())
+		return
+	}
+
+	// Kiểm tra số lượng hàng tồn trong kho
+	if body.Quantity > inventory.Quantity {
+		response_message.BadRequest(c, "The quantity of goods in stock is not enough")
+		return
+	}
+
+	// Update số lượng hàng tồn trong kho
+	inventory.Quantity -= body.Quantity
+	if err := inventory.Update(db); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
 	// create cart item
 	serviceCartItem := model_booking.BookingServiceItem{}
 
@@ -161,31 +186,6 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 			response_message.InternalServerError(c, "Update cart "+err.Error())
 			return
 		}
-	}
-
-	// validate quantity
-	inventory := kiosk_inventory.InventoryItem{}
-	inventory.PartnerUid = body.PartnerUid
-	inventory.CourseUid = body.CourseUid
-	inventory.ServiceId = body.ServiceId
-	inventory.Code = body.ItemCode
-
-	if err := inventory.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Inventory "+err.Error())
-		return
-	}
-
-	// Kiểm tra số lượng hàng tồn trong kho
-	if body.Quantity > inventory.Quantity {
-		response_message.BadRequest(c, "The quantity of goods in stock is not enough")
-		return
-	}
-
-	// Update số lượng hàng tồn trong kho
-	inventory.Quantity -= body.Quantity
-	if err := inventory.Update(db); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
 	}
 
 	// add infor cart item
