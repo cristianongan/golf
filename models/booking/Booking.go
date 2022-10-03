@@ -493,18 +493,23 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 	if len(listGolfService) > 0 {
 		for _, v := range listGolfService {
 			// Check trạng thái bill
-			serviceCart := models.ServiceCart{}
-			serviceCart.Id = v.ServiceBill
-
-			errSC := serviceCart.FindFirst(db)
-			if errSC != nil {
-				log.Println("FindFristServiceCart errSC", errSC.Error())
-				return
-			}
-
-			if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
-				serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+				// Add từ lễ tân thì k cần check
 				listServiceItems = append(listServiceItems, v)
+			} else {
+				serviceCart := models.ServiceCart{}
+				serviceCart.Id = v.ServiceBill
+
+				errSC := serviceCart.FindFirst(db)
+				if errSC != nil {
+					log.Println("FindFristServiceCart errSC", errSC.Error())
+					return
+				}
+
+				if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
+					serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
+					listServiceItems = append(listServiceItems, v)
+				}
 			}
 		}
 	}
@@ -533,8 +538,14 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 						}
 
 						// Check trong MainBag có trả mới add
-						if v2 == v1.Type && (serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT || serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE) {
-							isCanAdd = true
+						if v2 == v1.Type {
+							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+								isCanAdd = true
+							} else {
+								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT || serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
+									isCanAdd = true
+								}
+							}
 						}
 					}
 				}

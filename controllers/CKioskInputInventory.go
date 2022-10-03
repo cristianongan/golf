@@ -27,7 +27,7 @@ func (item CKioskInputInventory) CreateManualInputBill(c *gin.Context, prof mode
 
 	billcode := time.Now().Format("20060102150405")
 	if errInputBill := item.MethodInputBill(c, prof, body,
-		constants.KIOSK_BILL_INVENTORY_ACCEPT, billcode); errInputBill != nil {
+		constants.KIOSK_BILL_INVENTORY_APPROVED, billcode); errInputBill != nil {
 		response_message.BadRequest(c, errInputBill.Error())
 		return
 	}
@@ -145,7 +145,7 @@ func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.Cms
 	// Thêm ds item vào Inventory
 	item.addItemToInventory(db, body.ServiceId, body.Code, body.CourseUid, body.PartnerUid)
 
-	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_ACCEPT
+	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_APPROVED
 	inventoryStatus.UserUpdate = prof.UserName
 	inventoryStatus.InputDate = time.Now().Unix()
 	if err := inventoryStatus.Update(db); err != nil {

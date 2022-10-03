@@ -101,6 +101,7 @@ func (_ *CBookingServiceItem) AddBookingServiceItemToBag(c *gin.Context, prof mo
 	serviceItem.BillCode = booking.BillCode
 	serviceItem.BookingUid = booking.Uid
 	serviceItem.PlayerName = booking.CustomerName
+	serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
 
 	errC := serviceItem.Create(db)
 	if errC != nil {
