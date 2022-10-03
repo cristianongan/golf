@@ -241,6 +241,7 @@ func NewRouter() *gin.Engine {
 			cPayment := new(controllers.CPayment)
 			cmsApiAuthorized.POST("/payment/single-payment/add", middlewares.AuthorizedCmsUserHandler(cPayment.CreateSinglePayment))
 			cmsApiAuthorized.POST("/payment/single-payment/list", middlewares.AuthorizedCmsUserHandler(cPayment.GetListSinglePayment))
+			cmsApiAuthorized.POST("/payment/single-payment/update", middlewares.AuthorizedCmsUserHandler(cPayment.UpdateSinglePayment))
 
 			/// =================== Rounds ===================
 			cRound := new(controllers.CRound)
