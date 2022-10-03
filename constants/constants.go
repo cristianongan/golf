@@ -95,7 +95,7 @@ Trạng thái Kiosk Inventory
 */
 const (
 	KIOSK_BILL_INVENTORY_PENDING  = "PENDING"  // Đơn nhập đang chờ duyệt
-	KIOSK_BILL_INVENTORY_ACCEPT   = "ACCEPT"   // Đơn nhập đã chấp nhận thêm vào kho
+	KIOSK_BILL_INVENTORY_APPROVED = "APPROVED" // Đơn nhập đã chấp nhận thêm vào kho
 	KIOSK_BILL_INVENTORY_RETURN   = "RETURN"   // Đơn nhập bị trả lại
 	KIOSK_BILL_INVENTORY_SELL     = "SELL"     // Đơn xuất đang chờ bán
 	KIOSK_BILL_INVENTORY_TRANSFER = "TRANSFER" // Đơn xuất đã xuất thành công

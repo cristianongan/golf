@@ -131,6 +131,9 @@ func (item *BookingServiceItem) FindList(database *gorm.DB, page models.Page) ([
 	if item.ItemCode != "" {
 		db = db.Where("item_code = ?", item.ItemCode)
 	}
+	if item.ServiceBill > 0 {
+		db = db.Where("service_bill = ?", item.ServiceBill)
+	}
 
 	db.Count(&total)
 

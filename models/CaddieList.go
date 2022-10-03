@@ -111,7 +111,7 @@ func (item *CaddieList) FindList(database *gorm.DB, page Page) ([]Caddie, int64,
 
 	db = addFilter(db, item)
 
-	db.Not("status = ?", constants.STATUS_DELETE)
+	db.Not("status = ?", constants.STATUS_DELETED)
 	db.Debug().Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
