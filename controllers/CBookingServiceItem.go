@@ -10,6 +10,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -40,8 +41,10 @@ func (_ *CBookingServiceItem) GetBookingServiceItemList(c *gin.Context, prof mod
 		Type:      query.Type,
 		ItemCode:  query.ItemCode,
 	}
+	fromDateUnix := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, query.FromDate)
+	toDateUnix := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, query.ToDate)
 
-	list, total, err := bookingServiceItem.FindList(db, page)
+	list, total, err := bookingServiceItem.FindListWithBooking(db, page, fromDateUnix, toDateUnix)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
