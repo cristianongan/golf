@@ -113,9 +113,9 @@ func (item *BookingServiceItem) FindAll(database *gorm.DB) ([]BookingServiceItem
 	return list, db.Error
 }
 
-func (item *BookingServiceItem) FindList(database *gorm.DB, page models.Page) ([]BookingServiceItemResponse, int64, error) {
+func (item *BookingServiceItem) FindList(database *gorm.DB, page models.Page) ([]BookingServiceItem, int64, error) {
 	db := database.Model(BookingServiceItem{})
-	list := []BookingServiceItemResponse{}
+	list := []BookingServiceItem{}
 	total := int64(0)
 
 	if item.GroupCode != "" {
