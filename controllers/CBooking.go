@@ -497,7 +497,7 @@ func (_ *CBooking) GetRoundOfBag(c *gin.Context, prof models.CmsUser) {
 	booking := model_booking.BookingList{}
 	booking.PartnerUid = form.PartnerUid
 	booking.CourseUid = form.CourseUid
-	booking.GolfBag = "102"
+	booking.GolfBag = form.GolfBag
 	booking.BookingDate = form.BookingDate
 
 	if form.BookingDate != "" {
