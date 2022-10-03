@@ -26,7 +26,7 @@ func (_ *CCaddieBuggyInOut) GetCaddieBuggyInOut(c *gin.Context, prof models.CmsU
 		CaddieType: form.CaddieType,
 		BuggyType:  form.BuggyType,
 	}
-	list, total, err := caddieBuggyInOut.FindCaddieBuggyInOutWithBooking(db, form.Bag)
+	list, total, err := caddieBuggyInOut.FindCaddieBuggyInOutWithBooking(db, form.Bag, form.BookingDate)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
