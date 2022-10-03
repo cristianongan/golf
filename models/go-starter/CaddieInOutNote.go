@@ -26,6 +26,15 @@ type CaddieBuggyInOut struct {
 	BagShareBuggy string `json:"bag_share_buggy" gorm:"type:varchar(100)"` // Bag đi chung với buggy
 }
 
+type CaddieBuggyInOutWithBooking struct {
+	CaddieBuggyInOut
+	Bag            string `json:"bag"`
+	TeeOff         string `json:"tee_off"`
+	IsPrivateBuggy bool   `json:"is_private_buggy"`
+	GuestStyle     string `json:"guest_style"`
+	GuestStyleName string `json:"guest_style_name"`
+}
+
 func (item *CaddieBuggyInOut) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
@@ -130,6 +139,43 @@ func (item *CaddieBuggyInOut) FindOrderByDateList(database *gorm.DB) ([]CaddieBu
 	}
 
 	db = db.Order("updated_at desc")
+	db.Count(&total)
+	db.Find(&list)
+	return list, total, db.Error
+}
+
+func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB, bag string) ([]CaddieBuggyInOutWithBooking, int64, error) {
+	db := database.Model(CaddieBuggyInOut{})
+	list := []CaddieBuggyInOutWithBooking{}
+	total := int64(0)
+	db = db.Joins("JOIN bookings ON bookings.uid = caddie_buggy_in_outs.booking_uid")
+	db = db.Select("caddie_buggy_in_outs.*,bookings.bag,bookings.guest_style,bookings.guest_style_name,bookings.is_private_buggy,bookings.tee_off_time as tee_off")
+
+	if item.PartnerUid != "" {
+		db = db.Where("caddie_buggy_in_outs.partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("caddie_buggy_in_outs.course_uid = ?", item.CourseUid)
+	}
+	if item.BookingUid != "" {
+		db = db.Where("caddie_buggy_in_outs.booking_uid = ?", item.BookingUid)
+	}
+	if item.BuggyType != "" {
+		db = db.Where("caddie_buggy_in_outs.buggy_type = ?", item.BuggyType)
+	}
+	if item.CaddieType != "" {
+		db = db.Where("caddie_buggy_in_outs.caddie_type = ?", item.CaddieType)
+	}
+	if item.CaddieId > 0 {
+		db = db.Where("caddie_buggy_in_outs.caddie_code = ?", item.CaddieId)
+	}
+	if item.BuggyId > 0 {
+		db = db.Where("caddie_buggy_in_outs.buggy_code = ?", item.BuggyId)
+	}
+	if bag != "" {
+		db = db.Where("bookings.bag = ?", bag)
+	}
+
 	db.Count(&total)
 	db.Find(&list)
 	return list, total, db.Error

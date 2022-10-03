@@ -223,6 +223,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/booking-tee-time/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingTeeTime))
 			cmsApiAuthorized.GET("/booking/round-of-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetRoundOfBag))
 
+			/// =================== Caddie Buggy In Out Bag ===================
+			cCaddieBuggyInOut := new(controllers.CCaddieBuggyInOut)
+			cmsApiAuthorized.GET("/booking/caddie-buggy-in-out", middlewares.AuthorizedCmsUserHandler(cCaddieBuggyInOut.GetCaddieBuggyInOut))
+
 			/// =================== Booking Service Item ===================
 			cBookingServiceItem := new(controllers.CBookingServiceItem)
 			cmsApiAuthorized.GET("/booking-service-item/list", middlewares.AuthorizedCmsUserHandler(cBookingServiceItem.GetBookingServiceItemList))
