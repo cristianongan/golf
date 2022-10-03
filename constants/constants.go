@@ -1,6 +1,14 @@
 package constants
 
 /*
+Service item được add từ đâu, lễ tân, GO,..
+*/
+const (
+	SERVICE_ITEM_ADD_BY_RECEPTION = "RECEPTION"
+	SERVICE_ITEM_ADD_BY_GO        = "GO"
+)
+
+/*
 Get base price cho type agency họăc member card
 */
 const (

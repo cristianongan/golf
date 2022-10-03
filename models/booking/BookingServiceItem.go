@@ -37,8 +37,9 @@ type BookingServiceItem struct {
 	UserAction     string `json:"user_action" gorm:"type:varchar(100)"` // Người tạo
 	Input          string `json:"input" gorm:"type:varchar(300)"`       // Note
 	BillCode       string `json:"bill_code" gorm:"type:varchar(100);index"`
-	ServiceBill    int64  `json:"service_bill" gorm:"index"` // id service cart
-	SaleQuantity   int64  `json:"sale_quantity"`             // tổng số lượng bán được
+	ServiceBill    int64  `json:"service_bill" gorm:"index"`               // id service cart
+	SaleQuantity   int64  `json:"sale_quantity"`                           // tổng số lượng bán được
+	Location       string `json:"location" gorm:"type:varchar(100);index"` // Dc add từ đâu
 }
 
 // Response cho FE

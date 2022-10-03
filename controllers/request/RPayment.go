@@ -20,3 +20,11 @@ type GetListSinglePaymentBody struct {
 	PaymentDate   string `json:"payment_date"`
 	CheckSum      string `json:"check_sum" binding:"required"` // Checksum
 }
+
+type UpdateSinglePaymentBody struct {
+	BookingUid string `json:"booking_uid" binding:"required"` // Booking uid
+	PaymentUid string `json:"payment_uid" binding:"required"`
+	DateStr    string `json:"date_str" binding:"required"`  // timestamp hiện tại -> string
+	CheckSum   string `json:"check_sum" binding:"required"` // Checksum
+	Note       string `json:"note"`                         // Note
+}
