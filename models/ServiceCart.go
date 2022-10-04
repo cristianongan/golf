@@ -105,11 +105,11 @@ func (item *ServiceCart) FindList(database *gorm.DB, page Page) ([]ServiceCart, 
 	}
 
 	if item.PlayerName != "" {
-		db = db.Where("player_name = ?", "%"+item.PlayerName+"%")
+		db = db.Where("player_name LIKE ?", "%"+item.PlayerName+"%")
 	}
 
 	if item.GolfBag != "" {
-		db = db.Where("golf_bag = ?", "%"+item.GolfBag+"%")
+		db = db.Where("golf_bag LIKE ?", "%"+item.GolfBag+"%")
 	}
 
 	db = db.Where("booking_date = ?", item.BookingDate)
