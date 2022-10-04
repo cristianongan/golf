@@ -112,7 +112,7 @@ func (item *CaddieList) FindList(database *gorm.DB, page Page) ([]Caddie, int64,
 	db = addFilter(db, item)
 
 	db.Not("status = ?", constants.STATUS_DELETED)
-	db.Debug().Count(&total)
+	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
 		if item.Month != "" {
@@ -146,8 +146,8 @@ func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB, date stri
 
 	listResponse := []Caddie{}
 
-	dbCaddieWorkingSchedule := database.Model(CaddieWorkingSchedule{})
 	for _, data := range list {
+		dbCaddieWorkingSchedule := database.Model(CaddieWorkingSchedule{})
 		caddieSchedules := CaddieWorkingSchedule{
 			ApplyDate:       &timeNow,
 			PartnerUid:      data.PartnerUid,
