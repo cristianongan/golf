@@ -81,7 +81,7 @@ func (item *LockTeeTime) FindList(database *gorm.DB, requestType string) ([]Lock
 		db = db.Where("current_tee_time <> tee_time")
 	}
 	if requestType == "TEE_TIME" {
-		db = db.Debug().Where("current_tee_time = tee_time OR current_tee_time is NULL")
+		db = db.Where("current_tee_time = tee_time OR current_tee_time is NULL")
 	}
 
 	db.Count(&total)

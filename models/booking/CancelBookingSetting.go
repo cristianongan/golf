@@ -106,7 +106,7 @@ func (item *CancelBookingSetting) FindList(database *gorm.DB) ([]CancelBookingSe
 	}
 
 	db.Count(&total)
-	db = db.Debug().Find(&list)
+	db = db.Find(&list)
 
 	return list, total, db.Error
 }
