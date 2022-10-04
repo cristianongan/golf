@@ -121,7 +121,7 @@ func (item *BookingSource) FindList(database *gorm.DB, page models.Page) ([]Book
 	}
 
 	if item.BookingSourceName != "" {
-		db = db.Where("booking_sources.booking_source_name LIKE ?", "%"+item.BookingSourceName+"%")
+		db = db.Where("booking_sources.booking_source_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.BookingSourceName+"%")
 	}
 
 	db.Count(&total)

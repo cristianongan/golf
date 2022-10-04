@@ -190,7 +190,7 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 	}
 
 	if item.CustomerName != "" {
-		db = db.Where("customer_name LIKE ?", "%"+item.CustomerName+"%")
+		db = db.Where("customer_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CustomerName+"%")
 	}
 
 	if item.TeeType != "" {

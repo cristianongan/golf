@@ -79,7 +79,7 @@ func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]Boo
 	}
 
 	if item.PlayerName != "" {
-		db = db.Where("player_name LIKE ?", "%"+item.PlayerName+"%")
+		db = db.Where("player_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.PlayerName+"%")
 	}
 
 	db.Count(&total)

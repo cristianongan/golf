@@ -523,5 +523,6 @@ là cấu hình bảng giá theo thứ
 */
 func GetCurrentDayStrWithMap() string {
 	day := strconv.FormatInt(int64(time.Now().Weekday())+1, 10)
+	log.Println("GetCurrentDayStrWithMap ", day)
 	return day
 }
