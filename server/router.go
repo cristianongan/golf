@@ -591,11 +591,17 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/restaurant/time-set-up", middlewares.AuthorizedCmsUserHandler(cRestaurantSetup.CreateRestaurantTimeSetup))
 			cmsApiAuthorized.PUT("/restaurant/time-set-up", middlewares.AuthorizedCmsUserHandler(cRestaurantSetup.UpdateRestaurantTimeSetup))
 			cmsApiAuthorized.DELETE("/restaurant/time-set-up/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantSetup.DeleteRestaurantTimeSetup))
+
 		}
 
 		// ----------------------------------------------------------
-		// ====================== Application =======================
+		// ====================== Book OTA =======================
 		// ----------------------------------------------------------
+		otaApi := routerApi.Group("ota")
+		{
+			cBookOta := new(controllers.CBookingOTA)
+			otaApi.POST("/booking/create", cBookOta.CreateBookingOTA)
+		}
 
 		// cronApi := customer.Group("cron-job").Use(middlewares.CronJobMiddleWare())
 		// {
