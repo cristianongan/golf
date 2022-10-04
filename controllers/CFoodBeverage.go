@@ -105,6 +105,8 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		IsKitchen:     body.IsKitchen,
 		Name:          name,
 		Type:          body.Type,
+		HotKitchen:    body.HotKitchen,
+		ColdKitchen:   body.ColdKitchen,
 	}
 	service.Status = body.Status
 

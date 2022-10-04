@@ -25,6 +25,8 @@ type CreateFoodBeverageBody struct {
 	IsKitchen     bool    `json:"is_kitchen"`
 	Status        string  `json:"status"`
 	Type          string  `json:"type"`
+	HotKitchen    *bool   `json:"hot_kitchen"`
+	ColdKitchen   *bool   `json:"cold_kitchen"`
 }
 
 type GetListFoodBeverageForm struct {
