@@ -40,7 +40,7 @@ func addFilter(db *gorm.DB, item *CaddieList) *gorm.DB {
 	}
 
 	if item.CaddieName != "" || item.CaddieCode != "" {
-		db = db.Where("name LIKE ?", "%"+item.CaddieName+"%").Or("code = ?", item.CaddieCode)
+		db = db.Where("name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CaddieName+"%").Or("code = ?", item.CaddieCode)
 	}
 
 	if len(item.InCurrentStatus) > 0 {

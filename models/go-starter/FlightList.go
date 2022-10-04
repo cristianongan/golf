@@ -31,11 +31,11 @@ func (item *FlightList) FindFlightList(database *gorm.DB, page models.Page) ([]F
 	}
 
 	if item.CustomerName != "" {
-		db = db.Where("bookings.customer_name LIKE ?", "%"+item.CustomerName+"%")
+		db = db.Where("bookings.customer_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CustomerName+"%")
 	}
 
 	if item.CaddieName != "" {
-		db = db.Where("bookings.caddie_info->'$.name' LIKE ?", "%"+item.CaddieName+"%")
+		db = db.Where("bookings.caddie_info->'$.name' COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CaddieName+"%")
 	}
 
 	if item.CaddieCode != "" {
