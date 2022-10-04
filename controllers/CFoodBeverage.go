@@ -84,6 +84,7 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		PartnerUid:    body.PartnerUid,
 		CourseUid:     body.CourseUid,
 		GroupCode:     body.GroupCode,
+		GroupName:     body.GroupName,
 		FBCode:        body.FBCode,
 		EnglishName:   body.EnglishName,
 		VieName:       body.VieName,

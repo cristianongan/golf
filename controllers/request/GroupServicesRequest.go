@@ -7,13 +7,15 @@ type CreateGroupServicesBody struct {
 	GroupName   string `json:"group_name" binding:"required"`
 	Type        string `json:"type" binding:"required"`
 	DetailGroup string `json:"detail_group"`
+	SubType     string `json:"sub_type"`
 }
 
 type GetListGroupServicesForm struct {
 	PageRequest
-	GroupCode  *string `form:"group_code" json:"group_code"`
-	GroupName  *string `form:"group_name" json:"group_name"`
-	PartnerUid *string `form:"partner_uid" json:"partner_uid"`
-	CourseUid  *string `form:"course_uid" json:"course_uid"`
-	Type       *string `form:"type" json:"type"`
+	GroupCode  string `form:"group_code" json:"group_code"`
+	GroupName  string `form:"group_name" json:"group_name"`
+	PartnerUid string `form:"partner_uid" json:"partner_uid"`
+	CourseUid  string `form:"course_uid" json:"course_uid"`
+	Type       string `form:"type" json:"type"`
+	SubType    string `form:"sub_type" json:"sub_type"`
 }

@@ -21,6 +21,7 @@ type FoodBeverage struct {
 	Barcode       string  `json:"barcode"`
 	AccountCode   string  `json:"account_code" gorm:"type:varchar(100)"` // Mã liên kết với Account kế toán
 	GroupCode     string  `json:"group_code" gorm:"type:varchar(100);index"`
+	GroupName     string  `json:"group_name" gorm:"type:varchar(100)"`
 	Unit          string  `json:"unit" gorm:"type:varchar(100)"`
 	Price         float64 `json:"price"`
 	NetCost       float64 `json:"net_cost" gorm:"type:varchar(100)"` // Net cost tự tính từ Cost Price ko bao gồm 10% VAT
@@ -36,7 +37,7 @@ type FoodBeverage struct {
 	IsKitchen     bool    `json:"is_kitchen"`
 	Name          string  `json:"name" gorm:"type:varchar(256)"`        // Tên
 	UserUpdate    string  `json:"user_update" gorm:"type:varchar(256)"` // Người update cuối cùng
-	Type          string  `json:"type" gorm:"type:varchar(256)"`        // FOOD,BEVERAGE
+	Type          string  `json:"type" gorm:"type:varchar(256)"`        // sub type của F&B
 }
 type FoodBeverageResponse struct {
 	FoodBeverage

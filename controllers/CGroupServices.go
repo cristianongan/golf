@@ -50,6 +50,7 @@ func (_ *CGroupServices) CreateGroupServices(c *gin.Context, prof models.CmsUser
 	}
 	groupServices.GroupName = body.GroupName
 	groupServices.Type = body.Type
+	groupServices.SubType = body.SubType
 	groupServices.DetailGroup = body.DetailGroup
 
 	errC := groupServices.Create(db)
@@ -78,35 +79,12 @@ func (_ *CGroupServices) GetGroupServicesList(c *gin.Context, prof models.CmsUse
 	}
 
 	groupServices := model_service.GroupServices{}
-	if form.GroupCode != nil {
-		groupServices.GroupCode = *form.GroupCode
-	} else {
-		groupServices.GroupCode = ""
-	}
-
-	if form.GroupName != nil {
-		groupServices.GroupName = *form.GroupName
-	} else {
-		groupServices.GroupName = ""
-	}
-
-	if form.Type != nil {
-		groupServices.Type = *form.Type
-	} else {
-		groupServices.Type = ""
-	}
-
-	if form.PartnerUid != nil {
-		groupServices.PartnerUid = *form.PartnerUid
-	} else {
-		groupServices.PartnerUid = ""
-	}
-
-	if form.CourseUid != nil {
-		groupServices.CourseUid = *form.CourseUid
-	} else {
-		groupServices.CourseUid = ""
-	}
+	groupServices.CourseUid = form.CourseUid
+	groupServices.PartnerUid = form.PartnerUid
+	groupServices.Type = form.Type
+	groupServices.GroupName = form.GroupName
+	groupServices.GroupCode = form.GroupCode
+	groupServices.SubType = form.SubType
 
 	list, total, err := groupServices.FindList(db, page)
 	if err != nil {
