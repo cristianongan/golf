@@ -601,6 +601,15 @@ func NewRouter() *gin.Engine {
 		{
 			cBookOta := new(controllers.CBookingOTA)
 			otaApi.POST("/booking/create", cBookOta.CreateBookingOTA)
+
+			/// =================== Course ===================
+			cCourseOta := new(controllers.CCourseOTA)
+			otaApi.POST("/CourseList", cCourseOta.GetListCourseOTA)
+
+			/// =================== Service ===================
+			cServiceOta := new(controllers.CCServiceOTA)
+			otaApi.POST("/ServiceGolfData", cServiceOta.GetServiceOTA)
+			otaApi.POST("/CheckServiceGolf", cServiceOta.CheckServiceOTA)
 		}
 
 		// cronApi := customer.Group("cron-job").Use(middlewares.CronJobMiddleWare())

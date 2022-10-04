@@ -78,6 +78,22 @@ func (item *Course) FindList(database *gorm.DB, page Page) ([]Course, int64, err
 	return list, total, db.Error
 }
 
+func (item *Course) FindALL(database *gorm.DB) ([]Course, int64, error) {
+	db := database.Model(Course{})
+	list := []Course{}
+	total := int64(0)
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	db.Count(&total)
+
+	db = db.Find(&list)
+
+	return list, total, db.Error
+}
+
 func (item *Course) Delete(db *gorm.DB) error {
 	if item.Uid == "" {
 		return errors.New("Primary key is undefined!")

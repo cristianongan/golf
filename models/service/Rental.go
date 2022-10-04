@@ -109,6 +109,25 @@ func (item *Rental) FindList(database *gorm.DB, page models.Page) ([]RentalRespo
 	return list, total, db.Error
 }
 
+func (item *Rental) FindALL(database *gorm.DB) ([]Rental, int64, error) {
+	db := database.Model(Rental{})
+	list := []Rental{}
+	total := int64(0)
+
+	if item.PartnerUid != "" {
+		db = db.Where("rentals.partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("rentals.course_uid = ?", item.CourseUid)
+	}
+
+	db.Count(&total)
+
+	db = db.Find(&list)
+
+	return list, total, db.Error
+}
+
 func (item *Rental) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
