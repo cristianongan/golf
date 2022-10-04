@@ -16,7 +16,8 @@ type GroupServices struct {
 	GroupCode   string `json:"group_code" gorm:"type:varchar(100)"`        // Mã Group
 	GroupName   string `json:"group_name" gorm:"type:varchar(256)"`        // Tên Group
 	DetailGroup string `json:"detail_group" gorm:"type:varchar(256)"`      // Tên Group
-	Type        string `json:"type" gorm:"type:varchar(100)"`              // Loại service, kiosk, proshop.
+	Type        string `json:"type" gorm:"type:varchar(100)"`              // Loại f&b, rental, proshop.
+	SubType     string `json:"sub_type" gorm:"type:varchar(100)"`          // sub của f&b, rental, proshop.
 }
 
 func (item *GroupServices) Create(db *gorm.DB) error {
@@ -69,6 +70,9 @@ func (item *GroupServices) FindList(database *gorm.DB, page models.Page) ([]Grou
 	}
 	if item.Type != "" {
 		db = db.Where("type = ?", item.Type)
+	}
+	if item.SubType != "" {
+		db = db.Where("sub_type = ?", item.SubType)
 	}
 
 	db.Count(&total)
