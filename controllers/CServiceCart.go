@@ -875,6 +875,7 @@ func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
 		InitType:     constants.BOOKING_INIT_TYPE_CHECKIN,
 		CheckInTime:  time.Now().Unix(),
 		CustomerName: body.GuestName,
+		CustomerType: constants.CUSTOMER_TYPE_NONE_GOLF,
 	}
 
 	errC := booking.Create(db, bUid)

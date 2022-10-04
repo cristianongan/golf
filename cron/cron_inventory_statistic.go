@@ -13,7 +13,7 @@ func runReportInventoryStatisticItemJob() {
 		return
 	}
 	// Logic chạy cron bên dưới
-	runReportCaddieFeeToDay()
+	runReportInventoryStatisticItem()
 }
 
 // Báo cáo số fee của caddie trong ngày,
