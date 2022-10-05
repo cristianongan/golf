@@ -119,6 +119,8 @@ type CreateBookingBody struct {
 	CustomerBookingName  string `json:"customer_booking_name"`  // Tên khách hàng đặt booking
 	CustomerBookingPhone string `json:"customer_booking_phone"` // SDT khách hàng đặt booking
 
+	NoteOfBooking string `json:"note_of_booking"` // Note of Booking
+
 	// Member Card
 	MemberCardUid string `json:"member_card_uid"`
 	IsCheckIn     bool   `json:"is_check_in"`
@@ -133,6 +135,7 @@ type CreateBookingBody struct {
 	BookingRetal      utils.BookingRental     `json:"booking_retal"`
 	BookingCode       string                  `json:"booking_code"`
 	BookingSourceId   string                  `json:"booking_source_id"`
+	BookingOtaId      int64                   `json:"booking_ota_id"`
 	BookMark          bool
 }
 

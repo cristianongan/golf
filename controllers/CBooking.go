@@ -381,6 +381,14 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.BookingCode = bookingCode
 	}
 
+	if body.NoteOfBooking != "" {
+		booking.NoteOfBooking = body.NoteOfBooking
+	}
+
+	if body.BookingOtaId > 0 {
+		booking.BookingOtaId = body.BookingOtaId
+	}
+
 	errC := booking.Create(db, bUid)
 
 	if errC != nil {

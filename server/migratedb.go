@@ -59,6 +59,7 @@ func MigrateDb() {
 		db.AutoMigrate(&model_booking.BookingSettingGroup{})
 		db.AutoMigrate(&model_booking.BookingServiceItem{})
 		db.AutoMigrate(&model_booking.BookingSource{})
+		db.AutoMigrate(&model_booking.BookingOta{})
 
 		// ----- Payment -------
 		db.AutoMigrate(&model_payment.SinglePayment{})
@@ -196,6 +197,7 @@ func MigrateDb() {
 		db.AutoMigrate(&model_booking.BookingSettingGroup{})
 		db.AutoMigrate(&model_booking.BookingServiceItem{})
 		db.AutoMigrate(&model_booking.BookingSource{})
+		db.AutoMigrate(&model_booking.BookingOta{})
 
 		// ----- Payment -------
 		db.AutoMigrate(&model_payment.SinglePayment{})

@@ -12,6 +12,7 @@ type CreateBookingOTABody struct {
 	IsMainCourse bool               `json:"isMainCourse"` // (true: book vào sân A, false: book vào sân B)
 	DateStr      string             `json:"DateStr"`      // 1, 1A, 1B, 1C, 10, 10A, 10B (k required cái này vì có case checking k qua booking)
 	TeeOffStr    string             `json:"TeeOffStr"`
+	Tee          string             `json:"Tee"`
 	CourseCode   string             `json:"CourseCode"`
 	BookAgent    string             `json:"BookAgent"`
 	GuestStyle   string             `json:"GuestStyle"`
