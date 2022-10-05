@@ -97,10 +97,13 @@ type TeeTimePartOTA struct {
 	EndPart       string
 }
 type TeeTimeStatus struct {
-	Token      interface{} `json:"Token"`
-	Edit       bool        `json:"Edit"`
-	CreateUser interface{} `json:"CreateUser"`
-	CourseCode string      `json:"CourseCode"`
-	Locktime   int64       `json:"Locktime"`
+	Result       ResultOTA   `json:"result"`
+	Token        interface{} `json:"Token"`
+	IsMainCourse bool        `json:"isMainCourse"`
+	Edit         bool        `json:"Edit"`
+	CreateUser   interface{} `json:"CreateUser"`
+	CourseCode   string      `json:"CourseCode"`
+	Locktime     int64       `json:"Locktime"`
+	DateStr      string      `json:"DateStr"`
 	TeeTimeOTA
 }

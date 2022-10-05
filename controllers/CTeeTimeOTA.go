@@ -52,7 +52,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	// Lấy rate từ Course
 	course := models.Course{}
 	course.Uid = body.CourseCode
-	if errCourse := course.FindFirst(db); errCourse == nil {
+	if errCourse := course.FindFirst(db); errCourse != nil {
 		responseOTA.Result.Status = 500
 		responseOTA.Result.Infor = "Course Code not found"
 		okResponse(c, responseOTA)
@@ -60,14 +60,27 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	}
 	responseOTA.GolfPriceRate = course.RateGolfFee
 
-	// Lấy Golf Fee
-	golfFee := models.GolfFee{
-		GuestStyle: body.Guest_Code,
-		CourseUid:  body.CourseCode,
+	// Lấy Fee
+	agency := models.Agency{}
+	agency.AgencyId = body.OTA_Code
+	errFindAgency := agency.FindFirst(db)
+	if errFindAgency != nil || agency.Id == 0 {
+		responseOTA.Result.Status = 500
+		responseOTA.Result.Infor = errFindAgency.Error()
+		okResponse(c, responseOTA)
+		return
+	}
+	agencySpecialPriceR := models.AgencySpecialPrice{
+		AgencyId: agency.Id,
 	}
 
-	timeDate := time.Unix(utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT, body.Date), 0)
-	fee, _ := golfFee.GetGuestStyleOnTime(db, timeDate)
+	agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnTime(db)
+	if errFSP != nil || agency.Id == 0 {
+		responseOTA.Result.Status = 500
+		responseOTA.Result.Infor = errFSP.Error()
+		okResponse(c, responseOTA)
+		return
+	}
 
 	cBookingSetting := CBookingSetting{}
 	form := request.GetListBookingSettingForm{
@@ -124,9 +137,9 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 					NumBook:      0,
 					IsMainCourse: body.IsMainCourse,
 					Tee:          1,
-					GreenFee:     fee.GreenFee[1].Fee,
-					CaddieFee:    fee.CaddieFee[1].Fee,
-					BuggyFee:     fee.BuggyFee[1].Fee,
+					GreenFee:     agencySpecialPrice.GreenFee,
+					CaddieFee:    agencySpecialPrice.CaddieFee,
+					BuggyFee:     agencySpecialPrice.BuggyFee,
 					Holes:        18,
 				}
 				teeTimeList = append(teeTimeList, teeTime)
@@ -156,12 +169,11 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 		badRequest(c, bindErr.Error())
 		return
 	}
-	responseOTA := response.GetTeeTimeOTAResponse{
+	responseOTA := response.TeeTimeStatus{
 		IsMainCourse: body.IsMainCourse,
 		Token:        nil,
 		CourseCode:   body.CourseCode,
-		GuestCode:    body.Guest_Code,
-		Date:         body.DateStr,
+		DateStr:      body.DateStr,
 	}
 
 	checkToken := "CHILINH_TEST" + body.DateStr + body.TeeOffStr
@@ -215,12 +227,11 @@ func (cBooking *CTeeTimeOTA) TeeTimeStatus(c *gin.Context) {
 	}
 
 	db := datasources.GetDatabase()
-	responseOTA := response.GetTeeTimeOTAResponse{
+	responseOTA := response.TeeTimeStatus{
 		IsMainCourse: body.IsMainCourse,
 		Token:        nil,
 		CourseCode:   body.CourseCode,
-		GuestCode:    body.Guest_Code,
-		Date:         body.DateStr,
+		DateStr:      body.DateStr,
 	}
 
 	checkToken := "CHILINH_TEST" + body.DateStr + body.TeeOffStr
@@ -274,12 +285,11 @@ func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
 		badRequest(c, bindErr.Error())
 		return
 	}
-	responseOTA := response.GetTeeTimeOTAResponse{
+	responseOTA := response.TeeTimeStatus{
 		IsMainCourse: body.IsMainCourse,
 		Token:        nil,
 		CourseCode:   body.CourseCode,
-		GuestCode:    body.Guest_Code,
-		Date:         body.DateStr,
+		DateStr:      body.DateStr,
 	}
 
 	checkToken := "CHILINH_TEST" + body.DateStr + body.TeeOffStr
@@ -321,4 +331,5 @@ func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
 			}
 		}
 	}
+	okResponse(c, responseOTA)
 }
