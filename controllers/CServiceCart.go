@@ -668,7 +668,6 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	targetServiceCart.GolfBag = body.GolfBag
 	targetServiceCart.BookingDate = datatypes.Date(time.Now().UTC())
 	targetServiceCart.ServiceId = sourceServiceCart.ServiceId
-	targetServiceCart.BillCode = constants.BILL_NONE
 	targetServiceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
 
 	err := targetServiceCart.FindFirst(db)
@@ -678,6 +677,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		// create cart
 		targetServiceCart.BookingUid = booking.Uid
 		targetServiceCart.StaffOrder = prof.UserName
+		targetServiceCart.BillCode = constants.BILL_NONE
 
 		if err := targetServiceCart.Create(db); err != nil {
 			response_message.InternalServerError(c, err.Error())
