@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"net/http"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -31,12 +32,35 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 		IsMainCourse: body.IsMainCourse,
 		Token:        nil,
 		CourseCode:   body.CourseCode,
-		OTACode:      body.OTA_Code,
 		GuestCode:    body.Guest_Code,
 		Date:         body.Date,
 	}
 
+	checkToken := "CHILINH_TEST" + body.CourseCode + body.Date
+	token := utils.GetSHA256Hash(checkToken)
+
+	if strings.ToUpper(token) != body.Token {
+		responseOTA.Result.Status = http.StatusInternalServerError
+		responseOTA.Result.Infor = "token invalid"
+
+		okResponse(c, responseOTA)
+		return
+	}
+
 	db := datasources.GetDatabase()
+
+	// Lấy rate từ Course
+	course := models.Course{}
+	course.Uid = body.CourseCode
+	if errCourse := course.FindFirst(db); errCourse == nil {
+		responseOTA.Result.Status = 500
+		responseOTA.Result.Infor = "Course Code not found"
+		okResponse(c, responseOTA)
+		return
+	}
+	responseOTA.GolfPriceRate = course.RateGolfFee
+
+	// Lấy Golf Fee
 	golfFee := models.GolfFee{
 		GuestStyle: body.Guest_Code,
 		CourseUid:  body.CourseCode,
@@ -117,6 +141,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	}
 
 	responseOTA.Data = teeTimeList
+	responseOTA.NumTeeTime = int64(len(teeTimeList))
 	responseOTA.Result.Status = 200
 	responseOTA.Result.Infor = "Get data OK" + "(" + strconv.Itoa(len(teeTimeList)) + " tee time)" + "-at " + body.Date
 	okResponse(c, responseOTA)
@@ -126,9 +151,27 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 Lock Tee Time
 */
 func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
-	body := request.RTeeTimeStatus{}
+	body := request.RTeeTimeOTA{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
+		return
+	}
+	responseOTA := response.GetTeeTimeOTAResponse{
+		IsMainCourse: body.IsMainCourse,
+		Token:        nil,
+		CourseCode:   body.CourseCode,
+		GuestCode:    body.Guest_Code,
+		Date:         body.DateStr,
+	}
+
+	checkToken := "CHILINH_TEST" + body.DateStr + body.TeeOffStr
+	token := utils.GetSHA256Hash(checkToken)
+
+	if strings.ToUpper(token) != body.Token {
+		responseOTA.Result.Status = http.StatusInternalServerError
+		responseOTA.Result.Infor = "token invalid"
+
+		okResponse(c, responseOTA)
 		return
 	}
 
@@ -145,18 +188,10 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 	db := datasources.GetDatabase()
 	teeTimeSetting.TeeTimeStatus = constants.TEE_TIME_LOCKED
 
-	responseOTA := response.GetTeeTimeOTAResponse{
-		IsMainCourse: body.IsMainCourse,
-		Token:        nil,
-		CourseCode:   body.CourseCode,
-		GuestCode:    body.Guest_Code,
-		Date:         body.DateStr,
-	}
-
 	errC := teeTimeSetting.Create(db)
 	if errC != nil {
 		responseOTA.Result = response.ResultOTA{
-			Status: 500,
+			Status: http.StatusInternalServerError,
 			Infor:  errC.Error(),
 		}
 	} else {
@@ -173,14 +208,31 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 Tee Time Status
 */
 func (cBooking *CTeeTimeOTA) TeeTimeStatus(c *gin.Context) {
-	body := request.RTeeTimeStatus{}
+	body := request.RTeeTimeOTA{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
 	}
 
 	db := datasources.GetDatabase()
-	responseOTA := response.GetTeeTimeOTAResponse{}
+	responseOTA := response.GetTeeTimeOTAResponse{
+		IsMainCourse: body.IsMainCourse,
+		Token:        nil,
+		CourseCode:   body.CourseCode,
+		GuestCode:    body.Guest_Code,
+		Date:         body.DateStr,
+	}
+
+	checkToken := "CHILINH_TEST" + body.DateStr + body.TeeOffStr
+	token := utils.GetSHA256Hash(checkToken)
+
+	if strings.ToUpper(token) != body.Token {
+		responseOTA.Result.Status = http.StatusInternalServerError
+		responseOTA.Result.Infor = "token invalid"
+
+		okResponse(c, responseOTA)
+		return
+	}
 
 	bookingDate, _ := time.Parse("2006-01-02", body.DateStr)
 	dateFormat := bookingDate.Format("02/01/2006")
@@ -195,7 +247,7 @@ func (cBooking *CTeeTimeOTA) TeeTimeStatus(c *gin.Context) {
 	errFind := lockTeeTime.FindFirst(db)
 	if errFind == nil && (lockTeeTime.TeeTimeStatus == constants.TEE_TIME_LOCKED) {
 		responseOTA.Result = response.ResultOTA{
-			Status: 500,
+			Status: http.StatusInternalServerError,
 			Infor:  "Tee time is locked!",
 		}
 	} else {
@@ -217,7 +269,7 @@ func (cBooking *CTeeTimeOTA) TeeTimeStatus(c *gin.Context) {
 Unlock Tee Time
 */
 func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
-	body := request.RTeeTimeStatus{}
+	body := request.RTeeTimeOTA{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
@@ -228,6 +280,17 @@ func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
 		CourseCode:   body.CourseCode,
 		GuestCode:    body.Guest_Code,
 		Date:         body.DateStr,
+	}
+
+	checkToken := "CHILINH_TEST" + body.DateStr + body.TeeOffStr
+	token := utils.GetSHA256Hash(checkToken)
+
+	if strings.ToUpper(token) != body.Token {
+		responseOTA.Result.Status = http.StatusInternalServerError
+		responseOTA.Result.Infor = "token invalid"
+
+		okResponse(c, responseOTA)
+		return
 	}
 
 	bookingDate, _ := time.Parse("2006-01-02", body.DateStr)
@@ -242,13 +305,13 @@ func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
 	db := datasources.GetDatabase()
 	if errFind := lockTeeTime.FindFirst(db); errFind != nil {
 		responseOTA.Result = response.ResultOTA{
-			Status: 500,
+			Status: http.StatusInternalServerError,
 			Infor:  errFind.Error(),
 		}
 	} else {
 		if errFind := lockTeeTime.Delete(db); errFind != nil {
 			responseOTA.Result = response.ResultOTA{
-				Status: 500,
+				Status: http.StatusInternalServerError,
 				Infor:  errFind.Error(),
 			}
 		} else {

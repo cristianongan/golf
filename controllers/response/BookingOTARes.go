@@ -3,7 +3,31 @@ package response
 import "encoding/json"
 
 type BookingOTARes struct {
-	BookID string `json:"BookID"`
+	Result       ResultOTA `json:"result"`
+	Token        string    `json:"Token"`
+	EmailConfirm string    `json:"EmailConfirm"`
+	CourseCode   string    `json:"CourseCode"`
+	TeeOffStr    string    `json:"TeeOffStr"`
+	DateStr      string    `json:"DateStr"`
+	Part         int64     `json:"Part"`
+	Tee          int64     `json:"Tee"`
+	IsMainCourse bool      `json:"isMainCourse"`
+	NumBook      int64     `json:"NumBook"`
+	Holes        int64     `json:"Holes"`
+	PlayerName   string    `json:"PlayerName"`
+	Contact      string    `json:"Contact"`
+	Note         string    `json:"Note"`
+	BookingCode  string    `json:"BookingCode"`
+	BookID       int64     `json:"BookID"`
+	GreenFee     int64     `json:"GreenFee"`
+	CaddieFee    int64     `json:"CaddieFee"`
+	BuggyFee     int64     `json:"BuggyFee"`
+	CardID       string    `json:"CardID"`
+	AgentCode    string    `json:"AgentCode"`
+	BookAgent    string    `json:"BookAgent"`
+	GuestStyle   string    `json:"GuestStyle"`
+	Rental       string    `json:"Rental"`
+	Caddies      string    `json:"Caddies"`
 }
 
 type ResultOTA struct {

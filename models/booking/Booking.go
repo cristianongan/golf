@@ -106,6 +106,7 @@ type Booking struct {
 	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant,omitempty" gorm:"type:json"`
 	BookingRetal      utils.BookingRental     `json:"booking_retal,omitempty" gorm:"type:json"`
 	BookingSourceId   string                  `json:"booking_source_id" gorm:"type:varchar(50);index"`
+	BookingOtaId      int64                   `json:"booking_ota_id" gorm:"type:varchar(100);index"` // uid booking OTA
 
 	MemberUidOfGuest  string `json:"member_uid_of_guest" gorm:"type:varchar(50);index"` // Member của Guest đến chơi cùng
 	MemberNameOfGuest string `json:"member_name_of_guest" gorm:"type:varchar(200)"`     // Member của Guest đến chơi cùng
