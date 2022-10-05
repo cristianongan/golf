@@ -11,8 +11,8 @@ import (
 	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
 	"start/utils"
+	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -65,7 +65,7 @@ func (_ *CCServiceOTA) GetServiceOTA(c *gin.Context) {
 		IsReadyForJoin: "1",
 	}
 
-	listCaddie, totalCaddie, errC := caddie.FindAllCaddieReadyOnDayList(db, time.Now().Format("02/01/2006"))
+	listCaddie, totalCaddie, errC := caddie.FindAllCaddieReadyOnDayListOTA(db, "")
 
 	if errC != nil {
 		dataRes.Result.Status = http.StatusInternalServerError
@@ -88,12 +88,26 @@ func (_ *CCServiceOTA) GetServiceOTA(c *gin.Context) {
 		return
 	}
 
+	// craete caddie Res
+	dataRentalRes := []response.RentalRes{}
+
+	for _, item := range listRental {
+		itemRes := response.RentalRes{
+			Code:  item.RentalId,
+			Name:  item.VieName,
+			Unit:  item.Unit,
+			Price: item.Price,
+		}
+
+		dataRentalRes = append(dataRentalRes, itemRes)
+	}
+
 	//Update data res
 	dataRes.Result.Status = http.StatusOK
 	dataRes.Result.Infor = fmt.Sprintf("%d Rentals,%d Caddies", totalRental, totalCaddie)
-	dataRes.RentalList = listRental
+	dataRes.RentalList = dataRentalRes
 	dataRes.CaddieList = listCaddie
-	dataRes.Token = body.Token
+	dataRes.Token = "???"
 
 	okResponse(c, dataRes)
 }
@@ -116,8 +130,7 @@ func (_ *CCServiceOTA) CheckServiceOTA(c *gin.Context) {
 		Qty:        body.Qty,
 	}
 
-	// Check token
-	checkToken := "CHILINH_TEST" + body.CourseCode
+	checkToken := "CHILINH_TEST" + body.CourseCode + body.CaddieNo + body.RenTalCode
 	token := utils.GetSHA256Hash(checkToken)
 
 	if strings.ToUpper(token) != body.Token {
@@ -137,7 +150,7 @@ func (_ *CCServiceOTA) CheckServiceOTA(c *gin.Context) {
 	errCourse := course.FindFirst(db)
 	if errCourse != nil {
 		dataRes.Result.Status = 1000
-		dataRes.Result.Infor = errCourse.Error()
+		dataRes.Result.Infor = "" + errCourse.Error()
 
 		okResponse(c, dataRes)
 		return
@@ -145,14 +158,15 @@ func (_ *CCServiceOTA) CheckServiceOTA(c *gin.Context) {
 
 	// Check Caddie
 
-	if body.CaddieNo > 0 {
+	if body.CaddieNo != "" {
 		// Get caddie
 		caddie := models.Caddie{
 			PartnerUid: course.PartnerUid,
 			CourseUid:  body.CourseCode,
 		}
-
-		caddie.Id = body.CaddieNo
+		//Parse
+		id, _ := strconv.ParseInt(body.CaddieNo, 10, 64)
+		caddie.Id = id
 		errCad := course.FindFirst(db)
 		if errCad != nil {
 			dataRes.Result.Status = 1000
@@ -164,12 +178,19 @@ func (_ *CCServiceOTA) CheckServiceOTA(c *gin.Context) {
 
 		if caddie.CurrentStatus != constants.CADDIE_CURRENT_STATUS_READY {
 			dataRes.Result.Status = http.StatusInternalServerError
-			dataRes.Result.Infor = fmt.Sprintf("Caddie %d status invalid", body.CaddieNo)
+			dataRes.Result.Infor = fmt.Sprintf("Caddie %s status invalid", body.CaddieNo)
 
 			okResponse(c, dataRes)
 			return
 		}
 
+		//Update data res
+		dataRes.Result.Status = http.StatusOK
+		dataRes.Result.Infor = "Caddie validate"
+		dataRes.Token = "???"
+
+		okResponse(c, dataRes)
+		return
 	}
 
 	if body.RenTalCode != "" {
@@ -196,7 +217,7 @@ func (_ *CCServiceOTA) CheckServiceOTA(c *gin.Context) {
 
 		if errI := inventory.FindFirst(db); errI != nil {
 			dataRes.Result.Status = 1000
-			dataRes.Result.Infor = errI.Error()
+			dataRes.Result.Infor = fmt.Sprintf("Item %s %s", body.RenTalCode, errI.Error())
 
 			okResponse(c, dataRes)
 			return
@@ -205,15 +226,18 @@ func (_ *CCServiceOTA) CheckServiceOTA(c *gin.Context) {
 		// Kiểm tra số lượng hàng tồn trong kho
 		if body.Qty > inventory.Quantity {
 			dataRes.Result.Status = http.StatusInternalServerError
-			dataRes.Result.Infor = fmt.Sprintf("Item %s is not enough", body.RenTalCode)
+			dataRes.Result.Infor = fmt.Sprintf("Quantity %s is not enough", body.RenTalCode)
 
 			okResponse(c, dataRes)
 			return
 		}
+
+		//Update data res
+		dataRes.Result.Status = http.StatusOK
+		dataRes.Result.Infor = "Rental validate"
+		dataRes.Token = "???"
+
+		okResponse(c, dataRes)
+		return
 	}
-
-	//Update data res
-	dataRes.Result.Status = http.StatusOK
-
-	okResponse(c, dataRes)
 }
