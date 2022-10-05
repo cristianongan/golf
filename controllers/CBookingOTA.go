@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -31,6 +32,10 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		return
 	}
 
+	if body.NumBook <= 0 {
+		body.NumBook = 1
+	}
+
 	// Check token
 	checkToken := "CHILINH_TEST" + body.DateStr + body.TeeOffStr + body.BookingCode
 	token := utils.GetSHA256Hash(checkToken)
@@ -46,7 +51,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 
 	prof := models.CmsUser{
 		PartnerUid: "CHI-LINH",
-		CourseUid:  "CHI-LINH-01",
+		CourseUid:  body.CourseCode,
 		UserName:   "ota",
 	}
 
@@ -64,6 +69,17 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	}
 
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	// Find course
+	course := models.Course{}
+	course.Uid = body.CourseCode
+	errFCourse := course.FindFirst(db)
+	if errFCourse != nil {
+		dataRes.Result.Status = 500
+		dataRes.Result.Infor = "Not found course"
+		c.JSON(500, dataRes)
+		return
+	}
 
 	// Check tee time status
 	// Check TeeTime Index
@@ -85,7 +101,28 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		return
 	}
 
+	if len(listIndex) > 0 && len(listIndex) < body.NumBook {
+		//
+		dataRes.Result.Status = 500
+		dataRes.Result.Infor = "Tee khong du"
+		c.JSON(500, dataRes)
+		return
+	}
+
 	// Check agency
+	// Find Agency
+	agency := models.Agency{
+		PartnerUid: prof.PartnerUid,
+		CourseUid:  prof.CourseUid,
+		AgencyId:   body.AgentCode,
+	}
+	errFA := agency.FindFirst(db)
+	if errFA != nil {
+		dataRes.Result.Status = 500
+		dataRes.Result.Infor = "Not found agency"
+		c.JSON(500, dataRes)
+		return
+	}
 
 	bookingOta := model_booking.BookingOta{
 		PartnerUid:   prof.PartnerUid,
@@ -99,7 +136,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		Tee:          body.Tee,
 		TeeOffStr:    body.TeeOffStr,
 
-		BookAgent:    body.BookAgent,
+		AgentCode:    body.AgentCode,
 		GuestStyle:   body.GuestStyle,
 		BookingCode:  body.BookingCode,
 		EmailConfirm: body.EmailConfirm,
@@ -117,31 +154,35 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		return
 	}
 
-	bodyCreate := request.CreateBookingBody{
-		PartnerUid:           prof.PartnerUid,
-		CourseUid:            prof.CourseUid,
-		BookingDate:          bookDate,
-		Hole:                 body.Holes,
-		CustomerName:         body.PlayerName,
-		CustomerBookingName:  body.Contact,
-		CustomerBookingPhone: body.Contact,
-		NoteOfBooking:        body.Note,
-		TeeTime:              body.TeeOffStr,
-		GuestStyle:           body.GuestStyle,
-		TeeType:              body.Tee,
-		BookingOtaId:         bookingOta.Id,
-		RowIndex:             &listIndex[0],
-	}
+	for i := 0; i < body.NumBook; i++ {
+		bodyCreate := request.CreateBookingBody{
+			PartnerUid:           prof.PartnerUid,
+			CourseUid:            prof.CourseUid,
+			BookingDate:          bookDate,
+			Hole:                 body.Holes,
+			CustomerName:         body.PlayerName,
+			CustomerBookingName:  body.Contact,
+			CustomerBookingPhone: body.Contact,
+			NoteOfBooking:        body.Note,
+			TeeTime:              body.TeeOffStr,
+			GuestStyle:           body.GuestStyle,
+			TeeType:              body.Tee,
+			BookingOtaId:         bookingOta.Id,
+			RowIndex:             &listIndex[i],
+			AgencyId:             agency.Id,
+		}
 
-	if body.IsMainCourse {
-		bodyCreate.CourseType = "A"
-	} else {
-		bodyCreate.CourseType = "B"
-	}
+		if body.IsMainCourse {
+			bodyCreate.CourseType = "A"
+		} else {
+			bodyCreate.CourseType = "B"
+		}
 
-	booking := cBooking.CreateBookingCommon(bodyCreate, c, prof)
-	if booking == nil {
-		return
+		booking := cBooking.CreateBookingCommon(bodyCreate, c, prof)
+		if booking == nil {
+			//error
+			log.Println("CreateBookingOTA error")
+		}
 	}
 
 	dataRes.BookID = bookingOta.Id
