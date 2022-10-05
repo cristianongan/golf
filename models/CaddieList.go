@@ -2,6 +2,7 @@ package models
 
 import (
 	"start/constants"
+	"start/controllers/response"
 	"start/utils"
 	"strconv"
 	"time"
@@ -157,6 +158,50 @@ func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB, date stri
 
 		if caddieSchedules.CheckCaddieWorkOnDay(dbCaddieWorkingSchedule) {
 			listResponse = append(listResponse, data)
+		}
+	}
+
+	return listResponse, int64(len(listResponse)), db.Error
+}
+
+func (item *CaddieList) FindAllCaddieReadyOnDayListOTA(database *gorm.DB, date string) ([]response.CaddieRes, int64, error) {
+	var list []Caddie
+
+	db := database.Model(Caddie{})
+
+	db = addFilter(db, item)
+
+	db.Not("status = ?", constants.STATUS_DELETE)
+
+	db.Preload("GroupInfo").Find(&list)
+
+	var timeNow datatypes.Date
+	if date != "" {
+		timeUnix := time.Unix(utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, date), 0)
+		timeNow = datatypes.Date(timeUnix)
+	} else {
+		timeNow = datatypes.Date(time.Now())
+	}
+
+	listResponse := []response.CaddieRes{}
+
+	for _, data := range list {
+		dbCaddieWorkingSchedule := database.Model(CaddieWorkingSchedule{})
+		caddieSchedules := CaddieWorkingSchedule{
+			ApplyDate:       &timeNow,
+			PartnerUid:      data.PartnerUid,
+			CourseUid:       data.CourseUid,
+			CaddieGroupCode: data.GroupInfo.Code,
+		}
+
+		if caddieSchedules.CheckCaddieWorkOnDay(dbCaddieWorkingSchedule) {
+			itemCaddie := response.CaddieRes{
+				Number:   strconv.FormatInt(data.Id, 10),
+				FullName: data.Name,
+				Phone:    data.Phone,
+			}
+
+			listResponse = append(listResponse, itemCaddie)
 		}
 	}
 

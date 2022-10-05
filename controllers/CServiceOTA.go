@@ -65,7 +65,7 @@ func (_ *CCServiceOTA) GetServiceOTA(c *gin.Context) {
 		IsReadyForJoin: "1",
 	}
 
-	listCaddie, totalCaddie, errC := caddie.FindAllCaddieReadyOnDayList(db, time.Now().Format("02/01/2006"))
+	listCaddie, totalCaddie, errC := caddie.FindAllCaddieReadyOnDayListOTA(db, time.Now().Format("02/01/2006"))
 
 	if errC != nil {
 		dataRes.Result.Status = http.StatusInternalServerError
