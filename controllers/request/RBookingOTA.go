@@ -34,21 +34,21 @@ type BookingOTARental struct {
 }
 
 type GetTeeTimeOTAList struct {
-	Token        string `form:"Token"`
-	CourseCode   string `form:"CourseCode"`
-	Date         string `form:"Date"`
-	IsMainCourse bool   `form:"isMainCourse"`
-	OTA_Code     string `form:"OTA_Code"`
-	Guest_Code   string `form:"Guest_Code"`
+	Token        string `json:"Token"`
+	CourseCode   string `json:"CourseCode"`
+	Date         string `json:"Date"`
+	IsMainCourse bool   `json:"isMainCourse"`
+	OTA_Code     string `json:"OTA_Code"`
+	Guest_Code   string `json:"Guest_Code"`
 }
 type RTeeTimeOTA struct {
-	Token        string `form:"Token"`
-	CourseCode   string `form:"CourseCode"`
-	DateStr      string `form:"DateStr"`
-	Date         string `form:"Date"`
-	IsMainCourse bool   `form:"isMainCourse"`
-	Tee          string `form:"Tee"`
-	TeeOffStr    string `form:"TeeOffStr"`
-	Guest_Code   string `form:"Guest_Code"`
-	Locktime     int    `form:"Locktime"`
+	Token        string `json:"Token"`
+	CourseCode   string `json:"CourseCode"`
+	DateStr      string `json:"DateStr"`
+	Date         string `json:"Date"`
+	IsMainCourse bool   `json:"isMainCourse"`
+	Tee          string `json:"Tee"`
+	TeeOffStr    string `json:"TeeOffStr"`
+	Guest_Code   string `json:"Guest_Code"`
+	Locktime     int    `json:"Locktime"`
 }
