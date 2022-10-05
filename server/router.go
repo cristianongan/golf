@@ -612,6 +612,13 @@ func NewRouter() *gin.Engine {
 				cServiceOta := new(controllers.CCServiceOTA)
 				otaV1Api.POST("/ServiceGolfData", cServiceOta.GetServiceOTA)
 				otaV1Api.POST("/CheckServiceGolf", cServiceOta.CheckServiceOTA)
+
+				/// =================== TeeTime ===================
+				cTeeTime := new(controllers.CTeeTimeOTA)
+				otaApi.POST("/GetTeeTimesOfDay", cTeeTime.GetTeeTimeList)
+				otaApi.POST("/TeeTimeStatus", cTeeTime.TeeTimeStatus)
+				otaApi.POST("/LockTeeTime", cTeeTime.LockTeeTime)
+				otaApi.POST("/UnlockTeeTime", cTeeTime.UnlockTeeTime)
 			}
 		}
 

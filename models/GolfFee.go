@@ -158,6 +158,85 @@ func (item *GolfFee) GetGuestStyleOnDay(database *gorm.DB) (GolfFee, error) {
 	return golfFee, errors.New("No guest style on day")
 }
 
+func (item *GolfFee) GetGuestStyleOnTime(database *gorm.DB, time time.Time) (GolfFee, error) {
+	golfFee := GolfFee{
+		GuestStyle: item.GuestStyle,
+	}
+
+	if item.GuestStyle == "" {
+		return golfFee, errors.New("Guest style invalid")
+	}
+
+	// Get table price avaible trước
+	tablePriceR := TablePrice{
+		PartnerUid: item.PartnerUid,
+		CourseUid:  item.CourseUid,
+	}
+	tablePrice, errFTB := tablePriceR.FindCurrentUse(database)
+	if errFTB != nil {
+		return golfFee, errFTB
+	}
+
+	list := []GolfFee{}
+	db := database.Model(GolfFee{})
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	db = db.Where("course_uid = ?", item.CourseUid)
+	db = db.Where("guest_style = ?", item.GuestStyle)
+	db = db.Where("table_price_id = ?", tablePrice.Id)
+	err := db.Find(&list).Error
+
+	if err != nil {
+		return golfFee, err
+	}
+
+	//Check có setup time theo h không
+	isHaveHour := false
+	for _, v := range list {
+		if v.ApplyTime != "" {
+			isHaveHour = true
+		}
+	}
+
+	if isHaveHour {
+		// Xử lý check theo giờ
+		// check nhung row có hour trước
+		idxTemp := -1
+
+		for i, gf := range list {
+			if gf.ApplyTime != "" {
+				if idxTemp < 0 {
+					if utils.CheckDow(gf.Dow, gf.ApplyTime, time) {
+						idxTemp = i
+					}
+				}
+			}
+		}
+
+		if idxTemp >= 0 {
+			return list[idxTemp], nil
+		}
+	}
+
+	// Không có hour check theo ngày như bt
+	idxTemp := -1
+
+	for i, golfFee_ := range list {
+		if idxTemp < 0 {
+			if utils.CheckDow(golfFee_.Dow, "", time) {
+				idxTemp = i
+			}
+		}
+	}
+
+	if idxTemp >= 0 {
+		return list[idxTemp], nil
+	}
+
+	return golfFee, errors.New("No guest style on day")
+}
+
 func (item *GolfFee) FindList(database *gorm.DB, page Page) ([]GolfFee, int64, error) {
 	db := database.Model(GolfFee{})
 	list := []GolfFee{}

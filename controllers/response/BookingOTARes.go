@@ -91,3 +91,19 @@ type TeeTimeOTA struct {
 	BuggyFee     int64       `json:"BuggyFee"`
 	Holes        int64       `json:"Holes"`
 }
+type TeeTimePartOTA struct {
+	IsHideTeePart bool
+	StartPart     string
+	EndPart       string
+}
+type TeeTimeStatus struct {
+	Result       ResultOTA   `json:"result"`
+	Token        interface{} `json:"Token"`
+	IsMainCourse bool        `json:"isMainCourse"`
+	Edit         bool        `json:"Edit"`
+	CreateUser   interface{} `json:"CreateUser"`
+	CourseCode   string      `json:"CourseCode"`
+	Locktime     int64       `json:"Locktime"`
+	DateStr      string      `json:"DateStr"`
+	TeeTimeOTA
+}
