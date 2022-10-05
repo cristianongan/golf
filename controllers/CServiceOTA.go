@@ -167,7 +167,7 @@ func (_ *CCServiceOTA) CheckServiceOTA(c *gin.Context) {
 		//Parse
 		id, _ := strconv.ParseInt(body.CaddieNo, 10, 64)
 		caddie.Id = id
-		errCad := course.FindFirst(db)
+		errCad := caddie.FindFirst(db)
 		if errCad != nil {
 			dataRes.Result.Status = 1000
 			dataRes.Result.Infor = fmt.Sprintf("Caddie %s %s", body.CaddieNo, errCad.Error())
@@ -176,7 +176,10 @@ func (_ *CCServiceOTA) CheckServiceOTA(c *gin.Context) {
 			return
 		}
 
-		if caddie.CurrentStatus != constants.CADDIE_CURRENT_STATUS_READY {
+		if caddie.CurrentStatus != constants.CADDIE_CURRENT_STATUS_READY &&
+			caddie.CurrentStatus != constants.CADDIE_CURRENT_STATUS_FINISH &&
+			caddie.CurrentStatus != constants.CADDIE_CURRENT_STATUS_FINISH_R2 &&
+			caddie.CurrentStatus != constants.CADDIE_CURRENT_STATUS_FINISH_R3 {
 			dataRes.Result.Status = http.StatusInternalServerError
 			dataRes.Result.Infor = fmt.Sprintf("Caddie %s status invalid", body.CaddieNo)
 
