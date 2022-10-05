@@ -1,6 +1,7 @@
 package response
 
 import (
+	"start/models"
 	model_service "start/models/service"
 )
 
@@ -12,7 +13,7 @@ type Result struct {
 type GetServiceRes struct {
 	Result     Result                 `json:"result"`
 	RentalList []model_service.Rental `json:"RentalList"`
-	CaddieList []CaddieRes            `json:"CaddieList"`
+	CaddieList []models.Caddie        `json:"CaddieList"`
 	Token      string                 `json:"Token"`
 	CourseCode string                 `json:"CourseCode"`
 }
