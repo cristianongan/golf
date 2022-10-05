@@ -63,6 +63,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	// Lấy Fee
 	agency := models.Agency{}
 	agency.AgencyId = body.OTA_Code
+	agency.CourseUid = body.CourseCode
 	errFindAgency := agency.FindFirst(db)
 	if errFindAgency != nil || agency.Id == 0 {
 		responseOTA.Result.Status = 500
@@ -71,15 +72,32 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 		return
 	}
 	agencySpecialPriceR := models.AgencySpecialPrice{
-		AgencyId: agency.Id,
+		AgencyId:  agency.Id,
+		CourseUid: body.CourseCode,
 	}
 
-	agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnTime(db)
-	if errFSP != nil || agency.Id == 0 {
-		responseOTA.Result.Status = 500
-		responseOTA.Result.Infor = errFSP.Error()
-		okResponse(c, responseOTA)
-		return
+	GreenFee := int64(0)
+	CaddieFee := int64(0)
+	BuggyFee := int64(0)
+
+	timeDate := time.Unix(utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT, body.Date), 0)
+	agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnDate(db, timeDate)
+	if errFSP == nil && agencySpecialPrice.Id > 0 {
+		GreenFee = agencySpecialPrice.GreenFee
+		CaddieFee = agencySpecialPrice.CaddieFee
+		BuggyFee = agencySpecialPrice.BuggyFee
+	} else {
+		golfFee := models.GolfFee{
+			GuestStyle: agency.GuestStyle,
+			CourseUid:  body.CourseCode,
+		}
+
+		fee, _ := golfFee.GetGuestStyleOnTime(db, timeDate)
+
+		// Lấy giá hole 18
+		GreenFee = fee.GreenFee[1].Fee
+		CaddieFee = fee.CaddieFee[1].Fee
+		BuggyFee = fee.BuggyFee[1].Fee
 	}
 
 	cBookingSetting := CBookingSetting{}
@@ -137,9 +155,9 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 					NumBook:      0,
 					IsMainCourse: body.IsMainCourse,
 					Tee:          1,
-					GreenFee:     agencySpecialPrice.GreenFee,
-					CaddieFee:    agencySpecialPrice.CaddieFee,
-					BuggyFee:     agencySpecialPrice.BuggyFee,
+					GreenFee:     GreenFee,
+					CaddieFee:    CaddieFee,
+					BuggyFee:     BuggyFee,
 					Holes:        18,
 				}
 				teeTimeList = append(teeTimeList, teeTime)
