@@ -28,3 +28,17 @@ type CheckServiceRes struct {
 	CourseCode string `json:"CourseCode"`
 	Qty        int64  `json:"Qty"`
 }
+
+type CaddieRes struct {
+	Number   string `json:"Number"`
+	FullName string `json:"FullName"`
+	Phone    string `json:"Phone"`
+}
+
+type RentalRes struct {
+	Code      string `json:"Code"`
+	Name      string `json:"Name"`
+	Unit      string `json:"Unit"`
+	Price     string `json:"Price"`
+	Inventory string `json:"Inventory"`
+}
