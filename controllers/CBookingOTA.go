@@ -59,9 +59,33 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		return
 	}
 
+	if body.Tee == "" {
+		body.Tee = "1"
+	}
+
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 
 	// Check tee time status
+	// Check TeeTime Index
+	bookTeaTimeIndex := model_booking.Booking{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		BookingDate: bookDate,
+		TeeTime:     body.TeeOffStr,
+		TeeType:     body.Tee,
+	}
+
+	listIndex := bookTeaTimeIndex.FindTeeTimeIndexAvaible(db)
+
+	if len(listIndex) == 0 {
+		//
+		dataRes.Result.Status = 500
+		dataRes.Result.Infor = "Tee is full"
+		c.JSON(500, dataRes)
+		return
+	}
+
+	// Check agency
 
 	bookingOta := model_booking.BookingOta{
 		PartnerUid:   prof.PartnerUid,
@@ -74,6 +98,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		IsMainCourse: body.IsMainCourse,
 		Tee:          body.Tee,
 		TeeOffStr:    body.TeeOffStr,
+
 		BookAgent:    body.BookAgent,
 		GuestStyle:   body.GuestStyle,
 		BookingCode:  body.BookingCode,
@@ -105,6 +130,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		GuestStyle:           body.GuestStyle,
 		TeeType:              body.Tee,
 		BookingOtaId:         bookingOta.Id,
+		RowIndex:             &listIndex[0],
 	}
 
 	if body.IsMainCourse {

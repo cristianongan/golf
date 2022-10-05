@@ -106,7 +106,7 @@ type Booking struct {
 	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant,omitempty" gorm:"type:json"`
 	BookingRetal      utils.BookingRental     `json:"booking_retal,omitempty" gorm:"type:json"`
 	BookingSourceId   string                  `json:"booking_source_id" gorm:"type:varchar(50);index"`
-	BookingOtaId      int64                   `json:"booking_ota_id" gorm:"type:varchar(100);index"` // uid booking OTA
+	BookingOtaId      int64                   `json:"booking_ota_id" gorm:"index"` // uid booking OTA
 
 	MemberUidOfGuest  string `json:"member_uid_of_guest" gorm:"type:varchar(50);index"` // Member của Guest đến chơi cùng
 	MemberNameOfGuest string `json:"member_name_of_guest" gorm:"type:varchar(200)"`     // Member của Guest đến chơi cùng
@@ -1291,6 +1291,7 @@ func (item *Booking) FindListServiceItems(database *gorm.DB, param GetListBookin
 
 	return listItems, total, db.Error
 }
+
 func (item *Booking) ResetCaddieBuggy() {
 	item.CaddieId = 0
 	item.CaddieInfo = BookingCaddie{}
@@ -1298,4 +1299,67 @@ func (item *Booking) ResetCaddieBuggy() {
 
 	item.BuggyId = 0
 	item.BuggyInfo = BookingBuggy{}
+}
+
+/*
+ Lấy ra tee time index còn avaible
+*/
+func (item *Booking) FindTeeTimeIndexAvaible(database *gorm.DB) utils.ListInt {
+	db := database.Table("bookings")
+	list := []Booking{}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+	if item.TeeTime != "" {
+		db = db.Where("tee_time = ?", item.TeeTime)
+	}
+	if item.TeeType != "" {
+		db = db.Where("tee_type = ?", item.TeeType)
+	}
+
+	db.Find(&list)
+
+	listIndex := utils.ListInt{}
+
+	isAdd0 := true
+	isAdd1 := true
+	isAdd2 := true
+	isAdd3 := true
+
+	for _, v := range list {
+		if v.RowIndex != nil {
+			rIndex := v.RowIndex
+			if *rIndex == 0 {
+				isAdd0 = false
+			} else if *rIndex == 1 {
+				isAdd1 = false
+			} else if *rIndex == 2 {
+				isAdd2 = false
+			} else if *rIndex == 3 {
+				isAdd3 = false
+			}
+		}
+	}
+
+	if isAdd0 {
+		listIndex = append(listIndex, 0)
+	}
+	if isAdd1 {
+		listIndex = append(listIndex, 1)
+	}
+	if isAdd2 {
+		listIndex = append(listIndex, 2)
+	}
+	if isAdd3 {
+		listIndex = append(listIndex, 3)
+	}
+
+	return listIndex
 }
