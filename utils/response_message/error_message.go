@@ -86,6 +86,9 @@ func GetErrorResponseData(language, key, log string, statusCode int) ErrorRespon
 }
 
 func ErrorResponse(c *gin.Context, code int, key, log string, statusCode int) {
+	if c == nil {
+		return
+	}
 	//lang := c.Request.Header.Get(HEADER_KEY_LANGUAGE)
 	lang := c.Request.Header.Get(constants.API_HEADER_KEY_LANGUAGE)
 	internalErr := GetErrorResponseData(lang, key, log, statusCode)

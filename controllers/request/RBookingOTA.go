@@ -1,6 +1,13 @@
 package request
 
-import "start/utils"
+import (
+	"encoding/json"
+	"start/utils"
+)
+
+func (r *CreateBookingOTABody) Marshal() ([]byte, error) {
+	return json.Marshal(r)
+}
 
 type CreateBookingOTABody struct {
 	Token        string `json:"Token" binding:"required"`      // SHA256(“FLC2020”+ DateStr + TeeOffStr + BookingCode)
