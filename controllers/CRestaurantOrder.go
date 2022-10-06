@@ -863,27 +863,6 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 		return
 	}
 
-	serviceCart.PartnerUid = body.PartnerUid
-	serviceCart.CourseUid = body.CourseUid
-	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
-	serviceCart.ServiceId = body.ServiceId
-	serviceCart.ServiceType = kiosk.KioskType
-	serviceCart.BillCode = constants.BILL_NONE
-	serviceCart.BillStatus = constants.RES_BILL_STATUS_BOOKING
-	serviceCart.Type = constants.RES_TYPE_TABLE
-	serviceCart.TypeCode = body.Table
-	serviceCart.NumberGuest = body.NumberGuest
-	serviceCart.ResFloor = body.Floor
-	serviceCart.StaffOrder = prof.FullName
-	serviceCart.PlayerName = body.PlayerName
-	serviceCart.Phone = body.Phone
-	serviceCart.Note = body.Note
-
-	if err := serviceCart.Create(db); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
-
 	// add item
 	for _, item := range body.ListOrderItem {
 		// create cart item
@@ -959,6 +938,27 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 			}
 
 			restaurantItems = append(restaurantItems, item)
+		}
+
+		serviceCart.PartnerUid = body.PartnerUid
+		serviceCart.CourseUid = body.CourseUid
+		serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
+		serviceCart.ServiceId = body.ServiceId
+		serviceCart.ServiceType = kiosk.KioskType
+		serviceCart.BillCode = constants.BILL_NONE
+		serviceCart.BillStatus = constants.RES_BILL_STATUS_BOOKING
+		serviceCart.Type = constants.RES_TYPE_TABLE
+		serviceCart.TypeCode = body.Table
+		serviceCart.NumberGuest = body.NumberGuest
+		serviceCart.ResFloor = body.Floor
+		serviceCart.StaffOrder = prof.FullName
+		serviceCart.PlayerName = body.PlayerName
+		serviceCart.Phone = body.Phone
+		serviceCart.Note = body.Note
+
+		if err := serviceCart.Create(db); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
 		}
 
 		// update amount service cart
