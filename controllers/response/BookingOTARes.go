@@ -2,6 +2,10 @@ package response
 
 import "encoding/json"
 
+func (r *BookingOTARes) Marshal() ([]byte, error) {
+	return json.Marshal(r)
+}
+
 type BookingOTARes struct {
 	Result       ResultOTA `json:"result"`
 	Token        string    `json:"Token"`

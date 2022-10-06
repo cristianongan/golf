@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"start/controllers/request"
@@ -21,8 +22,6 @@ Booking OTA
 */
 func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	dataRes := response.BookingOTARes{}
-	bookResult := response.ResultOTA{}
-	dataRes.Result = bookResult
 
 	body := request.CreateBookingOTABody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -58,9 +57,9 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	//convert booking date
 	bookDate, errBD := utils.GetBookingTimeFrom(body.DateStr)
 	if errBD != nil {
-		dataRes.Result.Status = 500
+		dataRes.Result.Status = http.StatusInternalServerError
 		dataRes.Result.Infor = errBD.Error()
-		c.JSON(500, dataRes)
+		c.JSON(http.StatusInternalServerError, dataRes)
 		return
 	}
 
@@ -75,9 +74,9 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	course.Uid = body.CourseCode
 	errFCourse := course.FindFirst(db)
 	if errFCourse != nil {
-		dataRes.Result.Status = 500
+		dataRes.Result.Status = http.StatusInternalServerError
 		dataRes.Result.Infor = "Not found course"
-		c.JSON(500, dataRes)
+		c.JSON(http.StatusInternalServerError, dataRes)
 		return
 	}
 
@@ -95,17 +94,17 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 
 	if len(listIndex) == 0 {
 		//
-		dataRes.Result.Status = 500
+		dataRes.Result.Status = http.StatusInternalServerError
 		dataRes.Result.Infor = "Tee is full"
-		c.JSON(500, dataRes)
+		c.JSON(http.StatusInternalServerError, dataRes)
 		return
 	}
 
 	if len(listIndex) > 0 && len(listIndex) < body.NumBook {
 		//
-		dataRes.Result.Status = 500
+		dataRes.Result.Status = http.StatusInternalServerError
 		dataRes.Result.Infor = "Tee khong du"
-		c.JSON(500, dataRes)
+		c.JSON(http.StatusInternalServerError, dataRes)
 		return
 	}
 
@@ -118,9 +117,9 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	}
 	errFA := agency.FindFirst(db)
 	if errFA != nil {
-		dataRes.Result.Status = 500
+		dataRes.Result.Status = http.StatusInternalServerError
 		dataRes.Result.Infor = "Not found agency"
-		c.JSON(500, dataRes)
+		c.JSON(http.StatusInternalServerError, dataRes)
 		return
 	}
 
@@ -148,11 +147,13 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 
 	errCBO := bookingOta.Create(db)
 	if errCBO != nil {
-		dataRes.Result.Status = 500
+		dataRes.Result.Status = http.StatusInternalServerError
 		dataRes.Result.Infor = errCBO.Error()
-		c.JSON(500, dataRes)
+		c.JSON(http.StatusInternalServerError, dataRes)
 		return
 	}
+
+	var errCreateBook error
 
 	for i := 0; i < body.NumBook; i++ {
 		bodyCreate := request.CreateBookingBody{
@@ -183,7 +184,22 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			//error
 			log.Println("CreateBookingOTA error", errBook)
 		}
+		if errBook != nil {
+			errCreateBook = errBook
+		}
 	}
+
+	if errCreateBook != nil {
+		dataRes.Result.Status = 1000
+		dataRes.Result.Infor = errCreateBook.Error()
+		c.JSON(http.StatusInternalServerError, dataRes)
+		return
+	}
+
+	bodyByte, _ := body.Marshal()
+	_ = json.Unmarshal(bodyByte, &dataRes)
+
+	dataRes.Result.Status = http.StatusOK
 
 	dataRes.BookID = bookingOta.Id
 
