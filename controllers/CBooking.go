@@ -33,7 +33,7 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking := cBooking.CreateBookingCommon(body, c, prof)
+	booking, _ := cBooking.CreateBookingCommon(body, c, prof)
 	if booking == nil {
 		return
 	}
@@ -41,7 +41,7 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, booking)
 }
 
-func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *gin.Context, prof models.CmsUser) *model_booking.Booking {
+func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *gin.Context, prof models.CmsUser) (*model_booking.Booking, error) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	// validate caddie_code
 	var caddie models.Caddie
@@ -50,7 +50,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		caddie, err = cBooking.validateCaddie(db, prof.CourseUid, body.CaddieCode)
 		if err != nil {
 			response_message.InternalServerError(c, err.Error())
-			return nil
+			return nil, err
 		}
 	}
 
@@ -60,7 +60,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		cBookingSetting := CBookingSetting{}
 		if errors := cBookingSetting.ValidateClose1ST(db, body.BookingDate, body.PartnerUid, body.CourseUid); errors != nil {
 			response_message.InternalServerError(c, errors.Error())
-			return nil
+			return nil, errors
 		}
 	}
 
@@ -75,7 +75,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		errFind := teeTime.FindFirst(db)
 		if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_LOCKED) {
 			response_message.BadRequest(c, "Tee Time đã bị khóa")
-			return nil
+			return nil, errFind
 		}
 	}
 
@@ -84,13 +84,14 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		bookingSourceId, err := strconv.ParseInt(body.BookingSourceId, 10, 64)
 		if err != nil {
 			response_message.BadRequest(c, "BookingSource không tồn tại")
+			return nil, err
 		}
 		bookingSource := model_booking.BookingSource{}
 		bookingSource.Id = bookingSourceId
 		errorTime := bookingSource.ValidateTimeRuleInBookingSource(db, body.BookingDate, body.TeePath)
 		if errorTime != nil {
 			response_message.BadRequest(c, errorTime.Error())
-			return nil
+			return nil, errorTime
 		}
 	}
 
@@ -99,7 +100,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 		if !checkStringInArray(teePartList, body.TeePath) {
 			response_message.BadRequest(c, "Tee Part not in (MORNING, NOON, NIGHT)")
-			return nil
+			return nil, errors.New("Tee Part not in (MORNING, NOON, NIGHT)")
 		}
 	}
 
@@ -119,6 +120,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		BookingRetal:      body.BookingRetal,
 		BookingCode:       body.BookingCode,
 		CourseType:        body.CourseType,
+		NoteOfBooking:     body.NoteOfBooking,
+		BookingOtaId:      body.BookingOtaId,
 	}
 
 	// Check Guest of member, check member có còn slot đi cùng không
@@ -129,7 +132,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		errCheckMember, memberCard, customerName = handleCheckMemberCardOfGuest(db, body.MemberUidOfGuest, body.GuestStyle)
 		if errCheckMember != nil {
 			response_message.InternalServerError(c, errCheckMember.Error())
-			return nil
+			return nil, errCheckMember
 		} else {
 			booking.MemberUidOfGuest = body.MemberUidOfGuest
 			booking.MemberNameOfGuest = customerName
@@ -154,14 +157,14 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	//Check duplicated
-	isDuplicated, errDupli := booking.IsDuplicated(db, true, true)
+	isDuplicated, _ := booking.IsDuplicated(db, true, true)
 	if isDuplicated {
-		if errDupli != nil {
-			response_message.DuplicateRecord(c, errDupli.Error())
-			return nil
-		}
+		// if errDupli != nil {
+		// 	response_message.DuplicateRecord(c, errDupli.Error())
+		// 	return nil, errDupli
+		// }
 		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-		return nil
+		return nil, errors.New(constants.API_ERR_DUPLICATED_RECORD)
 	}
 
 	// Booking Uid
@@ -181,7 +184,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		errCourse := course.FindFirst(db)
 		if errCourse != nil {
 			response_message.BadRequest(c, errCourse.Error())
-			return nil
+			return nil, errCourse
 		}
 
 		// Get Member Card
@@ -190,14 +193,14 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		errFind := memberCard.FindFirst(db)
 		if errFind != nil {
 			response_message.BadRequest(c, errFind.Error())
-			return nil
+			return nil, errFind
 		}
 
 		// Get Owner
 		owner, errOwner := memberCard.GetOwner(db)
 		if errOwner != nil {
 			response_message.BadRequest(c, errOwner.Error())
-			return nil
+			return nil, errOwner
 		}
 
 		booking.MemberCardUid = body.MemberCardUid
@@ -239,7 +242,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		errCourse := course.FindFirst(db)
 		if errCourse != nil {
 			response_message.BadRequest(c, errCourse.Error())
-			return nil
+			return nil, errCourse
 		}
 
 		agency := models.Agency{}
@@ -247,7 +250,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		errFindAgency := agency.FindFirst(db)
 		if errFindAgency != nil || agency.Id == 0 {
 			response_message.BadRequest(c, "agency"+errFindAgency.Error())
-			return nil
+			return nil, errFindAgency
 		}
 
 		agencyBooking := cloneToAgencyBooking(agency)
@@ -295,7 +298,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		errFindCus := customer.FindFirst(db)
 		if errFindCus != nil || customer.Uid == "" {
 			response_message.BadRequest(c, "customer"+errFindCus.Error())
-			return nil
+			return nil, errFindCus
 		}
 
 		booking.CustomerName = customer.Name
@@ -317,7 +320,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 		if errGS := golfFeeModel.FindFirst(db); errGS != nil {
 			response_message.InternalServerError(c, "guest style not found ")
-			return nil
+			return nil, errGS
 		}
 
 		booking.CustomerType = golfFeeModel.CustomerType
@@ -326,7 +329,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)
 		if errFindGF != nil {
 			response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
-			return nil
+			return nil, errFindGF
 		}
 		booking.GuestStyle = body.GuestStyle
 		booking.GuestStyleName = golfFee.GuestStyleName
@@ -385,7 +388,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
-		return nil
+		return nil, errC
 	}
 
 	if body.MemberUidOfGuest != "" && body.GuestStyle != "" && memberCard.Uid != "" {
@@ -408,7 +411,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
 	}
 
-	return &booking
+	return &booking, nil
 }
 
 /*
@@ -1958,7 +1961,7 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser) {
 	list := []model_booking.Booking{}
 	for _, body := range bookingList {
-		booking := cBooking.CreateBookingCommon(body, c, prof)
+		booking, _ := cBooking.CreateBookingCommon(body, c, prof)
 		if booking != nil {
 			list = append(list, *booking)
 		} else {

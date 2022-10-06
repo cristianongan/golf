@@ -60,6 +60,18 @@ func (item ListOrderItem) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
+// ------- List Int -------
+
+type ListInt []int
+
+func (item *ListInt) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListInt) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
 // ------- List Int64 -------
 
 type ListInt64 []int64
