@@ -474,40 +474,46 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// validate res item
 	restaurantItem := models.RestaurantItem{}
-	restaurantItem.PartnerUid = body.PartnerUid
-	restaurantItem.CourseUid = body.CourseUid
-	restaurantItem.ServiceId = serviceCart.ServiceId
-	restaurantItem.BillId = serviceCart.Id
-	restaurantItem.ItemId = serviceCartItem.Id
 
-	if err := restaurantItem.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Find res item"+err.Error())
-		return
+	if body.Quantity > 0 {
+		// validate res item
+		restaurantItem.PartnerUid = body.PartnerUid
+		restaurantItem.CourseUid = body.CourseUid
+		restaurantItem.ServiceId = serviceCart.ServiceId
+		restaurantItem.BillId = serviceCart.Id
+		restaurantItem.ItemId = serviceCartItem.Id
+
+		if err := restaurantItem.FindFirst(db); err != nil {
+			response_message.BadRequest(c, "Find res item"+err.Error())
+			return
+		}
+
+		// update service cart
+		serviceCart.Amount += (int64(body.Quantity) * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+		if err := serviceCart.Update(db); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+
+		// update service item
+		serviceCartItem.Quality = int(body.Quantity)
+		serviceCartItem.Amount = int64(body.Quantity) * serviceCartItem.UnitPrice
+
+		// update res item
+		restaurantItem.Quantity = body.Quantity
+		restaurantItem.QuantityProgress = body.Quantity
 	}
 
-	// update service cart
-	serviceCart.Amount += (int64(body.Quantity) * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
-	if err := serviceCart.Update(db); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
+	if body.Note != "" {
+		serviceCartItem.Input = body.Note
+		restaurantItem.ItemNote = body.Note
 	}
-
-	// update service item
-	serviceCartItem.Quality = int(body.Quantity)
-	serviceCartItem.Amount = int64(body.Quantity) * serviceCartItem.UnitPrice
-	serviceCartItem.Input = body.Note
 
 	if err := serviceCartItem.Update(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
-
-	// update res item
-	restaurantItem.Quantity = body.Quantity
-	restaurantItem.QuantityProgress = body.Quantity
-	restaurantItem.ItemNote = body.Note
 
 	if err := restaurantItem.Update(db); err != nil {
 		response_message.BadRequest(c, err.Error())
