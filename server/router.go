@@ -615,10 +615,10 @@ func NewRouter() *gin.Engine {
 
 				/// =================== TeeTime ===================
 				cTeeTime := new(controllers.CTeeTimeOTA)
-				otaApi.POST("/GetTeeTimesOfDay", cTeeTime.GetTeeTimeList)
-				otaApi.POST("/TeeTimeStatus", cTeeTime.TeeTimeStatus)
-				otaApi.POST("/LockTeeTime", cTeeTime.LockTeeTime)
-				otaApi.POST("/UnlockTeeTime", cTeeTime.UnlockTeeTime)
+				otaV1Api.POST("/GetTeeTimesOfDay", cTeeTime.GetTeeTimeList)
+				otaV1Api.POST("/TeeTimeStatus", cTeeTime.TeeTimeStatus)
+				otaV1Api.POST("/LockTeeTime", cTeeTime.LockTeeTime)
+				otaV1Api.POST("/UnlockTeeTime", cTeeTime.UnlockTeeTime)
 			}
 		}
 
