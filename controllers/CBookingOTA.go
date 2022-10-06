@@ -206,3 +206,24 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 
 	okResponse(c, dataRes)
 }
+
+/*
+Cancel Booking OTA
+*/
+func (cBooking *CBooking) CancelBookingOTA(c *gin.Context) {
+	dataRes := response.CancelBookOTARes{}
+
+	body := request.CancelBookOTABody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		dataRes.Result.Status = http.StatusInternalServerError
+		dataRes.Result.Infor = bindErr.Error()
+		c.JSON(500, dataRes)
+		return
+	}
+
+	dataRes.Result.Status = http.StatusOK
+
+	dataRes.BookingCode = body.BookingCode
+
+	okResponse(c, dataRes)
+}
