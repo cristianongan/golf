@@ -247,3 +247,38 @@ func (item *BookingServiceItem) FindBestCartItem(database *gorm.DB, page models.
 
 	return list, total, db.Error
 }
+
+// ------ Find Best Group ------
+func (item *BookingServiceItem) FindBestGroup(database *gorm.DB, page models.Page) ([]BookingServiceItem, int64, error) {
+	now := time.Now().Format("02/01/2006")
+
+	from, _ := time.Parse("02/01/2006 15:04:05", now+" 17:00:00")
+
+	db := database.Model(BookingServiceItem{})
+	list := []BookingServiceItem{}
+	total := int64(0)
+
+	db.Select("*, sum(quality) as sale_quantity")
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.ServiceId != "" {
+		db = db.Where("service_id = ?", item.ServiceId)
+	}
+
+	db = db.Where("created_at >= ?", from.AddDate(0, 0, -8).Unix())
+
+	db.Group("group_code")
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, total, db.Error
+}

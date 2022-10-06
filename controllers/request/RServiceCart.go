@@ -36,6 +36,13 @@ type GetBestItemBody struct {
 	GroupCode  string `form:"group_code"`
 }
 
+type GetBestGroupBody struct {
+	PageRequest
+	PartnerUid string `form:"partner_uid"`
+	CourseUid  string `form:"course_uid"`
+	ServiceId  string `form:"service_id"`
+}
+
 type GetServiceCartBody struct {
 	PageRequest
 	PartnerUid  string `form:"partner_uid"`
