@@ -929,6 +929,16 @@ func (item *Booking) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
+func (item *Booking) FindAllBookingOTA(database *gorm.DB) ([]Booking, error) {
+	db := database.Model(Booking{})
+	list := []Booking{}
+
+	db = db.Where("booking_ota_id = ?", item.BookingOtaId)
+
+	db.Find(&list)
+	return list, db.Error
+}
+
 func (item *Booking) FindAllBookingCheckIn(database *gorm.DB, bookingDate string) ([]Booking, error) {
 	db := database.Model(Booking{})
 	list := []Booking{}

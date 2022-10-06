@@ -5,6 +5,7 @@ import (
 	"start/models"
 	"time"
 
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -64,4 +65,11 @@ func (item *BookingOta) Count(database *gorm.DB) (int64, error) {
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
+}
+
+func (item *BookingOta) Delete(db *gorm.DB) error {
+	if item.ModelId.Id <= 0 {
+		return errors.New("Primary key is undefined!")
+	}
+	return db.Delete(item).Error
 }
