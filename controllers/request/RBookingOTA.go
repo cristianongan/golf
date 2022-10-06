@@ -18,9 +18,9 @@ type CreateBookingOTABody struct {
 	GuestStyle   string             `json:"GuestStyle"`
 	AgentCode    string             `json:"AgentCode" binding:"required"`
 	CardID       string             `json:"CardID"`
-	GreenFee     int64              `json:"GreenFee"`
-	CaddieFee    int64              `json:"CaddieFee"`
-	BuggyFee     int64              `json:"BuggyFee"`
+	GreenFee     int64              `json:"GreenFee" binding:"required"`
+	CaddieFee    int64              `json:"CaddieFee" binding:"required"`
+	BuggyFee     int64              `json:"BuggyFee" binding:"required"`
 	Rental       []BookingOTARental `json:"Rental"`
 	Caddies      utils.ListString   `json:"Caddies"`
 	BookingCode  string             `json:"BookingCode" binding:"required"` // Mã OTA bên VNPay gửi sang để lưu

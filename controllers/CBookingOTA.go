@@ -178,10 +178,10 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			bodyCreate.CourseType = "B"
 		}
 
-		booking := cBooking.CreateBookingCommon(bodyCreate, c, prof)
+		booking, errBook := cBooking.CreateBookingCommon(bodyCreate, nil, prof)
 		if booking == nil {
 			//error
-			log.Println("CreateBookingOTA error")
+			log.Println("CreateBookingOTA error", errBook)
 		}
 	}
 
