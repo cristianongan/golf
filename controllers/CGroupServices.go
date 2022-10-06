@@ -165,6 +165,10 @@ func (_ *CGroupServices) UpdateServices(c *gin.Context, prof models.CmsUser) {
 		groupServices.Type = body.Type
 	}
 
+	if body.SubType != "" {
+		groupServices.SubType = body.SubType
+	}
+
 	errUdp := groupServices.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
