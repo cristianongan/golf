@@ -171,6 +171,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			BookingOtaId:         bookingOta.Id,
 			RowIndex:             &listIndex[i],
 			AgencyId:             agency.Id,
+			TeePath:              "MORNING",
 		}
 
 		if body.IsMainCourse {
