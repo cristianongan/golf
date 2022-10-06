@@ -85,7 +85,9 @@ func (item *TablePrice) FindCurrentUse(database *gorm.DB) (TablePrice, error) {
 	db := database.Model(TablePrice{})
 	list := []TablePrice{}
 
-	db = db.Where("partner_uid = ?", item.PartnerUid)
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}

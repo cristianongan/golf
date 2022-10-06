@@ -90,6 +90,27 @@ func GetLocalTimeFromTimeStamp(location, format string, timeStamp int64) (string
 	return tm.Format(format), nil
 }
 
+func GetBookingTimeFrom(timeStr string) (string, error) {
+	location := constants.LOCATION_DEFAULT
+	formatTime := constants.DATE_FORMAT
+	loc, errLoc := time.LoadLocation(location)
+	if errLoc != nil {
+		log.Println(errLoc)
+		return "", errLoc
+	}
+	time, errParse := time.ParseInLocation(formatTime, timeStr, loc)
+	if errParse != nil {
+		log.Println(errParse)
+		return "", errParse
+	}
+
+	localTime, errLocalTime := GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, time.Unix())
+	if errLocalTime != nil {
+		return "", errLocalTime
+	}
+	return localTime, nil
+}
+
 func GetYearMonthDateFromTimestamp(timeStamp int64) (string, error) {
 	// date, errDate := GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT, timeStamp)
 	// month, errMonth := GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.MONTH_FORMAT, timeStamp)

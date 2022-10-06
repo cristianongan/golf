@@ -62,6 +62,37 @@ func (item *AgencySpecialPrice) FindOtherPriceOnTime(db *gorm.DB) (AgencySpecial
 	return AgencySpecialPrice{}, errors.New("")
 }
 
+func (item *AgencySpecialPrice) FindOtherPriceOnDate(db *gorm.DB, date time.Time) (AgencySpecialPrice, error) {
+	listAgency, _, err := item.FindListByAgencyId(db)
+
+	if err != nil {
+		return AgencySpecialPrice{}, err
+	}
+	idx := -1
+	// check for today
+	for i, v := range listAgency {
+		fromH := "00:00"
+		if v.FromHour != "" {
+			fromH = v.FromHour
+		}
+		toH := "00:00"
+		if v.ToHour != "" {
+			toH = v.ToHour
+		}
+
+		hourLast := fromH + "," + toH
+		if utils.CheckDow(v.Dow, hourLast, date) {
+			idx = i
+		}
+	}
+
+	if idx >= 0 {
+		return listAgency[idx], nil
+	}
+
+	return AgencySpecialPrice{}, errors.New("")
+}
+
 func (item *AgencySpecialPrice) IsDuplicated(db *gorm.DB) bool {
 	modelCheck := AgencySpecialPrice{
 		PartnerUid: item.PartnerUid,

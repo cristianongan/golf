@@ -1,101 +1,191 @@
 package controllers
 
 import (
+	"log"
+	"net/http"
 	"start/controllers/request"
 	"start/controllers/response"
-
-	// "start/datasources"
-	// model_booking "start/models/booking"
-	// "start/utils"
-	// "strconv"
-	// "strings"
-	// "time"
+	"start/datasources"
+	"start/models"
+	model_booking "start/models/booking"
+	"start/utils"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-type CBookingOTA struct{}
+// type CBookingOTA struct{}
 
 /*
 Booking OTA
 */
-func (cBooking *CBookingOTA) CreateBookingOTA(c *gin.Context) {
+func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
+	dataRes := response.BookingOTARes{}
+	bookResult := response.ResultOTA{}
+	dataRes.Result = bookResult
+
 	body := request.CreateBookingOTABody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
-		badRequest(c, bindErr.Error())
+		dataRes.Result.Status = http.StatusInternalServerError
+		dataRes.Result.Infor = bindErr.Error()
+		c.JSON(500, dataRes)
 		return
 	}
 
-	res := response.BookingOTARes{
-		BookID: "121212",
+	if body.NumBook <= 0 {
+		body.NumBook = 1
 	}
 
-	okResponse(c, res)
+	// Check token
+	checkToken := "CHILINH_TEST" + body.DateStr + body.TeeOffStr + body.BookingCode
+	token := utils.GetSHA256Hash(checkToken)
+
+	if strings.ToUpper(token) != body.Token {
+		dataRes.Result.Status = http.StatusInternalServerError
+		dataRes.Result.Infor = "token invalid"
+		dataRes.CourseCode = body.CourseCode
+
+		okResponse(c, dataRes)
+		return
+	}
+
+	prof := models.CmsUser{
+		PartnerUid: "CHI-LINH",
+		CourseUid:  body.CourseCode,
+		UserName:   "ota",
+	}
+
+	//convert booking date
+	bookDate, errBD := utils.GetBookingTimeFrom(body.DateStr)
+	if errBD != nil {
+		dataRes.Result.Status = 500
+		dataRes.Result.Infor = errBD.Error()
+		c.JSON(500, dataRes)
+		return
+	}
+
+	if body.Tee == "" {
+		body.Tee = "1"
+	}
+
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	// Find course
+	course := models.Course{}
+	course.Uid = body.CourseCode
+	errFCourse := course.FindFirst(db)
+	if errFCourse != nil {
+		dataRes.Result.Status = 500
+		dataRes.Result.Infor = "Not found course"
+		c.JSON(500, dataRes)
+		return
+	}
+
+	// Check tee time status
+	// Check TeeTime Index
+	bookTeaTimeIndex := model_booking.Booking{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		BookingDate: bookDate,
+		TeeTime:     body.TeeOffStr,
+		TeeType:     body.Tee,
+	}
+
+	listIndex := bookTeaTimeIndex.FindTeeTimeIndexAvaible(db)
+
+	if len(listIndex) == 0 {
+		//
+		dataRes.Result.Status = 500
+		dataRes.Result.Infor = "Tee is full"
+		c.JSON(500, dataRes)
+		return
+	}
+
+	if len(listIndex) > 0 && len(listIndex) < body.NumBook {
+		//
+		dataRes.Result.Status = 500
+		dataRes.Result.Infor = "Tee khong du"
+		c.JSON(500, dataRes)
+		return
+	}
+
+	// Check agency
+	// Find Agency
+	agency := models.Agency{
+		PartnerUid: prof.PartnerUid,
+		CourseUid:  prof.CourseUid,
+		AgencyId:   body.AgentCode,
+	}
+	errFA := agency.FindFirst(db)
+	if errFA != nil {
+		dataRes.Result.Status = 500
+		dataRes.Result.Infor = "Not found agency"
+		c.JSON(500, dataRes)
+		return
+	}
+
+	bookingOta := model_booking.BookingOta{
+		PartnerUid:   prof.PartnerUid,
+		CourseUid:    prof.CourseUid,
+		PlayerName:   body.PlayerName,
+		Contact:      body.Contact,
+		Note:         body.Note,
+		NumBook:      body.NumBook,
+		Holes:        body.Holes,
+		IsMainCourse: body.IsMainCourse,
+		Tee:          body.Tee,
+		TeeOffStr:    body.TeeOffStr,
+
+		AgentCode:    body.AgentCode,
+		GuestStyle:   body.GuestStyle,
+		BookingCode:  body.BookingCode,
+		EmailConfirm: body.EmailConfirm,
+
+		CaddieFee: body.CaddieFee,
+		BuggyFee:  body.BuggyFee,
+		GreenFee:  body.GreenFee,
+	}
+
+	errCBO := bookingOta.Create(db)
+	if errCBO != nil {
+		dataRes.Result.Status = 500
+		dataRes.Result.Infor = errCBO.Error()
+		c.JSON(500, dataRes)
+		return
+	}
+
+	for i := 0; i < body.NumBook; i++ {
+		bodyCreate := request.CreateBookingBody{
+			PartnerUid:           prof.PartnerUid,
+			CourseUid:            prof.CourseUid,
+			BookingDate:          bookDate,
+			Hole:                 body.Holes,
+			CustomerName:         body.PlayerName,
+			CustomerBookingName:  body.Contact,
+			CustomerBookingPhone: body.Contact,
+			NoteOfBooking:        body.Note,
+			TeeTime:              body.TeeOffStr,
+			GuestStyle:           body.GuestStyle,
+			TeeType:              body.Tee,
+			BookingOtaId:         bookingOta.Id,
+			RowIndex:             &listIndex[i],
+			AgencyId:             agency.Id,
+		}
+
+		if body.IsMainCourse {
+			bodyCreate.CourseType = "A"
+		} else {
+			bodyCreate.CourseType = "B"
+		}
+
+		booking, errBook := cBooking.CreateBookingCommon(bodyCreate, nil, prof)
+		if booking == nil {
+			//error
+			log.Println("CreateBookingOTA error", errBook)
+		}
+	}
+
+	dataRes.BookID = bookingOta.Id
+
+	okResponse(c, dataRes)
 }
-
-/*
-GetTeeTimeList
-*/
-// func (cBooking *CBookingOTA) GetTeeTimeList(c *gin.Context) {
-// 	body := request.GetTeeTimeOTAList{}
-// 	if bindErr := c.ShouldBind(&body); bindErr != nil {
-// 		badRequest(c, bindErr.Error())
-// 		return
-// 	}
-
-// 	cBookingSetting := CBookingSetting{}
-// 	db := datasources.GetDatabase()
-// 	form := request.GetListBookingSettingForm{
-// 		CourseUid:  body.CourseCode,
-// 	}
-// 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
-// 	weekday := strconv.Itoa(int(time.Now().Weekday()))
-// 	bookSetting := model_booking.BookingSetting{}
-
-// 	teeTimeList := []response.TeeTimeOTA {}
-// 	responseDate := response.GetTeeTimeOTAResponse{
-// 		IsMainCourse: body.IsMainCourse,
-// 		Token: nil,
-// 		CourseCode: body.CourseCode,
-// 		OTACode: body.OTA_Code,
-// 		GuestCode: body.Guest_Code,
-// 		Date: body.Date,
-// 	}
-// 	for _, data := range listSettingDetail {
-// 		if strings.ContainsAny(data.Dow, weekday) {
-// 			bookSetting = data
-// 			break
-// 		}
-// 	}
-// 	index := 0
-
-// 	countPart := 0
-// 	for {
-// 		startTime, _ := utils.ConvertHourToTime(bookSetting.StartPart1)
-// 		teeTimeFirst, _ := utils.ConvertHourToTime(bookSetting.StartPart1)
-// 		for {
-// 			index += 1
-// 			teeTime := response.TeeTimeOTA {
-// 				TeeOffStr: bookSetting.StartPart1,
-// 				DateStr: body.Date,
-// 				Part: 0,
-// 				TimeIndex: int64(index),
-// 				NumBook: 0,
-// 				IsMainCourse: body.IsMainCourse,
-// 				Tee: 1,
-// 			}
-// 			teeTimeList = append(teeTimeList, )
-
-// 			if false {
-// 				break
-// 			}
-// 		}
-
-// 		if countPart > 2 {
-// 			break
-// 		}
-// 		countPart += 1
-// 	}
-
-// 	okResponse(c, res)
-// }
