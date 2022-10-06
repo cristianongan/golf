@@ -162,7 +162,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			BookingDate:          bookDate,
 			Hole:                 body.Holes,
 			CustomerName:         body.PlayerName,
-			CustomerBookingName:  body.Contact,
+			CustomerBookingName:  body.PlayerName,
 			CustomerBookingPhone: body.Contact,
 			NoteOfBooking:        body.Note,
 			TeeTime:              body.TeeOffStr,
