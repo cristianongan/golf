@@ -16,7 +16,7 @@ type CreateRestaurantOrderBody struct {
 type CreateBookingRestaurantBody struct {
 	PartnerUid    string              `json:"partner_uid"`
 	CourseUid     string              `json:"course_uid"`
-	GolfBag       string              `json:"golf_bag" binding:"required"`
+	GolfBag       string              `json:"golf_bag"`
 	ServiceId     int64               `json:"service_id" binding:"required"`
 	FromServiceId int64               `json:"from_service_id"`
 	PlayerName    string              `json:"player_name" binding:"required"`
