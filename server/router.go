@@ -554,6 +554,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/service-cart/list-cart-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetItemInCart))
 			cmsApiAuthorized.GET("/service-cart/list", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetListCart))
 			cmsApiAuthorized.GET("/service-cart/list-best-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetBestItemInKiosk))
+			cmsApiAuthorized.GET("/service-cart/list-best-group", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetBestGroupInKiosk))
 			cmsApiAuthorized.POST("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddItemServiceToCart))
 			cmsApiAuthorized.POST("/service-cart/add-discount", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddDiscountToItem))
 			cmsApiAuthorized.POST("/service-cart/create-billing", middlewares.AuthorizedCmsUserHandler(cServiceCart.CreateBilling))

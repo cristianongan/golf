@@ -351,6 +351,41 @@ func (_ CServiceCart) GetBestItemInKiosk(c *gin.Context, prof models.CmsUser) {
 	c.JSON(200, res)
 }
 
+func (_ CServiceCart) GetBestGroupInKiosk(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	query := request.GetBestGroupBody{}
+	if bindErr := c.ShouldBind(&query); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   query.PageRequest.Limit,
+		Page:    query.PageRequest.Page,
+		SortBy:  query.PageRequest.SortBy,
+		SortDir: query.PageRequest.SortDir,
+	}
+
+	serviceCartItem := model_booking.BookingServiceItem{}
+	serviceCartItem.PartnerUid = query.PartnerUid
+	serviceCartItem.CourseUid = query.CourseUid
+	serviceCartItem.ServiceId = query.ServiceId
+
+	list, total, err := serviceCartItem.FindBestGroup(db, page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	c.JSON(200, res)
+}
+
 func (_ CServiceCart) GetListCart(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetServiceCartBody{}
