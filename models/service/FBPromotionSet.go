@@ -25,6 +25,11 @@ type FbPromotionSet struct {
 	InputUser  string           `json:"input_user" gorm:"type:varchar(100)"`
 	Price      float64          `json:"price"` // Giá Set
 }
+
+type FbPromotionSetRequest struct {
+	FbPromotionSet
+	CodeOrName string `form:"code_or_name"`
+}
 type FBPromotionSetResponse struct {
 	FbPromotionSet
 	GroupName string `json:"group_name"`
@@ -61,7 +66,7 @@ func (item *FbPromotionSet) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *FbPromotionSet) FindList(database *gorm.DB, page models.Page) ([]FBPromotionSetResponse, int64, error) {
+func (item *FbPromotionSetRequest) FindList(database *gorm.DB, page models.Page) ([]FBPromotionSetResponse, int64, error) {
 	db := database.Model(FbPromotionSet{})
 	list := []FBPromotionSetResponse{}
 	total := int64(0)
@@ -82,6 +87,9 @@ func (item *FbPromotionSet) FindList(database *gorm.DB, page models.Page) ([]FBP
 	}
 	if item.GroupCode != "" {
 		db = db.Where("fb_promotion_sets.group_code = ?", item.GroupCode)
+	}
+	if item.CodeOrName != "" {
+		db = db.Where("fb_promotion_sets.code = ?", item.CodeOrName).Or("fb_promotion_sets.set_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CodeOrName+"%")
 	}
 
 	db = db.Joins("JOIN group_services ON fb_promotion_sets.group_code = group_services.group_code AND " +

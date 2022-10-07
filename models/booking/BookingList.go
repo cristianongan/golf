@@ -47,6 +47,7 @@ type BookingList struct {
 	IsCheckIn             string
 	IsBuggyPrepareForJoin string
 	GuestStyleName        string
+	PlayerOrBag           string
 }
 
 func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
@@ -199,6 +200,10 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 
 	if item.GuestStyleName != "" {
 		db = db.Where("guest_style_name = ?", item.GuestStyleName)
+	}
+
+	if item.PlayerOrBag != "" {
+		db = db.Where("bag = ?", item.PlayerOrBag).Or("customer_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.PlayerOrBag+"%")
 	}
 
 	if item.IsCheckIn != "" {

@@ -17,7 +17,7 @@ type FoodBeverage struct {
 	CourseUid     string  `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	FBCode        string  `json:"fb_code" gorm:"type:varchar(100)"`
 	EnglishName   string  `json:"english_name" gorm:"type:varchar(256)"`    // Tên Tiếng Anh
-	VieName       string  `json:"vietnamese_name" gorm:"type:varchar(256)"` // Tên Tiếng Anh
+	VieName       string  `json:"vietnamese_name" gorm:"type:varchar(256)"` // Tên Tiếng Viet
 	Barcode       string  `json:"barcode"`
 	AccountCode   string  `json:"account_code" gorm:"type:varchar(100)"` // Mã liên kết với Account kế toán
 	GroupCode     string  `json:"group_code" gorm:"type:varchar(100);index"`
@@ -48,6 +48,7 @@ type FoodBeverageResponse struct {
 }
 type FoodBeverageRequest struct {
 	FoodBeverage
+	CodeOrName string   `form:"code_or_name"`
 	GroupName  string   `json:"group_name"`
 	FBCodeList []string `form:"fb_code_list"`
 }
@@ -116,6 +117,9 @@ func (item *FoodBeverageRequest) FindList(database *gorm.DB, page models.Page) (
 	}
 	if item.Type != "" {
 		db = db.Where("food_beverages.type = ?", item.Type)
+	}
+	if item.CodeOrName != "" {
+		db = db.Where("food_beverages.fb_code = ?", item.CodeOrName).Or("food_beverages.vie_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CodeOrName+"%").Or("food_beverages.english_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CodeOrName+"%")
 	}
 	if len(item.FBCodeList) != 0 {
 		db = db.Where("food_beverages.fb_code IN (?)", item.FBCodeList)
