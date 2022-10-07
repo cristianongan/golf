@@ -143,6 +143,7 @@ func (_ *CFoodBeverage) GetListFoodBeverage(c *gin.Context, prof models.CmsUser)
 	fbR.FBCode = form.FBCode
 	fbR.Status = form.Status
 	fbR.Type = form.Type
+	fbR.CodeOrName = form.CodeOrName
 
 	if form.FBCodeList != "" {
 		fbR.FBCodeList = strings.Split(form.FBCodeList, ",")

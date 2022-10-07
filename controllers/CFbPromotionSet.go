@@ -123,32 +123,13 @@ func (_ *CFbPromotionSet) GetListFoodBeveragepRomotionSet(c *gin.Context, prof m
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	promotionSetR := model_service.FbPromotionSet{}
-	if form.PartnerUid != nil {
-		promotionSetR.PartnerUid = *form.PartnerUid
-	} else {
-		promotionSetR.PartnerUid = ""
-	}
-	if form.CourseUid != nil {
-		promotionSetR.CourseUid = *form.CourseUid
-	} else {
-		promotionSetR.CourseUid = ""
-	}
-	if form.SetName != nil {
-		promotionSetR.SetName = *form.SetName
-	} else {
-		promotionSetR.SetName = ""
-	}
-	if form.GroupCode != nil {
-		promotionSetR.GroupCode = *form.GroupCode
-	} else {
-		promotionSetR.GroupCode = ""
-	}
-	if form.Status != nil {
-		promotionSetR.Status = *form.Status
-	} else {
-		promotionSetR.Status = ""
-	}
+	promotionSetR := model_service.FbPromotionSetRequest{}
+	promotionSetR.PartnerUid = form.PartnerUid
+	promotionSetR.CourseUid = form.CourseUid
+	promotionSetR.SetName = form.SetName
+	promotionSetR.GroupCode = form.GroupCode
+	promotionSetR.CodeOrName = form.CodeOrName
+	promotionSetR.Status = form.Status
 
 	list, total, err := promotionSetR.FindList(db, page)
 	if err != nil {
