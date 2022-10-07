@@ -138,7 +138,7 @@ func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB, date stri
 
 	db = addFilter(db, item)
 
-	db.Not("status = ?", constants.STATUS_DELETE)
+	db.Not("status = ?", constants.STATUS_DELETED)
 
 	db.Preload("GroupInfo").Find(&list)
 
