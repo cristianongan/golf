@@ -299,12 +299,23 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// validate golf bag
+	booking := model_booking.Booking{}
+	booking.PartnerUid = body.PartnerUid
+	booking.CourseUid = body.CourseUid
+	booking.Uid = serviceCart.BookingUid
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
 	// create cart item
 	serviceCartItem := model_booking.BookingServiceItem{
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,
 		Bag:         serviceCart.GolfBag,
 		BookingUid:  serviceCart.BookingUid,
+		BillCode:    booking.BillCode,
 		PlayerName:  serviceCart.PlayerName,
 		ServiceId:   strconv.Itoa(int(serviceCart.ServiceId)),
 		ServiceBill: body.BillId,
@@ -830,10 +841,10 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 
 	// Tạo đơn order
 	serviceCart := models.ServiceCart{}
+	booking := model_booking.Booking{}
 
 	if body.GolfBag != "" {
 		// validate golf bag
-		booking := model_booking.Booking{}
 		booking.PartnerUid = body.PartnerUid
 		booking.CourseUid = body.CourseUid
 		booking.Bag = body.GolfBag
@@ -981,6 +992,13 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 		serviceCartItem.Quality = item.Quantity
 		serviceCartItem.Amount = int64(item.Quantity) * serviceCartItem.UnitPrice
 		serviceCartItem.UserAction = prof.UserName
+		serviceCartItem.PlayerName = body.PlayerName
+		if body.GolfBag != "" {
+			serviceCartItem.Bag = booking.Bag
+			serviceCartItem.BookingUid = booking.Uid
+			serviceCartItem.BillCode = booking.BillCode
+			serviceCartItem.PlayerName = booking.CustomerName
+		}
 
 		if err := serviceCartItem.Create(db); err != nil {
 			response_message.BadRequest(c, err.Error())
