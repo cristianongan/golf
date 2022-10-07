@@ -135,6 +135,7 @@ func (_ *CGroupServices) GetGSAdvancedList(c *gin.Context, prof models.CmsUser) 
 			gsItem.CourseUid = item.CourseUid
 			gsItem.PartnerUid = item.PartnerUid
 			gsItem.SubType = item.GroupCode
+			gsItem.GroupName = form.GroupName
 
 			listGSItem, err := gsItem.FindAll(db)
 			if err != nil {
