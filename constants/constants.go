@@ -57,6 +57,7 @@ const (
 	BUGGY_CURRENT_STATUS_IN_ACTIVE   = "INACTIVE"    // Không sử dụng nữa
 	BUGGY_CURRENT_STATUS_LOCK        = "LOCK"        // Buggy đã được ghép với khách nhưng chưa được ghép Flight
 	BUGGY_CURRENT_STATUS_FIX         = "FIX"         // Đang sửa chữa không ghép khách
+	BUGGY_CURRENT_STATUS_FINISH      = "FINISH"      // Vừa đi khách xong
 )
 
 const (
