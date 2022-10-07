@@ -960,6 +960,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 		serviceCart.StaffOrder = prof.FullName
 		serviceCart.PlayerName = body.PlayerName
 		serviceCart.Phone = body.Phone
+		serviceCart.OrderTime = body.OrderTime
 		serviceCart.Note = body.Note
 
 		if err := serviceCart.Create(db); err != nil {
