@@ -52,7 +52,7 @@ func (item *CaddieGroup) FindList(database *gorm.DB, page Page) ([]CaddieGroup, 
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Preload("Caddies").Find(&list)
+		db = page.Setup(db).Preload("Caddies", "status NOT IN (?)", constants.STATUS_DELETED).Find(&list)
 	}
 	return list, total, db.Error
 }
