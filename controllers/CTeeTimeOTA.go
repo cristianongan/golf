@@ -136,7 +136,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 
 	index := 0
 	for partIndex, part := range timeParts {
-		if part.IsHideTeePart {
+		if !part.IsHideTeePart {
 			endTime, _ := utils.ConvertHourToTime(part.EndPart)
 			teeTimeInit, _ := utils.ConvertHourToTime(part.StartPart)
 			for {
