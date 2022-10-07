@@ -19,3 +19,10 @@ type GetListGroupServicesForm struct {
 	Type       string `form:"type" json:"type"`
 	SubType    string `form:"sub_type" json:"sub_type"`
 }
+
+type GetGSAdvancedListForm struct {
+	PageRequest
+	PartnerUid string `form:"partner_uid" json:"partner_uid"`
+	CourseUid  string `form:"course_uid" json:"course_uid"`
+	GroupName  string `form:"group_name" json:"group_name"`
+}

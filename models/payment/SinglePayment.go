@@ -26,13 +26,13 @@ type SinglePayment struct {
 	PaymentDate string         `json:"payment_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
 	BagInfo     PaymentBagInfo `json:"bag_info,omitempty" gorm:"type:json"`
 
-	Invoice            string `json:"invoice" gorm:"type:varchar(100)"`             // Invoice
-	PaymentStatus      string `json:"payment_status" gorm:"type:varchar(50);index"` // PAID, UN_PAID, PARTIAL_PAID, DEBT
-	PaymentType        string `json:"payment_type" gorm:"type:varchar(50);index"`   // CASH, VISA
-	PrepaidFromBooking int64  `json:"prepaid_from_booking"`                         // Thanh toán trước từ khi booking (nếu có)
-	Cashiers           string `json:"cashiers" gorm:"type:varchar(100);index"`      // Thu ngân, lấy từ acc cms
-	TotalPaid          int64  `json:"total_paid" gorm:"type:varchar(100);index"`    // Số tiền thanh toán
-	Note               string `json:"note" gorm:"type:varchar(200)"`                // Note
+	Invoice       string `json:"invoice" gorm:"type:varchar(100)"`             // Invoice
+	PaymentStatus string `json:"payment_status" gorm:"type:varchar(50);index"` // PAID, UN_PAID, PARTIAL_PAID, DEBT
+	// PaymentType        string `json:"payment_type" gorm:"type:varchar(50);index"`   // CASH, VISA
+	PrepaidFromBooking int64  `json:"prepaid_from_booking"`                    // Thanh toán trước từ khi booking (nếu có)
+	Cashiers           string `json:"cashiers" gorm:"type:varchar(100);index"` // Thu ngân, lấy từ acc cms
+	TotalPaid          int64  `json:"total_paid" gorm:"type:varchar(100)"`     // Số tiền thanh toán
+	Note               string `json:"note" gorm:"type:varchar(200)"`           // Note
 }
 
 type PaymentBagInfo struct {
