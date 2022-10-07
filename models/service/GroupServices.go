@@ -69,11 +69,11 @@ func (item *GroupServices) FindList(database *gorm.DB, page models.Page) ([]Grou
 		db = db.Where("group_code = ?", item.GroupCode)
 	}
 	if item.Type != "" {
-		// if item.SubType == "" {
-		// 	db = db.Where("type = ? AND sub_type IS NULL", item.Type)
-		// } else {
-		db = db.Where("type = ?", item.Type)
-		// }
+		if item.SubType == "" {
+			db = db.Where("type = ? AND sub_type IS NULL", item.Type)
+		} else {
+			db = db.Where("type = ?", item.Type)
+		}
 	}
 	if item.SubType != "" {
 		db = db.Where("sub_type = ?", item.SubType)
