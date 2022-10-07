@@ -83,7 +83,7 @@ func (item *ServiceCart) FindList(database *gorm.DB, page Page) ([]ServiceCart, 
 	}
 
 	if item.TypeCode != "" {
-		db = db.Where("type_code LIKE ?", "%"+item.TypeCode+"%")
+		db = db.Where("type_code LIKE ?", "%"+item.TypeCode+"%").Or("bill_code LIKE ?", "%"+item.TypeCode+"%")
 	}
 
 	if item.Id != 0 {
