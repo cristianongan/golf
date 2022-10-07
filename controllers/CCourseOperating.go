@@ -184,8 +184,9 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 
 		if buggyTemp.Id > 0 {
 			bookingTemp.IsPrivateBuggy = newTrue(v.IsPrivateBuggy)
-			buggyTemp.BuggyStatus = constants.BUGGY_CURRENT_STATUS_IN_COURSE
 
+			buggyTemp.BuggyStatus = constants.BUGGY_CURRENT_STATUS_IN_COURSE
+			caddieBuggyInNote.IsPrivateBuggy = newTrue(v.IsPrivateBuggy)
 			caddieBuggyInNote.BuggyId = buggyTemp.Id
 			caddieBuggyInNote.BuggyCode = buggyTemp.Code
 			caddieBuggyInNote.BuggyType = constants.STATUS_IN

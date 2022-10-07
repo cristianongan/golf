@@ -1283,6 +1283,7 @@ func checkBuggyReady(db *gorm.DB, buggy models.Buggy, booking model_booking.Book
 	dbResponse.Find(&list)
 
 	if !(buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_ACTIVE ||
+		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_FINISH ||
 		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_LOCK ||
 		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_IN_COURSE) {
 		return errors.New("Buggy " + buggy.Code + " đang ở trạng thái " + buggy.BuggyStatus)
