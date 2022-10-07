@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"start/config"
+	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
@@ -63,26 +64,85 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 
 	toDayDate, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
+	// Check single Payment
 	singlePayment := model_payment.SinglePayment{
-		PartnerUid:  booking.PartnerUid,
-		CourseUid:   booking.CourseUid,
-		Bag:         booking.Bag,
-		BookingUid:  booking.Uid,
-		BillCode:    booking.BillCode,
-		BookingDate: booking.BookingDate,
-		BagInfo:     bagInfo,
-		PaymentType: body.PaymentType,
-		TotalPaid:   body.Amount,
-		Note:        body.Note,
-		Cashiers:    prof.UserName,
-		PaymentDate: toDayDate,
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		BillCode:   booking.BillCode,
+	}
+	singlePayment.Status = constants.STATUS_ENABLE
+	isAdd := true
+	errFind := singlePayment.FindFirst(db)
+	if errFind != nil {
+		// Chưa có thì tạo
+		singlePayment.Bag = booking.Bag
+		singlePayment.BookingUid = booking.Uid
+		singlePayment.BookingDate = booking.BookingDate
+		singlePayment.BagInfo = bagInfo
+		singlePayment.TotalPaid = body.Amount
+		singlePayment.Note = body.Note
+		singlePayment.Cashiers = prof.UserName
+		singlePayment.PaymentDate = toDayDate
+
+		errC := singlePayment.Create(db)
+
+		if errC != nil {
+			response_message.InternalServerError(c, errC.Error())
+			return
+		}
+
+	} else {
+		isAdd = false
 	}
 
-	errC := singlePayment.Create(db)
+	// Tạo payment single item
+	singlePaymentItem := model_payment.SinglePaymentItem{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		BookingUid:  booking.Uid,
+		BillCode:    booking.BillCode,
+		Bag:         booking.Bag,
+		Paid:        body.Amount,
+		PaymentType: body.PaymentType,
+		Note:        body.Note,
+		PaymentUid:  singlePayment.Uid,
+		Cashiers:    prof.UserName,
+	}
 
+	errC := singlePaymentItem.Create(db)
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
 		return
+	}
+
+	if !isAdd {
+		// Find Total
+		payItemR := model_payment.SinglePaymentItem{
+			PartnerUid: booking.PartnerUid,
+			BillCode:   booking.BillCode,
+		}
+		payItemR.Status = constants.STATUS_ENABLE
+
+		listPir, errList := payItemR.FindAll(db)
+
+		if errList == nil {
+			totalPaid := int64(0)
+
+			for _, v := range listPir {
+				totalPaid = totalPaid + v.Paid
+			}
+
+			singlePayment.TotalPaid = totalPaid
+			errUdp := singlePayment.Update(db)
+
+			if errUdp != nil {
+				response_message.InternalServerError(c, errUdp.Error())
+				return
+			}
+
+		} else {
+			log.Println("CreateSinglePayment errList", errList.Error())
+		}
 	}
 
 	okRes(c)
