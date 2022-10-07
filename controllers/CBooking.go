@@ -639,7 +639,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	}
 
 	var list []model_booking.Booking
-	db.Debug().Find(&list)
+	db.Find(&list)
 	res = response.PageResponse{
 		Total: total,
 		Data:  list,
@@ -1388,6 +1388,11 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 
 	if len(body.SubBags) == 0 {
 		response_message.BadRequest(c, "Subbags invalid empty")
+		return
+	}
+
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag đã Check Out")
 		return
 	}
 
