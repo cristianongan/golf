@@ -382,45 +382,48 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 	//Udp các booking
 	timeOutFlight := time.Now().Unix()
 	for _, booking := range bookings {
-		errOut := udpOutCaddieBooking(db, &booking)
-		if errBuggy := udpOutBuggy(db, &booking, false); errBuggy != nil {
-			log.Println("OutAllFlight err book udp ", errBuggy.Error())
-		}
-		if errOut == nil {
-			booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
-			booking.CaddieHoles = body.CaddieHoles
-			booking.TimeOutFlight = timeOutFlight
-			booking.HoleTimeOut = body.GuestHoles
-			errUdp := booking.Update(db)
-			if errUdp != nil {
-				log.Println("OutAllFlight err book udp ", errUdp.Error())
+		if booking.BagStatus != constants.BAG_STATUS_TIMEOUT &&
+			booking.BagStatus != constants.BAG_STATUS_CHECK_OUT {
+			errOut := udpOutCaddieBooking(db, &booking)
+			if errBuggy := udpOutBuggy(db, &booking, false); errBuggy != nil {
+				log.Println("OutAllFlight err book udp ", errBuggy.Error())
 			}
+			if errOut == nil {
+				booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+				booking.CaddieHoles = body.CaddieHoles
+				booking.TimeOutFlight = timeOutFlight
+				booking.HoleTimeOut = body.GuestHoles
+				errUdp := booking.Update(db)
+				if errUdp != nil {
+					log.Println("OutAllFlight err book udp ", errUdp.Error())
+				}
 
-			// update caddie in out note
-			caddieOutNote := model_gostarter.CaddieBuggyInOut{
-				PartnerUid: booking.PartnerUid,
-				CourseUid:  booking.CourseUid,
-				BookingUid: booking.Uid,
-				Note:       body.Note,
+				// update caddie in out note
+				caddieOutNote := model_gostarter.CaddieBuggyInOut{
+					PartnerUid: booking.PartnerUid,
+					CourseUid:  booking.CourseUid,
+					BookingUid: booking.Uid,
+					Note:       body.Note,
+				}
+
+				if booking.CaddieId > 0 {
+					caddieOutNote.CaddieId = booking.CaddieId
+					caddieOutNote.CaddieCode = booking.CaddieInfo.Code
+					caddieOutNote.CaddieType = constants.STATUS_OUT
+					caddieOutNote.Hole = body.CaddieHoles
+				}
+
+				if booking.BuggyId > 0 {
+					caddieOutNote.BuggyId = booking.BuggyId
+					caddieOutNote.BuggyCode = booking.BuggyInfo.Code
+					caddieOutNote.BuggyType = constants.STATUS_OUT
+				}
+
+				go addBuggyCaddieInOutNote(db, caddieOutNote)
+
+			} else {
+				log.Println("OutAllFlight err out caddie ", errOut.Error())
 			}
-
-			if booking.CaddieId > 0 {
-				caddieOutNote.CaddieId = booking.CaddieId
-				caddieOutNote.CaddieCode = booking.CaddieInfo.Code
-				caddieOutNote.CaddieType = constants.STATUS_OUT
-				caddieOutNote.Hole = body.CaddieHoles
-			}
-
-			if booking.BuggyId > 0 {
-				caddieOutNote.BuggyId = booking.BuggyId
-				caddieOutNote.BuggyCode = booking.BuggyInfo.Code
-				caddieOutNote.BuggyType = constants.STATUS_OUT
-			}
-
-			go addBuggyCaddieInOutNote(db, caddieOutNote)
-
-		} else {
-			log.Println("OutAllFlight err out caddie ", errOut.Error())
 		}
 	}
 
