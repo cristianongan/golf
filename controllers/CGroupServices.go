@@ -100,6 +100,97 @@ func (_ *CGroupServices) GetGroupServicesList(c *gin.Context, prof models.CmsUse
 	okResponse(c, res)
 }
 
+func (_ *CGroupServices) GetGSAdvancedList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetGSAdvancedListForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	groupServices := model_service.GroupServices{}
+	groupServices.CourseUid = form.CourseUid
+	groupServices.PartnerUid = form.PartnerUid
+	groupServices.GroupName = form.GroupName
+
+	list, total, err := groupServices.FindAdvancedList(db, page)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	listData := make([]map[string]interface{}, len(list))
+
+	for i, item := range list {
+		if item.SubType == "" {
+			for i, item := range list {
+				//find all item in bill
+				gsItem := model_service.GroupServices{}
+				gsItem.CourseUid = item.CourseUid
+				gsItem.PartnerUid = item.PartnerUid
+				gsItem.SubType = item.GroupCode
+
+				listGSItem, err := gsItem.FindAll(db)
+				if err != nil {
+					response_message.BadRequest(c, err.Error())
+					return
+				}
+
+				// Add infor to response
+				listData[i] = map[string]interface{}{
+					"infor":     item,
+					"list_item": listGSItem,
+				}
+			}
+		} else {
+			// find infor group cha
+			gsInfor := model_service.GroupServices{}
+			gsInfor.CourseUid = item.CourseUid
+			gsInfor.PartnerUid = item.PartnerUid
+			gsInfor.GroupCode = item.SubType
+
+			err := gsInfor.FindFirst(db)
+			if err != nil {
+				response_message.BadRequest(c, err.Error())
+				return
+			}
+
+			//find all item con của group cha
+			gsItem := model_service.GroupServices{}
+			gsItem.CourseUid = item.CourseUid
+			gsItem.PartnerUid = item.PartnerUid
+			gsItem.SubType = item.SubType
+			gsItem.GroupName = form.GroupName
+
+			listGSItem, err := gsItem.FindAll(db)
+			if err != nil {
+				response_message.BadRequest(c, err.Error())
+				return
+			}
+
+			// Add infor to response
+			listData[i] = map[string]interface{}{
+				"infor":     gsInfor,
+				"list_item": listGSItem,
+			}
+		}
+	}
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  listData,
+	}
+
+	okResponse(c, res)
+}
+
 func (_ *CGroupServices) DeleteServices(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	serviceIdP := c.Param("id")

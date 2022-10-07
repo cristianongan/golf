@@ -87,6 +87,55 @@ func (item *GroupServices) FindList(database *gorm.DB, page models.Page) ([]Grou
 	return list, total, db.Error
 }
 
+func (item *GroupServices) FindAdvancedList(database *gorm.DB, page models.Page) ([]GroupServices, int64, error) {
+	db := database.Model(GroupServices{})
+	list := []GroupServices{}
+	total := int64(0)
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.GroupName != "" {
+		db.Where("sub_type != ''")
+		db = db.Where("group_code LIKE ?", "%"+item.GroupName+"%").Or("group_name LIKE ?", "%"+item.GroupName+"%")
+		db.Group("sub_type")
+	} else {
+		db = db.Where("sub_type IS NULL OR sub_type = ''")
+	}
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+	return list, total, db.Error
+}
+
+func (item *GroupServices) FindAll(database *gorm.DB) ([]GroupServices, error) {
+	db := database.Model(GroupServices{})
+	list := []GroupServices{}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.GroupName != "" {
+		db = db.Where("group_name LIKE ?", "%"+item.GroupName+"%")
+	}
+	if item.SubType != "" {
+		db = db.Where("sub_type = ?", item.SubType)
+	}
+
+	db = db.Find(&list)
+
+	return list, db.Error
+}
+
 func (item *GroupServices) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
