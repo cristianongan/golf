@@ -196,16 +196,16 @@ func (_ *CPayment) GetListSinglePayment(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, res)
 }
 
-func (_ *CPayment) UpdateSinglePayment(c *gin.Context, prof models.CmsUser) {
+func (_ *CPayment) UpdateSinglePaymentItem(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	body := request.UpdateSinglePaymentBody{}
+	body := request.UpdateSinglePaymentItemBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
 	// Check check_sum
-	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BookingUid + "|" + body.PaymentUid + "|" + body.DateStr
+	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BookingUid + "|" + body.PaymentItemUid + "|" + body.DateStr
 	log.Println("UpdateSinglePayment checkSumMessage ", checkSumMessage)
 	checkSum := utils.GetSHA256Hash(checkSumMessage)
 	log.Println("UpdateSinglePayment checkSum ", checkSum)
@@ -217,7 +217,7 @@ func (_ *CPayment) UpdateSinglePayment(c *gin.Context, prof models.CmsUser) {
 
 	// payment
 	payment := model_payment.SinglePayment{}
-	payment.Uid = body.PaymentUid
+	payment.Uid = body.PaymentItemUid
 	errF := payment.FindFirst(db)
 
 	if errF != nil {
@@ -230,6 +230,112 @@ func (_ *CPayment) UpdateSinglePayment(c *gin.Context, prof models.CmsUser) {
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
+	}
+
+	okRes(c)
+}
+
+/*
+
+ */
+func (_ *CPayment) GetListSinglePaymentDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.GetListSinglePaymentDetailBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// Checksum
+	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BillCode + "|" + body.Bag
+	log.Println("GetListSinglePaymentDetail checkSumMessage ", checkSumMessage)
+	checkSum := utils.GetSHA256Hash(checkSumMessage)
+	log.Println("GetListSinglePaymentDetail checkSum ", checkSum)
+
+	if checkSum != body.CheckSum {
+		response_message.BadRequest(c, "checksum invalid")
+		return
+	}
+
+	paymentR := model_payment.SinglePaymentItem{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		BillCode:   body.BillCode,
+		Bag:        body.Bag,
+	}
+
+	list, err := paymentR.FindAll(db)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": len(list),
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
+/*
+Xoá payment
+*/
+func (_ *CPayment) DeleteSinglePaymentItem(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.DeleteSinglePaymentDetailBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// Check check_sum
+	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BillCode + "|" + body.Bag
+	log.Println("UpdateSinglePayment checkSumMessage ", checkSumMessage)
+	checkSum := utils.GetSHA256Hash(checkSumMessage)
+	log.Println("UpdateSinglePayment checkSum ", checkSum)
+
+	if checkSum != body.CheckSum {
+		response_message.BadRequest(c, "checksum invalid")
+		return
+	}
+
+	// payment
+	payment := model_payment.SinglePayment{}
+	payment.BillCode = body.BillCode
+	errF := payment.FindFirst(db)
+
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	payment.Status = constants.STATUS_DELETE
+	errUdp := payment.Update(db)
+
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	paymentItem := model_payment.SinglePaymentItem{
+		PaymentUid: payment.Uid,
+	}
+
+	listPaymentItem, errList := paymentItem.FindAll(db)
+
+	if errList == nil {
+		for _, v := range listPaymentItem {
+			v.Status = constants.STATUS_DELETE
+			errUdpItem := v.Update(db)
+			if errUdpItem != nil {
+				log.Println("DeleteSinglePaymentItem errUdpItem ", errUdpItem.Error())
+			}
+		}
+	} else {
+		if errList != nil {
+			log.Println("DeleteSinglePaymentItem errUdpItem ", errList.Error())
+		}
 	}
 
 	okRes(c)
