@@ -173,6 +173,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			RowIndex:             &listIndex[i],
 			AgencyId:             agency.Id,
 			TeePath:              "MORNING",
+			BookingCode:          body.BookingCode,
 		}
 
 		if body.IsMainCourse {
@@ -203,7 +204,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 
 	dataRes.Result.Status = http.StatusOK
 
-	dataRes.BookID = bookingOta.Id
+	dataRes.BookOtaID = bookingOta.Id
 
 	okResponse(c, dataRes)
 }

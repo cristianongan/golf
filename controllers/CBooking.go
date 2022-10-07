@@ -382,6 +382,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	if body.BookingCode == "" {
 		bookingCode := utils.HashCodeUuid(bookingUid.String())
 		booking.BookingCode = bookingCode
+	} else {
+		booking.BookingCode = body.BookingCode
 	}
 
 	errC := booking.Create(db, bUid)
