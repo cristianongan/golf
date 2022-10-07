@@ -130,24 +130,22 @@ func (_ *CGroupServices) GetGSAdvancedList(c *gin.Context, prof models.CmsUser) 
 
 	for i, item := range list {
 		if item.SubType == "" {
-			for i, item := range list {
-				//find all item in bill
-				gsItem := model_service.GroupServices{}
-				gsItem.CourseUid = item.CourseUid
-				gsItem.PartnerUid = item.PartnerUid
-				gsItem.SubType = item.GroupCode
+			//find all item in bill
+			gsItem := model_service.GroupServices{}
+			gsItem.CourseUid = item.CourseUid
+			gsItem.PartnerUid = item.PartnerUid
+			gsItem.SubType = item.GroupCode
 
-				listGSItem, err := gsItem.FindAll(db)
-				if err != nil {
-					response_message.BadRequest(c, err.Error())
-					return
-				}
+			listGSItem, err := gsItem.FindAll(db)
+			if err != nil {
+				response_message.BadRequest(c, err.Error())
+				return
+			}
 
-				// Add infor to response
-				listData[i] = map[string]interface{}{
-					"infor":     item,
-					"list_item": listGSItem,
-				}
+			// Add infor to response
+			listData[i] = map[string]interface{}{
+				"infor":     item,
+				"list_item": listGSItem,
 			}
 		} else {
 			// find infor group cha
