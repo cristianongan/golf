@@ -844,7 +844,7 @@ func udpOutBuggy(db *gorm.DB, booking *model_booking.Booking, isOutAll bool) err
 	buggy.Id = booking.BuggyId
 	err := buggy.FindFirst(db)
 	if err == nil {
-		buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_ACTIVE
+		buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_FINISH
 		if errUdp := buggy.Update(db); errUdp != nil {
 			log.Println("udpBuggyOut err", err.Error())
 			return errUdp

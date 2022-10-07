@@ -1210,7 +1210,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			// Lấy theo GuestStyle
 			body.GuestStyle = memberCard.GetGuestStyle(db)
 		}
-	} else {
+	} else if body.MemberCardUid == "" {
 		// Update member card
 		booking.MemberCardUid = ""
 		booking.CardId = ""
