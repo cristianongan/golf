@@ -604,6 +604,7 @@ func NewRouter() *gin.Engine {
 			{
 				cBookOta := new(controllers.CBooking)
 				otaV1Api.POST("/CreateBooking", cBookOta.CreateBookingOTA)
+				otaV1Api.POST("/CancelBook", cBookOta.CancelBookingOTA)
 
 				/// =================== Course ===================
 				cCourseOta := new(controllers.CCourseOTA)

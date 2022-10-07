@@ -2,6 +2,11 @@ package response
 
 import "encoding/json"
 
+type CancelBookOTARes struct {
+	Result      ResultOTA `json:"result"`
+	BookingCode string    `json:"BookingCode"`
+}
+
 func (r *BookingOTARes) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }

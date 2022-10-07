@@ -59,3 +59,12 @@ type RTeeTimeOTA struct {
 	Guest_Code   string `json:"Guest_Code"`
 	Locktime     int    `json:"Locktime"`
 }
+
+type CancelBookOTABody struct {
+	Token        string `json:"Token" binding:"required"`      // SHA256(“FLC2020”+ DateStr + TeeOffStr + BookingCode)
+	CourseCode   string `json:"CourseCode" binding:"required"` // uid sân
+	DeleteBook   bool   `json:"DeleteBook"`
+	BookingCode  string `json:"BookingCode" binding:"required"` // Mã OTA bên VNPay gửi sang để lưu
+	EmailConfirm string `json:"EmailConfirm"`                   // ds email nhận xác nhận booking, cách nhau dấu ";"
+	AgentCode    string `json:"AgentCode" binding:"required"`
+}

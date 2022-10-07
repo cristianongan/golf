@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
@@ -203,6 +204,91 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	dataRes.Result.Status = http.StatusOK
 
 	dataRes.BookID = bookingOta.Id
+
+	okResponse(c, dataRes)
+}
+
+/*
+Cancel Booking OTA
+*/
+func (cBooking *CBooking) CancelBookingOTA(c *gin.Context) {
+	dataRes := response.CancelBookOTARes{}
+
+	body := request.CancelBookOTABody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		dataRes.Result.Status = http.StatusInternalServerError
+		dataRes.Result.Infor = bindErr.Error()
+		c.JSON(500, dataRes)
+		return
+	}
+
+	// Check token
+	checkToken := "CHILINH_TEST" + body.AgentCode + body.BookingCode
+	token := utils.GetSHA256Hash(checkToken)
+
+	if strings.ToUpper(token) != body.Token {
+		dataRes.Result.Status = http.StatusInternalServerError
+		dataRes.Result.Infor = "token invalid"
+
+		okResponse(c, dataRes)
+		return
+	}
+
+	prof := models.CmsUser{
+		PartnerUid: "CHI-LINH",
+		CourseUid:  body.CourseCode,
+		UserName:   "ota",
+	}
+
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	//Get payment
+	bookingOta := model_booking.BookingOta{
+		BookingCode: body.BookingCode,
+		CourseUid:   body.CourseCode,
+	}
+
+	errFindBO := bookingOta.FindFirst(db)
+	if errFindBO == nil {
+		if body.DeleteBook {
+			errDel := bookingOta.Delete(db)
+			if errDel != nil {
+				log.Println("CancelBookingOTA errDel", errDel.Error())
+			}
+		} else {
+			bookingOta.Status = constants.STATUS_DELETE
+			errUdp := bookingOta.Update(db)
+			if errUdp != nil {
+				log.Println("CancelBookingOTA errUdp", errUdp.Error())
+			}
+		}
+	}
+
+	//Get Bag Booking
+	bookR := model_booking.Booking{
+		BookingOtaId: bookingOta.Id,
+	}
+
+	listBook, errL := bookR.FindAllBookingOTA(db)
+	if errL == nil {
+		for _, v := range listBook {
+			if body.DeleteBook {
+				errDel := v.Delete(db)
+				if errDel != nil {
+					log.Println("CancelBookingOTA Book errDel", errDel.Error())
+				}
+			} else {
+				v.BagStatus = constants.BAG_STATUS_CANCEL
+				errUdp := v.Update(db)
+				if errUdp != nil {
+					log.Println("CancelBookingOTA Book errUdp", errUdp.Error())
+				}
+			}
+		}
+	}
+
+	dataRes.Result.Status = http.StatusOK
+	dataRes.BookingCode = body.BookingCode
 
 	okResponse(c, dataRes)
 }
