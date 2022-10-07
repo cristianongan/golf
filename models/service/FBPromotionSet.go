@@ -89,8 +89,8 @@ func (item *FbPromotionSetRequest) FindList(database *gorm.DB, page models.Page)
 		db = db.Where("fb_promotion_sets.group_code = ?", item.GroupCode)
 	}
 	if item.CodeOrName != "" {
-		query := "fb_promotion_sets.fb_code COLLATE utf8mb4_general_ci LIKE ? OR " +
-			"fb_promotion_sets.vie_name COLLATE utf8mb4_general_ci LIKE ?"
+		query := "fb_promotion_sets.code COLLATE utf8mb4_general_ci LIKE ? OR " +
+			"fb_promotion_sets.set_name COLLATE utf8mb4_general_ci LIKE ?"
 		db = db.Where(query, "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%")
 	}
 
