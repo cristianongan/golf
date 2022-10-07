@@ -124,7 +124,7 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 		buggyRequest.PartnerUid = ""
 	}
 
-	list, total, err := buggyRequest.FindList(db, page)
+	list, total, err := buggyRequest.FindList(db, page, form.IsReady)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
