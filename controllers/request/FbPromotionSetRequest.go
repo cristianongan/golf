@@ -17,11 +17,12 @@ type FbPromotionSetBody struct {
 
 type GetListFbPromotionSetForm struct {
 	PageRequest
-	PartnerUid *string `form:"partner_uid" json:"partner_uid"`
-	CourseUid  *string `form:"course_uid" json:"course_uid"`
-	GroupCode  *string `form:"group_code" json:"group_code"`
-	SetName    *string `form:"set_name" json:"set_name"`
-	Status     *string `form:"status" json:"status"`
+	PartnerUid string `form:"partner_uid" json:"partner_uid"`
+	CourseUid  string `form:"course_uid" json:"course_uid"`
+	GroupCode  string `form:"group_code" json:"group_code"`
+	SetName    string `form:"set_name" json:"set_name"`
+	Status     string `form:"status" json:"status"`
+	CodeOrName string `form:"code_or_name"`
 }
 
 type UpdateFbPromotionSet struct {

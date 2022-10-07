@@ -623,6 +623,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.TeeType = form.TeeType
 	bookings.IsCheckIn = form.IsCheckIn
 	bookings.GuestStyleName = form.GuestStyleName
+	bookings.PlayerOrBag = form.PlayerOrBag
 
 	db, total, err := bookings.FindBookingListWithSelect(db, page)
 
