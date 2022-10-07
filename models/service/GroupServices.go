@@ -125,7 +125,7 @@ func (item *GroupServices) FindAll(database *gorm.DB) ([]GroupServices, error) {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
 	if item.GroupName != "" {
-		db = db.Where("group_name LIKE ?", "%"+item.GroupName+"%")
+		db = db.Where("group_name LIKE ?", "%"+item.GroupName+"%").Or("group_code LIKE ?", "%"+item.GroupName+"%")
 	}
 	if item.SubType != "" {
 		db = db.Where("sub_type = ?", item.SubType)
