@@ -623,6 +623,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.TeeType = form.TeeType
 	bookings.IsCheckIn = form.IsCheckIn
 	bookings.GuestStyleName = form.GuestStyleName
+	bookings.PlayerOrBag = form.PlayerOrBag
 
 	db, total, err := bookings.FindBookingListWithSelect(db, page)
 
@@ -1387,6 +1388,11 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 
 	if len(body.SubBags) == 0 {
 		response_message.BadRequest(c, "Subbags invalid empty")
+		return
+	}
+
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag đã Check Out")
 		return
 	}
 

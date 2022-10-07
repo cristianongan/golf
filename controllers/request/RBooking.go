@@ -65,6 +65,7 @@ type GetListBookingWithSelectForm struct {
 	TeeType        string  `form:"tee_type"`
 	IsCheckIn      string  `form:"is_check_in"`
 	GuestStyleName string  `form:"guest_style_name"`
+	PlayerOrBag    string  `form:"player_or_bag"`
 }
 
 type GetListBookingWithListServiceItems struct {

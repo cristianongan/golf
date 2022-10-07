@@ -40,6 +40,7 @@ type GetListFoodBeverageForm struct {
 	Status      string `form:"status" json:"status"`
 	FBCodeList  string `form:"fb_code_list" json:"fb_code_list"`
 	Type        string `form:"type"`
+	CodeOrName  string `form:"code_or_name"`
 }
 
 type UpdateFoodBeverageBody struct {
