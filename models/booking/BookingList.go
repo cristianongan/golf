@@ -203,7 +203,7 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 	}
 
 	if item.PlayerOrBag != "" {
-		db = db.Where("bag = ?", item.PlayerOrBag).Or("customer_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.PlayerOrBag+"%")
+		db = db.Where("bag COLLATE utf8mb4_general_ci LIKE ? OR customer_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.PlayerOrBag+"%", "%"+item.PlayerOrBag+"%")
 	}
 
 	if item.IsCheckIn != "" {

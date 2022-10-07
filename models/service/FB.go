@@ -106,8 +106,11 @@ func (item *FoodBeverageRequest) FindList(database *gorm.DB, page models.Page) (
 	if item.CourseUid != "" {
 		db = db.Where("food_beverages.course_uid = ?", item.CourseUid)
 	}
-	if item.EnglishName != "" || item.FBCode != "" {
-		db = db.Or("food_beverages.english_name LIKE ?", "%"+item.EnglishName+"%").Or("food_beverages.fb_code = ?", item.FBCode)
+	if item.EnglishName != "" {
+		db = db.Or("food_beverages.english_name LIKE ?", "%"+item.EnglishName+"%")
+	}
+	if item.FBCode != "" {
+		db = db.Or("food_beverages.fb_code = ?", item.FBCode)
 	}
 	if item.VieName != "" {
 		db = db.Where("food_beverages.vie_name LIKE ?", "%"+item.VieName+"%")
@@ -119,7 +122,10 @@ func (item *FoodBeverageRequest) FindList(database *gorm.DB, page models.Page) (
 		db = db.Where("food_beverages.type = ?", item.Type)
 	}
 	if item.CodeOrName != "" {
-		db = db.Where("food_beverages.fb_code = ?", item.CodeOrName).Or("food_beverages.vie_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CodeOrName+"%").Or("food_beverages.english_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CodeOrName+"%")
+		query := "food_beverages.fb_code COLLATE utf8mb4_general_ci LIKE ? OR " +
+			"food_beverages.vie_name COLLATE utf8mb4_general_ci LIKE ? OR " +
+			"food_beverages.english_name COLLATE utf8mb4_general_ci LIKE ?"
+		db = db.Where(query, "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%")
 	}
 	if len(item.FBCodeList) != 0 {
 		db = db.Where("food_beverages.fb_code IN (?)", item.FBCodeList)
