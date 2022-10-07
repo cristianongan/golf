@@ -70,7 +70,7 @@ func (item *GroupServices) FindList(database *gorm.DB, page models.Page) ([]Grou
 	}
 	if item.Type != "" {
 		if item.SubType == "" {
-			db = db.Where("type = ? AND sub_type IS NULL", item.Type)
+			db = db.Where("type = ? AND (sub_type IS NULL OR sub_type = '')", item.Type)
 		} else {
 			db = db.Where("type = ?", item.Type)
 		}
@@ -79,7 +79,7 @@ func (item *GroupServices) FindList(database *gorm.DB, page models.Page) ([]Grou
 		db = db.Where("sub_type = ?", item.SubType)
 	}
 
-	db.Debug().Count(&total)
+	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)
