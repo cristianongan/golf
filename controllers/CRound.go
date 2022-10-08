@@ -252,6 +252,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		}
 
 		// Update lại bag_status của booking cũ
+		booking.AddedRound = newTrue(true)
 		booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
 		go booking.Update(db)
 	}

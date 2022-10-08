@@ -727,13 +727,9 @@ func cloneToBuggyBooking(buggy models.Buggy) model_booking.BookingBuggy {
 
 /*
 Add Caddie, Buggy To Booking
+Bag Status Waiting
 */
-func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, bag, caddieCode, buggyCode string) (error, model_booking.Booking, models.Caddie, models.Buggy) {
-	//if partnerUid == "" || courseUid == "" || bookingDate == "" || bag == "" {
-	//	return errors.New(constants.API_ERR_INVALID_BODY_DATA), model_booking.Booking{}, models.Caddie{}, models.Buggy{}
-	//}
-	// -> COMMENT REASON: duplicate validate
-
+func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, bag, caddieCode, buggyCode string, isPrivateBuggy bool) (error, model_booking.Booking, models.Caddie, models.Buggy) {
 	// Get booking
 	booking := model_booking.Booking{
 		PartnerUid:  partnerUid,
@@ -793,7 +789,7 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 			return errFB, booking, caddie, buggy
 		}
 
-		if err := checkBuggyReady(db, buggy, booking); err != nil {
+		if err := checkBuggyReady(db, buggy, booking, isPrivateBuggy, false); err != nil {
 			return err, booking, caddie, buggy
 		}
 
@@ -1269,7 +1265,15 @@ func checkCaddieReady(booking model_booking.Booking, caddie models.Caddie) error
 Buggy có thể ghép tối đa 2 player
 Check Buggy có đang sẵn sàng để ghép không
 */
-func checkBuggyReady(db *gorm.DB, buggy models.Buggy, booking model_booking.Booking) error {
+func checkBuggyReady(db *gorm.DB, buggy models.Buggy, booking model_booking.Booking, isPrivateBuggy bool, isInCourse bool) error {
+
+	if !(buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_ACTIVE ||
+		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_FINISH ||
+		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_LOCK ||
+		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_IN_COURSE) {
+		return errors.New("Buggy " + buggy.Code + " đang ở trạng thái " + buggy.BuggyStatus)
+	}
+
 	bookingList := model_booking.BookingList{
 		PartnerUid:            booking.PartnerUid,
 		CourseUid:             booking.CourseUid,
@@ -1282,21 +1286,19 @@ func checkBuggyReady(db *gorm.DB, buggy models.Buggy, booking model_booking.Book
 	var list []model_booking.Booking
 	dbResponse.Find(&list)
 
-	if !(buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_ACTIVE ||
-		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_FINISH ||
-		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_LOCK ||
-		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_IN_COURSE) {
-		return errors.New("Buggy " + buggy.Code + " đang ở trạng thái " + buggy.BuggyStatus)
-	}
-
 	if total >= 2 {
 		return errors.New(buggy.Code + " đã ghép đủ người")
 	}
 
 	if total == 1 {
 		bookingBuggy := list[0]
-		if bookingBuggy.FlightId != booking.FlightId {
-			return errors.New("Buggy " + buggy.Code + " đang ở flight khác ")
+		if isInCourse {
+			if bookingBuggy.FlightId != booking.FlightId {
+				return errors.New("Buggy " + buggy.Code + " đang ở flight khác ")
+			}
+		}
+		if *bookingBuggy.IsPrivateBuggy {
+			return errors.New("Buggy " + buggy.Code + " đang được dùng private ")
 		}
 	}
 

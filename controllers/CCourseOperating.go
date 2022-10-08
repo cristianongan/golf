@@ -69,7 +69,7 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 	}
 
 	// Check can add
-	errB, booking, caddie, buggy := addCaddieBuggyToBooking(db, body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode)
+	errB, booking, caddie, buggy := addCaddieBuggyToBooking(db, body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode, body.IsPrivateBuggy)
 
 	if errB != nil {
 		response_message.InternalServerError(c, errB.Error())
@@ -161,7 +161,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	listBuggy := []models.Buggy{}
 	listCaddieInOut := []model_gostarter.CaddieBuggyInOut{}
 	for _, v := range body.ListData {
-		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(db, body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
+		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(db, body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode, v.IsPrivateBuggy)
 
 		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
 			PartnerUid: bookingTemp.PartnerUid,
@@ -834,7 +834,7 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		return
 	}
 
-	if errBuggy := checkBuggyReady(db, buggyNew, booking); errBuggy != nil {
+	if errBuggy := checkBuggyReady(db, buggyNew, booking, body.IsPrivateBuggy, true); errBuggy != nil {
 
 		response_message.InternalServerError(c, errBuggy.Error())
 		return
@@ -854,7 +854,6 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 			BuggyId:    booking.BuggyId,
 			BuggyCode:  booking.BuggyInfo.Code,
 			BuggyType:  constants.STATUS_OUT,
-			Note:       "",
 		}
 
 		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
@@ -881,13 +880,14 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 
 	// Udp Note
 	caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
-		PartnerUid: prof.PartnerUid,
-		CourseUid:  prof.CourseUid,
-		BookingUid: booking.Uid,
-		BuggyId:    booking.BuggyId,
-		BuggyCode:  booking.BuggyInfo.Code,
-		BuggyType:  constants.STATUS_IN,
-		Note:       "",
+		PartnerUid:     prof.PartnerUid,
+		CourseUid:      prof.CourseUid,
+		BookingUid:     booking.Uid,
+		BuggyId:        booking.BuggyId,
+		BuggyCode:      booking.BuggyInfo.Code,
+		BuggyType:      constants.STATUS_IN,
+		IsPrivateBuggy: &body.IsPrivateBuggy,
+		Note:           "",
 	}
 
 	go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
@@ -975,7 +975,7 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 	listBuggy := []models.Buggy{}
 	listCaddieInOut := []model_gostarter.CaddieBuggyInOut{}
 	for _, v := range body.ListData {
-		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(db, prof.PartnerUid, prof.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode)
+		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(db, prof.PartnerUid, prof.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode, v.IsPrivateBuggy)
 
 		if caddieTemp.Id > 0 {
 			if errB == nil {
@@ -1142,6 +1142,8 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	newBooking.BagStatus = constants.BAG_STATUS_IN_COURSE
 	newBooking.FlightId = body.FlightId
 	newBooking.TimeOutFlight = 0
+	newBooking.BuggyId = 0
+	newBooking.BuggyInfo = model_booking.BookingBuggy{}
 
 	bUid := booking.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
 	errCreateBooking := newBooking.Create(db, bUid)
