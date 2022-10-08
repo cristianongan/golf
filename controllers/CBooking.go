@@ -80,16 +80,19 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	//check Booking Source with date time rule
 	if body.BookingSourceId != "" {
-		bookingSource := model_booking.BookingSource{
-			PartnerUid: prof.PartnerUid,
-			CourseUid:  prof.CourseUid,
-		}
-		bookingSource.BookingSourceId = body.BookingSourceId
-		errorTime := bookingSource.ValidateTimeRuleInBookingSource(db, body.BookingDate, body.TeePath)
-		if errorTime != nil {
-			response_message.BadRequest(c, errorTime.Error())
-			return nil, errorTime
-		}
+		//TODO: check lại khi rãnh
+		// bookingSource := model_booking.BookingSource{
+		// 	PartnerUid: prof.PartnerUid,
+		// 	CourseUid:  prof.CourseUid,
+		// }
+		// bookingSource.BookingSourceId = body.BookingSourceId
+
+		// errorTime := bookingSource.ValidateTimeRuleInBookingSource(db, body.BookingDate, body.TeePath)
+		// if errorTime != nil {
+		// 	log.Println("", errorTime.Error())
+		// 	response_message.BadRequest(c, errorTime.Error())
+		// 	return nil, errorTime
+		// }
 	}
 
 	if !body.IsCheckIn {
