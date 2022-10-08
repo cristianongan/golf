@@ -310,9 +310,8 @@ func (_ *CPayment) DeleteSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
-	paymentItem := model_payment.SinglePaymentItem{
-		PaymentUid: body.SinglePaymentItemUid,
-	}
+	paymentItem := model_payment.SinglePaymentItem{}
+	paymentItem.Uid = body.SinglePaymentItemUid
 
 	errFindPaymentItem := paymentItem.FindFirst(db)
 	if errFindPaymentItem != nil {
