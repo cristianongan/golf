@@ -101,12 +101,12 @@ type Booking struct {
 
 	InitType string `json:"init_type" gorm:"type:varchar(50);index"` // BOOKING: Tạo booking xong checkin, CHECKIN: Check In xong tạo Booking luôn
 
-	CaddieBuggyInOut  []CaddieBuggyInOut      `json:"caddie_buggy_in_out" gorm:"foreignKey:BookingUid;references:Uid"`
-	BookingCode       string                  `json:"booking_code" gorm:"type:varchar(100);index"` // cho case tạo nhiều booking có cùng booking code
-	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant,omitempty" gorm:"type:json"`
-	BookingRetal      utils.BookingRental     `json:"booking_retal,omitempty" gorm:"type:json"`
-	BookingSourceId   string                  `json:"booking_source_id" gorm:"type:varchar(50);index"`
-	BookingOtaId      int64                   `json:"booking_ota_id" gorm:"index"` // uid booking OTA
+	CaddieBuggyInOut   []CaddieBuggyInOut      `json:"caddie_buggy_in_out" gorm:"foreignKey:BookingUid;references:Uid"`
+	BookingCode        string                  `json:"booking_code" gorm:"type:varchar(100);index"`         // cho case tạo nhiều booking có cùng booking code
+	BookingCodePartner string                  `json:"booking_code_partner" gorm:"type:varchar(100);index"` // Booking code của partner
+	BookingRestaurant  utils.BookingRestaurant `json:"booking_restaurant,omitempty" gorm:"type:json"`
+	BookingRetal       utils.BookingRental     `json:"booking_retal,omitempty" gorm:"type:json"`
+	BookingSourceId    string                  `json:"booking_source_id" gorm:"type:varchar(50);index"`
 
 	MemberUidOfGuest  string `json:"member_uid_of_guest" gorm:"type:varchar(50);index"` // Member của Guest đến chơi cùng
 	MemberNameOfGuest string `json:"member_name_of_guest" gorm:"type:varchar(200)"`     // Member của Guest đến chơi cùng
@@ -933,7 +933,7 @@ func (item *Booking) FindAllBookingOTA(database *gorm.DB) ([]Booking, error) {
 	db := database.Model(Booking{})
 	list := []Booking{}
 
-	db = db.Where("booking_ota_id = ?", item.BookingOtaId)
+	db = db.Where("booking_code = ?", item.BookingCode)
 
 	db.Find(&list)
 	return list, db.Error
