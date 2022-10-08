@@ -148,7 +148,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	}
 
 	// Create booking code
-	bookingCode := "VNP" + "_" + utils.HashCodeUuid(uuid.New().String())
+	bookingCode := body.BookingCode + "_" + utils.HashCodeUuid(uuid.New().String()) + "_VNP"
 	bookingOta.BookingCode = bookingCode
 
 	errCBO := bookingOta.Create(db)
