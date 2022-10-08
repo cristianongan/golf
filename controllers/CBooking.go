@@ -1047,6 +1047,10 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		go createBagsNoteNoteOfBooking(db, booking)
 	}
 
+	if body.NoteOfGo != "" {
+		booking.NoteOfBag = body.NoteOfBag
+	}
+
 	// Update caddie
 	if body.CaddieCode != "" {
 		cBooking.UpdateBookingCaddieCommon(db, body.PartnerUid, body.CourseUid, &booking, caddie)
