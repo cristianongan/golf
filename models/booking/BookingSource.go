@@ -14,8 +14,8 @@ type BookingSource struct {
 	models.ModelId
 	PartnerUid        string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid         string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	BookingSourceId   string `json:"booking_source_id" gorm:"type:varchar(100)"` // Id của Agency
-	AgencyId          string `json:"agency_id" gorm:"type:varchar(100)"`         // Booking source id của đối tác
+	BookingSourceId   string `json:"booking_source_id" gorm:"type:varchar(100)"` // Id của Booking source
+	AgencyId          int64  `json:"agency_id" gorm:"index"`                     // Id của Agency
 	BookingSourceName string `json:"booking_source_name"`                        // Tên source: VNPAY,...
 	IsPart1TeeType    bool   `json:"is_part1_tee_type"`                          // Part1 enable hay ko
 	IsPart2TeeType    bool   `json:"is_part2_tee_type"`                          // Part2 enable hay ko

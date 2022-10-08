@@ -273,6 +273,7 @@ func (_ *CPayment) GetListSinglePaymentDetail(c *gin.Context, prof models.CmsUse
 		BillCode:   body.BillCode,
 		Bag:        body.Bag,
 	}
+	paymentR.Status = constants.STATUS_ENABLE
 
 	list, err := paymentR.FindAll(db)
 	if err != nil {

@@ -147,8 +147,22 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		GreenFee:  body.GreenFee,
 	}
 
+	// Find booking source
+	bookingSource := model_booking.BookingSource{
+		PartnerUid: prof.PartnerUid,
+		AgencyId:   agency.Id,
+	}
+
+	errFindBS := bookingSource.FindFirst(db)
+	bookSourceId := ""
+	if errFindBS == nil {
+		bookSourceId = bookingSource.BookingSourceId
+	} else {
+		log.Println("CreateBookingOTA errFindBS", errFindBS.Error())
+	}
+
 	// Create booking code
-	bookingCode := "VNP" + "_" + utils.HashCodeUuid(uuid.New().String())
+	bookingCode := body.BookingCode + "_" + utils.HashCodeUuid(uuid.New().String()) + "_" + bookSourceId
 	bookingOta.BookingCode = bookingCode
 
 	errCBO := bookingOta.Create(db)
@@ -180,6 +194,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			TeePath:              "MORNING",
 			BookingCodePartner:   body.BookingCode,
 			BookingCode:          bookingOta.BookingCode,
+			BookingSourceId:      bookSourceId,
 		}
 
 		if body.IsMainCourse {
