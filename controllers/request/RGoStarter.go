@@ -13,12 +13,13 @@ type GetBookingForCaddieOnCourseForm struct {
 
 // Add Caddie, Buggy To Booking
 type AddCaddieBuggyToBooking struct {
-	PartnerUid  string `json:"partner_uid"`
-	CourseUid   string `json:"course_uid"`
-	Bag         string `json:"bag"`
-	CaddieCode  string `json:"caddie_code"`
-	BuggyCode   string `json:"buggy_code"`
-	BookingDate string `json:"booking_date"`
+	PartnerUid     string `json:"partner_uid"`
+	CourseUid      string `json:"course_uid"`
+	Bag            string `json:"bag"`
+	CaddieCode     string `json:"caddie_code"`
+	BuggyCode      string `json:"buggy_code"`
+	BookingDate    string `json:"booking_date"`
+	IsPrivateBuggy bool   `json:"is_private_buggy"`
 }
 
 type CreateFlightBody struct {

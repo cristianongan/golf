@@ -12,10 +12,12 @@ import (
 
 type CaddieBuggyInOut struct {
 	models.ModelId
-	PartnerUid     string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid      string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	BookingUid     string `json:"booking_uid" gorm:"type:varchar(50);index"`  // Ex: Booking Uid
-	CaddieId       int64  `json:"caddie_id" gorm:"index"`                     // Caddie Id
+	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	BookingUid string `json:"booking_uid" gorm:"type:varchar(50);index"`  // Ex: Booking Uid
+	// BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
+	// Bag            string `json:"bag" gorm:"type:varchar(100);index"`         // Golf Bag
+	CaddieId       int64  `json:"caddie_id" gorm:"index"` // Caddie Id
 	CaddieCode     string `json:"caddie_code" gorm:"type:varchar(256)"`
 	BuggyId        int64  `json:"buggy_id"`                            // Buggy Id
 	BuggyCode      string `json:"buggy_code" gorm:"type:varchar(100)"` // Buggy Code

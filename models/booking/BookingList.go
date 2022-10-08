@@ -218,7 +218,6 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 
 	if item.IsBuggyPrepareForJoin != "" {
 		bagStatus := []string{
-			constants.BAG_STATUS_IN_COURSE,
 			constants.BAG_STATUS_WAITING,
 		}
 		db = db.Where("show_caddie_buggy = ?", true)
