@@ -8,6 +8,7 @@ import (
 	model_booking "start/models/booking"
 	"start/utils/response_message"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,10 +23,11 @@ func (_ *CBookingSource) CreateBookingSource(c *gin.Context, prof models.CmsUser
 		return
 	}
 
+	bookingSourceId := strings.ToUpper(body.BookingSourceId)
 	bookingSource := model_booking.BookingSource{
 		PartnerUid:      body.PartnerUid,
 		CourseUid:       body.CourseUid,
-		BookingSourceId: body.BookingSourceId,
+		BookingSourceId: bookingSourceId,
 	}
 
 	error := bookingSource.FindFirst(db)
@@ -44,7 +46,7 @@ func (_ *CBookingSource) CreateBookingSource(c *gin.Context, prof models.CmsUser
 		NormalDay:         body.NormalDay,
 		Weekend:           body.Weekend,
 		NumberOfDays:      body.NumberOfDays,
-		BookingSourceId:   body.BookingSourceId,
+		BookingSourceId:   bookingSourceId,
 	}
 
 	if body.Status != "" {
