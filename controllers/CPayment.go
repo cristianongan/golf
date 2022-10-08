@@ -215,7 +215,7 @@ func (_ *CPayment) UpdateSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 	}
 
 	// Check check_sum
-	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BookingUid + "|" + body.PaymentItemUid + "|" + body.DateStr
+	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BookingUid + "|" + body.SinglePaymentItemUid + "|" + body.DateStr
 	log.Println("UpdateSinglePayment checkSumMessage ", checkSumMessage)
 	checkSum := utils.GetSHA256Hash(checkSumMessage)
 	log.Println("UpdateSinglePayment checkSum ", checkSum)
@@ -226,17 +226,17 @@ func (_ *CPayment) UpdateSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 	}
 
 	// payment
-	payment := model_payment.SinglePayment{}
-	payment.Uid = body.PaymentItemUid
-	errF := payment.FindFirst(db)
+	paymentItem := model_payment.SinglePaymentItem{}
+	paymentItem.Uid = body.SinglePaymentItemUid
+	errF := paymentItem.FindFirst(db)
 
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	payment.Note = body.Note
-	errUdp := payment.Update(db)
+	paymentItem.Note = body.Note
+	errUdp := paymentItem.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return

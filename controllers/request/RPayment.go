@@ -22,11 +22,11 @@ type GetListSinglePaymentBody struct {
 }
 
 type UpdateSinglePaymentItemBody struct {
-	BookingUid     string `json:"booking_uid" binding:"required"` // Booking uid
-	PaymentItemUid string `json:"payment_item_uid" binding:"required"`
-	DateStr        string `json:"date_str" binding:"required"`  // timestamp hiện tại -> string
-	CheckSum       string `json:"check_sum" binding:"required"` // Checksum
-	Note           string `json:"note"`                         // Note
+	BookingUid           string `json:"booking_uid" binding:"required"` // Booking uid
+	SinglePaymentItemUid string `json:"single_payment_item_uid" binding:"required"`
+	DateStr              string `json:"date_str" binding:"required"`  // timestamp hiện tại -> string
+	CheckSum             string `json:"check_sum" binding:"required"` // Checksum
+	Note                 string `json:"note"`                         // Note
 }
 
 type GetListSinglePaymentDetailBody struct {
@@ -42,6 +42,5 @@ type DeleteSinglePaymentDetailBody struct {
 	SinglePaymentItemUid string `json:"single_payment_item_uid" binding:"required"`
 	BillCode             string `json:"bill_code" binding:"required"`
 	Bag                  string `json:"bag" binding:"required"`
-	PaymentDate          string `json:"payment_date"`
 	CheckSum             string `json:"check_sum" binding:"required"` // Checksum
 }
