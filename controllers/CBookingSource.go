@@ -178,7 +178,7 @@ func (_ *CBookingSource) UpdateBookingSource(c *gin.Context, prof models.CmsUser
 	if body.NumberOfDays != 0 {
 		bookingSourceRequest.NumberOfDays = body.NumberOfDays
 	}
-	if body.AgencyId != "" {
+	if body.AgencyId != 0 {
 		bookingSourceRequest.AgencyId = body.AgencyId
 	}
 
