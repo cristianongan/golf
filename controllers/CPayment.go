@@ -110,6 +110,7 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 		Note:        body.Note,
 		PaymentUid:  singlePayment.Uid,
 		Cashiers:    prof.UserName,
+		BookingDate: booking.BookingDate,
 	}
 
 	errC := singlePaymentItem.Create(db)
