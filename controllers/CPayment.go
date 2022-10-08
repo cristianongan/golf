@@ -21,6 +21,9 @@ import (
 
 type CPayment struct{}
 
+/*
+ create single payment and
+*/
 func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateSinglePaymentBody{}
@@ -107,6 +110,7 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 		Note:        body.Note,
 		PaymentUid:  singlePayment.Uid,
 		Cashiers:    prof.UserName,
+		BookingDate: booking.BookingDate,
 	}
 
 	errC := singlePaymentItem.Create(db)
@@ -148,6 +152,9 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
+/*
+Get list single payment
+*/
 func (_ *CPayment) GetListSinglePayment(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.GetListSinglePaymentBody{}
@@ -196,6 +203,9 @@ func (_ *CPayment) GetListSinglePayment(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, res)
 }
 
+/*
+Update single payment item
+*/
 func (_ *CPayment) UpdateSinglePaymentItem(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.UpdateSinglePaymentItemBody{}
@@ -205,7 +215,7 @@ func (_ *CPayment) UpdateSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 	}
 
 	// Check check_sum
-	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BookingUid + "|" + body.PaymentItemUid + "|" + body.DateStr
+	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BookingUid + "|" + body.SinglePaymentItemUid + "|" + body.DateStr
 	log.Println("UpdateSinglePayment checkSumMessage ", checkSumMessage)
 	checkSum := utils.GetSHA256Hash(checkSumMessage)
 	log.Println("UpdateSinglePayment checkSum ", checkSum)
@@ -216,17 +226,17 @@ func (_ *CPayment) UpdateSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 	}
 
 	// payment
-	payment := model_payment.SinglePayment{}
-	payment.Uid = body.PaymentItemUid
-	errF := payment.FindFirst(db)
+	paymentItem := model_payment.SinglePaymentItem{}
+	paymentItem.Uid = body.SinglePaymentItemUid
+	errF := paymentItem.FindFirst(db)
 
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	payment.Note = body.Note
-	errUdp := payment.Update(db)
+	paymentItem.Note = body.Note
+	errUdp := paymentItem.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -236,8 +246,8 @@ func (_ *CPayment) UpdateSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 }
 
 /*
-
- */
+	Get list payment detail for bag
+*/
 func (_ *CPayment) GetListSinglePaymentDetail(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.GetListSinglePaymentDetailBody{}
@@ -279,7 +289,7 @@ func (_ *CPayment) GetListSinglePaymentDetail(c *gin.Context, prof models.CmsUse
 }
 
 /*
-Xoá payment
+Xoá payment item
 */
 func (_ *CPayment) DeleteSinglePaymentItem(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
@@ -300,42 +310,19 @@ func (_ *CPayment) DeleteSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
-	// payment
-	payment := model_payment.SinglePayment{}
-	payment.BillCode = body.BillCode
-	errF := payment.FindFirst(db)
+	paymentItem := model_payment.SinglePaymentItem{}
+	paymentItem.Uid = body.SinglePaymentItemUid
 
-	if errF != nil {
-		response_message.InternalServerError(c, errF.Error())
+	errFindPaymentItem := paymentItem.FindFirst(db)
+	if errFindPaymentItem != nil {
+		response_message.InternalServerError(c, errFindPaymentItem.Error())
 		return
 	}
 
-	payment.Status = constants.STATUS_DELETE
-	errUdp := payment.Update(db)
-
-	if errUdp != nil {
-		response_message.InternalServerError(c, errUdp.Error())
-		return
-	}
-
-	paymentItem := model_payment.SinglePaymentItem{
-		PaymentUid: payment.Uid,
-	}
-
-	listPaymentItem, errList := paymentItem.FindAll(db)
-
-	if errList == nil {
-		for _, v := range listPaymentItem {
-			v.Status = constants.STATUS_DELETE
-			errUdpItem := v.Update(db)
-			if errUdpItem != nil {
-				log.Println("DeleteSinglePaymentItem errUdpItem ", errUdpItem.Error())
-			}
-		}
-	} else {
-		if errList != nil {
-			log.Println("DeleteSinglePaymentItem errUdpItem ", errList.Error())
-		}
+	paymentItem.Status = constants.STATUS_DELETE
+	errUdpItem := paymentItem.Update(db)
+	if errUdpItem != nil {
+		log.Println("DeleteSinglePaymentItem errUdpItem ", errUdpItem.Error())
 	}
 
 	okRes(c)

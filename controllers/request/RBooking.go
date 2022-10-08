@@ -129,15 +129,16 @@ type CreateBookingBody struct {
 	MemberUidOfGuest string `json:"member_uid_of_guest"` // Member của Guest đến chơi cùng
 
 	//Agency
-	AgencyId          int64                   `json:"agency_id"`
-	CustomerUid       string                  `json:"customer_uid"`
-	CaddieCode        string                  `json:"caddie_code"`
-	BookingRestaurant utils.BookingRestaurant `json:"booking_restaurant"`
-	BookingRetal      utils.BookingRental     `json:"booking_retal"`
-	BookingCode       string                  `json:"booking_code"`
-	BookingSourceId   string                  `json:"booking_source_id"`
-	BookingOtaId      int64                   `json:"booking_ota_id"`
-	BookMark          bool
+	AgencyId           int64                   `json:"agency_id"`
+	CustomerUid        string                  `json:"customer_uid"`
+	CaddieCode         string                  `json:"caddie_code"`
+	BookingRestaurant  utils.BookingRestaurant `json:"booking_restaurant"`
+	BookingRetal       utils.BookingRental     `json:"booking_retal"`
+	BookingCode        string                  `json:"booking_code"`
+	BookingCodePartner string                  `json:"booking_code_partner"`
+	BookingSourceId    string                  `json:"booking_source_id"`
+	BookingOtaId       int64                   `json:"booking_ota_id"`
+	BookMark           bool
 }
 
 type GolfFeeGuestyleParam struct {
