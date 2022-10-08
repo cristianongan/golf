@@ -27,7 +27,7 @@ type BookingOTARes struct {
 	Contact      string    `json:"Contact"`
 	Note         string    `json:"Note"`
 	BookingCode  string    `json:"BookingCode"`
-	BookOtaID    int64     `json:"BookOtaID"`
+	BookOtaID    string    `json:"BookOtaID"`
 	GreenFee     int64     `json:"GreenFee"`
 	CaddieFee    int64     `json:"CaddieFee"`
 	BuggyFee     int64     `json:"BuggyFee"`

@@ -11,7 +11,6 @@ import (
 	model_booking "start/models/booking"
 	"start/utils"
 	"start/utils/response_message"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -81,18 +80,19 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	//check Booking Source with date time rule
 	if body.BookingSourceId != "" {
-		bookingSourceId, err := strconv.ParseInt(body.BookingSourceId, 10, 64)
-		if err != nil {
-			response_message.BadRequest(c, "BookingSource không tồn tại")
-			return nil, err
-		}
-		bookingSource := model_booking.BookingSource{}
-		bookingSource.Id = bookingSourceId
-		errorTime := bookingSource.ValidateTimeRuleInBookingSource(db, body.BookingDate, body.TeePath)
-		if errorTime != nil {
-			response_message.BadRequest(c, errorTime.Error())
-			return nil, errorTime
-		}
+		//TODO: check lại khi rãnh
+		// bookingSource := model_booking.BookingSource{
+		// 	PartnerUid: prof.PartnerUid,
+		// 	CourseUid:  prof.CourseUid,
+		// }
+		// bookingSource.BookingSourceId = body.BookingSourceId
+
+		// errorTime := bookingSource.ValidateTimeRuleInBookingSource(db, body.BookingDate, body.TeePath)
+		// if errorTime != nil {
+		// 	log.Println("", errorTime.Error())
+		// 	response_message.BadRequest(c, errorTime.Error())
+		// 	return nil, errorTime
+		// }
 	}
 
 	if !body.IsCheckIn {
@@ -105,23 +105,24 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	booking := model_booking.Booking{
-		PartnerUid:        body.PartnerUid,
-		CourseUid:         body.CourseUid,
-		TeeType:           body.TeeType,
-		TeePath:           body.TeePath,
-		TeeTime:           body.TeeTime,
-		TeeOffTime:        body.TeeTime,
-		TurnTime:          body.TurnTime,
-		RowIndex:          body.RowIndex,
-		CmsUser:           prof.UserName,
-		Hole:              body.Hole,
-		HoleBooking:       body.Hole,
-		BookingRestaurant: body.BookingRestaurant,
-		BookingRetal:      body.BookingRetal,
-		BookingCode:       body.BookingCode,
-		CourseType:        body.CourseType,
-		NoteOfBooking:     body.NoteOfBooking,
-		BookingOtaId:      body.BookingOtaId,
+		PartnerUid:         body.PartnerUid,
+		CourseUid:          body.CourseUid,
+		TeeType:            body.TeeType,
+		TeePath:            body.TeePath,
+		TeeTime:            body.TeeTime,
+		TeeOffTime:         body.TeeTime,
+		TurnTime:           body.TurnTime,
+		RowIndex:           body.RowIndex,
+		CmsUser:            prof.UserName,
+		Hole:               body.Hole,
+		HoleBooking:        body.Hole,
+		BookingRestaurant:  body.BookingRestaurant,
+		BookingRetal:       body.BookingRetal,
+		BookingCode:        body.BookingCode,
+		CourseType:         body.CourseType,
+		NoteOfBooking:      body.NoteOfBooking,
+		BookingCodePartner: body.BookingCodePartner,
+		BookingSourceId:    body.BookingSourceId,
 	}
 
 	// Check Guest of member, check member có còn slot đi cùng không
@@ -1045,6 +1046,10 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	if body.NoteOfBooking != "" && body.NoteOfBooking != booking.NoteOfBooking {
 		booking.NoteOfBooking = body.NoteOfBooking
 		go createBagsNoteNoteOfBooking(db, booking)
+	}
+
+	if body.NoteOfGo != "" {
+		booking.NoteOfBag = body.NoteOfBag
 	}
 
 	// Update caddie

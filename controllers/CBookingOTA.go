@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // type CBookingOTA struct{}
@@ -136,15 +137,33 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		Tee:          body.Tee,
 		TeeOffStr:    body.TeeOffStr,
 
-		AgentCode:    body.AgentCode,
-		GuestStyle:   body.GuestStyle,
-		BookingCode:  body.BookingCode,
-		EmailConfirm: body.EmailConfirm,
+		AgentCode:          body.AgentCode,
+		GuestStyle:         body.GuestStyle,
+		BookingCodePartner: body.BookingCode,
+		EmailConfirm:       body.EmailConfirm,
 
 		CaddieFee: body.CaddieFee,
 		BuggyFee:  body.BuggyFee,
 		GreenFee:  body.GreenFee,
 	}
+
+	// Find booking source
+	bookingSource := model_booking.BookingSource{
+		PartnerUid: prof.PartnerUid,
+		AgencyId:   agency.Id,
+	}
+
+	errFindBS := bookingSource.FindFirst(db)
+	bookSourceId := ""
+	if errFindBS == nil {
+		bookSourceId = bookingSource.BookingSourceId
+	} else {
+		log.Println("CreateBookingOTA errFindBS", errFindBS.Error())
+	}
+
+	// Create booking code
+	bookingCode := body.BookingCode + "_" + utils.HashCodeUuid(uuid.New().String()) + "_" + bookSourceId
+	bookingOta.BookingCode = bookingCode
 
 	errCBO := bookingOta.Create(db)
 	if errCBO != nil {
@@ -173,7 +192,9 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			RowIndex:             &listIndex[i],
 			AgencyId:             agency.Id,
 			TeePath:              "MORNING",
-			BookingCode:          body.BookingCode,
+			BookingCodePartner:   body.BookingCode,
+			BookingCode:          bookingOta.BookingCode,
+			BookingSourceId:      bookSourceId,
 		}
 
 		if body.IsMainCourse {
@@ -204,7 +225,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 
 	dataRes.Result.Status = http.StatusOK
 
-	dataRes.BookOtaID = bookingOta.Id
+	dataRes.BookOtaID = bookingOta.BookingCode
 
 	okResponse(c, dataRes)
 }
@@ -245,8 +266,8 @@ func (cBooking *CBooking) CancelBookingOTA(c *gin.Context) {
 
 	//Get payment
 	bookingOta := model_booking.BookingOta{
-		BookingCode: body.BookingCode,
-		CourseUid:   body.CourseCode,
+		BookingCodePartner: body.BookingCode,
+		CourseUid:          body.CourseCode,
 	}
 
 	errFindBO := bookingOta.FindFirst(db)
@@ -267,7 +288,7 @@ func (cBooking *CBooking) CancelBookingOTA(c *gin.Context) {
 
 	//Get Bag Booking
 	bookR := model_booking.Booking{
-		BookingOtaId: bookingOta.Id,
+		BookingCode: bookingOta.BookingCode,
 	}
 
 	listBook, errL := bookR.FindAllBookingOTA(db)

@@ -24,9 +24,10 @@ type BookingOta struct {
 	DateStr      string `json:"date_str" gorm:"type:varchar(50)"`    // Date
 	TeeOffStr    string `json:"tee_off_str" gorm:"type:varchar(50)"` // Tee Off Str
 
-	AgentCode   string `json:"agent_code" gorm:"type:varchar(100);index"`   // agent code
-	GuestStyle  string `json:"guest_style" gorm:"type:varchar(200);index"`  // Guest Style
-	BookingCode string `json:"booking_code" gorm:"type:varchar(256);index"` // Guest Style Name
+	AgentCode          string `json:"agent_code" gorm:"type:varchar(100);index"`           // agent code
+	GuestStyle         string `json:"guest_style" gorm:"type:varchar(200);index"`          // Guest Style
+	BookingCodePartner string `json:"booking_code_partner" gorm:"type:varchar(256);index"` // Booking Code của đối tác
+	BookingCode        string `json:"booking_code" gorm:"type:varchar(256);index"`         // Booking Code
 
 	CaddieFee int64 `json:"caddie_fee"`
 	BuggyFee  int64 `json:"buggy_fee"`
