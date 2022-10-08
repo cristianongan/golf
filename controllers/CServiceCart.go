@@ -766,6 +766,36 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	// Update amount target bill
 	sourceServiceCart.Amount = sourceServiceCart.Amount - totalAmount
 
+	if sourceServiceCart.Status == constants.POS_BILL_STATUS_ACTIVE {
+		// validate golf bag
+		bookingSource := model_booking.Booking{}
+		bookingSource.PartnerUid = sourceServiceCart.PartnerUid
+		bookingSource.CourseUid = sourceServiceCart.CourseUid
+		bookingSource.Uid = sourceServiceCart.BookingUid
+		if err := bookingSource.FindFirst(db); err != nil {
+			response_message.BadRequest(c, "Booking "+err.Error())
+			return
+		}
+
+		//Update lại giá trong booking
+		updatePriceWithServiceItem(bookingSource, prof)
+	}
+
+	//
+	serviceCartItem := model_booking.BookingServiceItem{}
+	serviceCartItem.ServiceBill = sourceServiceCart.Id
+
+	list, err := serviceCartItem.FindAll(db)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	if len(list) == len(body.CartItemIdList) {
+		sourceServiceCart.BillStatus = constants.POS_BILL_STATUS_TRANSFER
+	}
+
 	if err := sourceServiceCart.Update(db); err != nil {
 		response_message.InternalServerError(c, "Update target cart "+err.Error())
 		return
