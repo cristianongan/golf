@@ -1427,6 +1427,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 					GolfBag:    subBooking.Bag,
 					PlayerName: subBooking.CustomerName,
 					BillCode:   subBooking.BillCode,
+					BagStatus:  subBooking.BagStatus,
 				}
 				booking.SubBags = append(booking.SubBags, subBag)
 			} else {

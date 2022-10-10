@@ -11,6 +11,7 @@ type BookingSubBag struct {
 	BookingUid string `json:"booking_uid"`
 	PlayerName string `json:"player_name"`
 	BillCode   string `json:"bill_code"`
+	BagStatus  string `json:"bag_status"`
 }
 
 type GolfHoleFee struct {
