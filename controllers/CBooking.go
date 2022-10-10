@@ -2137,9 +2137,9 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 				errF := subBag.FindFirst(db)
 
 				if errF == nil {
-					if bag.BagStatus == constants.BAG_STATUS_TIMEOUT || bag.BagStatus == constants.BAG_STATUS_WAITING {
+					if bag.BagStatus == constants.BAG_STATUS_CHECK_OUT || bag.BagStatus == constants.BAG_STATUS_CANCEL {
 					} else {
-						errMessage = "Trạng thái của sub-bag không được checkout"
+						errMessage = "Sub-bag chưa check checkout"
 						isCanCheckOut = false
 						break
 					}
