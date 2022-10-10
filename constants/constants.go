@@ -251,9 +251,10 @@ const (
 Các trạng thái đơn của point of sale
 */
 const (
-	POS_BILL_STATUS_PENDING = "PENDING" // Đơn hàng đang ở trạng thái chưa xác nhận
-	POS_BILL_STATUS_ACTIVE  = "ACTIVE"  // Đơn hàng đã được xác nhận và chốt đơn (ở lễ tân lấy để tính tiền)
-	POS_BILL_STATUS_OUT     = "CANCEL"  // Đơn hàng đã hủy
+	POS_BILL_STATUS_PENDING  = "PENDING"  // Đơn hàng đang ở trạng thái chưa xác nhận
+	POS_BILL_STATUS_ACTIVE   = "ACTIVE"   // Đơn hàng đã được xác nhận và chốt đơn (ở lễ tân lấy để tính tiền)
+	POS_BILL_STATUS_OUT      = "CANCEL"   // Đơn hàng đã hủy
+	POS_BILL_STATUS_TRANSFER = "TRANSFER" // Đơn hàng transfer
 )
 
 /*
