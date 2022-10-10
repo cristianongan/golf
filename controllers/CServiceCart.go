@@ -693,10 +693,10 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag source
-	bookingSourse := model_booking.Booking{}
-	bookingSourse.Bag = sourceServiceCart.GolfBag
-	bookingSourse.BookingDate = time.Now().Format("02/01/2006")
-	if err := bookingSourse.FindFirst(db); err != nil {
+	bookingSource := model_booking.Booking{}
+	bookingSource.Bag = sourceServiceCart.GolfBag
+	bookingSource.BookingDate = time.Now().Format("02/01/2006")
+	if err := bookingSource.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find booking source "+err.Error())
 		return
 	}
@@ -763,19 +763,14 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if targetServiceCart.BillStatus == constants.POS_BILL_STATUS_TRANSFER {
+		updatePriceWithServiceItem(booking, prof)
+	}
+
 	// Update amount target bill
 	sourceServiceCart.Amount = sourceServiceCart.Amount - totalAmount
 
-	if sourceServiceCart.Status == constants.POS_BILL_STATUS_ACTIVE {
-		// validate golf bag
-		bookingSource := model_booking.Booking{}
-		bookingSource.PartnerUid = sourceServiceCart.PartnerUid
-		bookingSource.CourseUid = sourceServiceCart.CourseUid
-		bookingSource.Uid = sourceServiceCart.BookingUid
-		if err := bookingSource.FindFirst(db); err != nil {
-			response_message.BadRequest(c, "Booking "+err.Error())
-			return
-		}
+	if sourceServiceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
 
 		//Update lại giá trong booking
 		updatePriceWithServiceItem(bookingSource, prof)
@@ -792,7 +787,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if len(list) == len(body.CartItemIdList) {
+	if len(list) == 0 {
 		sourceServiceCart.BillStatus = constants.POS_BILL_STATUS_TRANSFER
 	}
 
@@ -934,12 +929,14 @@ func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
 	// Booking Uid
 	bookingUid := uuid.New()
 	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
+	bookingCode := utils.HashCodeUuid(bookingUid.String())
 
 	// Create booking
 	booking := model_booking.Booking{
 		PartnerUid:   body.PartnerUid,
 		CourseUid:    body.CourseUid,
 		Bag:          bagClone,
+		BookingCode:  bookingCode,
 		BookingDate:  time.Now().Format("02/01/2006"),
 		BagStatus:    constants.BAG_STATUS_WAITING,
 		InitType:     constants.BOOKING_INIT_TYPE_CHECKIN,
