@@ -240,6 +240,18 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 	if body.IsKitchen != nil {
 		foodBeverage.IsKitchen = *body.IsKitchen
 	}
+	if body.ColdKitchen != nil {
+		foodBeverage.ColdKitchen = body.ColdKitchen
+	}
+	if body.HotKitchen != nil {
+		foodBeverage.HotKitchen = body.HotKitchen
+	}
+	if body.Type != "" {
+		foodBeverage.Type = body.Type
+	}
+	if body.GroupName != "" {
+		foodBeverage.GroupName = body.GroupName
+	}
 
 	errUdp := foodBeverage.Update(db)
 	if errUdp != nil {

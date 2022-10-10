@@ -64,4 +64,8 @@ type UpdateFoodBeverageBody struct {
 	IsInventory   *bool   `json:"is_inventory"`
 	IsKitchen     *bool   `json:"is_kitchen"`
 	UserUpdate    string  `json:"user_update"`
+	Type          string  `json:"type" gorm:"type:varchar(256)"`
+	HotKitchen    *bool   `json:"hot_kitchen" gorm:"type:varchar(256)"`
+	ColdKitchen   *bool   `json:"cold_kitchen" gorm:"type:varchar(256)"`
+	GroupName     string  `json:"group_name" gorm:"type:varchar(100)"`
 }

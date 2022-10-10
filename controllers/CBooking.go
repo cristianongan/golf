@@ -1049,7 +1049,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.NoteOfGo != "" {
-		booking.NoteOfBag = body.NoteOfBag
+		booking.NoteOfGo = body.NoteOfGo
 	}
 
 	// Update caddie

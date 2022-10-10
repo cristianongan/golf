@@ -62,6 +62,7 @@ type BookingForFlight struct {
 	CmsUserLog       string                      `json:"cms_user_log,omitempty"`
 	NoteOfBag        string                      `json:"note_of_bag"`
 	NoteOfBooking    string                      `json:"note_of_booking"`
+	NoteOfGo         string                      `json:"note_of_go"`
 	BagStatus        string                      `json:"bag_status"`
 	IsPrivateBuggy   bool                        `json:"is_private_buggy"`
 	MovedFlight      bool                        `json:"moved_flight"`

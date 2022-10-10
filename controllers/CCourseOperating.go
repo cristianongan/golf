@@ -1136,7 +1136,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	// Tạo booking mới với flightID và bag_status in course
 	bookingUid := uuid.New()
 	newBooking := cloneToBooking(booking)
-	booking.MovedFlight = newTrue(false)
+	newBooking.MovedFlight = newTrue(false)
 	newBooking.HoleTimeOut = 0
 	newBooking.HoleMoveFlight = body.HoleMoveFlight
 	newBooking.BagStatus = constants.BAG_STATUS_IN_COURSE
