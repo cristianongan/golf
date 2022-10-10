@@ -309,6 +309,14 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// validate kiosk
+	kiosk := model_service.Kiosk{}
+	kiosk.Id = serviceCart.ServiceId
+	if err := kiosk.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Kiosk "+err.Error())
+		return
+	}
+
 	// create cart item
 	serviceCartItem := model_booking.BookingServiceItem{
 		PartnerUid:  body.PartnerUid,
@@ -341,6 +349,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 
 		// add infor cart item
 		serviceCartItem.Type = constants.RESTAURANT_SETTING
+		serviceCartItem.Location = kiosk.KioskName
 		serviceCartItem.GroupCode = fbSet.GroupCode
 		serviceCartItem.Name = fbSet.SetName
 		serviceCartItem.UnitPrice = int64(fbSet.Price)
@@ -383,6 +392,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 
 		// add infor cart item
 		serviceCartItem.Type = constants.RESTAURANT_SETTING
+		serviceCartItem.Location = kiosk.KioskName
 		serviceCartItem.GroupCode = fb.GroupCode
 		serviceCartItem.Name = fb.VieName
 		serviceCartItem.EngName = fb.EnglishName
@@ -902,6 +912,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 
 			// add infor cart item
 			serviceCartItem.Type = kiosk.KioskType
+			serviceCartItem.Location = kiosk.KioskName
 			serviceCartItem.GroupCode = fbSet.GroupCode
 			serviceCartItem.Name = fbSet.SetName
 			serviceCartItem.UnitPrice = int64(fbSet.Price)
@@ -941,6 +952,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 
 			// add infor cart item
 			serviceCartItem.Type = kiosk.KioskType
+			serviceCartItem.Location = kiosk.KioskName
 			serviceCartItem.GroupCode = fb.GroupCode
 			serviceCartItem.Name = fb.VieName
 			serviceCartItem.UnitPrice = int64(fb.Price)
