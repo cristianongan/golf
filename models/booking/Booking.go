@@ -186,17 +186,18 @@ type CaddieBuggyInOut CaddieBuggyInOutNoteForBooking
 
 type CaddieBuggyInOutNoteForBooking struct {
 	models.ModelId
-	PartnerUid string `json:"partner_uid"`
-	CourseUid  string `json:"course_uid"`
-	BookingUid string `json:"booking_uid"`
-	CaddieId   int64  `json:"caddie_id"`
-	CaddieCode string `json:"caddie_code"`
-	BuggyId    int64  `json:"buggy_id"`
-	BuggyCode  string `json:"buggy_code"`
-	Note       string `json:"note"`
-	CaddieType string `json:"caddie_type"`
-	BuggyType  string `json:"buggy_type"`
-	Hole       int    `json:"hole"`
+	PartnerUid     string `json:"partner_uid"`
+	CourseUid      string `json:"course_uid"`
+	BookingUid     string `json:"booking_uid"`
+	CaddieId       int64  `json:"caddie_id"`
+	CaddieCode     string `json:"caddie_code"`
+	BuggyId        int64  `json:"buggy_id"`
+	BuggyCode      string `json:"buggy_code"`
+	Note           string `json:"note"`
+	CaddieType     string `json:"caddie_type"`
+	BuggyType      string `json:"buggy_type"`
+	Hole           int    `json:"hole"`
+	IsPrivateBuggy bool   `json:"is_private_buggy"`
 }
 
 type BuggyInOut BuggyInOutNoteForBooking
