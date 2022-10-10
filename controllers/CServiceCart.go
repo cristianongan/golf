@@ -103,6 +103,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		}
 		// add infor cart item
 		serviceCartItem.Type = kiosk.KioskType
+		serviceCartItem.Location = kiosk.KioskName
 		serviceCartItem.GroupCode = fb.GroupCode
 		serviceCartItem.Name = fb.VieName
 		serviceCartItem.EngName = fb.EnglishName
@@ -122,6 +123,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		}
 		// add infor cart item
 		serviceCartItem.Type = kiosk.KioskType
+		serviceCartItem.Location = kiosk.KioskName
 		serviceCartItem.GroupCode = proshop.GroupCode
 		serviceCartItem.Name = proshop.VieName
 		serviceCartItem.EngName = proshop.EnglishName
@@ -141,6 +143,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		}
 		// add infor cart item
 		serviceCartItem.Type = kiosk.KioskType
+		serviceCartItem.Location = kiosk.KioskName
 		serviceCartItem.GroupCode = rental.GroupCode
 		serviceCartItem.Name = rental.VieName
 		serviceCartItem.EngName = rental.EnglishName
@@ -929,14 +932,14 @@ func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
 	// Booking Uid
 	bookingUid := uuid.New()
 	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
-	bookingCode := utils.HashCodeUuid(bookingUid.String())
+	billCode := utils.HashCodeUuid(bookingUid.String())
 
 	// Create booking
 	booking := model_booking.Booking{
 		PartnerUid:   body.PartnerUid,
 		CourseUid:    body.CourseUid,
 		Bag:          bagClone,
-		BookingCode:  bookingCode,
+		BillCode:     billCode,
 		BookingDate:  time.Now().Format("02/01/2006"),
 		BagStatus:    constants.BAG_STATUS_WAITING,
 		InitType:     constants.BOOKING_INIT_TYPE_CHECKIN,

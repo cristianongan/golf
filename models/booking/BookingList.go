@@ -126,7 +126,7 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 	}
 
 	if item.BookingCode != "" {
-		db = db.Where("booking_code = ?", item.BookingCode)
+		db = db.Where("booking_code LIKE ?", "%"+item.BookingCode+"%")
 	}
 
 	if item.AgencyId > 0 {

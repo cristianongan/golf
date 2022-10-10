@@ -2097,3 +2097,100 @@ func (_ *CBooking) ChangeBookingHole(c *gin.Context, prof models.CmsUser) {
 
 	okResponse(c, booking)
 }
+
+/*
+	Check bag có được checkout hay không
+*/
+func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.CheckBagCanCheckoutBody{}
+	if err := c.BindJSON(&body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	//Find Bag
+	bag := model_booking.Booking{
+		BookingDate: body.BookingDate,
+		Bag:         body.GolfBag,
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+	}
+
+	errFF := bag.FindFirst(db)
+	if errFF != nil {
+		response_message.InternalServerError(c, errFF.Error())
+		return
+	}
+
+	isCanCheckOut := false
+	errMessage := "ok"
+
+	if bag.BagStatus == constants.BAG_STATUS_TIMEOUT || bag.BagStatus == constants.BAG_STATUS_WAITING {
+		isCanCheckOut = true
+
+		//Check sub bag
+		if bag.SubBags != nil && len(bag.SubBags) > 0 {
+			for _, v := range bag.SubBags {
+				subBag := model_booking.Booking{}
+				subBag.Uid = v.BookingUid
+				errF := subBag.FindFirst(db)
+
+				if errF == nil {
+					if bag.BagStatus == constants.BAG_STATUS_TIMEOUT || bag.BagStatus == constants.BAG_STATUS_WAITING {
+					} else {
+						errMessage = "Trạng thái của sub-bag không được checkout"
+						isCanCheckOut = false
+						break
+					}
+				}
+			}
+		}
+
+		// Check service items
+		// Find bag detail
+		if isCanCheckOut {
+			// Check tiep service items
+			bagDetail := getBagDetailFromBooking(db, bag)
+			if bagDetail.ListServiceItems != nil && len(bagDetail.ListServiceItems) > 0 {
+				for _, v1 := range bagDetail.ListServiceItems {
+					serviceCart := models.ServiceCart{}
+					serviceCart.Id = v1.ServiceBill
+
+					errSC := serviceCart.FindFirst(db)
+					if errSC != nil {
+						log.Println("FindFristServiceCart errSC", errSC.Error())
+						return
+					}
+
+					// Check trong MainBag có trả mới add
+					if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+						// ok
+					} else {
+						if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT || serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
+							// ok
+						} else {
+							if v1.BillCode != bag.BillCode {
+								errMessage = "Dich vụ của sub-bag chưa đủ điều kiện được checkout"
+							} else {
+								errMessage = "Dich vụ của bag chưa đủ điều kiện được checkout"
+							}
+
+							isCanCheckOut = false
+							break
+						}
+					}
+				}
+			}
+		}
+	} else {
+		isCanCheckOut = false
+		errMessage = "Trạng thái bag không được checkout"
+	}
+
+	res := map[string]interface{}{
+		"is_can_check_out": isCanCheckOut,
+		"message":          errMessage,
+	}
+	c.JSON(200, res)
+}
