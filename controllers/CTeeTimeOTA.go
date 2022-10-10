@@ -28,6 +28,10 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 		badRequest(c, bindErr.Error())
 		return
 	}
+
+	bookingDate, _ := time.Parse("2006-01-02", body.Date)
+	dateFormat := bookingDate.Format("02/01/2006")
+
 	responseOTA := response.GetTeeTimeOTAResponse{
 		IsMainCourse: body.IsMainCourse,
 		Token:        nil,
@@ -146,21 +150,55 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 				teeOff, _ := time.Parse(constants.DATE_FORMAT_3, body.Date+" "+hourStr)
 				teeOffStr := teeOff.Format("2006-01-02T15:04:05")
 
-				teeTime := response.TeeTimeOTA{
-					TeeOffStr:    hourStr,
-					DateStr:      body.Date,
-					TeeOff:       teeOffStr,
-					Part:         int64(partIndex),
-					TimeIndex:    int64(index),
-					NumBook:      0,
-					IsMainCourse: body.IsMainCourse,
-					Tee:          1,
-					GreenFee:     GreenFee,
-					CaddieFee:    CaddieFee,
-					BuggyFee:     BuggyFee,
-					Holes:        18,
+				teeTime1 := models.LockTeeTime{
+					TeeTime:   hourStr,
+					DateTime:  dateFormat,
+					CourseUid: body.CourseCode,
+					TeeType:   "1",
 				}
-				teeTimeList = append(teeTimeList, teeTime)
+
+				if errFind1 := teeTime1.FindFirst(db); errFind1 != nil {
+					teeTime1A := response.TeeTimeOTA{
+						TeeOffStr:    hourStr,
+						DateStr:      body.Date,
+						TeeOff:       teeOffStr,
+						Tee:          1,
+						Part:         int64(partIndex),
+						TimeIndex:    int64(index),
+						NumBook:      0,
+						IsMainCourse: body.IsMainCourse,
+						GreenFee:     GreenFee,
+						CaddieFee:    CaddieFee,
+						BuggyFee:     BuggyFee,
+						Holes:        18,
+					}
+					teeTimeList = append(teeTimeList, teeTime1A)
+				}
+
+				teeTime10 := models.LockTeeTime{
+					TeeTime:   hourStr,
+					DateTime:  dateFormat,
+					CourseUid: body.CourseCode,
+					TeeType:   "10",
+				}
+
+				if errFind10 := teeTime10.FindFirst(db); errFind10 != nil {
+					teeTime10A := response.TeeTimeOTA{
+						TeeOffStr:    hourStr,
+						DateStr:      body.Date,
+						TeeOff:       teeOffStr,
+						Tee:          10,
+						Part:         int64(partIndex),
+						TimeIndex:    int64(index),
+						NumBook:      0,
+						IsMainCourse: body.IsMainCourse,
+						GreenFee:     GreenFee,
+						CaddieFee:    CaddieFee,
+						BuggyFee:     BuggyFee,
+						Holes:        18,
+					}
+					teeTimeList = append(teeTimeList, teeTime10A)
+				}
 
 				teeTimeInit = teeTimeInit.Add(time.Minute * time.Duration(bookSetting.TeeMinutes))
 
