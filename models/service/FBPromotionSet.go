@@ -1,10 +1,11 @@
 package model_service
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"start/constants"
 	"start/models"
-	"start/utils"
 	"strings"
 	"time"
 
@@ -14,16 +15,34 @@ import (
 // FbPromotionSet
 type FbPromotionSet struct {
 	models.ModelId
-	PartnerUid string           `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string           `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	GroupCode  string           `json:"group_code" gorm:"type:varchar(100);index"`
-	SetName    string           `json:"set_name"`
-	Code       string           `json:"code"` // Mã Set
-	Discount   int64            `json:"discount"`
-	Note       string           `json:"note"`
-	FBList     utils.ListString `json:"fb_list,omitempty" gorm:"type:json"` // ds món, liên kết qua fb code
-	InputUser  string           `json:"input_user" gorm:"type:varchar(100)"`
-	Price      float64          `json:"price"` // Giá Set
+	PartnerUid string  `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid  string  `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	GroupCode  string  `json:"group_code" gorm:"type:varchar(100);index"`
+	SetName    string  `json:"set_name"`
+	Code       string  `json:"code"` // Mã Set
+	Discount   int64   `json:"discount"`
+	Note       string  `json:"note"`
+	FBList     FBSet   `json:"fb_list,omitempty" gorm:"type:json"` // ds món, liên kết qua fb code
+	InputUser  string  `json:"input_user" gorm:"type:varchar(100)"`
+	Price      float64 `json:"price"` // Giá Set
+}
+
+type FBItem struct {
+	FBCode      string  `json:"fb_code"`
+	EnglishName string  `json:"english_name"`
+	VieName     string  `json:"vietnamese_name"`
+	Price       float64 `json:"price"`
+	Unit        string  `json:"unit"`
+}
+
+type FBSet []FBItem
+
+func (item *FBSet) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item FBSet) Value() (driver.Value, error) {
+	return json.Marshal(&item)
 }
 
 type FbPromotionSetRequest struct {

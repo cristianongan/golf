@@ -360,7 +360,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 			fb := model_service.FoodBeverage{}
 			fb.PartnerUid = body.PartnerUid
 			fb.CourseUid = body.CourseUid
-			fb.FBCode = v
+			fb.FBCode = v.FBCode
 
 			if err := fb.FindFirst(db); err != nil {
 				response_message.BadRequest(c, "Find fb in combo "+err.Error())
@@ -922,7 +922,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 				fb := model_service.FoodBeverage{}
 				fb.PartnerUid = body.PartnerUid
 				fb.CourseUid = body.CourseUid
-				fb.FBCode = v
+				fb.FBCode = v.FBCode
 
 				if err := fb.FindFirst(db); err != nil {
 					response_message.BadRequest(c, "Find fb in combo "+err.Error())

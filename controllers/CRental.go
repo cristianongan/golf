@@ -173,9 +173,6 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 	if body.VieName != "" {
 		rental.VieName = body.VieName
 	}
-	if body.GroupCode != "" {
-		rental.GroupCode = body.GroupCode
-	}
 	if body.SystemCode != "" {
 		rental.SystemCode = body.SystemCode
 	}
@@ -203,7 +200,15 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 	if body.InputUser != "" {
 		rental.InputUser = body.InputUser
 	}
-
+	if body.Type != "" {
+		rental.Type = body.Type
+	}
+	if body.GroupName != "" {
+		rental.GroupName = body.GroupName
+	}
+	if body.GroupCode != "" {
+		rental.GroupCode = body.GroupCode
+	}
 	errUdp := rental.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())

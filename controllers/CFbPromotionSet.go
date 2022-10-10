@@ -64,7 +64,7 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 	}
 
 	var price float64 = 0
-
+	fbList := []model_service.FBItem{}
 	for _, code := range body.FBList {
 		foodBeverage := model_service.FoodBeverage{
 			FBCode:     code,
@@ -76,6 +76,16 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 			response_message.BadRequest(c, errors.New(code+" không tìm thấy ").Error())
 			return
 		}
+
+		item := model_service.FBItem{
+			FBCode:      foodBeverage.FBCode,
+			EnglishName: foodBeverage.EnglishName,
+			VieName:     foodBeverage.VieName,
+			Price:       foodBeverage.Price,
+			Unit:        foodBeverage.Unit,
+		}
+
+		fbList = append(fbList, item)
 		price += foodBeverage.Price
 	}
 
@@ -91,7 +101,7 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 		SetName:    body.SetName,
 		Discount:   body.Discount,
 		Note:       body.Note,
-		FBList:     body.FBList,
+		FBList:     fbList,
 		Code:       body.Code,
 		InputUser:  body.InputUser,
 		Price:      price,
@@ -180,8 +190,34 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 	if body.Status != nil {
 		promotionSetR.Status = *body.Status
 	}
+
+	var price float64 = 0
 	if body.FBList != nil {
-		promotionSetR.FBList = *body.FBList
+		fbList := model_service.FBSet{}
+		for _, code := range body.FBList {
+			foodBeverage := model_service.FoodBeverage{
+				FBCode:     code,
+				PartnerUid: promotionSetR.PartnerUid,
+				CourseUid:  promotionSetR.CourseUid,
+			}
+
+			if err := foodBeverage.FindFirst(db); err != nil {
+				response_message.BadRequest(c, errors.New(code+" không tìm thấy ").Error())
+				return
+			}
+
+			item := model_service.FBItem{
+				FBCode:      foodBeverage.FBCode,
+				EnglishName: foodBeverage.EnglishName,
+				VieName:     foodBeverage.VieName,
+				Price:       foodBeverage.Price,
+				Unit:        foodBeverage.Unit,
+			}
+
+			fbList = append(fbList, item)
+			price += foodBeverage.Price
+		}
+		promotionSetR.FBList = fbList
 	}
 
 	err := promotionSetR.Update(db)
