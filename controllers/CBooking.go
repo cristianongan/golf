@@ -2223,5 +2223,5 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 		"is_can_check_out": isCanCheckOut,
 		"message":          errMessage,
 	}
-	c.JSON(400, res)
+	c.JSON(200, res)
 }
