@@ -63,6 +63,9 @@ type BookingForFlight struct {
 	NoteOfBag        string                      `json:"note_of_bag"`
 	NoteOfBooking    string                      `json:"note_of_booking"`
 	BagStatus        string                      `json:"bag_status"`
+	IsPrivateBuggy   bool                        `json:"is_private_buggy"`
+	MovedFlight      bool                        `json:"moved_flight"`
+	AddedRound       bool                        `json:"added_flight"`
 }
 
 func (item *Flight) Create() error {
