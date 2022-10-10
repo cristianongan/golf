@@ -2138,37 +2138,6 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 
 				if errF == nil {
 					if bag.BagStatus == constants.BAG_STATUS_TIMEOUT || bag.BagStatus == constants.BAG_STATUS_WAITING {
-						// subBagDetail := getBagDetailFromBooking(db, subBag)
-
-						// // Check service item
-						// if subBagDetail.ListServiceItems != nil && len(subBagDetail.ListServiceItems) > 0 {
-						// 	for _, v1 := range subBagDetail.ListServiceItems {
-						// 		serviceCart := models.ServiceCart{}
-						// 		serviceCart.Id = v1.ServiceBill
-
-						// 		errSC := serviceCart.FindFirst(db)
-						// 		if errSC != nil {
-						// 			log.Println("FindFristServiceCart errSC", errSC.Error())
-						// 			return
-						// 		}
-
-						// 		// Check trong MainBag có trả mới add
-						// 		if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
-						// 			// ok
-						// 		} else {
-						// 			if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT || serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
-						// 				// ok
-						// 			} else {
-						// 				errMessage = "Dich vụ của sub-bag chưa thoả mãn"
-						// 				isCanCheckOut = false
-						// 				break
-						// 			}
-						// 		}
-						// 	}
-						// }
-						// if isCanCheckOut == false {
-						// 	break
-						// }
 					} else {
 						errMessage = "Trạng thái của sub-bag không được checkout"
 						isCanCheckOut = false
