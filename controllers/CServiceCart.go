@@ -929,14 +929,14 @@ func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
 	// Booking Uid
 	bookingUid := uuid.New()
 	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
-	bookingCode := utils.HashCodeUuid(bookingUid.String())
+	billCode := utils.HashCodeUuid(bookingUid.String())
 
 	// Create booking
 	booking := model_booking.Booking{
 		PartnerUid:   body.PartnerUid,
 		CourseUid:    body.CourseUid,
 		Bag:          bagClone,
-		BookingCode:  bookingCode,
+		BillCode:     billCode,
 		BookingDate:  time.Now().Format("02/01/2006"),
 		BagStatus:    constants.BAG_STATUS_WAITING,
 		InitType:     constants.BOOKING_INIT_TYPE_CHECKIN,
