@@ -51,6 +51,17 @@ func MySqlConnect() {
 	if err != nil {
 		panic(fmt.Sprintf("failed to connect database @ %s:%s", config.GetDbHost(), config.GetDbPort()))
 	}
+	sqlDB, err := db.DB()
+
+	// https://github.com/go-sql-driver/mysql#important-settings
+	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
+	sqlDB.SetMaxIdleConns(25)
+
+	// SetMaxOpenConns sets the maximum number of open connections to the database.
+	sqlDB.SetMaxOpenConns(25)
+
+	// SetConnMaxLifetime sets the maximum amount of time a connection may be reused.
+	sqlDB.SetConnMaxLifetime(4 * time.Minute)
 
 	if config.GetDbDebug() {
 		db.Debug()
