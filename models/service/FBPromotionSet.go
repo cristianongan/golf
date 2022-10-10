@@ -15,16 +15,17 @@ import (
 // FbPromotionSet
 type FbPromotionSet struct {
 	models.ModelId
-	PartnerUid string  `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string  `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	GroupCode  string  `json:"group_code" gorm:"type:varchar(100);index"`
-	SetName    string  `json:"set_name"`
-	Code       string  `json:"code"` // Mã Set
-	Discount   int64   `json:"discount"`
-	Note       string  `json:"note"`
-	FBList     FBSet   `json:"fb_list,omitempty" gorm:"type:json"` // ds món, liên kết qua fb code
-	InputUser  string  `json:"input_user" gorm:"type:varchar(100)"`
-	Price      float64 `json:"price"` // Giá Set
+	PartnerUid  string  `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid   string  `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	GroupCode   string  `json:"group_code" gorm:"type:varchar(100);index"`
+	Code        string  `json:"code"` // Mã Set
+	Discount    int64   `json:"discount"`
+	Note        string  `json:"note"`
+	FBList      FBSet   `json:"fb_list,omitempty" gorm:"type:json"` // ds món, liên kết qua fb code
+	InputUser   string  `json:"input_user" gorm:"type:varchar(100)"`
+	Price       float64 `json:"price"`                                    // Giá Set
+	EnglishName string  `json:"english_name" gorm:"type:varchar(256)"`    // Tên Tiếng Anh
+	VieName     string  `json:"vietnamese_name" gorm:"type:varchar(256)"` // Tên Tiếng Viet
 }
 
 type FBItem struct {
@@ -101,15 +102,16 @@ func (item *FbPromotionSetRequest) FindList(database *gorm.DB, page models.Page)
 	if item.CourseUid != "" {
 		db = db.Where("fb_promotion_sets.course_uid = ?", item.CourseUid)
 	}
-	if item.SetName != "" {
-		db = db.Where("fb_promotion_sets.set_name LIKE ?", "%"+item.SetName+"%")
+	if item.VieName != "" {
+		db = db.Where("fb_promotion_sets.vie_name LIKE ?", "%"+item.VieName+"%")
 	}
 	if item.GroupCode != "" {
 		db = db.Where("fb_promotion_sets.group_code = ?", item.GroupCode)
 	}
 	if item.CodeOrName != "" {
 		query := "fb_promotion_sets.code COLLATE utf8mb4_general_ci LIKE ? OR " +
-			"fb_promotion_sets.set_name COLLATE utf8mb4_general_ci LIKE ?"
+			"fb_promotion_sets.vie_name COLLATE utf8mb4_general_ci LIKE ? OR " +
+			"fb_promotion_sets.english_name COLLATE utf8mb4_general_ci LIKE"
 		db = db.Where(query, "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%")
 	}
 

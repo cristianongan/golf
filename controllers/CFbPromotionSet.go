@@ -63,7 +63,6 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 		return
 	}
 
-	var price float64 = 0
 	fbList := []model_service.FBItem{}
 	for _, code := range body.FBList {
 		foodBeverage := model_service.FoodBeverage{
@@ -86,7 +85,6 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 		}
 
 		fbList = append(fbList, item)
-		price += foodBeverage.Price
 	}
 
 	base := models.ModelId{
@@ -94,17 +92,18 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 	}
 
 	promotionSet := model_service.FbPromotionSet{
-		ModelId:    base,
-		CourseUid:  body.CourseUid,
-		PartnerUid: body.PartnerUid,
-		GroupCode:  body.GroupCode,
-		SetName:    body.SetName,
-		Discount:   body.Discount,
-		Note:       body.Note,
-		FBList:     fbList,
-		Code:       body.Code,
-		InputUser:  body.InputUser,
-		Price:      price,
+		ModelId:     base,
+		CourseUid:   body.CourseUid,
+		PartnerUid:  body.PartnerUid,
+		GroupCode:   body.GroupCode,
+		VieName:     body.VieName,
+		EnglishName: body.EnglishName,
+		Discount:    body.Discount,
+		Note:        body.Note,
+		FBList:      fbList,
+		Code:        body.Code,
+		InputUser:   body.InputUser,
+		Price:       body.Price,
 	}
 
 	promotionSet.Status = body.Status
@@ -136,7 +135,6 @@ func (_ *CFbPromotionSet) GetListFoodBeveragepRomotionSet(c *gin.Context, prof m
 	promotionSetR := model_service.FbPromotionSetRequest{}
 	promotionSetR.PartnerUid = form.PartnerUid
 	promotionSetR.CourseUid = form.CourseUid
-	promotionSetR.SetName = form.SetName
 	promotionSetR.GroupCode = form.GroupCode
 	promotionSetR.CodeOrName = form.CodeOrName
 	promotionSetR.Status = form.Status
@@ -178,8 +176,11 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
-	if body.SetName != nil {
-		promotionSetR.SetName = *body.SetName
+	if body.EnglishName != "" {
+		promotionSetR.EnglishName = body.EnglishName
+	}
+	if body.VieName != "" {
+		promotionSetR.VieName = body.VieName
 	}
 	if body.Note != nil {
 		promotionSetR.Note = *body.Note
@@ -189,6 +190,9 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 	}
 	if body.Status != nil {
 		promotionSetR.Status = *body.Status
+	}
+	if body.Price > 0 {
+		promotionSetR.Price = body.Price
 	}
 
 	var price float64 = 0

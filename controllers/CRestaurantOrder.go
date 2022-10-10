@@ -351,7 +351,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		serviceCartItem.Type = constants.RESTAURANT_SETTING
 		serviceCartItem.Location = kiosk.KioskName
 		serviceCartItem.GroupCode = fbSet.GroupCode
-		serviceCartItem.Name = fbSet.SetName
+		serviceCartItem.Name = fbSet.VieName
 		serviceCartItem.UnitPrice = int64(fbSet.Price)
 		serviceCartItem.Amount = int64(body.Quantity) * int64(fbSet.Price)
 
@@ -370,7 +370,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 			item := models.RestaurantItem{
 				Type:          fb.Type,
 				ItemName:      fb.VieName,
-				ItemComboName: fbSet.SetName,
+				ItemComboName: fbSet.VieName,
 				ItemCode:      fb.FBCode,
 				ItemUnit:      fb.Unit,
 			}
@@ -914,7 +914,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 			serviceCartItem.Type = kiosk.KioskType
 			serviceCartItem.Location = kiosk.KioskName
 			serviceCartItem.GroupCode = fbSet.GroupCode
-			serviceCartItem.Name = fbSet.SetName
+			serviceCartItem.Name = fbSet.VieName
 			serviceCartItem.UnitPrice = int64(fbSet.Price)
 
 			// add item res
@@ -932,7 +932,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 				item := models.RestaurantItem{
 					Type:          fb.Type,
 					ItemName:      fb.VieName,
-					ItemComboName: fbSet.SetName,
+					ItemComboName: fbSet.VieName,
 					ItemCode:      fb.FBCode,
 					ItemUnit:      fb.Unit,
 				}
