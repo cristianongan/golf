@@ -148,3 +148,10 @@ type CheckoutBody struct {
 	BookingUid string `json:"booking_uid" validate:"required"`
 	GolfBag    string `json:"golf_bag" validate:"required"`
 }
+
+type CheckBagCanCheckoutBody struct {
+	PartnerUid  string `form:"partner_uid" binding:"required"`
+	CourseUid   string `form:"course_uid" binding:"required"`
+	BookingDate string `json:"booking_date" validate:"required"`
+	GolfBag     string `json:"golf_bag" validate:"required"`
+}

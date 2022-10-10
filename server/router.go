@@ -235,6 +235,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.DELETE("/booking-service-item/:id", middlewares.AuthorizedCmsUserHandler(cBookingServiceItem.DelBookingServiceItemToBag))
 
 			/// =================== Checkout ===================
+			cmsApiAuthorized.POST("/booking/checkout/check", middlewares.AuthorizedCmsUserHandler(cBooking.CheckBagCanCheckout))
 			cmsApiAuthorized.POST("/booking/checkout", middlewares.AuthorizedCmsUserHandler(cBooking.Checkout))
 
 			/// =================== Payment ===================
