@@ -172,9 +172,6 @@ func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.GroupCode != nil {
-		proshop.GroupCode = *body.GroupCode
-	}
 	if body.EnglishName != nil {
 		proshop.EnglishName = *body.EnglishName
 	}
@@ -222,6 +219,15 @@ func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
 	}
 	if body.UserUpdate != nil {
 		proshop.UserUpdate = *body.UserUpdate
+	}
+	if body.Type != "" {
+		proshop.Type = body.Type
+	}
+	if body.GroupName != "" {
+		proshop.GroupName = body.GroupName
+	}
+	if body.GroupCode != "" {
+		proshop.GroupCode = body.GroupCode
 	}
 
 	errUdp := proshop.Update(db)

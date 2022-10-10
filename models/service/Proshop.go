@@ -16,7 +16,6 @@ type Proshop struct {
 	ProShopId     string  `json:"proshop_id" gorm:"type:varchar(100)"`
 	PartnerUid    string  `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid     string  `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	GroupCode     string  `json:"group_code" gorm:"type:varchar(100)"`
 	EnglishName   string  `json:"english_name" gorm:"type:varchar(256)"`
 	VieName       string  `json:"vietnamese_name" gorm:"type:varchar(256)"`
 	Brand         string  `json:"brand" gorm:"type:varchar(100)"`
@@ -34,6 +33,9 @@ type Proshop struct {
 	IsInventory   bool    `json:"is_inventory"`                         // Có trong kho
 	Name          string  `json:"name" gorm:"type:varchar(256)"`        // Tên sp default
 	UserUpdate    string  `json:"user_update" gorm:"type:varchar(256)"` // Người update cuối cùng
+	Type          string  `json:"type" gorm:"type:varchar(50)"`         // sub type của Rental
+	GroupCode     string  `json:"group_code" gorm:"type:varchar(100);index"`
+	GroupName     string  `json:"group_name" gorm:"type:varchar(100)"`
 }
 
 type ProshopRequest struct {

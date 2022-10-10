@@ -32,7 +32,6 @@ type UpdateRentalBody struct {
 	VieName     string   `json:"vietnamese_name"`
 	RenPos      string   `json:"ren_pos"`
 	SystemCode  string   `json:"system_code"`
-	GroupCode   string   `json:"group_code"`
 	Unit        string   `json:"unit"`
 	Price       *float64 `json:"price"`
 	ByHoles     *bool    `json:"by_holes"`
@@ -40,4 +39,7 @@ type UpdateRentalBody struct {
 	OnlyForRen  *bool    `json:"only_for_ren"`
 	InputUser   string   `json:"input_user"`
 	Status      string   `json:"status"`
+	Type        string   `json:"type" gorm:"type:varchar(256)"`
+	GroupCode   string   `json:"group_code"`
+	GroupName   string   `json:"group_name" gorm:"type:varchar(100)"`
 }
