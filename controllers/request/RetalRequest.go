@@ -25,6 +25,8 @@ type GetListRentalForm struct {
 	VieName     string `form:"vietnamese_name" json:"vietnamese_name"`
 	GroupCode   string `form:"group_code" json:"group_code"`
 	Status      string `json:"status"`
+	Type        string `form:"type"`
+	CodeOrName  string `form:"code_or_name"`
 }
 
 type UpdateRentalBody struct {
@@ -39,7 +41,7 @@ type UpdateRentalBody struct {
 	OnlyForRen  *bool    `json:"only_for_ren"`
 	InputUser   string   `json:"input_user"`
 	Status      string   `json:"status"`
-	Type        string   `json:"type" gorm:"type:varchar(256)"`
+	Type        string   `json:"type"`
 	GroupCode   string   `json:"group_code"`
-	GroupName   string   `json:"group_name" gorm:"type:varchar(100)"`
+	GroupName   string   `json:"group_name"`
 }
