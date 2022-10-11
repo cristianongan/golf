@@ -21,6 +21,7 @@ type AgencyPayment struct {
 	BookingDate string            `json:"booking_date" gorm:"type:varchar(30);index"`  // Ex: 06/11/2022
 	PaymentDate string            `json:"payment_date" gorm:"type:varchar(30);index"`  // Ex: 06/11/2022
 	AgencyInfo  PaymentAgencyInfo `json:"agency_info,omitempty" gorm:"type:json"`
+	AgencyId    int64             `json:"agency_id" gorm:"index"` // agency id
 
 	PlayerBook string `json:"player_book" gorm:"type:varchar(100)"` // Player book
 
