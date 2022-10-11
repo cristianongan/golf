@@ -87,6 +87,22 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 		singlePayment.Cashiers = prof.UserName
 		singlePayment.PaymentDate = toDayDate
 
+		//Find prepaid from booking
+		if booking.BookingCode != "" {
+			bookOTA := model_booking.BookingOta{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				BookingCode: booking.BookingCode,
+			}
+			errFindBO := bookOTA.FindFirst(db)
+			if errFindBO == nil {
+				singlePayment.PrepaidFromBooking = int64(bookOTA.NumBook) * (bookOTA.CaddieFee + bookOTA.BuggyFee + bookOTA.GreenFee)
+			}
+		}
+
+		// Update payment status
+		singlePayment.UpdatePaymentStatus()
+
 		errC := singlePayment.Create(db)
 
 		if errC != nil {
@@ -137,6 +153,7 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 			}
 
 			singlePayment.TotalPaid = totalPaid
+			singlePayment.UpdatePaymentStatus()
 			errUdp := singlePayment.Update(db)
 
 			if errUdp != nil {
