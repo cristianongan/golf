@@ -41,7 +41,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 	servicesRequest.GroupCode = body.GroupCode
 	servicesErrFind := servicesRequest.FindFirst(db)
 	if servicesErrFind != nil {
-		response_message.BadRequest(c, servicesErrFind.Error())
+		response_message.BadRequest(c, "GroupCode not existed")
 		return
 	}
 
@@ -49,7 +49,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 	partnerRequest.Uid = body.PartnerUid
 	partnerErrFind := partnerRequest.FindFirst()
 	if partnerErrFind != nil {
-		response_message.BadRequest(c, partnerErrFind.Error())
+		response_message.BadRequest(c, "Partner not existed")
 		return
 	}
 
@@ -57,7 +57,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 	courseRequest.Uid = body.CourseUid
 	errFind := courseRequest.FindFirst(db)
 	if errFind != nil {
-		response_message.BadRequest(c, errFind.Error())
+		response_message.BadRequest(c, "Course not existed")
 		return
 	}
 

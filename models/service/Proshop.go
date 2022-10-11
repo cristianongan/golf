@@ -40,7 +40,8 @@ type Proshop struct {
 
 type ProshopRequest struct {
 	Proshop
-	GroupName string `json:"group_name"`
+	CodeOrName string `form:"code_or_name"`
+	GroupName  string `json:"group_name"`
 }
 
 func (item *Proshop) Create(db *gorm.DB) error {
@@ -102,6 +103,18 @@ func (item *ProshopRequest) FindList(database *gorm.DB, page models.Page) ([]Pro
 	}
 	if item.GroupName != "" {
 		db = db.Where("proshops.group_name = ?", item.GroupName)
+	}
+	if item.GroupCode != "" {
+		db = db.Where("proshops.group_code = ?", item.GroupCode)
+	}
+	if item.Type != "" {
+		db = db.Where("proshops.type = ?", item.Type)
+	}
+	if item.CodeOrName != "" {
+		query := "proshops.fb_code COLLATE utf8mb4_general_ci LIKE ? OR " +
+			"proshops.vie_name COLLATE utf8mb4_general_ci LIKE ? OR " +
+			"proshops.english_name COLLATE utf8mb4_general_ci LIKE ?"
+		db = db.Where(query, "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%")
 	}
 
 	db = db.Joins("JOIN group_services ON proshops.group_code = group_services.group_code AND " +
