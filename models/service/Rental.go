@@ -32,9 +32,10 @@ type Rental struct {
 	GroupName   string  `json:"group_name" gorm:"type:varchar(100)"`
 }
 
-type RentalResponse struct {
+type RentalRequest struct {
 	Rental
-	GroupName string `json:"group_name"`
+	CodeOrName string `form:"code_or_name"`
+	GroupName  string `json:"group_name"`
 }
 
 func (item *Rental) Create(db *gorm.DB) error {
@@ -69,9 +70,9 @@ func (item *Rental) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *Rental) FindList(database *gorm.DB, page models.Page) ([]RentalResponse, int64, error) {
+func (item *RentalRequest) FindList(database *gorm.DB, page models.Page) ([]RentalRequest, int64, error) {
 	db := database.Model(Rental{})
-	list := []RentalResponse{}
+	list := []RentalRequest{}
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
@@ -96,6 +97,18 @@ func (item *Rental) FindList(database *gorm.DB, page models.Page) ([]RentalRespo
 	}
 	if item.SystemCode != "" {
 		db = db.Where("rentals.system_code = ?", item.SystemCode)
+	}
+	if item.GroupCode != "" {
+		db = db.Where("rentals.group_code = ?", item.GroupCode)
+	}
+	if item.Type != "" {
+		db = db.Where("rentals.type = ?", item.Type)
+	}
+	if item.CodeOrName != "" {
+		query := "rentals.fb_code COLLATE utf8mb4_general_ci LIKE ? OR " +
+			"rentals.vie_name COLLATE utf8mb4_general_ci LIKE ? OR " +
+			"rentals.english_name COLLATE utf8mb4_general_ci LIKE ?"
+		db = db.Where(query, "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%")
 	}
 
 	db = db.Joins("JOIN group_services ON rentals.group_code = group_services.group_code AND " +
