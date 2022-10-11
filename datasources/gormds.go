@@ -55,7 +55,7 @@ func MySqlConnect() {
 
 	// https://github.com/go-sql-driver/mysql#important-settings
 	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
-	sqlDB.SetMaxIdleConns(25)
+	sqlDB.SetMaxIdleConns(5)
 
 	// SetMaxOpenConns sets the maximum number of open connections to the database.
 	sqlDB.SetMaxOpenConns(25)
