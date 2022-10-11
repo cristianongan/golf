@@ -101,7 +101,7 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 		}
 
 		// Update payment status
-		singlePayment.UpdatePaymentStatus()
+		singlePayment.UpdatePaymentStatus(booking.BagStatus, db)
 
 		errC := singlePayment.Create(db)
 
@@ -159,7 +159,7 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 			singlePayment.PaymentDate = toDayDate
 
 			singlePayment.TotalPaid = totalPaid
-			singlePayment.UpdatePaymentStatus()
+			singlePayment.UpdatePaymentStatus(booking.BagStatus, db)
 			errUdp := singlePayment.Update(db)
 
 			if errUdp != nil {
