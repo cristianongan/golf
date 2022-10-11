@@ -119,6 +119,7 @@ type CreateBookingBody struct {
 	CustomerName         string `json:"customer_name"`          // Tên khách hàng
 	CustomerBookingName  string `json:"customer_booking_name"`  // Tên khách hàng đặt booking
 	CustomerBookingPhone string `json:"customer_booking_phone"` // SDT khách hàng đặt booking
+	CustomerIdentify     string `json:"customer_identify"`      // passport/cccd
 
 	NoteOfBooking string `json:"note_of_booking"` // Note of Booking
 
@@ -138,6 +139,8 @@ type CreateBookingBody struct {
 	BookingCodePartner string                  `json:"booking_code_partner"`
 	BookingSourceId    string                  `json:"booking_source_id"`
 	BookingOtaId       int64                   `json:"booking_ota_id"`
+	LockerNo           string                  `json:"locker_no"` // Locker mã số tủ gửi đồ
+	ReportNo           string                  `json:"report_no"` // Report No
 	BookMark           bool
 }
 

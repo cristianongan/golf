@@ -368,6 +368,19 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		cBooking.UpdateBookingCaddieCommon(db, body.PartnerUid, body.CourseUid, &booking, caddie)
 	}
 
+	if body.LockerNo != "" {
+		booking.LockerNo = body.LockerNo
+		go createLocker(db, booking)
+	}
+
+	if body.ReportNo != "" {
+		booking.ReportNo = body.ReportNo
+	}
+
+	if body.CustomerIdentify != "" {
+		booking.CustomerIdentify = body.CustomerIdentify
+	}
+
 	if body.CustomerBookingName != "" {
 		booking.CustomerBookingName = body.CustomerBookingName
 	} else {
@@ -840,6 +853,10 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	if body.CustomerIdentify != "" {
+		booking.CustomerIdentify = body.CustomerIdentify
+	}
+
 	if body.CourseType != "" {
 		booking.CourseType = body.CourseType
 	}
@@ -925,7 +942,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			// Lấy theo GuestStyle
 			body.GuestStyle = memberCard.GetGuestStyle(db)
 		}
-	} else {
+	} else if body.MemberCardUid == "" {
 		// Update member card
 		booking.MemberCardUid = ""
 		booking.CardId = ""
