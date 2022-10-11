@@ -34,6 +34,8 @@ type FBItem struct {
 	VieName     string  `json:"vietnamese_name"`
 	Price       float64 `json:"price"`
 	Unit        string  `json:"unit"`
+	GroupCode   string  `json:"group_code"`
+	GroupName   string  `json:"group_name"`
 }
 
 type FBSet []FBItem

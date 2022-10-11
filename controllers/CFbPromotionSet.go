@@ -82,6 +82,8 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 			VieName:     foodBeverage.VieName,
 			Price:       foodBeverage.Price,
 			Unit:        foodBeverage.Unit,
+			GroupCode:   foodBeverage.GroupCode,
+			GroupName:   foodBeverage.GroupName,
 		}
 
 		fbList = append(fbList, item)
