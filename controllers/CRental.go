@@ -123,7 +123,7 @@ func (_ *CRental) GetListRental(c *gin.Context, prof models.CmsUser) {
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	rentalR := model_service.Rental{}
+	rentalR := model_service.RentalRequest{}
 	rentalR.PartnerUid = form.PartnerUid
 	rentalR.CourseUid = form.CourseUid
 	rentalR.EnglishName = form.EnglishName
