@@ -24,29 +24,6 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 		return
 	}
 
-	if body.CourseUid == "" {
-		response_message.BadRequest(c, "Course Uid not empty")
-		return
-	}
-
-	if body.PartnerUid == "" {
-		response_message.BadRequest(c, "Partner Uid not empty")
-		return
-	}
-
-	if body.GroupCode == "" {
-		response_message.BadRequest(c, "Group Code not empty")
-		return
-	}
-
-	servicesRequest := model_service.GroupServices{}
-	servicesRequest.GroupCode = body.GroupCode
-	servicesErrFind := servicesRequest.FindFirst(db)
-	if servicesErrFind != nil {
-		response_message.BadRequest(c, servicesErrFind.Error())
-		return
-	}
-
 	partnerRequest := models.Partner{}
 	partnerRequest.Uid = body.PartnerUid
 	partnerErrFind := partnerRequest.FindFirst()
@@ -97,7 +74,6 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 		ModelId:     base,
 		CourseUid:   body.CourseUid,
 		PartnerUid:  body.PartnerUid,
-		GroupCode:   body.GroupCode,
 		VieName:     body.VieName,
 		EnglishName: body.EnglishName,
 		Discount:    body.Discount,
