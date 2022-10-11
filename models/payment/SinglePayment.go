@@ -17,10 +17,11 @@ import (
 // Single Payment
 type SinglePayment struct {
 	models.Model
-	PartnerUid  string         `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid   string         `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	BookingUid  string         `json:"booking_uid" gorm:"type:varchar(100);index"` // Booking uid
-	Bag         string         `json:"bag" gorm:"type:varchar(50)"`                // Golf bag
+	PartnerUid  string         `json:"partner_uid" gorm:"type:varchar(100);index"`  // Hang Golf
+	CourseUid   string         `json:"course_uid" gorm:"type:varchar(256);index"`   // San Golf
+	BookingUid  string         `json:"booking_uid" gorm:"type:varchar(100);index"`  // Booking uid
+	BookingCode string         `json:"booking_code" gorm:"type:varchar(100);index"` // Booking code
+	Bag         string         `json:"bag" gorm:"type:varchar(50);index"`           // Golf bag
 	BillCode    string         `json:"bill_code" gorm:"type:varchar(100);index"`
 	BookingDate string         `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
 	PaymentDate string         `json:"payment_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022

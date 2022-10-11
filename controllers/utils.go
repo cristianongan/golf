@@ -1466,6 +1466,7 @@ func createSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 		singlePayment.BookingUid = booking.Uid
 		singlePayment.BillCode = booking.BillCode
 		singlePayment.BookingDate = booking.BookingDate
+		singlePayment.BookingCode = booking.BookingCode
 		singlePayment.BagInfo = bagInfo
 		singlePayment.TotalPaid = 0
 		singlePayment.Note = ""
@@ -1495,6 +1496,7 @@ func createSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 		}
 	} else {
 		singlePayment.Bag = booking.Bag
+		singlePayment.BookingCode = booking.BookingCode
 		singlePayment.BagInfo = bagInfo
 		errUdp := singlePayment.Update(db)
 		if errUdp != nil {
