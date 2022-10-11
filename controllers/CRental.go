@@ -129,6 +129,8 @@ func (_ *CRental) GetListRental(c *gin.Context, prof models.CmsUser) {
 	rentalR.EnglishName = form.EnglishName
 	rentalR.VieName = form.VieName
 	rentalR.GroupCode = form.GroupCode
+	rentalR.Type = form.Type
+	rentalR.CodeOrName = form.CodeOrName
 
 	list, total, err := rentalR.FindList(db, page)
 	if err != nil {

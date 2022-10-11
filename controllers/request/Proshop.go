@@ -34,6 +34,8 @@ type GetListProshopForm struct {
 	VieName     string `form:"vietnamese_name" json:"vietnamese_name"`
 	GroupCode   string `form:"group_code" json:"group_code"`
 	GroupName   string `form:"group_name" json:"group_name"`
+	Type        string `form:"type"`
+	CodeOrName  string `form:"code_or_name"`
 }
 type UpdateProshopBody struct {
 	Brand         *string  `json:"brand"`
@@ -54,7 +56,7 @@ type UpdateProshopBody struct {
 	UserUpdate    *string  `json:"user_update"`
 	IsDeposit     *bool    `json:"is_deposit"`
 	PeopleDeposit *string  `json:"people_deposit"`
-	Type          string   `json:"type" gorm:"type:varchar(256)"`
+	Type          string   `json:"type"`
 	GroupCode     string   `json:"group_code"`
-	GroupName     string   `json:"group_name" gorm:"type:varchar(100)"`
+	GroupName     string   `json:"group_name"`
 }
