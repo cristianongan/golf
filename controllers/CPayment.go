@@ -81,6 +81,7 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 		singlePayment.Bag = booking.Bag
 		singlePayment.BookingUid = booking.Uid
 		singlePayment.BookingDate = booking.BookingDate
+		singlePayment.BookingCode = booking.BookingCode
 		singlePayment.BagInfo = bagInfo
 		singlePayment.TotalPaid = body.Amount
 		singlePayment.Note = body.Note
