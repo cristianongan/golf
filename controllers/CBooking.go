@@ -1381,6 +1381,9 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
 	}
 
+	// Create booking payment
+	go createSinglePayment(db, booking)
+
 	res := getBagDetailFromBooking(db, booking)
 
 	okResponse(c, res)
