@@ -7,7 +7,7 @@ var UNIT_LIST = []map[string]interface{}{
 	},
 	{
 		"type":  "PROSHOP",
-		"units": []string{"Tuýp", "chai", "hộp", "Pack 3 đôi", "Túi 10 quả", "Túi 20 cái", "Đôi", "Gói", "set", "Chiếc", "set 3 đôi"},
+		"units": []string{"Tuýp", "Chai", "Hộp", "Pack 3 đôi", "Túi 10 quả", "Túi 20 cái", "Đôi", "Gói", "Set", "Chiếc", "Set 3 đôi", "Người"},
 	},
 	{
 		"type":  "KIOSK",
