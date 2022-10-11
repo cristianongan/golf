@@ -11,6 +11,7 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
+	model_payment "start/models/payment"
 	model_service "start/models/service"
 	"start/utils"
 	"strings"
@@ -1428,4 +1429,64 @@ func validateItemCodeInService(db *gorm.DB, serviceType string, itemCode string)
 func newTrue(b bool) *bool {
 	boolVar := b
 	return &boolVar
+}
+
+/*
+ Create Single Payment
+*/
+func createSinglePayment(db *gorm.DB, booking model_booking.Booking) {
+	bagInfo := model_payment.PaymentBagInfo{}
+	bagByte, errM := json.Marshal(booking)
+	if errM != nil {
+		log.Println("CreateSinglePayment errM", errM.Error())
+	}
+	errUM := json.Unmarshal(bagByte, &bagInfo)
+	if errUM != nil {
+		log.Println("CreateSinglePayment errUM", errUM.Error())
+	}
+
+	singlePayment := model_payment.SinglePayment{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		BillCode:   booking.BillCode,
+	}
+	singlePayment.Status = constants.STATUS_ENABLE
+
+	errFind := singlePayment.FindFirst(db)
+	if errFind != nil {
+		// Chưa có thì tạo
+		singlePayment.Bag = booking.Bag
+		singlePayment.BookingUid = booking.Uid
+		singlePayment.BillCode = booking.BillCode
+		singlePayment.BookingDate = booking.BookingDate
+		singlePayment.BagInfo = bagInfo
+		singlePayment.TotalPaid = 0
+		singlePayment.Note = ""
+		singlePayment.Cashiers = ""
+		singlePayment.PaymentDate = ""
+
+		//Find prepaid from booking
+		if booking.BookingCode != "" {
+			bookOTA := model_booking.BookingOta{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				BookingCode: booking.BookingCode,
+			}
+			errFindBO := bookOTA.FindFirst(db)
+			if errFindBO == nil {
+				singlePayment.PrepaidFromBooking = int64(bookOTA.NumBook) * (bookOTA.CaddieFee + bookOTA.BuggyFee + bookOTA.GreenFee)
+			}
+		}
+
+		// Update payment status
+		singlePayment.UpdatePaymentStatus()
+		errC := singlePayment.Create(db)
+
+		if errC != nil {
+			log.Println("createSinglePayment errC", errC.Error())
+			return
+		}
+	} else {
+		log.Println("createSinglePayment errFind", errFind.Error())
+	}
 }

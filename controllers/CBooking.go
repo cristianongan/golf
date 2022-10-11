@@ -427,6 +427,9 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
 	}
 
+	// Create booking payment
+	go createSinglePayment(db, booking)
+
 	return &booking, nil
 }
 
