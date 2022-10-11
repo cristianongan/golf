@@ -120,6 +120,7 @@ type CreateBookingBody struct {
 	CustomerBookingName  string `json:"customer_booking_name"`  // Tên khách hàng đặt booking
 	CustomerBookingPhone string `json:"customer_booking_phone"` // SDT khách hàng đặt booking
 	CustomerIdentify     string `json:"customer_identify"`      // passport/cccd
+	Nationality          string `json:"nationality"`            // Nationality
 
 	NoteOfBooking string `json:"note_of_booking"` // Note of Booking
 
