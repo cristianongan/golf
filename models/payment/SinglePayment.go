@@ -25,14 +25,14 @@ type SinglePayment struct {
 	BookingDate string         `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
 	PaymentDate string         `json:"payment_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
 	BagInfo     PaymentBagInfo `json:"bag_info,omitempty" gorm:"type:json"`
+	TotalAmount int64          `json:"total_amount"` // Số tiền thanh toán
 
-	Invoice       string `json:"invoice" gorm:"type:varchar(100)"`             // Invoice
-	PaymentStatus string `json:"payment_status" gorm:"type:varchar(50);index"` // PAID, UN_PAID, PARTIAL_PAID, DEBT
-	// PaymentType        string `json:"payment_type" gorm:"type:varchar(50);index"`   // CASH, VISA
-	PrepaidFromBooking int64  `json:"prepaid_from_booking"`                    // Thanh toán trước từ khi booking (nếu có)
-	Cashiers           string `json:"cashiers" gorm:"type:varchar(100);index"` // Thu ngân, lấy từ acc cms
-	TotalPaid          int64  `json:"total_paid" gorm:"type:varchar(100)"`     // Số tiền thanh toán
-	Note               string `json:"note" gorm:"type:varchar(200)"`           // Note
+	Invoice            string `json:"invoice" gorm:"type:varchar(100)"`             // Invoice
+	PaymentStatus      string `json:"payment_status" gorm:"type:varchar(50);index"` // PAID, UN_PAID, PARTIAL_PAID, DEBT
+	PrepaidFromBooking int64  `json:"prepaid_from_booking"`                         // Thanh toán trước từ khi booking (nếu có)
+	Cashiers           string `json:"cashiers" gorm:"type:varchar(100);index"`      // Thu ngân, lấy từ acc cms
+	TotalPaid          int64  `json:"total_paid"`                                   // Số tiền thanh toán
+	Note               string `json:"note" gorm:"type:varchar(200)"`                // Note
 }
 
 type PaymentBagInfo struct {
@@ -51,6 +51,34 @@ func (item *PaymentBagInfo) Scan(v interface{}) error {
 
 func (item PaymentBagInfo) Value() (driver.Value, error) {
 	return json.Marshal(&item)
+}
+
+/*
+Update payment status
+*/
+func (item *SinglePayment) UpdatePaymentStatus() {
+	if item.TotalPaid <= 0 {
+		if item.BagInfo.MushPayInfo.MushPay == 0 {
+			//PAID
+			item.PaymentStatus = constants.PAYMENT_STATUS_PAID
+		} else {
+			//UN_PAID
+			item.PaymentStatus = constants.PAYMENT_STATUS_UN_PAID
+		}
+		return
+	}
+
+	if item.TotalAmount > item.TotalPaid && item.TotalPaid > 0 {
+		//PARTIAL_PAID
+		item.PaymentStatus = constants.PAYMENT_STATUS_PARTIAL_PAID
+		return
+	}
+
+	if item.TotalAmount <= item.TotalPaid {
+		//PAID
+		item.PaymentStatus = constants.PAYMENT_STATUS_PAID
+		return
+	}
 }
 
 func (item *SinglePayment) Create(db *gorm.DB) error {
