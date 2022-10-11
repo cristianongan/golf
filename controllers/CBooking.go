@@ -368,6 +368,15 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		cBooking.UpdateBookingCaddieCommon(db, body.PartnerUid, body.CourseUid, &booking, caddie)
 	}
 
+	if body.LockerNo != "" {
+		booking.LockerNo = body.LockerNo
+		go createLocker(db, booking)
+	}
+
+	if body.ReportNo != "" {
+		booking.ReportNo = body.ReportNo
+	}
+
 	if body.CustomerIdentify != "" {
 		booking.CustomerIdentify = body.CustomerIdentify
 	}

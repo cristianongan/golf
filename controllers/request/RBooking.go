@@ -139,6 +139,8 @@ type CreateBookingBody struct {
 	BookingCodePartner string                  `json:"booking_code_partner"`
 	BookingSourceId    string                  `json:"booking_source_id"`
 	BookingOtaId       int64                   `json:"booking_ota_id"`
+	LockerNo           string                  `json:"locker_no"` // Locker mã số tủ gửi đồ
+	ReportNo           string                  `json:"report_no"` // Report No
 	BookMark           bool
 }
 
