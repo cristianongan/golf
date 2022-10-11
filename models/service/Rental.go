@@ -105,7 +105,7 @@ func (item *RentalRequest) FindList(database *gorm.DB, page models.Page) ([]Rent
 		db = db.Where("rentals.type = ?", item.Type)
 	}
 	if item.CodeOrName != "" {
-		query := "rentals.fb_code COLLATE utf8mb4_general_ci LIKE ? OR " +
+		query := "rentals.rental_id COLLATE utf8mb4_general_ci LIKE ? OR " +
 			"rentals.vie_name COLLATE utf8mb4_general_ci LIKE ? OR " +
 			"rentals.english_name COLLATE utf8mb4_general_ci LIKE ?"
 		db = db.Where(query, "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%")

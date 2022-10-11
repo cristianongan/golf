@@ -111,7 +111,7 @@ func (item *ProshopRequest) FindList(database *gorm.DB, page models.Page) ([]Pro
 		db = db.Where("proshops.type = ?", item.Type)
 	}
 	if item.CodeOrName != "" {
-		query := "proshops.fb_code COLLATE utf8mb4_general_ci LIKE ? OR " +
+		query := "proshops.pro_shop_id COLLATE utf8mb4_general_ci LIKE ? OR " +
 			"proshops.vie_name COLLATE utf8mb4_general_ci LIKE ? OR " +
 			"proshops.english_name COLLATE utf8mb4_general_ci LIKE ?"
 		db = db.Where(query, "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%")
