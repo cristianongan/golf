@@ -377,8 +377,12 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.ReportNo = body.ReportNo
 	}
 
-	if body.CustomerIdentify != "" {
-		booking.CustomerIdentify = body.CustomerIdentify
+	if body.CustomerIdentify != "" && booking.CustomerInfo.Uid == "" {
+		customer := models.CustomerUser{}
+		customer.Identify = body.CustomerIdentify
+		customer.Phone = body.CustomerBookingPhone
+		customer.Nationality = body.Nationality
+		booking.CustomerInfo = cloneToCustomerBooking(customer)
 	}
 
 	if body.CustomerBookingName != "" {
@@ -851,10 +855,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.InternalServerError(c, err.Error())
 			return
 		}
-	}
-
-	if body.CustomerIdentify != "" {
-		booking.CustomerIdentify = body.CustomerIdentify
 	}
 
 	if body.CourseType != "" {

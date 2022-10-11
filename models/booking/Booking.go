@@ -40,7 +40,6 @@ type Booking struct {
 	// Thêm customer info
 	CustomerBookingName  string       `json:"customer_booking_name" gorm:"type:varchar(256)"`  // Tên khách hàng đặt booking
 	CustomerBookingPhone string       `json:"customer_booking_phone" gorm:"type:varchar(100)"` // SDT khách hàng đặt booking
-	CustomerIdentify     string       `json:"customer_identify" gorm:"type:varchar(100)"`      // passport/cccd
 	CustomerName         string       `json:"customer_name" gorm:"type:varchar(256)"`          // Tên khách hàng
 	CustomerUid          string       `json:"customer_uid" gorm:"type:varchar(256);index"`     // Uid khách hàng
 	CustomerType         string       `json:"customer_type" gorm:"type:varchar(256)"`          // Loai khach hang: Member, Guest, Visitor...
@@ -1247,6 +1246,8 @@ func (item *Booking) FindListForReportForMainBagSubBag(database *gorm.DB) ([]Boo
 	}
 	db = db.Where("booking_date = ?", item.BookingDate)
 
+	db.Where("bag <> ''")
+	db.Where("moved_flight = 0 AND added_round = 0")
 	db.Order("created_at desc")
 
 	db.Find(&list)
