@@ -133,7 +133,8 @@ func (_ *CProshop) GetListProshop(c *gin.Context, prof models.CmsUser) {
 	ProshopR.EnglishName = form.EnglishName
 	ProshopR.VieName = form.VieName
 	ProshopR.GroupCode = form.GroupCode
-	ProshopR.GroupName = form.GroupName
+	ProshopR.Type = form.Type
+	ProshopR.CodeOrName = form.CodeOrName
 
 	list, total, err := ProshopR.FindList(db, page)
 	if err != nil {
