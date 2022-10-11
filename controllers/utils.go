@@ -1287,6 +1287,13 @@ func checkBuggyReady(db *gorm.DB, buggy models.Buggy, booking model_booking.Book
 	var list []model_booking.Booking
 	dbResponse.Find(&list)
 
+	// nếu list booking chứa booking đang ghép thì ko check nữa
+	for _, data := range list {
+		if booking.Uid == data.Uid {
+			return nil
+		}
+	}
+
 	if total >= 2 {
 		return errors.New(buggy.Code + " đã ghép đủ người")
 	}
