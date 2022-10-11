@@ -1486,7 +1486,7 @@ func createSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 		}
 
 		// Update payment status
-		singlePayment.UpdatePaymentStatus()
+		singlePayment.UpdatePaymentStatus(booking.BagStatus, db)
 		errC := singlePayment.Create(db)
 
 		if errC != nil {
@@ -1494,6 +1494,11 @@ func createSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 			return
 		}
 	} else {
-		log.Println("createSinglePayment errFind", errFind.Error())
+		singlePayment.Bag = booking.Bag
+		singlePayment.BagInfo = bagInfo
+		errUdp := singlePayment.Update(db)
+		if errUdp != nil {
+			log.Println("createSinglePayment errUdp", errUdp.Error())
+		}
 	}
 }

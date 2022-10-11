@@ -56,11 +56,37 @@ func (item PaymentBagInfo) Value() (driver.Value, error) {
 /*
 Update payment status
 */
-func (item *SinglePayment) UpdatePaymentStatus() {
+func (item *SinglePayment) UpdatePaymentStatus(bagStatus string, db *gorm.DB) {
+	// find single payment items
+	singlePaymentItem := SinglePaymentItem{}
+	singlePaymentItem.PaymentUid = item.Uid
+	listItem, errF := singlePaymentItem.FindAll(db)
+
+	isDebt := true
+	if errF != nil || len(listItem) == 0 {
+		isDebt = false
+	}
+
+	for _, v := range listItem {
+		if v.PaymentType != constants.PAYMENT_STATUS_DEBT {
+			isDebt = false
+		}
+	}
+
+	if isDebt {
+		item.PaymentStatus = constants.PAYMENT_STATUS_DEBT
+		return
+	}
+
 	if item.TotalPaid <= 0 {
-		if item.BagInfo.MushPayInfo.MushPay == 0 {
-			//PAID
-			item.PaymentStatus = constants.PAYMENT_STATUS_PAID
+		if bagStatus == constants.BAG_STATUS_CHECK_OUT || bagStatus == constants.BAG_STATUS_CANCEL {
+			if item.BagInfo.MushPayInfo.MushPay == 0 {
+				//PAID
+				item.PaymentStatus = constants.PAYMENT_STATUS_PAID
+			} else {
+				//UN_PAID
+				item.PaymentStatus = constants.PAYMENT_STATUS_UN_PAID
+			}
 		} else {
 			//UN_PAID
 			item.PaymentStatus = constants.PAYMENT_STATUS_UN_PAID
