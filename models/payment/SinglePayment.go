@@ -74,7 +74,7 @@ func (item *SinglePayment) UpdatePaymentStatus() {
 		return
 	}
 
-	if item.TotalAmount == item.TotalPaid {
+	if item.TotalAmount <= item.TotalPaid {
 		//PAID
 		item.PaymentStatus = constants.PAYMENT_STATUS_PAID
 		return
