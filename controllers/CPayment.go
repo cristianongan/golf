@@ -109,7 +109,6 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 			response_message.InternalServerError(c, errC.Error())
 			return
 		}
-
 	} else {
 		isAdd = false
 	}
@@ -151,6 +150,13 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 			for _, v := range listPir {
 				totalPaid = totalPaid + v.Paid
 			}
+
+			//Update other info
+			singlePayment.BagInfo = bagInfo
+			singlePayment.TotalPaid = body.Amount
+			singlePayment.Note = body.Note
+			singlePayment.Cashiers = prof.UserName
+			singlePayment.PaymentDate = toDayDate
 
 			singlePayment.TotalPaid = totalPaid
 			singlePayment.UpdatePaymentStatus()
