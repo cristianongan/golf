@@ -41,15 +41,15 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 	}
 
 	fbList := []model_service.FBItem{}
-	for _, code := range body.FBList {
+	for _, item := range body.FBList {
 		foodBeverage := model_service.FoodBeverage{
-			FBCode:     code,
+			FBCode:     item.Code,
 			PartnerUid: body.PartnerUid,
 			CourseUid:  body.CourseUid,
 		}
 
 		if err := foodBeverage.FindFirst(db); err != nil {
-			response_message.BadRequest(c, errors.New(code+" không tìm thấy ").Error())
+			response_message.BadRequest(c, errors.New(item.Code+" không tìm thấy ").Error())
 			return
 		}
 
@@ -61,6 +61,7 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 			Unit:        foodBeverage.Unit,
 			GroupCode:   foodBeverage.GroupCode,
 			GroupName:   foodBeverage.GroupName,
+			Quantity:    item.Quantity,
 		}
 
 		fbList = append(fbList, item)

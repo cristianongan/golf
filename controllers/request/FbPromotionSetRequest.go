@@ -1,21 +1,38 @@
 package request
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"start/utils"
 )
 
 type FbPromotionSetBody struct {
-	PartnerUid  string           `json:"partner_uid" binding:"required"`
-	CourseUid   string           `json:"course_uid" binding:"required"`
-	Code        string           `json:"code" binding:"required"`
-	EnglishName string           `json:"english_name"`
-	VieName     string           `json:"vietnamese_name"`
-	Discount    int64            `json:"discount"`
-	Note        string           `json:"note"`
-	FBList      utils.ListString `json:"fb_list"`
-	Status      string           `json:"status"`
-	InputUser   string           `json:"input_user"`
-	Price       float64          `json:"price"`
+	PartnerUid  string         `json:"partner_uid" binding:"required"`
+	CourseUid   string         `json:"course_uid" binding:"required"`
+	Code        string         `json:"code" binding:"required"`
+	EnglishName string         `json:"english_name"`
+	VieName     string         `json:"vietnamese_name"`
+	Discount    int64          `json:"discount"`
+	Note        string         `json:"note"`
+	FBList      FBPromotionSet `json:"fb_list"`
+	Status      string         `json:"status"`
+	InputUser   string         `json:"input_user"`
+	Price       float64        `json:"price"`
+}
+
+type FbItem struct {
+	Code     string `json:"code"`
+	Quantity int    `json:"quantity"`
+}
+
+type FBPromotionSet []FbItem
+
+func (item *FBPromotionSet) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item FBPromotionSet) Value() (driver.Value, error) {
+	return json.Marshal(&item)
 }
 
 type GetListFbPromotionSetForm struct {

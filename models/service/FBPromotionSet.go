@@ -36,6 +36,7 @@ type FBItem struct {
 	Unit        string  `json:"unit"`
 	GroupCode   string  `json:"group_code"`
 	GroupName   string  `json:"group_name"`
+	Quantity    int     `json:"quantity"`
 }
 
 type FBSet []FBItem
