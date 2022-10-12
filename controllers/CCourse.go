@@ -56,6 +56,12 @@ func (_ *CCourse) CreateCourse(c *gin.Context, prof models.CmsUser) {
 	course.Icon = body.Icon
 	course.Hole = body.Hole
 	course.RateGolfFee = body.RateGolfFee
+	course.MemberBooking = body.MemberBooking
+	if body.MaxPeopleInFlight > 0 {
+		course.MaxPeopleInFlight = body.MaxPeopleInFlight
+	} else {
+		course.MaxPeopleInFlight = 4
+	}
 
 	errC := course.Create(db)
 
@@ -154,6 +160,12 @@ func (_ *CCourse) UpdateCourse(c *gin.Context, prof models.CmsUser) {
 	}
 	if body.RateGolfFee != "" {
 		course.RateGolfFee = body.RateGolfFee
+	}
+	if body.MaxPeopleInFlight > 0 {
+		course.MaxPeopleInFlight = body.MaxPeopleInFlight
+	}
+	if body.MemberBooking != nil {
+		course.MemberBooking = body.MemberBooking
 	}
 
 	errUdp := course.Update(db)

@@ -432,7 +432,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	// Create booking payment
-	go createSinglePayment(db, booking)
+	if body.AgencyId > 0 && booking.MemberCardUid == "" {
+		go createAgencyPayment(db, booking)
+	} else {
+		go createSinglePayment(db, booking)
+	}
 
 	return &booking, nil
 }
@@ -1381,8 +1385,12 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
 	}
 
-	// Create booking payment
-	go createSinglePayment(db, booking)
+	// Create payment info
+	if body.AgencyId > 0 && booking.MemberCardUid == "" {
+		go createAgencyPayment(db, booking)
+	} else {
+		go createSinglePayment(db, booking)
+	}
 
 	res := getBagDetailFromBooking(db, booking)
 

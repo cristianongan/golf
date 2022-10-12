@@ -1439,7 +1439,7 @@ func newTrue(b bool) *bool {
 }
 
 /*
- Create Single Payment
+Create Single Payment
 */
 func createSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 	bagInfo := model_payment.PaymentBagInfo{}
@@ -1501,6 +1501,68 @@ func createSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 		singlePayment.PaymentDate = booking.BookingDate
 		singlePayment.BagInfo = bagInfo
 		errUdp := singlePayment.Update(db)
+		if errUdp != nil {
+			log.Println("createSinglePayment errUdp", errUdp.Error())
+		}
+	}
+}
+
+/*
+Create Agency Payment
+*/
+func createAgencyPayment(db *gorm.DB, booking model_booking.Booking) {
+	agencyInfo := model_payment.PaymentAgencyInfo{
+		Name:           booking.AgencyInfo.Name,
+		GuestStyle:     booking.GuestStyle,
+		GuestStyleName: booking.GuestStyleName,
+	}
+	agencyInfo.Id = booking.AgencyId
+
+	agencyPayment := model_payment.AgencyPayment{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		BookingCode: booking.BookingCode,
+	}
+	agencyPayment.Status = constants.STATUS_ENABLE
+
+	errFind := agencyPayment.FindFirst(db)
+	if errFind != nil {
+		// Chưa có thì tạo
+		agencyPayment.BookingDate = booking.BookingDate
+		agencyPayment.BookingCode = booking.BookingCode
+		agencyPayment.AgencyInfo = agencyInfo
+		agencyPayment.AgencyId = booking.AgencyId
+		agencyPayment.TotalPaid = 0
+		agencyPayment.Note = ""
+		agencyPayment.Cashiers = ""
+		agencyPayment.PaymentDate = ""
+
+		//Find prepaid from booking
+		if booking.BookingCode != "" {
+			bookOTA := model_booking.BookingOta{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				BookingCode: booking.BookingCode,
+			}
+			errFindBO := bookOTA.FindFirst(db)
+			if errFindBO == nil {
+				agencyPayment.PrepaidFromBooking = int64(bookOTA.NumBook) * (bookOTA.CaddieFee + bookOTA.BuggyFee + bookOTA.GreenFee)
+			}
+		}
+
+		// Update payment status
+		// agencyPayment.UpdatePaymentStatus(booking.BagStatus, db)
+		errC := agencyPayment.Create(db)
+
+		if errC != nil {
+			log.Println("createSinglePayment errC", errC.Error())
+			return
+		}
+	} else {
+		agencyPayment.BookingCode = booking.BookingCode
+		agencyPayment.AgencyInfo = agencyInfo
+		agencyPayment.AgencyId = booking.AgencyId
+		errUdp := agencyPayment.Update(db)
 		if errUdp != nil {
 			log.Println("createSinglePayment errUdp", errUdp.Error())
 		}
