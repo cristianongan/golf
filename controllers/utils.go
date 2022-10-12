@@ -1500,6 +1500,7 @@ func createSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 		singlePayment.BookingCode = booking.BookingCode
 		singlePayment.PaymentDate = booking.BookingDate
 		singlePayment.BagInfo = bagInfo
+		singlePayment.UpdatePaymentStatus(booking.BagStatus, db)
 		errUdp := singlePayment.Update(db)
 		if errUdp != nil {
 			log.Println("createSinglePayment errUdp", errUdp.Error())
