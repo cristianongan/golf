@@ -34,6 +34,7 @@ type FBItem struct {
 	VieName     string  `json:"vietnamese_name"`
 	Price       float64 `json:"price"`
 	Unit        string  `json:"unit"`
+	Type        string  `json:"type"`
 	GroupCode   string  `json:"group_code"`
 	GroupName   string  `json:"group_name"`
 	Quantity    int     `json:"quantity"`
