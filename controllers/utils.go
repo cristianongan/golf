@@ -1472,6 +1472,7 @@ func createSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 		singlePayment.Note = ""
 		singlePayment.Cashiers = ""
 		singlePayment.PaymentDate = ""
+		singlePayment.PaymentDate = booking.BookingDate
 
 		//Find prepaid from booking
 		if booking.BookingCode != "" {
@@ -1497,6 +1498,7 @@ func createSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 	} else {
 		singlePayment.Bag = booking.Bag
 		singlePayment.BookingCode = booking.BookingCode
+		singlePayment.PaymentDate = booking.BookingDate
 		singlePayment.BagInfo = bagInfo
 		errUdp := singlePayment.Update(db)
 		if errUdp != nil {
