@@ -1492,6 +1492,13 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Update payment info
+	if bookRes.AgencyId > 0 && bookRes.MemberCardUid == "" {
+		// go createAgencyPayment(db, bookRes)
+	} else {
+		go createSinglePayment(db, bookRes)
+	}
+
 	res := getBagDetailFromBooking(db, bookRes)
 
 	okResponse(c, res)
