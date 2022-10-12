@@ -53,10 +53,6 @@ type FbPromotionSetRequest struct {
 	FbPromotionSet
 	CodeOrName string `form:"code_or_name"`
 }
-type FBPromotionSetResponse struct {
-	FbPromotionSet
-	GroupName string `json:"group_name"`
-}
 
 func (item *FbPromotionSet) Create(db *gorm.DB) error {
 	now := time.Now()
@@ -89,9 +85,9 @@ func (item *FbPromotionSet) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *FbPromotionSetRequest) FindList(database *gorm.DB, page models.Page) ([]FBPromotionSetResponse, int64, error) {
+func (item *FbPromotionSetRequest) FindList(database *gorm.DB, page models.Page) ([]FbPromotionSet, int64, error) {
 	db := database.Model(FbPromotionSet{})
-	list := []FBPromotionSetResponse{}
+	list := []FbPromotionSet{}
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
@@ -115,9 +111,6 @@ func (item *FbPromotionSetRequest) FindList(database *gorm.DB, page models.Page)
 		db = db.Where(query, "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%")
 	}
 
-	db = db.Joins("JOIN group_services ON fb_promotion_sets.partner_uid = group_services.partner_uid AND " +
-		"fb_promotion_sets.course_uid = group_services.course_uid")
-	db = db.Select("fb_promotion_sets.*, group_services.group_name")
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
