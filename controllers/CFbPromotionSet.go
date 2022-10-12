@@ -55,6 +55,7 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 
 		item := model_service.FBItem{
 			FBCode:      foodBeverage.FBCode,
+			Type:        foodBeverage.Type,
 			EnglishName: foodBeverage.EnglishName,
 			VieName:     foodBeverage.VieName,
 			Price:       foodBeverage.Price,
@@ -114,7 +115,6 @@ func (_ *CFbPromotionSet) GetListFoodBeveragepRomotionSet(c *gin.Context, prof m
 	promotionSetR := model_service.FbPromotionSetRequest{}
 	promotionSetR.PartnerUid = form.PartnerUid
 	promotionSetR.CourseUid = form.CourseUid
-	promotionSetR.GroupCode = form.GroupCode
 	promotionSetR.CodeOrName = form.CodeOrName
 	promotionSetR.Status = form.Status
 

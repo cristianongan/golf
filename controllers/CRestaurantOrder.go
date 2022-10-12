@@ -350,29 +350,20 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		// add infor cart item
 		serviceCartItem.Type = constants.RESTAURANT_SETTING
 		serviceCartItem.Location = kiosk.KioskName
-		serviceCartItem.GroupCode = fbSet.GroupCode
 		serviceCartItem.Name = fbSet.VieName
 		serviceCartItem.UnitPrice = int64(fbSet.Price)
 		serviceCartItem.Amount = int64(body.Quantity) * int64(fbSet.Price)
 
 		// add item res
 		for _, v := range fbSet.FBList {
-			fb := model_service.FoodBeverage{}
-			fb.PartnerUid = body.PartnerUid
-			fb.CourseUid = body.CourseUid
-			fb.FBCode = v.FBCode
-
-			if err := fb.FindFirst(db); err != nil {
-				response_message.BadRequest(c, "Find fb in combo "+err.Error())
-				return
-			}
-
 			item := models.RestaurantItem{
-				Type:          fb.Type,
-				ItemName:      fb.VieName,
-				ItemComboName: fbSet.VieName,
-				ItemCode:      fb.FBCode,
-				ItemUnit:      fb.Unit,
+				Type:             v.Type,
+				ItemName:         v.VieName,
+				ItemComboName:    fbSet.VieName,
+				ItemCode:         v.FBCode,
+				ItemUnit:         v.Unit,
+				Quantity:         v.Quantity,
+				QuantityProgress: v.Quantity,
 			}
 
 			restaurantItems = append(restaurantItems, item)
@@ -402,10 +393,12 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 
 		// add infor res item
 		item := models.RestaurantItem{
-			Type:     fb.Type,
-			ItemName: fb.VieName,
-			ItemCode: fb.FBCode,
-			ItemUnit: fb.Unit,
+			Type:             fb.Type,
+			ItemName:         fb.VieName,
+			ItemCode:         fb.FBCode,
+			ItemUnit:         fb.Unit,
+			Quantity:         body.Quantity,
+			QuantityProgress: body.Quantity,
 		}
 
 		restaurantItems = append(restaurantItems, item)
@@ -433,8 +426,6 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		v.BillId = serviceCart.Id
 		v.ItemId = serviceCartItem.Id
 		v.ItemStatus = constants.RES_STATUS_ORDER
-		v.Quantity = body.Quantity
-		v.QuantityProgress = body.Quantity
 
 		if err := v.Create(db); err != nil {
 			response_message.BadRequest(c, err.Error())
@@ -913,28 +904,19 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 			// add infor cart item
 			serviceCartItem.Type = kiosk.KioskType
 			serviceCartItem.Location = kiosk.KioskName
-			serviceCartItem.GroupCode = fbSet.GroupCode
 			serviceCartItem.Name = fbSet.VieName
 			serviceCartItem.UnitPrice = int64(fbSet.Price)
 
 			// add item res
 			for _, v := range fbSet.FBList {
-				fb := model_service.FoodBeverage{}
-				fb.PartnerUid = body.PartnerUid
-				fb.CourseUid = body.CourseUid
-				fb.FBCode = v.FBCode
-
-				if err := fb.FindFirst(db); err != nil {
-					response_message.BadRequest(c, "Find fb in combo "+err.Error())
-					return
-				}
-
 				item := models.RestaurantItem{
-					Type:          fb.Type,
-					ItemName:      fb.VieName,
-					ItemComboName: fbSet.VieName,
-					ItemCode:      fb.FBCode,
-					ItemUnit:      fb.Unit,
+					Type:             v.Type,
+					ItemName:         v.VieName,
+					ItemComboName:    fbSet.VieName,
+					ItemCode:         v.FBCode,
+					ItemUnit:         v.Unit,
+					Quantity:         v.Quantity,
+					QuantityProgress: v.Quantity,
 				}
 
 				restaurantItems = append(restaurantItems, item)

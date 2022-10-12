@@ -241,6 +241,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		newBooking.BagStatus = constants.BAG_STATUS_WAITING
 		newBooking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
 		newBooking.FlightId = 0
+		newBooking.HoleTimeOut = 0
 		newBooking.TimeOutFlight = 0
 		newBooking.CourseType = body.CourseType
 		newBooking.ShowCaddieBuggy = newTrue(false)

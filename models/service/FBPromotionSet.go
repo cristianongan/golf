@@ -17,8 +17,7 @@ type FbPromotionSet struct {
 	models.ModelId
 	PartnerUid  string  `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid   string  `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	GroupCode   string  `json:"group_code" gorm:"type:varchar(100);index"`
-	Code        string  `json:"code"` // Mã Set
+	Code        string  `json:"code"`                                       // Mã Set
 	Discount    int64   `json:"discount"`
 	Note        string  `json:"note"`
 	FBList      FBSet   `json:"fb_list,omitempty" gorm:"type:json"` // ds món, liên kết qua fb code
@@ -34,6 +33,7 @@ type FBItem struct {
 	VieName     string  `json:"vietnamese_name"`
 	Price       float64 `json:"price"`
 	Unit        string  `json:"unit"`
+	Type        string  `json:"type"`
 	GroupCode   string  `json:"group_code"`
 	GroupName   string  `json:"group_name"`
 	Quantity    int     `json:"quantity"`
@@ -52,10 +52,6 @@ func (item FBSet) Value() (driver.Value, error) {
 type FbPromotionSetRequest struct {
 	FbPromotionSet
 	CodeOrName string `form:"code_or_name"`
-}
-type FBPromotionSetResponse struct {
-	FbPromotionSet
-	GroupName string `json:"group_name"`
 }
 
 func (item *FbPromotionSet) Create(db *gorm.DB) error {
@@ -89,9 +85,9 @@ func (item *FbPromotionSet) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *FbPromotionSetRequest) FindList(database *gorm.DB, page models.Page) ([]FBPromotionSetResponse, int64, error) {
+func (item *FbPromotionSetRequest) FindList(database *gorm.DB, page models.Page) ([]FbPromotionSet, int64, error) {
 	db := database.Model(FbPromotionSet{})
-	list := []FBPromotionSetResponse{}
+	list := []FbPromotionSet{}
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
@@ -108,20 +104,13 @@ func (item *FbPromotionSetRequest) FindList(database *gorm.DB, page models.Page)
 	if item.VieName != "" {
 		db = db.Where("fb_promotion_sets.vie_name LIKE ?", "%"+item.VieName+"%")
 	}
-	if item.GroupCode != "" {
-		db = db.Where("fb_promotion_sets.group_code = ?", item.GroupCode)
-	}
 	if item.CodeOrName != "" {
 		query := "fb_promotion_sets.code COLLATE utf8mb4_general_ci LIKE ? OR " +
 			"fb_promotion_sets.vie_name COLLATE utf8mb4_general_ci LIKE ? OR " +
-			"fb_promotion_sets.english_name COLLATE utf8mb4_general_ci LIKE"
-		db = db.Where(query, "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%")
+			"fb_promotion_sets.english_name COLLATE utf8mb4_general_ci LIKE ?"
+		db = db.Where(query, "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%")
 	}
 
-	db = db.Joins("JOIN group_services ON fb_promotion_sets.group_code = group_services.group_code AND " +
-		"fb_promotion_sets.partner_uid = group_services.partner_uid AND " +
-		"fb_promotion_sets.course_uid = group_services.course_uid")
-	db = db.Select("fb_promotion_sets.*, group_services.group_name")
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
