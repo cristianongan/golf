@@ -114,7 +114,6 @@ func (_ *CFbPromotionSet) GetListFoodBeveragepRomotionSet(c *gin.Context, prof m
 	promotionSetR := model_service.FbPromotionSetRequest{}
 	promotionSetR.PartnerUid = form.PartnerUid
 	promotionSetR.CourseUid = form.CourseUid
-	promotionSetR.GroupCode = form.GroupCode
 	promotionSetR.CodeOrName = form.CodeOrName
 	promotionSetR.Status = form.Status
 

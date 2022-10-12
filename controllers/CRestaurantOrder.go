@@ -350,7 +350,6 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		// add infor cart item
 		serviceCartItem.Type = constants.RESTAURANT_SETTING
 		serviceCartItem.Location = kiosk.KioskName
-		serviceCartItem.GroupCode = fbSet.GroupCode
 		serviceCartItem.Name = fbSet.VieName
 		serviceCartItem.UnitPrice = int64(fbSet.Price)
 		serviceCartItem.Amount = int64(body.Quantity) * int64(fbSet.Price)
@@ -913,7 +912,6 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 			// add infor cart item
 			serviceCartItem.Type = kiosk.KioskType
 			serviceCartItem.Location = kiosk.KioskName
-			serviceCartItem.GroupCode = fbSet.GroupCode
 			serviceCartItem.Name = fbSet.VieName
 			serviceCartItem.UnitPrice = int64(fbSet.Price)
 

@@ -63,16 +63,15 @@ func (_ CCaddieGroup) CreateCaddieGroup(c *gin.Context, prof models.CmsUser) {
 
 	caddieGroup := models.CaddieGroup{
 		Code:       body.GroupCode,
+		Name:       body.GroupName,
 		PartnerUid: prof.PartnerUid,
 		CourseUid:  prof.CourseUid,
 	}
 
-	if err := caddieGroup.FindFirst(db); err == nil {
+	if err := caddieGroup.ValidateCreate(db); err == nil {
 		response_message.BadRequest(c, "This caddie group is exist")
 		return
 	}
-
-	caddieGroup.Name = body.GroupName
 
 	if err := caddieGroup.Create(db); err != nil {
 		log.Print("CreateCaddieGroup.Create()")
