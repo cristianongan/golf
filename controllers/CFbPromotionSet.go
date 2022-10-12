@@ -55,6 +55,7 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 
 		item := model_service.FBItem{
 			FBCode:      foodBeverage.FBCode,
+			Type:        foodBeverage.Type,
 			EnglishName: foodBeverage.EnglishName,
 			VieName:     foodBeverage.VieName,
 			Price:       foodBeverage.Price,
