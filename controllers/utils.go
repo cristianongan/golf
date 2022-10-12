@@ -504,6 +504,9 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 			if errUdp != nil {
 				err = errUdp
 				log.Println("UpdateMainBagForSubBag errUdp", errUdp.Error())
+			} else {
+				// Udp lai info payment
+				go handleSinglePayment(db, booking)
 			}
 		} else {
 			err = errFind
@@ -1441,7 +1444,7 @@ func newTrue(b bool) *bool {
 /*
 Create Single Payment
 */
-func createSinglePayment(db *gorm.DB, booking model_booking.Booking) {
+func handleSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 	bagInfo := model_payment.PaymentBagInfo{}
 	bagByte, errM := json.Marshal(booking)
 	if errM != nil {
@@ -1468,10 +1471,6 @@ func createSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 		singlePayment.BookingDate = booking.BookingDate
 		singlePayment.BookingCode = booking.BookingCode
 		singlePayment.BagInfo = bagInfo
-		singlePayment.TotalPaid = 0
-		singlePayment.Note = ""
-		singlePayment.Cashiers = ""
-		singlePayment.PaymentDate = ""
 		singlePayment.PaymentDate = booking.BookingDate
 
 		//Find prepaid from booking
@@ -1492,7 +1491,7 @@ func createSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 		errC := singlePayment.Create(db)
 
 		if errC != nil {
-			log.Println("createSinglePayment errC", errC.Error())
+			log.Println("handleSinglePayment errC", errC.Error())
 			return
 		}
 	} else {
@@ -1503,7 +1502,7 @@ func createSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 		singlePayment.UpdatePaymentStatus(booking.BagStatus, db)
 		errUdp := singlePayment.Update(db)
 		if errUdp != nil {
-			log.Println("createSinglePayment errUdp", errUdp.Error())
+			log.Println("handleSinglePayment errUdp", errUdp.Error())
 		}
 	}
 }
@@ -1511,7 +1510,7 @@ func createSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 /*
 Create Agency Payment
 */
-func createAgencyPayment(db *gorm.DB, booking model_booking.Booking) {
+func handleAgencyPayment(db *gorm.DB, booking model_booking.Booking) {
 	agencyInfo := model_payment.PaymentAgencyInfo{
 		Name:           booking.AgencyInfo.Name,
 		GuestStyle:     booking.GuestStyle,
@@ -1556,7 +1555,7 @@ func createAgencyPayment(db *gorm.DB, booking model_booking.Booking) {
 		errC := agencyPayment.Create(db)
 
 		if errC != nil {
-			log.Println("createSinglePayment errC", errC.Error())
+			log.Println("handleSinglePayment errC", errC.Error())
 			return
 		}
 	} else {
@@ -1565,7 +1564,7 @@ func createAgencyPayment(db *gorm.DB, booking model_booking.Booking) {
 		agencyPayment.AgencyId = booking.AgencyId
 		errUdp := agencyPayment.Update(db)
 		if errUdp != nil {
-			log.Println("createSinglePayment errUdp", errUdp.Error())
+			log.Println("handleSinglePayment errUdp", errUdp.Error())
 		}
 	}
 }

@@ -433,9 +433,12 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	// Create booking payment
 	if body.AgencyId > 0 && booking.MemberCardUid == "" {
-		go createAgencyPayment(db, booking)
+		go handleAgencyPayment(db, booking)
 	} else {
-		go createSinglePayment(db, booking)
+		if booking.BagStatus == constants.BAG_STATUS_WAITING {
+			// checkin mới tạo payment
+			go handleSinglePayment(db, booking)
+		}
 	}
 
 	return &booking, nil
@@ -1387,9 +1390,9 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	// Create payment info
 	if body.AgencyId > 0 && booking.MemberCardUid == "" {
-		go createAgencyPayment(db, booking)
+		go handleAgencyPayment(db, booking)
 	} else {
-		go createSinglePayment(db, booking)
+		go handleSinglePayment(db, booking)
 	}
 
 	res := getBagDetailFromBooking(db, booking)
@@ -1494,9 +1497,9 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 
 	// Update payment info
 	if bookRes.AgencyId > 0 && bookRes.MemberCardUid == "" {
-		// go createAgencyPayment(db, bookRes)
+		// go handleAgencyPayment(db, bookRes)
 	} else {
-		go createSinglePayment(db, bookRes)
+		go handleSinglePayment(db, bookRes)
 	}
 
 	res := getBagDetailFromBooking(db, bookRes)
@@ -2138,7 +2141,7 @@ func (_ *CBooking) ChangeBookingHole(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
-	Check bag có được checkout hay không
+Check bag có được checkout hay không
 */
 func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
