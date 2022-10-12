@@ -911,22 +911,14 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 
 			// add item res
 			for _, v := range fbSet.FBList {
-				fb := model_service.FoodBeverage{}
-				fb.PartnerUid = body.PartnerUid
-				fb.CourseUid = body.CourseUid
-				fb.FBCode = v.FBCode
-
-				if err := fb.FindFirst(db); err != nil {
-					response_message.BadRequest(c, "Find fb in combo "+err.Error())
-					return
-				}
-
 				item := models.RestaurantItem{
-					Type:          fb.Type,
-					ItemName:      fb.VieName,
-					ItemComboName: fbSet.VieName,
-					ItemCode:      fb.FBCode,
-					ItemUnit:      fb.Unit,
+					Type:             v.Type,
+					ItemName:         v.VieName,
+					ItemComboName:    fbSet.VieName,
+					ItemCode:         v.FBCode,
+					ItemUnit:         v.Unit,
+					Quantity:         v.Quantity,
+					QuantityProgress: v.Quantity,
 				}
 
 				restaurantItems = append(restaurantItems, item)

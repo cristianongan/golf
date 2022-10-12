@@ -1005,3 +1005,51 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 
 	okRes(c)
 }
+
+// Chuyển trạng thái
+func (_ CServiceCart) UndoStatus(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.FinishOrderBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// validate body
+	validate := validator.New()
+
+	if err := validate.Struct(body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate bill
+	serviceCart := models.ServiceCart{}
+	serviceCart.Id = body.BillId
+	if err := serviceCart.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Find service Cart "+err.Error())
+		return
+	}
+
+	// validate golf bag
+	booking := model_booking.Booking{}
+	booking.PartnerUid = serviceCart.PartnerUid
+	booking.CourseUid = serviceCart.CourseUid
+	booking.Uid = serviceCart.BookingUid
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
+	// Update trạng thái
+	serviceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
+	if err := serviceCart.Update(db); err != nil {
+		response_message.BadRequest(c, "Update service Cart "+err.Error())
+		return
+	}
+
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
+
+	okRes(c)
+}

@@ -566,6 +566,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/service-cart/create-new-guest", middlewares.AuthorizedCmsUserHandler(cServiceCart.CreateNewGuest))
 			cmsApiAuthorized.PUT("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.UpdateItemCart))
 			cmsApiAuthorized.PUT("/service-cart/finish-order", middlewares.AuthorizedCmsUserHandler(cServiceCart.FinishOrder))
+			cmsApiAuthorized.PUT("/service-cart/undo-order", middlewares.AuthorizedCmsUserHandler(cServiceCart.UndoStatus))
 			cmsApiAuthorized.DELETE("/service-cart/item/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteItemInCart))
 			cmsApiAuthorized.DELETE("/service-cart/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteCart))
 
