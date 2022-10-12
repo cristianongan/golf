@@ -187,7 +187,6 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			NoteOfBooking:        body.Note,
 			TeeTime:              body.TeeOffStr,
 			GuestStyle:           body.GuestStyle,
-			TeeType:              body.Tee,
 			BookingOtaId:         bookingOta.Id,
 			RowIndex:             &listIndex[i],
 			AgencyId:             agency.Id,
@@ -197,10 +196,14 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			BookingSourceId:      bookSourceId,
 		}
 
-		if body.IsMainCourse {
+		if body.Tee == "1" {
 			bodyCreate.CourseType = "A"
-		} else {
+			bodyCreate.TeeType = "1"
+		}
+
+		if body.Tee == "10" {
 			bodyCreate.CourseType = "B"
+			bodyCreate.TeeType = "1"
 		}
 
 		booking, errBook := cBooking.CreateBookingCommon(bodyCreate, nil, prof)

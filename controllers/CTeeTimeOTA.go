@@ -250,9 +250,17 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 		DateTime:       dateFormat,
 		CourseUid:      body.CourseCode,
 		TeeTime:        body.TeeOffStr,
-		TeeType:        body.Tee,
 		CurrentTeeTime: body.TeeOffStr,
 	}
+
+	if body.Tee == "1" {
+		teeTimeSetting.TeeType = "1A"
+	}
+
+	if body.Tee == "10" {
+		teeTimeSetting.TeeType = "1B"
+	}
+
 	db := datasources.GetDatabase()
 	teeTimeSetting.TeeTimeStatus = constants.TEE_TIME_LOCKED
 
@@ -365,7 +373,14 @@ func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
 		CourseUid: body.CourseCode,
 		TeeTime:   body.TeeOffStr,
 		DateTime:  dateFormat,
-		TeeType:   body.Tee,
+	}
+
+	if body.Tee == "1" {
+		lockTeeTime.TeeType = "1A"
+	}
+
+	if body.Tee == "10" {
+		lockTeeTime.TeeType = "1B"
 	}
 
 	db := datasources.GetDatabase()
