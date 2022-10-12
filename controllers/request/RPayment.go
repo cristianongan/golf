@@ -48,7 +48,6 @@ type DeleteSinglePaymentDetailBody struct {
 type CreateAgencyPaymentItemBody struct {
 	AgencyPaymentUid string `json:"agency_payment_uid" binding:"required"` // Booking uid
 	BookingCode      string `json:"booking_code" binding:"required"`       // Booking uid
-	AgencyId         int64  `json:"agency_id" binding:"required"`          // agency id
 	DateStr          string `json:"date_str" binding:"required"`           // timestamp hiện tại -> string
 	PaymentType      string `json:"payment_type"`                          // CASH, VISA, DEBT
 	Amount           int64  `json:"amount" binding:"required"`             // Số tiền thanh toán
