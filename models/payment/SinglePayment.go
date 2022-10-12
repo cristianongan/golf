@@ -27,7 +27,7 @@ type SinglePayment struct {
 	BookingDate string         `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
 	PaymentDate string         `json:"payment_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
 	BagInfo     PaymentBagInfo `json:"bag_info,omitempty" gorm:"type:json"`
-	TotalAmount int64          `json:"total_amount"` // Số tiền thanh toán
+	// TotalAmount int64          `json:"total_amount"` // Số tiền thanh toán
 
 	Invoice            string `json:"invoice" gorm:"type:varchar(100)"`             // Invoice
 	PaymentStatus      string `json:"payment_status" gorm:"type:varchar(50);index"` // PAID, UN_PAID, PARTIAL_PAID, DEBT
@@ -64,6 +64,8 @@ func (item *SinglePayment) UpdatePaymentStatus(bagStatus string, db *gorm.DB) {
 	singlePaymentItem.PaymentUid = item.Uid
 	listItem, errF := singlePaymentItem.FindAll(db)
 
+	totalAmount := item.BagInfo.MushPayInfo.MushPay
+
 	isDebt := true
 	if errF != nil || len(listItem) == 0 {
 		isDebt = false
@@ -82,7 +84,7 @@ func (item *SinglePayment) UpdatePaymentStatus(bagStatus string, db *gorm.DB) {
 
 	if item.TotalPaid <= 0 {
 		if bagStatus == constants.BAG_STATUS_CHECK_OUT || bagStatus == constants.BAG_STATUS_CANCEL {
-			if item.BagInfo.MushPayInfo.MushPay == 0 {
+			if totalAmount == 0 {
 				//PAID
 				item.PaymentStatus = constants.PAYMENT_STATUS_PAID
 			} else {
@@ -96,13 +98,13 @@ func (item *SinglePayment) UpdatePaymentStatus(bagStatus string, db *gorm.DB) {
 		return
 	}
 
-	if item.TotalAmount > item.TotalPaid && item.TotalPaid > 0 {
+	if totalAmount > item.TotalPaid && item.TotalPaid > 0 {
 		//PARTIAL_PAID
 		item.PaymentStatus = constants.PAYMENT_STATUS_PARTIAL_PAID
 		return
 	}
 
-	if item.TotalAmount <= item.TotalPaid {
+	if totalAmount <= item.TotalPaid {
 		//PAID
 		item.PaymentStatus = constants.PAYMENT_STATUS_PAID
 		return
