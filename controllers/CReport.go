@@ -80,7 +80,7 @@ func (_ *CReport) GetListReportMainBagSubBagToDay(c *gin.Context, prof models.Cm
 
 		for _, v1 := range listHaveMainBags {
 			if v1.MainBags != nil && len(v1.MainBags) > 0 {
-				if v.Uid == v1.MainBags[0].BookingUid {
+				if v.Bag == v1.MainBags[0].GolfBag {
 
 					subB := response.ReportSubBagResponse{}
 					subB.PartnerUid = v1.PartnerUid
