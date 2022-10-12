@@ -27,6 +27,22 @@ func (item *CaddieGroup) Create(db *gorm.DB) error {
 	return db.Create(item).Error
 }
 
+func (item *CaddieGroup) ValidateCreate(db *gorm.DB) error {
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.Code != "" || item.Name != "" {
+		db = db.Where("code = ? OR name = ?", item.Code, item.Name)
+	}
+
+	return db.First(item).Error
+}
+
 func (item *CaddieGroup) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
