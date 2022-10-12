@@ -326,9 +326,9 @@ func (_ *CPayment) DeleteSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 
 	// Check check_sum
 	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BillCode + "|" + body.Bag
-	log.Println("UpdateSinglePayment checkSumMessage ", checkSumMessage)
+	log.Println("DeleteSinglePaymentItem checkSumMessage ", checkSumMessage)
 	checkSum := utils.GetSHA256Hash(checkSumMessage)
-	log.Println("UpdateSinglePayment checkSum ", checkSum)
+	log.Println("DeleteSinglePaymentItem checkSum ", checkSum)
 
 	if checkSum != body.CheckSum {
 		response_message.BadRequest(c, "checksum invalid")
@@ -348,6 +348,16 @@ func (_ *CPayment) DeleteSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 	errUdpItem := paymentItem.Update(db)
 	if errUdpItem != nil {
 		log.Println("DeleteSinglePaymentItem errUdpItem ", errUdpItem.Error())
+	}
+
+	//find single payment
+	singlePayment := model_payment.SinglePayment{}
+	singlePayment.Uid = paymentItem.PaymentUid
+	errFS := singlePayment.FindFirst(db)
+	if errFS == nil {
+		singlePayment.UpdateTotalPaid(db)
+	} else {
+		log.Println("DeleteSinglePaymentItem errFS", errFS.Error())
 	}
 
 	okRes(c)
@@ -455,6 +465,54 @@ func (_ *CPayment) CreateAgencyPaymentItem(c *gin.Context, prof models.CmsUser) 
 
 	//Update agency payment
 	agencyPayment.UpdateTotalPaid(db)
+
+	okRes(c)
+}
+
+/*
+Xoá agency payment item
+*/
+func (_ *CPayment) DeleteAgencyPaymentItem(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.DeleteAgencyPaymentDetailBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// Check check_sum
+	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BookingCode + "|" + body.AgencyPaymentItemUid
+	log.Println("DeleteAgencyPaymentItem checkSumMessage ", checkSumMessage)
+	checkSum := utils.GetSHA256Hash(checkSumMessage)
+	log.Println("DeleteAgencyPaymentItem checkSum ", checkSum)
+
+	if checkSum != body.CheckSum {
+		response_message.BadRequest(c, "checksum invalid")
+		return
+	}
+
+	paymentItem := model_payment.AgencyPaymentItem{}
+	paymentItem.Uid = body.AgencyPaymentItemUid
+
+	errFindPaymentItem := paymentItem.FindFirst(db)
+	if errFindPaymentItem != nil {
+		response_message.InternalServerError(c, errFindPaymentItem.Error())
+		return
+	}
+
+	paymentItem.Status = constants.STATUS_DELETE
+	errUdpItem := paymentItem.Update(db)
+	if errUdpItem != nil {
+		log.Println("DeleteSinglePaymentItem errUdpItem ", errUdpItem.Error())
+	}
+
+	// find agency payment
+	agencyPayment := model_payment.AgencyPayment{}
+	agencyPayment.Uid = paymentItem.PaymentUid
+	errFAP := agencyPayment.FindFirst(db)
+	if errFAP == nil {
+		agencyPayment.UpdateTotalPaid(db)
+	}
 
 	okRes(c)
 }

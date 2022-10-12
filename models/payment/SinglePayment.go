@@ -3,6 +3,7 @@ package model_payment
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"log"
 	"start/constants"
 	"start/models"
 	model_booking "start/models/booking"
@@ -105,6 +106,41 @@ func (item *SinglePayment) UpdatePaymentStatus(bagStatus string, db *gorm.DB) {
 		//PAID
 		item.PaymentStatus = constants.PAYMENT_STATUS_PAID
 		return
+	}
+}
+
+func (item *SinglePayment) UpdateTotalPaid(db *gorm.DB) {
+	if item.Uid == "" {
+		return
+	}
+	//Total agency paid
+	agencyPaymentItem := SinglePaymentItem{
+		PaymentUid: item.Uid,
+	}
+	listItem, err := agencyPaymentItem.FindAll(db)
+	if err != nil {
+		return
+	}
+
+	totalPaid := int64(0)
+	for _, v := range listItem {
+		totalPaid += v.Paid
+	}
+
+	item.TotalPaid = totalPaid
+	if item.BookingUid != "" {
+		//booking
+		booking := model_booking.Booking{}
+		booking.Uid = item.BookingUid
+		errFB := booking.FindFirst(db)
+		if errFB == nil {
+			item.UpdatePaymentStatus(booking.BagStatus, db)
+		}
+	}
+
+	errUdp := item.Update(db)
+	if errUdp != nil {
+		log.Println("UpdateTotalPaid errUdp", errUdp.Error())
 	}
 }
 

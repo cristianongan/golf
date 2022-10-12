@@ -66,3 +66,9 @@ type GetListAgencyPaymentBody struct {
 	PaymentDate   string `json:"payment_date"`
 	CheckSum      string `json:"check_sum" binding:"required"` // Checksum
 }
+
+type DeleteAgencyPaymentDetailBody struct {
+	AgencyPaymentItemUid string `json:"agency_payment_item_uid" binding:"required"`
+	BookingCode          string `json:"booking_code" binding:"required"`
+	CheckSum             string `json:"check_sum" binding:"required"` // Checksum
+}

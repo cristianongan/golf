@@ -62,7 +62,7 @@ func (item *AgencyPaymentItem) Count(db *gorm.DB) (int64, error) {
 func (item *AgencyPaymentItem) FindAll(db *gorm.DB) ([]AgencyPaymentItem, error) {
 	db = db.Model(AgencyPaymentItem{})
 	list := []AgencyPaymentItem{}
-	status := item.Model.Status
+	status := constants.STATUS_ENABLE
 	item.Model.Status = ""
 
 	if status != "" {
@@ -92,7 +92,7 @@ func (item *AgencyPaymentItem) FindList(db *gorm.DB, page models.Page) ([]Agency
 	db = db.Model(AgencyPaymentItem{})
 	list := []AgencyPaymentItem{}
 	total := int64(0)
-	status := item.Model.Status
+	status := constants.STATUS_ENABLE
 	item.Model.Status = ""
 
 	if status != "" {
