@@ -3,6 +3,7 @@ package model_payment
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"log"
 	"start/constants"
 	"start/models"
 	"strings"
@@ -52,6 +53,33 @@ func (item PaymentAgencyInfo) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
+// Update Total Paid
+func (item *AgencyPayment) UpdateTotalPaid(db *gorm.DB) {
+	if item.Uid == "" {
+		return
+	}
+	//Total agency paid
+	agencyPaymentItem := AgencyPaymentItem{
+		PaymentUid: item.Uid,
+	}
+	listItem, err := agencyPaymentItem.FindAll(db)
+	if err != nil {
+		return
+	}
+
+	totalPaid := int64(0)
+	for _, v := range listItem {
+		totalPaid += v.Paid
+	}
+
+	item.TotalPaid = totalPaid
+
+	errUdp := item.Update(db)
+	if errUdp != nil {
+		log.Println("UpdateTotalPaid errUdp", errUdp.Error())
+	}
+}
+
 func (item *AgencyPayment) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.Model.CreatedAt = now.Unix()
@@ -87,7 +115,7 @@ func (item *AgencyPayment) Count(db *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *AgencyPayment) FindList(db *gorm.DB, page models.Page, playerName string) ([]AgencyPayment, int64, error) {
+func (item *AgencyPayment) FindList(db *gorm.DB, page models.Page) ([]AgencyPayment, int64, error) {
 	db = db.Model(AgencyPayment{})
 	list := []AgencyPayment{}
 	total := int64(0)
@@ -116,9 +144,9 @@ func (item *AgencyPayment) FindList(db *gorm.DB, page models.Page, playerName st
 	// 	db = db.Where("payment_status = ?", item.PaymentStatus)
 	// }
 
-	if playerName != "" {
-		db = db.Where("bag_info->'$.customer_name' LIKE ?", "%"+playerName+"%")
-	}
+	// if playerName != "" {
+	// 	db = db.Where("bag_info->'$.customer_name' LIKE ?", "%"+playerName+"%")
+	// }
 
 	db.Count(&total)
 

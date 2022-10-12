@@ -353,8 +353,9 @@ func (_ *CPayment) DeleteSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 	okRes(c)
 }
 
-// /  -------------- Agency Payment -------------
-
+///  -------------- Agency Payment -------------
+/*
+ */
 func (_ *CPayment) GetListAgencyPayment(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.GetListAgencyPaymentBody{}
@@ -364,10 +365,10 @@ func (_ *CPayment) GetListAgencyPayment(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Checksum
-	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.PartnerUid + "|" + body.CourseUid + "|" + body.PaymentDate + "|" + "|" + body.AgencyName + "|" + body.PaymentStatus
-	log.Println("GetListPayment checkSumMessage ", checkSumMessage)
+	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.PartnerUid + "|" + body.CourseUid + "|" + body.PaymentDate + "|" + body.AgencyName + "|" + body.PaymentStatus
+	log.Println("GetListAgencyPayment checkSumMessage ", checkSumMessage)
 	checkSum := utils.GetSHA256Hash(checkSumMessage)
-	log.Println("GetListPayment checkSum ", checkSum)
+	log.Println("GetListAgencyPayment checkSum ", checkSum)
 
 	if checkSum != body.CheckSum {
 		response_message.BadRequest(c, "checksum invalid")
@@ -387,7 +388,7 @@ func (_ *CPayment) GetListAgencyPayment(c *gin.Context, prof models.CmsUser) {
 		PaymentDate: body.PaymentDate,
 	}
 
-	list, total, err := paymentR.FindList(db, page, body.PlayerName)
+	list, total, err := paymentR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -401,12 +402,58 @@ func (_ *CPayment) GetListAgencyPayment(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, res)
 }
 
+/*
+	Thanh toán cho agency
+*/
 func (_ *CPayment) CreateAgencyPaymentItem(c *gin.Context, prof models.CmsUser) {
-	// db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	// body := request.CreateAgencyPaymentItemBody{}
-	// if bindErr := c.ShouldBind(&body); bindErr != nil {
-	// 	response_message.BadRequest(c, bindErr.Error())
-	// 	return
-	// }
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.CreateAgencyPaymentItemBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
 
+	// Check check_sum
+	amountStr := strconv.FormatInt(body.Amount, 10)
+	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.PaymentType + "|" + body.AgencyPaymentUid + "|" + amountStr + "|" + body.BookingCode + "|" + body.DateStr
+	log.Println("CreateAgencyPaymentItem checkSumMessage ", checkSumMessage)
+	checkSum := utils.GetSHA256Hash(checkSumMessage)
+	log.Println("CreateAgencyPaymentItem checkSum ", checkSum)
+
+	if checkSum != body.CheckSum {
+		response_message.BadRequest(c, "checksum invalid")
+		return
+	}
+
+	// Find agency
+	// Find agencyPayment
+	agencyPayment := model_payment.AgencyPayment{}
+	agencyPayment.Uid = body.AgencyPaymentUid
+	errF := agencyPayment.FindFirst(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	agencyPaymentItem := model_payment.AgencyPaymentItem{
+		PartnerUid:  agencyPayment.PartnerUid,
+		CourseUid:   agencyPayment.CourseUid,
+		PaymentUid:  body.AgencyPaymentUid,
+		PaymentType: body.PaymentType,
+		Paid:        body.Amount,
+		BookingCode: agencyPayment.BookingCode,
+		Cashiers:    prof.UserName,
+		BookingDate: agencyPayment.BookingDate,
+	}
+
+	errC := agencyPaymentItem.Create(db)
+	if errC != nil {
+		response_message.InternalServerError(c, errC.Error())
+		return
+	}
+
+	//Update agency payment
+	agencyPayment.UpdateTotalPaid(db)
+
+	okRes(c)
 }

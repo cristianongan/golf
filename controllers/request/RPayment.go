@@ -46,13 +46,14 @@ type DeleteSinglePaymentDetailBody struct {
 }
 
 type CreateAgencyPaymentItemBody struct {
-	BookingCode string `json:"booking_code" binding:"required"` // Booking uid
-	AgencyId    int64  `json:"agency_id" binding:"required"`    // agency id
-	DateStr     string `json:"date_str" binding:"required"`     // timestamp hiện tại -> string
-	PaymentType string `json:"payment_type"`                    // CASH, VISA
-	Amount      int64  `json:"amount" binding:"required"`       // Số tiền thanh toán
-	CheckSum    string `json:"check_sum" binding:"required"`    // Checksum
-	Note        string `json:"note"`                            // Note
+	AgencyPaymentUid string `json:"agency_payment_uid" binding:"required"` // Booking uid
+	BookingCode      string `json:"booking_code" binding:"required"`       // Booking uid
+	AgencyId         int64  `json:"agency_id" binding:"required"`          // agency id
+	DateStr          string `json:"date_str" binding:"required"`           // timestamp hiện tại -> string
+	PaymentType      string `json:"payment_type"`                          // CASH, VISA, DEBT
+	Amount           int64  `json:"amount" binding:"required"`             // Số tiền thanh toán
+	CheckSum         string `json:"check_sum" binding:"required"`          // Checksum
+	Note             string `json:"note"`                                  // Note
 }
 
 type GetListAgencyPaymentBody struct {
