@@ -10,7 +10,7 @@
     "cronjob_secret_key": "rdhrXPLttwCCrVubT76wdaMSCIu78xL1",
     "cronjob_page_limit": 20,
     "mysql": {
-        "db_name": "golf_cms_dev",
+        "db_name": "golf_cms",
         "user": "root",
         "password": "4vB!qVugg!vmSY8pGP$vQQXA5r#@2MW=",
         "host": "103.176.145.22",
@@ -19,7 +19,7 @@
         "debug": true
     },
     "mysql2": {
-        "db_name": "golf_cms_dev_2",
+        "db_name": "golf_cms_2",
         "user": "root",
         "password": "4vB!qVugg!vmSY8pGP$vQQXA5r#@2MW=",
         "host": "103.176.145.22",

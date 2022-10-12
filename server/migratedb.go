@@ -64,6 +64,7 @@ func MigrateDb() {
 		// ----- Payment -------
 		db.AutoMigrate(&model_payment.SinglePayment{})
 		db.AutoMigrate(&model_payment.SinglePaymentItem{})
+		db.AutoMigrate(&model_payment.AgencyPayment{})
 
 		// ---- Caddie ----
 		db.AutoMigrate(&models.Caddie{})
@@ -203,6 +204,7 @@ func MigrateDb() {
 		// ----- Payment -------
 		db.AutoMigrate(&model_payment.SinglePayment{})
 		db.AutoMigrate(&model_payment.SinglePaymentItem{})
+		db.AutoMigrate(&model_payment.AgencyPayment{})
 
 		// ---- Caddie ----
 		db.AutoMigrate(&models.Caddie{})

@@ -22,7 +22,7 @@ import (
 type CPayment struct{}
 
 /*
- create single payment and
+create single payment and
 */
 func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
@@ -270,7 +270,7 @@ func (_ *CPayment) UpdateSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 }
 
 /*
-	Get list payment detail for bag
+Get list payment detail for bag
 */
 func (_ *CPayment) GetListSinglePaymentDetail(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
@@ -351,4 +351,62 @@ func (_ *CPayment) DeleteSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 	}
 
 	okRes(c)
+}
+
+// /  -------------- Agency Payment -------------
+
+func (_ *CPayment) GetListAgencyPayment(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.GetListAgencyPaymentBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// Checksum
+	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.PartnerUid + "|" + body.CourseUid + "|" + body.PaymentDate + "|" + "|" + body.AgencyName + "|" + body.PaymentStatus
+	log.Println("GetListPayment checkSumMessage ", checkSumMessage)
+	checkSum := utils.GetSHA256Hash(checkSumMessage)
+	log.Println("GetListPayment checkSum ", checkSum)
+
+	if checkSum != body.CheckSum {
+		response_message.BadRequest(c, "checksum invalid")
+		return
+	}
+
+	page := models.Page{
+		Limit:   body.PageRequest.Limit,
+		Page:    body.PageRequest.Page,
+		SortBy:  body.PageRequest.SortBy,
+		SortDir: body.PageRequest.SortDir,
+	}
+
+	paymentR := model_payment.AgencyPayment{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		PaymentDate: body.PaymentDate,
+	}
+
+	list, total, err := paymentR.FindList(db, page, body.PlayerName)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
+func (_ *CPayment) CreateAgencyPaymentItem(c *gin.Context, prof models.CmsUser) {
+	// db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	// body := request.CreateAgencyPaymentItemBody{}
+	// if bindErr := c.ShouldBind(&body); bindErr != nil {
+	// 	response_message.BadRequest(c, bindErr.Error())
+	// 	return
+	// }
+
 }
