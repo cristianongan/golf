@@ -155,14 +155,14 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	serviceCart := models.ServiceCart{}
 	serviceCart.PartnerUid = body.PartnerUid
 	serviceCart.CourseUid = body.CourseUid
-	serviceCart.GolfBag = body.GolfBag
-	serviceCart.BookingUid = booking.Uid
-	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
-	serviceCart.ServiceId = body.ServiceId
 
 	if body.BillId != 0 {
 		serviceCart.Id = body.BillId
 	} else {
+		serviceCart.GolfBag = body.GolfBag
+		serviceCart.BookingUid = booking.Uid
+		serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
+		serviceCart.ServiceId = body.ServiceId
 		serviceCart.BillCode = constants.BILL_NONE
 		serviceCart.StaffOrder = prof.UserName
 		serviceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
