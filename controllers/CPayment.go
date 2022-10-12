@@ -444,6 +444,7 @@ func (_ *CPayment) CreateAgencyPaymentItem(c *gin.Context, prof models.CmsUser) 
 		BookingCode: agencyPayment.BookingCode,
 		Cashiers:    prof.UserName,
 		BookingDate: agencyPayment.BookingDate,
+		Note:        body.Note,
 	}
 
 	errC := agencyPaymentItem.Create(db)
