@@ -72,3 +72,11 @@ type DeleteAgencyPaymentDetailBody struct {
 	BookingCode          string `json:"booking_code" binding:"required"`
 	CheckSum             string `json:"check_sum" binding:"required"` // Checksum
 }
+
+type GetListAgencyPaymentItemBody struct {
+	PartnerUid  string `json:"partner_uid" binding:"required"`
+	CourseUid   string `json:"course_uid"`
+	BookingCode string `json:"booking_code" binding:"required"`
+	PaymentUid  string `json:"payment_uid" binding:"required"`
+	CheckSum    string `json:"check_sum" binding:"required"` // Checksum
+}

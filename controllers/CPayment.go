@@ -516,3 +516,42 @@ func (_ *CPayment) DeleteAgencyPaymentItem(c *gin.Context, prof models.CmsUser) 
 
 	okRes(c)
 }
+
+func (_ *CPayment) GetListAgencyPaymentItem(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.GetListAgencyPaymentItemBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// Checksum
+	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.PartnerUid + "|" + body.CourseUid + "|" + body.BookingCode + "|" + body.PaymentUid
+	log.Println("GetListAgencyPaymentItem checkSumMessage ", checkSumMessage)
+	checkSum := utils.GetSHA256Hash(checkSumMessage)
+	log.Println("GetListAgencyPaymentItem checkSum ", checkSum)
+
+	if checkSum != body.CheckSum {
+		response_message.BadRequest(c, "checksum invalid")
+		return
+	}
+
+	paymentR := model_payment.AgencyPaymentItem{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		PaymentUid: body.PaymentUid,
+	}
+
+	list, err := paymentR.FindAll(db)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": len(list),
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
