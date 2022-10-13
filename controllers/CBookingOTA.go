@@ -193,6 +193,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			BookingCodePartner:   body.BookingCode,
 			BookingCode:          bookingOta.BookingCode,
 			BookingSourceId:      bookSourceId,
+			BookFromOTA:          true,
 		}
 
 		if body.Tee == "1" {

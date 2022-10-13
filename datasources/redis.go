@@ -140,6 +140,13 @@ func ScanCache(keyPattern string, count int) ([]string, error) {
 	return matchedKeys, err
 }
 
+func GetCaches(keys ...string) ([]interface{}, error) {
+	if redisdb == nil {
+		return nil, errors.New("redisdb is not connected")
+	}
+	return redisdb.MGet(ctx, keys...).Result()
+}
+
 func GetAllKeysWith(prefix string) ([]string, error) {
 	if redisdb == nil {
 		return []string{}, errors.New("redisdb is not connected")
