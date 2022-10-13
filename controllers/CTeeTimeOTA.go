@@ -163,7 +163,20 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 			teeTimeInit, _ := utils.ConvertHourToTime(part.StartPart)
 			for {
 				index += 1
-				hourStr := strconv.Itoa(teeTimeInit.Hour()) + ":" + strconv.Itoa(teeTimeInit.Minute())
+
+				hour := teeTimeInit.Hour()
+				minute := teeTimeInit.Minute()
+
+				hourStr_ := strconv.Itoa(hour)
+				if hour < 10 {
+					hourStr_ = "0" + hourStr_
+				}
+				minuteStr := strconv.Itoa(minute)
+				if minute < 10 {
+					minuteStr = "0" + minuteStr
+				}
+
+				hourStr := hourStr_ + ":" + minuteStr
 
 				teeOff, _ := time.Parse(constants.DATE_FORMAT_3, body.Date+" "+hourStr)
 				teeOffStr := teeOff.Format("2006-01-02T15:04:05")
