@@ -45,6 +45,7 @@ type PaymentBagInfo struct {
 	CheckOutTime   int64                        `json:"check_out_time"`   // Time Check Out
 	MushPayInfo    model_booking.BookingMushPay `json:"mush_pay_info" `   // Mush Pay info
 	SubBags        utils.ListSubBag             `json:"sub_bags"`         // List Sub Bags
+	MainBags       utils.ListSubBag             `json:"main_bags"`
 }
 
 func (item *PaymentBagInfo) Scan(v interface{}) error {
