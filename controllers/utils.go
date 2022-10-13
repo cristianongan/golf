@@ -1193,6 +1193,8 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 					errUdpSubBag := subBook.Update(db)
 					if errUdpSubBag != nil {
 						log.Println("updatePriceWithServiceItem errUdpSubBag", errUdpSubBag.Error())
+					} else {
+						go handleSinglePayment(db, subBook)
 					}
 				} else {
 					log.Println("updatePriceWithServiceItem errFSub", errFSub.Error())
@@ -1207,6 +1209,8 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 	errUdp := booking.Update(db)
 	if errUdp != nil {
 		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
+	} else {
+		go handleSinglePayment(db, booking)
 	}
 }
 
