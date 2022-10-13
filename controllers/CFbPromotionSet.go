@@ -174,31 +174,35 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 		promotionSetR.Price = body.Price
 	}
 
-	var price float64 = 0
+	// var price float64 = 0
 	if body.FBList != nil {
 		fbList := model_service.FBSet{}
-		for _, code := range body.FBList {
+		for _, item := range body.FBList {
 			foodBeverage := model_service.FoodBeverage{
-				FBCode:     code,
+				FBCode:     item.Code,
 				PartnerUid: promotionSetR.PartnerUid,
 				CourseUid:  promotionSetR.CourseUid,
 			}
 
 			if err := foodBeverage.FindFirst(db); err != nil {
-				response_message.BadRequest(c, errors.New(code+" không tìm thấy ").Error())
+				response_message.BadRequest(c, errors.New(item.Code+" không tìm thấy ").Error())
 				return
 			}
 
 			item := model_service.FBItem{
 				FBCode:      foodBeverage.FBCode,
+				Type:        foodBeverage.Type,
 				EnglishName: foodBeverage.EnglishName,
 				VieName:     foodBeverage.VieName,
 				Price:       foodBeverage.Price,
 				Unit:        foodBeverage.Unit,
+				GroupCode:   foodBeverage.GroupCode,
+				GroupName:   item.GroupName,
+				Quantity:    item.Quantity,
 			}
 
 			fbList = append(fbList, item)
-			price += foodBeverage.Price
+			// price += foodBeverage.Price*float64(item.Quantity)
 		}
 		promotionSetR.FBList = fbList
 	}

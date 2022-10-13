@@ -3,7 +3,6 @@ package request
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"start/utils"
 )
 
 type FbPromotionSetBody struct {
@@ -46,12 +45,12 @@ type GetListFbPromotionSetForm struct {
 }
 
 type UpdateFbPromotionSet struct {
-	EnglishName string           `json:"english_name"`
-	VieName     string           `json:"vietnamese_name"`
-	SetName     *string          `json:"set_name"`
-	Discount    *int64           `json:"discount"`
-	Note        *string          `json:"note"`
-	FBList      utils.ListString `json:"fb_list"`
-	Status      *string          `form:"status" json:"status"`
-	Price       float64          `json:"price"`
+	EnglishName string         `json:"english_name"`
+	VieName     string         `json:"vietnamese_name"`
+	SetName     *string        `json:"set_name"`
+	Discount    *int64         `json:"discount"`
+	Note        *string        `json:"note"`
+	FBList      FBPromotionSet `json:"fb_list"`
+	Status      *string        `form:"status" json:"status"`
+	Price       float64        `json:"price"`
 }
