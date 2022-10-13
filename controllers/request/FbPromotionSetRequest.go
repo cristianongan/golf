@@ -21,8 +21,9 @@ type FbPromotionSetBody struct {
 }
 
 type FbItem struct {
-	Code     string `json:"code"`
-	Quantity int    `json:"quantity"`
+	Code      string `json:"code"`
+	Quantity  int    `json:"quantity"`
+	GroupName string `json:"group_name"`
 }
 
 type FBPromotionSet []FbItem
