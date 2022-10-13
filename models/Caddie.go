@@ -158,3 +158,16 @@ func (item *Caddie) FindList(database *gorm.DB, page Page) ([]Caddie, int64, err
 	}
 	return list, total, db.Error
 }
+
+func (item *Caddie) FindListCaddieNotReady(database *gorm.DB) ([]Caddie, int64, error) {
+	var list []Caddie
+	total := int64(0)
+
+	db := database.Model(Caddie{})
+
+	db = db.Not("working_status = ?", constants.CADDIE_CURRENT_STATUS_READY)
+	db.Count(&total)
+
+	db = db.Find(&list)
+	return list, total, db.Error
+}

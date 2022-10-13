@@ -41,31 +41,19 @@ func runBookingLogout() {
 		if err := booking.Update(db); err != nil {
 			log.Print("cron update booking check error!")
 		}
+	}
 
-		// udp trạng thái caddie
-		dbCaddie := datasources.GetDatabase()
-		caddie := models.Caddie{}
-		caddie.Id = booking.CaddieId
-		if err := caddie.FindFirst(dbCaddie); err == nil {
-			if caddie.CurrentStatus != constants.CADDIE_CURRENT_STATUS_READY {
-				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
-				if errUdp := caddie.Update(dbCaddie); errUdp != nil {
-					log.Println("udpBuggyOut err", err.Error())
-				}
-			}
-		}
-		// udp trạng thái buggy
-		dbBuggy := datasources.GetDatabase()
-		buggy := models.Buggy{}
-		buggy.Id = booking.BuggyId
+	caddie := models.Caddie{}
+	listCaddie, _, _ := caddie.FindListCaddieNotReady(db)
+	for _, v := range listCaddie {
+		v.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
+		v.Update(db)
+	}
 
-		if err := buggy.FindFirst(dbBuggy); err == nil {
-			if buggy.BuggyStatus != constants.BUGGY_CURRENT_STATUS_ACTIVE {
-				buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_ACTIVE
-				if errUdp := buggy.Update(dbBuggy); errUdp != nil {
-					log.Println("udpBuggyOut err", err.Error())
-				}
-			}
-		}
+	buggy := models.Buggy{}
+	listBuggy, _, _ := buggy.FindListBuggyNotReady(db)
+	for _, v := range listBuggy {
+		v.BuggyStatus = constants.BUGGY_CURRENT_STATUS_ACTIVE
+		v.Update(db)
 	}
 }
