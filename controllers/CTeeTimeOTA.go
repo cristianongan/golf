@@ -154,7 +154,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 					TeeTime:   hourStr,
 					DateTime:  dateFormat,
 					CourseUid: body.CourseCode,
-					TeeType:   "1",
+					TeeType:   "1A",
 				}
 
 				if errFind1 := teeTime1.FindFirst(db); errFind1 != nil {
@@ -179,7 +179,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 					TeeTime:   hourStr,
 					DateTime:  dateFormat,
 					CourseUid: body.CourseCode,
-					TeeType:   "10",
+					TeeType:   "1B",
 				}
 
 				if errFind10 := teeTime10.FindFirst(db); errFind10 != nil {
