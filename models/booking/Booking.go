@@ -1246,8 +1246,8 @@ func (item *Booking) FindListForReportForMainBagSubBag(database *gorm.DB) ([]Boo
 	}
 	db = db.Where("booking_date = ?", item.BookingDate)
 
-	db.Where("bag <> ''")
-	db.Where("moved_flight = 0 AND added_round = 0")
+	// db.Where("bag <> ''")
+	// db.Where("moved_flight = 0 AND added_round = 0")
 	db.Order("created_at desc")
 
 	db.Find(&list)
