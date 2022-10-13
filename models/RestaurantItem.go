@@ -22,6 +22,7 @@ type RestaurantItem struct {
 	ItemId           int64  `json:"item_id" gorm:"index"`                       // id sản phẩm
 	ItemCode         string `json:"item_code" gorm:"type:varchar(100)"`         // Mã sản phẩm
 	ItemName         string `json:"item_name" gorm:"type:varchar(100)"`         // Tên sản phẩm
+	ItemComboCode    string `json:"item_combo_code" gorm:"type:varchar(100)"`   // Code combo
 	ItemComboName    string `json:"item_combo_name" gorm:"type:varchar(100)"`   // Tên combo
 	ItemUnit         string `json:"item_unit" gorm:"type:varchar(100)"`         // Đơn vị
 	ItemStatus       string `json:"item_status" gorm:"type:varchar(100)"`       // Trạng thái sản phẩm
