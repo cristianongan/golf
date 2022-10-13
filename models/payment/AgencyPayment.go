@@ -132,9 +132,9 @@ func (item *AgencyPayment) FindList(db *gorm.DB, page models.Page) ([]AgencyPaym
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 
-	if item.PaymentDate != "" {
-		db = db.Where("payment_date = ?", item.PaymentDate)
-	}
+	// if item.PaymentDate != "" {
+	// 	db = db.Where("payment_date = ?", item.PaymentDate)
+	// }
 
 	if item.PaymentDate != "" {
 		db = db.Where("booking_date = ?", item.PaymentDate)

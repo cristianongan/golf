@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // type CBookingOTA struct{}
@@ -162,7 +161,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	}
 
 	// Create booking code
-	bookingCode := body.BookingCode + "_" + utils.HashCodeUuid(uuid.New().String()) + "_" + bookSourceId
+	bookingCode := body.BookingCode + "_" + utils.RandomCharNumber(5) + "_" + bookSourceId
 	bookingOta.BookingCode = bookingCode
 
 	errCBO := bookingOta.Create(db)
