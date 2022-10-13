@@ -98,6 +98,7 @@ func (item *Buggy) FindList(database *gorm.DB, page Page, isReady string) ([]Bug
 		buggyReadyStatus := []string{
 			constants.BUGGY_CURRENT_STATUS_ACTIVE,
 			constants.BUGGY_CURRENT_STATUS_FINISH,
+			constants.BUGGY_CURRENT_STATUS_IN_COURSE,
 		}
 
 		db = db.Where("buggy_status IN (?) ", buggyReadyStatus)
