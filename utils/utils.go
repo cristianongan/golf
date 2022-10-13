@@ -21,6 +21,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/leekchan/accounting"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/ttacon/libphonenumber"
 )
 
@@ -546,4 +547,12 @@ func GetCurrentDayStrWithMap() string {
 	day := strconv.FormatInt(int64(time.Now().Weekday())+1, 10)
 	log.Println("GetCurrentDayStrWithMap ", day)
 	return day
+}
+
+func RandomCharNumber(length int) string {
+	id, err := gonanoid.Generate("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 5)
+	if err != nil {
+		return ""
+	}
+	return id
 }
