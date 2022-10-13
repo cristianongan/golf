@@ -1,6 +1,8 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"start/constants"
 	"strings"
 	"time"
@@ -19,6 +21,16 @@ type LockTeeTime struct {
 	DateTime       string `json:"date_time" gorm:"type:varchar(100)"`       // Ngày mà user update Tee Time
 	TeeType        string `json:"tee_type" gorm:"type:varchar(100)"`        // TeeType: 1,10,1A ...
 	Note           string `json:"note"`
+}
+
+type LockTeeTimeObj LockTeeTime
+
+func (item *LockTeeTimeObj) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item LockTeeTimeObj) Value() (driver.Value, error) {
+	return json.Marshal(&item)
 }
 
 func (item *LockTeeTime) IsDuplicated(db *gorm.DB) bool {
@@ -70,6 +82,12 @@ func (item *LockTeeTime) FindList(database *gorm.DB, requestType string) ([]Lock
 
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 	if item.DateTime != "" {
 		db = db.Where("date_time = ?", item.DateTime)

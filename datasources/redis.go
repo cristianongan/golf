@@ -86,6 +86,10 @@ func GetRedisKeyLockerCreateGuestName() string {
 	return config.GetEnvironmentName() + "_" + "redis_locker_create_guest_name"
 }
 
+func GetRedisKeyTeeTimeLock(teeTime string) string {
+	return config.GetEnvironmentName() + "_" + "redis_tee_time_lock" + "_" + teeTime
+}
+
 //	func GetRedis() *redis.Client {
 //		return redisdb
 //	}
@@ -104,6 +108,44 @@ func GetCache(key string) (string, error) {
 		return "", errors.New("redisdb is not connected")
 	}
 	return redisdb.Get(ctx, key).Result()
+}
+
+func ScanCache(keyPattern string, count int) ([]string, error) {
+	var cursor uint64
+	var keys []string
+	var matchedKeys []string
+	var cnt = int64(count)
+	var err error
+
+	for done := false; !done; {
+		if len(matchedKeys) >= count {
+			break
+		}
+
+		keys, cursor, err = redisdb.Scan(ctx, cursor, keyPattern, cnt).Result()
+		if err != nil {
+			// glog.ErrorDepth(1, err.Error())
+		}
+
+		if cursor == 0 {
+			done = true
+		}
+		matchedKeys = append(matchedKeys, keys...)
+	}
+
+	if len(matchedKeys) == 0 {
+		return nil, nil
+	}
+
+	return matchedKeys, err
+}
+
+func GetAllKeysWith(prefix string) ([]string, error) {
+	if redisdb == nil {
+		return []string{}, errors.New("redisdb is not connected")
+	}
+	keyCmds := redisdb.Keys(ctx, prefix+"*")
+	return keyCmds.Val(), nil
 }
 
 func IncreaseFlagCounter(key string) (int, error) {

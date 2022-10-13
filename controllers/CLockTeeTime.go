@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
 	"start/constants"
 	"start/controllers/request"
@@ -71,20 +72,25 @@ func (_ *CLockTeeTime) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
 	}
 
 	teeTimeSetting := models.LockTeeTime{}
+	teeTimeSetting.TeeTime = query.TeeTime
+	teeTimeSetting.TeeTimeStatus = query.TeeTimeStatus
+	teeTimeSetting.DateTime = query.DateTime
+	list, _, err := teeTimeSetting.FindList(db, query.RequestType)
 
-	if query.TeeTime != "" {
-		teeTimeSetting.TeeTime = query.TeeTime
+	prefixRedisKey := query.CourseUid + "_" + query.DateTime
+	listData, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
+	if errRedis == nil && len(listData) > 0 {
+		for _, key := range listData {
+			strData, _ := datasources.GetCache(key)
+
+			byteData := []byte(strData)
+			teeTime := models.LockTeeTime{}
+			err2 := json.Unmarshal(byteData, &teeTime)
+			if err2 == nil {
+				list = append(list, teeTime)
+			}
+		}
 	}
-
-	if query.TeeTimeStatus != "" {
-		teeTimeSetting.TeeTimeStatus = query.TeeTimeStatus
-	}
-
-	if query.DateTime != "" {
-		teeTimeSetting.DateTime = query.DateTime
-	}
-
-	list, total, err := teeTimeSetting.FindList(db, query.RequestType)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -92,7 +98,7 @@ func (_ *CLockTeeTime) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
 	}
 
 	res := response.PageResponse{
-		Total: total,
+		Total: int64(len(list)),
 		Data:  list,
 	}
 
