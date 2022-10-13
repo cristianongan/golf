@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/json"
 	"errors"
 	"start/constants"
 	"start/controllers/request"
@@ -77,19 +76,10 @@ func (_ *CLockTeeTime) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
 	teeTimeSetting.DateTime = query.DateTime
 	list, _, err := teeTimeSetting.FindList(db, query.RequestType)
 
-	prefixRedisKey := query.CourseUid + "_" + query.DateTime
-	listData, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
-	if errRedis == nil && len(listData) > 0 {
-		for _, key := range listData {
-			strData, _ := datasources.GetCache(key)
-
-			byteData := []byte(strData)
-			teeTime := models.LockTeeTime{}
-			err2 := json.Unmarshal(byteData, &teeTime)
-			if err2 == nil {
-				list = append(list, teeTime)
-			}
-		}
+	// get các teetime đang bị khóa ở redis
+	listTeeTimeLockRedis := getTeeTimeLockRedis(query.CourseUid, query.DateTime)
+	for _, teeTime := range listTeeTimeLockRedis {
+		list = append(list, teeTime)
 	}
 
 	if err != nil {
@@ -223,6 +213,8 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 	}
 
 	lockTeeTime := models.LockTeeTime{
+		PartnerUid:     query.PartnerUid,
+		CourseUid:      query.CourseUid,
 		CurrentTeeTime: query.TeeTime,
 		DateTime:       query.BookingDate,
 	}
