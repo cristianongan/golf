@@ -360,10 +360,11 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 				Type:             v.Type,
 				ItemName:         v.VieName,
 				ItemComboName:    fbSet.VieName,
+				ItemComboCode:    body.ItemCode,
 				ItemCode:         v.FBCode,
 				ItemUnit:         v.Unit,
-				Quantity:         v.Quantity,
-				QuantityProgress: v.Quantity,
+				Quantity:         v.Quantity * body.Quantity,
+				QuantityProgress: v.Quantity * body.Quantity,
 			}
 
 			restaurantItems = append(restaurantItems, item)
@@ -486,17 +487,19 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	restaurantItem := models.RestaurantItem{}
-
 	if body.Quantity > 0 {
 		// validate res item
+		restaurantItem := models.RestaurantItem{}
+
 		restaurantItem.PartnerUid = body.PartnerUid
 		restaurantItem.CourseUid = body.CourseUid
 		restaurantItem.ServiceId = serviceCart.ServiceId
 		restaurantItem.BillId = serviceCart.Id
 		restaurantItem.ItemId = serviceCartItem.Id
 
-		if err := restaurantItem.FindFirst(db); err != nil {
+		list, err := restaurantItem.FindAll(db)
+
+		if err != nil {
 			response_message.BadRequest(c, "Find res item"+err.Error())
 			return
 		}
@@ -508,26 +511,36 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
+		// update res item
+		for _, v := range list {
+			if v.ItemComboCode != "" {
+				v.Quantity = (v.Quantity / serviceCartItem.Quality) * body.Quantity
+				v.QuantityProgress = (v.Quantity / serviceCartItem.Quality) * body.Quantity
+			} else {
+				v.Quantity = body.Quantity
+				v.QuantityProgress = body.Quantity
+			}
+
+			if body.Note != "" {
+				v.ItemNote = body.Note
+			}
+
+			if err := v.Update(db); err != nil {
+				response_message.BadRequest(c, err.Error())
+				return
+			}
+		}
+
 		// update service item
 		serviceCartItem.Quality = int(body.Quantity)
 		serviceCartItem.Amount = int64(body.Quantity) * serviceCartItem.UnitPrice
-
-		// update res item
-		restaurantItem.Quantity = body.Quantity
-		restaurantItem.QuantityProgress = body.Quantity
 	}
 
 	if body.Note != "" {
 		serviceCartItem.Input = body.Note
-		restaurantItem.ItemNote = body.Note
 	}
 
 	if err := serviceCartItem.Update(db); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
-
-	if err := restaurantItem.Update(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -680,9 +693,45 @@ func (_ CRestaurantOrder) UpdateResItem(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//validate bill
+	bill := models.ServiceCart{}
+
+	bill.Id = resItem.BillId
+
+	if err := bill.FindFirst(db); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
 	// Update trạng thái khi trả hết món
 	if resItem.QuantityProgress-1 == 0 {
 		resItem.ItemStatus = constants.RES_STATUS_DONE
+
+		// Kiểm tra trạng thái các món
+		restaurantItem := models.RestaurantItem{
+			PartnerUid: resItem.PartnerUid,
+			CourseUid:  resItem.CourseUid,
+			ServiceId:  resItem.ServiceId,
+			BillId:     resItem.BillId,
+			ItemStatus: constants.RES_STATUS_PROCESS,
+		}
+
+		list, errRI := restaurantItem.FindAll(db)
+
+		if errRI != nil {
+			response_message.BadRequest(c, errRI.Error())
+			return
+		}
+
+		if len(list) == 0 {
+			bill.BillStatus = constants.RES_BILL_STATUS_FINISH
+
+			if errBU := bill.Update(db); errBU != nil {
+				response_message.BadRequest(c, errBU.Error())
+				return
+			}
+		}
+
 	}
 
 	// Update quantity progress when finish
@@ -988,6 +1037,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 					ItemId:           serviceCartItem.Id,
 					ItemName:         v.VieName,
 					ItemComboName:    item.VieName,
+					ItemComboCode:    item.Code,
 					ItemCode:         v.FBCode,
 					ItemUnit:         v.Unit,
 					Quantity:         v.Quantity * quantity,
