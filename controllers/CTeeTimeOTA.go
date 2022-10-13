@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"start/constants"
 	"start/controllers/request"
@@ -138,6 +139,23 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 		},
 	}
 
+	// get các teetime đang bị khóa ở redis
+	prefixRedisKey := body.CourseCode + "_" + dateFormat
+	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
+	listTeeTimeLockRedis := []models.LockTeeTime{}
+	if errRedis == nil && len(listKey) > 0 {
+		for _, key := range listKey {
+			strData, _ := datasources.GetCache(key)
+
+			byteData := []byte(strData)
+			teeTime := models.LockTeeTime{}
+			err2 := json.Unmarshal(byteData, &teeTime)
+			if err2 == nil {
+				listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+			}
+		}
+	}
+
 	index := 0
 	for partIndex, part := range timeParts {
 		if !part.IsHideTeePart {
@@ -154,50 +172,70 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 					TeeTime:   hourStr,
 					DateTime:  dateFormat,
 					CourseUid: body.CourseCode,
-					TeeType:   "1",
+					TeeType:   "1A",
 				}
 
-				if errFind1 := teeTime1.FindFirst(db); errFind1 != nil {
-					teeTime1A := response.TeeTimeOTA{
-						TeeOffStr:    hourStr,
-						DateStr:      body.Date,
-						TeeOff:       teeOffStr,
-						Tee:          1,
-						Part:         int64(partIndex),
-						TimeIndex:    int64(index),
-						NumBook:      0,
-						IsMainCourse: body.IsMainCourse,
-						GreenFee:     GreenFee,
-						CaddieFee:    CaddieFee,
-						BuggyFee:     BuggyFee,
-						Holes:        18,
+				hasTeeTimeLock1AOnRedis := false
+				for _, teeTimeLockRedis := range listTeeTimeLockRedis {
+					if teeTimeLockRedis.TeeTime == teeTime1.TeeTime && teeTimeLockRedis.DateTime == teeTime1.DateTime &&
+						teeTimeLockRedis.CourseUid == teeTime1.CourseUid && teeTimeLockRedis.TeeType == teeTime1.TeeType {
+						hasTeeTimeLock1AOnRedis = true
 					}
-					teeTimeList = append(teeTimeList, teeTime1A)
+				}
+
+				if !hasTeeTimeLock1AOnRedis {
+					if errFind1 := teeTime1.FindFirst(db); errFind1 != nil {
+						teeTime1A := response.TeeTimeOTA{
+							TeeOffStr:    hourStr,
+							DateStr:      body.Date,
+							TeeOff:       teeOffStr,
+							Tee:          1,
+							Part:         int64(partIndex),
+							TimeIndex:    int64(index),
+							NumBook:      0,
+							IsMainCourse: body.IsMainCourse,
+							GreenFee:     GreenFee,
+							CaddieFee:    CaddieFee,
+							BuggyFee:     BuggyFee,
+							Holes:        18,
+						}
+						teeTimeList = append(teeTimeList, teeTime1A)
+					}
 				}
 
 				teeTime10 := models.LockTeeTime{
 					TeeTime:   hourStr,
 					DateTime:  dateFormat,
 					CourseUid: body.CourseCode,
-					TeeType:   "10",
+					TeeType:   "1B",
 				}
 
-				if errFind10 := teeTime10.FindFirst(db); errFind10 != nil {
-					teeTime10A := response.TeeTimeOTA{
-						TeeOffStr:    hourStr,
-						DateStr:      body.Date,
-						TeeOff:       teeOffStr,
-						Tee:          10,
-						Part:         int64(partIndex),
-						TimeIndex:    int64(index),
-						NumBook:      0,
-						IsMainCourse: body.IsMainCourse,
-						GreenFee:     GreenFee,
-						CaddieFee:    CaddieFee,
-						BuggyFee:     BuggyFee,
-						Holes:        18,
+				hasTeeTimeLock1BOnRedis := false
+				for _, teeTimeLockRedis := range listTeeTimeLockRedis {
+					if teeTimeLockRedis.TeeTime == teeTime10.TeeTime && teeTimeLockRedis.DateTime == teeTime10.DateTime &&
+						teeTimeLockRedis.CourseUid == teeTime10.CourseUid && teeTimeLockRedis.TeeType == teeTime10.TeeType {
+						hasTeeTimeLock1BOnRedis = true
 					}
-					teeTimeList = append(teeTimeList, teeTime10A)
+				}
+
+				if !hasTeeTimeLock1BOnRedis {
+					if errFind10 := teeTime10.FindFirst(db); errFind10 != nil {
+						teeTime10A := response.TeeTimeOTA{
+							TeeOffStr:    hourStr,
+							DateStr:      body.Date,
+							TeeOff:       teeOffStr,
+							Tee:          10,
+							Part:         int64(partIndex),
+							TimeIndex:    int64(index),
+							NumBook:      0,
+							IsMainCourse: body.IsMainCourse,
+							GreenFee:     GreenFee,
+							CaddieFee:    CaddieFee,
+							BuggyFee:     BuggyFee,
+							Holes:        18,
+						}
+						teeTimeList = append(teeTimeList, teeTime10A)
+					}
 				}
 
 				teeTimeInit = teeTimeInit.Add(time.Minute * time.Duration(bookSetting.TeeMinutes))
@@ -261,19 +299,41 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 		teeTimeSetting.TeeType = "1B"
 	}
 
-	db := datasources.GetDatabase()
-	teeTimeSetting.TeeTimeStatus = constants.TEE_TIME_LOCKED
+	// Create redis key tee time lock
+	teeTimeRedisKey := body.CourseCode + "_" + dateFormat + "_"
+	if body.Tee == "1" {
+		teeTimeRedisKey += body.TeeOffStr + "_" + "1A"
+	}
+	if body.Tee == "10" {
+		teeTimeRedisKey += body.TeeOffStr + "_" + "1B"
+	}
 
-	errC := teeTimeSetting.Create(db)
-	if errC != nil {
-		responseOTA.Result = response.ResultOTA{
-			Status: http.StatusInternalServerError,
-			Infor:  errC.Error(),
-		}
-	} else {
-		responseOTA.Result = response.ResultOTA{
-			Status: 200,
-			Infor:  body.CourseCode + "- Lock teeTime " + body.TeeOffStr + " " + dateFormat,
+	key := datasources.GetRedisKeyTeeTimeLock(teeTimeRedisKey)
+	_, errRedis := datasources.GetCache(key)
+
+	teeTimeRedis := models.LockTeeTimeObj{
+		DateTime:       teeTimeSetting.DateTime,
+		CourseUid:      teeTimeSetting.CourseUid,
+		TeeTime:        teeTimeSetting.TeeTime,
+		CurrentTeeTime: teeTimeSetting.TeeTime,
+		TeeType:        teeTimeSetting.TeeType,
+	}
+	teeTimeRedis.ModelId.Status = constants.STATUS_ENABLE
+	teeTimeRedis.CreatedAt = time.Now().Unix()
+	teeTimeRedis.UpdatedAt = time.Now().Unix()
+
+	if errRedis != nil {
+		valueParse, _ := teeTimeRedis.Value()
+		if err := datasources.SetCache(teeTimeRedisKey, valueParse, 5*60); err != nil {
+			responseOTA.Result = response.ResultOTA{
+				Status: http.StatusInternalServerError,
+				Infor:  err.Error(),
+			}
+		} else {
+			responseOTA.Result = response.ResultOTA{
+				Status: 200,
+				Infor:  body.CourseCode + "- Lock teeTime " + body.TeeOffStr + " " + dateFormat,
+			}
 		}
 	}
 

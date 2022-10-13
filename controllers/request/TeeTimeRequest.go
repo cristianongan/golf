@@ -20,6 +20,8 @@ type GetListTeeTimeSettings struct {
 }
 
 type DeleteLockRequest struct {
+	PartnerUid  string `form:"partner_uid"`
+	CourseUid   string `form:"course_uid"`
 	TeeTime     string `json:"tee_time"`
 	BookingDate string `json:"booking_date"`
 	RequestType string `json:"request_type"`
