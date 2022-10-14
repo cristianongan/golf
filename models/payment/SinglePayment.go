@@ -116,18 +116,18 @@ func (item *SinglePayment) UpdateTotalPaid(db *gorm.DB) {
 	if item.Uid == "" {
 		return
 	}
+	totalPaid := int64(0)
 	//Total agency paid
 	agencyPaymentItem := SinglePaymentItem{
 		PaymentUid: item.Uid,
 	}
 	listItem, err := agencyPaymentItem.FindAll(db)
-	if err != nil {
-		return
-	}
-
-	totalPaid := int64(0)
-	for _, v := range listItem {
-		totalPaid += v.Paid
+	if err != nil || len(listItem) == 0 {
+		totalPaid = 0
+	} else {
+		for _, v := range listItem {
+			totalPaid += v.Paid
+		}
 	}
 
 	item.TotalPaid = totalPaid
