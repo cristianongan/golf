@@ -100,8 +100,7 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 	buggyRequest.BuggyStatus = form.BuggyStatus
 	buggyRequest.BuggyForVip = form.BuggyForVip
 	buggyRequest.Code = form.Code
-	buggyRequest.InCourse = form.InCourse
-	buggyRequest.InWaiting = form.InWaiting
+	buggyRequest.FunctionType = form.FunctionType
 
 	list, total, err := buggyRequest.FindList(db, page, form.IsReady)
 

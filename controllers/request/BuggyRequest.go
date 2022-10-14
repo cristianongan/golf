@@ -15,14 +15,13 @@ type CreateBuggyBody struct {
 
 type GetListBuggyForm struct {
 	PageRequest
-	Code        string `form:"buggy_uid" json:"buggy_uid"`
-	BuggyStatus string `form:"buggy_status" json:"buggy_status"`
-	BuggyForVip bool   `form:"buggy_for_vip" json:"buggy_for_vip"`
-	CourseUid   string `form:"course_uid" json:"course_uid"`
-	PartnerUid  string `form:"partner_uid" json:"partner_uid"`
-	IsReady     string `form:"is_ready" json:"is_ready"`
-	InWaiting   string `form:"in_waiting" json:"in_waiting"`
-	InCourse    string `form:"in_course" json:"in_course"`
+	Code         string `form:"buggy_uid" json:"buggy_uid"`
+	BuggyStatus  string `form:"buggy_status" json:"buggy_status"`
+	BuggyForVip  bool   `form:"buggy_for_vip" json:"buggy_for_vip"`
+	CourseUid    string `form:"course_uid" json:"course_uid"`
+	PartnerUid   string `form:"partner_uid" json:"partner_uid"`
+	IsReady      string `form:"is_ready" json:"is_ready"`
+	FunctionType string `form:"function_type"`
 }
 
 type UpdateBuggyBody struct {

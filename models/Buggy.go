@@ -26,8 +26,7 @@ type Buggy struct {
 
 type BuggyRequest struct {
 	Buggy
-	InWaiting string `form:"in_waiting"`
-	InCourse  string `form:"in_course"`
+	FunctionType string `form:"function_type"`
 }
 
 type BuggyResponse struct {
@@ -99,7 +98,8 @@ func (item *BuggyRequest) FindList(database *gorm.DB, page Page, isReady string)
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
-	if item.InWaiting != "" {
+
+	if item.FunctionType == constants.GO_IN_WAITING {
 		buggyReadyStatus := []string{
 			constants.BUGGY_CURRENT_STATUS_ACTIVE,
 			constants.BUGGY_CURRENT_STATUS_FINISH,
@@ -108,7 +108,7 @@ func (item *BuggyRequest) FindList(database *gorm.DB, page Page, isReady string)
 		db = db.Where("buggy_status IN (?) ", buggyReadyStatus)
 	}
 
-	if item.InCourse != "" {
+	if item.FunctionType == constants.GO_IN_COURSE {
 		buggyReadyStatus := []string{
 			constants.BUGGY_CURRENT_STATUS_ACTIVE,
 			constants.BUGGY_CURRENT_STATUS_FINISH,
