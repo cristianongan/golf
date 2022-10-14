@@ -24,6 +24,11 @@ type Buggy struct {
 	// TODO: AvailableStatus
 }
 
+type BuggyRequest struct {
+	Buggy
+	FunctionType string `form:"function_type"`
+}
+
 type BuggyResponse struct {
 	ModelId
 	CourseUid string `json:"course_uid"` // San Golf
@@ -72,12 +77,11 @@ func (item *Buggy) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *Buggy) FindList(database *gorm.DB, page Page, isReady string) ([]Buggy, int64, error) {
+func (item *BuggyRequest) FindList(database *gorm.DB, page Page, isReady string) ([]Buggy, int64, error) {
 	var list []Buggy
 	total := int64(0)
 
 	db := database.Model(Buggy{})
-	db = db.Where(item)
 
 	if item.Code != "" {
 		db = db.Where("code = ?", item.Code)
@@ -94,7 +98,17 @@ func (item *Buggy) FindList(database *gorm.DB, page Page, isReady string) ([]Bug
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
-	if isReady != "" {
+
+	if item.FunctionType == constants.GO_IN_WAITING {
+		buggyReadyStatus := []string{
+			constants.BUGGY_CURRENT_STATUS_ACTIVE,
+			constants.BUGGY_CURRENT_STATUS_FINISH,
+		}
+
+		db = db.Where("buggy_status IN (?) ", buggyReadyStatus)
+	}
+
+	if item.FunctionType == constants.GO_IN_COURSE {
 		buggyReadyStatus := []string{
 			constants.BUGGY_CURRENT_STATUS_ACTIVE,
 			constants.BUGGY_CURRENT_STATUS_FINISH,

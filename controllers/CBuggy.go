@@ -94,35 +94,13 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	buggyRequest := models.Buggy{}
-
-	if form.Code != nil {
-		buggyRequest.Code = *form.Code
-	} else {
-		buggyRequest.Code = ""
-	}
-
-	if form.BuggyStatus != nil {
-		buggyRequest.BuggyStatus = *form.BuggyStatus
-	} else {
-		buggyRequest.BuggyStatus = ""
-	}
-
-	if form.BuggyForVip != nil {
-		buggyRequest.BuggyForVip = *form.BuggyForVip
-	}
-
-	if form.CourseUid != nil {
-		buggyRequest.CourseUid = *form.CourseUid
-	} else {
-		buggyRequest.CourseUid = ""
-	}
-
-	if form.PartnerUid != nil {
-		buggyRequest.PartnerUid = *form.PartnerUid
-	} else {
-		buggyRequest.PartnerUid = ""
-	}
+	buggyRequest := models.BuggyRequest{}
+	buggyRequest.CourseUid = form.CourseUid
+	buggyRequest.PartnerUid = form.PartnerUid
+	buggyRequest.BuggyStatus = form.BuggyStatus
+	buggyRequest.BuggyForVip = form.BuggyForVip
+	buggyRequest.Code = form.Code
+	buggyRequest.FunctionType = form.FunctionType
 
 	list, total, err := buggyRequest.FindList(db, page, form.IsReady)
 

@@ -27,6 +27,7 @@ func runBookingLogout() {
 	bookingList := model_booking.BookingList{
 		BookingDate: localTime,
 		IsCheckIn:   "1",
+		BagStatus:   constants.BAG_STATUS_CHECK_OUT,
 	}
 
 	db, _, _ = bookingList.FindAllBookingList(db)

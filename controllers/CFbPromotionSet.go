@@ -53,6 +53,11 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 			return
 		}
 
+		quantity := 1
+		if item.Quantity > 0 {
+			quantity = item.Quantity
+		}
+
 		item := model_service.FBItem{
 			FBCode:      foodBeverage.FBCode,
 			Type:        foodBeverage.Type,
@@ -62,7 +67,7 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 			Unit:        foodBeverage.Unit,
 			GroupCode:   foodBeverage.GroupCode,
 			GroupName:   item.GroupName,
-			Quantity:    item.Quantity,
+			Quantity:    quantity,
 		}
 
 		fbList = append(fbList, item)
@@ -183,10 +188,15 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 				PartnerUid: promotionSetR.PartnerUid,
 				CourseUid:  promotionSetR.CourseUid,
 			}
-
+			
 			if err := foodBeverage.FindFirst(db); err != nil {
 				response_message.BadRequest(c, errors.New(item.Code+" không tìm thấy ").Error())
 				return
+			}
+			
+			quantity := 1
+			if item.Quantity > 0 {
+				quantity = item.Quantity
 			}
 
 			item := model_service.FBItem{
@@ -198,7 +208,7 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 				Unit:        foodBeverage.Unit,
 				GroupCode:   foodBeverage.GroupCode,
 				GroupName:   item.GroupName,
-				Quantity:    item.Quantity,
+				Quantity:    quantity,
 			}
 
 			fbList = append(fbList, item)
