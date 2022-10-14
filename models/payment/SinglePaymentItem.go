@@ -77,6 +77,10 @@ func (item *SinglePaymentItem) FindAll(db *gorm.DB) ([]SinglePaymentItem, error)
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 
+	if item.PaymentUid != "" {
+		db = db.Where("payment_uid = ?", item.PaymentUid)
+	}
+
 	if item.BillCode != "" {
 		db = db.Where("bill_code = ?", item.BillCode)
 	}
