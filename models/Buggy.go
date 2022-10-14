@@ -98,6 +98,7 @@ func (item *Buggy) FindList(database *gorm.DB, page Page, isReady string) ([]Bug
 		buggyReadyStatus := []string{
 			constants.BUGGY_CURRENT_STATUS_ACTIVE,
 			constants.BUGGY_CURRENT_STATUS_FINISH,
+			constants.BUGGY_CURRENT_STATUS_IN_COURSE,
 		}
 
 		db = db.Where("buggy_status IN (?) ", buggyReadyStatus)
@@ -108,5 +109,17 @@ func (item *Buggy) FindList(database *gorm.DB, page Page, isReady string) ([]Bug
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)
 	}
+	return list, total, db.Error
+}
+func (item *Buggy) FindListBuggyNotReady(database *gorm.DB) ([]Buggy, int64, error) {
+	var list []Buggy
+	total := int64(0)
+
+	db := database.Model(Caddie{})
+
+	db = db.Not("buggy_status = ?", constants.BUGGY_CURRENT_STATUS_ACTIVE)
+	db.Count(&total)
+
+	db = db.Find(&list)
 	return list, total, db.Error
 }

@@ -942,6 +942,29 @@ func (_ CCourseOperating) validateFlight(courseUid string, flightId int64) (mode
 		return flight, err
 	}
 
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	bookingList := model_booking.BookingList{
+		FlightId:    flightId,
+		BagStatus:   constants.BAG_STATUS_IN_COURSE,
+		PartnerUid:  flight.PartnerUid,
+		CourseUid:   flight.CourseUid,
+		BookingDate: dateDisplay,
+	}
+
+	db := datasources.GetDatabaseWithPartner(flight.PartnerUid)
+	bookingList.FindAllBookingList(db)
+	_, total, _ := bookingList.FindAllBookingList(db)
+
+	course := models.Course{}
+	course.Uid = courseUid
+	if errCourse := course.FindFirst(db); errCourse != nil {
+		return flight, errors.New("Id not valid")
+	}
+
+	if total >= int64(course.MaxPeopleInFlight) {
+		return flight, errors.New("Flight đã đủ người")
+	}
+
 	return flight, nil
 }
 

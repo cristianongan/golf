@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
+	"start/config"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -140,21 +140,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	}
 
 	// get các teetime đang bị khóa ở redis
-	prefixRedisKey := body.CourseCode + "_" + dateFormat
-	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
-	listTeeTimeLockRedis := []models.LockTeeTime{}
-	if errRedis == nil && len(listKey) > 0 {
-		for _, key := range listKey {
-			strData, _ := datasources.GetCache(key)
-
-			byteData := []byte(strData)
-			teeTime := models.LockTeeTime{}
-			err2 := json.Unmarshal(byteData, &teeTime)
-			if err2 == nil {
-				listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
-			}
-		}
-	}
+	listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, dateFormat)
 
 	index := 0
 	for partIndex, part := range timeParts {
@@ -313,7 +299,8 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 	}
 
 	// Create redis key tee time lock
-	teeTimeRedisKey := body.CourseCode + "_" + dateFormat + "_"
+
+	teeTimeRedisKey := config.GetEnvironmentName() + ":" + body.CourseCode + "_" + dateFormat + "_"
 	if body.Tee == "1" {
 		teeTimeRedisKey += body.TeeOffStr + "_" + "1A"
 	}
@@ -330,10 +317,8 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 		TeeTime:        teeTimeSetting.TeeTime,
 		CurrentTeeTime: teeTimeSetting.TeeTime,
 		TeeType:        teeTimeSetting.TeeType,
+		TeeTimeStatus:  constants.TEE_TIME_LOCKED,
 	}
-	teeTimeRedis.ModelId.Status = constants.STATUS_ENABLE
-	teeTimeRedis.CreatedAt = time.Now().Unix()
-	teeTimeRedis.UpdatedAt = time.Now().Unix()
 
 	if errRedis != nil {
 		valueParse, _ := teeTimeRedis.Value()

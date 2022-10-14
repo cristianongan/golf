@@ -64,12 +64,12 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	// check trạng thái Tee Time
-	if body.TeeTime != "" {
+	if body.TeeTime != "" && !body.BookFromOTA {
 		teeTime := models.LockTeeTime{}
 		teeTime.TeeTime = body.TeeTime
-		teeTime.TeeType = body.TeeType
+		teeTime.TeeType = body.TeeType + body.CourseType
 		teeTime.CourseUid = body.CourseUid
-		teeTime.PartnerUid = body.PartnerUid
+		// teeTime.PartnerUid = body.PartnerUid
 		teeTime.DateTime = body.BookingDate
 		errFind := teeTime.FindFirst(db)
 		if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_LOCKED) {

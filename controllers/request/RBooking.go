@@ -143,6 +143,7 @@ type CreateBookingBody struct {
 	LockerNo           string                  `json:"locker_no"` // Locker mã số tủ gửi đồ
 	ReportNo           string                  `json:"report_no"` // Report No
 	BookMark           bool
+	BookFromOTA        bool
 }
 
 type GolfFeeGuestyleParam struct {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"start/config"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -1192,6 +1193,8 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 					errUdpSubBag := subBook.Update(db)
 					if errUdpSubBag != nil {
 						log.Println("updatePriceWithServiceItem errUdpSubBag", errUdpSubBag.Error())
+					} else {
+						go handleSinglePayment(db, subBook)
 					}
 				} else {
 					log.Println("updatePriceWithServiceItem errFSub", errFSub.Error())
@@ -1206,6 +1209,8 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 	errUdp := booking.Update(db)
 	if errUdp != nil {
 		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
+	} else {
+		go handleSinglePayment(db, booking)
 	}
 }
 
@@ -1567,4 +1572,26 @@ func handleAgencyPayment(db *gorm.DB, booking model_booking.Booking) {
 			log.Println("handleSinglePayment errUdp", errUdp.Error())
 		}
 	}
+}
+
+/*
+Get Tee Time Lock Redis
+*/
+func getTeeTimeLockRedis(courseUid string, date string) []models.LockTeeTime {
+	prefixRedisKey := config.GetEnvironmentName() + ":" + courseUid + "_" + date
+	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
+	listTeeTimeLockRedis := []models.LockTeeTime{}
+	if errRedis == nil && len(listKey) > 0 {
+		strData, _ := datasources.GetCaches(listKey...)
+		for _, data := range strData {
+
+			byteData := []byte(data.(string))
+			teeTime := models.LockTeeTime{}
+			err2 := json.Unmarshal(byteData, &teeTime)
+			if err2 == nil {
+				listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+			}
+		}
+	}
+	return listTeeTimeLockRedis
 }
