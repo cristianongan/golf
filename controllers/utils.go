@@ -1181,6 +1181,8 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 		booking.UpdatePriceForBagHaveMainBags(db)
 	} else {
 		if booking.SubBags != nil && len(booking.SubBags) > 0 {
+			// Udp orther data
+			booking.Update(db)
 			// Udp lại giá sub bag mới nhất nếu có sub bag
 			// Udp cho case sửa main bag pay
 			for _, v := range booking.SubBags {
@@ -1201,6 +1203,15 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 				}
 			}
 			// Co sub bag thì main bag dc udp ở trên rồi
+			// find main bag udp lại payment
+			mainBookUdp := model_booking.Booking{}
+			mainBookUdp.Uid = booking.Uid
+			mainBookUdp.PartnerUid = booking.PartnerUid
+			errFMB := mainBookUdp.FindFirst(db)
+			if errFMB == nil {
+				go handleSinglePayment(db, mainBookUdp)
+			}
+
 			return
 		}
 		booking.UpdateMushPay(db)

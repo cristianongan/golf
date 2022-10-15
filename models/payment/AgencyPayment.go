@@ -76,6 +76,7 @@ func (item *AgencyPayment) UpdateTotalAmount(db *gorm.DB, isUdp bool) {
 	}
 
 	item.TotalAmount = totalAmount
+	item.PaymentAgencyAmount = totalAmount
 
 	if isUdp {
 		errUdp := item.Update(db)
