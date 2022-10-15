@@ -507,11 +507,7 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 				log.Println("UpdateMainBagForSubBag errUdp", errUdp.Error())
 			} else {
 				// Udp lai info payment
-				if booking.AgencyId > 0 && booking.MemberCardUid == "" {
-					// Agency ko add vao single
-				} else {
-					go handleSinglePayment(db, booking)
-				}
+				handlePayment(db, booking)
 			}
 		} else {
 			err = errFind
@@ -1200,11 +1196,7 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 					if errUdpSubBag != nil {
 						log.Println("updatePriceWithServiceItem errUdpSubBag", errUdpSubBag.Error())
 					} else {
-						if subBook.AgencyId > 0 && subBook.MemberCardUid == "" {
-							//agency payment
-						} else {
-							go handleSinglePayment(db, subBook)
-						}
+						handlePayment(db, subBook)
 					}
 				} else {
 					log.Println("updatePriceWithServiceItem errFSub", errFSub.Error())
@@ -1217,11 +1209,7 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 			mainBookUdp.PartnerUid = booking.PartnerUid
 			errFMB := mainBookUdp.FindFirst(db)
 			if errFMB == nil {
-				if mainBookUdp.AgencyId > 0 && mainBookUdp.MemberCardUid == "" {
-					//agency payment
-				} else {
-					go handleSinglePayment(db, mainBookUdp)
-				}
+				handlePayment(db, mainBookUdp)
 			}
 
 			return
@@ -1233,11 +1221,7 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 	if errUdp != nil {
 		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
 	} else {
-		if booking.AgencyId > 0 && booking.MemberCardUid == "" {
-			//agency payment
-		} else {
-			go handleSinglePayment(db, booking)
-		}
+		handlePayment(db, booking)
 	}
 }
 
@@ -1606,6 +1590,17 @@ func handleAgencyPayment(db *gorm.DB, booking model_booking.Booking) {
 		if errUdp != nil {
 			log.Println("handleSinglePayment errUdp", errUdp.Error())
 		}
+	}
+}
+
+// Handle Payment
+func handlePayment(db *gorm.DB, booking model_booking.Booking) {
+	if booking.AgencyId > 0 && booking.MemberCardUid == "" {
+		// Agency payment
+		go handleAgencyPayment(db, booking)
+	} else {
+		// single payment
+		go handleSinglePayment(db, booking)
 	}
 }
 

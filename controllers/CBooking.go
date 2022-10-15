@@ -1397,11 +1397,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Create payment info
-	if booking.AgencyId > 0 && booking.MemberCardUid == "" {
-		go handleAgencyPayment(db, booking)
-	} else {
-		go handleSinglePayment(db, booking)
-	}
+	handlePayment(db, booking)
 
 	res := getBagDetailFromBooking(db, booking)
 
