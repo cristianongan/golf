@@ -1208,7 +1208,7 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 			mainBookUdp.Uid = booking.Uid
 			mainBookUdp.PartnerUid = booking.PartnerUid
 			errFMB := mainBookUdp.FindFirst(db)
-			if errFMB != nil {
+			if errFMB == nil {
 				go handleSinglePayment(db, mainBookUdp)
 			}
 
