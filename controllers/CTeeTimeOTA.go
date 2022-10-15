@@ -110,7 +110,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 		CourseUid: body.CourseCode,
 	}
 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
-	weekday := strconv.Itoa(int(time.Now().Weekday()))
+	weekday := strconv.Itoa(int(time.Now().Local().Day()))
 	bookSetting := model_booking.BookingSetting{}
 
 	teeTimeList := []response.TeeTimeOTA{}
@@ -239,7 +239,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 
 				teeTimeInit = teeTimeInit.Add(time.Minute * time.Duration(bookSetting.TeeMinutes))
 
-				if teeTimeInit.After(endTime) {
+				if teeTimeInit.Unix() > endTime.Unix() {
 					break
 				}
 			}
