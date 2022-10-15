@@ -6,6 +6,7 @@ import (
 	"log"
 	"start/constants"
 	"start/models"
+	model_booking "start/models/booking"
 	"strings"
 	"time"
 
@@ -24,7 +25,8 @@ type AgencyPayment struct {
 	AgencyInfo  PaymentAgencyInfo `json:"agency_info,omitempty" gorm:"type:json"`
 	AgencyId    int64             `json:"agency_id" gorm:"index"` // agency id
 
-	PlayerBook string `json:"player_book" gorm:"type:varchar(100)"` // Player book
+	PlayerBook   string `json:"player_book" gorm:"type:varchar(100)"` // Player book
+	NumberPeople int    `json:"number_people"`                        // Sốn người chơi
 
 	Invoice          string `json:"invoice" gorm:"type:varchar(100)"`                  // Invoice
 	Cashiers         string `json:"cashiers" gorm:"type:varchar(100);index"`           // Thu ngân, lấy từ acc cms
@@ -51,6 +53,36 @@ func (item *PaymentAgencyInfo) Scan(v interface{}) error {
 
 func (item PaymentAgencyInfo) Value() (driver.Value, error) {
 	return json.Marshal(&item)
+}
+
+// Update Total Amount
+func (item *AgencyPayment) UpdateTotalAmount(db *gorm.DB, isUdp bool) {
+	booksR := model_booking.Booking{
+		PartnerUid:  item.PartnerUid,
+		CourseUid:   item.CourseUid,
+		BookingCode: item.BookingCode,
+	}
+
+	listBook, errF := booksR.FindAllBookingOTA(db)
+
+	totalAmount := int64(0)
+
+	if errF == nil {
+		for _, v := range listBook {
+			totalAmount += v.MushPayInfo.MushPay
+		}
+	} else {
+		log.Println("AgencyPayment UpdateTotalAmount errF", errF.Error())
+	}
+
+	item.TotalAmount = totalAmount
+
+	if isUdp {
+		errUdp := item.Update(db)
+		if errUdp != nil {
+			log.Println("AgencyPayment UpdateTotalAmount errUdp", errUdp.Error())
+		}
+	}
 }
 
 // Update Total Paid

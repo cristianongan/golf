@@ -1552,11 +1552,16 @@ func handleAgencyPayment(db *gorm.DB, booking model_booking.Booking) {
 			errFindBO := bookOTA.FindFirst(db)
 			if errFindBO == nil {
 				agencyPayment.PrepaidFromBooking = int64(bookOTA.NumBook) * (bookOTA.CaddieFee + bookOTA.BuggyFee + bookOTA.GreenFee)
+				agencyPayment.PlayerBook = bookOTA.PlayerName
+				agencyPayment.NumberPeople = bookOTA.NumBook
+			} else {
+				// Find booking waiting
 			}
 		}
 
+		// Update total Amount
+		agencyPayment.UpdateTotalAmount(db, false)
 		// Update payment status
-		// agencyPayment.UpdatePaymentStatus(booking.BagStatus, db)
 		errC := agencyPayment.Create(db)
 
 		if errC != nil {
@@ -1567,6 +1572,7 @@ func handleAgencyPayment(db *gorm.DB, booking model_booking.Booking) {
 		agencyPayment.BookingCode = booking.BookingCode
 		agencyPayment.AgencyInfo = agencyInfo
 		agencyPayment.AgencyId = booking.AgencyId
+		agencyPayment.UpdateTotalAmount(db, false)
 		errUdp := agencyPayment.Update(db)
 		if errUdp != nil {
 			log.Println("handleSinglePayment errUdp", errUdp.Error())

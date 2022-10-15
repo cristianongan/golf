@@ -292,6 +292,7 @@ func (cBooking *CBooking) CancelBookingOTA(c *gin.Context) {
 	//Get Bag Booking
 	bookR := model_booking.Booking{
 		BookingCode: bookingOta.BookingCode,
+		PartnerUid:  prof.PartnerUid,
 	}
 
 	listBook, errL := bookR.FindAllBookingOTA(db)
