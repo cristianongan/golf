@@ -440,7 +440,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	// Create booking payment
-	if body.AgencyId > 0 && booking.MemberCardUid == "" {
+	if booking.AgencyId > 0 && booking.MemberCardUid == "" {
 		go handleAgencyPayment(db, booking)
 	} else {
 		if booking.BagStatus == constants.BAG_STATUS_WAITING {
@@ -1397,7 +1397,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Create payment info
-	if body.AgencyId > 0 && booking.MemberCardUid == "" {
+	if booking.AgencyId > 0 && booking.MemberCardUid == "" {
 		go handleAgencyPayment(db, booking)
 	} else {
 		go handleSinglePayment(db, booking)
