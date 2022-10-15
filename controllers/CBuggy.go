@@ -104,7 +104,7 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 	buggyRequest.BuggyForVip = form.BuggyForVip
 	buggyRequest.Code = form.Code
 
-	list, total, err := buggyRequest.FindList(db, page)
+	list, total, err := buggyRequest.FindList(db, page, form.IsReady)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

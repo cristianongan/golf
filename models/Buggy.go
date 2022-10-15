@@ -77,7 +77,7 @@ func (item *Buggy) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *Buggy) FindList(database *gorm.DB, page Page) ([]Buggy, int64, error) {
+func (item *Buggy) FindList(database *gorm.DB, page Page, isReady string) ([]Buggy, int64, error) {
 	var list []Buggy
 	total := int64(0)
 
@@ -97,6 +97,15 @@ func (item *Buggy) FindList(database *gorm.DB, page Page) ([]Buggy, int64, error
 	}
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if isReady != "" {
+		buggyReadyStatus := []string{
+			constants.BUGGY_CURRENT_STATUS_ACTIVE,
+			constants.BUGGY_CURRENT_STATUS_FINISH,
+			// constants.BUGGY_CURRENT_STATUS_IN_COURSE,
+		}
+
+		db = db.Where("buggy_status IN (?) ", buggyReadyStatus)
 	}
 
 	db.Count(&total)
