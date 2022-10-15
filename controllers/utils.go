@@ -507,7 +507,11 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 				log.Println("UpdateMainBagForSubBag errUdp", errUdp.Error())
 			} else {
 				// Udp lai info payment
-				go handleSinglePayment(db, booking)
+				if booking.AgencyId > 0 && booking.MemberCardUid == "" {
+					// Agency ko add vao single
+				} else {
+					go handleSinglePayment(db, booking)
+				}
 			}
 		} else {
 			err = errFind
@@ -1196,7 +1200,11 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 					if errUdpSubBag != nil {
 						log.Println("updatePriceWithServiceItem errUdpSubBag", errUdpSubBag.Error())
 					} else {
-						go handleSinglePayment(db, subBook)
+						if subBook.AgencyId > 0 && subBook.MemberCardUid == "" {
+							//agency payment
+						} else {
+							go handleSinglePayment(db, subBook)
+						}
 					}
 				} else {
 					log.Println("updatePriceWithServiceItem errFSub", errFSub.Error())
@@ -1209,7 +1217,11 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 			mainBookUdp.PartnerUid = booking.PartnerUid
 			errFMB := mainBookUdp.FindFirst(db)
 			if errFMB == nil {
-				go handleSinglePayment(db, mainBookUdp)
+				if mainBookUdp.AgencyId > 0 && mainBookUdp.MemberCardUid == "" {
+					//agency payment
+				} else {
+					go handleSinglePayment(db, mainBookUdp)
+				}
 			}
 
 			return
@@ -1221,7 +1233,11 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 	if errUdp != nil {
 		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
 	} else {
-		go handleSinglePayment(db, booking)
+		if booking.AgencyId > 0 && booking.MemberCardUid == "" {
+			//agency payment
+		} else {
+			go handleSinglePayment(db, booking)
+		}
 	}
 }
 

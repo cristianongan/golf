@@ -50,7 +50,7 @@ type BookingList struct {
 	PlayerOrBag           string
 }
 
-func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
+func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	if item.PartnerUid != "" {
 		db = db.Where("bookings.partner_uid = ?", item.PartnerUid)
 	}
@@ -224,6 +224,10 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 		db = db.Where("bag_status IN (?) ", bagStatus)
 	}
 
+	if isGroupBillCode {
+		db = db.Group("bill_code")
+	}
+
 	return db
 }
 
@@ -233,7 +237,7 @@ func (item *BookingList) FindBookingList(database *gorm.DB, page models.Page) ([
 
 	db := database.Model(Booking{})
 
-	db = addFilter(db, item)
+	db = addFilter(db, item, false)
 
 	db.Count(&total)
 
@@ -244,12 +248,12 @@ func (item *BookingList) FindBookingList(database *gorm.DB, page models.Page) ([
 	return list, total, db.Error
 }
 
-func (item *BookingList) FindBookingListWithSelect(database *gorm.DB, page models.Page) (*gorm.DB, int64, error) {
+func (item *BookingList) FindBookingListWithSelect(database *gorm.DB, page models.Page, isGroupBillCode bool) (*gorm.DB, int64, error) {
 	total := int64(0)
 
 	db := database.Model(Booking{})
 
-	db = addFilter(db, item)
+	db = addFilter(db, item, isGroupBillCode)
 
 	db.Count(&total)
 
@@ -264,7 +268,7 @@ func (item *BookingList) FindAllBookingList(database *gorm.DB) (*gorm.DB, int64,
 	total := int64(0)
 	db := database.Model(Booking{})
 
-	db = addFilter(db, item)
+	db = addFilter(db, item, false)
 
 	db.Count(&total)
 

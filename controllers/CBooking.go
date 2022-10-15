@@ -661,7 +661,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.GuestStyleName = form.GuestStyleName
 	bookings.PlayerOrBag = form.PlayerOrBag
 
-	db, total, err := bookings.FindBookingListWithSelect(db, page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
 
 	if form.HasCaddieInOut != "" {
 		db = db.Preload("CaddieBuggyInOut")
@@ -724,7 +724,7 @@ func (_ *CBooking) GetListBookingWithFightInfo(c *gin.Context, prof models.CmsUs
 	bookings.CustomerName = form.PlayerName
 	bookings.HasFlightInfo = form.HasFlightInfo
 
-	db, total, err := bookings.FindBookingListWithSelect(db, page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page, false)
 	res := response.PageResponse{}
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
