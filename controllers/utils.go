@@ -1551,7 +1551,9 @@ func handleAgencyPayment(db *gorm.DB, booking model_booking.Booking) {
 			}
 			errFindBO := bookOTA.FindFirst(db)
 			if errFindBO == nil {
-				agencyPayment.PrepaidFromBooking = int64(bookOTA.NumBook) * (bookOTA.CaddieFee + bookOTA.BuggyFee + bookOTA.GreenFee)
+				feeBooking := int64(bookOTA.NumBook) * (bookOTA.CaddieFee + bookOTA.BuggyFee + bookOTA.GreenFee)
+				agencyPayment.PrepaidFromBooking = feeBooking
+				agencyPayment.TotalFeeFromBooking = feeBooking
 				agencyPayment.PlayerBook = bookOTA.PlayerName
 				agencyPayment.NumberPeople = bookOTA.NumBook
 			} else {

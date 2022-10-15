@@ -99,7 +99,7 @@ func (item *AgencyPayment) UpdateTotalPaid(db *gorm.DB) {
 		return
 	}
 
-	totalPaid := int64(0)
+	totalPaid := item.PrepaidFromBooking
 	for _, v := range listItem {
 		totalPaid += v.Paid
 	}
