@@ -55,6 +55,42 @@ func (item PaymentAgencyInfo) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
+/*
+Udp số người chơi và info user đặt book
+*/
+func (item *AgencyPayment) UpdatePlayBookInfo(db *gorm.DB, booking model_booking.Booking) {
+	if booking.BookingCode == "" {
+		return
+	}
+	bookOTA := model_booking.BookingOta{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		BookingCode: booking.BookingCode,
+	}
+	errFindBO := bookOTA.FindFirst(db)
+	if errFindBO == nil {
+		feeBooking := int64(bookOTA.NumBook) * (bookOTA.CaddieFee + bookOTA.BuggyFee + bookOTA.GreenFee)
+		item.PrepaidFromBooking = feeBooking
+		item.TotalFeeFromBooking = feeBooking
+		item.PlayerBook = bookOTA.PlayerName
+		item.NumberPeople = bookOTA.NumBook
+	} else {
+		// Find booking waiting
+		bookR := model_booking.Booking{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			BookingCode: booking.BookingCode,
+		}
+		listBook, err := bookR.FindAllBookingOTA(db)
+		if err == nil {
+			if len(listBook) > 0 {
+				item.NumberPeople = len(listBook)
+				item.PlayerBook = listBook[0].CustomerBookingName
+			}
+		}
+	}
+}
+
 // Update Total Amount
 func (item *AgencyPayment) UpdateTotalAmount(db *gorm.DB, isUdp bool) {
 	booksR := model_booking.Booking{
