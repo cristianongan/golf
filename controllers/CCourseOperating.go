@@ -393,6 +393,7 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 				booking.CaddieHoles = body.CaddieHoles
 				booking.TimeOutFlight = timeOutFlight
 				booking.HoleTimeOut = body.GuestHoles
+				booking.BagStatus = constants.BAG_STATUS_TIMEOUT
 				errUdp := booking.Update(db)
 				if errUdp != nil {
 					log.Println("OutAllFlight err book udp ", errUdp.Error())
@@ -467,6 +468,7 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 		booking.CaddieHoles = body.CaddieHoles
 		booking.HoleTimeOut = body.GuestHoles
 		booking.TimeOutFlight = time.Now().Unix()
+		booking.BagStatus = constants.BAG_STATUS_TIMEOUT
 		errUdp := booking.Update(db)
 		if errUdp != nil {
 			log.Println("OutAllFlight err book udp ", errUdp.Error())
