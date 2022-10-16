@@ -818,8 +818,6 @@ func udpOutCaddieBooking(db *gorm.DB, booking *model_booking.Booking) error {
 	// Udp booking
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_OUT
 
-	booking.BagStatus = constants.BAG_STATUS_TIMEOUT
-
 	return nil
 }
 
