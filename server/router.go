@@ -590,6 +590,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/restaurant/item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.UpdateItemOrder))
 			cmsApiAuthorized.PUT("/restaurant/res-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.UpdateResItem))
 			cmsApiAuthorized.PUT("/restaurant/finish-res-order", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.FinishRestaurantOrder))
+			cmsApiAuthorized.PUT("/restaurant/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.UpdateRestaurantBooking))
 			cmsApiAuthorized.DELETE("/restaurant/item/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteItemOrder))
 			cmsApiAuthorized.DELETE("/restaurant/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteRestaurantOrder))
 
