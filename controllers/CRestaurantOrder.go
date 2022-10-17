@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -249,6 +250,17 @@ func (_ CRestaurantOrder) GetListBill(c *gin.Context, prof models.CmsUser) {
 
 	for i, data := range list {
 		//find all item in bill
+		serviceCartItem := model_booking.BookingServiceItem{}
+		serviceCartItem.ServiceBill = data.Id
+
+		listItem, err := serviceCartItem.FindAll(db)
+
+		if err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+
+		//find all res item in bill
 		restaurantItem := models.RestaurantItem{}
 		restaurantItem.BillId = data.Id
 
@@ -262,6 +274,7 @@ func (_ CRestaurantOrder) GetListBill(c *gin.Context, prof models.CmsUser) {
 		// Add infor to response
 		listData[i] = map[string]interface{}{
 			"bill_infor": data,
+			"list_item":  listItem,
 			"menu":       listResItem,
 		}
 	}
@@ -1175,6 +1188,77 @@ func (_ CRestaurantOrder) FinishRestaurantOrder(c *gin.Context, prof models.CmsU
 
 	//Update lại giá trong booking
 	updatePriceWithServiceItem(booking, prof)
+
+	okRes(c)
+}
+
+// Update thông tin restaurant booking
+
+func (_ CRestaurantOrder) UpdateRestaurantBooking(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	billIdStr := c.Param("id")
+	billId, err := strconv.ParseInt(billIdStr, 10, 64)
+	if err != nil || billId <= 0 {
+		response_message.BadRequest(c, errors.New("Id not valid").Error())
+		return
+	}
+
+	body := request.UpdateBookingRestaurantBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	serviceCart := models.ServiceCart{}
+	serviceCart.Id = billId
+	if err := serviceCart.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Find bill "+err.Error())
+		return
+	}
+
+	//
+	if body.NumberGuest != 0 {
+		serviceCart.NumberGuest = body.NumberGuest
+	}
+
+	if body.Table != "" {
+		serviceCart.TypeCode = body.Table
+	}
+
+	if body.PlayerName != "" {
+		serviceCart.PlayerName = body.PlayerName
+	}
+
+	if body.Phone != "" {
+		serviceCart.Phone = body.Phone
+	}
+
+	if body.GolfBag != "" {
+		// validate golf bag
+		booking := model_booking.Booking{}
+		booking.PartnerUid = body.PartnerUid
+		booking.CourseUid = body.CourseUid
+		booking.Bag = body.GolfBag
+		booking.BookingDate = time.Now().Format("02/01/2006")
+		if err := booking.FindFirst(db); err != nil {
+			response_message.BadRequest(c, "Find booking "+err.Error())
+			return
+		}
+
+		if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
+			response_message.BadRequest(c, "Bag status invalid")
+			return
+		}
+
+		// add infor service cart
+		serviceCart.GolfBag = body.GolfBag
+		serviceCart.BookingUid = booking.Uid
+	}
+
+	if err := serviceCart.Update(db); err != nil {
+		response_message.BadRequest(c, "Update bill "+err.Error())
+		return
+	}
 
 	okRes(c)
 }
