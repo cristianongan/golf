@@ -507,7 +507,7 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 				log.Println("UpdateMainBagForSubBag errUdp", errUdp.Error())
 			} else {
 				// Udp lai info payment
-				go handleSinglePayment(db, booking)
+				handlePayment(db, booking)
 			}
 		} else {
 			err = errFind
@@ -817,8 +817,6 @@ func udpOutCaddieBooking(db *gorm.DB, booking *model_booking.Booking) error {
 	}
 	// Udp booking
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_OUT
-
-	booking.BagStatus = constants.BAG_STATUS_TIMEOUT
 
 	return nil
 }
@@ -1181,6 +1179,8 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 		booking.UpdatePriceForBagHaveMainBags(db)
 	} else {
 		if booking.SubBags != nil && len(booking.SubBags) > 0 {
+			// Udp orther data
+			booking.Update(db)
 			// Udp lại giá sub bag mới nhất nếu có sub bag
 			// Udp cho case sửa main bag pay
 			for _, v := range booking.SubBags {
@@ -1194,13 +1194,22 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 					if errUdpSubBag != nil {
 						log.Println("updatePriceWithServiceItem errUdpSubBag", errUdpSubBag.Error())
 					} else {
-						go handleSinglePayment(db, subBook)
+						handlePayment(db, subBook)
 					}
 				} else {
 					log.Println("updatePriceWithServiceItem errFSub", errFSub.Error())
 				}
 			}
 			// Co sub bag thì main bag dc udp ở trên rồi
+			// find main bag udp lại payment
+			mainBookUdp := model_booking.Booking{}
+			mainBookUdp.Uid = booking.Uid
+			mainBookUdp.PartnerUid = booking.PartnerUid
+			errFMB := mainBookUdp.FindFirst(db)
+			if errFMB == nil {
+				handlePayment(db, mainBookUdp)
+			}
+
 			return
 		}
 		booking.UpdateMushPay(db)
@@ -1210,7 +1219,7 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 	if errUdp != nil {
 		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
 	} else {
-		go handleSinglePayment(db, booking)
+		handlePayment(db, booking)
 	}
 }
 
@@ -1544,19 +1553,12 @@ func handleAgencyPayment(db *gorm.DB, booking model_booking.Booking) {
 
 		//Find prepaid from booking
 		if booking.BookingCode != "" {
-			bookOTA := model_booking.BookingOta{
-				PartnerUid:  booking.PartnerUid,
-				CourseUid:   booking.CourseUid,
-				BookingCode: booking.BookingCode,
-			}
-			errFindBO := bookOTA.FindFirst(db)
-			if errFindBO == nil {
-				agencyPayment.PrepaidFromBooking = int64(bookOTA.NumBook) * (bookOTA.CaddieFee + bookOTA.BuggyFee + bookOTA.GreenFee)
-			}
+			agencyPayment.UpdatePlayBookInfo(db, booking)
 		}
 
+		// Update total Amount
+		agencyPayment.UpdateTotalAmount(db, false)
 		// Update payment status
-		// agencyPayment.UpdatePaymentStatus(booking.BagStatus, db)
 		errC := agencyPayment.Create(db)
 
 		if errC != nil {
@@ -1567,10 +1569,23 @@ func handleAgencyPayment(db *gorm.DB, booking model_booking.Booking) {
 		agencyPayment.BookingCode = booking.BookingCode
 		agencyPayment.AgencyInfo = agencyInfo
 		agencyPayment.AgencyId = booking.AgencyId
+		agencyPayment.UpdatePlayBookInfo(db, booking)
+		agencyPayment.UpdateTotalAmount(db, false)
 		errUdp := agencyPayment.Update(db)
 		if errUdp != nil {
 			log.Println("handleSinglePayment errUdp", errUdp.Error())
 		}
+	}
+}
+
+// Handle Payment
+func handlePayment(db *gorm.DB, booking model_booking.Booking) {
+	if booking.AgencyId > 0 && booking.MemberCardUid == "" {
+		// Agency payment
+		go handleAgencyPayment(db, booking)
+	} else {
+		// single payment
+		go handleSinglePayment(db, booking)
 	}
 }
 

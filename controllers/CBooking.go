@@ -440,7 +440,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	// Create booking payment
-	if body.AgencyId > 0 && booking.MemberCardUid == "" {
+	if booking.AgencyId > 0 && booking.MemberCardUid == "" {
 		go handleAgencyPayment(db, booking)
 	} else {
 		if booking.BagStatus == constants.BAG_STATUS_WAITING {
@@ -661,7 +661,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.GuestStyleName = form.GuestStyleName
 	bookings.PlayerOrBag = form.PlayerOrBag
 
-	db, total, err := bookings.FindBookingListWithSelect(db, page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
 
 	if form.HasCaddieInOut != "" {
 		db = db.Preload("CaddieBuggyInOut")
@@ -724,7 +724,7 @@ func (_ *CBooking) GetListBookingWithFightInfo(c *gin.Context, prof models.CmsUs
 	bookings.CustomerName = form.PlayerName
 	bookings.HasFlightInfo = form.HasFlightInfo
 
-	db, total, err := bookings.FindBookingListWithSelect(db, page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page, false)
 	res := response.PageResponse{}
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -1397,11 +1397,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Create payment info
-	if body.AgencyId > 0 && booking.MemberCardUid == "" {
-		go handleAgencyPayment(db, booking)
-	} else {
-		go handleSinglePayment(db, booking)
-	}
+	handlePayment(db, booking)
 
 	res := getBagDetailFromBooking(db, booking)
 

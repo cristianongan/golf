@@ -936,7 +936,9 @@ func (item *Booking) FindAllBookingOTA(database *gorm.DB) ([]Booking, error) {
 	db := database.Model(Booking{})
 	list := []Booking{}
 
+	db = db.Where("partner_uid = ?", item.PartnerUid)
 	db = db.Where("booking_code = ?", item.BookingCode)
+	db = db.Group("bill_code")
 
 	db.Find(&list)
 	return list, db.Error

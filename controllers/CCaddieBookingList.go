@@ -51,7 +51,7 @@ func (_ *CCaddieBookingList) GetCaddieBookingList(c *gin.Context, prof models.Cm
 	bookings.HasBookCaddie = "1"
 	bookings.HasCaddie = "1"
 
-	db, total, err := bookings.FindBookingListWithSelect(db, page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page, false)
 
 	var list []response.CaddieBookingResponse
 	db.Find(&list)
@@ -129,7 +129,7 @@ func (_ *CCaddieBookingList) GetAgencyBookingList(c *gin.Context, prof models.Cm
 	bookings.PartnerUid = prof.PartnerUid
 	bookings.CourseUid = prof.CourseUid
 
-	db, total, err := bookings.FindBookingListWithSelect(db, page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page, false)
 
 	var list []response.CaddieAgencyBookingResponse
 	db.Find(&list)
@@ -172,7 +172,7 @@ func (_ *CCaddieBookingList) GetCancelBookingList(c *gin.Context, prof models.Cm
 	bookings.PartnerUid = prof.PartnerUid
 	bookings.CourseUid = prof.CourseUid
 
-	db, total, err := bookings.FindBookingListWithSelect(db, page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page, false)
 
 	var list []response.CaddieCancelBookingResponse
 	db.Find(&list)

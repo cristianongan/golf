@@ -37,7 +37,7 @@ func (_ *CBuggyUsedList) GetBuggyUsedList(c *gin.Context, prof models.CmsUser) {
 	// add course_uid
 	bookings.CourseUid = prof.CourseUid
 
-	db, total, err := bookings.FindBookingListWithSelect(db, page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page, false)
 
 	var list []response.BuggyUsedListResponse
 	db.Find(&list)

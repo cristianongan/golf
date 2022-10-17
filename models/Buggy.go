@@ -77,7 +77,7 @@ func (item *Buggy) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *BuggyRequest) FindList(database *gorm.DB, page Page, isReady string) ([]Buggy, int64, error) {
+func (item *Buggy) FindList(database *gorm.DB, page Page, isReady string) ([]Buggy, int64, error) {
 	var list []Buggy
 	total := int64(0)
 
@@ -92,6 +92,35 @@ func (item *BuggyRequest) FindList(database *gorm.DB, page Page, isReady string)
 	if item.BuggyForVip == true {
 		db = db.Where("buggy_for_vip = ?", item.BuggyForVip)
 	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if isReady != "" {
+		buggyReadyStatus := []string{
+			constants.BUGGY_CURRENT_STATUS_ACTIVE,
+			constants.BUGGY_CURRENT_STATUS_FINISH,
+			// constants.BUGGY_CURRENT_STATUS_IN_COURSE,
+		}
+
+		db = db.Where("buggy_status IN (?) ", buggyReadyStatus)
+	}
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+	return list, total, db.Error
+}
+
+func (item *BuggyRequest) FindBuggyReadyList(database *gorm.DB) ([]Buggy, int64, error) {
+	var list []Buggy
+	total := int64(0)
+
+	db := database.Model(Buggy{})
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
@@ -119,12 +148,10 @@ func (item *BuggyRequest) FindList(database *gorm.DB, page Page, isReady string)
 	}
 
 	db.Count(&total)
-
-	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Find(&list)
-	}
+	db.Find(&list)
 	return list, total, db.Error
 }
+
 func (item *Buggy) FindListBuggyNotReady(database *gorm.DB) ([]Buggy, int64, error) {
 	var list []Buggy
 	total := int64(0)

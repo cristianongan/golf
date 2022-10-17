@@ -8,8 +8,11 @@ import (
 	"start/datasources"
 	"start/logger"
 	"start/models"
+	model_booking "start/models/booking"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -94,13 +97,12 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	buggyRequest := models.BuggyRequest{}
+	buggyRequest := models.Buggy{}
 	buggyRequest.CourseUid = form.CourseUid
 	buggyRequest.PartnerUid = form.PartnerUid
 	buggyRequest.BuggyStatus = form.BuggyStatus
 	buggyRequest.BuggyForVip = form.BuggyForVip
 	buggyRequest.Code = form.Code
-	buggyRequest.FunctionType = form.FunctionType
 
 	list, total, err := buggyRequest.FindList(db, page, form.IsReady)
 
@@ -112,6 +114,59 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 	res := response.PageResponse{
 		Total: total,
 		Data:  list,
+	}
+
+	c.JSON(200, res)
+}
+
+func (_ *CBuggy) GetBuggyReadyList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBuggyForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	buggyRequest := models.BuggyRequest{}
+	buggyRequest.CourseUid = form.CourseUid
+	buggyRequest.PartnerUid = form.PartnerUid
+	buggyRequest.FunctionType = form.FunctionType
+
+	listBuggyReady, total, err := buggyRequest.FindBuggyReadyList(db)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	result := []models.Buggy{}
+	if buggyRequest.FunctionType == constants.BAG_STATUS_IN_COURSE {
+		dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		for _, buggy := range listBuggyReady {
+			if buggy.BuggyStatus == constants.BAG_STATUS_IN_COURSE {
+				bookingList := model_booking.BookingList{
+					PartnerUid:  form.PartnerUid,
+					CourseUid:   form.CourseUid,
+					BuggyCode:   buggy.Code,
+					BookingDate: dateDisplay,
+					BagStatus:   constants.BAG_STATUS_IN_COURSE,
+				}
+
+				_, total, _ := bookingList.FindAllBookingList(db)
+				if total < 2 {
+					result = append(result, buggy)
+				}
+			} else {
+				result = append(result, buggy)
+			}
+		}
+	} else {
+		result = listBuggyReady
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  result,
 	}
 
 	c.JSON(200, res)
