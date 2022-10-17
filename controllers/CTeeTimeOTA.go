@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 	"start/config"
 	"start/constants"
@@ -86,12 +85,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	CaddieFee := int64(0)
 	BuggyFee := int64(0)
 
-	timeDate := time.Unix(utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT, body.Date), 0)
-	timeDate1, _ := time.Parse(constants.DATE_FORMAT, body.Date)
-
-	log.Print("timeDate   ", timeDate)
-	log.Print("timeDate1  ", timeDate1)
-
+	timeDate, _ := time.Parse(constants.DATE_FORMAT, body.Date)
 	agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnDate(db, timeDate)
 	if errFSP == nil && agencySpecialPrice.Id > 0 {
 		GreenFee = agencySpecialPrice.GreenFee
@@ -117,7 +111,6 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	}
 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
 	weekday := strconv.Itoa(int(timeDate.Weekday()) + 1)
-	log.Print("GetTeeTimesOfDay ", weekday)
 	bookSetting := model_booking.BookingSetting{}
 
 	teeTimeList := []response.TeeTimeOTA{}

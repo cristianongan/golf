@@ -328,7 +328,6 @@ func CheckDow(dow, hour string, timeCheck time.Time) bool {
 			log.Println("CheckDow err", err.Error())
 		}
 		if dayInt == int(timeCheck.Weekday()+1) {
-			log.Print("CheckDow ngày và h", timeCheck.Weekday()+1)
 			if hour != "" {
 				if CheckHour(hour, timeCheck) {
 					isOk = true
