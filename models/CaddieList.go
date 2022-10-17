@@ -2,7 +2,6 @@ package models
 
 import (
 	"start/constants"
-	"start/utils"
 	"strconv"
 	"time"
 
@@ -148,7 +147,7 @@ func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB, date stri
 
 	var timeNow datatypes.Date
 	if date != "" {
-		timeUnix := time.Unix(utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, date), 0)
+		timeUnix, _ := time.Parse(constants.DATE_FORMAT, date)
 		timeNow = datatypes.Date(timeUnix)
 	} else {
 		timeNow = datatypes.Date(time.Now())
@@ -186,7 +185,7 @@ func (item *CaddieList) FindAllCaddieReadyOnDayListOTA(database *gorm.DB, date s
 
 	var timeNow datatypes.Date
 	if date != "" {
-		timeUnix := time.Unix(utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, date), 0)
+		timeUnix, _ := time.Parse(constants.DATE_FORMAT, date)
 		timeNow = datatypes.Date(timeUnix)
 	} else {
 		timeNow = datatypes.Date(time.Now())
