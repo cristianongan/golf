@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"start/config"
 	"start/constants"
@@ -111,6 +112,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	}
 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
 	weekday := strconv.Itoa(int(timeDate.Weekday()) + 1)
+	log.Print("GetTeeTimesOfDay ", weekday)
 	bookSetting := model_booking.BookingSetting{}
 
 	teeTimeList := []response.TeeTimeOTA{}
