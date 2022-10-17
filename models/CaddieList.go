@@ -146,31 +146,31 @@ func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB, date stri
 
 	db.Preload("GroupInfo").Find(&list)
 
-	var timeNow datatypes.Date
-	if date != "" {
-		timeUnix := time.Unix(utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, date), 0)
-		timeNow = datatypes.Date(timeUnix)
-	} else {
-		timeNow = datatypes.Date(time.Now())
-	}
+	// var timeNow datatypes.Date
+	// if date != "" {
+	// 	timeUnix := time.Unix(utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, date), 0)
+	// 	timeNow = datatypes.Date(timeUnix)
+	// } else {
+	// 	timeNow = datatypes.Date(time.Now())
+	// }
 
-	listResponse := []Caddie{}
+	// listResponse := []Caddie{}
 
-	for _, data := range list {
-		dbCaddieWorkingSchedule := database.Model(CaddieWorkingSchedule{})
-		caddieSchedules := CaddieWorkingSchedule{
-			ApplyDate:       &timeNow,
-			PartnerUid:      data.PartnerUid,
-			CourseUid:       data.CourseUid,
-			CaddieGroupCode: data.GroupInfo.Code,
-		}
+	// for _, data := range list {
+	// 	dbCaddieWorkingSchedule := database.Model(CaddieWorkingSchedule{})
+	// 	caddieSchedules := CaddieWorkingSchedule{
+	// 		ApplyDate:       &timeNow,
+	// 		PartnerUid:      data.PartnerUid,
+	// 		CourseUid:       data.CourseUid,
+	// 		CaddieGroupCode: data.GroupInfo.Code,
+	// 	}
 
-		if caddieSchedules.CheckCaddieWorkOnDay(dbCaddieWorkingSchedule) {
-			listResponse = append(listResponse, data)
-		}
-	}
+	// 	if caddieSchedules.CheckCaddieWorkOnDay(dbCaddieWorkingSchedule) {
+	// 		listResponse = append(listResponse, data)
+	// 	}
+	// }
 
-	return listResponse, int64(len(listResponse)), db.Error
+	return list, int64(len(list)), db.Error
 }
 
 func (item *CaddieList) FindAllCaddieReadyOnDayListOTA(database *gorm.DB, date string) ([]CaddieRes, int64, error) {
