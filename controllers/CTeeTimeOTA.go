@@ -87,6 +87,11 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	BuggyFee := int64(0)
 
 	timeDate := time.Unix(utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT, body.Date), 0)
+	timeDate1, _ := time.Parse(constants.DATE_FORMAT, body.Date)
+
+	log.Print("timeDate   ", timeDate)
+	log.Print("timeDate1  ", timeDate1)
+
 	agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnDate(db, timeDate)
 	if errFSP == nil && agencySpecialPrice.Id > 0 {
 		GreenFee = agencySpecialPrice.GreenFee
