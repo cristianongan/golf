@@ -26,7 +26,6 @@ func runBookingLogout() {
 	localTime, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, time.Now().Unix())
 	bookingList := model_booking.BookingList{
 		BookingDate: localTime,
-		IsCheckIn:   "1",
 		BagStatus:   constants.BAG_STATUS_CHECK_OUT,
 	}
 
