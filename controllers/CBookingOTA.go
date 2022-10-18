@@ -12,6 +12,7 @@ import (
 	model_booking "start/models/booking"
 	"start/utils"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -81,13 +82,26 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		return
 	}
 
+	// Convert time
+	dateConvert := body.TeeOffStr
+	date, errConvert := time.Parse("15:04", dateConvert)
+	if errConvert != nil {
+		//
+		dataRes.Result.Status = http.StatusInternalServerError
+		dataRes.Result.Infor = "Convert fail"
+		c.JSON(http.StatusInternalServerError, dataRes)
+		return
+	}
+
+	dateTeeStrConv := date.Format(constants.HOUR_FORMAT)
+
 	// Check tee time status
 	// Check TeeTime Index
 	bookTeaTimeIndex := model_booking.Booking{
 		PartnerUid:  prof.PartnerUid,
 		CourseUid:   prof.CourseUid,
 		BookingDate: bookDate,
-		TeeTime:     body.TeeOffStr,
+		TeeTime:     dateTeeStrConv,
 		TeeType:     body.Tee,
 	}
 
@@ -134,7 +148,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		Holes:        body.Holes,
 		IsMainCourse: body.IsMainCourse,
 		Tee:          body.Tee,
-		TeeOffStr:    body.TeeOffStr,
+		TeeOffStr:    dateTeeStrConv,
 
 		AgentCode:          body.AgentCode,
 		GuestStyle:         body.GuestStyle,
@@ -184,7 +198,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			CustomerBookingName:  body.PlayerName,
 			CustomerBookingPhone: body.Contact,
 			NoteOfBooking:        body.Note,
-			TeeTime:              body.TeeOffStr,
+			TeeTime:              dateTeeStrConv,
 			GuestStyle:           body.GuestStyle,
 			BookingOtaId:         bookingOta.Id,
 			RowIndex:             &listIndex[i],
