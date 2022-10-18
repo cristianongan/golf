@@ -85,7 +85,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	CaddieFee := int64(0)
 	BuggyFee := int64(0)
 
-	timeDate := time.Unix(utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT, body.Date), 0)
+	timeDate, _ := time.Parse(constants.DATE_FORMAT, body.Date)
 	agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnDate(db, timeDate)
 	if errFSP == nil && agencySpecialPrice.Id > 0 {
 		GreenFee = agencySpecialPrice.GreenFee
@@ -110,7 +110,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 		CourseUid: body.CourseCode,
 	}
 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
-	weekday := strconv.Itoa(int(time.Now().Weekday()) + 1)
+	weekday := strconv.Itoa(int(timeDate.Weekday()) + 1)
 	bookSetting := model_booking.BookingSetting{}
 
 	teeTimeList := []response.TeeTimeOTA{}

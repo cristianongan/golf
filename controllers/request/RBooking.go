@@ -67,6 +67,8 @@ type GetListBookingWithSelectForm struct {
 	GuestStyleName  string  `form:"guest_style_name"`
 	PlayerOrBag     string  `form:"player_or_bag"`
 	IsGroupBillCode bool    `form:"is_group_bill_code"`
+	HasBuggy        string  `form:"has_buggy"`
+	HasCaddie       string  `form:"has_caddie"`
 }
 
 type GetListBookingWithListServiceItems struct {

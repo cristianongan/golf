@@ -844,8 +844,7 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 
 	if booking.BuggyId > 0 {
 		if err := udpOutBuggy(db, &booking, false); err != nil {
-			response_message.InternalServerError(c, err.Error())
-			return
+			log.Println(err.Error())
 		}
 
 		// Udp Note
