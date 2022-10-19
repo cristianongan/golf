@@ -116,7 +116,7 @@ func (item *Buggy) FindList(database *gorm.DB, page Page, isReady string) ([]Bug
 	return list, total, db.Error
 }
 
-func (item *BuggyRequest) FindBuggyReadyList(database *gorm.DB) ([]Buggy, int64, error) {
+func (item *BuggyRequest) FindBuggyReadyList(database *gorm.DB, page Page) ([]Buggy, int64, error) {
 	var list []Buggy
 	total := int64(0)
 
@@ -127,11 +127,15 @@ func (item *BuggyRequest) FindBuggyReadyList(database *gorm.DB) ([]Buggy, int64,
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
+	if item.Code != "" {
+		db = db.Where("code COLLATE utf8mb4_general_ci LIKE ?", "%"+item.Code+"%")
+	}
 
 	if item.FunctionType == constants.GO_IN_WAITING {
 		buggyReadyStatus := []string{
 			constants.BUGGY_CURRENT_STATUS_ACTIVE,
 			constants.BUGGY_CURRENT_STATUS_FINISH,
+			constants.BUGGY_CURRENT_STATUS_LOCK,
 		}
 
 		db = db.Where("buggy_status IN (?) ", buggyReadyStatus)
@@ -148,7 +152,10 @@ func (item *BuggyRequest) FindBuggyReadyList(database *gorm.DB) ([]Buggy, int64,
 	}
 
 	db.Count(&total)
-	db.Find(&list)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
 	return list, total, db.Error
 }
 

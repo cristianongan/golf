@@ -127,12 +127,20 @@ func (_ *CBuggy) GetBuggyReadyList(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
 	buggyRequest := models.BuggyRequest{}
 	buggyRequest.CourseUid = form.CourseUid
 	buggyRequest.PartnerUid = form.PartnerUid
 	buggyRequest.FunctionType = form.FunctionType
+	buggyRequest.Code = form.Code
 
-	listBuggyReady, total, err := buggyRequest.FindBuggyReadyList(db)
+	listBuggyReady, total, err := buggyRequest.FindBuggyReadyList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -140,29 +148,31 @@ func (_ *CBuggy) GetBuggyReadyList(c *gin.Context, prof models.CmsUser) {
 	}
 
 	result := []models.Buggy{}
-	if buggyRequest.FunctionType == constants.BAG_STATUS_IN_COURSE {
-		dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-		for _, buggy := range listBuggyReady {
-			if buggy.BuggyStatus == constants.BAG_STATUS_IN_COURSE {
-				bookingList := model_booking.BookingList{
-					PartnerUid:      form.PartnerUid,
-					CourseUid:       form.CourseUid,
-					BuggyCode:       buggy.Code,
-					BookingDate:     dateDisplay,
-					BagStatus:       constants.BAG_STATUS_IN_COURSE,
-					NotPrivateBuggy: true,
-				}
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	for _, buggy := range listBuggyReady {
+		if buggy.BuggyStatus == constants.BAG_STATUS_IN_COURSE || buggy.BuggyStatus == constants.BAG_STATUS_WAITING {
+			bookingList := model_booking.BookingList{
+				PartnerUid:      form.PartnerUid,
+				CourseUid:       form.CourseUid,
+				BuggyCode:       buggy.Code,
+				BookingDate:     dateDisplay,
+				NotPrivateBuggy: true,
+			}
+			if buggyRequest.FunctionType == constants.BAG_STATUS_IN_COURSE {
+				bookingList.BagStatus = constants.BAG_STATUS_IN_COURSE
+			}
 
-				_, total, _ := bookingList.FindAllBookingList(db)
-				if total < 2 {
-					result = append(result, buggy)
-				}
-			} else {
+			if buggyRequest.FunctionType == constants.BAG_STATUS_WAITING {
+				bookingList.BagStatus = constants.BAG_STATUS_WAITING
+			}
+
+			_, total, _ := bookingList.FindAllBookingList(db)
+			if total < 2 {
 				result = append(result, buggy)
 			}
+		} else {
+			result = append(result, buggy)
 		}
-	} else {
-		result = listBuggyReady
 	}
 
 	res := response.PageResponse{

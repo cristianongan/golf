@@ -69,12 +69,16 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 	}
 
 	// Check can add
-	errB, booking, caddie, buggy := addCaddieBuggyToBooking(db, body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode, body.IsPrivateBuggy)
+	errB, response := addCaddieBuggyToBooking(db, body.PartnerUid, body.CourseUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode, body.IsPrivateBuggy)
 
 	if errB != nil {
 		response_message.InternalServerError(c, errB.Error())
 		return
 	}
+
+	booking := response.Booking
+	caddie := response.NewCaddie
+	buggy := response.NewBuggy
 
 	errUdp := booking.Update(db)
 	if errUdp != nil {
@@ -97,6 +101,25 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 		if err := buggy.Update(db); err != nil {
 			response_message.InternalServerError(c, err.Error())
 			return
+		}
+	}
+
+	//Update trạng thái của các old caddie
+	if response.OldCaddie.Id > 0 {
+		if err := udpCaddieOut(db, response.OldCaddie.Id); err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
+	}
+
+	//Update trạng thái của các old buggy
+	if response.OldBuggy.Id > 0 {
+		bookingR := model_booking.Booking{
+			BookingDate: booking.BookingDate,
+			BuggyId:     response.OldBuggy.Id,
+		}
+		if errBuggy := udpOutBuggy(db, &bookingR, false); errBuggy != nil {
+			log.Println("AddCaddieBuggyToBooking err book udp ", errBuggy.Error())
 		}
 	}
 
@@ -157,11 +180,26 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	// Check Caddie, Buggy đang trong flight
 	listError := []string{}
 	listBooking := []model_booking.Booking{}
+	listOldCaddie := []models.Caddie{}
+	listOldBuggy := []models.Buggy{}
+
 	listCaddie := []models.Caddie{}
 	listBuggy := []models.Buggy{}
 	listCaddieInOut := []model_gostarter.CaddieBuggyInOut{}
 	for _, v := range body.ListData {
-		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(db, body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode, v.IsPrivateBuggy)
+		errB, response := addCaddieBuggyToBooking(db, body.PartnerUid, body.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode, v.IsPrivateBuggy)
+
+		bookingTemp := response.Booking
+		caddieTemp := response.NewCaddie
+		buggyTemp := response.NewBuggy
+
+		if response.OldCaddie.Id > 0 {
+			listOldCaddie = append(listOldCaddie, response.OldCaddie)
+		}
+
+		if response.OldBuggy.Id > 0 {
+			listOldBuggy = append(listOldBuggy, response.OldBuggy)
+		}
 
 		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
 			PartnerUid: bookingTemp.PartnerUid,
@@ -273,6 +311,28 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	// Udp Old Caddie
+	for _, caddie := range listOldCaddie {
+		if err := udpCaddieOut(db, caddie.Id); err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
+	}
+
+	//Update trạng thái của các old buggy
+	for _, buggy := range listOldBuggy {
+		//Update trạng thái của các old buggy
+		if buggy.Id > 0 {
+			bookingR := model_booking.Booking{
+				BookingDate: dateDisplay,
+				BuggyId:     buggy.Id,
+			}
+			if errBuggy := udpOutBuggy(db, &bookingR, false); errBuggy != nil {
+				log.Println("CreateFlight err book udp ", errBuggy.Error())
+			}
+		}
+	}
+
 	okResponse(c, flight)
 }
 
@@ -308,6 +368,9 @@ func (_ *CCourseOperating) OutCaddie(c *gin.Context, prof models.CmsUser) {
 
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 	booking.CaddieHoles = body.CaddieHoles
+	booking.TimeOutFlight = time.Now().Unix()
+	booking.HoleTimeOut = body.GuestHoles
+	booking.BagStatus = constants.BAG_STATUS_TIMEOUT
 	errUdp := booking.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errOut.Error())
@@ -322,7 +385,7 @@ func (_ *CCourseOperating) OutCaddie(c *gin.Context, prof models.CmsUser) {
 		CaddieId:   caddieId,
 		CaddieCode: caddieCode,
 		CaddieType: constants.STATUS_OUT,
-		Hole:       booking.CaddieHoles,
+		Hole:       body.CaddieHoles,
 		Note:       body.Note,
 	}
 	go addBuggyCaddieInOutNote(db, caddieOutNote)
@@ -459,13 +522,13 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 	}
 
 	if len(bookingResponse) == 0 {
-		response_message.BadRequest(c, err.Error())
+		response_message.BadRequest(c, "Not Found Bag")
 		return
 	}
 	booking := bookingResponse[0]
 	errOut := udpOutCaddieBooking(db, &booking)
 	if errBuggy := udpOutBuggy(db, &booking, false); errBuggy != nil {
-		log.Println("OutAllFlight err book udp ", errBuggy.Error())
+		log.Println("SimpleOutFlight err book udp ", errBuggy.Error())
 	}
 
 	if errOut == nil {
@@ -476,7 +539,7 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 		booking.BagStatus = constants.BAG_STATUS_TIMEOUT
 		errUdp := booking.Update(db)
 		if errUdp != nil {
-			log.Println("OutAllFlight err book udp ", errUdp.Error())
+			log.Println("SimpleOutFlight err book udp ", errUdp.Error())
 		}
 
 		// Update giờ chơi nếu khách là member
@@ -744,81 +807,87 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 	}
 
 	// validate caddie_code
-	caddieNew, err := cCourseOperating.validateCaddie(db, prof.CourseUid, body.CaddieCode)
+	oldCaddie := booking.CaddieInfo
 
-	if err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
+	if body.CaddieCode != "" {
+		caddieNew, err := cCourseOperating.validateCaddie(db, prof.CourseUid, body.CaddieCode)
 
-	if caddieNew.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
-		if booking.CaddieId != caddieNew.Id {
-			response_message.InternalServerError(c, errors.New(caddieNew.Code+" đang bị LOCK").Error())
+		if err != nil {
+			response_message.InternalServerError(c, err.Error())
 			return
 		}
-	} else {
-		if errCaddie := checkCaddieReady(booking, caddieNew); errCaddie != nil {
-			response_message.InternalServerError(c, errCaddie.Error())
+
+		if caddieNew.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
+			if booking.CaddieId != caddieNew.Id {
+				response_message.InternalServerError(c, errors.New(caddieNew.Code+" đang bị LOCK").Error())
+				return
+			}
+		} else {
+			if errCaddie := checkCaddieReady(booking, caddieNew); errCaddie != nil {
+				response_message.InternalServerError(c, errCaddie.Error())
+				return
+			}
+		}
+
+		// set new caddie
+		booking.CaddieId = caddieNew.Id
+		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
+		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+
+		if err := booking.Update(db); err != nil {
+			response_message.InternalServerError(c, err.Error())
 			return
 		}
+
+		// Update caddie_current_status
+		if booking.FlightId != 0 {
+			caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+			caddieNew.CurrentRound = caddieNew.CurrentRound + 1
+		} else {
+			caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+		}
+
+		if err := caddieNew.Update(db); err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
+
+		// Udp new caddie in
+		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
+			PartnerUid: prof.PartnerUid,
+			CourseUid:  prof.CourseUid,
+			BookingUid: booking.Uid,
+			CaddieId:   caddieNew.Id,
+			CaddieCode: caddieNew.Code,
+			CaddieType: constants.STATUS_IN,
+			Hole:       booking.Hole - body.CaddieHoles,
+			Note:       "",
+		}
+
+		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
 	}
 
-	if booking.CaddieId > 0 {
-		if err := udpCaddieOut(db, booking.CaddieId); err != nil {
+	if oldCaddie.Id > 0 {
+		if err := udpCaddieOut(db, oldCaddie.Id); err != nil {
 			response_message.InternalServerError(c, err.Error())
 			return
 		}
 
 		// Udp Note
-		caddieOutNote := model_gostarter.CaddieBuggyInOut{
+		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
 			PartnerUid: prof.PartnerUid,
 			CourseUid:  prof.CourseUid,
 			BookingUid: booking.Uid,
-			CaddieId:   booking.CaddieId,
-			CaddieCode: booking.CaddieInfo.Code,
+			CaddieId:   oldCaddie.Id,
+			CaddieCode: oldCaddie.Code,
+			Hole:       body.CaddieHoles,
 			CaddieType: constants.STATUS_OUT,
 			Note:       "",
 		}
 
-		go addBuggyCaddieInOutNote(db, caddieOutNote)
+		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
 	}
-
-	// set new caddie
-	booking.CaddieId = caddieNew.Id
-	booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
-	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
-
-	if err := booking.Update(db); err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
-
-	// Update caddie_current_status
-	if booking.FlightId != 0 {
-		caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
-		caddieNew.CurrentRound = caddieNew.CurrentRound + 1
-	} else {
-		caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
-	}
-
-	if err := caddieNew.Update(db); err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
-
-	// Udp Note
-	caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
-		PartnerUid: prof.PartnerUid,
-		CourseUid:  prof.CourseUid,
-		BookingUid: booking.Uid,
-		CaddieId:   booking.CaddieId,
-		CaddieCode: booking.CaddieInfo.Code,
-		CaddieType: constants.STATUS_IN,
-		Note:       "",
-	}
-
-	go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
 
 	okResponse(c, booking)
 }
@@ -1005,11 +1074,27 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 	// Check Caddie, Buggy đang trong flight
 	listError := []string{}
 	listBooking := []model_booking.Booking{}
+
+	listOldCaddie := []models.Caddie{}
+	listOldBuggy := []models.Buggy{}
+
 	listCaddie := []models.Caddie{}
 	listBuggy := []models.Buggy{}
 	listCaddieInOut := []model_gostarter.CaddieBuggyInOut{}
 	for _, v := range body.ListData {
-		errB, bookingTemp, caddieTemp, buggyTemp := addCaddieBuggyToBooking(db, prof.PartnerUid, prof.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode, v.IsPrivateBuggy)
+		errB, response := addCaddieBuggyToBooking(db, prof.PartnerUid, prof.CourseUid, body.BookingDate, v.Bag, v.CaddieCode, v.BuggyCode, v.IsPrivateBuggy)
+
+		bookingTemp := response.Booking
+		caddieTemp := response.NewCaddie
+		buggyTemp := response.NewBuggy
+
+		if response.OldCaddie.Id > 0 {
+			listOldCaddie = append(listOldCaddie, response.OldCaddie)
+		}
+
+		if response.OldBuggy.Id > 0 {
+			listOldBuggy = append(listOldBuggy, response.OldBuggy)
+		}
 
 		if caddieTemp.Id > 0 {
 			if errB == nil {
@@ -1059,7 +1144,7 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		b.BagStatus = constants.BAG_STATUS_IN_COURSE
 		errUdp := b.Update(db)
 		if errUdp != nil {
-			log.Println("CreateFlight err flight ", errUdp.Error())
+			log.Println("AddBagToFlight err flight ", errUdp.Error())
 		}
 	}
 
@@ -1068,7 +1153,30 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		//ca.IsInCourse = true
 		errUdp := ca.Update(db)
 		if errUdp != nil {
-			log.Println("CreateFlight err udp caddie ", errUdp.Error())
+			log.Println("AddBagToFlight err udp caddie ", errUdp.Error())
+		}
+	}
+
+	// Udp Old Caddie
+	for _, caddie := range listOldCaddie {
+		if err := udpCaddieOut(db, caddie.Id); err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
+	}
+
+	//Update trạng thái của các old buggy
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	for _, buggy := range listOldBuggy {
+		//Update trạng thái của các old buggy
+		if buggy.Id > 0 {
+			bookingR := model_booking.Booking{
+				BookingDate: dateDisplay,
+				BuggyId:     buggy.Id,
+			}
+			if errBuggy := udpOutBuggy(db, &bookingR, false); errBuggy != nil {
+				log.Println("AddBagToFlight err book udp ", errBuggy.Error())
+			}
 		}
 	}
 
