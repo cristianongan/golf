@@ -22,38 +22,40 @@ func runBookingLogutJob() {
 }
 
 func runBookingLogout() {
-	db := datasources.GetDatabase()
+	dbBooking1 := datasources.GetDatabase()
 	localTime, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, time.Now().Unix())
 	bookingList := model_booking.BookingList{
 		BookingDate: localTime,
-		BagStatus:   constants.BAG_STATUS_CHECK_OUT,
+		IsCheckIn:   "1",
 	}
 
-	db, _, _ = bookingList.FindAllBookingList(db)
+	dbBooking1, _, _ = bookingList.FindAllBookingList(dbBooking1)
 
 	list := []model_booking.Booking{}
-	db.Find(&list)
+	dbBooking1.Find(&list)
 
+	dbBooking2 := datasources.GetDatabase()
 	for _, booking := range list {
 		booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
 		booking.CheckOutTime = time.Now().Unix()
-
-		if err := booking.Update(db); err != nil {
-			log.Print("cron update booking check error!")
+		if err := booking.Update(dbBooking2); err != nil {
+			log.Print(err.Error())
 		}
 	}
 
 	caddie := models.Caddie{}
-	listCaddie, _, _ := caddie.FindListCaddieNotReady(db)
+	dbCaddie := datasources.GetDatabase()
+	listCaddie, _, _ := caddie.FindListCaddieNotReady(dbCaddie)
 	for _, v := range listCaddie {
 		v.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
-		v.Update(db)
+		v.Update(dbCaddie)
 	}
 
 	buggy := models.Buggy{}
-	listBuggy, _, _ := buggy.FindListBuggyNotReady(db)
+	dbBuggy := datasources.GetDatabase()
+	listBuggy, _, _ := buggy.FindListBuggyNotReady(dbBuggy)
 	for _, v := range listBuggy {
 		v.BuggyStatus = constants.BUGGY_CURRENT_STATUS_ACTIVE
-		v.Update(db)
+		v.Update(dbBuggy)
 	}
 }

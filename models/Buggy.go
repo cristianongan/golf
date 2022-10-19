@@ -156,9 +156,14 @@ func (item *Buggy) FindListBuggyNotReady(database *gorm.DB) ([]Buggy, int64, err
 	var list []Buggy
 	total := int64(0)
 
-	db := database.Model(Caddie{})
+	db := database.Model(Buggy{})
 
-	db = db.Not("buggy_status = ?", constants.BUGGY_CURRENT_STATUS_ACTIVE)
+	buggyReadyStatus := []string{
+		constants.BUGGY_CURRENT_STATUS_LOCK,
+		constants.BUGGY_CURRENT_STATUS_FINISH,
+		constants.BUGGY_CURRENT_STATUS_IN_COURSE,
+	}
+	db = db.Where("buggy_status IN (?)", buggyReadyStatus)
 	db.Count(&total)
 
 	db = db.Find(&list)

@@ -165,7 +165,7 @@ func (item *Caddie) FindListCaddieNotReady(database *gorm.DB) ([]Caddie, int64, 
 
 	db := database.Model(Caddie{})
 
-	db = db.Not("working_status = ?", constants.CADDIE_CURRENT_STATUS_READY)
+	db = db.Not("current_status = ?", constants.CADDIE_CURRENT_STATUS_READY)
 	db.Count(&total)
 
 	db = db.Find(&list)

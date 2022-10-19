@@ -48,6 +48,7 @@ type BookingList struct {
 	IsBuggyPrepareForJoin string
 	GuestStyleName        string
 	PlayerOrBag           string
+	NotPrivateBuggy       bool
 }
 
 func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
@@ -226,6 +227,10 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 
 	if isGroupBillCode {
 		db = db.Group("bill_code")
+	}
+
+	if item.NotPrivateBuggy {
+		db = db.Not("is_private_buggy = ?", true)
 	}
 
 	return db
