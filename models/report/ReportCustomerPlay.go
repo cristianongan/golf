@@ -13,12 +13,12 @@ import (
 // Report thông tin chơi của khách hàng
 type ReportCustomerPlay struct {
 	models.ModelId
-	PartnerUid         string `json:"partner_uid" gorm:"type:varchar(100);index"`  // Hang Golf
-	CourseUid          string `json:"course_uid" gorm:"type:varchar(256);index"`   // San Golf
-	CustomerUid        string `json:"customer_uid" gorm:"type:varchar(100);index"` // Uid customer
-	TotalPaid          int64  `json:"total_paid"`                                  // Tổng thanh toán
-	TotalPlayCount     int    `json:"total_play_count"`                            // Tổng lượt chơi
-	TotalHourPlayCount int    `json:"total_hour_play_count"`                       // Tổng giờ chơi
+	PartnerUid         string  `json:"partner_uid" gorm:"type:varchar(100);index"`  // Hang Golf
+	CourseUid          string  `json:"course_uid" gorm:"type:varchar(256);index"`   // San Golf
+	CustomerUid        string  `json:"customer_uid" gorm:"type:varchar(100);index"` // Uid customer
+	TotalPaid          int64   `json:"total_paid"`                                  // Tổng thanh toán
+	TotalPlayCount     int     `json:"total_play_count"`                            // Tổng lượt chơi
+	TotalHourPlayCount float64 `json:"total_hour_play_count"`                       // Tổng giờ chơi
 }
 
 // ======= CRUD ===========
