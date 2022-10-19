@@ -39,10 +39,31 @@ func (_ *CTablePrice) CreateTablePrice(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	//TODO: Tao các golf fee từ Old Price id
+	// Tạo các golf fee từ Old Price id
 	if body.OldPriceId > 0 {
 		//Use Batch Created
+		golfFeeR := models.GolfFee{
+			TablePriceId: body.OldPriceId,
+		}
 
+		listGolfFee, errList := golfFeeR.FindAllByTablePrice(db)
+		if errList == nil {
+			listCreate := []models.GolfFee{}
+			for _, v := range listGolfFee {
+				v.Id = 0
+				v.TablePriceId = tablePrice.Id
+				listCreate = append(listCreate, v)
+			}
+
+			if len(listCreate) > 0 {
+				golfFeeC := models.GolfFee{}
+				errBatchCreate := golfFeeC.BatchInsert(db, listCreate)
+				if errBatchCreate != nil {
+					response_message.InternalServerError(c, errBatchCreate.Error())
+					return
+				}
+			}
+		}
 	}
 
 	okResponse(c, tablePrice)
