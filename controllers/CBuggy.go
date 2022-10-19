@@ -145,11 +145,12 @@ func (_ *CBuggy) GetBuggyReadyList(c *gin.Context, prof models.CmsUser) {
 		for _, buggy := range listBuggyReady {
 			if buggy.BuggyStatus == constants.BAG_STATUS_IN_COURSE {
 				bookingList := model_booking.BookingList{
-					PartnerUid:  form.PartnerUid,
-					CourseUid:   form.CourseUid,
-					BuggyCode:   buggy.Code,
-					BookingDate: dateDisplay,
-					BagStatus:   constants.BAG_STATUS_IN_COURSE,
+					PartnerUid:      form.PartnerUid,
+					CourseUid:       form.CourseUid,
+					BuggyCode:       buggy.Code,
+					BookingDate:     dateDisplay,
+					BagStatus:       constants.BAG_STATUS_IN_COURSE,
+					NotPrivateBuggy: true,
 				}
 
 				_, total, _ := bookingList.FindAllBookingList(db)
