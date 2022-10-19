@@ -368,6 +368,9 @@ func (_ *CCourseOperating) OutCaddie(c *gin.Context, prof models.CmsUser) {
 
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 	booking.CaddieHoles = body.CaddieHoles
+	booking.TimeOutFlight = time.Now().Unix()
+	booking.HoleTimeOut = body.GuestHoles
+	booking.BagStatus = constants.BAG_STATUS_TIMEOUT
 	errUdp := booking.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errOut.Error())
@@ -382,7 +385,7 @@ func (_ *CCourseOperating) OutCaddie(c *gin.Context, prof models.CmsUser) {
 		CaddieId:   caddieId,
 		CaddieCode: caddieCode,
 		CaddieType: constants.STATUS_OUT,
-		Hole:       booking.CaddieHoles,
+		Hole:       body.CaddieHoles,
 		Note:       body.Note,
 	}
 	go addBuggyCaddieInOutNote(db, caddieOutNote)
