@@ -119,7 +119,7 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 			BuggyId:     response.OldBuggy.Id,
 		}
 		if errBuggy := udpOutBuggy(db, &bookingR, false); errBuggy != nil {
-			log.Println("OutAllFlight err book udp ", errBuggy.Error())
+			log.Println("AddCaddieBuggyToBooking err book udp ", errBuggy.Error())
 		}
 	}
 
@@ -328,7 +328,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 				BuggyId:     buggy.Id,
 			}
 			if errBuggy := udpOutBuggy(db, &bookingR, false); errBuggy != nil {
-				log.Println("OutAllFlight err book udp ", errBuggy.Error())
+				log.Println("CreateFlight err book udp ", errBuggy.Error())
 			}
 		}
 	}
@@ -525,7 +525,7 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 	booking := bookingResponse[0]
 	errOut := udpOutCaddieBooking(db, &booking)
 	if errBuggy := udpOutBuggy(db, &booking, false); errBuggy != nil {
-		log.Println("OutAllFlight err book udp ", errBuggy.Error())
+		log.Println("SimpleOutFlight err book udp ", errBuggy.Error())
 	}
 
 	if errOut == nil {
@@ -536,7 +536,7 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 		booking.BagStatus = constants.BAG_STATUS_TIMEOUT
 		errUdp := booking.Update(db)
 		if errUdp != nil {
-			log.Println("OutAllFlight err book udp ", errUdp.Error())
+			log.Println("SimpleOutFlight err book udp ", errUdp.Error())
 		}
 
 		// Update giờ chơi nếu khách là member
@@ -1141,7 +1141,7 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		b.BagStatus = constants.BAG_STATUS_IN_COURSE
 		errUdp := b.Update(db)
 		if errUdp != nil {
-			log.Println("CreateFlight err flight ", errUdp.Error())
+			log.Println("AddBagToFlight err flight ", errUdp.Error())
 		}
 	}
 
@@ -1150,7 +1150,7 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		//ca.IsInCourse = true
 		errUdp := ca.Update(db)
 		if errUdp != nil {
-			log.Println("CreateFlight err udp caddie ", errUdp.Error())
+			log.Println("AddBagToFlight err udp caddie ", errUdp.Error())
 		}
 	}
 
@@ -1172,7 +1172,7 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 				BuggyId:     buggy.Id,
 			}
 			if errBuggy := udpOutBuggy(db, &bookingR, false); errBuggy != nil {
-				log.Println("OutAllFlight err book udp ", errBuggy.Error())
+				log.Println("AddBagToFlight err book udp ", errBuggy.Error())
 			}
 		}
 	}

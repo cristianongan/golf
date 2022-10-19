@@ -127,12 +127,20 @@ func (_ *CBuggy) GetBuggyReadyList(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
 	buggyRequest := models.BuggyRequest{}
 	buggyRequest.CourseUid = form.CourseUid
 	buggyRequest.PartnerUid = form.PartnerUid
 	buggyRequest.FunctionType = form.FunctionType
+	buggyRequest.Code = form.Code
 
-	listBuggyReady, total, err := buggyRequest.FindBuggyReadyList(db)
+	listBuggyReady, total, err := buggyRequest.FindBuggyReadyList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
