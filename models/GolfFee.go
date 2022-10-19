@@ -1,6 +1,7 @@
 package models
 
 import (
+	"log"
 	"start/constants"
 	"strings"
 	"time"
@@ -55,6 +56,18 @@ func (item *GolfFee) Create(db *gorm.DB) error {
 	}
 
 	return db.Create(item).Error
+}
+
+// / ------- GolfFee batch insert to db ------
+func (item *GolfFee) BatchInsert(database *gorm.DB, list []GolfFee) error {
+	db := database.Table("golf_fees")
+	var err error
+	err = db.Create(&list).Error
+
+	if err != nil {
+		log.Println("GolfFee batch insert err: ", err.Error())
+	}
+	return err
 }
 
 func (item *GolfFee) Update(db *gorm.DB) error {
@@ -270,6 +283,32 @@ func (item *GolfFee) FindList(database *gorm.DB, page Page) ([]GolfFee, int64, e
 		db = page.Setup(db).Find(&list)
 	}
 	return list, total, db.Error
+}
+
+func (item *GolfFee) FindAllByTablePrice(database *gorm.DB) ([]GolfFee, error) {
+	db := database.Model(GolfFee{})
+	list := []GolfFee{}
+	status := item.ModelId.Status
+	item.ModelId.Status = ""
+	// db = db.Where(item)
+	if status != "" {
+		db = db.Where("status in (?)", strings.Split(status, ","))
+	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.GroupId > 0 {
+		db = db.Where("group_id = ?", item.GroupId)
+	}
+	if item.TablePriceId > 0 {
+		db = db.Where("table_price_id = ?", item.TablePriceId)
+	}
+	db = db.Find(&list)
+	return list, db.Error
 }
 
 func (item *GolfFee) Delete(db *gorm.DB) error {

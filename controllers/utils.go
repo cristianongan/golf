@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"math"
 	"net/http"
 	"start/config"
 	"start/constants"
@@ -1441,6 +1442,51 @@ func updateReportTotalPlayCountForCustomerUser(userUid string, partnerUid, cours
 	} else {
 		totalTemp := reportCustomer.TotalPlayCount
 		reportCustomer.TotalPlayCount = totalTemp + 1
+		errUdp := reportCustomer.Update()
+		if errUdp != nil {
+			log.Println("updateReportTotalPlayCountForCustomerUser errUdp", errUdp.Error())
+		}
+	}
+}
+
+/*
+Udp report tổng giờ chơi của user
+*/
+func updateReportTotalHourPlayCountForCustomerUser(booking model_booking.Booking, userUid string, partnerUid, courseUid string) {
+	reportCustomer := model_report.ReportCustomerPlay{
+		CustomerUid: userUid,
+	}
+
+	now := time.Now()
+
+	loc, errLoc := time.LoadLocation(constants.LOCATION_DEFAULT)
+	if errLoc != nil {
+		log.Println(errLoc)
+	}
+
+	// parse tee off
+	teeOff := now.Format(constants.DATE_FORMAT) + " " + booking.TeeOffTime
+	parseTeeOff, _ := time.Parse(constants.DATE_FORMAT_3, teeOff)
+
+	// parse time out fight
+	convertTimeOutFlight := time.Unix(booking.TimeOutFlight, 0).In(loc).Format(constants.HOUR_FORMAT)
+	timeOutFlightRaw := now.Format(constants.DATE_FORMAT) + " " + convertTimeOutFlight
+	paseTimeOutFlight, _ := time.Parse(constants.DATE_FORMAT_3, timeOutFlightRaw)
+
+	totalHour := paseTimeOutFlight.Sub(parseTeeOff).Hours()
+
+	errF := reportCustomer.FindFirst()
+	if errF != nil || reportCustomer.Id <= 0 {
+		reportCustomer.CourseUid = courseUid
+		reportCustomer.PartnerUid = partnerUid
+		reportCustomer.TotalHourPlayCount = math.Round(totalHour*100) / 100
+		errC := reportCustomer.Create()
+		if errC != nil {
+			log.Println("updateReportTotalPlayCountForCustomerUser errC", errC.Error())
+		}
+	} else {
+		totalTemp := reportCustomer.TotalHourPlayCount
+		reportCustomer.TotalHourPlayCount = totalTemp + (math.Round(totalHour*100) / 100)
 		errUdp := reportCustomer.Update()
 		if errUdp != nil {
 			log.Println("updateReportTotalPlayCountForCustomerUser errUdp", errUdp.Error())

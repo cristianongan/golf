@@ -75,6 +75,7 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 	memberCard.CaddieFee = body.CaddieFee
 	memberCard.BuggyFee = body.BuggyFee
 	memberCard.AdjustPlayCount = body.AdjustPlayCount
+	memberCard.AnnualType = body.AnnualType
 	memberCard.Float = mcType.Float
 
 	if mcType.Subject == constants.MEMBER_CARD_BASE_SUBJECT_COMPANY {
@@ -178,9 +179,9 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.OwnerUid != "" {
-		memberCard.OwnerUid = body.OwnerUid
-	}
+	// if body.OwnerUid != "" {
+	memberCard.OwnerUid = body.OwnerUid
+	// }
 	if body.Status != "" {
 		memberCard.Status = body.Status
 	}
@@ -201,6 +202,7 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 	memberCard.Float = body.Float
 	memberCard.PromotionCode = body.PromotionCode
 	memberCard.UserEdit = body.UserEdit
+	memberCard.AnnualType = body.AnnualType
 
 	if mcType.Subject == constants.MEMBER_CARD_BASE_SUBJECT_COMPANY {
 		// Check Company Exit
@@ -215,7 +217,7 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 		memberCard.CompanyId = body.CompanyId
 		memberCard.CompanyName = company.Name
 
-		if memberCard.Float == 0 {
+		if memberCard.Float == 1 {
 			memberCard.OwnerUid = ""
 		}
 	}

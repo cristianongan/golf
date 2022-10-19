@@ -459,6 +459,11 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 					log.Println("OutAllFlight err book udp ", errUdp.Error())
 				}
 
+				// Update giờ chơi nếu khách là member
+				if booking.MemberCardUid != "" {
+					go updateReportTotalHourPlayCountForCustomerUser(booking, booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
+				}
+
 				// update caddie in out note
 				caddieOutNote := model_gostarter.CaddieBuggyInOut{
 					PartnerUid: booking.PartnerUid,
@@ -532,6 +537,11 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 		errUdp := booking.Update(db)
 		if errUdp != nil {
 			log.Println("OutAllFlight err book udp ", errUdp.Error())
+		}
+
+		// Update giờ chơi nếu khách là member
+		if booking.MemberCardUid != "" {
+			go updateReportTotalHourPlayCountForCustomerUser(booking, booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
 		}
 
 		// update caddie in out note
