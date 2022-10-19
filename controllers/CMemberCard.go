@@ -179,9 +179,9 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.OwnerUid != "" {
-		memberCard.OwnerUid = body.OwnerUid
-	}
+	// if body.OwnerUid != "" {
+	memberCard.OwnerUid = body.OwnerUid
+	// }
 	if body.Status != "" {
 		memberCard.Status = body.Status
 	}
