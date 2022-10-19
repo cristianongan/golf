@@ -32,6 +32,15 @@ type MemberCard struct {
 	PromotionCode   string `json:"promotion_code" gorm:"type:varchar(100)"`    // mã giảm giá
 	UserEdit        string `json:"user_edit" gorm:"type:varchar(150)"`         // user cập nhật
 
+	// Company
+	CompanyName string `json:"company_name" gorm:"type:varchar(200)"` // Ten cong ty
+	CompanyId   int64  `json:"company_id" gorm:"index"`               // Id cong ty
+
+	//
+	AnnualType    string `json:"annual_type" gorm:"type:varchar(100)"`    // loại thường niên: UN_LIMITED (không giới hạn), LIMITED (chơi có giới hạn), SLEEP (thẻ ngủ).
+	MemberConnect string `json:"member_connect" gorm:"type:varchar(250)"` // link member
+	Relationship  string `json:"relationship" gorm:"type:varchar(100)"`   // Mối quan hệ của member: WIFE, HUSBAND, CHILD
+
 	PriceCode int64 `json:"price_code"` // 0|1 Check cái này có thì tính theo giá riêng -> theo cuộc họp suggest nên bỏ - Ko bỏ dc
 	GreenFee  int64 `json:"green_fee"`  // Phí sân cỏ
 	CaddieFee int64 `json:"caddie_fee"` // Phí caddie
