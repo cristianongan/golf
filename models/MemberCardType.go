@@ -28,6 +28,8 @@ type MemberCardType struct {
 	PlayTimeOnYear     int    `json:"play_time_on_year"`                              // Số lần chơi trong năm
 	AnnualType         string `json:"annual_type" gorm:"type:varchar(100)"`           // loại thường niên: UN_LIMITED (không giới hạn), LIMITED (chơi có giới hạn), SLEEP (thẻ ngủ).
 	CurrentAnnualFee   int64  `json:"current_annual_fee"`                             // Current Annual Fee
+	Subject            string `json:"subject" gorm:"type:varchar(100);index"`         // Đối tượng thẻ: COMPANY, FOREIGN, FAMILY, PERSONAL
+	Float              int64  `json:"float"`                                          // Thẻ không định danh
 }
 
 func (item *MemberCardType) ParseNormalDayTakeGuest() []int {
@@ -130,7 +132,7 @@ func (item *MemberCardType) IsValidated() bool {
 	if item.GuestStyle == "" {
 		return false
 	}
-	if item.AnnualType == "" {
+	if item.Subject == "" {
 		return false
 	}
 	return true
@@ -168,7 +170,7 @@ func (item *MemberCardType) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *MemberCardType) FindList(database *gorm.DB,page Page) ([]MemberCardType, int64, error) {
+func (item *MemberCardType) FindList(database *gorm.DB, page Page) ([]MemberCardType, int64, error) {
 	db := database.Model(MemberCardType{})
 	list := []MemberCardType{}
 	total := int64(0)

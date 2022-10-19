@@ -156,6 +156,17 @@ const (
 )
 
 /*
+Member Card Type:
+Member Card Base Subject
+*/
+const (
+	MEMBER_CARD_BASE_SUBJECT_COMPANY  = "COMPANY"  // doanh nghiệp
+	MEMBER_CARD_BASE_SUBJECT_PERSONAL = "PERSONAL" // cá nhân
+	MEMBER_CARD_BASE_SUBJECT_FAMILY   = "FAMILY"   // gia đình
+	MEMBER_CARD_BASE_SUBJECT_FOREIGN  = "FOREIGN"  // nước ngoài
+)
+
+/*
 Annual Type:
 Không giới hạn
 Chơi có giới hạn
@@ -165,6 +176,15 @@ const (
 	ANNUAL_TYPE_LIMITED    = "LIMITED"    // chơi giới hạn
 	ANNUAL_TYPE_UN_LIMITED = "UN_LIMITED" // Chơi không giới hạn
 	ANNUAL_TYPE_SLEEP      = "SLEEP"      // Thẻ ngủ
+)
+
+/*
+Relationship: mối quan hệ
+*/
+const (
+	RELATIONSHIP_WIFE    = "WIFE"    // Vợ
+	RELATIONSHIP_HUSBAND = "HUSBAND" // Chồng
+	RELATIONSHIP_CHILD   = "CHILD"   // Con
 )
 
 /*

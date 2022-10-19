@@ -43,7 +43,8 @@ func (_ *CMemberCardType) CreateMemberCardType(c *gin.Context, prof models.CmsUs
 	memberCardType.WeekendTakeGuest = body.WeekendTakeGuest
 	memberCardType.PlayTimeOnYear = body.PlayTimeOnYear
 	memberCardType.Type = body.Type
-	memberCardType.AnnualType = body.AnnualType
+	memberCardType.Subject = body.Subject
+	memberCardType.Float = body.Float
 
 	errC := memberCardType.Create(db)
 
@@ -126,7 +127,8 @@ func (_ *CMemberCardType) UpdateMemberCardType(c *gin.Context, prof models.CmsUs
 	memberCardType.PlayTimeOnYear = body.PlayTimeOnYear
 	memberCardType.Status = body.Status
 	memberCardType.Type = body.Type
-	memberCardType.AnnualType = body.AnnualType
+	memberCardType.Subject = body.Subject
+	memberCardType.Float = body.Float
 
 	errUdp := memberCardType.Update(db)
 	if errUdp != nil {

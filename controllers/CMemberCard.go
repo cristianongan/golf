@@ -37,11 +37,14 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 
 	// Check Owner Invalid
 	owner := models.CustomerUser{}
-	owner.Uid = body.OwnerUid
-	errFind = owner.FindFirst(db)
-	if errFind != nil {
-		response_message.BadRequest(c, errFind.Error())
-		return
+
+	if body.OwnerUid == "" {
+		owner.Uid = body.OwnerUid
+		errFind = owner.FindFirst(db)
+		if errFind != nil {
+			response_message.BadRequest(c, errFind.Error())
+			return
+		}
 	}
 
 	// Check duplicated
@@ -72,7 +75,30 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 	memberCard.CaddieFee = body.CaddieFee
 	memberCard.BuggyFee = body.BuggyFee
 	memberCard.AdjustPlayCount = body.AdjustPlayCount
-	memberCard.Float = body.Float
+	memberCard.Float = mcType.Float
+
+	if mcType.Subject == constants.MEMBER_CARD_BASE_SUBJECT_COMPANY {
+		// Check Company Exit
+		company := models.Company{}
+		company.Id = body.CompanyId
+		errFind := company.FindFirst(db)
+		if errFind != nil {
+			response_message.BadRequest(c, errFind.Error())
+			return
+		}
+
+		memberCard.CompanyId = body.CompanyId
+		memberCard.CompanyName = company.Name
+
+		if memberCard.Float == 1 {
+			memberCard.OwnerUid = ""
+		}
+	}
+
+	if mcType.Subject == constants.MEMBER_CARD_BASE_SUBJECT_FAMILY {
+		memberCard.MemberConnect = body.MemberConnect
+		memberCard.Relationship = body.Relationship
+	}
 
 	errC := memberCard.Create(db)
 
@@ -143,6 +169,15 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Check Member Card Type Exit
+	mcType := models.MemberCardType{}
+	mcType.Id = body.McTypeId
+	errFind := mcType.FindFirst(db)
+	if errFind != nil {
+		response_message.BadRequest(c, errFind.Error())
+		return
+	}
+
 	if body.OwnerUid != "" {
 		memberCard.OwnerUid = body.OwnerUid
 	}
@@ -166,6 +201,29 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 	memberCard.Float = body.Float
 	memberCard.PromotionCode = body.PromotionCode
 	memberCard.UserEdit = body.UserEdit
+
+	if mcType.Subject == constants.MEMBER_CARD_BASE_SUBJECT_COMPANY {
+		// Check Company Exit
+		company := models.Company{}
+		company.Id = body.CompanyId
+		errFind := company.FindFirst(db)
+		if errFind != nil {
+			response_message.BadRequest(c, errFind.Error())
+			return
+		}
+
+		memberCard.CompanyId = body.CompanyId
+		memberCard.CompanyName = company.Name
+
+		if memberCard.Float == 0 {
+			memberCard.OwnerUid = ""
+		}
+	}
+
+	if mcType.Subject == constants.MEMBER_CARD_BASE_SUBJECT_FAMILY {
+		memberCard.MemberConnect = body.MemberConnect
+		memberCard.Relationship = body.Relationship
+	}
 
 	errUdp := memberCard.Update(db)
 	if errUdp != nil {
