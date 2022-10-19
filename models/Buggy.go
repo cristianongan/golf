@@ -132,6 +132,7 @@ func (item *BuggyRequest) FindBuggyReadyList(database *gorm.DB) ([]Buggy, int64,
 		buggyReadyStatus := []string{
 			constants.BUGGY_CURRENT_STATUS_ACTIVE,
 			constants.BUGGY_CURRENT_STATUS_FINISH,
+			constants.BUGGY_CURRENT_STATUS_LOCK,
 		}
 
 		db = db.Where("buggy_status IN (?) ", buggyReadyStatus)

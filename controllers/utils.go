@@ -8,6 +8,7 @@ import (
 	"start/config"
 	"start/constants"
 	"start/controllers/request"
+	"start/controllers/response"
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
@@ -734,7 +735,7 @@ func cloneToBuggyBooking(buggy models.Buggy) model_booking.BookingBuggy {
 Add Caddie, Buggy To Booking
 Bag Status Waiting
 */
-func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, bag, caddieCode, buggyCode string, isPrivateBuggy bool) (error, model_booking.Booking, models.Caddie, models.Buggy) {
+func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, bag, caddieCode, buggyCode string, isPrivateBuggy bool) (error, response.AddCaddieBuggyToBookingRes) {
 	// Get booking
 	booking := model_booking.Booking{
 		PartnerUid:  partnerUid,
@@ -745,7 +746,27 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 
 	err := booking.FindFirst(db)
 	if err != nil {
-		return err, booking, models.Caddie{}, models.Buggy{}
+		return err, response.AddCaddieBuggyToBookingRes{}
+	}
+
+	response := response.AddCaddieBuggyToBookingRes{}
+
+	//get old caddie
+	if booking.CaddieId > 0 {
+		oldCaddie := models.Caddie{}
+		oldCaddie.Id = booking.CaddieId
+		if errFC := oldCaddie.FindFirst(db); errFC == nil {
+			response.OldCaddie = oldCaddie
+		}
+	}
+
+	//get old buggy
+	if booking.BuggyId > 0 {
+		oldBuggy := models.Buggy{}
+		oldBuggy.Id = booking.BuggyId
+		if errFC := oldBuggy.FindFirst(db); errFC == nil {
+			response.OldBuggy = oldBuggy
+		}
 	}
 
 	if !(*booking.ShowCaddieBuggy) {
@@ -762,16 +783,16 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 		}
 		errFC := caddie.FindFirst(db)
 		if errFC != nil {
-			return errFC, booking, caddie, models.Buggy{}
+			return errFC, response
 		}
 
 		if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
 			if booking.CaddieId != caddie.Id {
-				return errors.New("Caddie " + caddie.Code + " đang bị LOCK"), booking, caddie, models.Buggy{}
+				return errors.New("Caddie " + caddie.Code + " đang bị LOCK"), response
 			}
 		} else {
 			if errCaddie := checkCaddieReady(booking, caddie); errCaddie != nil {
-				return errCaddie, booking, caddie, models.Buggy{}
+				return errCaddie, response
 			}
 		}
 
@@ -791,11 +812,11 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 
 		errFB := buggy.FindFirst(db)
 		if errFB != nil {
-			return errFB, booking, caddie, buggy
+			return errFB, response
 		}
 
 		if err := checkBuggyReady(db, buggy, booking, isPrivateBuggy, false); err != nil {
-			return err, booking, caddie, buggy
+			return err, response
 		}
 
 		booking.BuggyId = buggy.Id
@@ -803,7 +824,15 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 	}
 
 	booking.ShowCaddieBuggy = newTrue(true)
-	return nil, booking, caddie, buggy
+	if caddie.Id != response.OldCaddie.Id {
+		response.NewCaddie = caddie
+	}
+	if buggy.Id != response.OldBuggy.Id {
+		response.NewBuggy = buggy
+	}
+	response.NewBuggy = buggy
+	response.Booking = booking
+	return nil, response
 }
 
 /*
