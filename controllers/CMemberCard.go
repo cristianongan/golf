@@ -217,7 +217,7 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 		memberCard.CompanyId = body.CompanyId
 		memberCard.CompanyName = company.Name
 
-		if memberCard.Float == 0 {
+		if memberCard.Float == 1 {
 			memberCard.OwnerUid = ""
 		}
 	}
