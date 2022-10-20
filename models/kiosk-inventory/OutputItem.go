@@ -68,6 +68,7 @@ func (item *InventoryOutputItem) FindAllList(database *gorm.DB) ([]InventoryOutp
 func (item *InventoryOutputItem) FindStatistic(database *gorm.DB) ([]OutputStatisticItem, error) {
 	db := database.Model(InventoryOutputItem{})
 	db = db.Select("partner_uid, course_uid,item_code,service_id,SUM(quantity) as total").Group("partner_uid,course_uid,item_code")
+	db = db.Group("item_code")
 	if item.OutputDate != "" {
 		db = db.Where("output_date = ?", item.OutputDate)
 	}

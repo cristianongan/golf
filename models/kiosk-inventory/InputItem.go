@@ -111,7 +111,9 @@ func (item *InventoryInputItem) FindList(database *gorm.DB, page models.Page, it
 func (item *InventoryInputItem) FindStatistic(database *gorm.DB) ([]OutputStatisticItem, error) {
 	db := database.Model(InventoryInputItem{})
 	db = db.Joins("JOIN input_inventory_bills ON input_inventory_bills.code = inventory_input_items.code")
-	db = db.Select("inventory_input_items.partner_uid,inventory_input_items.course_uid,inventory_input_items.service_id,inventory_input_items.item_code,SUM(inventory_input_items.quantity) as total").Group("inventory_input_items.partner_uid,inventory_input_items.course_uid,inventory_input_items.item_code").Where("input_inventory_bills.bill_status = ?", "ACCEPT")
+	db = db.Where("input_inventory_bills.bill_status = ?", "APPROVED")
+	db = db.Group("inventory_input_items.item_code")
+	db = db.Select("inventory_input_items.partner_uid,inventory_input_items.course_uid,inventory_input_items.service_id,inventory_input_items.item_code,SUM(inventory_input_items.quantity) as total")
 	if item.InputDate != "" {
 		db = db.Where("inventory_input_items.input_date = ?", item.InputDate)
 	}
