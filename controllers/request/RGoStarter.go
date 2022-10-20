@@ -90,10 +90,11 @@ type GetStartingSheetForm struct {
 }
 
 type ChangeCaddieBody struct {
-	BookingUid string `json:"booking_uid"`
-	CaddieCode string `json:"caddie_code"`
-	Reason     string `json:"reason"`
-	Note       string `json:"note"`
+	BookingUid  string `json:"booking_uid"`
+	CaddieCode  string `json:"caddie_code"`
+	CaddieHoles int    `json:"old_caddie_holes"`
+	Reason      string `json:"reason"`
+	Note        string `json:"note"`
 }
 
 type ChangeBuggyBody struct {
