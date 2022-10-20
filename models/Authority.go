@@ -1,9 +1,10 @@
 package models
 
 import (
-	"github.com/harranali/authority"
 	"start/datasources"
 	"strings"
+
+	"github.com/harranali/authority"
 )
 
 type Authority struct {
@@ -45,9 +46,12 @@ func (_ Authority) GetPermissions(roleIds []int64) ([]Request, error) {
 
 	for _, perm := range perms {
 		nameSplit := strings.Split(perm.Name, "|")
-		request := Request{
-			Method: nameSplit[0],
-			Path:   nameSplit[1],
+		request := Request{}
+		if len(nameSplit) > 0 {
+			request.Method = nameSplit[0]
+		}
+		if len(nameSplit) > 1 {
+			request.Path = nameSplit[1]
 		}
 		result = append(result, request)
 	}
