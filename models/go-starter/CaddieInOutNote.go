@@ -147,7 +147,7 @@ func (item *CaddieBuggyInOut) FindOrderByDateList(database *gorm.DB) ([]CaddieBu
 	return list, total, db.Error
 }
 
-func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB, bag string, date string, shareBuggy *bool) ([]CaddieBuggyInOutWithBooking, int64, error) {
+func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB, page models.Page, bag string, date string, shareBuggy *bool) ([]CaddieBuggyInOutWithBooking, int64, error) {
 	db := database.Model(CaddieBuggyInOut{})
 	list := []CaddieBuggyInOutWithBooking{}
 	total := int64(0)
@@ -184,7 +184,10 @@ func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB,
 	}
 
 	db.Count(&total)
-	db.Find(&list)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
 	return list, total, db.Error
 }
 

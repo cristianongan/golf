@@ -20,6 +20,13 @@ func (_ *CCaddieBuggyInOut) GetCaddieBuggyInOut(c *gin.Context, prof models.CmsU
 		return
 	}
 
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
 	caddieBuggyInOut := model_gostarter.CaddieBuggyInOut{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
@@ -28,7 +35,8 @@ func (_ *CCaddieBuggyInOut) GetCaddieBuggyInOut(c *gin.Context, prof models.CmsU
 		BuggyCode:  form.BuggCode,
 		CaddieCode: form.CaddieCode,
 	}
-	list, total, err := caddieBuggyInOut.FindCaddieBuggyInOutWithBooking(db, form.Bag, form.BookingDate, form.ShareBuggy)
+
+	list, total, err := caddieBuggyInOut.FindCaddieBuggyInOutWithBooking(db, page, form.Bag, form.BookingDate, form.ShareBuggy)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
