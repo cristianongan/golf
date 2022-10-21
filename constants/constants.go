@@ -9,6 +9,14 @@ const (
 )
 
 /*
+Phần loại service item trong nhà hàng
+*/
+const (
+	SERVICE_ITEM_RES_COMBO  = "COMBO"
+	SERVICE_ITEM_RES_NORMAL = "NORMAL"
+)
+
+/*
 Get base price cho type agency họăc member card
 */
 const (
