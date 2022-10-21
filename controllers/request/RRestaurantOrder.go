@@ -30,16 +30,21 @@ type CreateBookingRestaurantBody struct {
 }
 
 type UpdateBookingRestaurantBody struct {
-	PartnerUid  string `json:"partner_uid"`
-	CourseUid   string `json:"course_uid"`
-	GolfBag     string `json:"golf_bag"`
-	PlayerName  string `json:"player_name" binding:"required"`
-	Phone       string `json:"phone" binding:"required"`
-	OrderTime   int64  `json:"order_time"`
-	Table       string `json:"table"`
-	NumberGuest int    `json:"number_guest"`
-	Floor       int    `json:"floor"`
-	Note        string `json:"note"`
+	PartnerUid    string              `json:"partner_uid"`
+	CourseUid     string              `json:"course_uid"`
+	GolfBag       string              `json:"golf_bag"`
+	PlayerName    string              `json:"player_name" binding:"required"`
+	Phone         string              `json:"phone" binding:"required"`
+	OrderTime     int64               `json:"order_time"`
+	Table         string              `json:"table"`
+	NumberGuest   int                 `json:"number_guest"`
+	Floor         int                 `json:"floor"`
+	ListOrderItem utils.ListOrderItem `json:"list_order_item"`
+	Note          string              `json:"note"`
+}
+
+type ConfrimBookingRestaurantBody struct {
+	GolfBag string `json:"golf_bag"`
 }
 
 type AddItemOrderBody struct {

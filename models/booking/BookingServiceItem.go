@@ -25,6 +25,7 @@ type BookingServiceItem struct {
 	Bag            string `json:"bag" gorm:"type:varchar(50)"`                 // Golf Bag
 	Type           string `json:"type" gorm:"type:varchar(50)"`                // Loại rental, kiosk, proshop,...
 	ItemCode       string `json:"item_code"  gorm:"type:varchar(100)"`         // Mã code của item
+	ItemType       string `json:"item_type"  gorm:"type:varchar(100)"`         // Phân loại đồ ăn theo COMBO hoặc NORMAL
 	Name           string `json:"name" gorm:"type:varchar(256)"`
 	EngName        string `json:"eng_name" gorm:"type:varchar(256)"` // Tên tiếng anh của sản phẩm
 	GroupCode      string `json:"group_code" gorm:"type:varchar(100)"`

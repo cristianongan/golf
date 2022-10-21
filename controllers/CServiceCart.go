@@ -102,6 +102,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 			return
 		}
 		// add infor cart item
+		serviceCartItem.ItemId = fb.Id
 		serviceCartItem.Type = kiosk.KioskType
 		serviceCartItem.Location = kiosk.KioskName
 		serviceCartItem.GroupCode = fb.GroupCode
@@ -122,6 +123,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 			return
 		}
 		// add infor cart item
+		serviceCartItem.ItemId = proshop.Id
 		serviceCartItem.Type = kiosk.KioskType
 		serviceCartItem.Location = kiosk.KioskName
 		serviceCartItem.GroupCode = proshop.GroupCode
@@ -142,6 +144,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 			return
 		}
 		// add infor cart item
+		serviceCartItem.ItemId = rental.Id
 		serviceCartItem.Type = kiosk.KioskType
 		serviceCartItem.Location = kiosk.KioskName
 		serviceCartItem.GroupCode = rental.GroupCode
