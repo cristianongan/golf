@@ -40,6 +40,7 @@ func (_ CKioskInventory) GetKioskInventory(c *gin.Context, prof models.CmsUser) 
 		ToDate:      form.ToDate,
 		Type:        form.Type,
 		ProductName: form.ProductName,
+		InStock:     form.InStock,
 	}
 
 	list, total, err := inputItems.FindList(db, page, param)
