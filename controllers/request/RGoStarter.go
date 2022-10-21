@@ -128,12 +128,12 @@ type AddBagToFlightBody struct {
 type GetFlightList struct {
 	PageRequest
 	BookingDate          string `form:"booking_date"`
-	PeopleNumberInFlight *int   `form:"people_number_in_flight"`
+	PeopleNumberInFlight int    `form:"people_number_in_flight"`
 	PartnerUid           string `form:"partner_uid"`
 	CourseUid            string `form:"course_uid"`
 	GolfBag              string `form:"bag"`
 	CaddieName           string `form:"caddie_name"`
-	CustomerName         string `form:"customer_name"`
+	PlayerName           string `form:"player_name"`
 	CaddieCode           string `form:"caddie_code"`
 }
 
