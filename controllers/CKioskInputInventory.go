@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -79,18 +80,37 @@ func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.Cms
 
 		var itemType = ""
 
-		if goodsService.Type == constants.GROUP_FB {
+		if goodsService.Type == constants.GROUP_PROSHOP {
+			proshop := model_service.Proshop{
+				ProShopId: data.ItemCode,
+			}
+
+			if err := proshop.FindFirst(db); err == nil {
+				return errors.New(data.ItemCode + "không tìm thấy")
+			}
+			itemType = proshop.Type
+		} else if goodsService.Type == constants.GROUP_FB {
 			fb := model_service.FoodBeverage{
 				FBCode: data.ItemCode,
 			}
 
 			if err := fb.FindFirst(db); err == nil {
-				itemType = fb.Type
+				return errors.New(data.ItemCode + "không tìm thấy")
 			}
+			itemType = fb.Type
+		} else if goodsService.Type == constants.GROUP_RENTAL {
+			rental := model_service.Rental{
+				RentalId: data.ItemCode,
+			}
+
+			if err := rental.FindFirst(db); err == nil {
+				return errors.New(data.ItemCode + " không tìm thấy ")
+			}
+			itemType = rental.Type
 		}
 
 		if itemType == "" {
-			itemType = goodsService.Type
+			itemType = goodsService.SubType
 		}
 
 		inputItem.ItemInfo = kiosk_inventory.ItemInfo{

@@ -48,6 +48,7 @@ func runBookingLogout() {
 	listCaddie, _, _ := caddie.FindListCaddieNotReady(dbCaddie)
 	for _, v := range listCaddie {
 		v.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
+		v.CurrentRound = 0
 		v.Update(dbCaddie)
 	}
 

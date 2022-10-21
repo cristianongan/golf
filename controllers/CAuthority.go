@@ -2,9 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
-	"github.com/harranali/authority"
 	"log"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -13,6 +10,10 @@ import (
 	"start/utils"
 	"start/utils/response_message"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/harranali/authority"
 )
 
 type CAuthority struct{}
@@ -343,7 +344,6 @@ func (_ CAuthority) GetGroupRoles(c *gin.Context, prof models.CmsUser) {
 			unique[groupRole.Name] = true
 			uniqueGroupRoles = append(uniqueGroupRoles, groupRole)
 		}
-
 	}
 
 	res := response.PageResponse{
