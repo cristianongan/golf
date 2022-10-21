@@ -7,7 +7,6 @@ import (
 	"start/logger"
 
 	ccron "start/cron"
-	socket "start/socket"
 	// "start/datasources/aws"
 	// "start/datasources/elasticsearch"
 )
@@ -41,5 +40,5 @@ func Init() {
 
 	log.Println("Server is running ...", "listen", config.GetString("backend_port"))
 	r.Run(config.GetString("backend_port"))
-	socket.RunSocket()
+	// socket.RunSocket()
 }
