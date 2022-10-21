@@ -27,7 +27,7 @@ func (item *FlightList) FindFlightList(database *gorm.DB, page models.Page) ([]F
 	db = db.Joins("INNER JOIN bookings ON bookings.flight_id = flights.id").Group("flights.id")
 
 	if item.GolfBag != "" {
-		db = db.Where("bookings.bag = ?", item.GolfBag)
+		db = db.Where("bookings.bag COLLATE utf8mb4_general_ci LIKE ?", "%"+item.GolfBag+"%")
 	}
 
 	if item.CustomerName != "" {

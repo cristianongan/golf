@@ -1147,13 +1147,13 @@ func (item *Booking) FindForCaddieOnCourse(database *gorm.DB, InFlight string) [
 		db = db.Where("caddie_id = ?", item.CaddieId)
 	}
 	if item.Bag != "" {
-		db = db.Where("bag = ?", item.Bag)
+		db = db.Where("bag COLLATE utf8mb4_general_ci LIKE ?", "%"+item.Bag+"%")
 	}
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
 	if item.CustomerName != "" {
-		db = db.Where("customer_name LIKE ?", "%"+item.CustomerName+"%")
+		db = db.Where("customer_name COLLATE utf8mb4_general_ci LIKE LIKE ?", "%"+item.CustomerName+"%")
 	}
 	db = db.Where("bag_status = ?", constants.BAG_STATUS_WAITING)
 	db = db.Not("caddie_status = ?", constants.BOOKING_CADDIE_STATUS_OUT)
