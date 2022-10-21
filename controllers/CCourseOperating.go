@@ -1205,22 +1205,13 @@ func (_ CCourseOperating) GetFlight(c *gin.Context, prof models.CmsUser) {
 		flights.BookingDate = bookingDate.Format("02/01/2006")
 	}
 
-	if query.PeopleNumberInFlight != nil {
-		flights.PeopleNumberInFlight = query.PeopleNumberInFlight
-	}
-
-	if query.PartnerUid != "" {
-		flights.PartnerUid = query.PartnerUid
-	}
-
-	if query.CourseUid != "" {
-		flights.CourseUid = query.CourseUid
-	}
-
-	flights.GolfBag = query.GolfBag
+	flights.BookingDate = query.BookingDate
+	flights.CourseUid = query.CourseUid
+	flights.PartnerUid = query.PartnerUid
 	flights.CaddieName = query.CaddieName
 	flights.CaddieCode = query.CaddieCode
-	flights.CustomerName = query.CustomerName
+	flights.PlayerName = query.PlayerName
+	flights.GolfBag = query.GolfBag
 
 	list, total, err := flights.FindFlightList(db, page)
 

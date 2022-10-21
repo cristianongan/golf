@@ -54,6 +54,7 @@ type GetInOutItems struct {
 	ToDate      string `form:"to_date"`
 	Type        string `form:"type"`
 	ProductName string `form:"product_name"`
+	InStock     string `form:"in_stock"`
 }
 
 type GetItems struct {

@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"math"
 	"net/http"
@@ -789,7 +790,8 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 
 		if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
 			if booking.CaddieId != caddie.Id {
-				return errors.New("Caddie " + caddie.Code + " đang bị LOCK"), response
+				errTitle := fmt.Sprintln("Caddie", caddie.Code, "đang bị LOCK")
+				return errors.New(errTitle), response
 			}
 		} else {
 			if errCaddie := checkCaddieReady(booking, caddie); errCaddie != nil {
@@ -891,11 +893,14 @@ func udpCaddieOut(db *gorm.DB, caddieId int64) error {
 	caddie := models.Caddie{}
 	caddie.Id = caddieId
 	err := caddie.FindFirst(db)
-	//caddie.IsInCourse = false
 	if caddie.CurrentRound == 0 {
 		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
 	} else {
-		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
+		if caddie.CurrentRound > 1 {
+			caddie.CurrentStatus = fmt.Sprintln(constants.CADDIE_CURRENT_STATUS_FINISH, "R", caddie.CurrentRound)
+		} else {
+			caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
+		}
 	}
 	err = caddie.Update(db)
 	if err != nil {
@@ -1319,7 +1324,8 @@ func checkBuggyReady(db *gorm.DB, buggy models.Buggy, booking model_booking.Book
 		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_FINISH ||
 		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_LOCK ||
 		buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_IN_COURSE) {
-		return errors.New("Buggy " + buggy.Code + " đang ở trạng thái " + buggy.BuggyStatus)
+		errTitle := fmt.Sprintln("Buggy", buggy.Code, "đang ở trạng thái", buggy.BuggyStatus)
+		return errors.New(errTitle)
 	}
 
 	bookingList := model_booking.BookingList{
@@ -1342,18 +1348,21 @@ func checkBuggyReady(db *gorm.DB, buggy models.Buggy, booking model_booking.Book
 	}
 
 	if total >= 2 {
-		return errors.New(buggy.Code + " đã ghép đủ người")
+		errTitle := fmt.Sprintln(buggy.Code, "đã ghép đủ người")
+		return errors.New(errTitle)
 	}
 
 	if total == 1 {
 		bookingBuggy := list[0]
 		if isInCourse {
 			if bookingBuggy.FlightId != booking.FlightId {
-				return errors.New("Buggy " + buggy.Code + " đang ở flight khác ")
+				errTitle := fmt.Sprintln("Buggy", buggy.Code, "đang ở flight khác")
+				return errors.New(errTitle)
 			}
 		}
 		if *bookingBuggy.IsPrivateBuggy {
-			return errors.New("Buggy " + buggy.Code + " đang được dùng private ")
+			errTitle := fmt.Sprintln("Buggy", buggy.Code, "đang được dùng private")
+			return errors.New(errTitle)
 		}
 	}
 
@@ -1412,7 +1421,6 @@ func updateReportTotalPaidForCustomerUser(db *gorm.DB, userUid string, partnerUi
 		if errC != nil {
 			log.Println("updateReportTotalPaidForCustomerUser errC", errC.Error())
 		}
-
 	} else {
 		reportCustomer.TotalPaid = totalPaid
 		errUdp := reportCustomer.Update()

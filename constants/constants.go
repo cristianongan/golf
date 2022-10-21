@@ -237,9 +237,11 @@ const (
 Các loại Group Service
 */
 const (
-	GROUP_FB      = "FB"
-	GROUP_RENTAL  = "RENTAL"
-	GROUP_PROSHOP = "PROSHOP"
+	GROUP_FB       = "FB"
+	GROUP_RENTAL   = "RENTAL"
+	GROUP_PROSHOP  = "PROSHOP"
+	GROUP_FB_FOOD  = "FOOD"
+	GROUP_FB_DRINK = "DRINK"
 )
 
 /*
