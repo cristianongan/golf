@@ -1205,7 +1205,6 @@ func (_ CCourseOperating) GetFlight(c *gin.Context, prof models.CmsUser) {
 		flights.BookingDate = bookingDate.Format("02/01/2006")
 	}
 
-	flights.BookingDate = query.BookingDate
 	flights.CourseUid = query.CourseUid
 	flights.PartnerUid = query.PartnerUid
 	flights.CaddieName = query.CaddieName
