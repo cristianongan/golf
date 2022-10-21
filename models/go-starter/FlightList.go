@@ -8,15 +8,13 @@ import (
 )
 
 type FlightList struct {
-	PartnerUid           string
-	CourseUid            string
-	BookingDate          string
-	GolfBag              string
-	CaddieName           string
-	PlayerName           string
-	CaddieCode           string
-	CustomerName         string
-	PeopleNumberInFlight *int
+	PartnerUid  string
+	CourseUid   string
+	BookingDate string
+	GolfBag     string
+	CaddieName  string
+	PlayerName  string
+	CaddieCode  string
 }
 
 func (item *FlightList) FindFlightList(database *gorm.DB, page models.Page) ([]Flight, int64, error) {
@@ -27,11 +25,11 @@ func (item *FlightList) FindFlightList(database *gorm.DB, page models.Page) ([]F
 	db = db.Joins("INNER JOIN bookings ON bookings.flight_id = flights.id").Group("flights.id")
 
 	if item.GolfBag != "" {
-		db = db.Where("bookings.bag = ?", item.GolfBag)
+		db = db.Where("bookings.bag COLLATE utf8mb4_general_ci LIKE ?", "%"+item.GolfBag+"%")
 	}
 
-	if item.CustomerName != "" {
-		db = db.Where("bookings.customer_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CustomerName+"%")
+	if item.PlayerName != "" {
+		db = db.Where("bookings.customer_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.PlayerName+"%")
 	}
 
 	if item.CaddieName != "" {
@@ -59,16 +57,6 @@ func (item *FlightList) FindFlightList(database *gorm.DB, page models.Page) ([]F
 
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)
-	}
-
-	if item.PeopleNumberInFlight != nil {
-		listResponse := []Flight{}
-		for _, data := range list {
-			if len(data.Bookings) == *item.PeopleNumberInFlight {
-				listResponse = append(listResponse, data)
-			}
-		}
-		return listResponse, total, db.Error
 	}
 
 	return list, total, db.Error
