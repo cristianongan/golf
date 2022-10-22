@@ -229,10 +229,6 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 		db = db.Group("bill_code")
 	}
 
-	if item.NotPrivateBuggy {
-		db = db.Not("is_private_buggy = ?", true)
-	}
-
 	return db
 }
 
