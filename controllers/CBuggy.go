@@ -150,7 +150,8 @@ func (_ *CBuggy) GetBuggyReadyList(c *gin.Context, prof models.CmsUser) {
 	result := []models.Buggy{}
 	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 	for _, buggy := range listBuggyReady {
-		if buggy.BuggyStatus == constants.BAG_STATUS_IN_COURSE || buggy.BuggyStatus == constants.BAG_STATUS_WAITING {
+		if buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_IN_COURSE ||
+			buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_LOCK {
 			bookingList := model_booking.BookingList{
 				PartnerUid:  form.PartnerUid,
 				CourseUid:   form.CourseUid,
