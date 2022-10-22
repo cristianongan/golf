@@ -152,11 +152,10 @@ func (_ *CBuggy) GetBuggyReadyList(c *gin.Context, prof models.CmsUser) {
 	for _, buggy := range listBuggyReady {
 		if buggy.BuggyStatus == constants.BAG_STATUS_IN_COURSE || buggy.BuggyStatus == constants.BAG_STATUS_WAITING {
 			bookingList := model_booking.BookingList{
-				PartnerUid:      form.PartnerUid,
-				CourseUid:       form.CourseUid,
-				BuggyCode:       buggy.Code,
-				BookingDate:     dateDisplay,
-				NotPrivateBuggy: true,
+				PartnerUid:  form.PartnerUid,
+				CourseUid:   form.CourseUid,
+				BuggyCode:   buggy.Code,
+				BookingDate: dateDisplay,
 			}
 			if buggyRequest.FunctionType == constants.BAG_STATUS_IN_COURSE {
 				bookingList.BagStatus = constants.BAG_STATUS_IN_COURSE
@@ -166,9 +165,17 @@ func (_ *CBuggy) GetBuggyReadyList(c *gin.Context, prof models.CmsUser) {
 				bookingList.BagStatus = constants.BAG_STATUS_WAITING
 			}
 
-			_, total, _ := bookingList.FindAllBookingList(db)
+			listBooking := []model_booking.Booking{}
+			db, total, _ := bookingList.FindAllBookingList(db)
+			db.Find(&listBooking)
 			if total < 2 {
-				result = append(result, buggy)
+				if total == 1 {
+					if !*listBooking[0].IsPrivateBuggy {
+						result = append(result, buggy)
+					}
+				} else {
+					result = append(result, buggy)
+				}
 			}
 		} else {
 			result = append(result, buggy)
