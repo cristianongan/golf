@@ -86,6 +86,7 @@ type GetListBillBody struct {
 	Table        string `form:"table"`
 	Type         string `form:"type"`
 	Floor        int    `form:"floor"`
+	FromService  int64  `form:"from_service"`
 }
 
 type UpdateResItemBody struct {

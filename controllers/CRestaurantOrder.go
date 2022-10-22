@@ -238,6 +238,7 @@ func (_ CRestaurantOrder) GetListBill(c *gin.Context, prof models.CmsUser) {
 	serviceCart.ResFloor = query.Floor
 	serviceCart.PlayerName = query.CustomerName
 	serviceCart.GolfBag = query.GolfBag
+	serviceCart.FromService = query.FromService
 
 	list, total, err := serviceCart.FindList(db, page)
 
