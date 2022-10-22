@@ -112,6 +112,10 @@ func (item *ServiceCart) FindList(database *gorm.DB, page Page) ([]ServiceCart, 
 		db = db.Where("golf_bag LIKE ?", "%"+item.GolfBag+"%")
 	}
 
+	if item.FromService != 0 {
+		db = db.Where("from_service = ?", item.FromService)
+	}
+
 	db = db.Where("booking_date = ?", item.BookingDate)
 
 	db.Count(&total)
