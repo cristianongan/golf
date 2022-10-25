@@ -3,12 +3,14 @@ package controllers
 import (
 	"errors"
 	"log"
+	"net/http"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	model_report "start/models/report"
 	"start/utils"
 	"start/utils/response_message"
 	"time"
@@ -210,6 +212,25 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		if errOwner != nil {
 			response_message.BadRequest(c, errOwner.Error())
 			return nil, errOwner
+		}
+
+		// Get Member Card Type
+		memberCardType := models.MemberCardType{}
+		memberCardType.Id = memberCard.McTypeId
+		errMCTypeFind := memberCardType.FindFirst(db)
+		if errMCTypeFind == nil && memberCardType.AnnualType == constants.ANNUAL_TYPE_LIMITED {
+			// Validate số lượt chơi còn lại của memeber
+			reportCustomer := model_report.ReportCustomerPlay{
+				CustomerUid: owner.Uid,
+			}
+
+			if errF := reportCustomer.FindFirst(); errF == nil {
+				playCountRemain := memberCard.AdjustPlayCount - reportCustomer.TotalPlayCount
+				if playCountRemain <= 0 {
+					response_message.ErrorResponse(c, http.StatusBadRequest, "PLAY_COUNT_INVALID", "", constants.ERROR_PLAY_COUNT_INVALID)
+					return nil, errF
+				}
+			}
 		}
 
 		booking.MemberCardUid = body.MemberCardUid
@@ -1221,6 +1242,25 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		if errOwner != nil {
 			response_message.BadRequest(c, errOwner.Error())
 			return
+		}
+
+		// Get Member Card Type
+		memberCardType := models.MemberCardType{}
+		memberCardType.Id = memberCard.McTypeId
+		errMCTypeFind := memberCardType.FindFirst(db)
+		if errMCTypeFind == nil && memberCardType.AnnualType == constants.ANNUAL_TYPE_LIMITED {
+			// Validate số lượt chơi còn lại của memeber
+			reportCustomer := model_report.ReportCustomerPlay{
+				CustomerUid: owner.Uid,
+			}
+
+			if errF := reportCustomer.FindFirst(); errF == nil {
+				playCountRemain := memberCard.AdjustPlayCount - reportCustomer.TotalPlayCount
+				if playCountRemain <= 0 {
+					response_message.ErrorResponse(c, http.StatusBadRequest, "PLAY_COUNT_INVALID", "", constants.ERROR_PLAY_COUNT_INVALID)
+					return
+				}
+			}
 		}
 
 		booking.MemberCardUid = body.MemberCardUid
