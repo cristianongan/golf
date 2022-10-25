@@ -319,6 +319,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/buggy/:id", middlewares.AuthorizedCmsUserHandler(cBuggy.UpdateBuggy))
 			cmsApiAuthorized.DELETE("/buggy/:id", middlewares.AuthorizedCmsUserHandler(cBuggy.DeleteBuggy))
 			cmsApiAuthorized.GET("/buggy-ready-on-day", middlewares.AuthorizedCmsUserHandler(cBuggy.GetBuggyReadyList))
+			cmsApiAuthorized.GET("/buggy/:id", middlewares.AuthorizedCmsUserHandler(cBuggy.GetBuggyDetail))
 
 			/// =================== Caddie =====================
 			cCaddie := new(controllers.CCaddie)
