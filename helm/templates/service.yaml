@@ -6,6 +6,11 @@ spec:
   selector:
     app: {{ include "golfCms.fullname" . }}
   ports:
-    - protocol: TCP
+    - name: service-1
+      protocol: TCP
       port: 4000
       targetPort: 4000
+    - name: service-2
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
