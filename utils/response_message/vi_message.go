@@ -26,5 +26,6 @@ var ViLanguage = map[string]string{
 	"VALIDATE_DESTINATION_INVALID": "Destination point is not available",
 
 	//BAG
-	"BAG_NOT_FOUND": "Không tìm thấy Bag này",
+	"BAG_NOT_FOUND":      "Không tìm thấy Bag này",
+	"PLAY_COUNT_INVALID": "Số lần chơi đã hết",
 }

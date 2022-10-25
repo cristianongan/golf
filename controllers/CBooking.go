@@ -212,6 +212,25 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			return nil, errOwner
 		}
 
+		// Get Member Card Type
+		// memberCardType := models.MemberCardType{}
+		// memberCardType.Id = memberCard.McTypeId
+		// errMCTypeFind := memberCardType.FindFirst(db)
+		// if errMCTypeFind == nil && memberCardType.AnnualType != constants.ANNUAL_TYPE_LIMITED {
+		// 	// Validate số lượt chơi còn lại của memeber
+		// 	reportCustomer := model_report.ReportCustomerPlay{
+		// 		CustomerUid: owner.Uid,
+		// 	}
+
+		// 	if errF := reportCustomer.FindFirst(); errF == nil {
+		// 		playCountRemain := memberCard.AdjustPlayCount - reportCustomer.TotalPlayCount
+		// 		if playCountRemain <= 0 {
+		// 			response_message.ErrorResponse(c, http.StatusBadRequest, "PLAY_COUNT_INVALID", "", constants.ERROR_PLAY_COUNT_INVALID)
+		// 			return nil, errF
+		// 		}
+		// 	}
+		// }
+
 		booking.MemberCardUid = body.MemberCardUid
 		booking.CardId = memberCard.CardId
 		booking.CustomerName = owner.Name
