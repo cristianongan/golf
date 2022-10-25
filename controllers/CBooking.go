@@ -218,7 +218,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		memberCardType := models.MemberCardType{}
 		memberCardType.Id = memberCard.McTypeId
 		errMCTypeFind := memberCardType.FindFirst(db)
-		if errMCTypeFind == nil && memberCardType.AnnualType != constants.ANNUAL_TYPE_LIMITED {
+		if errMCTypeFind == nil && memberCardType.AnnualType == constants.ANNUAL_TYPE_LIMITED {
 			// Validate số lượt chơi còn lại của memeber
 			reportCustomer := model_report.ReportCustomerPlay{
 				CustomerUid: owner.Uid,
@@ -1248,7 +1248,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		memberCardType := models.MemberCardType{}
 		memberCardType.Id = memberCard.McTypeId
 		errMCTypeFind := memberCardType.FindFirst(db)
-		if errMCTypeFind == nil && memberCardType.AnnualType != constants.ANNUAL_TYPE_LIMITED {
+		if errMCTypeFind == nil && memberCardType.AnnualType == constants.ANNUAL_TYPE_LIMITED {
 			// Validate số lượt chơi còn lại của memeber
 			reportCustomer := model_report.ReportCustomerPlay{
 				CustomerUid: owner.Uid,
