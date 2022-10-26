@@ -97,7 +97,8 @@ func (_ CStatisticItem) AddItemToStatistic(db *gorm.DB) {
 }
 
 func (_ CStatisticItem) TestAddItemToStatistic(c *gin.Context, prof models.CmsUser) {
-	now := time.Now().Format(constants.DATE_FORMAT_1)
+	// now := time.Now().Format(constants.DATE_FORMAT_1)
+	now := "22/10/2022"
 	yesterday := time.Now().AddDate(0, 0, -1).Format(constants.DATE_FORMAT_1)
 
 	outputInventory := kiosk_inventory.InventoryOutputItem{
@@ -192,7 +193,7 @@ func InitStatisticItem(item kiosk_inventory.OutputStatisticItem, yesterday strin
 		endingInventory = yesterdayItem.Total
 	}
 
-	totalNow := endingInventory + item.Total - outputTotal
+	totalNow := endingInventory + inputTotal - outputTotal
 
 	newItem := kiosk_inventory.StatisticItem{
 		PartnerUid:      item.PartnerUid,
