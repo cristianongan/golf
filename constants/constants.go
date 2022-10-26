@@ -74,6 +74,11 @@ const (
 )
 
 const (
+	CADDIE_CONTRACT_STATUS_FULLTIME = "fulltime"
+	CADDIE_CONTRACT_STATUS_PARTTIME = "parttime"
+)
+
+const (
 	STATUS_DELETE = "DELETE"
 	STATUS_IN     = "IN"
 	STATUS_OUT    = "OUT"
