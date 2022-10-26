@@ -78,10 +78,6 @@ func addFilter(db *gorm.DB, item *CaddieList) *gorm.DB {
 		db = db.Where("current_status = ?", item.CurrentStatus)
 	}
 
-	if item.CaddieCode != "" {
-		db = db.Where("code = ?", item.CaddieCode)
-	}
-
 	if item.IsInGroup != "" {
 		isInGroup, _ := strconv.ParseInt(item.IsInGroup, 10, 8)
 		if isInGroup == 1 {
