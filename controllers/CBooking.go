@@ -2286,3 +2286,54 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 	}
 	c.JSON(200, res)
 }
+
+/*
+Change To Main Bag
+*/
+func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	// Body request
+	body := request.BookingBaseBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	errF := booking.FindFirst(db)
+	if errF != nil {
+		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
+		return
+	}
+
+	list, _ := booking.FindMainBag(db)
+
+	if len(list) == 0 {
+		response_message.BadRequestDynamicKey(c, "MAIN_BAG_NOT_FOUND", "")
+		return
+	}
+
+	mainBag := list[0]
+	subBags := utils.ListSubBag{}
+
+	for _, sub := range mainBag.SubBags {
+		if sub.GolfBag != booking.Bag {
+			subBags = append(subBags, sub)
+		}
+	}
+
+	mainBag.SubBags = subBags
+	if errUpdateMainBag := mainBag.Update(db); errUpdateMainBag != nil {
+		response_message.BadRequestDynamicKey(c, "UPDATE_BOOKING_ERROR", "")
+		return
+	}
+
+	booking.MainBags = utils.ListSubBag{}
+	if errUpdateSubBag := booking.Update(db); errUpdateSubBag != nil {
+		response_message.BadRequestDynamicKey(c, "UPDATE_BOOKING_ERROR", "")
+		return
+	}
+
+	okResponse(c, booking)
+}
