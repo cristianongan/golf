@@ -110,7 +110,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 
 	cBookingSetting := CBookingSetting{}
 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
-	weekday := strconv.Itoa(int(time.Now().Weekday()))
+	weekday := strconv.Itoa(int(time.Now().Weekday() + 1))
 	turnTimeH := 2
 	endTime := ""
 	turnLength := 0
@@ -169,7 +169,19 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 			break
 		}
 
-		teeTime1B := strconv.Itoa(t.Hour()) + ":" + strconv.Itoa(t.Minute())
+		hour := t.Hour()
+		minute := t.Minute()
+
+		hourStr_ := strconv.Itoa(hour)
+		if hour < 10 {
+			hourStr_ = "0" + hourStr_
+		}
+		minuteStr := strconv.Itoa(minute)
+		if minute < 10 {
+			minuteStr = "0" + minuteStr
+		}
+
+		teeTime1B := hourStr_ + ":" + minuteStr
 
 		lockTeeTime := models.LockTeeTime{
 			PartnerUid:     body.PartnerUid,
