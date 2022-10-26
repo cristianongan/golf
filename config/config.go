@@ -125,6 +125,35 @@ func GetIsMigrated2() bool {
 	return config.GetBool("mysql2.is_migrated")
 }
 
+// =============== Get database Role config ========================
+func GetDbRoleName() string {
+	return config.GetString("mysql_role.db_name")
+}
+
+func GetDbRoleUser() string {
+	return config.GetString("mysql_role.user")
+}
+
+func GetDbRolePassword() string {
+	return config.GetString("mysql_role.password")
+}
+
+func GetDbRoleHost() string {
+	return config.GetString("mysql_role.host")
+}
+
+func GetDbRolePort() string {
+	return config.GetString("mysql_role.port")
+}
+
+func GetDbRoleDebug() bool {
+	return config.GetBool("mysql_role.debug")
+}
+
+func GetDbRoleIsMigrated() bool {
+	return config.GetBool("mysql_role.is_migrated")
+}
+
 // ================================================
 func GetKibanaLog() bool {
 	return config.GetBool("kibana_log")

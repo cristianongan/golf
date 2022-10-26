@@ -14,9 +14,11 @@ import (
 )
 
 var db *gorm.DB
+var dbRole *gorm.DB
 
 func MySqlConnect() {
 	var err error
+	var errDbRole error
 
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
@@ -69,10 +71,29 @@ func MySqlConnect() {
 	db.Use(dbresolver.Register(dbresolver.Config{
 		Sources: []gorm.Dialector{mysql.Open(args2)},
 	}, config.GetDbName2()))
+
+	/// Database Role
+	argsDBRole := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s",
+		config.GetDbRoleUser(),
+		config.GetDbRolePassword(),
+		config.GetDbRoleHost(),
+		config.GetDbRolePort(),
+		config.GetDbRoleName(), params)
+
+	dbRole, errDbRole = gorm.Open(mysql.Open(argsDBRole), &gorm.Config{})
+
+	if errDbRole != nil {
+		panic(fmt.Sprintf("failed to connect database @ %s:%s", config.GetDbRoleHost(), config.GetDbRolePort()))
+	}
+
 }
 
 func GetDatabase() *gorm.DB {
 	return db
+}
+
+func GetDatabaseRole() *gorm.DB {
+	return dbRole
 }
 
 func GetDatabaseWithPartner(partnerUid string) *gorm.DB {
