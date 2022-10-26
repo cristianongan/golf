@@ -8,8 +8,17 @@ import (
 	socketio "github.com/googollee/go-socket.io"
 )
 
-func RunSocket() {
-	server := socketio.NewServer(nil)
+var server *socketio.Server
+
+func GetServer() *socketio.Server {
+	if server != nil {
+		return server
+	}
+	return nil
+}
+
+func RunSocket(port string) {
+	server = socketio.NewServer(nil)
 
 	server.OnConnect("/", func(s socketio.Conn) error {
 		s.SetContext("")
@@ -45,8 +54,8 @@ func RunSocket() {
 	go server.Serve()
 	defer server.Close()
 
-	http.Handle("/test.socket/", server)
+	http.Handle("/socket.io/", server)
 	// http.Handle("/", http.FileServer(http.Dir("./asset")))
-	log.Println("Serving at localhost:8000...")
-	log.Fatal(http.ListenAndServe(":8000", nil))
+	log.Println("Socket is running ...", "listen", port)
+	log.Fatal(http.ListenAndServe(port, nil))
 }

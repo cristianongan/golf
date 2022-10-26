@@ -119,6 +119,28 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 	c.JSON(200, res)
 }
 
+func (_ *CBuggy) GetBuggyDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	buggyIdStr := c.Param("id")
+	buggyId, errId := strconv.ParseInt(buggyIdStr, 10, 64)
+
+	if buggyIdStr == "" {
+		response_message.BadRequest(c, errId.Error())
+		return
+	}
+
+	buggyRequest := models.Buggy{}
+	buggyRequest.Id = buggyId
+	errF := buggyRequest.FindFirst(db)
+
+	if errF != nil {
+		response_message.BadRequest(c, errF.Error())
+		return
+	}
+
+	okResponse(c, buggyRequest)
+}
+
 func (_ *CBuggy) GetBuggyReadyList(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBuggyForm{}

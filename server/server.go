@@ -17,6 +17,9 @@ func Init() {
 
 	config := config.GetConfig()
 
+	// --- Socket ---
+	go socket.RunSocket(config.GetString("socket_port"))
+
 	// --- Cron ---
 	ccron.CronStart()
 
@@ -41,5 +44,4 @@ func Init() {
 
 	log.Println("Server is running ...", "listen", config.GetString("backend_port"))
 	r.Run(config.GetString("backend_port"))
-	socket.RunSocket()
 }

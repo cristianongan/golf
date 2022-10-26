@@ -15,3 +15,7 @@ spec:
         backend:
           serviceName: {{ include "golfCms.fullname" . }}
           servicePort: 4000
+      - path: /socket.io
+        backend:
+          serviceName: {{ include "golfCms.fullname" . }}
+          servicePort: 8000

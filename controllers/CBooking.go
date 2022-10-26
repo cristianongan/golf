@@ -3,12 +3,14 @@ package controllers
 import (
 	"errors"
 	"log"
+	"net/http"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	model_report "start/models/report"
 	"start/utils"
 	"start/utils/response_message"
 	"time"
@@ -210,6 +212,25 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		if errOwner != nil {
 			response_message.BadRequest(c, errOwner.Error())
 			return nil, errOwner
+		}
+
+		// Get Member Card Type
+		memberCardType := models.MemberCardType{}
+		memberCardType.Id = memberCard.McTypeId
+		errMCTypeFind := memberCardType.FindFirst(db)
+		if errMCTypeFind == nil && memberCardType.AnnualType == constants.ANNUAL_TYPE_LIMITED {
+			// Validate số lượt chơi còn lại của memeber
+			reportCustomer := model_report.ReportCustomerPlay{
+				CustomerUid: owner.Uid,
+			}
+
+			if errF := reportCustomer.FindFirst(); errF == nil {
+				playCountRemain := memberCard.AdjustPlayCount - reportCustomer.TotalPlayCount
+				if playCountRemain <= 0 {
+					response_message.ErrorResponse(c, http.StatusBadRequest, "PLAY_COUNT_INVALID", "", constants.ERROR_PLAY_COUNT_INVALID)
+					return nil, errF
+				}
+			}
 		}
 
 		booking.MemberCardUid = body.MemberCardUid
@@ -448,6 +469,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			go handleSinglePayment(db, booking)
 		}
 	}
+
+	// socket.GetServer().BroadcastToNamespace("", "reply", "HELLO WORLD")
 
 	return &booking, nil
 }
@@ -1219,6 +1242,25 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		if errOwner != nil {
 			response_message.BadRequest(c, errOwner.Error())
 			return
+		}
+
+		// Get Member Card Type
+		memberCardType := models.MemberCardType{}
+		memberCardType.Id = memberCard.McTypeId
+		errMCTypeFind := memberCardType.FindFirst(db)
+		if errMCTypeFind == nil && memberCardType.AnnualType == constants.ANNUAL_TYPE_LIMITED {
+			// Validate số lượt chơi còn lại của memeber
+			reportCustomer := model_report.ReportCustomerPlay{
+				CustomerUid: owner.Uid,
+			}
+
+			if errF := reportCustomer.FindFirst(); errF == nil {
+				playCountRemain := memberCard.AdjustPlayCount - reportCustomer.TotalPlayCount
+				if playCountRemain <= 0 {
+					response_message.ErrorResponse(c, http.StatusBadRequest, "PLAY_COUNT_INVALID", "", constants.ERROR_PLAY_COUNT_INVALID)
+					return
+				}
+			}
 		}
 
 		booking.MemberCardUid = body.MemberCardUid
@@ -2243,4 +2285,55 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 		"message":          errMessage,
 	}
 	c.JSON(200, res)
+}
+
+/*
+Change To Main Bag
+*/
+func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	// Body request
+	body := request.BookingBaseBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	errF := booking.FindFirst(db)
+	if errF != nil {
+		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
+		return
+	}
+
+	list, _ := booking.FindMainBag(db)
+
+	if len(list) == 0 {
+		response_message.BadRequestDynamicKey(c, "MAIN_BAG_NOT_FOUND", "")
+		return
+	}
+
+	mainBag := list[0]
+	subBags := utils.ListSubBag{}
+
+	for _, sub := range mainBag.SubBags {
+		if sub.GolfBag != booking.Bag {
+			subBags = append(subBags, sub)
+		}
+	}
+
+	mainBag.SubBags = subBags
+	if errUpdateMainBag := mainBag.Update(db); errUpdateMainBag != nil {
+		response_message.BadRequestDynamicKey(c, "UPDATE_BOOKING_ERROR", "")
+		return
+	}
+
+	booking.MainBags = utils.ListSubBag{}
+	if errUpdateSubBag := booking.Update(db); errUpdateSubBag != nil {
+		response_message.BadRequestDynamicKey(c, "UPDATE_BOOKING_ERROR", "")
+		return
+	}
+
+	okResponse(c, booking)
 }
