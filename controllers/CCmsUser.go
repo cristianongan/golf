@@ -3,13 +3,13 @@ package controllers
 import (
 	"errors"
 	"log"
-	"math/rand"
 	"start/auth"
 	"start/config"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
+	model_role "start/models/role"
 	"start/utils"
 	"start/utils/response_message"
 	"time"
@@ -157,7 +157,11 @@ func (_ *CCmsUser) GetList(c *gin.Context, prof models.CmsUser) {
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	cmsUserR := models.CmsUser{}
+	cmsUserR := models.CmsUser{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		UserName:   form.UserName,
+	}
 	list, total, err := cmsUserR.FindList(page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -187,16 +191,25 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context) {
 		return
 	}
 
-	rand.Seed(time.Now().UnixNano())
+	//Find Role
+	if body.RoleId > 0 {
+		role := model_role.Role{}
+		role.Id = body.RoleId
+		errFR := role.FindFirst()
+		if errFR != nil {
+			response_message.BadRequest(c, errFR.Error())
+			return
+		}
+	}
 
 	cmsUser := models.CmsUser{
-		UserName:    body.UserName,
-		FullName:    body.FullName,
-		Email:       body.Email,
-		Phone:       body.Phone,
-		PartnerUid:  body.PartnerUid,
-		CourseUid:   body.CourseUid,
-		AuthorityId: uint(rand.Intn(999999999-100000000+1) + 100000000),
+		UserName:   body.UserName,
+		FullName:   body.FullName,
+		Email:      body.Email,
+		Phone:      body.Phone,
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		RoleId:     body.RoleId,
 	}
 
 	errCreate := cmsUser.Create()

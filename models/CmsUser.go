@@ -4,9 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"github.com/harranali/authority"
 	"start/constants"
 	"start/datasources"
+	"start/utils"
 	"strings"
 	"time"
 
@@ -25,25 +25,20 @@ type CmsUser struct {
 	Password string `json:"-" gorm:"type:varchar(256)"`
 	LoggedIn bool   `json:"logged_in"`
 
-	Email       string         `json:"email" gorm:"type:varchar(100)"`
-	Phone       string         `json:"phone" gorm:"type:varchar(20)"`
-	Dob         int64          `json:"dob"`
-	Position    string         `json:"position" gorm:"type:varchar(100)"`   // chức vụ
-	Sex         int            `json:"sex"`                                 // gioi tinh
-	Department  string         `json:"department" gorm:"type:varchar(100)"` // Đơn vị
-	Role        string         `json:"role" gorm:"type:varchar(100)"`       // Quyền hạn
-	AuthorityId uint           `json:"authority_id"`
-	UserRoles   []AuthUserRole `gorm:"foreignKey:UserID;references:AuthorityId"`
+	Email      string `json:"email" gorm:"type:varchar(100)"`
+	Phone      string `json:"phone" gorm:"type:varchar(20)"`
+	Dob        int64  `json:"dob"`
+	Position   string `json:"position" gorm:"type:varchar(100)"`   // chức vụ
+	Sex        int    `json:"sex"`                                 // gioi tinh
+	Department string `json:"department" gorm:"type:varchar(100)"` // Đơn vị
+	RoleId     int64  `json:"role_id" gorm:"index"`                // Quyền hạn
 }
 
-type AuthUserRole struct {
-	ID     uint
-	UserID uint
-	RoleID uint
-	Role   AuthRole `gorm:"foreignKey:RoleID"`
+type CmsUserDetail struct {
+	CmsUser
+	RoleName   string           `json:"role_name"`
+	Permission utils.ListString `json:"permission"`
 }
-
-type AuthRole authority.Role
 
 type CmsUserResponse struct {
 	Model
@@ -119,6 +114,16 @@ func (item *CmsUser) FindList(page Page) ([]CmsUser, int64, error) {
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.UserName != "" {
+		db = db.Where("user_name LIKE ?", "%"+item.UserName+"%")
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

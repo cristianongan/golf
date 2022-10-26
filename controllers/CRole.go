@@ -124,18 +124,19 @@ func (_ *CRole) UpdateRole(c *gin.Context, prof models.CmsUser) {
 	}
 	role.Description = body.Description
 
-	//Get All and del Role Permission
-	roleP := model_role.RolePermission{
-		RoleId: role.Id,
-	}
-	listRolePers, err1 := roleP.FindAll()
-	if err1 == nil {
-		roleDel := model_role.RolePermission{}
-		roleDel.DeleteList(listRolePers)
-	}
-
 	// Role Permission Again
 	if body.Permissions != nil && len(body.Permissions) > 0 {
+		//Get All and del Role Permission
+		roleP := model_role.RolePermission{
+			RoleId: role.Id,
+		}
+		listRolePers, err1 := roleP.FindAll()
+		if err1 == nil {
+			roleDel := model_role.RolePermission{}
+			roleDel.DeleteList(listRolePers)
+		}
+
+		// Add
 		listRolePermission := []model_role.RolePermission{}
 		for _, v := range body.Permissions {
 			roleP := model_role.RolePermission{
