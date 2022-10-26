@@ -11,6 +11,7 @@ import (
 	kiosk_inventory "start/models/kiosk-inventory"
 	model_payment "start/models/payment"
 	model_report "start/models/report"
+	model_role "start/models/role"
 	model_service "start/models/service"
 	model_service_restaurant_setup "start/models/service/restaurant_setup"
 
@@ -18,6 +19,9 @@ import (
 )
 
 func MigrateDb() {
+	// Db Role
+	MigrateDbRole()
+
 	db := datasources.GetDatabase()
 	if config.GetIsMigrated() {
 		log.Println("migrating db")
@@ -299,5 +303,18 @@ func MigrateDb() {
 		db.AutoMigrate(&model_service_restaurant_setup.RestaurantTimeSetup{})
 
 		log.Println("migrated db2")
+	}
+}
+
+func MigrateDbRole() {
+	db := datasources.GetDatabaseRole()
+	if config.GetDbRoleIsMigrated() {
+		log.Println("migrating db role")
+
+		// ----- Role -------
+		db.AutoMigrate(&model_role.Role{})
+		db.AutoMigrate(&model_role.Permission{})
+		db.AutoMigrate(&model_role.RolePermission{})
+		db.AutoMigrate(&model_role.UserRole{})
 	}
 }

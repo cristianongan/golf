@@ -1,13 +1,13 @@
 package middlewares
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/twharmon/slices"
 	"regexp"
 	"start/constants"
 	"start/models"
 	"start/utils/response_message"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 func keyMatch(key1 string, key2 string) bool {
@@ -45,27 +45,27 @@ func AuthorityMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		roleIds := slices.Map(cmsUser.UserRoles, func(item models.AuthUserRole) int64 {
-			return int64(item.RoleID)
-		})
+		// roleIds := slices.Map(cmsUser.UserRoles, func(item models.AuthUserRole) int64 {
+		// 	return int64(item.RoleID)
+		// })
 
-		auth := models.Authority{}
-		permissions, err := auth.GetPermissions(roleIds)
+		// auth := models.Authority{}
+		// permissions, err := auth.GetPermissions(roleIds)
 
-		if err != nil {
-			response_message.UnAuthorized(c, err.Error())
-			c.Abort()
-			return
-		}
+		// if err != nil {
+		// 	response_message.UnAuthorized(c, err.Error())
+		// 	c.Abort()
+		// 	return
+		// }
 
 		hasPermission := false
 
-		for _, item := range permissions {
-			hasPermission = keyMatch(c.Request.URL.Path, item.Path) && c.Request.Method == item.Method
-			if hasPermission {
-				break
-			}
-		}
+		// for _, item := range permissions {
+		// 	hasPermission = keyMatch(c.Request.URL.Path, item.Path) && c.Request.Method == item.Method
+		// 	if hasPermission {
+		// 		break
+		// 	}
+		// }
 
 		if !hasPermission {
 			response_message.UnAuthorized(c, "Authorization required")

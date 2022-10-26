@@ -28,6 +28,15 @@
         "is_migrated": false,
         "debug": false
     },
+    "mysql_role": {
+        "db_name": "golf_role",
+        "user": "root",
+        "password": "4vB!qVugg!vmSY8pGP$vQQXA5r#@2MW=",
+        "host": "103.176.145.22",
+        "port": "3306",
+        "is_migrated": false,
+        "debug": false
+    },
     "redis": {
         "host": "103.161.39.231",
         "port": "6379",
