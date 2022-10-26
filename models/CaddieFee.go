@@ -21,7 +21,9 @@ type CaddieFee struct {
 	Hole        int    `json:"hole"`                                       // số hố
 	Round       int64  `json:"round"`                                      // số round
 	Amount      int64  `json:"amount"`                                     // tổng số tiền
-	TotalAmount int64  `json:"total_amount"`                               // tông số tiền trong 1 tháng
+	Note        string `json:"note" gorm:"type:varchar(256)"`              // note
+	IsDayOff    bool   `json:"is_day_off"`
+	TotalAmount int64  `json:"total_amount"` // tông số tiền trong 1 tháng
 }
 
 func (item *CaddieFee) Create(db *gorm.DB) error {

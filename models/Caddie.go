@@ -171,3 +171,14 @@ func (item *Caddie) FindListCaddieNotReady(database *gorm.DB) ([]Caddie, int64, 
 	db = db.Find(&list)
 	return list, total, db.Error
 }
+
+func (item *Caddie) FindAllCaddieContract(database *gorm.DB) ([]Caddie, error) {
+	var list []Caddie
+
+	db := database.Model(Caddie{})
+
+	db = db.Where("contract_status IN (?, ?)", constants.CADDIE_CONTRACT_STATUS_PARTTIME, constants.CADDIE_CONTRACT_STATUS_FULLTIME)
+	db = db.Find(&list)
+
+	return list, db.Error
+}

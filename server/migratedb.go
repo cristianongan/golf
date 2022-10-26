@@ -71,6 +71,7 @@ func MigrateDb() {
 		db.AutoMigrate(&models.Caddie{})
 		db.AutoMigrate(&models.CaddieNote{})
 		db.AutoMigrate(&models.CaddieWorkingTime{})
+		db.AutoMigrate(&models.CaddieVacationCalendar{})
 
 		// ---- Bag Note ----
 		db.AutoMigrate(&models.BagsNote{})
@@ -212,6 +213,7 @@ func MigrateDb() {
 		db.AutoMigrate(&models.Caddie{})
 		db.AutoMigrate(&models.CaddieNote{})
 		db.AutoMigrate(&models.CaddieWorkingTime{})
+		db.AutoMigrate(&models.CaddieVacationCalendar{})
 
 		// ---- Bag Note ----
 		db.AutoMigrate(&models.BagsNote{})
