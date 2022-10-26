@@ -404,6 +404,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/caddie-working-schedule", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingSchedule.CreateCaddieWorkingSchedule))
 			cmsApiAuthorized.PUT("/caddie-working-schedule", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingSchedule.UpdateCaddieWorkingSchedule))
 
+			/// =================== Caddie Vaction Calendar ===================
+			cCaddieVacationCalendar := new(controllers.CCaddieVacationCalendar)
+			cmsApiAuthorized.GET("/caddie-vacation-calendar/list", middlewares.AuthorizedCmsUserHandler(cCaddieVacationCalendar.GetCaddieVacationCalendarList))
+			cmsApiAuthorized.POST("/caddie-vacation-calendar", middlewares.AuthorizedCmsUserHandler(cCaddieVacationCalendar.CreateCaddieVacationCalendar))
+			cmsApiAuthorized.PUT("/caddie-vacation-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieVacationCalendar.UpdateCaddieVacationCalendar))
+			cmsApiAuthorized.DELETE("/caddie-vacation-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieVacationCalendar.DeleteCaddieVacationCalendar))
+
 			/// =================== Buggy Used Statistic ===================
 			cBuggyUsedList := new(controllers.CBuggyUsedList)
 			cmsApiAuthorized.GET("/buggy-used-list", middlewares.AuthorizedCmsUserHandler(cBuggyUsedList.GetBuggyUsedList))
@@ -558,7 +565,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Kiosk Statistic ===================
 			cKioskStatistic := new(controllers.CStatisticItem)
 			cmsApiAuthorized.GET("/kiosk-inventory/item/statistic/list", middlewares.AuthorizedCmsUserHandler(cKioskStatistic.GetItemStatisticDetail))
-			// cmsApiAuthorized.POST("/kiosk-inventory/item/statistic/create", middlewares.AuthorizedCmsUserHandler(cKioskStatistic.TestAddItemToStatistic))
+			cmsApiAuthorized.POST("/kiosk-inventory/item/statistic/create", middlewares.AuthorizedCmsUserHandler(cKioskStatistic.TestAddItemToStatistic))
 
 			/// =================== Kiosk ===================
 			cServiceCart := new(controllers.CServiceCart)

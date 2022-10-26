@@ -70,17 +70,19 @@ func (item *CaddieBuggyInOut) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *CaddieBuggyInOut) FindAllCaddieInOutNotes(database *gorm.DB) ([]CaddieBuggyInOut, error) {
-	now := time.Now().Format("02/01/2006")
+func (item *CaddieBuggyInOut) FindAllCaddieInOutNotes(database *gorm.DB, date string) ([]CaddieBuggyInOut, error) {
+	from, _ := time.Parse("02/01/2006 15:04:05", date+" 17:00:00")
 
-	from, _ := time.Parse("02/01/2006 15:04:05", now+" 17:00:00")
-
-	to, _ := time.Parse("02/01/2006 15:04:05", now+" 16:59:59")
+	to, _ := time.Parse("02/01/2006 15:04:05", date+" 16:59:59")
 
 	db := database.Model(CaddieBuggyInOut{})
 	list := []CaddieBuggyInOut{}
 
-	db = db.Where("type = ?", constants.STATUS_OUT)
+	if item.CaddieId != 0 {
+		db = db.Where("caddie_id = ?", constants.STATUS_OUT)
+	}
+
+	db = db.Where("caddie_type = ?", constants.STATUS_OUT)
 	db = db.Where("created_at >= ?", from.AddDate(0, 0, -1).Unix())
 	db = db.Where("created_at < ?", to.Unix())
 

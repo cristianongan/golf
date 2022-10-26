@@ -82,28 +82,34 @@ func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.Cms
 
 		if goodsService.Type == constants.GROUP_PROSHOP {
 			proshop := model_service.Proshop{
-				ProShopId: data.ItemCode,
+				PartnerUid: body.PartnerUid,
+				CourseUid:  body.CourseUid,
+				ProShopId:  data.ItemCode,
 			}
 
-			if err := proshop.FindFirst(db); err == nil {
-				return errors.New(data.ItemCode + "không tìm thấy")
+			if err := proshop.FindFirst(db); err != nil {
+				return errors.New(data.ItemCode + " không tìm thấy")
 			}
 			itemType = proshop.Type
 		} else if goodsService.Type == constants.GROUP_FB {
 			fb := model_service.FoodBeverage{
-				FBCode: data.ItemCode,
+				PartnerUid: body.PartnerUid,
+				CourseUid:  body.CourseUid,
+				FBCode:     data.ItemCode,
 			}
 
-			if err := fb.FindFirst(db); err == nil {
-				return errors.New(data.ItemCode + "không tìm thấy")
+			if err := fb.FindFirst(db); err != nil {
+				return errors.New(data.ItemCode + " không tìm thấy")
 			}
 			itemType = fb.Type
 		} else if goodsService.Type == constants.GROUP_RENTAL {
 			rental := model_service.Rental{
-				RentalId: data.ItemCode,
+				PartnerUid: body.PartnerUid,
+				CourseUid:  body.CourseUid,
+				RentalId:   data.ItemCode,
 			}
 
-			if err := rental.FindFirst(db); err == nil {
+			if err := rental.FindFirst(db); err != nil {
 				return errors.New(data.ItemCode + " không tìm thấy ")
 			}
 			itemType = rental.Type

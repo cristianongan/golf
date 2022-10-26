@@ -3,6 +3,7 @@ package models
 import (
 	"start/constants"
 	"strconv"
+	"strings"
 	"time"
 
 	"gorm.io/datatypes"
@@ -69,15 +70,12 @@ func addFilter(db *gorm.DB, item *CaddieList) *gorm.DB {
 	}
 
 	if item.ContractStatus != "" {
-		db = db.Where("contract_status = ?", item.ContractStatus)
+		status := strings.Split(item.ContractStatus, ",")
+		db = db.Where("contract_status in (?)", status)
 	}
 
 	if item.CurrentStatus != "" {
 		db = db.Where("current_status = ?", item.CurrentStatus)
-	}
-
-	if item.CaddieCode != "" {
-		db = db.Where("code = ?", item.CaddieCode)
 	}
 
 	if item.IsInGroup != "" {
