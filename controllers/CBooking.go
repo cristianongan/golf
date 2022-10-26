@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"start/constants"
@@ -446,12 +447,13 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	if body.TeeTime != "" {
 		cLockTeeTime := CLockTeeTime{}
+		teeType := fmt.Sprint(body.TeeType, body.CourseType)
 		lockTurn := request.CreateLockTurn{
 			BookingDate: body.BookingDate,
 			CourseUid:   body.CourseUid,
 			PartnerUid:  body.PartnerUid,
 			TeeTime:     body.TeeTime,
-			TeeType:     body.TeeType,
+			TeeType:     teeType,
 		}
 		cLockTeeTime.LockTurn(lockTurn, c, prof)
 	}
