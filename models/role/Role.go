@@ -65,6 +65,16 @@ func (item *Role) FindList(page models.Page) ([]Role, int64, error) {
 	if status != "" {
 		db = db.Where("status IN (?)", strings.Split(status, ","))
 	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.Name != "" {
+		db = db.Where("name LIKE ?", "%"+item.Name+"%")
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

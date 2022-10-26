@@ -1,10 +1,10 @@
 package model_role
 
 import (
+	"start/datasources"
 	"start/models"
 
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 // Role - Permission
@@ -15,11 +15,13 @@ type UserRole struct {
 }
 
 // ======= CRUD ===========
-func (item *UserRole) Create(db *gorm.DB) error {
+func (item *UserRole) Create() error {
+	db := datasources.GetDatabaseRole()
 	return db.Create(item).Error
 }
 
-func (item *UserRole) Update(db *gorm.DB) error {
+func (item *UserRole) Update() error {
+	db := datasources.GetDatabaseRole()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -27,11 +29,13 @@ func (item *UserRole) Update(db *gorm.DB) error {
 	return nil
 }
 
-func (item *UserRole) FindFirst(db *gorm.DB) error {
+func (item *UserRole) FindFirst() error {
+	db := datasources.GetDatabaseRole()
 	return db.Where(item).First(item).Error
 }
 
-func (item *UserRole) Count(database *gorm.DB) (int64, error) {
+func (item *UserRole) Count() (int64, error) {
+	database := datasources.GetDatabaseRole()
 	db := database.Model(Role{})
 	total := int64(0)
 	db = db.Where(item)
@@ -39,7 +43,8 @@ func (item *UserRole) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *UserRole) FindList(database *gorm.DB, page models.Page) ([]UserRole, int64, error) {
+func (item *UserRole) FindList(page models.Page) ([]UserRole, int64, error) {
+	database := datasources.GetDatabaseRole()
 	db := database.Model(UserRole{})
 	list := []UserRole{}
 	total := int64(0)
@@ -53,7 +58,8 @@ func (item *UserRole) FindList(database *gorm.DB, page models.Page) ([]UserRole,
 	return list, total, db.Error
 }
 
-func (item *UserRole) Delete(db *gorm.DB) error {
+func (item *UserRole) Delete() error {
+	db := datasources.GetDatabaseRole()
 	if item.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}

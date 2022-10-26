@@ -487,15 +487,12 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/tee-time/list", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.GetTeeTimeSettings))
 			cmsApiAuthorized.DELETE("/tee-time/delete", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.DeleteLockTeeTime))
 
-			/// =================== Authority ===================
-			// cAuthority := new(controllers.CAuthority)
-			// cmsApiAuthorized.POST("/roles/assign", middlewares.AuthorizedCmsUserHandler(cAuthority.AssignRoles))
-			// cmsApiAuthorized.POST("/roles/revoke", middlewares.AuthorizedCmsUserHandler(cAuthority.RevokeRoles))
-			// cmsApiAuthorized.POST("/group-roles/create", middlewares.AuthorizedCmsUserHandler(cAuthority.CreateGroupRole))
-			// cmsApiAuthorized.POST("/group-roles/delete", middlewares.AuthorizedCmsUserHandler(cAuthority.DeleteGroupRole))
-			// cmsApiAuthorized.POST("/group-roles/assign", middlewares.AuthorizedCmsUserHandler(cAuthority.AssignGroupRole))
-			// cmsApiAuthorized.GET("/roles/list", middlewares.AuthorizedCmsUserHandler(cAuthority.GetRoles))
-			// cmsApiAuthorized.GET("/group-roles/list", middlewares.AuthorizedCmsUserHandler(cAuthority.GetGroupRoles))
+			/// =================== Role ===================
+			cRole := new(controllers.CRole)
+			cmsApiAuthorized.POST("/role/add", middlewares.AuthorizedCmsUserHandler(cRole.CreateRole))
+			cmsApiAuthorized.GET("/role/list", middlewares.AuthorizedCmsUserHandler(cRole.GetListRole))
+			cmsApiAuthorized.PUT("/role/:id", middlewares.AuthorizedCmsUserHandler(cRole.UpdateRole))
+			cmsApiAuthorized.DELETE("/role/:id", middlewares.AuthorizedCmsUserHandler(cRole.DeleteRole))
 
 			/// =================== Booking Waiting =====================
 			cBookingWaiting := new(controllers.CBookingWaiting)
