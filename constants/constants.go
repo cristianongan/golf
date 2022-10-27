@@ -326,6 +326,7 @@ const CUSTOMER_TYPE_NONE_GOLF = "NONE_GOLF"
 const CUSTOMER_TYPE_WALKING_FEE = "WALKING_FEE"
 
 const TYPE_ADMIN = "ADMIN"
+const ROOT_PARTNER_UID = "VNPAY" // Quản lý các hãng Golf
 
 const DELETE_STR = "delete"
 

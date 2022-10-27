@@ -96,12 +96,22 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/system/company-type/:id", middlewares.AuthorizedCmsUserHandler(cSystem.UpdateCompanyType))
 			cmsApiAuthorized.DELETE("/system/company-type/:id", middlewares.AuthorizedCmsUserHandler(cSystem.DeleteCompanyType))
 
-			/// =================== Partner =====================
-			cPartner := new(controllers.CPartner)
-			cmsApiAuthorized.POST("/partner", middlewares.AuthorizedCmsUserHandler(cPartner.CreatePartner))
-			cmsApiAuthorized.GET("/partner/list", middlewares.AuthorizedCmsUserHandler(cPartner.GetListPartner))
-			cmsApiAuthorized.PUT("/partner/:uid", middlewares.AuthorizedCmsUserHandler(cPartner.UpdatePartner))
-			cmsApiAuthorized.DELETE("/partner/:uid", middlewares.AuthorizedCmsUserHandler(cPartner.DeletePartner))
+			mainApi := groupApi.Group("main").Use(middlewares.RootPartnerMiddleWare())
+			{
+				/// =================== Partner =====================
+				cPartner := new(controllers.CPartner)
+				mainApi.POST("/partner", middlewares.AuthorizedCmsUserHandler(cPartner.CreatePartner))
+				mainApi.GET("/partner/list", middlewares.AuthorizedCmsUserHandler(cPartner.GetListPartner))
+				mainApi.PUT("/partner/:uid", middlewares.AuthorizedCmsUserHandler(cPartner.UpdatePartner))
+				mainApi.DELETE("/partner/:uid", middlewares.AuthorizedCmsUserHandler(cPartner.DeletePartner))
+			}
+
+			// /// =================== Partner =====================
+			// cPartner := new(controllers.CPartner)
+			// cmsApiAuthorized.POST("/partner", middlewares.AuthorizedCmsUserHandler(cPartner.CreatePartner))
+			// cmsApiAuthorized.GET("/partner/list", middlewares.AuthorizedCmsUserHandler(cPartner.GetListPartner))
+			// cmsApiAuthorized.PUT("/partner/:uid", middlewares.AuthorizedCmsUserHandler(cPartner.UpdatePartner))
+			// cmsApiAuthorized.DELETE("/partner/:uid", middlewares.AuthorizedCmsUserHandler(cPartner.DeletePartner))
 
 			/// =================== Course =====================
 			cCourse := new(controllers.CCourse)
