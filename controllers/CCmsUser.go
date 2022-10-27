@@ -124,11 +124,44 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 	}
 
 	courseInfo := models.Course{}
-	courseInfo.Uid = user.CourseUid
-	errFindCourse := courseInfo.FindFirst()
-	if errFindCourse != nil {
-		response_message.BadRequest(c, errFindCourse.Error())
-		return
+	if user.CourseUid != "" {
+		courseInfo.Uid = user.CourseUid
+		errFindCourse := courseInfo.FindFirst()
+		if errFindCourse != nil {
+			response_message.BadRequest(c, errFindCourse.Error())
+			return
+		}
+	}
+
+	// Find Role
+	// Find Permission
+	listPerMis := utils.ListString{}
+	role := model_role.Role{}
+	if user.RoleId > 0 {
+		role.Id = user.RoleId
+		errFR := role.FindFirst()
+		if errFR == nil {
+			rolePR := model_role.RolePermission{
+				RoleId: role.Id,
+			}
+			listPermission, errRolePR := rolePR.FindAll()
+			if errRolePR == nil {
+				for _, v := range listPermission {
+					listPerMis = append(listPerMis, v.PermissionUid)
+				}
+			}
+		}
+	} else {
+		if user.RoleId == -1 {
+			// Root Account
+			permis := model_role.Permission{}
+			listP, errLP := permis.FindAll()
+			if errLP == nil {
+				for _, v := range listP {
+					listPerMis = append(listPerMis, v.Uid)
+				}
+			}
+		}
 	}
 
 	userDataRes := map[string]interface{}{
@@ -137,6 +170,9 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 		"partner_uid": user.PartnerUid,
 		"course_uid":  user.CourseUid,
 		"course_info": courseInfo,
+		"role_name":   role.Name,
+		"role_id":     user.RoleId,
+		"permissions": listPerMis,
 	}
 
 	okResponse(c, gin.H{"token": jwt, "data": userDataRes})

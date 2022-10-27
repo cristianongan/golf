@@ -65,6 +65,16 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized := groupApi.Use(middlewares.CmsUserJWTAuth)
 			//.Use(middlewares.AuthorityMiddleware())
 
+			rootApi := groupApi.Group("root").Use(middlewares.RootPartnerMiddleWare())
+			{
+				/// =================== Partner =====================
+				cPartner := new(controllers.CPartner)
+				rootApi.POST("/partner", middlewares.AuthorizedCmsUserHandler(cPartner.CreatePartner))
+				rootApi.GET("/partner/list", middlewares.AuthorizedCmsUserHandler(cPartner.GetListPartner))
+				rootApi.PUT("/partner/:uid", middlewares.AuthorizedCmsUserHandler(cPartner.UpdatePartner))
+				rootApi.DELETE("/partner/:uid", middlewares.AuthorizedCmsUserHandler(cPartner.DeletePartner))
+			}
+
 			//  =================== Cms User ====================
 			cmsApiAuthorized.GET("/user/list", middlewares.AuthorizedCmsUserHandler(cCmsUser.GetList))
 			cmsApiAuthorized.POST("/user/add", middlewares.AuthorizedCmsUserHandler(cCmsUser.CreateCmsUser))
@@ -95,16 +105,6 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/system/company-type/list", middlewares.AuthorizedCmsUserHandler(cSystem.GetListCompanyType))
 			cmsApiAuthorized.PUT("/system/company-type/:id", middlewares.AuthorizedCmsUserHandler(cSystem.UpdateCompanyType))
 			cmsApiAuthorized.DELETE("/system/company-type/:id", middlewares.AuthorizedCmsUserHandler(cSystem.DeleteCompanyType))
-
-			rootApi := groupApi.Group("root").Use(middlewares.RootPartnerMiddleWare())
-			{
-				/// =================== Partner =====================
-				cPartner := new(controllers.CPartner)
-				rootApi.POST("/partner", middlewares.AuthorizedCmsUserHandler(cPartner.CreatePartner))
-				rootApi.GET("/partner/list", middlewares.AuthorizedCmsUserHandler(cPartner.GetListPartner))
-				rootApi.PUT("/partner/:uid", middlewares.AuthorizedCmsUserHandler(cPartner.UpdatePartner))
-				rootApi.DELETE("/partner/:uid", middlewares.AuthorizedCmsUserHandler(cPartner.DeletePartner))
-			}
 
 			/// =================== Course =====================
 			cCourse := new(controllers.CCourse)
