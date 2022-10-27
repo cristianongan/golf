@@ -50,7 +50,7 @@ func (item *TranferCard) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *TranferCard) FindList(database *gorm.DB,page Page, playerName string) ([]map[string]interface{}, int64, error) {
+func (item *TranferCard) FindList(database *gorm.DB, page Page, playerName string) ([]map[string]interface{}, int64, error) {
 	db := database.Table("tranfer_cards")
 	list := []map[string]interface{}{}
 	total := int64(0)
@@ -70,7 +70,8 @@ func (item *TranferCard) FindList(database *gorm.DB,page Page, playerName string
 		queryStr = queryStr + " and tranfer_cards.course_uid = " + `"` + item.CourseUid + `"`
 	}
 	if item.OwnerUid != "" {
-		queryStr = queryStr + " and tranfer_cards.owner_uid = " + `"` + item.OwnerUid + `"`
+		queryStr = queryStr + " and (tranfer_cards.owner_uid = " + `"` + item.OwnerUid + `"`
+		queryStr = queryStr + " or tranfer_cards.owner_uid_old = " + `"` + item.OwnerUid + `")`
 	}
 	if item.CardId != "" {
 		queryStr = queryStr + " and tranfer_cards.card_id LIKE " + `"%` + item.CardId + `%"`

@@ -108,6 +108,7 @@ func (_ *CTranferCard) GetListTranferCard(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: body.PartnerUid,
 		CourseUid:  body.CourseUid,
 		CardId:     body.CardId,
+		OwnerUid:   body.OwnerId,
 	}
 
 	list, total, err := tranferCardR.FindList(db, page, body.PlayerName)
