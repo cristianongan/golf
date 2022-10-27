@@ -154,11 +154,15 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 	} else {
 		if user.RoleId == -1 {
 			// Root Account
-			permis := model_role.Permission{}
-			listP, errLP := permis.FindAll()
-			if errLP == nil {
-				for _, v := range listP {
-					listPerMis = append(listPerMis, v.Uid)
+			role.Id = user.RoleId
+			errFR := role.FindFirst()
+			if errFR == nil {
+				permis := model_role.Permission{}
+				listP, errLP := permis.FindAll()
+				if errLP == nil {
+					for _, v := range listP {
+						listPerMis = append(listPerMis, v.Uid)
+					}
 				}
 			}
 		}

@@ -22,7 +22,6 @@ type Role struct {
 
 // ======= CRUD ===========
 func (item *Role) Create(db *gorm.DB) error {
-
 	if item.Status == "" {
 		item.Status = constants.STATUS_ENABLE
 	}
