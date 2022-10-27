@@ -193,7 +193,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		// Get config course
 		course := models.Course{}
 		course.Uid = body.CourseUid
-		errCourse := course.FindFirst(db)
+		errCourse := course.FindFirst()
 		if errCourse != nil {
 			response_message.BadRequest(c, errCourse.Error())
 			return nil, errCourse
@@ -270,7 +270,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		// Get config course
 		course := models.Course{}
 		course.Uid = body.CourseUid
-		errCourse := course.FindFirst(db)
+		errCourse := course.FindFirst()
 		if errCourse != nil {
 			response_message.BadRequest(c, errCourse.Error())
 			return nil, errCourse
@@ -899,6 +899,11 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	if body.Hole > 0 {
+		booking.HoleBooking = body.Hole
+		booking.Hole = body.Hole
+	}
+
 	if body.CourseType != "" {
 		booking.CourseType = body.CourseType
 	}
@@ -961,7 +966,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		if memberCard.PriceCode == 1 && memberCard.IsValidTimePrecial() {
 			course := models.Course{}
 			course.Uid = body.CourseUid
-			errCourse := course.FindFirst(db)
+			errCourse := course.FindFirst()
 			if errCourse != nil {
 				response_message.BadRequest(c, errCourse.Error())
 				return
@@ -1002,7 +1007,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		// Get config course
 		course := models.Course{}
 		course.Uid = body.CourseUid
-		errCourse := course.FindFirst(db)
+		errCourse := course.FindFirst()
 		if errCourse != nil {
 			response_message.BadRequest(c, errCourse.Error())
 			return
@@ -1274,7 +1279,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		if memberCard.PriceCode == 1 && memberCard.IsValidTimePrecial() {
 			course := models.Course{}
 			course.Uid = booking.CourseUid
-			errCourse := course.FindFirst(db)
+			errCourse := course.FindFirst()
 			if errCourse != nil {
 				response_message.BadRequest(c, errCourse.Error())
 				return
@@ -1315,7 +1320,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		// Get config course
 		course := models.Course{}
 		course.Uid = booking.CourseUid
-		errCourse := course.FindFirst(db)
+		errCourse := course.FindFirst()
 		if errCourse != nil {
 			response_message.BadRequest(c, errCourse.Error())
 			return

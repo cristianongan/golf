@@ -74,7 +74,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	// Find course
 	course := models.Course{}
 	course.Uid = body.CourseCode
-	errFCourse := course.FindFirst(db)
+	errFCourse := course.FindFirst()
 	if errFCourse != nil {
 		dataRes.Result.Status = http.StatusInternalServerError
 		dataRes.Result.Infor = "Not found course"

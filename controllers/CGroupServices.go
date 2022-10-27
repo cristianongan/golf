@@ -32,7 +32,7 @@ func (_ *CGroupServices) CreateGroupServices(c *gin.Context, prof models.CmsUser
 
 	courseRequest := models.Course{}
 	courseRequest.Uid = body.CourseUid
-	errCourseFind := courseRequest.FindFirst(db)
+	errCourseFind := courseRequest.FindFirst()
 	if errCourseFind != nil {
 		response_message.BadRequest(c, errCourseFind.Error())
 		return

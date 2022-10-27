@@ -34,7 +34,7 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 
 	courseRequest := models.Course{}
 	courseRequest.Uid = body.CourseUid
-	errCourseFind := courseRequest.FindFirst(db)
+	errCourseFind := courseRequest.FindFirst()
 	if errCourseFind != nil {
 		response_message.BadRequest(c, errCourseFind.Error())
 		return
@@ -188,12 +188,12 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 				PartnerUid: promotionSetR.PartnerUid,
 				CourseUid:  promotionSetR.CourseUid,
 			}
-			
+
 			if err := foodBeverage.FindFirst(db); err != nil {
 				response_message.BadRequest(c, errors.New(item.Code+" không tìm thấy ").Error())
 				return
 			}
-			
+
 			quantity := 1
 			if item.Quantity > 0 {
 				quantity = item.Quantity

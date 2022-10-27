@@ -65,6 +65,9 @@ func MySqlConnect() {
 	// SetConnMaxLifetime sets the maximum amount of time a connection may be reused.
 	sqlDB.SetConnMaxLifetime(4 * time.Minute)
 
+	// SetConnMaxIdleTime sets the maximum amount of time a connection may be idle.
+	sqlDB.SetConnMaxIdleTime(1 * time.Minute)
+
 	if config.GetDbDebug() {
 		db.Debug()
 	}

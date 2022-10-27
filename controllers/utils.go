@@ -358,7 +358,7 @@ func updateListGolfFeeWithRound(db *gorm.DB, round *models.Round, booking model_
 		// Get config course
 		course := models.Course{}
 		course.Uid = booking.CourseUid
-		errCourse := course.FindFirst(db)
+		errCourse := course.FindFirst()
 		if errCourse != nil {
 			log.Println("course config err " + errCourse.Error())
 			return
@@ -1154,7 +1154,7 @@ func validatePartnerAndCourse(db *gorm.DB, partnerUid string, courseUid string) 
 
 	courseRequest := models.Course{}
 	courseRequest.Uid = courseUid
-	errCourseFind := courseRequest.FindFirst(db)
+	errCourseFind := courseRequest.FindFirst()
 	if errCourseFind != nil {
 		return errCourseFind
 	}

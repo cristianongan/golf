@@ -29,7 +29,7 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 
 	courseRequest := models.Course{}
 	courseRequest.Uid = body.CourseUid
-	errFind := courseRequest.FindFirst(db)
+	errFind := courseRequest.FindFirst()
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
@@ -266,7 +266,7 @@ func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
 	if body.CourseUid != nil {
 		courseRequest := models.Course{}
 		courseRequest.Uid = *body.CourseUid
-		errFind := courseRequest.FindFirst(db)
+		errFind := courseRequest.FindFirst()
 		if errFind != nil {
 			response_message.BadRequest(c, "course_uid not found")
 			return

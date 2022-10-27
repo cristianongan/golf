@@ -27,8 +27,6 @@ func MigrateDb() {
 		log.Println("migrating db")
 
 		// ================ For Sub System ======================
-		db.AutoMigrate(&models.Partner{})
-		db.AutoMigrate(&models.Course{})
 		db.AutoMigrate(&models.Buggy{})
 		db.AutoMigrate(&model_gostarter.BuggyInOut{})
 		db.AutoMigrate(&models.BuggyDiary{})
@@ -167,8 +165,6 @@ func MigrateDb() {
 		log.Println("migrating db2")
 
 		// ================ For Sub System ======================
-		db.AutoMigrate(&models.Partner{})
-		db.AutoMigrate(&models.Course{})
 		db.AutoMigrate(&models.Buggy{})
 		db.AutoMigrate(&model_gostarter.BuggyInOut{})
 		db.AutoMigrate(&models.BuggyDiary{})
@@ -313,5 +309,7 @@ func MigrateDbAuth() {
 		db.AutoMigrate(&model_role.UserRole{})
 		db.AutoMigrate(&models.CmsUser{})
 		db.AutoMigrate(&models.CmsUserToken{})
+		db.AutoMigrate(&models.Partner{})
+		db.AutoMigrate(&models.Course{})
 	}
 }

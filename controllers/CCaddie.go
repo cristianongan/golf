@@ -43,7 +43,7 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 
 	courseRequest := models.Course{}
 	courseRequest.Uid = body.CourseUid
-	errFind := courseRequest.FindFirst(db)
+	errFind := courseRequest.FindFirst()
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
@@ -126,7 +126,7 @@ func (_ *CCaddie) CreateCaddieBatch(c *gin.Context, prof models.CmsUser) {
 	for _, body := range body {
 		courseRequest := models.Course{}
 		courseRequest.Uid = body.CourseUid
-		errFind := courseRequest.FindFirst(db)
+		errFind := courseRequest.FindFirst()
 		if errFind != nil {
 			response_message.BadRequest(c, errFind.Error())
 			return

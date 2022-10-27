@@ -25,9 +25,12 @@ var EnLanguage = map[string]string{
 	"VALIDATE_DESTINATION_INVALID": "Destination point is not available",
 	"PHONE_INVALID":                "Invalid phone number",
 	//BAG
-	"BAG_NOT_FOUND":        "Cannot found this bag",
-	"PLAY_COUNT_INVALID":   "Play count remain over",
-	"BOOKING_NOT_FOUND":    "Booking not found",
-	"UPDATE_BOOKING_ERROR": "Update booking error",
-	"MAIN_BAG_NOT_FOUND":   "Bag was main bag",
+	"BAG_NOT_FOUND":         "Cannot found this bag",
+	"PLAY_COUNT_INVALID":    "Play count remain over",
+	"BOOKING_NOT_FOUND":     "Booking not found",
+	"UPDATE_BOOKING_ERROR":  "Update booking error",
+	"MAIN_BAG_NOT_FOUND":    "Bag was main bag",
+	"ROUND_NOT_FOUND":       "Round not found",
+	"GUEST_STYLE_NOT_FOUND": "Guest style not found",
+	"UPDATE_ERROR":          "Update error",
 }
