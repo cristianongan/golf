@@ -39,7 +39,7 @@ func RootPartnerMiddleWare() gin.HandlerFunc {
 			return
 		}
 		if user.PartnerUid != constants.ROOT_PARTNER_UID {
-			response_message.UnAuthorized(c, "Not permission")
+			response_message.PermissionDeny(c, "Not permission")
 			c.Abort()
 			return
 		}
