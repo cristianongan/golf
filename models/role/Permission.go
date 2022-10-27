@@ -69,6 +69,20 @@ func (item *Permission) Count() (int64, error) {
 	return total, db.Error
 }
 
+func (item *Permission) FindAll() ([]Permission, error) {
+	database := datasources.GetDatabaseAuth()
+	db := database.Model(Permission{})
+	list := []Permission{}
+	status := item.Status
+	item.Status = ""
+	if status != "" {
+		db = db.Where("status IN (?)", strings.Split(status, ","))
+	}
+
+	db.Find(&list)
+	return list, db.Error
+}
+
 func (item *Permission) FindList(page models.Page) ([]Permission, int64, error) {
 	database := datasources.GetDatabaseAuth()
 	db := database.Model(Permission{})
