@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"start/controllers/request"
 	"start/controllers/response"
-	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 
@@ -16,7 +15,6 @@ type CCourseOTA struct{}
 
 // Get list course
 func (_ *CCourseOTA) GetListCourseOTA(c *gin.Context) {
-	db := datasources.GetDatabase()
 	body := request.GetListCourseOTABody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -27,7 +25,7 @@ func (_ *CCourseOTA) GetListCourseOTA(c *gin.Context) {
 		PartnerUid: body.PartnerUid,
 	}
 
-	list, total, err := courseR.FindALL(db)
+	list, total, err := courseR.FindALL()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

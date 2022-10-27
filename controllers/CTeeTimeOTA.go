@@ -57,7 +57,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	// Lấy rate từ Course
 	course := models.Course{}
 	course.Uid = body.CourseCode
-	if errCourse := course.FindFirst(db); errCourse != nil {
+	if errCourse := course.FindFirst(); errCourse != nil {
 		responseOTA.Result.Status = 500
 		responseOTA.Result.Infor = "Course Code not found"
 		okResponse(c, responseOTA)

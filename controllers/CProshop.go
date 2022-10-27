@@ -54,7 +54,7 @@ func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
 
 	courseRequest := models.Course{}
 	courseRequest.Uid = body.CourseUid
-	errFind := courseRequest.FindFirst(db)
+	errFind := courseRequest.FindFirst()
 	if errFind != nil {
 		response_message.BadRequest(c, "Course not existed")
 		return

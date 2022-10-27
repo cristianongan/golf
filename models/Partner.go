@@ -24,12 +24,12 @@ func (item *Partner) Create() error {
 		item.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
+	db := datasources.GetDatabaseAuth()
 	return db.Create(item).Error
 }
 
 func (item *Partner) Update() error {
-	mydb := datasources.GetDatabase()
+	mydb := datasources.GetDatabaseAuth()
 	item.UpdatedAt = time.Now().Unix()
 	errUpdate := mydb.Save(item).Error
 	if errUpdate != nil {
@@ -39,12 +39,12 @@ func (item *Partner) Update() error {
 }
 
 func (item *Partner) FindFirst() error {
-	db := datasources.GetDatabase()
+	db := datasources.GetDatabaseAuth()
 	return db.Where(item).First(item).Error
 }
 
 func (item *Partner) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(Partner{})
+	db := datasources.GetDatabaseAuth().Model(Partner{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
@@ -52,7 +52,7 @@ func (item *Partner) Count() (int64, error) {
 }
 
 func (item *Partner) FindList(page Page) ([]Partner, int64, error) {
-	db := datasources.GetDatabase().Model(Partner{})
+	db := datasources.GetDatabaseAuth().Model(Partner{})
 	list := []Partner{}
 	total := int64(0)
 	status := item.Status
@@ -74,5 +74,5 @@ func (item *Partner) Delete() error {
 	if item.Uid == "" {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return datasources.GetDatabaseAuth().Delete(item).Error
 }

@@ -4,7 +4,6 @@ import (
 	"log"
 	"start/config"
 	"start/datasources"
-	"start/logger"
 
 	ccron "start/cron"
 	socket "start/socket"
@@ -35,12 +34,11 @@ func Init() {
 
 	r := NewRouter()
 
-	routers := r.Routes()
-
+	// routers := r.Routes()
 	// Init authority
-	initAuthority(routers)
+	// initAuthority(routers)
 
-	logger.InitLogger()
+	// logger.InitLogger()
 
 	log.Println("Server is running ...", "listen", config.GetString("backend_port"))
 	r.Run(config.GetString("backend_port"))

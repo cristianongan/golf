@@ -130,7 +130,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 			// Get config course
 			course := models.Course{}
 			course.Uid = booking.CourseUid
-			errCourse := course.FindFirst(db)
+			errCourse := course.FindFirst()
 			if errCourse != nil {
 				response_message.BadRequest(c, errCourse.Error())
 				return

@@ -24,7 +24,7 @@ func (_ *CCaddieAbsent) CreateCaddieAbsent(c *gin.Context, prof models.CmsUser) 
 
 	courseRequest := models.Course{}
 	courseRequest.Uid = body.CourseId
-	errFind := courseRequest.FindFirst(db)
+	errFind := courseRequest.FindFirst()
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return

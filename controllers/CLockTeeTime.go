@@ -98,7 +98,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	course := models.Course{}
 	course.Uid = body.CourseUid
-	errCourse := course.FindFirst(db)
+	errCourse := course.FindFirst()
 	if errCourse != nil {
 		return errCourse
 	}

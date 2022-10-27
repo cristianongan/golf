@@ -3,10 +3,9 @@ package models
 import (
 	"errors"
 	"start/constants"
+	"start/datasources"
 	"strings"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // Sân Golf
@@ -25,7 +24,8 @@ type Course struct {
 }
 
 // ======= CRUD ===========
-func (item *Course) Create(db *gorm.DB) error {
+func (item *Course) Create() error {
+	db := datasources.GetDatabaseAuth()
 	now := time.Now()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
@@ -36,7 +36,8 @@ func (item *Course) Create(db *gorm.DB) error {
 	return db.Create(item).Error
 }
 
-func (item *Course) Update(db *gorm.DB) error {
+func (item *Course) Update() error {
+	db := datasources.GetDatabaseAuth()
 	item.UpdatedAt = time.Now().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
@@ -45,11 +46,13 @@ func (item *Course) Update(db *gorm.DB) error {
 	return nil
 }
 
-func (item *Course) FindFirst(db *gorm.DB) error {
+func (item *Course) FindFirst() error {
+	db := datasources.GetDatabaseAuth()
 	return db.Where(item).First(item).Error
 }
 
-func (item *Course) Count(database *gorm.DB) (int64, error) {
+func (item *Course) Count() (int64, error) {
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(Course{})
 	total := int64(0)
 	db = db.Where(item)
@@ -57,7 +60,8 @@ func (item *Course) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *Course) FindList(database *gorm.DB, page Page) ([]Course, int64, error) {
+func (item *Course) FindList(page Page) ([]Course, int64, error) {
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(Course{})
 	list := []Course{}
 	total := int64(0)
@@ -80,7 +84,8 @@ func (item *Course) FindList(database *gorm.DB, page Page) ([]Course, int64, err
 	return list, total, db.Error
 }
 
-func (item *Course) FindALL(database *gorm.DB) ([]Course, int64, error) {
+func (item *Course) FindALL() ([]Course, int64, error) {
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(Course{})
 	list := []Course{}
 	total := int64(0)
@@ -96,7 +101,8 @@ func (item *Course) FindALL(database *gorm.DB) ([]Course, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *Course) Delete(db *gorm.DB) error {
+func (item *Course) Delete() error {
+	db := datasources.GetDatabaseAuth()
 	if item.Uid == "" {
 		return errors.New("Primary key is undefined!")
 	}
