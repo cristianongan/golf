@@ -7,6 +7,7 @@ type CreateCmsUserBody struct {
 	Phone      string `json:"phone"`
 	PartnerUid string `json:"partner_uid" binding:"required"`
 	CourseUid  string `json:"course_uid"`
+	RoleId     int64  `json:"role_id"`
 }
 
 type LoginBody struct {
@@ -19,4 +20,5 @@ type GetListCmsUserForm struct {
 	PageRequest
 	CourseUid  string `form:"course_uid"`
 	PartnerUid string `form:"partner_uid"`
+	UserName   string `form:"user_name"`
 }

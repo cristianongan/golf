@@ -74,16 +74,16 @@ func MySqlConnect() {
 
 	/// Database Role
 	argsDBRole := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s",
-		config.GetDbRoleUser(),
-		config.GetDbRolePassword(),
-		config.GetDbRoleHost(),
-		config.GetDbRolePort(),
-		config.GetDbRoleName(), params)
+		config.GetDbAuthUser(),
+		config.GetDbAuthPassword(),
+		config.GetDbAuthHost(),
+		config.GetDbAuthPort(),
+		config.GetDbAuthName(), params)
 
 	dbRole, errDbRole = gorm.Open(mysql.Open(argsDBRole), &gorm.Config{})
 
 	if errDbRole != nil {
-		panic(fmt.Sprintf("failed to connect database @ %s:%s", config.GetDbRoleHost(), config.GetDbRolePort()))
+		panic(fmt.Sprintf("failed to connect database @ %s:%s", config.GetDbAuthHost(), config.GetDbAuthPort()))
 	}
 
 }
@@ -92,7 +92,7 @@ func GetDatabase() *gorm.DB {
 	return db
 }
 
-func GetDatabaseRole() *gorm.DB {
+func GetDatabaseAuth() *gorm.DB {
 	return dbRole
 }
 
