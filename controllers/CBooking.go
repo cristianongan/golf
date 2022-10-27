@@ -899,6 +899,11 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	if body.Hole > 0 {
+		booking.HoleBooking = body.Hole
+		booking.Hole = body.Hole
+	}
+
 	if body.CourseType != "" {
 		booking.CourseType = body.CourseType
 	}
