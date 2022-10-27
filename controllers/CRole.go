@@ -162,6 +162,9 @@ func (_ *CRole) UpdateRole(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, role)
 }
 
+/*
+ Delete Role
+*/
 func (_ *CRole) DeleteRole(c *gin.Context, prof models.CmsUser) {
 	roleIdStr := c.Param("id")
 	roleId, err := strconv.ParseInt(roleIdStr, 10, 64) // Nếu uid là int64 mới cần convert

@@ -19,8 +19,8 @@
         "is_migrated": true,
         "debug": true
     },
-    "mysql_role": {
-        "db_name": "golf_role",
+    "mysql_auth": {
+        "db_name": "golf_auth_dev",
         "user": "root",
         "password": "4vB!qVugg!vmSY8pGP$vQQXA5r#@2MW=",
         "host": "103.176.145.22",

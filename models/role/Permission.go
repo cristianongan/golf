@@ -38,7 +38,7 @@ func (item ListPermissionResource) Value() (driver.Value, error) {
 
 // ======= CRUD ===========
 func (item *Permission) Create() error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	if item.Status == "" {
 		item.Status = constants.STATUS_ENABLE
 	}
@@ -47,7 +47,7 @@ func (item *Permission) Create() error {
 }
 
 func (item *Permission) Update() error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -56,12 +56,12 @@ func (item *Permission) Update() error {
 }
 
 func (item *Permission) FindFirst() error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	return db.Where(item).First(item).Error
 }
 
 func (item *Permission) Count() (int64, error) {
-	database := datasources.GetDatabaseRole()
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(Permission{})
 	total := int64(0)
 	db = db.Where(item)
@@ -70,7 +70,7 @@ func (item *Permission) Count() (int64, error) {
 }
 
 func (item *Permission) FindList(page models.Page) ([]Permission, int64, error) {
-	database := datasources.GetDatabaseRole()
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(Permission{})
 	list := []Permission{}
 	total := int64(0)
@@ -90,7 +90,7 @@ func (item *Permission) FindList(page models.Page) ([]Permission, int64, error) 
 }
 
 func (item *Permission) Delete() error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	if item.Uid == "" {
 		return errors.New("Primary key is undefined!")
 	}

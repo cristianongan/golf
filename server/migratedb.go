@@ -19,16 +19,14 @@ import (
 )
 
 func MigrateDb() {
-	// Db Role
-	MigrateDbRole()
+	// Db Auth
+	MigrateDbAuth()
 
 	db := datasources.GetDatabase()
 	if config.GetIsMigrated() {
 		log.Println("migrating db")
 
 		// ================ For Sub System ======================
-		db.AutoMigrate(&models.CmsUser{})
-		db.AutoMigrate(&models.CmsUserToken{})
 		db.AutoMigrate(&models.Partner{})
 		db.AutoMigrate(&models.Course{})
 		db.AutoMigrate(&models.Buggy{})
@@ -169,8 +167,6 @@ func MigrateDb() {
 		log.Println("migrating db2")
 
 		// ================ For Sub System ======================
-		// db.AutoMigrate(&models.CmsUser{})
-		// db.AutoMigrate(&models.CmsUserToken{})
 		db.AutoMigrate(&models.Partner{})
 		db.AutoMigrate(&models.Course{})
 		db.AutoMigrate(&models.Buggy{})
@@ -306,15 +302,16 @@ func MigrateDb() {
 	}
 }
 
-func MigrateDbRole() {
-	db := datasources.GetDatabaseRole()
-	if config.GetDbRoleIsMigrated() {
-		log.Println("migrating db role")
+func MigrateDbAuth() {
+	db := datasources.GetDatabaseAuth()
+	if config.GetDbAuthIsMigrated() {
+		log.Println("migrating db auth")
 
-		// ----- Role -------
 		db.AutoMigrate(&model_role.Role{})
 		db.AutoMigrate(&model_role.Permission{})
 		db.AutoMigrate(&model_role.RolePermission{})
 		db.AutoMigrate(&model_role.UserRole{})
+		db.AutoMigrate(&models.CmsUser{})
+		db.AutoMigrate(&models.CmsUserToken{})
 	}
 }

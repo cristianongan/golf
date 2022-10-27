@@ -31,7 +31,7 @@ func (item *Role) Create(db *gorm.DB) error {
 }
 
 func (item *Role) Update() error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -40,12 +40,12 @@ func (item *Role) Update() error {
 }
 
 func (item *Role) FindFirst() error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	return db.Where(item).First(item).Error
 }
 
 func (item *Role) Count() (int64, error) {
-	database := datasources.GetDatabaseRole()
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(Role{})
 	total := int64(0)
 	db = db.Where(item)
@@ -54,7 +54,7 @@ func (item *Role) Count() (int64, error) {
 }
 
 func (item *Role) FindList(page models.Page) ([]Role, int64, error) {
-	database := datasources.GetDatabaseRole()
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(Role{})
 	list := []Role{}
 	total := int64(0)
@@ -84,7 +84,7 @@ func (item *Role) FindList(page models.Page) ([]Role, int64, error) {
 }
 
 func (item *Role) Delete() error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	if item.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}

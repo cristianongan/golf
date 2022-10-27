@@ -17,12 +17,12 @@ type RolePermission struct {
 
 // ======= CRUD ===========
 func (item *RolePermission) Create() error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	return db.Create(item).Error
 }
 
 func (item *RolePermission) BatchInsert(list []RolePermission) error {
-	database := datasources.GetDatabaseRole()
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(RolePermission{})
 	var err error
 	err = db.Create(&list).Error
@@ -34,7 +34,7 @@ func (item *RolePermission) BatchInsert(list []RolePermission) error {
 }
 
 func (item *RolePermission) Update() error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -43,12 +43,12 @@ func (item *RolePermission) Update() error {
 }
 
 func (item *RolePermission) FindFirst() error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	return db.Where(item).First(item).Error
 }
 
 func (item *RolePermission) Count() (int64, error) {
-	database := datasources.GetDatabaseRole()
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(RolePermission{})
 	total := int64(0)
 	db = db.Where(item)
@@ -57,7 +57,7 @@ func (item *RolePermission) Count() (int64, error) {
 }
 
 func (item *RolePermission) FindAll() ([]RolePermission, error) {
-	database := datasources.GetDatabaseRole()
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(RolePermission{})
 	list := []RolePermission{}
 
@@ -68,7 +68,7 @@ func (item *RolePermission) FindAll() ([]RolePermission, error) {
 }
 
 func (item *RolePermission) FindList(page models.Page) ([]RolePermission, int64, error) {
-	database := datasources.GetDatabaseRole()
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(RolePermission{})
 	list := []RolePermission{}
 	total := int64(0)
@@ -83,7 +83,7 @@ func (item *RolePermission) FindList(page models.Page) ([]RolePermission, int64,
 }
 
 func (item *RolePermission) Delete() error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	if item.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
@@ -91,6 +91,6 @@ func (item *RolePermission) Delete() error {
 }
 
 func (item *RolePermission) DeleteList(list []RolePermission) error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	return db.Delete(list).Error
 }

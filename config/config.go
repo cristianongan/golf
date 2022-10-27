@@ -125,33 +125,33 @@ func GetIsMigrated2() bool {
 	return config.GetBool("mysql2.is_migrated")
 }
 
-// =============== Get database Role config ========================
-func GetDbRoleName() string {
-	return config.GetString("mysql_role.db_name")
+// =============== Get database Auth config ========================
+func GetDbAuthName() string {
+	return config.GetString("mysql_auth.db_name")
 }
 
-func GetDbRoleUser() string {
-	return config.GetString("mysql_role.user")
+func GetDbAuthUser() string {
+	return config.GetString("mysql_auth.user")
 }
 
-func GetDbRolePassword() string {
-	return config.GetString("mysql_role.password")
+func GetDbAuthPassword() string {
+	return config.GetString("mysql_auth.password")
 }
 
-func GetDbRoleHost() string {
-	return config.GetString("mysql_role.host")
+func GetDbAuthHost() string {
+	return config.GetString("mysql_auth.host")
 }
 
-func GetDbRolePort() string {
-	return config.GetString("mysql_role.port")
+func GetDbAuthPort() string {
+	return config.GetString("mysql_auth.port")
 }
 
-func GetDbRoleDebug() bool {
-	return config.GetBool("mysql_role.debug")
+func GetDbAuthDebug() bool {
+	return config.GetBool("mysql_auth.debug")
 }
 
-func GetDbRoleIsMigrated() bool {
-	return config.GetBool("mysql_role.is_migrated")
+func GetDbAuthIsMigrated() bool {
+	return config.GetBool("mysql_auth.is_migrated")
 }
 
 // ================================================

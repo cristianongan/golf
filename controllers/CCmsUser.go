@@ -176,7 +176,7 @@ func (_ *CCmsUser) GetList(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, res)
 }
 
-func (_ *CCmsUser) CreateCmsUser(c *gin.Context) {
+func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 	body := request.CreateCmsUserBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -219,4 +219,77 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context) {
 	}
 
 	okResponse(c, cmsUser)
+}
+
+/*
+Update Cms User
+*/
+func (_ *CCmsUser) UpdateCmsUser(c *gin.Context, prof models.CmsUser) {
+	userUidStr := c.Param("uid")
+	if userUidStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
+	cmsUser := models.CmsUser{}
+	cmsUser.Uid = userUidStr
+	errF := cmsUser.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	body := request.CreateCmsUserBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if body.FullName != "" {
+		cmsUser.FullName = body.FullName
+	}
+	if body.Phone != "" {
+		cmsUser.Phone = body.Phone
+	}
+	if body.Email != "" {
+		cmsUser.Email = body.Email
+	}
+	if body.RoleId > 0 {
+		cmsUser.RoleId = body.RoleId
+	}
+
+	errUdp := cmsUser.Update()
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, cmsUser)
+}
+
+/*
+ Delete Role
+*/
+func (_ *CCmsUser) DeleteCmsUser(c *gin.Context, prof models.CmsUser) {
+	userUidStr := c.Param("uid")
+	if userUidStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
+	cmsUser := models.CmsUser{}
+	cmsUser.Uid = userUidStr
+	errF := cmsUser.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	errDel := cmsUser.Delete()
+	if errDel != nil {
+		response_message.InternalServerError(c, errDel.Error())
+		return
+	}
+
+	okRes(c)
 }

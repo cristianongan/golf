@@ -16,12 +16,12 @@ type UserRole struct {
 
 // ======= CRUD ===========
 func (item *UserRole) Create() error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	return db.Create(item).Error
 }
 
 func (item *UserRole) Update() error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -30,12 +30,12 @@ func (item *UserRole) Update() error {
 }
 
 func (item *UserRole) FindFirst() error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	return db.Where(item).First(item).Error
 }
 
 func (item *UserRole) Count() (int64, error) {
-	database := datasources.GetDatabaseRole()
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(Role{})
 	total := int64(0)
 	db = db.Where(item)
@@ -44,7 +44,7 @@ func (item *UserRole) Count() (int64, error) {
 }
 
 func (item *UserRole) FindList(page models.Page) ([]UserRole, int64, error) {
-	database := datasources.GetDatabaseRole()
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(UserRole{})
 	list := []UserRole{}
 	total := int64(0)
@@ -59,7 +59,7 @@ func (item *UserRole) FindList(page models.Page) ([]UserRole, int64, error) {
 }
 
 func (item *UserRole) Delete() error {
-	db := datasources.GetDatabaseRole()
+	db := datasources.GetDatabaseAuth()
 	if item.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}

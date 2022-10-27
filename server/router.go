@@ -52,7 +52,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Auth =====================
 			cCmsUser := new(controllers.CCmsUser)
 			groupApi.POST("/user/login", cCmsUser.Login)
-			groupApi.POST("/user", cCmsUser.CreateCmsUser)
+			// groupApi.POST("/user", cCmsUser.CreateCmsUser)
 
 			/// =================== Upload Image =====================
 			cUpload := new(controllers.CUpload)
@@ -64,6 +64,12 @@ func NewRouter() *gin.Engine {
 			// Add authority middleware
 			cmsApiAuthorized := groupApi.Use(middlewares.CmsUserJWTAuth)
 			//.Use(middlewares.AuthorityMiddleware())
+
+			//  =================== Cms User ====================
+			cmsApiAuthorized.GET("/user/list", middlewares.AuthorizedCmsUserHandler(cCmsUser.GetList))
+			cmsApiAuthorized.POST("/user/add", middlewares.AuthorizedCmsUserHandler(cCmsUser.CreateCmsUser))
+			cmsApiAuthorized.PUT("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.UpdateCmsUser))
+			cmsApiAuthorized.DELETE("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.DeleteCmsUser))
 
 			/// =================== Config ====================
 			cConfig := new(controllers.CConfig)

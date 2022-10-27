@@ -77,12 +77,12 @@ func (item *CmsUser) Create() error {
 	item.Model.UpdatedAt = now.Unix()
 	item.Model.Status = constants.STATUS_ENABLE
 
-	db := datasources.GetDatabase()
+	db := datasources.GetDatabaseAuth()
 	return db.Create(item).Error
 }
 
 func (item *CmsUser) Update() error {
-	mydb := datasources.GetDatabase()
+	mydb := datasources.GetDatabaseAuth()
 	item.Model.UpdatedAt = time.Now().Unix()
 	errUpdate := mydb.Save(item).Error
 	if errUpdate != nil {
@@ -92,12 +92,12 @@ func (item *CmsUser) Update() error {
 }
 
 func (item *CmsUser) FindFirst() error {
-	db := datasources.GetDatabase()
-	return db.Preload("UserRoles.Role").Where(item).First(item).Error
+	db := datasources.GetDatabaseAuth()
+	return db.Where(item).First(item).Error
 }
 
 func (item *CmsUser) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(CmsUser{})
+	db := datasources.GetDatabaseAuth().Model(CmsUser{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
@@ -105,7 +105,7 @@ func (item *CmsUser) Count() (int64, error) {
 }
 
 func (item *CmsUser) FindList(page Page) ([]CmsUser, int64, error) {
-	db := datasources.GetDatabase().Model(CmsUser{})
+	db := datasources.GetDatabaseAuth().Model(CmsUser{})
 	list := []CmsUser{}
 	total := int64(0)
 	status := item.Model.Status
@@ -136,5 +136,5 @@ func (item *CmsUser) Delete() error {
 	if item.Model.Uid == "" {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return datasources.GetDatabaseAuth().Delete(item).Error
 }
