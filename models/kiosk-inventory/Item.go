@@ -103,7 +103,7 @@ func (item *InventoryItem) FindList(database *gorm.DB, page models.Page, param I
 		}
 	}
 
-	db.Debug().Count(&total)
+	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)

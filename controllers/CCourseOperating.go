@@ -958,6 +958,36 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		return
 	}
 
+	bookingR := model_booking.BookingList{
+		BookingDate: booking.BookingDate,
+		BuggyId:     booking.BuggyId,
+		BagStatus:   constants.BAG_STATUS_IN_COURSE,
+	}
+
+	// Tìm kiếm booking đang sử dụng buggy
+	db1, _, _ := bookingR.FindAllBookingList(db)
+	bookingList := []model_booking.Booking{}
+	db1.Find(&bookingList)
+	var bagShare = ""
+
+	if len(bookingList) > 0 {
+		bagShare = bookingList[0].Bag
+		newCaddieInOut := model_gostarter.CaddieBuggyInOut{
+			PartnerUid: bookingList[0].PartnerUid,
+			CourseUid:  bookingList[0].CourseUid,
+			BookingUid: bookingList[0].Uid,
+		}
+
+		list, total, _ := newCaddieInOut.FindOrderByDateList(db)
+		if total > 0 {
+			lastItem := list[0]
+			lastItem.BagShareBuggy = booking.Bag
+			if err := lastItem.Update(db1); err != nil {
+				response_message.InternalServerError(c, err.Error())
+				return
+			}
+		}
+	}
 	// Udp Note
 	caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
 		PartnerUid:     prof.PartnerUid,
@@ -967,6 +997,7 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		BuggyCode:      booking.BuggyInfo.Code,
 		BuggyType:      constants.STATUS_IN,
 		IsPrivateBuggy: &body.IsPrivateBuggy,
+		BagShareBuggy:  bagShare,
 		Note:           "",
 	}
 
