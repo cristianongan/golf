@@ -750,6 +750,7 @@ func (_ *CBooking) GetListBookingWithFightInfo(c *gin.Context, prof models.CmsUs
 	bookings.HasBookCaddie = form.HasBookCaddie
 	bookings.CustomerName = form.PlayerName
 	bookings.HasFlightInfo = form.HasFlightInfo
+	bookings.CustomerUid = form.CustomerUid
 
 	db, total, err := bookings.FindBookingListWithSelect(db, page, false)
 	res := response.PageResponse{}
