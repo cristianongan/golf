@@ -1579,7 +1579,7 @@ func handleSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 			}
 			errFindBO := bookOTA.FindFirst(db)
 			if errFindBO == nil {
-				singlePayment.PrepaidFromBooking = int64(bookOTA.NumBook) * (bookOTA.CaddieFee + bookOTA.BuggyFee + bookOTA.GreenFee)
+				// singlePayment.PrepaidFromBooking = int64(bookOTA.NumBook) * (bookOTA.CaddieFee + bookOTA.BuggyFee + bookOTA.GreenFee)
 			}
 		}
 
