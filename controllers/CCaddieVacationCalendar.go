@@ -162,6 +162,8 @@ func (_ *CCaddieVacationCalendar) UpdateCaddieVacationCalendar(c *gin.Context, p
 	caddieVC.Color = body.Color
 	caddieVC.DateFrom = body.DateFrom
 	caddieVC.DateTo = body.DateTo
+	caddieVC.MonthFrom = int(time.Unix(body.DateFrom, 0).Local().Month())
+	caddieVC.MonthTo = int(time.Unix(body.DateTo, 0).Local().Month())
 	caddieVC.NumberDayOff = body.NumberDayOff
 	caddieVC.Note = body.Note
 

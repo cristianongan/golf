@@ -22,4 +22,5 @@ type GetTranferCardList struct {
 	CourseUid  string `form:"course_uid"`
 	CardId     string `form:"card_id"`
 	PlayerName string `form:"player_name"`
+	OwnerId    string `form:"owner_id"`
 }
