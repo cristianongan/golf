@@ -9,6 +9,7 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	model_service "start/models/service"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 	"time"
@@ -38,11 +39,13 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 	}
 
 	// validate golf bag
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid
 	booking.CourseUid = body.CourseUid
 	booking.Bag = body.GolfBag
-	booking.BookingDate = time.Now().Format(constants.DATE_FORMAT_1)
+	booking.BookingDate = dateDisplay
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find booking "+err.Error())
 		return
@@ -76,7 +79,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 	serviceCart.CourseUid = body.CourseUid
 	serviceCart.GolfBag = body.GolfBag
 	serviceCart.BookingUid = booking.Uid
-	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
+	serviceCart.BookingDate = datatypes.Date(time.Now().Local())
 	serviceCart.ServiceId = body.ServiceId
 	serviceCart.ServiceType = kiosk.KioskType
 	serviceCart.BillCode = constants.BILL_NONE
@@ -916,10 +919,12 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 
 	if body.GolfBag != "" {
 		// validate golf bag
+		dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
 		booking.PartnerUid = body.PartnerUid
 		booking.CourseUid = body.CourseUid
 		booking.Bag = body.GolfBag
-		booking.BookingDate = time.Now().Format(constants.DATE_FORMAT_1)
+		booking.BookingDate = dateDisplay
 		if err := booking.FindFirst(db); err != nil {
 			response_message.BadRequest(c, "Find booking "+err.Error())
 			return
@@ -1000,7 +1005,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 	// create service cart
 	serviceCart.PartnerUid = body.PartnerUid
 	serviceCart.CourseUid = body.CourseUid
-	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
+	serviceCart.BookingDate = datatypes.Date(time.Now().Local())
 	serviceCart.ServiceId = body.ServiceId
 	serviceCart.ServiceType = kiosk.KioskType
 	serviceCart.BillCode = constants.BILL_NONE
@@ -1206,11 +1211,13 @@ func (_ CRestaurantOrder) UpdateRestaurantBooking(c *gin.Context, prof models.Cm
 	booking := model_booking.Booking{}
 	if body.GolfBag != "" {
 		// validate golf bag
+		dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
 		booking := model_booking.Booking{}
 		booking.PartnerUid = body.PartnerUid
 		booking.CourseUid = body.CourseUid
 		booking.Bag = body.GolfBag
-		booking.BookingDate = time.Now().Format(constants.DATE_FORMAT_1)
+		booking.BookingDate = dateDisplay
 		if err := booking.FindFirst(db); err != nil {
 			response_message.BadRequest(c, "Find booking "+err.Error())
 			return
@@ -1413,10 +1420,12 @@ func (_ CRestaurantOrder) ConfrimRestaurantBooking(c *gin.Context, prof models.C
 
 	if body.GolfBag != "" {
 		// validate golf bag
+		dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
 		booking.PartnerUid = serviceCart.PartnerUid
 		booking.CourseUid = serviceCart.CourseUid
 		booking.Bag = body.GolfBag
-		booking.BookingDate = time.Now().Format(constants.DATE_FORMAT_1)
+		booking.BookingDate = dateDisplay
 		if err := booking.FindFirst(db); err != nil {
 			response_message.BadRequest(c, "Find booking "+err.Error())
 			return

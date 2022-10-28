@@ -39,11 +39,13 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	}
 
 	// validate golf bag
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid
 	booking.CourseUid = body.CourseUid
 	booking.Bag = body.GolfBag
-	booking.BookingDate = time.Now().Format("02/01/2006")
+	booking.BookingDate = dateDisplay
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
 		return
@@ -455,11 +457,13 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid
 	booking.CourseUid = body.CourseUid
 	booking.Bag = serviceCartItem.Bag
-	booking.BookingDate = time.Now().Format("02/01/2006")
+	booking.BookingDate = dateDisplay
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
 		return
@@ -555,11 +559,13 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
 	booking := model_booking.Booking{}
 	booking.PartnerUid = serviceCartItem.PartnerUid
 	booking.CourseUid = serviceCartItem.CourseUid
 	booking.Bag = serviceCartItem.Bag
-	booking.BookingDate = time.Now().Format("02/01/2006")
+	booking.BookingDate = dateDisplay
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
 		return
@@ -625,11 +631,13 @@ func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid
 	booking.CourseUid = body.CourseUid
 	booking.Bag = body.GolfBag
-	booking.BookingDate = time.Now().Format("02/01/2006")
+	booking.BookingDate = dateDisplay
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
@@ -676,9 +684,11 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
 	booking := model_booking.Booking{}
 	booking.Bag = body.GolfBag
-	booking.BookingDate = time.Now().Format("02/01/2006")
+	booking.BookingDate = dateDisplay
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find booking target "+err.Error())
 		return
@@ -701,7 +711,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	// validate golf bag source
 	bookingSource := model_booking.Booking{}
 	bookingSource.Bag = sourceServiceCart.GolfBag
-	bookingSource.BookingDate = time.Now().Format("02/01/2006")
+	bookingSource.BookingDate = dateDisplay
 	if err := bookingSource.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find booking source "+err.Error())
 		return
@@ -914,9 +924,11 @@ func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
 
 	for {
 		// validate golf bag
+		dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
 		booking := model_booking.Booking{}
 		booking.Bag = bagClone
-		booking.BookingDate = time.Now().Format("02/01/2006")
+		booking.BookingDate = dateDisplay
 		if err := booking.FindFirst(db); err == nil {
 			bag, err := strconv.ParseInt(bagClone, 10, 64)
 			if err != nil {
