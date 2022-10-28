@@ -9,10 +9,10 @@ type KioskInventoryItemBody struct {
 	ItemCode   string  `json:"item_code" binding:"required"`
 	ItemName   string  `json:"item_name" binding:"required"`
 	Unit       string  `json:"unit" binding:"required"`
-	GroupCode  string  `json:"group_code" binding:"required"`
 	Quantity   int64   `json:"quantity" binding:"required"`
-	UserUpdate string  `json:"user_update" binding:"required"`
 	Price      float64 `json:"price" binding:"required"`
+	GroupCode  string  `json:"group_code"`
+	UserUpdate string  `json:"user_update"`
 }
 
 type ListKioskInventoryInputItemBody []KioskInventoryItemBody
@@ -29,10 +29,10 @@ type CreateBillBody struct {
 	PartnerUid  string                          `json:"partner_uid" binding:"required"`
 	CourseUid   string                          `json:"course_uid" binding:"required"`
 	ServiceId   int64                           `json:"service_id" binding:"required"`
-	ServiceName string                          `json:"service_name" binding:"required"`
+	ListItem    ListKioskInventoryInputItemBody `json:"list_item" binding:"required"`
+	ServiceName string                          `json:"service_name"`
 	SourceId    int64                           `json:"source_id"`
 	SourceName  string                          `json:"source_name"`
-	ListItem    ListKioskInventoryInputItemBody `json:"list_item" binding:"required"`
 	Note        string                          `json:"note"`
 	UserExport  string                          `json:"user_export"`
 	OutputDate  int64                           `json:"output_date"`
