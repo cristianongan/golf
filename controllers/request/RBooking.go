@@ -69,6 +69,7 @@ type GetListBookingWithSelectForm struct {
 	IsGroupBillCode bool    `form:"is_group_bill_code"`
 	HasBuggy        string  `form:"has_buggy"`
 	HasCaddie       string  `form:"has_caddie"`
+	CustomerUid     string  `form:"customer_uid"`
 }
 
 type GetListBookingWithListServiceItems struct {

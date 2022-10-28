@@ -49,6 +49,7 @@ type BookingList struct {
 	GuestStyleName        string
 	PlayerOrBag           string
 	NotPrivateBuggy       bool
+	CustomerUid           string
 }
 
 func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
@@ -70,6 +71,10 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 
 	if item.CaddieCode != "" {
 		db = db.Where("caddie_info->'$.code' = ?", item.CaddieCode)
+	}
+
+	if item.CustomerUid != "" {
+		db = db.Where("customer_info->'$.uid' = ?", item.CustomerUid)
 	}
 
 	if item.InitType != "" {
