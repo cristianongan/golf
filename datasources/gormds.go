@@ -54,6 +54,9 @@ func MySqlConnect() {
 		panic(fmt.Sprintf("failed to connect database @ %s:%s", config.GetDbHost(), config.GetDbPort()))
 	}
 	sqlDB, err := db.DB()
+	if err != nil {
+		panic(fmt.Sprintf("failed db.DB(): %v", err))
+	}
 
 	// https://github.com/go-sql-driver/mysql#important-settings
 	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
@@ -66,7 +69,7 @@ func MySqlConnect() {
 	sqlDB.SetConnMaxLifetime(4 * time.Minute)
 
 	// SetConnMaxIdleTime sets the maximum amount of time a connection may be idle.
-	sqlDB.SetConnMaxIdleTime(1 * time.Minute)
+	sqlDB.SetConnMaxIdleTime(30 * time.Second)
 
 	if config.GetDbDebug() {
 		db.Debug()
@@ -83,11 +86,34 @@ func MySqlConnect() {
 		config.GetDbAuthPort(),
 		config.GetDbAuthName(), params)
 
-	dbRole, errDbRole = gorm.Open(mysql.Open(argsDBRole), &gorm.Config{})
+	// dbRole, errDbRole = gorm.Open(mysql.Open(argsDBRole), &gorm.Config{})
+	dbRole, errDbRole = gorm.Open(mysql.New(mysql.Config{DSN: argsDBRole,
+		DefaultStringSize: 256,
+	}), &gorm.Config{
+		Logger: newLogger,
+	})
 
 	if errDbRole != nil {
 		panic(fmt.Sprintf("failed to connect database @ %s:%s", config.GetDbAuthHost(), config.GetDbAuthPort()))
 	}
+
+	sqlDBRole, err := dbRole.DB()
+	if err != nil {
+		panic(fmt.Sprintf("failed db.DB(): %v", err))
+	}
+
+	// https://github.com/go-sql-driver/mysql#important-settings
+	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
+	sqlDBRole.SetMaxIdleConns(5)
+
+	// SetMaxOpenConns sets the maximum number of open connections to the database.
+	sqlDBRole.SetMaxOpenConns(25)
+
+	// SetConnMaxLifetime sets the maximum amount of time a connection may be reused.
+	sqlDBRole.SetConnMaxLifetime(4 * time.Minute)
+
+	// SetConnMaxIdleTime sets the maximum amount of time a connection may be idle.
+	sqlDBRole.SetConnMaxIdleTime(30 * time.Second)
 
 }
 

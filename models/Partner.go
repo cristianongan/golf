@@ -62,6 +62,11 @@ func (item *Partner) FindList(page Page) ([]Partner, int64, error) {
 	if status != "" {
 		db = db.Where("status IN (?)", strings.Split(status, ","))
 	}
+
+	if item.Name != "" {
+		db = db.Where("name like ?", "%"+item.Name+"%")
+	}
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

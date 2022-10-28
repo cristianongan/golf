@@ -11,7 +11,7 @@ import (
 
 	// https://godoc.org/github.com/go-redis/redis
 	"github.com/bsm/redislock"
-	"github.com/go-redis/redis/v8"
+	"github.com/go-redis/redis/v9"
 )
 
 type DataCache struct {

@@ -36,8 +36,8 @@ type CmsUser struct {
 
 type CmsUserDetail struct {
 	CmsUser
-	RoleName   string           `json:"role_name"`
-	Permission utils.ListString `json:"permission"`
+	RoleName    string           `json:"role_name"`
+	Permissions utils.ListString `json:"permissions"`
 }
 
 type CmsUserResponse struct {
