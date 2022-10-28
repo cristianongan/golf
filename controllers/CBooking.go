@@ -687,6 +687,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.IsCheckIn = form.IsCheckIn
 	bookings.GuestStyleName = form.GuestStyleName
 	bookings.PlayerOrBag = form.PlayerOrBag
+	bookings.CustomerUid = form.CustomerUid
 
 	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
 
@@ -750,7 +751,6 @@ func (_ *CBooking) GetListBookingWithFightInfo(c *gin.Context, prof models.CmsUs
 	bookings.HasBookCaddie = form.HasBookCaddie
 	bookings.CustomerName = form.PlayerName
 	bookings.HasFlightInfo = form.HasFlightInfo
-	bookings.CustomerUid = form.CustomerUid
 
 	db, total, err := bookings.FindBookingListWithSelect(db, page, false)
 	res := response.PageResponse{}
