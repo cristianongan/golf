@@ -6,6 +6,7 @@ import (
 	"start/models"
 	"start/utils"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -13,7 +14,7 @@ import (
 
 // Role
 type Role struct {
-	Id          int64  `gorm:"AUTO_INCREMENT:yes" sql:"bigint;not null;primary_key" json:"id"`
+	models.ModelId
 	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	Status      string `json:"status" gorm:"index;type:varchar(50)"`       // ENABLE, DISABLE, TESTING
@@ -32,11 +33,16 @@ func (item *Role) Create(db *gorm.DB) error {
 		item.Status = constants.STATUS_ENABLE
 	}
 
+	now := time.Now()
+	item.ModelId.CreatedAt = now.Unix()
+	item.ModelId.UpdatedAt = now.Unix()
+
 	return db.Create(item).Error
 }
 
 func (item *Role) Update() error {
 	db := datasources.GetDatabaseAuth()
+	item.ModelId.UpdatedAt = time.Now().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
