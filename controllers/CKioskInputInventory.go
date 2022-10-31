@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -40,19 +39,19 @@ func (item CKioskInputInventory) CreateManualInputBill(c *gin.Context, prof mode
 
 func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.CmsUser, body request.CreateBillBody, billtype string, billcode string) error {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	inventoryStatus := kiosk_inventory.InputInventoryBill{}
-	inventoryStatus.PartnerUid = body.PartnerUid
-	inventoryStatus.CourseUid = body.CourseUid
-	inventoryStatus.Code = billcode
-	inventoryStatus.ServiceId = body.ServiceId
-	inventoryStatus.ServiceName = body.ServiceName
-	inventoryStatus.BillStatus = billtype
-	inventoryStatus.UserUpdate = prof.UserName
-	inventoryStatus.UserExport = body.UserExport
-	inventoryStatus.ServiceExportId = body.SourceId
-	inventoryStatus.ServiceExportName = body.SourceName
-	inventoryStatus.Note = body.Note
-	inventoryStatus.OutputDate = body.OutputDate
+	inventoryBill := kiosk_inventory.InputInventoryBill{}
+	inventoryBill.PartnerUid = body.PartnerUid
+	inventoryBill.CourseUid = body.CourseUid
+	inventoryBill.Code = billcode
+	inventoryBill.ServiceId = body.ServiceId
+	inventoryBill.ServiceName = body.ServiceName
+	inventoryBill.BillStatus = billtype
+	inventoryBill.UserUpdate = prof.UserName
+	inventoryBill.UserExport = body.UserExport
+	inventoryBill.ServiceExportId = body.SourceId
+	inventoryBill.ServiceExportName = body.SourceName
+	inventoryBill.Note = body.Note
+	inventoryBill.OutputDate = body.OutputDate
 
 	quantity := 0
 
@@ -66,66 +65,27 @@ func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.Cms
 		inputItem.ServiceId = body.ServiceId
 		inputItem.ServiceName = body.ServiceName
 
-		goodsService := model_service.GroupServices{
-			GroupCode: data.GroupCode,
+		itemInfo, errItemInfo := getItemInfoInService(db, body.PartnerUid, body.CourseUid, data.ItemCode)
+
+		if errItemInfo != nil {
+			return errItemInfo
 		}
 
-		if errSer := validateItemCodeInService(db, goodsService.Type, data.ItemCode); errSer != nil {
-			return errSer
+		goodsService := model_service.GroupServices{
+			GroupCode: itemInfo.GroupCode,
 		}
 
 		if errFindGoodsService := goodsService.FindFirst(db); errFindGoodsService != nil {
 			return errFindGoodsService
 		}
 
-		var itemType = ""
-
-		if goodsService.Type == constants.GROUP_PROSHOP {
-			proshop := model_service.Proshop{
-				PartnerUid: body.PartnerUid,
-				CourseUid:  body.CourseUid,
-				ProShopId:  data.ItemCode,
-			}
-
-			if err := proshop.FindFirst(db); err != nil {
-				return errors.New(data.ItemCode + " không tìm thấy")
-			}
-			itemType = proshop.Type
-		} else if goodsService.Type == constants.GROUP_FB {
-			fb := model_service.FoodBeverage{
-				PartnerUid: body.PartnerUid,
-				CourseUid:  body.CourseUid,
-				FBCode:     data.ItemCode,
-			}
-
-			if err := fb.FindFirst(db); err != nil {
-				return errors.New(data.ItemCode + " không tìm thấy")
-			}
-			itemType = fb.Type
-		} else if goodsService.Type == constants.GROUP_RENTAL {
-			rental := model_service.Rental{
-				PartnerUid: body.PartnerUid,
-				CourseUid:  body.CourseUid,
-				RentalId:   data.ItemCode,
-			}
-
-			if err := rental.FindFirst(db); err != nil {
-				return errors.New(data.ItemCode + " không tìm thấy ")
-			}
-			itemType = rental.Type
-		}
-
-		if itemType == "" {
-			itemType = goodsService.SubType
-		}
-
 		inputItem.ItemInfo = kiosk_inventory.ItemInfo{
 			Price:     data.Price,
-			ItemName:  data.ItemName,
+			ItemName:  itemInfo.ItemName,
 			GroupName: goodsService.GroupName,
-			GroupType: itemType,
-			GroupCode: data.GroupCode,
-			Unit:      data.Unit,
+			GroupType: itemInfo.GroupType,
+			GroupCode: itemInfo.GroupCode,
+			Unit:      itemInfo.Unit,
 		}
 
 		inputItem.InputDate = time.Now().Format(constants.DATE_FORMAT_1)
@@ -137,8 +97,8 @@ func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.Cms
 		quantity += int(data.Quantity)
 	}
 
-	inventoryStatus.Quantity = int64(quantity)
-	err := inventoryStatus.Create(db)
+	inventoryBill.Quantity = int64(quantity)
+	err := inventoryBill.Create(db)
 	if err != nil {
 		return err
 	}
