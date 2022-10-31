@@ -374,3 +374,5 @@ const URL_CHECK_CRON = "cron-job/check-cron"
 const CRONJOB_PREFIX = "CRONJOB:"
 const GO_IN_WAITING = "IN_WAITING"
 const GO_IN_COURSE = "IN_COURSE"
+
+const CONS_INVOICE = "INV"
