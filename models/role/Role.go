@@ -4,6 +4,7 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -18,6 +19,11 @@ type Role struct {
 	Status      string `json:"status" gorm:"index;type:varchar(50)"`       // ENABLE, DISABLE, TESTING
 	Name        string `json:"name" gorm:"type:varchar(200)"`              // Name Role
 	Description string `json:"description" gorm:"type:varchar(200)"`       // description
+}
+
+type RoleDetail struct {
+	Role
+	Permissions utils.ListString `json:"permissions"`
 }
 
 // ======= CRUD ===========

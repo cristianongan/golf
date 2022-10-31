@@ -503,6 +503,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/role/list", middlewares.AuthorizedCmsUserHandler(cRole.GetListRole))
 			cmsApiAuthorized.PUT("/role/:id", middlewares.AuthorizedCmsUserHandler(cRole.UpdateRole))
 			cmsApiAuthorized.DELETE("/role/:id", middlewares.AuthorizedCmsUserHandler(cRole.DeleteRole))
+			cmsApiAuthorized.GET("/role/:id", middlewares.AuthorizedCmsUserHandler(cRole.GetRoleDetail))
 
 			/// =================== Booking Waiting =====================
 			cBookingWaiting := new(controllers.CBookingWaiting)
