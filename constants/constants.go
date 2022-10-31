@@ -312,6 +312,8 @@ const (
 
 const BILL_NONE = "NONE"
 
+const MEMBER_CONNECT_NONE = "NONE"
+
 const BOOKING_OTHER_FEE = "OTHER_FEE"
 
 const FEE_SEPARATE_CHAR = "/"
