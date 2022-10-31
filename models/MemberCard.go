@@ -299,7 +299,7 @@ func (item *MemberCard) FindList(database *gorm.DB, page Page, playerName string
 		queryStr = queryStr + " and member_cards.mc_type_id = " + strconv.Itoa(int(item.McTypeId))
 	}
 	if item.MemberConnect == constants.MEMBER_CONNECT_NONE {
-		queryStr = queryStr + " and member_connect <> ''"
+		queryStr = queryStr + " and member_cards.member_connect NOT LIKE ''"
 	}
 
 	queryStr = queryStr + ") tb0 "
