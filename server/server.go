@@ -6,7 +6,6 @@ import (
 	"start/datasources"
 
 	ccron "start/cron"
-	socket "start/socket"
 	// "start/datasources/aws"
 	// "start/datasources/elasticsearch"
 )
@@ -17,7 +16,7 @@ func Init() {
 	config := config.GetConfig()
 
 	// --- Socket ---
-	go socket.RunSocket(config.GetString("socket_port"))
+	// go socket.RunSocket(config.GetString("socket_port"))
 
 	// --- Cron ---
 	ccron.CronStart()

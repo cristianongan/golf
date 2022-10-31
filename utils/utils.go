@@ -406,13 +406,27 @@ func CheckHour(hour string, timeCheck time.Time) bool {
 func GetFeeFromListFee(feeList ListGolfHoleFee, hole int) int64 {
 	fee := int64(0)
 
+	roundedHole := roundHole(hole)
 	for _, feeModel := range feeList {
-		if feeModel.Hole == hole {
+		if feeModel.Hole == roundedHole {
 			fee = feeModel.Fee
 		}
 	}
 
 	return fee
+}
+
+func roundHole(hole int) int {
+	if hole > 0 && hole <= 2 {
+		return 0
+	} else if hole > 2 && hole <= 9 {
+		return 9
+	} else if hole > 9 && hole <= 18 {
+		return 18
+	} else if hole > 18 && hole <= 27 {
+		return 27
+	}
+	return 36
 }
 
 func IsDateValue(stringDate string) bool {
@@ -491,8 +505,9 @@ func GetFeeWidthHolePrice(feeList ListGolfHoleFee, hole int, formula string) int
 
 func CalculateFeeByHole(hole int, fee int64, rateRaw string) int64 {
 	re := regexp.MustCompile(`(\d[.]\d)|(\d)+`)
+	roundedHole := roundHole(hole)
 
-	index := (hole / 9) - 1
+	index := (roundedHole / 9) - 1
 	listRate := re.FindAllString(rateRaw, -1)
 
 	rate := listRate[index]
