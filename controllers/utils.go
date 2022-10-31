@@ -203,7 +203,7 @@ func getCustomerCategoryFromCustomerType(db *gorm.DB, cusType string) string {
 	customerType := models.CustomerType{
 		Type: cusType,
 	}
-	errFind := customerType.FindFirst(db)
+	errFind := customerType.FindFirst()
 	if errFind != nil {
 		log.Println("getCustomerCategoryFromCustomerType err", errFind.Error())
 		return constants.CUSTOMER_TYPE_CUSTOMER

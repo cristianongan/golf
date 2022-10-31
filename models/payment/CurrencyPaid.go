@@ -1,7 +1,7 @@
 package model_payment
 
 import (
-	"gorm.io/gorm"
+	"start/datasources"
 )
 
 // Currency Paid
@@ -11,23 +11,27 @@ type CurrencyPaid struct {
 	Rate     int64  `json:"rate"`                                    // Tỷ gía so với vnd đồng
 }
 
-func (item *CurrencyPaid) Create(db *gorm.DB) error {
+func (item *CurrencyPaid) Create() error {
+	db := datasources.GetDatabaseAuth()
 	return db.Create(item).Error
 }
 
-func (item *CurrencyPaid) Update(mydb *gorm.DB) error {
-	errUpdate := mydb.Save(item).Error
+func (item *CurrencyPaid) Update() error {
+	db := datasources.GetDatabaseAuth()
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *CurrencyPaid) FindFirst(db *gorm.DB) error {
+func (item *CurrencyPaid) FindFirst() error {
+	db := datasources.GetDatabaseAuth()
 	return db.Where(item).First(item).Error
 }
 
-func (item *CurrencyPaid) Count(db *gorm.DB) (int64, error) {
+func (item *CurrencyPaid) Count() (int64, error) {
+	db := datasources.GetDatabaseAuth()
 	db = db.Model(CurrencyPaid{})
 	total := int64(0)
 	db = db.Where(item)
@@ -35,7 +39,8 @@ func (item *CurrencyPaid) Count(db *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *CurrencyPaid) FindAll(db *gorm.DB) ([]CurrencyPaid, error) {
+func (item *CurrencyPaid) FindAll() ([]CurrencyPaid, error) {
+	db := datasources.GetDatabaseAuth()
 	db = db.Model(CurrencyPaid{})
 	list := []CurrencyPaid{}
 	db.Find(&list)

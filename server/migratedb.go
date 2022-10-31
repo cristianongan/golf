@@ -312,5 +312,6 @@ func MigrateDbAuth() {
 		db.AutoMigrate(&models.CmsUserToken{})
 		db.AutoMigrate(&models.Partner{})
 		db.AutoMigrate(&models.Course{})
+		db.AutoMigrate(&models.CustomerType{})
 	}
 }
