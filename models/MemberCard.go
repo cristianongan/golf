@@ -306,9 +306,7 @@ func (item *MemberCard) FindList(database *gorm.DB, page Page, playerName string
 	queryStr = queryStr + `LEFT JOIN member_card_types on tb0.mc_type_id = member_card_types.id
 	LEFT JOIN customer_users on tb0.owner_uid = customer_users.uid `
 
-	if item.MemberConnect == constants.MEMBER_CONNECT_NONE {
-		queryStr = queryStr + `LEFT JOIN customer_users as member_connect on tb0.member_connect = member_connect.uid `
-	}
+	queryStr = queryStr + `LEFT JOIN customer_users as member_connect on tb0.member_connect = member_connect.uid `
 
 	queryStr = queryStr + " LEFT JOIN (select * from annual_fees where annual_fees.partner_uid = " + `"` + item.PartnerUid + `"`
 	if item.CourseUid != "" {
