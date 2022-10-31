@@ -34,4 +34,5 @@ var ViLanguage = map[string]string{
 	"ROUND_NOT_FOUND":       "Không tìm thấy round này",
 	"GUEST_STYLE_NOT_FOUND": "Không tìm thấy guest style này",
 	"UPDATE_ERROR":          "Update error",
+	"BAG_NOT_IN_COURSE":     "Bag status is not in course",
 }

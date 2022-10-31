@@ -33,4 +33,5 @@ var EnLanguage = map[string]string{
 	"ROUND_NOT_FOUND":       "Round not found",
 	"GUEST_STYLE_NOT_FOUND": "Guest style not found",
 	"UPDATE_ERROR":          "Update error",
+	"BAG_NOT_IN_COURSE":     "Bag status is not in course",
 }
