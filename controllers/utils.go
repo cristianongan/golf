@@ -15,6 +15,7 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
+	kiosk_inventory "start/models/kiosk-inventory"
 	model_payment "start/models/payment"
 	model_service "start/models/service"
 	"start/utils"
@@ -1533,6 +1534,55 @@ func validateItemCodeInService(db *gorm.DB, serviceType string, itemCode string)
 	}
 	return nil
 }
+
+/*
+Get Item Info
+*/
+func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (kiosk_inventory.ItemInfo, error) {
+	proshop := model_service.Proshop{
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+		ProShopId:  itemCode,
+	}
+
+	if errFindProshop := proshop.FindFirst(db); errFindProshop == nil {
+		return kiosk_inventory.ItemInfo{
+			GroupCode: proshop.GroupCode,
+			ItemName:  proshop.Name,
+			Unit:      proshop.Unit,
+			GroupType: proshop.Type,
+		}, nil
+	}
+
+	fb := model_service.FoodBeverage{
+		FBCode: itemCode,
+	}
+
+	if err := fb.FindFirst(db); err == nil {
+		return kiosk_inventory.ItemInfo{
+			GroupCode: fb.GroupCode,
+			ItemName:  fb.Name,
+			Unit:      fb.Unit,
+			GroupType: fb.Type,
+		}, nil
+	}
+
+	rental := model_service.Rental{
+		RentalId: itemCode,
+	}
+
+	if err := rental.FindFirst(db); err == nil {
+		return kiosk_inventory.ItemInfo{
+			GroupCode: rental.GroupCode,
+			ItemName:  rental.Name,
+			Unit:      rental.Unit,
+			GroupType: rental.Type,
+		}, nil
+	}
+
+	return kiosk_inventory.ItemInfo{}, errors.New(fmt.Sprintln(itemCode, "not found"))
+}
+
 func newTrue(b bool) *bool {
 	boolVar := b
 	return &boolVar
