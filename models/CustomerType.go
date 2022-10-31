@@ -1,8 +1,9 @@
 package models
 
 import (
+	"start/datasources"
+
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 // Loại khách hàng
@@ -12,11 +13,13 @@ type CustomerType struct {
 	Category string `json:"category" gorm:"type:varchar(50)"` // CUSTOMER, AGENCY
 }
 
-func (item *CustomerType) Create(db *gorm.DB) error {
+func (item *CustomerType) Create() error {
+	db := datasources.GetDatabaseAuth()
 	return db.Create(item).Error
 }
 
-func (item *CustomerType) Update(db *gorm.DB) error {
+func (item *CustomerType) Update() error {
+	db := datasources.GetDatabaseAuth()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -24,11 +27,13 @@ func (item *CustomerType) Update(db *gorm.DB) error {
 	return nil
 }
 
-func (item *CustomerType) FindFirst(db *gorm.DB) error {
+func (item *CustomerType) FindFirst() error {
+	db := datasources.GetDatabaseAuth()
 	return db.Where(item).First(item).Error
 }
 
-func (item *CustomerType) Count(database *gorm.DB) (int64, error) {
+func (item *CustomerType) Count() (int64, error) {
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(CustomerType{})
 	total := int64(0)
 	db = db.Where(item)
@@ -36,14 +41,16 @@ func (item *CustomerType) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *CustomerType) FindAll(database *gorm.DB) ([]CustomerType, error) {
+func (item *CustomerType) FindAll() ([]CustomerType, error) {
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(CustomerType{})
 	list := []CustomerType{}
 	db.Find(&list)
 	return list, db.Error
 }
 
-func (item *CustomerType) FindList(database *gorm.DB,page Page) ([]CustomerType, int64, error) {
+func (item *CustomerType) FindList(page Page) ([]CustomerType, int64, error) {
+	database := datasources.GetDatabaseAuth()
 	db := database.Model(CustomerType{})
 	list := []CustomerType{}
 	total := int64(0)
@@ -56,7 +63,8 @@ func (item *CustomerType) FindList(database *gorm.DB,page Page) ([]CustomerType,
 	return list, total, db.Error
 }
 
-func (item *CustomerType) Delete(db *gorm.DB) error {
+func (item *CustomerType) Delete() error {
+	db := datasources.GetDatabaseAuth()
 	if item.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}

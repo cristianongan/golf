@@ -8,10 +8,30 @@ import (
 	"start/utils/response_message"
 	"strconv"
 
+	model_payment "start/models/payment"
+
 	"github.com/gin-gonic/gin"
 )
 
 type CSystem struct{}
+
+// Currency Paid
+func (_ *CSystem) GetListCurencyRate(c *gin.Context, prof models.CmsUser) {
+	currencyPaidGet := model_payment.CurrencyPaid{}
+
+	list, err := currencyPaidGet.FindAll()
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": len(list),
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
 
 // Nationality
 func (_ *CSystem) GetListNationality(c *gin.Context, prof models.CmsUser) {
@@ -33,10 +53,9 @@ func (_ *CSystem) GetListNationality(c *gin.Context, prof models.CmsUser) {
 
 // Category Type
 func (_ *CSystem) GetListCategoryType(c *gin.Context, prof models.CmsUser) {
-	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	cusTypesGet := models.CustomerType{}
 
-	list, err := cusTypesGet.FindAll(db)
+	list, err := cusTypesGet.FindAll()
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

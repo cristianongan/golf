@@ -4,15 +4,16 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 // Role
 type Role struct {
-	Id          int64  `gorm:"AUTO_INCREMENT:yes" sql:"bigint;not null;primary_key" json:"id"`
+	models.ModelId
 	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	Status      string `json:"status" gorm:"index;type:varchar(50)"`       // ENABLE, DISABLE, TESTING
@@ -20,17 +21,28 @@ type Role struct {
 	Description string `json:"description" gorm:"type:varchar(200)"`       // description
 }
 
+type RoleDetail struct {
+	Role
+	Permissions utils.ListString `json:"permissions"`
+}
+
 // ======= CRUD ===========
-func (item *Role) Create(db *gorm.DB) error {
+func (item *Role) Create() error {
+	db := datasources.GetDatabaseAuth()
 	if item.Status == "" {
 		item.Status = constants.STATUS_ENABLE
 	}
+
+	now := time.Now()
+	item.ModelId.CreatedAt = now.Unix()
+	item.ModelId.UpdatedAt = now.Unix()
 
 	return db.Create(item).Error
 }
 
 func (item *Role) Update() error {
 	db := datasources.GetDatabaseAuth()
+	item.ModelId.UpdatedAt = time.Now().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

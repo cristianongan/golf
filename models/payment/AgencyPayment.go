@@ -7,6 +7,7 @@ import (
 	"start/constants"
 	"start/models"
 	model_booking "start/models/booking"
+	"start/utils"
 	"strings"
 	"time"
 
@@ -160,6 +161,8 @@ func (item *AgencyPayment) Create(db *gorm.DB) error {
 
 	uid := uuid.New()
 	item.Model.Uid = uid.String()
+
+	item.Invoice = constants.CONS_INVOICE + "-" + utils.HashCodeUuid(item.Uid)
 
 	return db.Create(item).Error
 }

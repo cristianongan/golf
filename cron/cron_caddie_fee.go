@@ -37,7 +37,6 @@ func runReportCaddieFeeToDay() {
 
 	if err != nil {
 		log.Println("runCreateCaddieFeeOnDay err", err.Error())
-		return
 	}
 
 	for _, v := range listcaddies {
@@ -48,7 +47,6 @@ func runReportCaddieFeeToDay() {
 		errGC := groupCaddie.FindFirst(db)
 		if errGC != nil {
 			log.Println("Find frist group caddie", errGC.Error())
-			return
 		}
 
 		// get Date
@@ -64,7 +62,6 @@ func runReportCaddieFeeToDay() {
 		errCWS := caddieWorkingSchedule.FindFirst(db)
 		if errCWS != nil {
 			log.Println("Find frist caddie working schedule", errCWS.Error())
-			return
 		}
 
 		// get caddie fee group setting today
@@ -77,7 +74,6 @@ func runReportCaddieFeeToDay() {
 		err = caddieFeeGroupSetting.FindFirstByDate(db, date)
 		if err != nil {
 			log.Println("get caddie fee setting group err", err.Error())
-			return
 		}
 
 		// get list caddie setiing by group
@@ -89,7 +85,6 @@ func runReportCaddieFeeToDay() {
 		listCFSeting, err := caddieFeeSetting.FindAll(db)
 		if err != nil {
 			log.Println("get  list caddie fee setting err", err.Error())
-			return
 		}
 
 		caddieIONRequest := model_gostarter.CaddieBuggyInOut{}
@@ -98,7 +93,6 @@ func runReportCaddieFeeToDay() {
 
 		if err != nil {
 			log.Println("runCreateCaddieFeeOnDay err", err.Error())
-			return
 		}
 
 		// Create caddie fee
@@ -141,7 +135,6 @@ func runReportCaddieFeeToDay() {
 
 		if errCVC != nil {
 			log.Println("Find caddie vacation calendar err", err.Error())
-			return
 		}
 
 		if len(listItem) > 0 {
@@ -151,7 +144,6 @@ func runReportCaddieFeeToDay() {
 		err = caddieFee.Create(db)
 		if err != nil {
 			log.Println("Create report caddie err", err.Error())
-			return
 		}
 	}
 }

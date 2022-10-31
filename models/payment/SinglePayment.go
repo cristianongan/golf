@@ -158,6 +158,8 @@ func (item *SinglePayment) Create(db *gorm.DB) error {
 	uid := uuid.New()
 	item.Model.Uid = uid.String()
 
+	item.Invoice = constants.CONS_INVOICE + "-" + utils.HashCodeUuid(item.Uid)
+
 	return db.Create(item).Error
 }
 

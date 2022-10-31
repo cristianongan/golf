@@ -4,9 +4,9 @@ import (
 	"errors"
 	"log"
 	"start/controllers/request"
-	"start/datasources"
 	"start/models"
 	model_role "start/models/role"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -19,7 +19,6 @@ type CRole struct{}
 Create Role
 */
 func (_ *CRole) CreateRole(c *gin.Context, prof models.CmsUser) {
-	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.AddRoleBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -31,7 +30,7 @@ func (_ *CRole) CreateRole(c *gin.Context, prof models.CmsUser) {
 	role.PartnerUid = body.PartnerUid
 	role.CourseUid = body.CourseUid
 
-	errC := role.Create(db)
+	errC := role.Create()
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
 		return
@@ -198,4 +197,43 @@ func (_ *CRole) DeleteRole(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okRes(c)
+}
+
+/*
+Update Role
+*/
+func (_ *CRole) GetRoleDetail(c *gin.Context, prof models.CmsUser) {
+	roleIdStr := c.Param("id")
+	roleId, err := strconv.ParseInt(roleIdStr, 10, 64) // Nếu uid là int64 mới cần convert
+	if err != nil || roleId == 0 {
+		response_message.BadRequest(c, errors.New("id not valid").Error())
+		return
+	}
+
+	role := model_role.Role{}
+	role.Id = roleId
+	errF := role.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	// Get list permission
+	perR := model_role.RolePermission{
+		RoleId: role.Id,
+	}
+	listPer, errL := perR.FindAll()
+	listPerStr := utils.ListString{}
+	if errL != nil {
+		for _, v := range listPer {
+			listPerStr = append(listPerStr, v.PermissionUid)
+		}
+	}
+
+	roleDetail := model_role.RoleDetail{
+		Role:        role,
+		Permissions: listPerStr,
+	}
+
+	okResponse(c, roleDetail)
 }
