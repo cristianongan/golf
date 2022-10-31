@@ -37,9 +37,9 @@ type MemberCard struct {
 	CompanyId   int64  `json:"company_id" gorm:"index"`               // Id cong ty
 
 	//
-	AnnualType    string `json:"annual_type" gorm:"type:varchar(100)"`    // loại thường niên: UN_LIMITED (không giới hạn), LIMITED (chơi có giới hạn), SLEEP (thẻ ngủ).
-	MemberConnect string `json:"member_connect" gorm:"type:varchar(250)"` // link member
-	Relationship  string `json:"relationship" gorm:"type:varchar(100)"`   // Mối quan hệ của member: WIFE, HUSBAND, CHILD
+	AnnualType    string `json:"annual_type" gorm:"type:varchar(100)"`          // loại thường niên: UN_LIMITED (không giới hạn), LIMITED (chơi có giới hạn), SLEEP (thẻ ngủ).
+	MemberConnect string `json:"member_connect" gorm:"type:varchar(100);index"` // member connect uid
+	Relationship  string `json:"relationship" gorm:"type:varchar(100)"`         // Mối quan hệ của member: WIFE, HUSBAND, CHILD
 
 	PriceCode int64 `json:"price_code"` // 0|1 Check cái này có thì tính theo giá riêng -> theo cuộc họp suggest nên bỏ - Ko bỏ dc
 	GreenFee  int64 `json:"green_fee"`  // Phí sân cỏ
@@ -78,7 +78,7 @@ type MemberCardDetailRes struct {
 
 	//
 	AnnualType    string `json:"annual_type" gorm:"type:varchar(100)"`    // loại thường niên: UN_LIMITED (không giới hạn), LIMITED (chơi có giới hạn), SLEEP (thẻ ngủ).
-	MemberConnect string `json:"member_connect" gorm:"type:varchar(250)"` // link member
+	MemberConnect string `json:"member_connect" gorm:"type:varchar(250)"` // member uid
 	Relationship  string `json:"relationship" gorm:"type:varchar(100)"`   // Mối quan hệ của member: WIFE, HUSBAND, CHILD
 
 	PriceCode int64 `json:"price_code"` // Check cái này có thì tính theo giá riêng -> theo cuộc họp suggest nên bỏ - Ko bỏ dc
@@ -273,6 +273,11 @@ func (item *MemberCard) FindList(database *gorm.DB, page Page, playerName string
 	customer_users.identify as owner_identify,
 	customer_users.company_id as owner_company_id,
 	customer_users.company_name as owner_company_name,
+	member_connect.name as member_connect_name,
+	member_connect.email as member_connect_email,
+	member_connect.address1 as member_connect_address1,
+	member_connect.address2 as member_connect_address2,
+	member_connect.phone as member_connect_phone,
 	af.annual_quota_amount as annual_quota_amount,
 	af.total_paid as total_paid,
 	af.play_counts_add as play_counts_add
@@ -293,10 +298,17 @@ func (item *MemberCard) FindList(database *gorm.DB, page Page, playerName string
 	if item.McTypeId > 0 {
 		queryStr = queryStr + " and member_cards.mc_type_id = " + strconv.Itoa(int(item.McTypeId))
 	}
+	if item.MemberConnect == constants.MEMBER_CONNECT_NONE {
+		queryStr = queryStr + " and (member_connect IS NOT NULL OR member_connect <> '')"
+	}
 
 	queryStr = queryStr + ") tb0 "
 	queryStr = queryStr + `LEFT JOIN member_card_types on tb0.mc_type_id = member_card_types.id
 	LEFT JOIN customer_users on tb0.owner_uid = customer_users.uid `
+
+	if item.MemberConnect == constants.MEMBER_CONNECT_NONE {
+		queryStr = queryStr + `LEFT JOIN customer_users as member_connect on tb0.member_connect = member_connect.uid `
+	}
 
 	queryStr = queryStr + " LEFT JOIN (select * from annual_fees where annual_fees.partner_uid = " + `"` + item.PartnerUid + `"`
 	if item.CourseUid != "" {

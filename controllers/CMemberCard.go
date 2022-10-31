@@ -97,6 +97,14 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if mcType.Subject == constants.MEMBER_CARD_BASE_SUBJECT_FAMILY {
+		// Check customer ralation ship
+		owner.Uid = body.MemberConnect
+		errFind = owner.FindFirst(db)
+		if errFind != nil {
+			response_message.BadRequest(c, errFind.Error())
+			return
+		}
+
 		memberCard.MemberConnect = body.MemberConnect
 		memberCard.Relationship = body.Relationship
 	}
@@ -127,11 +135,12 @@ func (_ *CMemberCard) GetListMemberCard(c *gin.Context, prof models.CmsUser) {
 	}
 
 	memberCardR := models.MemberCard{
-		PartnerUid: form.PartnerUid,
-		CourseUid:  form.CourseUid,
-		McTypeId:   form.McTypeId,
-		OwnerUid:   form.OwnerUid,
-		CardId:     form.CardId,
+		PartnerUid:    form.PartnerUid,
+		CourseUid:     form.CourseUid,
+		McTypeId:      form.McTypeId,
+		OwnerUid:      form.OwnerUid,
+		CardId:        form.CardId,
+		MemberConnect: form.MemberConnect,
 	}
 	memberCardR.Status = form.Status
 	list, total, err := memberCardR.FindList(db, page, form.PlayerName)
