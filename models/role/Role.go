@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 // Role
@@ -28,7 +27,8 @@ type RoleDetail struct {
 }
 
 // ======= CRUD ===========
-func (item *Role) Create(db *gorm.DB) error {
+func (item *Role) Create() error {
+	db := datasources.GetDatabaseAuth()
 	if item.Status == "" {
 		item.Status = constants.STATUS_ENABLE
 	}

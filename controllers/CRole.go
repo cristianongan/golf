@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 	"start/controllers/request"
-	"start/datasources"
 	"start/models"
 	model_role "start/models/role"
 	"start/utils"
@@ -20,7 +19,6 @@ type CRole struct{}
 Create Role
 */
 func (_ *CRole) CreateRole(c *gin.Context, prof models.CmsUser) {
-	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.AddRoleBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -32,7 +30,7 @@ func (_ *CRole) CreateRole(c *gin.Context, prof models.CmsUser) {
 	role.PartnerUid = body.PartnerUid
 	role.CourseUid = body.CourseUid
 
-	errC := role.Create(db)
+	errC := role.Create()
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
 		return
