@@ -89,6 +89,7 @@ func NewRouter() *gin.Engine {
 			cSystem := new(controllers.CSystem)
 			cmsApiAuthorized.GET("/system/customer-type", middlewares.AuthorizedCmsUserHandler(cSystem.GetListCategoryType))
 			cmsApiAuthorized.GET("/system/nationality", middlewares.AuthorizedCmsUserHandler(cSystem.GetListNationality))
+			cmsApiAuthorized.GET("/system/currency-rate", middlewares.AuthorizedCmsUserHandler(cSystem.GetListCurencyRate))
 
 			// ----- Job -----
 			cmsApiAuthorized.POST("/system/job", middlewares.AuthorizedCmsUserHandler(cSystem.CreateJob))
@@ -503,6 +504,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/role/list", middlewares.AuthorizedCmsUserHandler(cRole.GetListRole))
 			cmsApiAuthorized.PUT("/role/:id", middlewares.AuthorizedCmsUserHandler(cRole.UpdateRole))
 			cmsApiAuthorized.DELETE("/role/:id", middlewares.AuthorizedCmsUserHandler(cRole.DeleteRole))
+			cmsApiAuthorized.GET("/role/:id", middlewares.AuthorizedCmsUserHandler(cRole.GetRoleDetail))
 
 			/// =================== Booking Waiting =====================
 			cBookingWaiting := new(controllers.CBookingWaiting)
