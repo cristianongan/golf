@@ -83,6 +83,8 @@ func (item *Role) FindList(page models.Page) ([]Role, int64, error) {
 		}
 	}
 
+	db = db.Where("id >= ?", 0)
+
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
