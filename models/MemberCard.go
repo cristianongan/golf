@@ -278,6 +278,9 @@ func (item *MemberCard) FindList(database *gorm.DB, page Page, playerName string
 	member_connect.address1 as member_connect_address1,
 	member_connect.address2 as member_connect_address2,
 	member_connect.phone as member_connect_phone,
+	report_customer_plays.total_paid as report_total_paid,
+	report_customer_plays.total_play_count as report_total_play_count,
+	report_customer_plays.total_hour_play_count as report_total_hour_play_count,
 	af.annual_quota_amount as annual_quota_amount,
 	af.total_paid as total_paid,
 	af.play_counts_add as play_counts_add
@@ -307,6 +310,8 @@ func (item *MemberCard) FindList(database *gorm.DB, page Page, playerName string
 	LEFT JOIN customer_users on tb0.owner_uid = customer_users.uid `
 
 	queryStr = queryStr + `LEFT JOIN customer_users as member_connect on tb0.member_connect = member_connect.uid `
+
+	queryStr = queryStr + `LEFT JOIN report_customer_plays on tb0.owner_uid = report_customer_plays.customer_uid `
 
 	queryStr = queryStr + " LEFT JOIN (select * from annual_fees where annual_fees.partner_uid = " + `"` + item.PartnerUid + `"`
 	if item.CourseUid != "" {

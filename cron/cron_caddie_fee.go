@@ -103,7 +103,6 @@ func runReportCaddieFeeToDay() {
 		caddieFee.BookingDate = now
 		caddieFee.CaddieCode = v.Code
 		caddieFee.CaddieName = v.Name
-		caddieFee.IsDayOff = false
 
 		if len(listCaddieION) > 0 {
 			for _, item := range listCaddieION {
@@ -120,7 +119,7 @@ func runReportCaddieFeeToDay() {
 
 		idDayOff := true
 		if caddieWorkingSchedule.IsDayOff == &idDayOff {
-			caddieFee.IsDayOff = true
+			caddieFee.IsDayOff = caddieWorkingSchedule.IsDayOff
 			caddieFee.Note = "Tăng cường"
 		}
 

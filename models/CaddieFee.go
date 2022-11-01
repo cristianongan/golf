@@ -22,7 +22,7 @@ type CaddieFee struct {
 	Round       int64  `json:"round"`                                      // số round
 	Amount      int64  `json:"amount"`                                     // tổng số tiền
 	Note        string `json:"note" gorm:"type:varchar(256)"`              // note
-	IsDayOff    bool   `json:"is_day_off"`
+	IsDayOff    *bool  `json:"is_day_off"`
 	TotalAmount int64  `json:"total_amount"` // tông số tiền trong 1 tháng
 }
 
@@ -94,6 +94,8 @@ func (item *CaddieFee) FindAll(database *gorm.DB, month string) ([]CaddieFee, in
 	if month != "" {
 		db = db.Where("DATE_FORMAT(STR_TO_DATE(booking_date, '%d/%m/%Y'), '%Y-%m') = ?", month)
 	}
+
+	db.Group("caddie_id")
 
 	db.Count(&total)
 
