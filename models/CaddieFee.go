@@ -95,6 +95,8 @@ func (item *CaddieFee) FindAll(database *gorm.DB, month string) ([]CaddieFee, in
 		db = db.Where("DATE_FORMAT(STR_TO_DATE(booking_date, '%d/%m/%Y'), '%Y-%m') = ?", month)
 	}
 
+	db.Group("booking_date")
+
 	db.Count(&total)
 
 	db = db.Find(&list)
