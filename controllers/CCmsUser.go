@@ -222,8 +222,17 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	passw, errDec := utils.DecryptAES([]byte(config.GetPassSecretKey()), body.Password)
+
+	if errDec != nil {
+		response_message.BadRequest(c, errDec.Error())
+		return
+	}
+
+	log.Println("CreateCmsUser descypt pass", passw)
+
 	//verify password
-	eightOrMore, number, upper, special := utils.VerifyPassword(body.Password)
+	eightOrMore, number, upper, special := utils.VerifyPassword(passw)
 	if !eightOrMore || !number || !upper || !special {
 		response_message.BadRequest(c, "Mật khẩu ít nhất 8 ký tự, kết hợp các ký tự: Chữ, Số, Ký tự đặc biệt")
 		return
@@ -258,7 +267,7 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 		RoleId:     body.RoleId,
 	}
 
-	hashPass, errHash := utils.GeneratePassword(body.Password)
+	hashPass, errHash := utils.GeneratePassword(passw)
 	if errHash != nil {
 		response_message.BadRequest(c, errHash.Error())
 		return

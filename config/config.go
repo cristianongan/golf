@@ -206,3 +206,8 @@ func GetCronJobPageLimit() int {
 func GetPaymentSecretKey() string {
 	return config.GetString("payment_secret_key")
 }
+
+// =============== Get Pass SecretKey ========================
+func GetPassSecretKey() string {
+	return config.GetString("aes_pass_secret_key")
+}
