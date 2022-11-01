@@ -46,9 +46,7 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 	// Check check_sum
 	amountStr := strconv.FormatInt(body.Amount, 10)
 	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.PaymentType + "|" + body.BillCode + "|" + amountStr + "|" + body.BookingUid + "|" + body.DateStr
-	log.Println("CreateSinglePayment checkSumMessage ", checkSumMessage)
 	checkSum := utils.GetSHA256Hash(checkSumMessage)
-	log.Println("CreateSinglePayment checkSum ", checkSum)
 
 	if checkSum != body.CheckSum {
 		response_message.BadRequest(c, "checksum invalid")
@@ -189,9 +187,7 @@ func (_ *CPayment) GetListSinglePayment(c *gin.Context, prof models.CmsUser) {
 
 	// Checksum
 	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.PartnerUid + "|" + body.CourseUid + "|" + body.PaymentDate + "|" + body.Bag + "|" + body.PlayerName + "|" + body.PaymentStatus
-	log.Println("GetListPayment checkSumMessage ", checkSumMessage)
 	checkSum := utils.GetSHA256Hash(checkSumMessage)
-	log.Println("GetListPayment checkSum ", checkSum)
 
 	if checkSum != body.CheckSum {
 		response_message.BadRequest(c, "checksum invalid")
@@ -240,9 +236,7 @@ func (_ *CPayment) UpdateSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 
 	// Check check_sum
 	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BookingUid + "|" + body.SinglePaymentItemUid + "|" + body.DateStr
-	log.Println("UpdateSinglePayment checkSumMessage ", checkSumMessage)
 	checkSum := utils.GetSHA256Hash(checkSumMessage)
-	log.Println("UpdateSinglePayment checkSum ", checkSum)
 
 	if checkSum != body.CheckSum {
 		response_message.BadRequest(c, "checksum invalid")
@@ -282,9 +276,7 @@ func (_ *CPayment) GetListSinglePaymentDetail(c *gin.Context, prof models.CmsUse
 
 	// Checksum
 	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BillCode + "|" + body.Bag
-	log.Println("GetListSinglePaymentDetail checkSumMessage ", checkSumMessage)
 	checkSum := utils.GetSHA256Hash(checkSumMessage)
-	log.Println("GetListSinglePaymentDetail checkSum ", checkSum)
 
 	if checkSum != body.CheckSum {
 		response_message.BadRequest(c, "checksum invalid")
@@ -326,9 +318,7 @@ func (_ *CPayment) DeleteSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 
 	// Check check_sum
 	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BillCode + "|" + body.Bag
-	log.Println("DeleteSinglePaymentItem checkSumMessage ", checkSumMessage)
 	checkSum := utils.GetSHA256Hash(checkSumMessage)
-	log.Println("DeleteSinglePaymentItem checkSum ", checkSum)
 
 	if checkSum != body.CheckSum {
 		response_message.BadRequest(c, "checksum invalid")
@@ -376,9 +366,7 @@ func (_ *CPayment) GetListAgencyPayment(c *gin.Context, prof models.CmsUser) {
 
 	// Checksum
 	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.PartnerUid + "|" + body.CourseUid + "|" + body.PaymentDate + "|" + body.AgencyName + "|" + body.PaymentStatus
-	log.Println("GetListAgencyPayment checkSumMessage ", checkSumMessage)
 	checkSum := utils.GetSHA256Hash(checkSumMessage)
-	log.Println("GetListAgencyPayment checkSum ", checkSum)
 
 	if checkSum != body.CheckSum {
 		response_message.BadRequest(c, "checksum invalid")
@@ -426,9 +414,7 @@ func (_ *CPayment) CreateAgencyPaymentItem(c *gin.Context, prof models.CmsUser) 
 	// Check check_sum
 	amountStr := strconv.FormatInt(body.Amount, 10)
 	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.PaymentType + "|" + body.AgencyPaymentUid + "|" + amountStr + "|" + body.BookingCode + "|" + body.DateStr
-	log.Println("CreateAgencyPaymentItem checkSumMessage ", checkSumMessage)
 	checkSum := utils.GetSHA256Hash(checkSumMessage)
-	log.Println("CreateAgencyPaymentItem checkSum ", checkSum)
 
 	if checkSum != body.CheckSum {
 		response_message.BadRequest(c, "checksum invalid")
@@ -482,9 +468,7 @@ func (_ *CPayment) DeleteAgencyPaymentItem(c *gin.Context, prof models.CmsUser) 
 
 	// Check check_sum
 	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BookingCode + "|" + body.AgencyPaymentItemUid
-	log.Println("DeleteAgencyPaymentItem checkSumMessage ", checkSumMessage)
 	checkSum := utils.GetSHA256Hash(checkSumMessage)
-	log.Println("DeleteAgencyPaymentItem checkSum ", checkSum)
 
 	if checkSum != body.CheckSum {
 		response_message.BadRequest(c, "checksum invalid")
@@ -527,9 +511,7 @@ func (_ *CPayment) GetListAgencyPaymentItem(c *gin.Context, prof models.CmsUser)
 
 	// Checksum
 	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.PartnerUid + "|" + body.CourseUid + "|" + body.BookingCode + "|" + body.PaymentUid
-	log.Println("GetListAgencyPaymentItem checkSumMessage ", checkSumMessage)
 	checkSum := utils.GetSHA256Hash(checkSumMessage)
-	log.Println("GetListAgencyPaymentItem checkSum ", checkSum)
 
 	if checkSum != body.CheckSum {
 		response_message.BadRequest(c, "checksum invalid")
