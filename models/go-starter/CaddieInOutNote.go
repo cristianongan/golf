@@ -17,16 +17,17 @@ type CaddieBuggyInOut struct {
 	BookingUid string `json:"booking_uid" gorm:"type:varchar(50);index"`  // Ex: Booking Uid
 	// BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
 	// Bag            string `json:"bag" gorm:"type:varchar(100);index"`         // Golf Bag
-	CaddieId       int64  `json:"caddie_id" gorm:"index"` // Caddie Id
-	CaddieCode     string `json:"caddie_code" gorm:"type:varchar(256)"`
-	BuggyId        int64  `json:"buggy_id"`                            // Buggy Id
-	BuggyCode      string `json:"buggy_code" gorm:"type:varchar(100)"` // Buggy Code
-	Note           string `json:"note" gorm:"type:varchar(500)"`       // note
-	CaddieType     string `json:"caddie_type"`                         // Type: IN(undo), OUT, CHANGE
-	BuggyType      string `json:"buggy_type"`                          // Type: IN(undo), OUT, CHANGE
-	Hole           int    `json:"hole"`
-	BagShareBuggy  string `json:"bag_share_buggy" gorm:"type:varchar(100)"` // Bag đi chung với buggy
-	IsPrivateBuggy *bool  `json:"is_private_buggy" gorm:"default:0"`        // Bag có dùng buggy riêng không
+	CaddieId        int64  `json:"caddie_id" gorm:"index"` // Caddie Id
+	CaddieCode      string `json:"caddie_code" gorm:"type:varchar(256)"`
+	BuggyId         int64  `json:"buggy_id"`                            // Buggy Id
+	BuggyCode       string `json:"buggy_code" gorm:"type:varchar(100)"` // Buggy Code
+	Note            string `json:"note" gorm:"type:varchar(500)"`       // note
+	CaddieType      string `json:"caddie_type"`                         // Type: IN(undo), OUT, CHANGE
+	BuggyType       string `json:"buggy_type"`                          // Type: IN(undo), OUT, CHANGE
+	Hole            int    `json:"hole"`
+	BagShareBuggy   string `json:"bag_share_buggy" gorm:"type:varchar(100)"`   // Bag đi chung với buggy
+	IsPrivateBuggy  *bool  `json:"is_private_buggy" gorm:"default:0"`          // Bag có dùng buggy riêng không
+	BuggyCommonCode string `json:"buggy_common_code" gorm:"type:varchar(100)"` // Đánh dấu record có chung buggy
 }
 
 type CaddieBuggyInOutWithBooking struct {
@@ -185,6 +186,7 @@ func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB,
 		db = db.Where("bookings.booking_date = ?", date)
 	}
 
+	db = db.Group("caddie_buggy_in_outs.buggy_common_code")
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

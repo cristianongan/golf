@@ -34,11 +34,12 @@ type CreateFlightBody struct {
 }
 
 type CaddieBuggyToBooking struct {
-	Bag            string `json:"bag"`
-	CaddieCode     string `json:"caddie_code"`
-	BuggyCode      string `json:"buggy_code"`
-	IsPrivateBuggy bool   `json:"is_private_buggy"`
-	BagShare       string
+	Bag             string `json:"bag"`
+	CaddieCode      string `json:"caddie_code"`
+	BuggyCode       string `json:"buggy_code"`
+	IsPrivateBuggy  bool   `json:"is_private_buggy"`
+	BagShare        string
+	BuggyCommonCode string
 }
 
 type OutCaddieBody struct {
