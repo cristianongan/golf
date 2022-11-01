@@ -713,11 +713,22 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(db *gorm.DB) {
 
 	//Udp current Bag price
 	priceDetail := BookingCurrentBagPriceDetail{}
+	priceDetail.GolfFee = totalGolfFee
 
 	if isConFR >= 0 {
-		//TODO: Có thể phải check cho case nhiều round
-		priceDetail.GolfFee = 0
+		round1 := models.Round{BillCode: item.BillCode, Index: 1}
+		if err := round1.FindFirst(db); err == nil {
+			priceDetail.GolfFee = item.CurrentBagPrice.GolfFee - (round1.BuggyFee + round1.CaddieFee + round1.GreenFee)
+		}
 	}
+
+	if isConNR >= 0 {
+		round2 := models.Round{BillCode: item.BillCode, Index: 2}
+		if err := round2.FindFirst(db); err == nil {
+			priceDetail.GolfFee = item.CurrentBagPrice.GolfFee - (round2.BuggyFee + round2.CaddieFee + round2.GreenFee)
+		}
+	}
+
 	for _, serviceItem := range item.ListServiceItems {
 		isCon := utils.ContainString(listPay, serviceItem.Type)
 		if isCon < 0 {
