@@ -222,6 +222,13 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//verify password
+	eightOrMore, number, upper, special := utils.VerifyPassword(body.Password)
+	if !eightOrMore || !number || !upper || !special {
+		response_message.BadRequest(c, "Mật khẩu ít nhất 8 ký tự, kết hợp các ký tự: Chữ, Số, Ký tự đặc biệt")
+		return
+	}
+
 	partner := models.Partner{}
 	partner.Uid = body.PartnerUid
 	errFind := partner.FindFirst()
@@ -250,6 +257,14 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 		CourseUid:  body.CourseUid,
 		RoleId:     body.RoleId,
 	}
+
+	hashPass, errHash := utils.GeneratePassword(body.Password)
+	if errHash != nil {
+		response_message.BadRequest(c, errHash.Error())
+		return
+	}
+	cmsUser.Password = hashPass
+	cmsUser.LoggedIn = true
 
 	errCreate := cmsUser.Create()
 	if errCreate != nil {

@@ -8,6 +8,7 @@ type CreateCmsUserBody struct {
 	PartnerUid string `json:"partner_uid" binding:"required"`
 	CourseUid  string `json:"course_uid"`
 	RoleId     int64  `json:"role_id"`
+	Password   string `json:"password" binding:"required"`
 }
 
 type LoginBody struct {
