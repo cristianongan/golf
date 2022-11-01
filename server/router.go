@@ -624,6 +624,9 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/restaurant/time-set-up", middlewares.AuthorizedCmsUserHandler(cRestaurantSetup.UpdateRestaurantTimeSetup))
 			cmsApiAuthorized.DELETE("/restaurant/time-set-up/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantSetup.DeleteRestaurantTimeSetup))
 
+			/// =================== Dashbord ===================
+			cReportDashboard := new(controllers.CReportDashboard)
+			cmsApiAuthorized.GET("/report/booking-status-on-day", middlewares.AuthorizedCmsUserHandler(cReportDashboard.GetReportBookingStatusOnDay))
 		}
 
 		// ----------------------------------------------------------

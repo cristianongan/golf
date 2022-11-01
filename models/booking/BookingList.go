@@ -50,6 +50,7 @@ type BookingList struct {
 	PlayerOrBag           string
 	NotPrivateBuggy       bool
 	CustomerUid           string
+	IsGroupBillCode       bool
 }
 
 func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
@@ -232,6 +233,11 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 
 	if isGroupBillCode {
 		db = db.Group("bill_code")
+	}
+
+	if item.IsGroupBillCode {
+		db = db.Group("bill_code")
+		db = db.Order("created_at desc")
 	}
 
 	return db
