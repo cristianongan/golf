@@ -287,6 +287,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		agencyBooking := cloneToAgencyBooking(agency)
 		booking.AgencyInfo = agencyBooking
 		booking.AgencyId = body.AgencyId
+		booking.CustomerType = agency.Type
 
 		if booking.MemberCardUid == "" {
 			// Nếu có cả member card thì ưu tiên giá member card
@@ -354,7 +355,9 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			return nil, errGS
 		}
 
-		booking.CustomerType = golfFeeModel.CustomerType
+		if booking.CustomerType == "" {
+			booking.CustomerType = golfFeeModel.CustomerType
+		}
 
 		// Lấy phí bởi Guest style với ngày tạo
 		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)
