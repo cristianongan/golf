@@ -76,12 +76,19 @@ func (item *Role) FindList(page models.Page) ([]Role, int64, error) {
 	if status != "" {
 		db = db.Where("status IN (?)", strings.Split(status, ","))
 	}
-	if item.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", item.PartnerUid)
+
+	if item.PartnerUid != "" && item.PartnerUid != constants.ROOT_PARTNER_UID {
+		if item.PartnerUid != "" {
+			db = db.Where("partner_uid = ?", item.PartnerUid)
+		}
 	}
+
+	db = db.Where("id >= ?", 0)
+
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
+
 	if item.Name != "" {
 		db = db.Where("name LIKE ?", "%"+item.Name+"%")
 	}
