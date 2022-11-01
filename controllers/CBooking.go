@@ -398,6 +398,10 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		cBooking.UpdateBookingCaddieCommon(db, body.PartnerUid, body.CourseUid, &booking, caddie)
 	}
 
+	if body.CustomerName != "" {
+		booking.CustomerName = body.CustomerName
+	}
+
 	if body.LockerNo != "" {
 		booking.LockerNo = body.LockerNo
 		go createLocker(db, booking)

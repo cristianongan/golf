@@ -224,7 +224,7 @@ func (_ *CRole) GetRoleDetail(c *gin.Context, prof models.CmsUser) {
 	}
 	listPer, errL := perR.FindAll()
 	listPerStr := utils.ListString{}
-	if errL != nil {
+	if errL == nil {
 		for _, v := range listPer {
 			listPerStr = append(listPerStr, v.PermissionUid)
 		}

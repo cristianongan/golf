@@ -462,6 +462,10 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 					log.Println("OutAllFlight err book udp ", errUdp.Error())
 				}
 
+				// Update lại giá của Round theo số hố
+				cRound := CRound{}
+				go cRound.UpdateListFeePriceInBookingAndRound(c, db, booking, booking.GuestStyle, body.GuestHoles)
+
 				// Update giờ chơi nếu khách là member
 				if booking.MemberCardUid != "" {
 					go updateReportTotalHourPlayCountForCustomerUser(booking, booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
@@ -522,10 +526,17 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 	}
 
 	if len(bookingResponse) == 0 {
-		response_message.BadRequest(c, "Not Found Bag")
+		response_message.BadRequest(c, "Bag Not Found")
 		return
 	}
+
 	booking := bookingResponse[0]
+
+	// if booking.BagStatus != constants.BAG_STATUS_IN_COURSE {
+	// 	response_message.BadRequestDynamicKey(c, "BAG_NOT_IN_COURSE", "")
+	// 	return
+	// }
+
 	errOut := udpOutCaddieBooking(db, &booking)
 	if errBuggy := udpOutBuggy(db, &booking, false); errBuggy != nil {
 		log.Println("SimpleOutFlight err book udp ", errBuggy.Error())
@@ -541,6 +552,10 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 		if errUdp != nil {
 			log.Println("SimpleOutFlight err book udp ", errUdp.Error())
 		}
+
+		// Update lại giá của Round theo số hố
+		cRound := CRound{}
+		go cRound.UpdateListFeePriceInBookingAndRound(c, db, booking, booking.GuestStyle, body.GuestHoles)
 
 		// Update giờ chơi nếu khách là member
 		if booking.MemberCardUid != "" {

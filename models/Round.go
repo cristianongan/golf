@@ -84,7 +84,7 @@ func (item *Round) CountWithBillCode(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *Round) FindList(database *gorm.DB,page Page) ([]Round, int64, error) {
+func (item *Round) FindList(database *gorm.DB, page Page) ([]Round, int64, error) {
 	db := database.Model(Round{})
 	list := []Round{}
 	total := int64(0)
@@ -114,6 +114,11 @@ func (item *Round) FindAll(database *gorm.DB) ([]Round, error) {
 	db = db.Find(&list)
 
 	return list, db.Error
+}
+
+func (item *Round) LastRound(database *gorm.DB) error {
+	db := database.Order("created_at desc")
+	return db.Where(item).First(item).Error
 }
 
 func (item *Round) Delete(db *gorm.DB) error {
