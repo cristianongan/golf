@@ -929,7 +929,6 @@ func (item *Booking) FindFirst(database *gorm.DB) error {
 
 func (item *Booking) FindFirstWithJoin(database *gorm.DB) error {
 	db := database.Order("created_at desc")
-	db = db.Preload("CaddieBuggyInOut")
 	return db.Where(item).First(item).Error
 }
 

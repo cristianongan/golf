@@ -539,7 +539,7 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 		booking.BookingDate = toDayDate
 	}
 
-	errF := booking.FindFirstWithJoin(db)
+	errF := booking.FindFirst(db)
 	if errF != nil {
 		// response_message.InternalServerError(c, errF.Error())
 		response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
