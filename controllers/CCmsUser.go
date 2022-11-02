@@ -199,9 +199,8 @@ func (_ *CCmsUser) GetList(c *gin.Context, prof models.CmsUser) {
 	cmsUserR := models.CmsUser{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
-		UserName:   form.UserName,
 	}
-	list, total, err := cmsUserR.FindList(page)
+	list, total, err := cmsUserR.FindList(page, form.Search)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -302,7 +301,7 @@ func (_ *CCmsUser) UpdateCmsUser(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	body := request.CreateCmsUserBody{}
+	body := request.UdpCmsUserBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return

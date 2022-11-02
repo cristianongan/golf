@@ -65,7 +65,7 @@ func (_ *CCaddieBookingList) GetCaddieBookingList(c *gin.Context, prof models.Cm
 			result[item.CaddieId] = make(map[string]interface{})
 			caddie := models.Caddie{}
 			caddie.Id = item.CaddieId
-			if err := caddie.FindFirst(db); err == nil {
+			if err := caddie.FindFirst(datasources.GetDatabaseWithPartner(prof.PartnerUid)); err == nil {
 				result[item.CaddieId]["caddie_info"] = caddie
 			}
 		}

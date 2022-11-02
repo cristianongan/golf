@@ -138,6 +138,16 @@ type BagDetail struct {
 	//ListServiceItems ListBookingServiceItems `json:"list_service_items,omitempty"`
 }
 
+type GolfFeeOfBag struct {
+	BagDetail
+	ListRoundOfSubBag []RoundOfBag `json:"list_round_of_sub_bag"`
+}
+
+type RoundOfBag struct {
+	Bag    string           `json:"bag"`
+	Rounds models.ListRound `json:"rounds"`
+}
+
 type BookingForListServiceIems struct {
 	PartnerUid       string               `json:"partner_uid"`                                                              // Hang Golf
 	CourseUid        string               `json:"course_uid"`                                                               // San Golf

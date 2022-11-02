@@ -546,9 +546,15 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	res := getBagDetailFromBooking(db, booking)
+	bagDetail := getBagDetailFromBooking(db, booking)
 
-	okResponse(c, res)
+	if form.HasRoundOfSubBag == "1" {
+		res := GetGolfFeeInfoOfBag(c, booking, bagDetail)
+		okResponse(c, res)
+		return
+	}
+
+	okResponse(c, bagDetail)
 }
 
 /*
