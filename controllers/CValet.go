@@ -91,28 +91,31 @@ func (_ *CValet) AddBagCaddieBuggyToBooking(c *gin.Context, prof models.CmsUser)
 }
 func AddCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingUid, bookingDate, bag, caddieCode, buggyCode string, isPrivateBuggy bool) (error, response.AddCaddieBuggyToBookingRes) {
 	// Get booking
-	bookingValidateBag := model_booking.Booking{
-		PartnerUid:  partnerUid,
-		CourseUid:   courseUid,
-		BookingDate: bookingDate,
-		Bag:         bag,
-	}
-
-	err := bookingValidateBag.FindFirst(db)
-	if err == nil {
-		errTitle := fmt.Sprintln(bag, "đã được ghép")
-		return errors.New(errTitle), response.AddCaddieBuggyToBookingRes{}
-	}
-
-	// Get booking
 	booking := model_booking.Booking{}
 	booking.Uid = bookingUid
 
 	errBooking := booking.FindFirst(db)
 	if errBooking != nil {
-		return err, response.AddCaddieBuggyToBookingRes{}
+		return errBooking, response.AddCaddieBuggyToBookingRes{}
 	}
-	booking.Bag = bag
+
+	//Check nếu booking chưa đc ghép bag
+	if booking.Bag == "" {
+		bookingValidateBag := model_booking.Booking{
+			PartnerUid:  partnerUid,
+			CourseUid:   courseUid,
+			BookingDate: bookingDate,
+			Bag:         bag,
+		}
+
+		err := bookingValidateBag.FindFirst(db)
+		if err == nil {
+			errTitle := fmt.Sprintln(bag, "đã được ghép")
+			return errors.New(errTitle), response.AddCaddieBuggyToBookingRes{}
+		}
+
+		booking.Bag = bag
+	}
 
 	response := response.AddCaddieBuggyToBookingRes{}
 	//get old caddie
