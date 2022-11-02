@@ -335,14 +335,14 @@ func getInitListGolfFeeWithOutGuestStyleForAddRound(booking *model_booking.Booki
 /*
 Update fee when action round
 */
-func updateListGolfFeeWithRound(db *gorm.DB, round *models.Round, booking model_booking.Booking, hole int) {
+func updateListGolfFeeWithRound(db *gorm.DB, round *models.Round, booking model_booking.Booking, guestStyle string, hole int) {
 	// Check giá guest style
-	if booking.GuestStyle != "" {
+	if guestStyle != "" {
 		//Guest style
 		golfFeeModel := models.GolfFee{
 			PartnerUid: booking.PartnerUid,
 			CourseUid:  booking.CourseUid,
-			GuestStyle: booking.GuestStyle,
+			GuestStyle: guestStyle,
 		}
 		// Lấy phí bởi Guest style với ngày tạo
 		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)

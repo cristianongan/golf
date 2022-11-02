@@ -315,6 +315,10 @@ type BookingMushPay struct {
 	TotalServiceItem int64 `json:"total_service_item"`
 }
 
+func (item *BookingMushPay) UpdateAmount() {
+	item.MushPay = item.TotalGolfFee + item.TotalServiceItem
+}
+
 func (item *BookingMushPay) Scan(v interface{}) error {
 	return json.Unmarshal(v.([]byte), item)
 }

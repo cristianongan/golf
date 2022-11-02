@@ -186,7 +186,7 @@ func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB,
 		db = db.Where("bookings.booking_date = ?", date)
 	}
 
-	db = db.Group("caddie_buggy_in_outs.buggy_common_code")
+	// db = db.Group("caddie_buggy_in_outs.buggy_common_code")
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
