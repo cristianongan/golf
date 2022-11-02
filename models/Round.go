@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"log"
 	"start/constants"
 	"strings"
 	"time"
@@ -108,12 +107,11 @@ func (item *Round) FindAll(database *gorm.DB) ([]Round, error) {
 	db := database.Model(Round{})
 	list := []Round{}
 
-	log.Println("GET BY-BAG", item.BillCode)
 	if item.BillCode != "" {
 		db = db.Where("bill_code = ?", item.BillCode)
 	}
 	db = db.Order("created_at asc")
-	db = db.Debug().Find(&list)
+	db = db.Find(&list)
 
 	return list, db.Error
 }
