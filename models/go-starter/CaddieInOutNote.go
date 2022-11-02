@@ -80,7 +80,7 @@ func (item *CaddieBuggyInOut) FindAllCaddieInOutNotes(database *gorm.DB, date st
 	list := []CaddieBuggyInOut{}
 
 	if item.CaddieId != 0 {
-		db = db.Where("caddie_id = ?", constants.STATUS_OUT)
+		db = db.Where("caddie_id = ?", item.CaddieId)
 	}
 
 	db = db.Where("caddie_type = ?", constants.STATUS_OUT)
