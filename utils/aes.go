@@ -2,7 +2,7 @@ package utils
 
 import (
 	"crypto/aes"
-	"encoding/hex"
+	base64 "encoding/base64"
 	"fmt"
 )
 
@@ -17,11 +17,13 @@ func EncryptAES(key []byte, plaintext string) (string, error) {
 
 	c.Encrypt(out, []byte(plaintext))
 
-	return hex.EncodeToString(out), nil
+	// return hex.EncodeToString(out), nil
+	return base64.RawURLEncoding.EncodeToString(out), nil
 }
 
 func DecryptAES(key []byte, ct string) (string, error) {
-	ciphertext, errDecode := hex.DecodeString(ct)
+	// ciphertext, errDecode := hex.DecodeString(ct)
+	ciphertext, errDecode := base64.StdEncoding.DecodeString(ct)
 	if errDecode != nil {
 		return "", errDecode
 	}
