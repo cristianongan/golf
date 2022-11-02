@@ -206,3 +206,8 @@ func GetCronJobPageLimit() int {
 func GetPaymentSecretKey() string {
 	return config.GetString("payment_secret_key")
 }
+
+// =============== Get URL Golf Partner ========================
+func GetGolfPartnerURL() string {
+	return config.GetString("golf_partner.url")
+}
