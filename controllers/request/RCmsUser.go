@@ -28,5 +28,5 @@ type GetListCmsUserForm struct {
 	PageRequest
 	CourseUid  string `form:"course_uid"`
 	PartnerUid string `form:"partner_uid"`
-	UserName   string `form:"user_name"`
+	Search     string `form:"search"`
 }

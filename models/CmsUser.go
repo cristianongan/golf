@@ -104,7 +104,7 @@ func (item *CmsUser) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *CmsUser) FindList(page Page) ([]CmsUser, int64, error) {
+func (item *CmsUser) FindList(page Page, search string) ([]CmsUser, int64, error) {
 	db := datasources.GetDatabaseAuth().Model(CmsUser{})
 	list := []CmsUser{}
 	total := int64(0)
@@ -120,8 +120,8 @@ func (item *CmsUser) FindList(page Page) ([]CmsUser, int64, error) {
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
-	if item.UserName != "" {
-		db = db.Where("user_name LIKE ?", "%"+item.UserName+"%")
+	if search != "" {
+		db = db.Where("user_name LIKE ?", "%"+search+"%").Or("full_name LIKE ?", "%"+search+"%")
 	}
 
 	db.Count(&total)
