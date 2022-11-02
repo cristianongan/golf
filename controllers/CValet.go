@@ -112,9 +112,9 @@ func AddCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingUid, boo
 	if errBooking != nil {
 		return err, response.AddCaddieBuggyToBookingRes{}
 	}
+	booking.Bag = bag
 
 	response := response.AddCaddieBuggyToBookingRes{}
-
 	//get old caddie
 	if booking.CaddieId > 0 {
 		oldCaddie := models.Caddie{}
