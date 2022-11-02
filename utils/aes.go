@@ -21,7 +21,10 @@ func EncryptAES(key []byte, plaintext string) (string, error) {
 }
 
 func DecryptAES(key []byte, ct string) (string, error) {
-	ciphertext, _ := hex.DecodeString(ct)
+	ciphertext, errDecode := hex.DecodeString(ct)
+	if errDecode != nil {
+		return "", errDecode
+	}
 
 	c, err := aes.NewCipher(key)
 	if err != nil {
