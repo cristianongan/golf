@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"log"
+	"start/callservices"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -198,6 +199,64 @@ func (_ *CCaddieWorkingTime) UpdateCaddieWorkingTime(c *gin.Context, prof models
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	okRes(c)
+}
+
+func (_ *CCaddieWorkingTime) GetListCaddieWorkingTime(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	form := request.GetListCaddieWorkingTimeBody{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	caddie := models.Caddie{}
+	caddie.PartnerUid = form.PartnerUid
+	caddie.CourseUid = form.CourseUid
+	caddie.Name = form.CaddieName
+	caddie.Code = form.CaddieId
+
+	list, total, err := caddie.FindList(db, page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	listData := make([]map[string]interface{}, len(list))
+
+	for i, data := range list {
+		//find detail working of caddie in week
+		body := request.GetDetalCaddieWorkingSyncBody{}
+		body.PartnerUid = form.PartnerUid
+		body.CourseUid = form.CourseUid
+		body.EmployeeId = "A1"
+		body.Week = form.Week
+
+		_, listWorking := callservices.GetDetailCaddieWorking(body)
+
+		// Add infor to response
+		listData[i] = map[string]interface{}{
+			"caddie_infor":  data,
+			"working_times": listWorking.Data,
+		}
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  listData,
+	}
+
+	c.JSON(200, res)
 
 	okRes(c)
 }

@@ -57,6 +57,9 @@
         "ssl":false,
         "get_data_host": "https://minio.vntaxi.net/"
     },
+    "golf_partner": {
+        "url": "https://golf-staging-api.vngolf.net/golf-partner/"
+    },
     "payment_secret_key": "KedL44Y6EX7rELdDfQUcim6uM6Ni5xNnCUqZ6IG4cXTgm7FIAH",
     "aes_pass_secret_key": "KujEOYTVLtdfNopHmVnuTjEiZyqAmZpV"
   

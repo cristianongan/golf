@@ -143,7 +143,7 @@ func (item *Caddie) FindList(database *gorm.DB, page Page) ([]Caddie, int64, err
 		db = db.Where("working_status = ?", item.WorkingStatus)
 	}
 	if item.Code != "" {
-		db = db.Where("code = ?", item.Code)
+		db = db.Where("code LIKE ?", "%"+item.Code+"%")
 	}
 	if item.Level != "" {
 		db = db.Where("level = ?", item.Level)
