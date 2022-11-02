@@ -11,6 +11,13 @@ type CreateCmsUserBody struct {
 	Password   string `json:"password" binding:"required"`
 }
 
+type UdpCmsUserBody struct {
+	FullName string `json:"full_name"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
+	RoleId   int64  `json:"role_id"`
+}
+
 type LoginBody struct {
 	UserName string `json:"user_name" binding:"required"`
 	Password string `json:"password" binding:"required"`

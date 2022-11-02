@@ -302,7 +302,7 @@ func (_ *CCmsUser) UpdateCmsUser(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	body := request.CreateCmsUserBody{}
+	body := request.UdpCmsUserBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
