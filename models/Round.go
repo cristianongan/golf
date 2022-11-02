@@ -111,7 +111,7 @@ func (item *Round) FindAll(database *gorm.DB) ([]Round, error) {
 		db = db.Where("bill_code = ?", item.BillCode)
 	}
 	db = database.Order("created_at asc")
-	db = db.Find(&list)
+	db = db.Debug().Find(&list)
 
 	return list, db.Error
 }
