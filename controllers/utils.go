@@ -1189,6 +1189,7 @@ func getBagDetailFromBooking(db *gorm.DB, booking model_booking.Booking) model_b
 	}
 
 	// Get Rounds
+	log.Println("GET BY-BAG", booking.BillCode)
 	if booking.BillCode != "" {
 		round := models.Round{BillCode: booking.BillCode}
 		listRound, _ := round.FindAll(db)
