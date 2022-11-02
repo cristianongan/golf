@@ -70,6 +70,7 @@ type GetListBookingWithSelectForm struct {
 	HasBuggy        string  `form:"has_buggy"`
 	HasCaddie       string  `form:"has_caddie"`
 	CustomerUid     string  `form:"customer_uid"`
+	CustomerType    string  `form:"customer_type"`
 }
 
 type GetListBookingWithListServiceItems struct {

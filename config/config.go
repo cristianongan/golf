@@ -211,3 +211,8 @@ func GetPaymentSecretKey() string {
 func GetGolfPartnerURL() string {
 	return config.GetString("golf_partner.url")
 }
+
+// =============== Get Pass SecretKey ========================
+func GetPassSecretKey() string {
+	return config.GetString("aes_pass_secret_key")
+}

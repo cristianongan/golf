@@ -315,6 +315,10 @@ type BookingMushPay struct {
 	TotalServiceItem int64 `json:"total_service_item"`
 }
 
+func (item *BookingMushPay) UpdateAmount() {
+	item.MushPay = item.TotalGolfFee + item.TotalServiceItem
+}
+
 func (item *BookingMushPay) Scan(v interface{}) error {
 	return json.Unmarshal(v.([]byte), item)
 }
@@ -925,7 +929,6 @@ func (item *Booking) FindFirst(database *gorm.DB) error {
 
 func (item *Booking) FindFirstWithJoin(database *gorm.DB) error {
 	db := database.Order("created_at desc")
-	db = db.Preload("CaddieBuggyInOut")
 	return db.Where(item).First(item).Error
 }
 

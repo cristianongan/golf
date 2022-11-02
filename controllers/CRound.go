@@ -100,7 +100,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		}
 
 		// Update giá
-		cRound.UpdateListFeePriceInRound(c, db, &booking, &round, hole)
+		cRound.UpdateListFeePriceInRound(c, db, &booking, booking.GuestStyle, &round, hole)
 		// Update lại bag_status của booking cũ
 		booking.AddedRound = newTrue(true)
 		booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
@@ -137,17 +137,17 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 
 	okResponse(c, res)
 }
-func (cRound CRound) GetFeeOfRound(c *gin.Context, db *gorm.DB, booking *model_booking.Booking, hole int) (int64, int64, int64, error) {
+func (cRound CRound) GetFeeOfRound(c *gin.Context, db *gorm.DB, booking *model_booking.Booking, guestStyle string, hole int) (int64, int64, int64, error) {
 	caddieFee := int64(0)
 	buggyFee := int64(0)
 	greenFee := int64(0)
 
-	if booking.GuestStyle != "" {
+	if guestStyle != "" {
 		//Guest style
 		golfFeeModel := models.GolfFee{
 			PartnerUid: booking.PartnerUid,
 			CourseUid:  booking.CourseUid,
-			GuestStyle: booking.GuestStyle,
+			GuestStyle: guestStyle,
 		}
 		// Lấy phí bởi Guest style với ngày tạo
 		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)
@@ -209,8 +209,8 @@ func (cRound CRound) GetFeeOfRound(c *gin.Context, db *gorm.DB, booking *model_b
 	return caddieFee, buggyFee, greenFee, nil
 }
 
-func (cRound CRound) UpdateListFeePriceInRound(c *gin.Context, db *gorm.DB, booking *model_booking.Booking, round *models.Round, hole int) {
-	caddieFee, buggyFee, greenFee, err := cRound.GetFeeOfRound(c, db, booking, hole)
+func (cRound CRound) UpdateListFeePriceInRound(c *gin.Context, db *gorm.DB, booking *model_booking.Booking, guestStyle string, round *models.Round, hole int) {
+	caddieFee, buggyFee, greenFee, err := cRound.GetFeeOfRound(c, db, booking, guestStyle, hole)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -342,8 +342,8 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 	currentRound.Hole = currentRound.Hole - newRound.Hole
 
 	// Update giá cho current round và new round
-	updateListGolfFeeWithRound(db, &currentRound, booking, currentRound.Hole)
-	updateListGolfFeeWithRound(db, &newRound, booking, newRound.Hole)
+	updateListGolfFeeWithRound(db, &currentRound, booking, currentRound.GuestStyle, currentRound.Hole)
+	updateListGolfFeeWithRound(db, &newRound, booking, newRound.GuestStyle, newRound.Hole)
 
 	errUpdate := currentRound.Update(db)
 	if errUpdate != nil {
@@ -453,12 +453,12 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	validate := validator.New()
+	// validate := validator.New()
 
-	if err := validate.Struct(body); err != nil {
-		response_message.BadRequest(c, "Body format type error")
-		return
-	}
+	// if err := validate.Struct(body); err != nil {
+	// 	response_message.BadRequest(c, "Body format type error")
+	// 	return
+	// }
 
 	booking, err = cRound.validateBooking(db, body.BookingUid)
 	if err != nil {
@@ -469,25 +469,17 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	round := models.Round{BillCode: booking.BillCode}
 	listRound, _ := round.FindAll(db)
 
+	if len(listRound) < 2 {
+		response_message.BadRequestDynamicKey(c, "MERGE_ROUND_NOT_ENOUGH", "")
+		return
+	}
 	// create round
 	totalHoles := slices.Reduce(listRound, func(prev int, item models.Round) int {
 		return prev + item.Hole
 	})
 
 	// Update giá cho current round và new round
-	updateListGolfFeeWithRound(db, &round, booking, totalHoles)
-
-	// update fee booking
-	totalPayChange := round.BuggyFee + round.CaddieFee + round.CaddieFee
-
-	booking.ListGolfFee[0].BuggyFee = round.BuggyFee
-	booking.ListGolfFee[0].CaddieFee = round.CaddieFee
-	booking.ListGolfFee[0].GreenFee = round.GreenFee
-
-	booking.MushPayInfo.MushPay += totalPayChange
-	booking.MushPayInfo.TotalGolfFee += totalPayChange
-	booking.CurrentBagPrice.Amount += totalPayChange
-	booking.CurrentBagPrice.GolfFee += totalPayChange
+	caddieFee, buggyFee, greenFee, _ := cRound.GetFeeOfRound(c, db, &booking, listRound[0].GuestStyle, totalHoles)
 
 	newRound := models.Round{}
 	newRound.Index = 0
@@ -495,11 +487,32 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	newRound.Bag = booking.Bag
 	newRound.PartnerUid = booking.PartnerUid
 	newRound.CourseUid = booking.CourseUid
-	newRound.GuestStyle = booking.GuestStyle
+	newRound.GuestStyle = listRound[0].GuestStyle
 	newRound.Hole = totalHoles
 	newRound.MemberCardUid = booking.MemberCardUid
 	newRound.TeeOffTime = booking.CheckInTime
+	newRound.CaddieFee = caddieFee
+	newRound.BuggyFee = buggyFee
+	newRound.GreenFee = greenFee
 	newRound.Pax = 1
+
+	if errCreateRound := newRound.Create(db); errCreateRound != nil {
+		response_message.BadRequest(c, errCreateRound.Error())
+		return
+	}
+
+	// update fee booking
+	totalPayChange := buggyFee + caddieFee + greenFee
+
+	booking.ListGolfFee[0].BuggyFee = buggyFee
+	booking.ListGolfFee[0].CaddieFee = caddieFee
+	booking.ListGolfFee[0].GreenFee = greenFee
+
+	booking.MushPayInfo.TotalGolfFee = totalPayChange
+	booking.MushPayInfo.UpdateAmount()
+
+	booking.CurrentBagPrice.GolfFee = totalPayChange
+	booking.CurrentBagPrice.UpdateAmount()
 
 	err = booking.Update(db)
 	if err != nil {
@@ -617,7 +630,7 @@ func (cRound CRound) ChangeGuestyleOfRound(c *gin.Context, prof models.CmsUser) 
 	round.GuestStyle = body.GuestStyle
 
 	// Update giá
-	cRound.UpdateListFeePriceInRound(c, db, &booking, &round, round.Hole)
+	cRound.UpdateListFeePriceInRound(c, db, &booking, body.GuestStyle, &round, round.Hole)
 
 	okResponse(c, round)
 }
@@ -638,6 +651,6 @@ func (cRound CRound) UpdateListFeePriceInBookingAndRound(c *gin.Context, db *gor
 
 		// Update lại giá của Round theo số hố
 		cRound := CRound{}
-		cRound.UpdateListFeePriceInRound(c, db, &booking, &round, hole)
+		cRound.UpdateListFeePriceInRound(c, db, &booking, round.GuestStyle, &round, hole)
 	}
 }

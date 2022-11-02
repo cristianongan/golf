@@ -287,6 +287,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		agencyBooking := cloneToAgencyBooking(agency)
 		booking.AgencyInfo = agencyBooking
 		booking.AgencyId = body.AgencyId
+		booking.CustomerType = agency.Type
 
 		if booking.MemberCardUid == "" {
 			// Nếu có cả member card thì ưu tiên giá member card
@@ -354,7 +355,9 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			return nil, errGS
 		}
 
-		booking.CustomerType = golfFeeModel.CustomerType
+		if booking.CustomerType == "" {
+			booking.CustomerType = golfFeeModel.CustomerType
+		}
 
 		// Lấy phí bởi Guest style với ngày tạo
 		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)
@@ -536,7 +539,7 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 		booking.BookingDate = toDayDate
 	}
 
-	errF := booking.FindFirstWithJoin(db)
+	errF := booking.FindFirst(db)
 	if errF != nil {
 		// response_message.InternalServerError(c, errF.Error())
 		response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
@@ -692,6 +695,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.GuestStyleName = form.GuestStyleName
 	bookings.PlayerOrBag = form.PlayerOrBag
 	bookings.CustomerUid = form.CustomerUid
+	bookings.CustomerType = form.CustomerType
 
 	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
 

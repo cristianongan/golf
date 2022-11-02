@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"start/constants"
 	"start/controllers/request"
@@ -166,8 +167,19 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 				if item1.Bag != item2.Bag && item2.BuggyCode == item1.BuggyCode {
 					countBuggy += 1
 					body.ListData[index].BagShare = item2.Bag
+					if item2.BuggyCommonCode != "" {
+						body.ListData[index].BuggyCommonCode = item2.BuggyCommonCode
+					} else {
+						body.ListData[index].BuggyCommonCode = fmt.Sprint(time.Now().UnixNano())
+					}
 				}
 			}
+		}
+	}
+
+	for index, _ := range body.ListData {
+		if body.ListData[index].BuggyCommonCode == "" {
+			body.ListData[index].BuggyCommonCode = fmt.Sprint(time.Now().UnixNano())
 		}
 	}
 
@@ -202,9 +214,10 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		}
 
 		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
-			PartnerUid: bookingTemp.PartnerUid,
-			CourseUid:  bookingTemp.CourseUid,
-			BookingUid: bookingTemp.Uid,
+			PartnerUid:      bookingTemp.PartnerUid,
+			CourseUid:       bookingTemp.CourseUid,
+			BookingUid:      bookingTemp.Uid,
+			BuggyCommonCode: v.BuggyCommonCode,
 		}
 
 		if caddieTemp.Id > 0 {
@@ -979,6 +992,8 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		BagStatus:   constants.BAG_STATUS_IN_COURSE,
 	}
 
+	buggyCommonCode := fmt.Sprint(time.Now().UnixNano())
+
 	// Tìm kiếm booking đang sử dụng buggy
 	db1, _, _ := bookingR.FindAllBookingList(db)
 	bookingList := []model_booking.Booking{}
@@ -987,16 +1002,17 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 
 	if len(bookingList) > 0 {
 		bagShare = bookingList[0].Bag
-		newCaddieInOut := model_gostarter.CaddieBuggyInOut{
+		newCaddieBuggyInOut := model_gostarter.CaddieBuggyInOut{
 			PartnerUid: bookingList[0].PartnerUid,
 			CourseUid:  bookingList[0].CourseUid,
 			BookingUid: bookingList[0].Uid,
 		}
 
-		list, total, _ := newCaddieInOut.FindOrderByDateList(db)
+		list, total, _ := newCaddieBuggyInOut.FindOrderByDateList(db)
 		if total > 0 {
 			lastItem := list[0]
 			lastItem.BagShareBuggy = booking.Bag
+			lastItem.BuggyCommonCode = buggyCommonCode
 			if err := lastItem.Update(db1); err != nil {
 				response_message.InternalServerError(c, err.Error())
 				return
@@ -1005,15 +1021,16 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 	}
 	// Udp Note
 	caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
-		PartnerUid:     prof.PartnerUid,
-		CourseUid:      prof.CourseUid,
-		BookingUid:     booking.Uid,
-		BuggyId:        booking.BuggyId,
-		BuggyCode:      booking.BuggyInfo.Code,
-		BuggyType:      constants.STATUS_IN,
-		IsPrivateBuggy: &body.IsPrivateBuggy,
-		BagShareBuggy:  bagShare,
-		Note:           "",
+		PartnerUid:      prof.PartnerUid,
+		CourseUid:       prof.CourseUid,
+		BookingUid:      booking.Uid,
+		BuggyId:         booking.BuggyId,
+		BuggyCode:       booking.BuggyInfo.Code,
+		BuggyType:       constants.STATUS_IN,
+		IsPrivateBuggy:  &body.IsPrivateBuggy,
+		BagShareBuggy:   bagShare,
+		BuggyCommonCode: buggyCommonCode,
+		Note:            "",
 	}
 
 	go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
