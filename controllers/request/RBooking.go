@@ -23,19 +23,20 @@ type GetListBookingSettingForm struct {
 
 type GetListBookingForm struct {
 	PageRequest
-	PartnerUid  string `form:"partner_uid"`
-	CourseUid   string `form:"course_uid"`
-	Bag         string `form:"bag"`
-	From        int64  `form:"from"`
-	To          int64  `form:"to"`
-	BookingDate string `form:"booking_date"`
-	BookingCode string `form:"booking_code"`
-	AgencyId    int64  `form:"agency_id"`
-	BagStatus   string `form:"bag_status"`
-	PlayerName  string `form:"player_name"`
-	FlightId    int64  `form:"flight_id"`
-	AgencyType  string `form:"agency_type"`
-	TeeTime     string `form:"tee_time"`
+	PartnerUid       string `form:"partner_uid"`
+	CourseUid        string `form:"course_uid"`
+	Bag              string `form:"bag"`
+	From             int64  `form:"from"`
+	To               int64  `form:"to"`
+	BookingDate      string `form:"booking_date"`
+	BookingCode      string `form:"booking_code"`
+	AgencyId         int64  `form:"agency_id"`
+	BagStatus        string `form:"bag_status"`
+	PlayerName       string `form:"player_name"`
+	FlightId         int64  `form:"flight_id"`
+	AgencyType       string `form:"agency_type"`
+	TeeTime          string `form:"tee_time"`
+	HasRoundOfSubBag string `form:"has_round_of_sub_bag"`
 }
 
 type GetListBookingWithSelectForm struct {
