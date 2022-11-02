@@ -106,11 +106,11 @@ func (item *Round) FindList(database *gorm.DB, page Page) ([]Round, int64, error
 func (item *Round) FindAll(database *gorm.DB) ([]Round, error) {
 	db := database.Model(Round{})
 	list := []Round{}
-	item.Status = ""
 
 	if item.BillCode != "" {
 		db = db.Where("bill_code = ?", item.BillCode)
 	}
+	db = database.Order("created_at asc")
 	db = db.Find(&list)
 
 	return list, db.Error
