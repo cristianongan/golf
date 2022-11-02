@@ -571,7 +571,16 @@ func RandomCharNumber(length int) string {
 	return id
 }
 
-func VerifyPassword(s string) (eightOrMore, number, upper, special bool) {
+func VerifyPassword(s string) (bool, bool, bool, bool) {
+	eightOrMore := false
+	number := false
+	upper := false
+	special := false
+
+	if len(s) >= 8 {
+		eightOrMore = true
+	}
+
 	letters := 0
 	for _, c := range s {
 		switch {
@@ -588,6 +597,6 @@ func VerifyPassword(s string) (eightOrMore, number, upper, special bool) {
 			//return false, false, false, false
 		}
 	}
-	eightOrMore = letters >= 8
-	return
+	// eightOrMore = letters >= 8
+	return eightOrMore, number, upper, special
 }
