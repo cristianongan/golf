@@ -176,7 +176,7 @@ func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB,
 		db = db.Where("caddie_buggy_in_outs.caddie_code = ?", item.CaddieCode)
 	}
 	if item.BuggyCode != "" || bag != "" {
-		db = db.Where("caddie_buggy_in_outs.buggy_code = ? OR bookings.bag = ? OR caddie_buggy_in_outs.bag_share_buggy = ?", item.BuggyCode, bag, bag)
+		db = db.Where("caddie_buggy_in_outs.buggy_code LIKE ? OR bookings.bag LIKE ?", "%"+item.BuggyCode+"%", "%"+bag+"%")
 	}
 	if shareBuggy != nil {
 		db = db.Where("bookings.is_private_buggy = ?", *shareBuggy)
