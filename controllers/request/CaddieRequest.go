@@ -41,6 +41,7 @@ type GetListCaddieForm struct {
 	ContractStatus    string `form:"contract_status"`
 	CurrentStatus     string `form:"current_status"`
 	IsReadyForJoin    string `form:"is_ready_for_join"`
+	IsBooked          string `form:"is_booked"`
 }
 
 type GetListCaddieReady struct {

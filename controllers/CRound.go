@@ -107,14 +107,14 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		go booking.Update(db)
 
 		//Update mush pay, current bag
-		if len(booking.ListGolfFee) > 0 {
-			totalPayChange := booking.ListGolfFee[0].CaddieFee + booking.ListGolfFee[0].BuggyFee + booking.ListGolfFee[0].GreenFee
+		// if len(booking.ListGolfFee) > 0 {
+		// 	totalPayChange := round.CaddieFee + round.BuggyFee + round.GreenFee
 
-			booking.MushPayInfo.MushPay += totalPayChange
-			booking.MushPayInfo.TotalGolfFee += totalPayChange
-			booking.CurrentBagPrice.Amount += totalPayChange
-			booking.CurrentBagPrice.GolfFee += totalPayChange
-		}
+		// 	booking.MushPayInfo.MushPay += totalPayChange
+		// 	booking.MushPayInfo.TotalGolfFee += totalPayChange
+		// 	booking.CurrentBagPrice.Amount += totalPayChange
+		// 	booking.CurrentBagPrice.GolfFee += totalPayChange
+		// }
 
 		// Tạo booking mới khi add round
 		newBooking = cloneToBooking(booking)
@@ -295,7 +295,8 @@ func (cRound CRound) UpdateListFeePriceInRound(c *gin.Context, db *gorm.DB, book
 			}
 		}
 	}
-
+	booking.UpdatePriceDetailCurrentBag(db)
+	booking.UpdateMushPay(db)
 	go booking.Update(db)
 }
 

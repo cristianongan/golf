@@ -814,6 +814,12 @@ func (item *Booking) UpdatePriceDetailCurrentBag(db *gorm.DB) {
 	if len(item.ListGolfFee) > 0 {
 		priceDetail.GolfFee = item.ListGolfFee[0].BuggyFee + item.ListGolfFee[0].CaddieFee + item.ListGolfFee[0].GreenFee
 	}
+
+	// Xét lại giá PriceCurrentBag khi có Main Bag Pay
+	if len(item.MainBags) > 0 {
+		item.CheckPriceCurrentBagHaveMainBagPay(db, &priceDetail)
+	}
+
 	item.FindServiceItems(db)
 	for _, serviceItem := range item.ListServiceItems {
 		if serviceItem.BillCode == item.BillCode {
@@ -836,6 +842,36 @@ func (item *Booking) UpdatePriceDetailCurrentBag(db *gorm.DB) {
 	priceDetail.UpdateAmount()
 
 	item.CurrentBagPrice = priceDetail
+}
+
+func (item *Booking) CheckPriceCurrentBagHaveMainBagPay(db *gorm.DB, priceDetail *BookingCurrentBagPriceDetail) {
+	mainBook := Booking{}
+	mainBook.Uid = item.MainBags[0].BookingUid
+	errFMB := mainBook.FindFirst(db)
+	if errFMB != nil {
+		log.Println("UpdatePriceForBagHaveMainBags errFMB", errFMB.Error())
+		return
+	}
+	listPay := mainBook.MainBagPay
+
+	// Check xem main bag có trả golf fee cho sub bag không
+	// Check thanh toán first round
+	isConFR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+	// Check thanh toán next round
+	isConNR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
+	if isConFR >= 0 {
+		round1 := models.Round{BillCode: item.BillCode, Index: 1}
+		if err := round1.FindFirst(db); err == nil {
+			priceDetail.GolfFee -= (round1.BuggyFee + round1.CaddieFee + round1.GreenFee)
+		}
+	}
+
+	if isConNR >= 0 {
+		round2 := models.Round{BillCode: item.BillCode, Index: 2}
+		if err := round2.FindFirst(db); err == nil {
+			priceDetail.GolfFee -= (round2.BuggyFee + round2.CaddieFee + round2.GreenFee)
+		}
+	}
 }
 
 // Check Duplicated

@@ -28,6 +28,7 @@ type CaddieList struct {
 	IsReadyForJoin        string
 	ContractStatus        string
 	CurrentStatus         string
+	IsBooked              string
 }
 
 type CaddieRes struct {
@@ -75,7 +76,19 @@ func addFilter(db *gorm.DB, item *CaddieList) *gorm.DB {
 	}
 
 	if item.CurrentStatus != "" {
-		db = db.Where("current_status = ?", item.CurrentStatus)
+		status := strings.Split(item.CurrentStatus, ",")
+		db = db.Where("current_status in (?)", status)
+	}
+
+	if item.IsBooked == "1" {
+		caddieStatus := []string{
+			constants.CADDIE_CURRENT_STATUS_LOCK,
+			constants.CADDIE_CURRENT_STATUS_IN_COURSE,
+			constants.CADDIE_CURRENT_STATUS_IN_COURSE_R2,
+			constants.CADDIE_CURRENT_STATUS_IN_COURSE_R3,
+		}
+
+		db = db.Where("current_status IN (?) ", caddieStatus)
 	}
 
 	if item.IsInGroup != "" {
