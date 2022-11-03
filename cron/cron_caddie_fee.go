@@ -111,6 +111,7 @@ func runReportCaddieFeeToDay() {
 				// create caddie fee
 				for _, cfs := range listCFSeting {
 					if cfs.Hole >= item.Hole && item.Hole > 0 {
+						caddieFee.Hole += item.Hole
 						caddieFee.Amount += cfs.Fee
 						caddieFee.Round += 1
 						break
