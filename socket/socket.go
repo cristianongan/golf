@@ -2,15 +2,48 @@ package socket
 
 import (
 	"log"
+	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	socketio "github.com/googollee/go-socket.io"
-	cors "github.com/rs/cors/wrapper/gin"
+	// "github.com/rs/cors"
 )
+
+func Allow(c *gin.Context) {
+
+	if string(c.Request.Method) == http.MethodOptions {
+		c.Request.Header.Add("Vary", "Origin")
+		c.Request.Header.Add("Vary", "Access-Control-Allow-Methods")
+		c.Request.Header.Add("Vary", "Access-Control-Allow-Headers")
+		c.Request.Header.Set("Access-Control-Allow-Origin", "*")
+		c.Request.Header.Set("Access-Control-Allow-Methods", "*")
+		c.Request.Header.Set("Access-Control-Allow-Headers", "*")
+		return
+	}
+
+	respWriter := &respBodyWriter{body: &strings.Builder{}, ResponseWriter: c.Writer}
+	c.Writer = respWriter
+	respWriter.Header().Add("Vary", "Origin")
+	respWriter.Header().Set("Access-Control-Allow-Origin", "*")
+	respWriter.Header().Set("Access-Control-Allow-Headers", "*")
+
+	c.Next()
+}
+
+type respBodyWriter struct {
+	gin.ResponseWriter
+	body *strings.Builder
+}
+
+func (w respBodyWriter) Write(b []byte) (int, error) {
+	w.body.Write(b)
+	return w.ResponseWriter.Write(b)
+}
 
 func RunSocket(port string) {
 	router := gin.New()
-	router.Use(cors.AllowAll())
+	router.Use(Allow) // Để login từ localhost
 	server := socketio.NewServer(nil)
 
 	server.OnConnect("/", func(s socketio.Conn) error {
