@@ -18,11 +18,11 @@ func (item *DepositList) FindList(database *gorm.DB, page Page) ([]Deposit, int6
 	db := database.Model(Deposit{})
 
 	if item.CustomerIdentity != "" {
-		db = db.Where("customer_identity = ?", item.CustomerIdentity)
+		db = db.Where("customer_identity LIKE  ?", "%"+item.CustomerIdentity+"%")
 	}
 
 	if item.CustomerPhone != "" {
-		db = db.Where("customer_phone = ?", item.CustomerPhone)
+		db = db.Where("customer_phone LIKE ?", "%"+item.CustomerPhone+"%")
 	}
 
 	if item.CustomerStyle != "" {

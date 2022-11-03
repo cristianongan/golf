@@ -52,11 +52,13 @@ func runReportCaddieFeeToDay() {
 		// get Date
 		dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, now)
 		applyDate := datatypes.Date(dateConvert)
+		idDayOff := true
 
 		// get caddie work sechedule
 		caddieWorkingSchedule := models.CaddieWorkingSchedule{
 			CaddieGroupCode: groupCaddie.Code,
 			ApplyDate:       &(applyDate),
+			IsDayOff:        &idDayOff,
 		}
 
 		errCWS := caddieWorkingSchedule.FindFirst(db)
@@ -109,6 +111,7 @@ func runReportCaddieFeeToDay() {
 				// create caddie fee
 				for _, cfs := range listCFSeting {
 					if cfs.Hole >= item.Hole && item.Hole > 0 {
+						caddieFee.Hole += item.Hole
 						caddieFee.Amount += cfs.Fee
 						caddieFee.Round += 1
 						break
@@ -117,8 +120,7 @@ func runReportCaddieFeeToDay() {
 			}
 		}
 
-		idDayOff := true
-		if caddieWorkingSchedule.IsDayOff == &idDayOff {
+		if caddieWorkingSchedule.Id > 0 {
 			caddieFee.IsDayOff = caddieWorkingSchedule.IsDayOff
 			caddieFee.Note = "Tăng cường"
 		}
