@@ -61,9 +61,14 @@ func (_ *CRole) CreateRole(c *gin.Context, prof models.CmsUser) {
 Get list Role
 */
 func (_ *CRole) GetListRole(c *gin.Context, prof models.CmsUser) {
-	form := request.GeneralPageRequest{}
+	form := request.GetListRole{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if errPer := checkPermissionPartner(prof, form.PartnerUid, true); errPer != nil {
+		response_message.PermissionDeny(c, "")
 		return
 	}
 
