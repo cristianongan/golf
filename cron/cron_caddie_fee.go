@@ -122,7 +122,9 @@ func runReportCaddieFeeToDay() {
 
 		if caddieWorkingSchedule.Id > 0 {
 			caddieFee.IsDayOff = caddieWorkingSchedule.IsDayOff
-			caddieFee.Note = "Tăng cường"
+			if len(listCaddieION) > 0 {
+				caddieFee.Note = "Tăng cường"
+			}
 		}
 
 		//Kiểm tra nhày nghỉ của caddie
