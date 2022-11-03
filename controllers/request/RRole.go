@@ -14,5 +14,5 @@ type GetListRole struct {
 	PageRequest
 	Search     string `form:"search"`
 	CourseUid  string `form:"course_uid"`
-	PartnerUid string `json:"partner_uid" binding:"required"`
+	PartnerUid string `form:"partner_uid" binding:"required"`
 }
