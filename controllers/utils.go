@@ -824,6 +824,7 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 		}
 
 		booking.BuggyId = buggy.Id
+		booking.IsPrivateBuggy = newTrue(isPrivateBuggy)
 		booking.BuggyInfo = cloneToBuggyBooking(buggy)
 	}
 
