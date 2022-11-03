@@ -4,6 +4,7 @@ import (
 	"log"
 	"start/config"
 	"start/datasources"
+	"start/socket"
 
 	ccron "start/cron"
 	// "start/datasources/aws"
@@ -16,7 +17,7 @@ func Init() {
 	config := config.GetConfig()
 
 	// --- Socket ---
-	// go socket.RunSocket(config.GetString("socket_port"))
+	go socket.RunSocket(config.GetString("socket_port"))
 
 	// --- Cron ---
 	ccron.CronStart()
