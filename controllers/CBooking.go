@@ -717,7 +717,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	}
 
 	var list []model_booking.Booking
-	db.Find(&list)
+	db.Debug().Find(&list)
 	res = response.PageResponse{
 		Total: total,
 		Data:  list,
