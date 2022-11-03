@@ -628,6 +628,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Dashbord ===================
 			cReportDashboard := new(controllers.CReportDashboard)
 			cmsApiAuthorized.GET("/report/booking-status-on-day", middlewares.AuthorizedCmsUserHandler(cReportDashboard.GetReportBookingStatusOnDay))
+			cmsApiAuthorized.GET("/report/top-member", middlewares.AuthorizedCmsUserHandler(cReportDashboard.GetReportTop10Member))
 
 			/// =================== Valet ===================
 			cValet := new(controllers.CValet)
