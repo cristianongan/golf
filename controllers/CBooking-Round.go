@@ -6,7 +6,6 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils"
-	"start/utils/response_message"
 
 	"github.com/gin-gonic/gin"
 )
@@ -74,28 +73,33 @@ func GetGolfFeeInfoOfBag(c *gin.Context, mainBooking model_booking.Booking, bagD
 	checkIsFirstRound := utils.ContainString(mainBooking.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
 	checkIsNextRound := utils.ContainString(mainBooking.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
 
-	for _, item := range bagDetail.SubBags {
-		subBooking := model_booking.Booking{}
-		subBooking.Uid = item.BookingUid
-		errF := subBooking.FindFirst(db)
-		if errF != nil {
-			// response_message.InternalServerError(c, errF.Error())
-			response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
-			return model_booking.GolfFeeOfBag{}
-		}
+	for _, subBooking := range bagDetail.SubBags {
 		subRound := models.Round{BillCode: subBooking.BillCode}
 		listRound, _ := subRound.FindAll(db)
 
 		roundOfBag := model_booking.RoundOfBag{
-			Bag:    subBooking.Bag,
+			Bag:    subBooking.GolfBag,
 			Rounds: []models.Round{},
 		}
 
 		if checkIsFirstRound > -1 && len(listRound) > 0 {
-			roundOfBag.Rounds = append(roundOfBag.Rounds, listRound[0])
+			round1 := models.Round{}
+			for _, item := range listRound {
+				if item.Index == 1 {
+					round1 = item
+				}
+			}
+			roundOfBag.Rounds = append(roundOfBag.Rounds, round1)
 		}
+
 		if checkIsNextRound > -1 && len(listRound) > 1 {
-			roundOfBag.Rounds = append(roundOfBag.Rounds, listRound[1])
+			round2 := models.Round{}
+			for _, item := range listRound {
+				if item.Index == 2 {
+					round2 = item
+				}
+			}
+			roundOfBag.Rounds = append(roundOfBag.Rounds, round2)
 		}
 
 		if len(listRound) > 0 {
