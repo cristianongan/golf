@@ -1379,7 +1379,7 @@ func (item *Booking) ResetCaddieBuggy() {
 }
 
 /*
- Lấy ra tee time index còn avaible
+Lấy ra tee time index còn avaible
 */
 func (item *Booking) FindTeeTimeIndexAvaible(database *gorm.DB) utils.ListInt {
 	db := database.Table("bookings")
@@ -1461,6 +1461,49 @@ func (item *Booking) FindMainBag(database *gorm.DB) ([]Booking, error) {
 		db = db.Where("JSON_SEARCH(sub_bags ->'$[*]', 'one', ?) IS NOT NULL", item.Bag)
 	}
 
+	db.Find(&list)
+
+	return list, db.Error
+}
+
+func (item *Booking) FindTopMember(database *gorm.DB, memberType, dateType, date string) ([]map[string]interface{}, error) {
+	db := database.Table("bookings")
+	list := []map[string]interface{}{}
+
+	if memberType == constants.TOP_MEMBER_TYPE_PLAY {
+		db.Select("card_id, customer_name, COUNT(*) as play_count")
+	} else {
+		db.Select("card_id, customer_name, SUM(mush_pay_info->'$.mush_pay') as sales")
+	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if dateType == constants.TOP_MEMBER_DATE_TYPE_MONTH {
+		db = db.Where("DATE_FORMAT(STR_TO_DATE(booking_date, '%d/%m/%Y'), '%Y-%m') = ?", date)
+	} else if dateType == constants.TOP_MEMBER_DATE_TYPE_WEEK {
+		db = db.Where("DATE_FORMAT(STR_TO_DATE(booking_date, '%d/%m/%Y'), '%u') = ?", date)
+	} else if dateType == constants.TOP_MEMBER_DATE_TYPE_DAY {
+		db = db.Where("booking_date = ?", date)
+	}
+
+	db = db.Where("customer_type = ?", "MEMBER")
+
+	db = db.Where("check_in_time > 0")
+
+	db.Group("card_id")
+
+	if memberType == constants.TOP_MEMBER_TYPE_PLAY {
+		db.Order("play_count desc")
+	} else {
+		db.Order("sales desc")
+	}
+
+	db.Limit(10)
 	db.Find(&list)
 
 	return list, db.Error

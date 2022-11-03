@@ -6,6 +6,8 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	"start/utils"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -72,6 +74,41 @@ func (_ *CReportDashboard) GetReportBookingStatusOnDay(c *gin.Context, prof mode
 		"InCourse": inCourseTotal,
 		"TimeOut":  timeoutTotal,
 		"CheckOut": checkOutTotal,
+	}
+
+	okResponse(c, res)
+}
+
+func (_ *CReportDashboard) GetReportTop10Member(c *gin.Context, prof models.CmsUser) {
+	body := request.GetReportTop10MemberForm{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
+
+	// Validate date
+	var date string
+	if body.TypeDate == constants.TOP_MEMBER_DATE_TYPE_MONTH {
+		date, _ = utils.GetDateFromTimestampWithFormat(time.Now().Unix(), constants.MONTH_FORMAT)
+	} else if body.TypeDate == constants.TOP_MEMBER_DATE_TYPE_WEEK {
+		_, week := time.Now().ISOWeek()
+		date = strconv.Itoa(week)
+	} else if body.TypeDate == constants.TOP_MEMBER_DATE_TYPE_DAY {
+		date, _ = utils.GetDateFromTimestampWithFormat(time.Now().Unix(), constants.DATE_FORMAT_1)
+	}
+
+	// Get list top 10 member
+	booking := model_booking.Booking{
+		CourseUid:  body.CourseUid,
+		PartnerUid: body.PartnerUid,
+	}
+
+	list, _ := booking.FindTopMember(db, body.TypeMember, body.TypeDate, date)
+
+	res := map[string]interface{}{
+		"data": list,
 	}
 
 	okResponse(c, res)

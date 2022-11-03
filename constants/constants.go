@@ -376,3 +376,12 @@ const GO_IN_WAITING = "IN_WAITING"
 const GO_IN_COURSE = "IN_COURSE"
 
 const CONS_INVOICE = "INV"
+
+// Type top member
+const TOP_MEMBER_TYPE_PLAY = "PLAY"
+const TOP_MEMBER_TYPE_SALES = "SALES"
+
+// Type date member
+const TOP_MEMBER_DATE_TYPE_DAY = "DAY"
+const TOP_MEMBER_DATE_TYPE_WEEK = "WEEK"
+const TOP_MEMBER_DATE_TYPE_MONTH = "MONTH"
