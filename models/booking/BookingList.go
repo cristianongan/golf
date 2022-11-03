@@ -219,13 +219,19 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	}
 
 	if item.IsCheckIn != "" {
-		bagStatus := []string{
-			constants.BAG_STATUS_IN_COURSE,
-			constants.BAG_STATUS_TIMEOUT,
-			constants.BAG_STATUS_WAITING,
-		}
+		// IsCheckIn = 1 lấy các booking đã check in nhưng chưa check out trong ngày hiện tại
+		// IsCheckIn = 2 lấy lịch sử booking đã check in
+		if item.IsCheckIn == "1" {
+			bagStatus := []string{
+				constants.BAG_STATUS_IN_COURSE,
+				constants.BAG_STATUS_TIMEOUT,
+				constants.BAG_STATUS_WAITING,
+			}
 
-		db = db.Where("bag_status IN (?) ", bagStatus)
+			db = db.Where("bag_status IN (?) ", bagStatus)
+		} else if item.IsCheckIn == "2" {
+			db = db.Where("check_in_time > 0")
+		}
 	}
 
 	if item.IsBuggyPrepareForJoin != "" {
