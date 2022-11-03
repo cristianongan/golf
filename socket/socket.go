@@ -1,33 +1,26 @@
 package socket
 
 import (
-	"fmt"
 	"log"
-	"net/http"
 
+	"github.com/gin-gonic/gin"
 	socketio "github.com/googollee/go-socket.io"
+	cors "github.com/rs/cors/wrapper/gin"
 )
 
-var server *socketio.Server
-
-func GetServer() *socketio.Server {
-	if server != nil {
-		return server
-	}
-	return nil
-}
-
 func RunSocket(port string) {
-	server = socketio.NewServer(nil)
+	router := gin.New()
+	router.Use(cors.AllowAll())
+	server := socketio.NewServer(nil)
 
 	server.OnConnect("/", func(s socketio.Conn) error {
 		s.SetContext("")
-		fmt.Println("connected:", s.ID())
+		log.Println("connected:", s.ID())
 		return nil
 	})
 
 	server.OnEvent("/", "notice", func(s socketio.Conn, msg string) {
-		fmt.Println("notice:", msg)
+		log.Println("notice:", msg)
 		s.Emit("reply", "have "+msg)
 	})
 
@@ -44,18 +37,24 @@ func RunSocket(port string) {
 	})
 
 	server.OnError("/", func(s socketio.Conn, e error) {
-		fmt.Println("meet error:", e)
+		log.Println("meet error:", e)
 	})
 
 	server.OnDisconnect("/", func(s socketio.Conn, reason string) {
-		fmt.Println("closed", reason)
+		log.Println("closed", reason)
 	})
 
-	go server.Serve()
+	go func() {
+		if err := server.Serve(); err != nil {
+			log.Fatalf("socketio listen error: %s\n", err)
+		}
+	}()
 	defer server.Close()
 
-	http.Handle("/socket.io/", server)
-	// http.Handle("/", http.FileServer(http.Dir("./asset")))
-	log.Println("Socket is running ...", "listen", port)
-	log.Fatal(http.ListenAndServe(port, nil))
+	router.GET("/socket.io/*any", gin.WrapH(server))
+	router.POST("/socket.io/*any", gin.WrapH(server))
+
+	if err := router.Run(port); err != nil {
+		log.Fatal("failed run app: ", err)
+	}
 }
