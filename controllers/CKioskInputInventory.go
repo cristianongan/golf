@@ -26,19 +26,19 @@ func (item CKioskInputInventory) CreateManualInputBill(c *gin.Context, prof mode
 	}
 
 	billcode := time.Now().Format("20060102150405")
-	if errInputBill := item.MethodInputBill(c, prof, body,
+	if errInputBill := MethodInputBill(c, &prof, body,
 		constants.KIOSK_BILL_INVENTORY_APPROVED, billcode); errInputBill != nil {
 		response_message.BadRequest(c, errInputBill.Error())
 		return
 	}
 
-	item.addItemToInventory(db, body.ServiceId, billcode, body.CourseUid, body.PartnerUid)
+	addItemToInventory(db, body.ServiceId, billcode, body.CourseUid, body.PartnerUid)
 
 	okRes(c)
 }
 
-func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.CmsUser, body request.CreateBillBody, billtype string, billcode string) error {
-	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+func MethodInputBill(c *gin.Context, prof *models.CmsUser, body request.CreateBillBody, billtype string, billcode string) error {
+	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 	inventoryBill := kiosk_inventory.InputInventoryBill{}
 	inventoryBill.PartnerUid = body.PartnerUid
 	inventoryBill.CourseUid = body.CourseUid
@@ -46,7 +46,9 @@ func (item CKioskInputInventory) MethodInputBill(c *gin.Context, prof models.Cms
 	inventoryBill.ServiceId = body.ServiceId
 	inventoryBill.ServiceName = body.ServiceName
 	inventoryBill.BillStatus = billtype
-	inventoryBill.UserUpdate = prof.UserName
+	if prof != nil {
+		inventoryBill.UserUpdate = prof.UserName
+	}
 	inventoryBill.UserExport = body.UserExport
 	inventoryBill.ServiceExportId = body.SourceId
 	inventoryBill.ServiceExportName = body.SourceName
@@ -129,7 +131,7 @@ func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.Cms
 		return
 	}
 	// Thêm ds item vào Inventory
-	item.addItemToInventory(db, body.ServiceId, body.Code, body.CourseUid, body.PartnerUid)
+	addItemToInventory(db, body.ServiceId, body.Code, body.CourseUid, body.PartnerUid)
 
 	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_APPROVED
 	inventoryStatus.UserUpdate = prof.UserName
@@ -142,7 +144,7 @@ func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.Cms
 	okResponse(c, inventoryStatus)
 }
 
-func (_ CKioskInputInventory) addItemToInventory(db *gorm.DB, serviceId int64, code string, courseUid string, partnerUid string) error {
+func addItemToInventory(db *gorm.DB, serviceId int64, code string, courseUid string, partnerUid string) error {
 	// Get danh sách item của bill
 	item := kiosk_inventory.InventoryInputItem{}
 	item.Code = code

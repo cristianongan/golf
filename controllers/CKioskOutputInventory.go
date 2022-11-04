@@ -34,7 +34,6 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 	}
 
 	// Tạo import đơn
-	cKioskInputInventory := CKioskInputInventory{}
 	bodyInputBill := request.CreateBillBody{
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,
@@ -48,7 +47,7 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 		OutputDate:  body.OutputDate,
 	}
 
-	if errInputBill := cKioskInputInventory.MethodInputBill(c, prof,
+	if errInputBill := MethodInputBill(c, &prof,
 		bodyInputBill, constants.KIOSK_BILL_INVENTORY_PENDING, billcode); errInputBill != nil {
 		response_message.BadRequest(c, errInputBill.Error())
 		return
