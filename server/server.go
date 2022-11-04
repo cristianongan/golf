@@ -19,9 +19,18 @@ func Init() {
 
 	// --- Socket ---
 	// go socket.RunSocket(config.GetString("socket_port"))
-	http.HandleFunc("/socket", socket.Echo)
-	http.HandleFunc("/", socket.Home)
-	go http.ListenAndServe(config.GetString("socket_port"), nil)
+	fs := http.FileServer(http.Dir("../public"))
+	http.Handle("/", fs)
+
+	// Configure websocket route
+	http.HandleFunc("/ws", socket.HandleConnections)
+
+	// Start listening for incoming chat messages
+	go socket.HandleMessages()
+
+	// Start the server on localhost port 8000 and log any errors
+	log.Println("http server started on :8000")
+	go http.ListenAndServe(":8000", nil)
 
 	// --- Cron ---
 	ccron.CronStart()
