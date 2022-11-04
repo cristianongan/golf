@@ -8,20 +8,23 @@ import (
 )
 
 var clients = make(map[*websocket.Conn]bool) // connected clients
-var broadcast = make(chan Message)           // broadcast channel
+var broadcast1 = make(chan Message)          // broadcast channel
+var broadcast2 = make(chan channel1)         // broadcast channel1
+var broadcast3 = make(chan channel2)         // broadcast channel2
+
+// Define our message object
+type channel1 string
+type channel2 int64
+type Message struct {
+	Title   string `json:"title"`
+	Message string `json:"message"`
+}
 
 // Configure the upgrader
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
-}
-
-// Define our message object
-type Message struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Message  string `json:"message"`
 }
 
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
@@ -47,21 +50,43 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		// Send the newly received message to the broadcast channel
-		broadcast <- msg
+		broadcast1 <- msg
 	}
 }
 
 func HandleMessages() {
 	for {
 		// Grab the next message from the broadcast channel
-		msg := <-broadcast
-		// Send it out to every client that is currently connected
-		for client := range clients {
-			err := client.WriteJSON(msg)
-			if err != nil {
-				log.Printf("error: %v", err)
-				client.Close()
-				delete(clients, client)
+		select {
+		case msg := <-broadcast1:
+			// Send it out to every client that is currently connected
+			for client := range clients {
+				err := client.WriteJSON(msg)
+				if err != nil {
+					log.Printf("error: %v", err)
+					client.Close()
+					delete(clients, client)
+				}
+			}
+		case msg := <-broadcast2:
+			// Send it out to every client that is currently connected
+			for client := range clients {
+				err := client.WriteJSON(msg)
+				if err != nil {
+					log.Printf("error: %v", err)
+					client.Close()
+					delete(clients, client)
+				}
+			}
+		case msg := <-broadcast3:
+			// Send it out to every client that is currently connected
+			for client := range clients {
+				err := client.WriteJSON(msg)
+				if err != nil {
+					log.Printf("error: %v", err)
+					client.Close()
+					delete(clients, client)
+				}
 			}
 		}
 	}
