@@ -19,8 +19,8 @@ func Init() {
 
 	// --- Socket ---
 	// go socket.RunSocket(config.GetString("socket_port"))
-	fs := http.FileServer(http.Dir("../public"))
-	http.Handle("/", fs)
+	// fs := http.FileServer(http.Dir("../public"))
+	// http.Handle("/", fs)
 
 	// Configure websocket route
 	http.HandleFunc("/ws", socket.HandleConnections)

@@ -26,6 +26,7 @@ type Message struct {
 
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	// Upgrade initial GET request to a websocket
+	log.Println("HandleConnections")
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Fatal(err)
