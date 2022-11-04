@@ -256,7 +256,5 @@ func (_ *CCaddieWorkingTime) GetListCaddieWorkingTime(c *gin.Context, prof model
 		Data:  listData,
 	}
 
-	c.JSON(200, res)
-
-	okRes(c)
+	okResponse(c, res)
 }
