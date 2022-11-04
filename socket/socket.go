@@ -43,7 +43,7 @@ func (w respBodyWriter) Write(b []byte) (int, error) {
 
 func RunSocket(port string) {
 	router := gin.New()
-	router.Use(Allow) // Để login từ localhost
+	// router.Use(Allow) // Để login từ localhost
 	server := socketio.NewServer(nil)
 
 	server.OnConnect("/", func(s socketio.Conn) error {
