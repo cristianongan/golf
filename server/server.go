@@ -24,7 +24,7 @@ func Init() {
 	// http.Handle("/", fs)
 
 	// Configure websocket route
-	http.HandleFunc("/ws", socket.HandleConnections)
+	http.HandleFunc("/socket.io", socket.HandleConnections)
 
 	// Start listening for incoming chat messages
 	go socket.HandleMessages()
