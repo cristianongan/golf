@@ -13,6 +13,7 @@ import (
 )
 
 func Init() {
+
 	log.Println("server init")
 
 	config := config.GetConfig()
@@ -30,7 +31,11 @@ func Init() {
 
 	// Start the server on localhost port 8000 and log any errors
 	log.Println("http server started on :8000")
-	go http.ListenAndServe(":8000", nil)
+	a := func() {
+		err := http.ListenAndServe(":8000", nil)
+		log.Println("ListenAndServe", err)
+	}
+	go a()
 
 	// --- Cron ---
 	ccron.CronStart()
