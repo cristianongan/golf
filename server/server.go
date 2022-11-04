@@ -2,9 +2,10 @@ package server
 
 import (
 	"log"
+	"net/http"
 	"start/config"
 	"start/datasources"
-	"start/socket"
+	socket "start/socket"
 
 	ccron "start/cron"
 	// "start/datasources/aws"
@@ -17,7 +18,10 @@ func Init() {
 	config := config.GetConfig()
 
 	// --- Socket ---
-	go socket.RunSocket(config.GetString("socket_port"))
+	// go socket.RunSocket(config.GetString("socket_port"))
+	http.HandleFunc("/socket", socket.Echo)
+	http.HandleFunc("/", socket.Home)
+	go http.ListenAndServe(config.GetString("socket_port"), nil)
 
 	// --- Cron ---
 	ccron.CronStart()
