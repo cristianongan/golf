@@ -664,6 +664,15 @@ func NewRouter() *gin.Engine {
 			}
 		}
 
+		accountantApi := routerApi.Group("accountant")
+		{
+			accountantV1Api := accountantApi.Group("v1")
+			{
+				cAccountant := new(controllers.CAccountant)
+				accountantV1Api.POST("/kiosk-inventory/import", cAccountant.ImportInventory)
+			}
+		}
+
 		// cronApi := customer.Group("cron-job").Use(middlewares.CronJobMiddleWare())
 		// {
 		// 	cCron := new(controllers.CCron)

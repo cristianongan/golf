@@ -16,7 +16,7 @@ func Allow(c *gin.Context) {
 		c.Request.Header.Add("Vary", "Origin")
 		c.Request.Header.Add("Vary", "Access-Control-Allow-Methods")
 		c.Request.Header.Add("Vary", "Access-Control-Allow-Headers")
-		c.Request.Header.Set("Access-Control-Allow-Origin", "*")
+		c.Request.Header.Set("Access-Control-Allow-Origin", "https://localhost:4000")
 		c.Request.Header.Set("Access-Control-Allow-Methods", "*")
 		c.Request.Header.Set("Access-Control-Allow-Headers", "*")
 		return
@@ -25,7 +25,7 @@ func Allow(c *gin.Context) {
 	respWriter := &respBodyWriter{body: &strings.Builder{}, ResponseWriter: c.Writer}
 	c.Writer = respWriter
 	respWriter.Header().Add("Vary", "Origin")
-	respWriter.Header().Set("Access-Control-Allow-Origin", "*")
+	respWriter.Header().Set("Access-Control-Allow-Origin", "https://localhost:4000")
 	respWriter.Header().Set("Access-Control-Allow-Headers", "*")
 
 	c.Next()
@@ -43,7 +43,7 @@ func (w respBodyWriter) Write(b []byte) (int, error) {
 
 func RunSocket(port string) {
 	router := gin.New()
-	router.Use(Allow) // Để login từ localhost
+	// router.Use(Allow) // Để login từ localhost
 	server := socketio.NewServer(nil)
 
 	server.OnConnect("/", func(s socketio.Conn) error {
