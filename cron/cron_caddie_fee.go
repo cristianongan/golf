@@ -144,9 +144,11 @@ func runReportCaddieFeeToDay() {
 			caddieFee.Note = "Nghỉ phép"
 		}
 
-		err = caddieFee.Create(db)
-		if err != nil {
-			log.Println("Create report caddie err", err.Error())
+		if !caddieFee.IsDuplicated(db) {
+			err = caddieFee.Create(db)
+			if err != nil {
+				log.Println("Create report caddie err", err.Error())
+			}
 		}
 	}
 }
