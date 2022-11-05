@@ -250,7 +250,7 @@ func (item *GolfFee) GetGuestStyleOnTime(database *gorm.DB, time time.Time) (Gol
 	return golfFee, errors.New("No guest style on day")
 }
 
-func (item *GolfFee) FindList(database *gorm.DB, page Page) ([]GolfFee, int64, error) {
+func (item *GolfFee) FindList(database *gorm.DB, page Page, isToday string) ([]GolfFee, int64, error) {
 	db := database.Model(GolfFee{})
 	list := []GolfFee{}
 	total := int64(0)
@@ -276,8 +276,11 @@ func (item *GolfFee) FindList(database *gorm.DB, page Page) ([]GolfFee, int64, e
 	if item.GuestStyle != "" {
 		db = db.Where("guest_style = ?", item.GuestStyle)
 	}
+	if isToday != "" {
+		db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+	}
 
-	db.Count(&total)
+	db.Debug().Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)

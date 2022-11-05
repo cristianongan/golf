@@ -110,7 +110,7 @@ func (_ *CGolfFee) GetListGolfFee(c *gin.Context, prof models.CmsUser) {
 		GuestStyle:   form.GuestStyle,
 	}
 	golfFeeR.Status = form.Status
-	list, total, err := golfFeeR.FindList(db, page)
+	list, total, err := golfFeeR.FindList(db, page, form.IsToday)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
