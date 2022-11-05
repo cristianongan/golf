@@ -479,7 +479,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 	}
 
-	// socket.GetServer().BroadcastToNamespace("", "reply", "HELLO WORLD")
+	// socket.Broadcast <- booking
 
 	return &booking, nil
 }
