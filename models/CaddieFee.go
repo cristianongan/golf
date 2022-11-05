@@ -26,6 +26,20 @@ type CaddieFee struct {
 	TotalAmount int64  `json:"total_amount"` // tông số tiền trong 1 tháng
 }
 
+func (item *CaddieFee) IsDuplicated(db *gorm.DB) bool {
+	caddieFeeCheck := CaddieFee{
+		PartnerUid:  item.PartnerUid,
+		CourseUid:   item.CourseUid,
+		CaddieId:    item.CaddieId,
+		BookingDate: item.BookingDate,
+	}
+	errFind := caddieFeeCheck.FindFirst(db)
+	if errFind == nil || caddieFeeCheck.Id > 0 {
+		return true
+	}
+	return false
+}
+
 func (item *CaddieFee) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
