@@ -633,6 +633,11 @@ func NewRouter() *gin.Engine {
 			/// =================== Valet ===================
 			cValet := new(controllers.CValet)
 			cmsApiAuthorized.POST("/valet/add-bag-caddie-buggy", middlewares.AuthorizedCmsUserHandler(cValet.AddBagCaddieBuggyToBooking))
+			/// =================== Caddie Working Schedule ===================
+			cMaintainSchedule := new(controllers.CMaintainSchedule)
+			cmsApiAuthorized.GET("/maintain-schedule", middlewares.AuthorizedCmsUserHandler(cMaintainSchedule.GetMaintainScheduleList))
+			cmsApiAuthorized.POST("/maintain-schedule", middlewares.AuthorizedCmsUserHandler(cMaintainSchedule.CreateMaintainSchedule))
+			cmsApiAuthorized.PUT("/maintain-schedule/:id", middlewares.AuthorizedCmsUserHandler(cMaintainSchedule.UpdateMaintainSchedule))
 		}
 
 		// ----------------------------------------------------------
