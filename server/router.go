@@ -636,7 +636,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Caddie Working Schedule ===================
 			cMaintainSchedule := new(controllers.CMaintainSchedule)
 			cmsApiAuthorized.GET("/maintain-schedule", middlewares.AuthorizedCmsUserHandler(cMaintainSchedule.GetMaintainScheduleList))
-			cmsApiAuthorized.POST("/maintain-schedule", middlewares.AuthorizedCmsUserHandler(cMaintainSchedule.CreateMaintainSchedule))
+			cmsApiAuthorized.POST("/maintain-schedule/list", middlewares.AuthorizedCmsUserHandler(cMaintainSchedule.CreateMaintainSchedule))
 			cmsApiAuthorized.PUT("/maintain-schedule/:id", middlewares.AuthorizedCmsUserHandler(cMaintainSchedule.UpdateMaintainSchedule))
 		}
 

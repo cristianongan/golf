@@ -276,11 +276,14 @@ func (item *GolfFee) FindList(database *gorm.DB, page Page, isToday string) ([]G
 	if item.GuestStyle != "" {
 		db = db.Where("guest_style = ?", item.GuestStyle)
 	}
+	if item.GuestStyleName != "" {
+		db = db.Where("guest_style_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.GuestStyleName+"%")
+	}
 	if isToday != "" {
 		db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
 	}
 
-	db.Debug().Count(&total)
+	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)
