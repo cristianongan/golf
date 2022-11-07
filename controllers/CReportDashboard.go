@@ -114,21 +114,70 @@ func (_ *CReportDashboard) GetReportTop10Member(c *gin.Context, prof models.CmsU
 	okResponse(c, res)
 }
 
-func (_ *CReportDashboard) GetReportCustomerFromBooking(c *gin.Context, prof models.CmsUser) {
+func (_ *CReportDashboard) GetReportRevenueFromBooking(c *gin.Context, prof models.CmsUser) {
 	body := request.GetReportDashboardRequestForm{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
 	}
 
-	// date now
-	// dateNow, _ = utils.GetDateFromTimestampWithFormat(time.Now().Unix(), constants.DATE_FORMAT_1)
+	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
+	listData := make([]map[string]interface{}, 12)
 
-	// // date last 1 day
-	// dateLast, _ = utils.GetDateFromTimestampWithFormat(time.Now().AddDate(0, 0, -1).Unix(), constants.DATE_FORMAT_1)
+	for month := 0; month < 12; month++ {
+		// Add infor to response
+		listData[month] = map[string]interface{}{
+			"month":        month + 1,
+			"agency":       0,
+			"member":       0,
+			"guest_member": 0,
+			"visitor":      0,
+			"other":        0,
+		}
 
-	// // date last 1 week
-	// dateLastWeek, _ = utils.GetDateFromTimestampWithFormat(time.Now().AddDate(0, 0, -7).Unix(), constants.DATE_FORMAT_1)
+		var date string
+		year, _ := utils.GetDateFromTimestampWithFormat(time.Now().Unix(), constants.YEAR_FORMAT)
 
-	// okResponse(c, res)
+		if month < 9 {
+			date = year + "-0" + strconv.Itoa(month+1)
+		} else {
+			date = year + "-" + strconv.Itoa(month+1)
+		}
+
+		booking := model_booking.Booking{}
+		booking.PartnerUid = body.PartnerUid
+		booking.CourseUid = body.CourseUid
+
+		// report customer type agency
+		listAgency, _ := booking.ReportBookingRevenue(db, constants.BOOKING_CUSTOMER_TYPE_AGENCY, date)
+		if len(listAgency) > 0 {
+			listData[month]["agency"] = listAgency[0]["revenue"]
+		}
+
+		// report customer type member
+		listMember, _ := booking.ReportBookingRevenue(db, constants.BOOKING_CUSTOMER_TYPE_MEMBER, date)
+		if len(listMember) > 0 {
+			listData[month]["member"] = listMember[0]["revenue"]
+		}
+
+		// report customer type guest member
+		listGuestMember, _ := booking.ReportBookingRevenue(db, constants.BOOKING_CUSTOMER_TYPE_GUEST, date)
+		if len(listGuestMember) > 0 {
+			listData[month]["guest_member"] = listGuestMember[0]["revenue"]
+		}
+
+		// report customer type visitor
+		listVisitor, _ := booking.ReportBookingRevenue(db, constants.BOOKING_CUSTOMER_TYPE_VISITOR, date)
+		if len(listVisitor) > 0 {
+			listData[month]["visitor"] = listVisitor[0]["revenue"]
+		}
+
+		// report customer type other
+		listOther, _ := booking.ReportBookingRevenue(db, "", date)
+		if len(listOther) > 0 {
+			listData[month]["other"] = listOther[0]["revenue"]
+		}
+	}
+
+	okResponse(c, listData)
 }
