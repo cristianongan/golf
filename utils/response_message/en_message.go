@@ -35,4 +35,5 @@ var EnLanguage = map[string]string{
 	"UPDATE_ERROR":           "Update error",
 	"BAG_NOT_IN_COURSE":      "Bag status is not in course",
 	"MERGE_ROUND_NOT_ENOUGH": "Need minimum 2 round to merge",
+	"MEMBER_CARD_INACTIVE":   "Member Card Inactive",
 }

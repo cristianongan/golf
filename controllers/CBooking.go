@@ -141,6 +141,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			booking.MemberUidOfGuest = body.MemberUidOfGuest
 			booking.MemberNameOfGuest = customerName
 		}
+
+		if memberCard.Status == constants.STATUS_DISABLE {
+			response_message.BadRequestDynamicKey(c, "MEMBER_CARD_INACTIVE", "")
+			return nil, nil
+		}
 	}
 
 	// TODO: check kho tea time trong ngày đó còn trống mới cho đặt
@@ -206,6 +211,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		if errFind != nil {
 			response_message.BadRequest(c, errFind.Error())
 			return nil, errFind
+		}
+
+		if memberCard.Status == constants.STATUS_DISABLE {
+			response_message.BadRequestDynamicKey(c, "MEMBER_CARD_INACTIVE", "")
+			return nil, nil
 		}
 
 		// Get Owner
