@@ -338,6 +338,7 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 	newRound := currentRound
+	newRound.Id = 0
 	newRound.Hole = int(body.Hole)
 	newRound.Index = currentRound.Index + 1
 	currentRound.Hole = currentRound.Hole - newRound.Hole
@@ -519,6 +520,14 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	if err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
+	}
+
+	//Xóa các round cũ
+	for _, item := range listRound {
+		if errRound := item.Delete(db); errRound != nil {
+			response_message.BadRequest(c, "Merge error")
+			return
+		}
 	}
 
 	// Update lại giá cho main bag
