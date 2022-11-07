@@ -141,6 +141,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			booking.MemberUidOfGuest = body.MemberUidOfGuest
 			booking.MemberNameOfGuest = customerName
 		}
+
+		if memberCard.Status == constants.STATUS_DISABLE {
+			response_message.BadRequestDynamicKey(c, "MEMBER_CARD_INACTIVE", "")
+			return nil, nil
+		}
 	}
 
 	// TODO: check kho tea time trong ngày đó còn trống mới cho đặt
@@ -206,6 +211,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		if errFind != nil {
 			response_message.BadRequest(c, errFind.Error())
 			return nil, errFind
+		}
+
+		if memberCard.Status == constants.STATUS_DISABLE {
+			response_message.BadRequestDynamicKey(c, "MEMBER_CARD_INACTIVE", "")
+			return nil, nil
 		}
 
 		// Get Owner
@@ -479,7 +489,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 	}
 
-	// socket.GetServer().BroadcastToNamespace("", "reply", "HELLO WORLD")
+	// socket.Broadcast <- booking
 
 	return &booking, nil
 }
@@ -702,6 +712,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.PlayerOrBag = form.PlayerOrBag
 	bookings.CustomerUid = form.CustomerUid
 	bookings.CustomerType = form.CustomerType
+	bookings.BuggyCode = form.BuggyCode
 
 	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
 
@@ -717,7 +728,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	}
 
 	var list []model_booking.Booking
-	db.Debug().Find(&list)
+	db.Find(&list)
 	res = response.PageResponse{
 		Total: total,
 		Data:  list,

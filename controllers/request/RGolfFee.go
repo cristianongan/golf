@@ -11,6 +11,7 @@ type GetListGolfFeeForm struct {
 	CustomerCategory string `form:"customer_category"` // CUSTOMER, AGENCY
 	GuestStyle       string `form:"guest_style"`
 	GuestStyleName   string `form:"guest_style_name"`
+	IsToday          string `form:"is_today"`
 }
 
 type GetListGolfFeeByGuestStyleForm struct {

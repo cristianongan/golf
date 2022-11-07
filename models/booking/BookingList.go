@@ -101,7 +101,7 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	}
 
 	if item.BuggyCode != "" {
-		db = db.Where("buggy_info->'$.code' = ?", item.BuggyCode)
+		db = db.Where("buggy_info->'$.code' COLLATE utf8mb4_general_ci LIKE ?", "%"+item.BuggyCode+"%")
 	}
 
 	if item.TeeTime != "" {

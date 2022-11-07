@@ -3,91 +3,58 @@ package socket
 import (
 	"log"
 	"net/http"
-	"strings"
 
-	"github.com/gin-gonic/gin"
-	socketio "github.com/googollee/go-socket.io"
-	// "github.com/rs/cors"
+	"github.com/gorilla/websocket"
 )
 
-func Allow(c *gin.Context) {
+var clients = make(map[*websocket.Conn]bool) // connected clients
+var Broadcast = make(chan any)               // broadcast channel
 
-	if string(c.Request.Method) == http.MethodOptions {
-		c.Request.Header.Add("Vary", "Origin")
-		c.Request.Header.Add("Vary", "Access-Control-Allow-Methods")
-		c.Request.Header.Add("Vary", "Access-Control-Allow-Headers")
-		c.Request.Header.Set("Access-Control-Allow-Origin", "https://localhost:4000")
-		c.Request.Header.Set("Access-Control-Allow-Methods", "*")
-		c.Request.Header.Set("Access-Control-Allow-Headers", "*")
-		return
+// Configure the upgrader
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func HandleConnections(w http.ResponseWriter, r *http.Request) {
+	// Upgrade initial GET request to a websocket
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Fatal(err)
 	}
+	// Make sure we close the connection when the function returns
+	defer ws.Close()
 
-	respWriter := &respBodyWriter{body: &strings.Builder{}, ResponseWriter: c.Writer}
-	c.Writer = respWriter
-	respWriter.Header().Add("Vary", "Origin")
-	respWriter.Header().Set("Access-Control-Allow-Origin", "https://localhost:4000")
-	respWriter.Header().Set("Access-Control-Allow-Headers", "*")
+	// Register our new client
+	clients[ws] = true
 
-	c.Next()
-}
-
-type respBodyWriter struct {
-	gin.ResponseWriter
-	body *strings.Builder
-}
-
-func (w respBodyWriter) Write(b []byte) (int, error) {
-	w.body.Write(b)
-	return w.ResponseWriter.Write(b)
-}
-
-func RunSocket(port string) {
-	router := gin.New()
-	// router.Use(Allow) // Để login từ localhost
-	server := socketio.NewServer(nil)
-
-	server.OnConnect("/", func(s socketio.Conn) error {
-		s.SetContext("")
-		log.Println("connected:", s.ID())
-		return nil
-	})
-
-	server.OnEvent("/", "notice", func(s socketio.Conn, msg string) {
-		log.Println("notice:", msg)
-		s.Emit("reply", "have "+msg)
-	})
-
-	server.OnEvent("/chat", "msg", func(s socketio.Conn, msg string) string {
-		s.SetContext(msg)
-		return "recv " + msg
-	})
-
-	server.OnEvent("/", "bye", func(s socketio.Conn) string {
-		last := s.Context().(string)
-		s.Emit("bye", last)
-		s.Close()
-		return last
-	})
-
-	server.OnError("/", func(s socketio.Conn, e error) {
-		log.Println("meet error:", e)
-	})
-
-	server.OnDisconnect("/", func(s socketio.Conn, reason string) {
-		log.Println("closed", reason)
-	})
-
-	go func() {
-		if err := server.Serve(); err != nil {
-			log.Fatalf("socketio listen error: %s\n", err)
+	for {
+		var msg any
+		// Read in a new message as JSON and map it to a Message object
+		err := ws.ReadJSON(&msg)
+		if err != nil {
+			log.Printf("error: %v", err)
+			delete(clients, ws)
+			break
 		}
-	}()
-	defer server.Close()
+		// Send the newly received message to the broadcast channel
+		Broadcast <- msg
+	}
+}
 
-	router.GET("/socket.io/*any", gin.WrapH(server))
-	router.POST("/socket.io/*any", gin.WrapH(server))
-
-	if err := router.Run(port); err != nil {
-		log.Fatal("failed run app: ", err)
+func HandleMessages() {
+	for {
+		// Grab the next message from the broadcast channel
+		msg := <-Broadcast
+		// Send it out to every client that is currently connected
+		for client := range clients {
+			err := client.WriteJSON(msg)
+			if err != nil {
+				log.Printf("error: %v", err)
+				client.Close()
+				delete(clients, client)
+			}
+		}
 	}
 }

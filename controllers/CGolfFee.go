@@ -103,14 +103,15 @@ func (_ *CGolfFee) GetListGolfFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	golfFeeR := models.GolfFee{
-		PartnerUid:   form.PartnerUid,
-		CourseUid:    form.CourseUid,
-		TablePriceId: form.TablePriceId,
-		GroupId:      form.GroupId,
-		GuestStyle:   form.GuestStyle,
+		PartnerUid:     form.PartnerUid,
+		CourseUid:      form.CourseUid,
+		TablePriceId:   form.TablePriceId,
+		GroupId:        form.GroupId,
+		GuestStyle:     form.GuestStyle,
+		GuestStyleName: form.GuestStyleName,
 	}
 	golfFeeR.Status = form.Status
-	list, total, err := golfFeeR.FindList(db, page)
+	list, total, err := golfFeeR.FindList(db, page, form.IsToday)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

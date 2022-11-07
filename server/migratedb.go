@@ -170,6 +170,9 @@ func MigrateDbCms(db *gorm.DB) {
 	// Restaurant Setup
 	db.AutoMigrate(&model_service_restaurant_setup.RestaurantTableSetup{})
 	db.AutoMigrate(&model_service_restaurant_setup.RestaurantTimeSetup{})
+
+	// Maintain Schedule
+	db.AutoMigrate(&models.MaintainSchedule{})
 }
 
 func MigrateDbAuth() {

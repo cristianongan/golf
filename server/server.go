@@ -2,9 +2,10 @@ package server
 
 import (
 	"log"
+	"net/http"
 	"start/config"
 	"start/datasources"
-	"start/socket"
+	socket "start/socket"
 
 	ccron "start/cron"
 	// "start/datasources/aws"
@@ -12,12 +13,29 @@ import (
 )
 
 func Init() {
+
 	log.Println("server init")
 
 	config := config.GetConfig()
 
 	// --- Socket ---
-	go socket.RunSocket(config.GetString("socket_port"))
+	// go socket.RunSocket(config.GetString("socket_port"))
+	// fs := http.FileServer(http.Dir("../public"))
+	// http.Handle("/", fs)
+
+	// Configure websocket route
+	http.HandleFunc("/ws", socket.HandleConnections)
+
+	// Start listening for incoming chat messages
+	go socket.HandleMessages()
+
+	// Start the server on localhost port 8000 and log any errors
+	log.Println("http server started on :8000")
+	a := func() {
+		err := http.ListenAndServe(":8000", nil)
+		log.Println("ListenAndServe", err)
+	}
+	go a()
 
 	// --- Cron ---
 	ccron.CronStart()

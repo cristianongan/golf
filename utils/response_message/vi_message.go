@@ -36,4 +36,5 @@ var ViLanguage = map[string]string{
 	"UPDATE_ERROR":           "Update error",
 	"BAG_NOT_IN_COURSE":      "Bag status is not in course",
 	"MERGE_ROUND_NOT_ENOUGH": "Cần tối thiểu 2 round để merge",
+	"MEMBER_CARD_INACTIVE":   "Member Card Inactive",
 }
