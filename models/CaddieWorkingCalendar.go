@@ -4,21 +4,17 @@ import (
 	"start/constants"
 	"time"
 
-	"gorm.io/datatypes"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
 type CaddieWorkingCalendar struct {
 	ModelId
-	CaddieUid    string         `json:"caddie_uid" gorm:"size:256"`
-	CaddieCode   string         `json:"caddie_code" gorm:"size:256"`
-	PartnerUid   string         `json:"partner_uid" gorm:"size:256"`
-	CourseUid    string         `json:"course_uid" gorm:"size:256"`
-	CaddieLabel  string         `json:"caddie_label" gorm:"size:128"`
-	CaddieColumn int            `json:"caddie_column" gorm:"size:2"`
-	CaddieRow    string         `json:"caddie_row" gorm:"size:128"`
-	RowTime      datatypes.Time `json:"row_time"`
-	ApplyDate    datatypes.Date `json:"apply_date"`
+	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	CaddieCode  string `json:"caddie_code" gorm:"type:varchar(100);index"` // caddie code
+	ApplyDate   string `json:"apply_date"  gorm:"type:varchar(100)"`       // ngày áp dụng
+	NumberOrder int64  `json:"number_order"`                               // số thứ tự caddie
 }
 
 func (item *CaddieWorkingCalendar) Create(db *gorm.DB) error {
@@ -30,11 +26,56 @@ func (item *CaddieWorkingCalendar) Create(db *gorm.DB) error {
 	return db.Create(item).Error
 }
 
+// / ------- CaddieWorkingCalendar batch insert to db ------
+func (item *CaddieWorkingCalendar) BatchInsert(database *gorm.DB, list []CaddieWorkingCalendar) error {
+	db := database.Table("caddie_working_calendars")
+
+	return db.Create(&list).Error
+}
+
 func (item *CaddieWorkingCalendar) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
+}
+
+func (item *CaddieWorkingCalendar) FindAllByDate(database *gorm.DB) ([]map[string]interface{}, int64, error) {
+	list := []map[string]interface{}{}
+	total := int64(0)
+
+	db := database.Table("caddie_working_calendars")
+
+	db.Select("caddie_working_calendars.*, caddies.current_status")
+
+	if item.PartnerUid != "" {
+		db = db.Where("caddie_working_calendars.partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("caddie_working_calendars.course_uid = ?", item.CourseUid)
+	}
+
+	if item.ApplyDate != "" {
+		db = db.Where("caddie_working_calendars.apply_date = ?", item.ApplyDate)
+	}
+
+	db.Joins("left join caddies on caddies.code = caddie_working_calendars.caddie_code")
+
+	db.Order("number_order asc")
+
+	db.Count(&total)
+
+	db.Find(&list)
+
+	return list, total, db.Error
 }
 
 func (item *CaddieWorkingCalendar) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
 	return db.Save(item).Error
+}
+
+func (item *CaddieWorkingCalendar) Delete(db *gorm.DB) error {
+	if item.ModelId.Id <= 0 {
+		return errors.New("Primary key is undefined!")
+	}
+	return db.Delete(item).Error
 }

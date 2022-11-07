@@ -1491,9 +1491,11 @@ func (item *Booking) FindTopMember(database *gorm.DB, memberType, dateType, date
 		db = db.Where("booking_date = ?", date)
 	}
 
-	db = db.Where("customer_type = ?", "MEMBER")
+	db = db.Where("customer_type = ?", constants.BOOKING_CUSTOMER_TYPE_MEMBER)
 
 	db = db.Where("check_in_time > 0")
+
+	db = db.Where("check_out_time > 0")
 
 	db.Group("card_id")
 
@@ -1504,6 +1506,51 @@ func (item *Booking) FindTopMember(database *gorm.DB, memberType, dateType, date
 	}
 
 	db.Limit(10)
+	db.Find(&list)
+
+	return list, db.Error
+}
+
+func (item *Booking) ReportBookingRevenue(database *gorm.DB, bookingType, date string) ([]map[string]interface{}, error) {
+	db := database.Table("bookings")
+	list := []map[string]interface{}{}
+
+	db.Select("SUM(mush_pay_info->'$.mush_pay') as revenue")
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	db = db.Where("DATE_FORMAT(STR_TO_DATE(booking_date, '%d/%m/%Y'), '%Y-%m') = ?", date)
+
+	db = db.Where("check_in_time > 0")
+
+	db = db.Where("check_out_time > 0")
+
+	if bookingType == constants.BOOKING_CUSTOMER_TYPE_AGENCY {
+		db = db.Where("(customer_type = ? OR customer_type = ?)", constants.BOOKING_CUSTOMER_TYPE_OTA, constants.BOOKING_CUSTOMER_TYPE_TRADITIONAL)
+	} else if bookingType == constants.BOOKING_CUSTOMER_TYPE_GUEST {
+		db = db.Where("customer_type = ?", constants.BOOKING_CUSTOMER_TYPE_GUEST)
+	} else if bookingType == constants.BOOKING_CUSTOMER_TYPE_MEMBER {
+		db = db.Where("customer_type = ?", constants.BOOKING_CUSTOMER_TYPE_MEMBER)
+	} else if bookingType == constants.BOOKING_CUSTOMER_TYPE_VISITOR {
+		db = db.Where("customer_type = ?", constants.BOOKING_CUSTOMER_TYPE_VISITOR)
+	} else {
+		customerTypes := []string{
+			constants.BOOKING_CUSTOMER_TYPE_OTA,
+			constants.BOOKING_CUSTOMER_TYPE_TRADITIONAL,
+			constants.BOOKING_CUSTOMER_TYPE_MEMBER,
+			constants.BOOKING_CUSTOMER_TYPE_GUEST,
+		}
+
+		db = db.Where("customer_type NOT IN (?) ", customerTypes)
+	}
+
+	db.Group("course_uid")
+
 	db.Find(&list)
 
 	return list, db.Error
