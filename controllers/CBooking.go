@@ -1191,7 +1191,7 @@ func (_ *CBooking) UpdateBookingCaddieCommon(db *gorm.DB, PartnerUid string, Cou
 	}
 
 	// udp trạng thái caddie sang LOCK
-	caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+	// caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
 	if errCad := caddie.Update(db); errCad != nil {
 		log.Println("err udp caddie", errCad.Error())
 	}
