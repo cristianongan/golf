@@ -12,11 +12,12 @@ import (
 type Notification struct {
 	ModelId
 	Type               string `json:"type" gorm:"type:varchar(100)"` // Loại noti
-	Title              string `json:"title" gorm:"type:varchar(500)"`
+	Title              string `json:"title" gorm:"type:varchar(256)"`
 	NotificationStatus string `json:"noti_status" gorm:"type:varchar(50)"`  // Trạng thái của noti
 	UserCreate         string `json:"user_create" gorm:"type:varchar(100)"` // Người tạo noti
 	UserApprove        string `json:"user_update" gorm:"type:varchar(100)"` // Người duyệt noti
 	IsRead             *bool  `json:"is_read" gorm:"default:0"`             // Trạng thái đã xem của noti
+	Note               string `json:"note" gorm:"type:varchar(500)"`
 }
 
 // ======= CRUD ===========
