@@ -707,6 +707,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.HasCaddieInOut = form.HasCaddieInOut
 	bookings.FlightId = form.FlightId
 	bookings.TeeType = form.TeeType
+	bookings.CourseType = form.CourseType
 	bookings.IsCheckIn = form.IsCheckIn
 	bookings.GuestStyleName = form.GuestStyleName
 	bookings.PlayerOrBag = form.PlayerOrBag
