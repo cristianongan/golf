@@ -3,6 +3,7 @@ package controllers
 import (
 	"start/constants"
 	"start/controllers/request"
+	"start/controllers/response"
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
@@ -179,5 +180,10 @@ func (_ *CReportDashboard) GetReportRevenueFromBooking(c *gin.Context, prof mode
 		}
 	}
 
-	okResponse(c, listData)
+	res := response.PageResponse{
+		Total: 12,
+		Data:  listData,
+	}
+
+	c.JSON(200, res)
 }
