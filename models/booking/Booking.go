@@ -1495,6 +1495,8 @@ func (item *Booking) FindTopMember(database *gorm.DB, memberType, dateType, date
 
 	db = db.Where("check_in_time > 0")
 
+	db = db.Where("check_out_time > 0")
+
 	db.Group("card_id")
 
 	if memberType == constants.TOP_MEMBER_TYPE_PLAY {
@@ -1504,6 +1506,36 @@ func (item *Booking) FindTopMember(database *gorm.DB, memberType, dateType, date
 	}
 
 	db.Limit(10)
+	db.Find(&list)
+
+	return list, db.Error
+}
+
+func (item *Booking) ReportBookingRevenue(database *gorm.DB, memberType, dateType, date string) ([]map[string]interface{}, error) {
+	db := database.Table("bookings")
+	list := []map[string]interface{}{}
+
+	if memberType == constants.TOP_MEMBER_TYPE_PLAY {
+		db.Select("card_id, customer_name, COUNT(*) as play_count")
+	} else {
+		db.Select("card_id, customer_name, SUM(mush_pay_info->'$.mush_pay') as sales")
+	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+
+	db = db.Where("check_in_time > 0")
+
+	db.Group("booking_date")
+
 	db.Find(&list)
 
 	return list, db.Error

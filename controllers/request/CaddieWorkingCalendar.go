@@ -1,25 +1,23 @@
 package request
 
 type CreateCaddieWorkingCalendarBody struct {
-	CaddieUid    string `json:"caddie_uid" validate:"required"`
-	CaddieCode   string `json:"caddie_code" validate:"required"`
-	CaddieColumn string `json:"caddie_column" validate:"required"`
-	CaddieRow    string `json:"caddie_row" validate:"required"`
-	RowTime      string `json:"row_time" validate:"required"`
-	ApplyDate    string `json:"apply_date" validate:"required,datetime"`
+	CaddieList []CaddieWorkingCalendarRequest `json:"caddie_list" binding:"required"`
 }
 
 type GetCaddieWorkingCalendarList struct {
-	PageRequest
-	ApplyDate string `form:"apply_date"`
+	PartnerUid string `form:"partner_uid" validate:"required"`
+	CourseUid  string `form:"course_uid" validate:"required"`
+	ApplyDate  string `form:"apply_date" validate:"required"`
 }
 
 type UpdateCaddieWorkingCalendarBody struct {
-	CaddieColumn string `json:"caddie_column" validate:"required"`
-	CaddieRow    string `json:"caddie_row" validate:"required"`
-	RowTime      string `json:"row_time" validate:"required"`
-	ApplyDate    string `json:"apply_date" validate:"required,datetime"`
-	CaddieUid    string `json:"caddie_uid" validate:"required"`
-	CaddieCode   string `json:"caddie_code" validate:"required"`
-	CaddieLabel  string `json:"caddie_label" validate:"required"`
+	CaddieCode string `json:"caddie_code" validate:"required"`
+}
+
+type CaddieWorkingCalendarRequest struct {
+	PartnerUid  string `json:"partner_uid"`
+	CourseUid   string `json:"course_uid"`
+	CaddieCode  string `json:"caddie_code"`
+	ApplyDate   string `json:"apply_date"`
+	NumberOrder int64  `json:"number_order"`
 }

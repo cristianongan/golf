@@ -113,3 +113,22 @@ func (_ *CReportDashboard) GetReportTop10Member(c *gin.Context, prof models.CmsU
 
 	okResponse(c, res)
 }
+
+func (_ *CReportDashboard) GetReportCustomerFromBooking(c *gin.Context, prof models.CmsUser) {
+	body := request.GetReportDashboardRequestForm{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	// date now
+	// dateNow, _ = utils.GetDateFromTimestampWithFormat(time.Now().Unix(), constants.DATE_FORMAT_1)
+
+	// // date last 1 day
+	// dateLast, _ = utils.GetDateFromTimestampWithFormat(time.Now().AddDate(0, 0, -1).Unix(), constants.DATE_FORMAT_1)
+
+	// // date last 1 week
+	// dateLastWeek, _ = utils.GetDateFromTimestampWithFormat(time.Now().AddDate(0, 0, -7).Unix(), constants.DATE_FORMAT_1)
+
+	// okResponse(c, res)
+}

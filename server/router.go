@@ -382,8 +382,9 @@ func NewRouter() *gin.Engine {
 			/// =================== Caddie Working Calendar ===================
 			cCaddieWorkingCalendar := new(controllers.CCaddieWorkingCalendar)
 			cmsApiAuthorized.POST("/caddie-working-calendar", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.CreateCaddieWorkingCalendar))
-			cmsApiAuthorized.GET("/caddie-working-calendar", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetCaddieWorkingCalendarList))
+			cmsApiAuthorized.GET("/caddie-working-calendar/list", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetCaddieWorkingCalendarList))
 			cmsApiAuthorized.PUT("/caddie-working-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.UpdateCaddieWorkingCalendar))
+			cmsApiAuthorized.DELETE("/caddie-working-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.DeleteCaddieWorkingCalendar))
 
 			/// =================== Caddie Fee Setting ===================
 			cCaddieFeeSetting := new(controllers.CCaddieFeeSetting)
@@ -680,11 +681,11 @@ func NewRouter() *gin.Engine {
 		// 	cronApi.POST("/backup-order", cCron.BackupOrder)
 		// }
 
-		cronApi := routerApi.Group("cron-job")
-		{
-			cCron := new(controllers.CCron)
-			cronApi.GET("/create-caddie-working-calendar", cCron.CreateCaddieWorkingCalendar)
-		}
+		// cronApi := routerApi.Group("cron-job")
+		// {
+		// 	cCron := new(controllers.CCron)
+		// 	cronApi.GET("/create-caddie-working-calendar", cCron.CreateCaddieWorkingCalendar)
+		// }
 	}
 
 	return router
