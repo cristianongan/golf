@@ -44,6 +44,7 @@ type BookingList struct {
 	CustomerName          string
 	CustomerType          string
 	TeeType               string
+	CourseType            string
 	FlightId              int64
 	IsCheckIn             string
 	IsBuggyPrepareForJoin string
@@ -208,6 +209,10 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 
 	if item.TeeType != "" {
 		db = db.Where("tee_type = ?", item.TeeType)
+	}
+
+	if item.CourseType != "" {
+		db = db.Where("course_type = ?", item.CourseType)
 	}
 
 	if item.GuestStyleName != "" {
