@@ -18,7 +18,7 @@ type UpdateCaddieWorkingCalendarBody struct {
 
 type CaddieWorkingCalendarListRequest struct {
 	ApplyDate  string                         `json:"apply_date"`
-	Note       string                         `json:"string"`
+	Note       string                         `json:"note"`
 	CaddieList []CaddieWorkingCalendarRequest `json:"caddie_list"`
 }
 
