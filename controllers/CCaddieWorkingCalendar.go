@@ -88,6 +88,7 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 			caddieWC.CourseUid = body.CourseUid
 			caddieWC.CaddieCode = data.CaddieCode
 			caddieWC.ApplyDate = v.ApplyDate
+			caddieWC.Row = data.Row
 			caddieWC.NumberOrder = data.NumberOrder
 			caddieWC.CaddieIncrease = data.CaddieIncrease
 			listCreate = append(listCreate, caddieWC)
