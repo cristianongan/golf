@@ -644,6 +644,19 @@ func NewRouter() *gin.Engine {
 			/// =================== Notification ===================
 			cNotification := new(controllers.CNotification)
 			cmsApiAuthorized.GET("/notification/list", middlewares.AuthorizedCmsUserHandler(cNotification.GetListNotification))
+			cmsApiAuthorized.POST("/notification/caddie-calendar/approve/:id", middlewares.AuthorizedCmsUserHandler(cNotification.ApproveCaddieCalendarNotification))
+			cmsApiAuthorized.POST("/notification/seen", middlewares.AuthorizedCmsUserHandler(cNotification.SeenNotification))
+
+			/// =================== Buggy Fee Setting ===================
+			cBuggyFeeSetting := new(controllers.CBuggyFeeSetting)
+			cmsApiAuthorized.POST("/buggy-fee-setting", middlewares.AuthorizedCmsUserHandler(cBuggyFeeSetting.CreateBuggyFeeSetting))
+			cmsApiAuthorized.GET("/buggy-fee-setting/list", middlewares.AuthorizedCmsUserHandler(cBuggyFeeSetting.GetBuggyFeeSettingList))
+			cmsApiAuthorized.DELETE("/buggy-fee-setting/:id", middlewares.AuthorizedCmsUserHandler(cBuggyFeeSetting.DeleteBuggyFeeSetting))
+
+			cBuggyFeeItemSetting := new(controllers.CBuggyFeeItemSetting)
+			cmsApiAuthorized.POST("/buggy-fee-item-setting", middlewares.AuthorizedCmsUserHandler(cBuggyFeeItemSetting.CreateBuggyFeeItemSetting))
+			cmsApiAuthorized.GET("/buggy-fee-item-setting/list", middlewares.AuthorizedCmsUserHandler(cBuggyFeeItemSetting.GetBuggyFeeItemSettingList))
+			cmsApiAuthorized.DELETE("/buggy-fee-item-setting/:id", middlewares.AuthorizedCmsUserHandler(cBuggyFeeItemSetting.DeleteBuggyFeeSetting))
 		}
 
 		// ----------------------------------------------------------

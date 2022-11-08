@@ -20,6 +20,7 @@ type Notification struct {
 	UserApprove        string `json:"user_update" gorm:"type:varchar(100)"` // Người duyệt noti
 	IsRead             *bool  `json:"is_read" gorm:"default:0"`             // Trạng thái đã xem của noti
 	Note               string `json:"note" gorm:"type:varchar(500)"`
+	ExtraInfo          string `json:"extra_info" gorm:"type:varchar(500)"`
 }
 
 // ======= CRUD ===========
