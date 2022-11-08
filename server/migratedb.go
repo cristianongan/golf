@@ -123,6 +123,7 @@ func MigrateDbCms(db *gorm.DB) {
 
 	// ------- Caddie Working Calendar -------
 	db.AutoMigrate(&models.CaddieWorkingCalendar{})
+	db.AutoMigrate(&models.CaddieWorkingCalendarNote{})
 
 	// ------- Caddie Group -------
 	db.AutoMigrate(&models.CaddieGroup{})
