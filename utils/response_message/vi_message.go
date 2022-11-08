@@ -29,6 +29,7 @@ var ViLanguage = map[string]string{
 	"BAG_NOT_FOUND":          "Không tìm thấy Bag này",
 	"PLAY_COUNT_INVALID":     "Số lần chơi đã hết",
 	"BOOKING_NOT_FOUND":      "Không tìm thấy booking này",
+	"NOTI_NOT_FOUND":         "Không tìm thấy notification này",
 	"UPDATE_BOOKING_ERROR":   "Update booking lỗi",
 	"MAIN_BAG_NOT_FOUND":     "Bag đang là main bag",
 	"ROUND_NOT_FOUND":        "Không tìm thấy round này",

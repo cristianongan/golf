@@ -28,6 +28,7 @@ var EnLanguage = map[string]string{
 	"BAG_NOT_FOUND":          "Cannot found this bag",
 	"PLAY_COUNT_INVALID":     "Play count remain over",
 	"BOOKING_NOT_FOUND":      "Booking not found",
+	"NOTI_NOT_FOUND":         "Notification not found",
 	"UPDATE_BOOKING_ERROR":   "Update booking error",
 	"MAIN_BAG_NOT_FOUND":     "Bag was main bag",
 	"ROUND_NOT_FOUND":        "Round not found",

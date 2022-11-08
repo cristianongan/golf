@@ -10,6 +10,7 @@ import (
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -73,6 +74,94 @@ func (_ *CNotification) DeleteNotification(c *gin.Context, prof models.CmsUser) 
 	okRes(c)
 }
 
+func (_ *CNotification) SeenNotification(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	idStr := c.Param("id")
+	Id, errId := strconv.ParseInt(idStr, 10, 64)
+	if errId != nil {
+		response_message.BadRequest(c, errId.Error())
+		return
+	}
+
+	notification := models.Notification{}
+	notification.Id = Id
+	errF := notification.FindFirst(db)
+	if errF != nil {
+		response_message.BadRequestDynamicKey(c, "NOTI_NOT_FOUND", "")
+		return
+	}
+
+	notification.IsRead = newTrue(true)
+	if errUpd := notification.Update(db); errUpd != nil {
+		response_message.BadRequest(c, errUpd.Error())
+		return
+	}
+
+	okRes(c)
+}
+
+func (_ *CNotification) ApproveCaddieCalendarNotification(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	idStr := c.Param("id")
+	Id, errId := strconv.ParseInt(idStr, 10, 64)
+	if errId != nil {
+		response_message.BadRequest(c, errId.Error())
+		return
+	}
+
+	form := request.ApproveCaddieCalendarNotification{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	notification := models.Notification{}
+	notification.Id = Id
+	errF := notification.FindFirst(db)
+	if errF != nil {
+		response_message.BadRequestDynamicKey(c, "NOTI_NOT_FOUND", "")
+		return
+	}
+
+	extraTitle := ""
+	approvedTitle := ""
+	if notification.Type == constants.NOTIFICATION_CADDIE_VACATION_SICK_OFF {
+		extraTitle = "xin nghỉ phép ốm"
+		if form.IsApprove {
+			approvedTitle = "được duyệt nghỉ phép ốm"
+		} else {
+			approvedTitle = "được duyệt nghỉ phép ốm"
+		}
+	} else if notification.Type == constants.NOTIFICATION_CADDIE_VACATION_UNPAID {
+		extraTitle = "xin nghỉ phép không lương"
+		if form.IsApprove {
+			approvedTitle = "được duyệt nghỉ phép không lương"
+		} else {
+			approvedTitle = "không được duyệt nghỉ phép không lương"
+		}
+	}
+
+	newNotification := models.Notification{}
+	if form.IsApprove {
+		newNotification.NotificationStatus = constants.NOTIFICATION_APPROVED
+	} else {
+		newNotification.NotificationStatus = constants.NOTIFICATION_REJECTED
+	}
+	newNotification.Title = strings.Replace(notification.Title, extraTitle, approvedTitle, 1)
+	newNotification.UserCreate = prof.UserName
+	newNotification.Note = form.Note
+	newNotification.Type = notification.Type
+
+	if errNotification := newNotification.Create(db); errNotification != nil {
+		response_message.InternalServerError(c, errNotification.Error())
+		return
+	}
+
+	socket.Broadcast <- newNotification
+
+	okRes(c)
+}
+
 func (_ *CNotification) CreateCaddieVacationNotification(db *gorm.DB, body request.GetCaddieVacationNotification) {
 	notiType := ""
 	extraTitle := ""
@@ -96,6 +185,7 @@ func (_ *CNotification) CreateCaddieVacationNotification(db *gorm.DB, body reque
 		Title:              title,
 		NotificationStatus: constants.NOTIFICATION_PENDIND,
 		UserCreate:         body.UserName,
+		ExtraInfo:          body.Caddie.Code,
 	}
 
 	notiData.Create(db)

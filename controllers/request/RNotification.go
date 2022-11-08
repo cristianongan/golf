@@ -8,6 +8,11 @@ type CreateNotificationBody struct {
 	Status string `json:"status"`
 }
 
+type ApproveCaddieCalendarNotification struct {
+	IsApprove bool   `json:"is_approve" binding:"required"`
+	Note      string `json:"note"`
+}
+
 type GetListNotificationForm struct {
 	PageRequest
 	PartnerUid string `form:"partner_uid"`
