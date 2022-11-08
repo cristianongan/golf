@@ -11,7 +11,9 @@ import (
 // Hãng Golf
 type Notification struct {
 	ModelId
-	Type               string `json:"type" gorm:"type:varchar(100)"` // Loại noti
+	PartnerUid         string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid          string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Type               string `json:"type" gorm:"type:varchar(100)"`              // Loại noti
 	Title              string `json:"title" gorm:"type:varchar(256)"`
 	NotificationStatus string `json:"noti_status" gorm:"type:varchar(50)"`  // Trạng thái của noti
 	UserCreate         string `json:"user_create" gorm:"type:varchar(100)"` // Người tạo noti
