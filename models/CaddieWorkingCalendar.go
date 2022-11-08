@@ -52,6 +52,10 @@ func (item *CaddieWorkingCalendar) FindAll(database *gorm.DB) ([]CaddieWorkingCa
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 
+	if item.ApplyDate != "" {
+		db = db.Where("apply_date = ?", item.ApplyDate)
+	}
+
 	db.Find(&list)
 
 	return list, db.Error
