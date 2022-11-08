@@ -57,28 +57,23 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 			}
 
 			if err := caddieWCNote.FindFirst(db); err != nil {
-				response_message.BadRequest(c, "Find first caddie working calendar note "+err.Error())
-				return
+				// Tạo lưu ý theo ngày truy vấn
+				caddieWCNote := models.CaddieWorkingCalendarNote{
+					PartnerUid: body.PartnerUid,
+					CourseUid:  body.CourseUid,
+					ApplyDate:  v.ApplyDate,
+					Note:       v.Note,
+				}
+
+				if err := caddieWCNote.Create(db); err != nil {
+					response_message.BadRequest(c, "Create caddie working calendar note "+err.Error())
+					return
+				}
 			}
 
 			caddieWCNote.Note = v.Note
-
 			if err := caddieWCNote.Update(db); err != nil {
 				response_message.BadRequest(c, "Update caddie working calendar note "+err.Error())
-				return
-			}
-
-		} else {
-			// Tạo lưu ý theo ngày truy vấn
-			caddieWCNote := models.CaddieWorkingCalendarNote{
-				PartnerUid: body.PartnerUid,
-				CourseUid:  body.CourseUid,
-				ApplyDate:  v.ApplyDate,
-				Note:       v.Note,
-			}
-
-			if err := caddieWCNote.Create(db); err != nil {
-				response_message.BadRequest(c, "Create caddie working calendar note "+err.Error())
 				return
 			}
 		}
