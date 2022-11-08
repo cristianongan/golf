@@ -90,6 +90,8 @@ func (_ *CNotification) CreateCaddieVacationNotification(db *gorm.DB, body reque
 	title := fmt.Sprintln("Caddie", body.Caddie.Code, extraTitle, body.NumberDayOff, "ngày", "từ", fromDay, "đến", toDay, ",", hourStr)
 
 	notiData := models.Notification{
+		PartnerUid:         body.PartnerUid,
+		CourseUid:          body.CourseUid,
 		Type:               notiType,
 		Title:              title,
 		NotificationStatus: constants.NOTIFICATION_PENDIND,

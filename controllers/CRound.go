@@ -304,7 +304,6 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.SplitRoundBody
 	var booking model_booking.Booking
-	var err error
 
 	if err := c.BindJSON(&body); err != nil {
 		response_message.BadRequest(c, "Body format type error")
@@ -318,9 +317,10 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking, err = cRound.validateBooking(db, body.BookingUid)
-	if err != nil {
-		response_message.BadRequest(c, err.Error())
+	booking = model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
 		return
 	}
 
@@ -462,9 +462,10 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	// 	return
 	// }
 
-	booking, err = cRound.validateBooking(db, body.BookingUid)
-	if err != nil {
-		response_message.BadRequest(c, err.Error())
+	booking = model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
 		return
 	}
 
