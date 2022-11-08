@@ -304,7 +304,6 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.SplitRoundBody
 	var booking model_booking.Booking
-	var err error
 
 	if err := c.BindJSON(&body); err != nil {
 		response_message.BadRequest(c, "Body format type error")
@@ -318,9 +317,10 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking, err = cRound.validateBooking(db, body.BookingUid)
-	if err != nil {
-		response_message.BadRequest(c, err.Error())
+	booking = model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
 		return
 	}
 
@@ -338,6 +338,7 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 	newRound := currentRound
+	newRound.Id = 0
 	newRound.Hole = int(body.Hole)
 	newRound.Index = currentRound.Index + 1
 	currentRound.Hole = currentRound.Hole - newRound.Hole
@@ -461,9 +462,10 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	// 	return
 	// }
 
-	booking, err = cRound.validateBooking(db, body.BookingUid)
-	if err != nil {
-		response_message.BadRequest(c, err.Error())
+	booking = model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
 		return
 	}
 
@@ -519,6 +521,14 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	if err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
+	}
+
+	//Xóa các round cũ
+	for _, item := range listRound {
+		if errRound := item.Delete(db); errRound != nil {
+			response_message.BadRequest(c, "Merge error")
+			return
+		}
 	}
 
 	// Update lại giá cho main bag

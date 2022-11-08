@@ -70,6 +70,16 @@ func (_ *CCaddieVacationCalendar) CreateCaddieVacationCalendar(c *gin.Context, p
 		return
 	}
 
+	cNotification := CNotification{}
+	go cNotification.CreateCaddieVacationNotification(db, request.GetCaddieVacationNotification{
+		Caddie:       caddie,
+		DateFrom:     body.DateFrom,
+		DateTo:       body.DateTo,
+		NumberDayOff: body.NumberDayOff,
+		Title:        body.Title,
+		CreateAt:     caddieVC.CreatedAt,
+		UserName:     prof.UserName,
+	})
 	c.JSON(200, caddieVC)
 }
 

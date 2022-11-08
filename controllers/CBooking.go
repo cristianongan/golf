@@ -558,7 +558,8 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 
 	bagDetail := getBagDetailFromBooking(db, booking)
 
-	if form.HasRoundOfSubBag == "1" {
+	// if form.HasRoundOfSubBag == "1" && len(booking.SubBags) > 0 {
+	if len(booking.SubBags) > 0 {
 		res := GetGolfFeeInfoOfBag(c, booking, bagDetail)
 		okResponse(c, res)
 		return
@@ -707,6 +708,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.HasCaddieInOut = form.HasCaddieInOut
 	bookings.FlightId = form.FlightId
 	bookings.TeeType = form.TeeType
+	bookings.CourseType = form.CourseType
 	bookings.IsCheckIn = form.IsCheckIn
 	bookings.GuestStyleName = form.GuestStyleName
 	bookings.PlayerOrBag = form.PlayerOrBag
@@ -1190,7 +1192,7 @@ func (_ *CBooking) UpdateBookingCaddieCommon(db *gorm.DB, PartnerUid string, Cou
 	}
 
 	// udp trạng thái caddie sang LOCK
-	caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+	// caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
 	if errCad := caddie.Update(db); errCad != nil {
 		log.Println("err udp caddie", errCad.Error())
 	}
@@ -2262,7 +2264,7 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 				errF := subBag.FindFirst(db)
 
 				if errF == nil {
-					if bag.BagStatus == constants.BAG_STATUS_CHECK_OUT || bag.BagStatus == constants.BAG_STATUS_CANCEL {
+					if subBag.BagStatus == constants.BAG_STATUS_CHECK_OUT || subBag.BagStatus == constants.BAG_STATUS_CANCEL {
 					} else {
 						errMessage = "Sub-bag chưa check checkout"
 						isCanCheckOut = false

@@ -173,6 +173,9 @@ func MigrateDbCms(db *gorm.DB) {
 
 	// Maintain Schedule
 	db.AutoMigrate(&models.MaintainSchedule{})
+
+	// Notification
+	db.AutoMigrate(&models.Notification{})
 }
 
 func MigrateDbAuth() {

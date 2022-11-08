@@ -640,6 +640,12 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/maintain-schedule", middlewares.AuthorizedCmsUserHandler(cMaintainSchedule.GetMaintainScheduleList))
 			cmsApiAuthorized.POST("/maintain-schedule/list", middlewares.AuthorizedCmsUserHandler(cMaintainSchedule.CreateMaintainSchedule))
 			cmsApiAuthorized.PUT("/maintain-schedule/:id", middlewares.AuthorizedCmsUserHandler(cMaintainSchedule.UpdateMaintainSchedule))
+
+			/// =================== Notification ===================
+			cNotification := new(controllers.CNotification)
+			cmsApiAuthorized.GET("/notification/list", middlewares.AuthorizedCmsUserHandler(cNotification.GetListNotification))
+			cmsApiAuthorized.POST("/notification/caddie-calendar/approve/:id", middlewares.AuthorizedCmsUserHandler(cNotification.ApproveCaddieCalendarNotification))
+			cmsApiAuthorized.POST("/notification/seen", middlewares.AuthorizedCmsUserHandler(cNotification.SeenNotification))
 		}
 
 		// ----------------------------------------------------------
