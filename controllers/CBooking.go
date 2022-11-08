@@ -2263,7 +2263,7 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 				errF := subBag.FindFirst(db)
 
 				if errF == nil {
-					if bag.BagStatus == constants.BAG_STATUS_CHECK_OUT || bag.BagStatus == constants.BAG_STATUS_CANCEL {
+					if subBag.BagStatus == constants.BAG_STATUS_CHECK_OUT || subBag.BagStatus == constants.BAG_STATUS_CANCEL {
 					} else {
 						errMessage = "Sub-bag chưa check checkout"
 						isCanCheckOut = false
