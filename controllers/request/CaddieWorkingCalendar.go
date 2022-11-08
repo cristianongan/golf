@@ -1,7 +1,9 @@
 package request
 
 type CreateCaddieWorkingCalendarBody struct {
-	CaddieList []CaddieWorkingCalendarRequest `json:"caddie_list" binding:"required"`
+	PartnerUid        string                             `json:"partner_uid"`
+	CourseUid         string                             `json:"course_uid"`
+	CaddieWorkingList []CaddieWorkingCalendarListRequest `json:"caddie_working_list" binding:"required"`
 }
 
 type GetCaddieWorkingCalendarList struct {
@@ -14,10 +16,15 @@ type UpdateCaddieWorkingCalendarBody struct {
 	CaddieCode string `json:"caddie_code" validate:"required"`
 }
 
+type CaddieWorkingCalendarListRequest struct {
+	ApplyDate  string                         `json:"apply_date"`
+	Note       string                         `json:"string"`
+	CaddieList []CaddieWorkingCalendarRequest `json:"caddie_list"`
+}
+
 type CaddieWorkingCalendarRequest struct {
-	PartnerUid  string `json:"partner_uid"`
-	CourseUid   string `json:"course_uid"`
-	CaddieCode  string `json:"caddie_code"`
-	ApplyDate   string `json:"apply_date"`
-	NumberOrder int64  `json:"number_order"`
+	CaddieCode     string `json:"caddie_code"`
+	Row            string `json:"row"`
+	NumberOrder    int64  `json:"number_order"`
+	CaddieIncrease bool   `json:"caddie_increase"`
 }

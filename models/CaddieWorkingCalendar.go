@@ -10,11 +10,13 @@ import (
 
 type CaddieWorkingCalendar struct {
 	ModelId
-	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	CaddieCode  string `json:"caddie_code" gorm:"type:varchar(100);index"` // caddie code
-	ApplyDate   string `json:"apply_date"  gorm:"type:varchar(100)"`       // ngày áp dụng
-	NumberOrder int64  `json:"number_order"`                               // số thứ tự caddie
+	PartnerUid     string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid      string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	CaddieCode     string `json:"caddie_code" gorm:"type:varchar(100);index"` // caddie code
+	ApplyDate      string `json:"apply_date"  gorm:"type:varchar(100)"`       // ngày áp dụng
+	Row            string `json:"row"  gorm:"type:varchar(50)"`               // thứ tự hàng
+	NumberOrder    int64  `json:"number_order"`                               // số thứ tự caddie\
+	CaddieIncrease bool   `json:"caddie_increase"`                            // caddie tăng cường
 }
 
 func (item *CaddieWorkingCalendar) Create(db *gorm.DB) error {
@@ -35,6 +37,24 @@ func (item *CaddieWorkingCalendar) BatchInsert(database *gorm.DB, list []CaddieW
 
 func (item *CaddieWorkingCalendar) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
+}
+
+func (item *CaddieWorkingCalendar) FindAll(database *gorm.DB) ([]CaddieWorkingCalendar, error) {
+	list := []CaddieWorkingCalendar{}
+
+	db := database.Model(CaddieWorkingCalendar{})
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	db.Find(&list)
+
+	return list, db.Error
 }
 
 func (item *CaddieWorkingCalendar) FindAllByDate(database *gorm.DB) ([]map[string]interface{}, int64, error) {
@@ -77,5 +97,21 @@ func (item *CaddieWorkingCalendar) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
+	return db.Delete(item).Error
+}
+
+func (item *CaddieWorkingCalendar) DeleteBatch(db *gorm.DB) error {
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.ApplyDate != "" {
+		db = db.Where("apply_date = ?", item.ApplyDate)
+	}
+
 	return db.Delete(item).Error
 }

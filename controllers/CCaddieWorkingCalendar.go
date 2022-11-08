@@ -27,27 +27,84 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 	}
 
 	now := time.Now()
-	listCreate := []models.CaddieWorkingCalendar{}
 
-	for _, v := range body.CaddieList {
-		caddieWC := models.CaddieWorkingCalendar{}
-		caddieWC.CreatedAt = now.Unix()
-		caddieWC.UpdatedAt = now.Unix()
-		caddieWC.Status = constants.STATUS_ENABLE
-		caddieWC.PartnerUid = v.PartnerUid
-		caddieWC.CourseUid = v.CourseUid
-		caddieWC.CaddieCode = v.CaddieCode
-		caddieWC.ApplyDate = v.ApplyDate
-		caddieWC.NumberOrder = v.NumberOrder
-		listCreate = append(listCreate, caddieWC)
-	}
+	for _, v := range body.CaddieWorkingList {
+		caddieWC := models.CaddieWorkingCalendar{
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+			ApplyDate:  v.ApplyDate,
+		}
 
-	// validate caddie_uid
-	caddieWC := models.CaddieWorkingCalendar{}
+		list, err := caddieWC.FindAll(db)
+		if err != nil {
+			response_message.BadRequest(c, "Find all caddie working calendar "+err.Error())
+			return
+		}
 
-	if err := caddieWC.BatchInsert(db, listCreate); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
+		// Kiểm tra ngày truy vấn có dữ liệu hay không
+		if len(list) > 0 {
+			// Xóa hết dữ liệu ngày truy vấn
+			if errD := caddieWC.DeleteBatch(db); errD != nil {
+				response_message.BadRequest(c, "Delete batch caddie working calendar "+errD.Error())
+				return
+			}
+
+			// Update thông note ngày truy vấn
+			caddieWCNote := models.CaddieWorkingCalendarNote{
+				PartnerUid: body.PartnerUid,
+				CourseUid:  body.CourseUid,
+				ApplyDate:  v.ApplyDate,
+			}
+
+			if err := caddieWCNote.FindFirst(db); err != nil {
+				response_message.BadRequest(c, "Find first caddie working calendar note "+err.Error())
+				return
+			}
+
+			caddieWCNote.Note = v.Note
+
+			if err := caddieWCNote.Update(db); err != nil {
+				response_message.BadRequest(c, "Update caddie working calendar note "+err.Error())
+				return
+			}
+
+		} else {
+			// Tạo lưu ý theo ngày truy vấn
+			caddieWCNote := models.CaddieWorkingCalendarNote{
+				PartnerUid: body.PartnerUid,
+				CourseUid:  body.CourseUid,
+				ApplyDate:  v.ApplyDate,
+				Note:       v.Note,
+			}
+
+			if err := caddieWCNote.Create(db); err != nil {
+				response_message.BadRequest(c, "Create caddie working calendar note "+err.Error())
+				return
+			}
+		}
+
+		listCreate := []models.CaddieWorkingCalendar{}
+		for _, data := range v.CaddieList {
+			caddieWC := models.CaddieWorkingCalendar{}
+			caddieWC.CreatedAt = now.Unix()
+			caddieWC.UpdatedAt = now.Unix()
+			caddieWC.Status = constants.STATUS_ENABLE
+			caddieWC.PartnerUid = body.PartnerUid
+			caddieWC.CourseUid = body.CourseUid
+			caddieWC.CaddieCode = data.CaddieCode
+			caddieWC.ApplyDate = v.ApplyDate
+			caddieWC.NumberOrder = data.NumberOrder
+			caddieWC.CaddieIncrease = data.CaddieIncrease
+			listCreate = append(listCreate, caddieWC)
+		}
+
+		// create
+		caddieWCCreate := models.CaddieWorkingCalendar{}
+		if err := caddieWCCreate.BatchInsert(db, listCreate); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+
 	}
 
 	okRes(c)
