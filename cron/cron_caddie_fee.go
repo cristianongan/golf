@@ -114,7 +114,6 @@ func runReportCaddieFeeToDay() {
 						caddieFee.Hole += item.Hole
 						caddieFee.Amount += cfs.Fee
 						caddieFee.Round += 1
-						break
 					}
 				}
 			}
