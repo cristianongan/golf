@@ -150,6 +150,7 @@ type CreateBookingBody struct {
 	BookingOtaId       int64                   `json:"booking_ota_id"`
 	LockerNo           string                  `json:"locker_no"` // Locker mã số tủ gửi đồ
 	ReportNo           string                  `json:"report_no"` // Report No
+	FeeInfo            AgencyFeeInfo           `json:"fee_info"`
 	BookMark           bool
 	BookFromOTA        bool
 }
@@ -179,6 +180,11 @@ func (item ListCreateBookingBody) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
+type AgencyFeeInfo struct {
+	GolfFee   int64 `json:"golf_fee"`
+	BuggyFee  int64 `json:"buggy_fee"`
+	CaddieFee int64 `json:"caddie_fee"`
+}
 type BookingBaseBody struct {
 	BookingUid string `json:"booking_uid"`
 	CmsUser    string `json:"cms_user"`
