@@ -659,6 +659,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/buggy-fee-item-setting/list", middlewares.AuthorizedCmsUserHandler(cBuggyFeeItemSetting.GetBuggyFeeItemSettingList))
 			cmsApiAuthorized.DELETE("/buggy-fee-item-setting/:id", middlewares.AuthorizedCmsUserHandler(cBuggyFeeItemSetting.DeleteBuggyFeeSetting))
 			cmsApiAuthorized.PUT("/buggy-fee-item-setting/:id", middlewares.AuthorizedCmsUserHandler(cBuggyFeeItemSetting.UpdateBuggyFeeItemSetting))
+
+			/// =================== Booking Caddie Fee Setting ===================
+			cBookingCaddyFeeSetting := new(controllers.CBookingCaddyFeeSetting)
+			cmsApiAuthorized.POST("/booking-caddy-fee-setting", middlewares.AuthorizedCmsUserHandler(cBookingCaddyFeeSetting.CreateBookingCaddyFeeSetting))
+			cmsApiAuthorized.GET("/booking-caddy-fee-setting/list", middlewares.AuthorizedCmsUserHandler(cBookingCaddyFeeSetting.GetBookingCaddyFeeSettingList))
+			cmsApiAuthorized.DELETE("/booking-caddy-fee-setting/:id", middlewares.AuthorizedCmsUserHandler(cBookingCaddyFeeSetting.DeleteBookingCaddyFeeSetting))
+			cmsApiAuthorized.PUT("/booking-caddy-fee-setting/:id", middlewares.AuthorizedCmsUserHandler(cBookingCaddyFeeSetting.UpdateBookingCaddyFeeSetting))
 		}
 
 		// ----------------------------------------------------------
