@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	model_booking "start/models/booking"
-	model_payment "start/models/payment"
 	"start/utils"
 )
 
@@ -151,6 +150,7 @@ type CreateBookingBody struct {
 	BookingOtaId       int64                   `json:"booking_ota_id"`
 	LockerNo           string                  `json:"locker_no"` // Locker mã số tủ gửi đồ
 	ReportNo           string                  `json:"report_no"` // Report No
+	FeeInfo            AgencyFeeInfo           `json:"fee_info"`
 	BookMark           bool
 	BookFromOTA        bool
 }
@@ -168,7 +168,6 @@ type GolfFeeGuestyleParam struct {
 
 type CreateBatchBookingBody struct {
 	BookingList ListCreateBookingBody `json:"booking_list"`
-	FeeInfo     FeeDetail             `json:"fee_detail"`
 }
 
 type ListCreateBookingBody []CreateBookingBody
@@ -181,19 +180,11 @@ func (item ListCreateBookingBody) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
-type AgencyGolfFeeInfo struct {
-	Fee          int64 `json:"fee"`
-	NumberPeople int64 `json:"number_people"`
-	Amount       int64 `json:"amount"`
+type AgencyFeeInfo struct {
+	GolfFee   int64 `json:"golf_fee"`
+	BuggyFee  int64 `json:"buggy_fee"`
+	CaddieFee int64 `json:"caddie_fee"`
 }
-
-type FeeDetail struct {
-	GolfFee   AgencyGolfFeeInfo                            `json:"golf_fee"`
-	BuggyFee  AgencyGolfFeeInfo                            `json:"buggy_fee"`
-	CaddieFee AgencyGolfFeeInfo                            `json:"caddie_fee"`
-	Players   model_payment.ListBookingAgencyPaymentPlayer `json:"players"` // Booking uids dc agency thanh toán, có options caddie id
-}
-
 type BookingBaseBody struct {
 	BookingUid string `json:"booking_uid"`
 	CmsUser    string `json:"cms_user"`
