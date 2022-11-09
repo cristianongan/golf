@@ -106,6 +106,10 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 		}
 	}
 
+	rentalFee := utils.GetFeeFromListFee(buggyFeeItemSetting.RentalFee, form.Hole)
+	privateCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.RentalFee, form.Hole)
+	oddCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.RentalFee, form.Hole)
+
 	// Get Buggy Fee
 	bookingCaddieFeeSettingR := models.BookingCaddyFeeSetting{
 		PartnerUid: form.PartnerUid,
@@ -123,9 +127,9 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 	res := map[string]interface{}{
 		"golf_fee": golfFeeTotal,
 		"buggy_fee": models.BuggyFeeItemSettingResponse{
-			RentalFee:     buggyFeeItemSetting.RentalFee,
-			PrivateCarFee: buggyFeeItemSetting.PrivateCarFee,
-			OddCarFee:     buggyFeeItemSetting.OddCarFee,
+			RentalFee:     rentalFee,
+			PrivateCarFee: privateCarFee,
+			OddCarFee:     oddCarFee,
 		},
 		"caddie_fee": models.BookingCaddyFeeSettingRes{
 			Fee:  bookingCaddieFeeSetting.Fee,

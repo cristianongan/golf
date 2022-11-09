@@ -2073,7 +2073,9 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		bodyRequest.BookingList[index].BookingCode = bookingCode
 	}
 
-	cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	listBooking := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+
+	okResponse(c, listBooking)
 }
 
 func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser) {
@@ -2099,21 +2101,21 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 			}
 		}
 	}
-	cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	listBooking := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	okResponse(c, listBooking)
 }
 
-func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser) {
+func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser) []model_booking.Booking {
 	list := []model_booking.Booking{}
 	for _, body := range bookingList {
 		booking, _ := cBooking.CreateBookingCommon(body, c, prof)
 		if booking != nil {
 			list = append(list, *booking)
-		} else {
-			return
 		}
 	}
-	okResponse(c, list)
+	return list
 }
+
 func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.CancelAllBookingBody{}
