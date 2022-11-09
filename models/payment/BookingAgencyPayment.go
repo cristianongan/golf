@@ -1,8 +1,6 @@
 package model_payment
 
 import (
-	"database/sql/driver"
-	"encoding/json"
 	"start/constants"
 	"start/models"
 	"strings"
@@ -14,48 +12,14 @@ import (
 // Booking Agency Payment
 type BookingAgencyPayment struct {
 	models.ModelId
-	PartnerUid  string                          `json:"partner_uid" gorm:"type:varchar(100);index"`  // Hang Golf
-	CourseUid   string                          `json:"course_uid" gorm:"type:varchar(256);index"`   // San Golf
-	BookingCode string                          `json:"booking_code" gorm:"type:varchar(100);index"` // Booking code
-	AgencyId    int64                           `json:"agency_id" gorm:"index"`                      // agency id
-	TotalPaid   int64                           `json:"total_paid"`                                  // Số tiền thanh toán
-	Players     ListBookingAgencyPaymentPlayer  `json:"players" gorm:"type:json"`                    // Booking uids dc agency thanh toán, có options caddie id
-	Fees        ListBookingAgencyPaymentFeeData `json:"fees" gorm:"type:json"`                       // chi tiết Fee
-}
-
-// Player
-type BookingAgencyPaymentPlayer struct {
-	BookingUid string `json:"booking_uid"`
-	CaddieId   string `json:"caddie_id"` // id caddie, nếu player có chọn caddie thì có
-}
-
-type ListBookingAgencyPaymentPlayer []BookingAgencyPaymentPlayer
-
-func (item *ListBookingAgencyPaymentPlayer) Scan(v interface{}) error {
-	return json.Unmarshal(v.([]byte), item)
-}
-
-func (item ListBookingAgencyPaymentPlayer) Value() (driver.Value, error) {
-	return json.Marshal(&item)
-}
-
-// Fees Data
-
-type ListBookingAgencyPaymentFeeData []BookingAgencyPaymentFeeData
-
-func (item *ListBookingAgencyPaymentFeeData) Scan(v interface{}) error {
-	return json.Unmarshal(v.([]byte), item)
-}
-
-func (item ListBookingAgencyPaymentFeeData) Value() (driver.Value, error) {
-	return json.Marshal(&item)
-}
-
-type BookingAgencyPaymentFeeData struct {
-	Fee          int64  `json:"fee"`
-	TotalFee     int64  `json:"total_fee"`
-	NumberPeople int    `json:"number_people"`
-	Name         string `json:"name"`
+	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"`  // Hang Golf
+	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`   // San Golf
+	BookingCode string `json:"booking_code" gorm:"type:varchar(100);index"` // Booking code
+	AgencyId    int64  `json:"agency_id" gorm:"index"`                      // agency id
+	BookingUid  string `json:"booking_uid" gorm:"type:varchar(100);index"`  // Booking Uid
+	FeeType     string `json:"fee_type" gorm:"type:varchar(50);index"`      // Fee Type: GOLF_FEE, BUGGY_FEE, CADDIE_FEE
+	Name        string `json:"name" gorm:"type:varchar(100)"`               // Ex: Buggy (1/2)xe
+	Fee         int64  `json:"fee"`
 }
 
 func (item *BookingAgencyPayment) Create(db *gorm.DB) error {
