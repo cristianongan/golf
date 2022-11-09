@@ -81,6 +81,12 @@ func (item *CaddieWorkingCalendar) FindAllByDate(database *gorm.DB) ([]map[strin
 		db = db.Where("caddie_working_calendars.apply_date = ?", item.ApplyDate)
 	}
 
+	if item.CaddieIncrease {
+		db = db.Where("caddie_working_calendars.caddie_increase = 1")
+	} else {
+		db = db.Where("caddie_working_calendars.caddie_increase = 0")
+	}
+
 	db.Joins("left join caddies on caddies.code = caddie_working_calendars.caddie_code")
 
 	db.Order("number_order asc")
