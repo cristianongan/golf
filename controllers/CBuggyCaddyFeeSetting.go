@@ -21,17 +21,17 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 		return
 	}
 
-	golfFee := models.GolfFee{
-		GuestStyle: form.GuestStyle,
-		CourseUid:  form.CourseUid,
-		PartnerUid: form.PartnerUid,
-	}
 	golfFeeTotal := int64(0)
 	caddieFee := int64(0)
 	buggyFee := int64(0)
 	greenFee := int64(0)
 
-	handleFeeOnDay := func() {
+	handleFeeOnDay := func(gs string) {
+		golfFee := models.GolfFee{
+			GuestStyle: gs,
+			CourseUid:  form.CourseUid,
+			PartnerUid: form.PartnerUid,
+		}
 		fee, _ := golfFee.GetGuestStyleOnDay(db)
 
 		caddieFee = utils.GetFeeFromListFee(fee.CaddieFee, form.Hole)
@@ -72,10 +72,10 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 			buggyFee = utils.CalculateFeeByHole(form.Hole, agencySpecialPrice.BuggyFee, course.RateGolfFee)
 			greenFee = utils.CalculateFeeByHole(form.Hole, agencySpecialPrice.GreenFee, course.RateGolfFee)
 		} else {
-			handleFeeOnDay()
+			handleFeeOnDay(agency.GuestStyle)
 		}
 	} else {
-		handleFeeOnDay()
+		handleFeeOnDay(form.GuestStyle)
 	}
 
 	// Get Buggy Fee

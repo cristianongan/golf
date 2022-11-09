@@ -5,5 +5,5 @@ type GetBuggyCaddyFeeSetting struct {
 	CourseUid  string `form:"course_uid" binding:"required"`
 	Hole       int    `form:"hole" binding:"required"`
 	GuestStyle string `form:"guest_style"`
-	AgencyId   int64  `json:"agency_id"`
+	AgencyId   int64  `form:"agency_id"`
 }
