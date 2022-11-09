@@ -47,6 +47,7 @@ type GetTeeTimeOTAList struct {
 	IsMainCourse bool   `json:"isMainCourse"`
 	OTA_Code     string `json:"OTA_Code"`
 	Guest_Code   string `json:"Guest_Code"`
+	Hole         int    `json:"Hole"`
 }
 type RTeeTimeOTA struct {
 	Token        string `json:"Token"`
