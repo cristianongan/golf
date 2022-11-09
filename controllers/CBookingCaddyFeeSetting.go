@@ -61,7 +61,7 @@ func (_ *CBookingCaddyFeeSetting) GetBookingCaddyFeeSettingList(c *gin.Context, 
 	buggyRequest.CourseUid = form.CourseUid
 	buggyRequest.PartnerUid = form.PartnerUid
 
-	list, total, err := buggyRequest.FindList(db, page)
+	list, total, err := buggyRequest.FindList(db, page, true)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

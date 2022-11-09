@@ -666,6 +666,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/booking-caddy-fee-setting/list", middlewares.AuthorizedCmsUserHandler(cBookingCaddyFeeSetting.GetBookingCaddyFeeSettingList))
 			cmsApiAuthorized.DELETE("/booking-caddy-fee-setting/:id", middlewares.AuthorizedCmsUserHandler(cBookingCaddyFeeSetting.DeleteBookingCaddyFeeSetting))
 			cmsApiAuthorized.PUT("/booking-caddy-fee-setting/:id", middlewares.AuthorizedCmsUserHandler(cBookingCaddyFeeSetting.UpdateBookingCaddyFeeSetting))
+
+			/// =================== Get Caddie Buggy Fee Setting ===================
+			cBuggyCaddyFeeSetting := new(controllers.CBuggyCaddyFeeSetting)
+			cmsApiAuthorized.GET("/buggy-caddy-fee-setting", middlewares.AuthorizedCmsUserHandler(cBuggyCaddyFeeSetting.GetBuggyCaddyFeeSetting))
 		}
 
 		// ----------------------------------------------------------

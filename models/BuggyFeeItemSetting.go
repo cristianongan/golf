@@ -17,7 +17,7 @@ type BuggyFeeItemSetting struct {
 	ModelId
 	PartnerUid     string                `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid      string                `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	SettingId      int64                 `form:"setting_id"`
+	SettingId      int64                 `json:"setting_id"`
 	GuestStyleName string                `json:"guest_style_name" gorm:"type:varchar(256)"`  // Ten Guest style
 	GuestStyle     string                `json:"guest_style" gorm:"index;type:varchar(200)"` // Guest style
 	Dow            string                `json:"dow" gorm:"type:varchar(100)"`               // Dow
@@ -25,6 +25,13 @@ type BuggyFeeItemSetting struct {
 	PrivateCarFee  utils.ListGolfHoleFee `json:"private_car_fee" gorm:"type:varchar(256)"`   // Phi Xe rieng
 	OddCarFee      utils.ListGolfHoleFee `json:"odd_car_fee" gorm:"type:varchar(256)"`       // Phi buggy
 	RateGolfFee    string                `json:"rate_golf_fee" gorm:"type:varchar(256)"`
+}
+
+type BuggyFeeItemSettingResponse struct {
+	RentalFee     utils.ListGolfHoleFee `json:"rental_fee"`
+	PrivateCarFee utils.ListGolfHoleFee `json:"private_car_fee"`
+	OddCarFee     utils.ListGolfHoleFee `json:"odd_car_fee"`
+	GuestStyle    string                `json:"guest_style"`
 }
 
 type ListBuggyFeeItemSetting []BuggyFeeItemSetting
@@ -76,18 +83,55 @@ func (item *BuggyFeeItemSetting) FindList(database *gorm.DB, page Page) ([]Buggy
 	db := database.Model(BuggyFeeItemSetting{})
 	list := []BuggyFeeItemSetting{}
 	total := int64(0)
-	status := item.Status
-	item.Status = ""
-	db = db.Where(item)
 
-	if status != "" {
-		db = db.Where("status IN (?)", strings.Split(status, ","))
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
-	db.Count(&total)
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.Status != "" {
+		db = db.Where("status IN (?)", strings.Split(item.Status, ","))
+	}
+	if item.GuestStyle != "" {
+		db = db.Where("guest_style = ?", item.GuestStyle)
+	}
+	if item.SettingId > 0 {
+		db = db.Where("setting_id = ?", item.SettingId)
+	}
 
+	db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+	db.Count(&total)
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)
 	}
+	return list, total, db.Error
+}
+
+func (item *BuggyFeeItemSetting) FindAll(database *gorm.DB) ([]BuggyFeeItemSetting, int64, error) {
+	db := database.Model(BuggyFeeItemSetting{})
+	list := []BuggyFeeItemSetting{}
+	total := int64(0)
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.Status != "" {
+		db = db.Where("status IN (?)", strings.Split(item.Status, ","))
+	}
+	if item.GuestStyle != "" {
+		db = db.Where("guest_style = ?", item.GuestStyle)
+	}
+	if item.SettingId > 0 {
+		db = db.Where("setting_id = ?", item.SettingId)
+	}
+
+	db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+	db.Count(&total)
+	db = db.Find(&list)
 	return list, total, db.Error
 }
 
