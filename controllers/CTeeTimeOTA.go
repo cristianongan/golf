@@ -99,10 +99,10 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 
 		fee, _ := golfFee.GetGuestStyleOnTime(db, timeDate)
 
-		// Lấy giá hole 18
-		GreenFee = fee.GreenFee[1].Fee
-		CaddieFee = fee.CaddieFee[1].Fee
-		BuggyFee = fee.BuggyFee[1].Fee
+		// Lấy giá hole
+		GreenFee = utils.GetFeeFromListFee(fee.GreenFee, body.Hole)
+		CaddieFee = utils.GetFeeFromListFee(fee.CaddieFee, body.Hole)
+		BuggyFee = utils.GetFeeFromListFee(fee.BuggyFee, body.Hole)
 	}
 
 	cBookingSetting := CBookingSetting{}
