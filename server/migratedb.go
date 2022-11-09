@@ -66,6 +66,9 @@ func MigrateDbCms(db *gorm.DB) {
 	db.AutoMigrate(&models.AnnualFee{})
 	db.AutoMigrate(&models.AnnualFeePay{})
 	db.AutoMigrate(&models.McTypeAnnualFee{})
+	db.AutoMigrate(&models.BuggyFeeItemSetting{})
+	db.AutoMigrate(&models.BuggyFeeSetting{})
+	db.AutoMigrate(&models.BookingCaddyFeeSetting{})
 
 	// ----- Booking -----
 	db.AutoMigrate(&model_booking.Booking{})
@@ -81,6 +84,7 @@ func MigrateDbCms(db *gorm.DB) {
 	db.AutoMigrate(&model_payment.SinglePaymentItem{})
 	db.AutoMigrate(&model_payment.AgencyPayment{})
 	db.AutoMigrate(&model_payment.AgencyPaymentItem{})
+	db.AutoMigrate(&model_payment.BookingAgencyPayment{})
 
 	// ---- Caddie ----
 	db.AutoMigrate(&models.Caddie{})

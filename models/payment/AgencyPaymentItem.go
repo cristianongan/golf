@@ -76,7 +76,7 @@ func (item *AgencyPaymentItem) FindAll(db *gorm.DB) ([]AgencyPaymentItem, error)
 	}
 
 	if item.BookingCode != "" {
-		db = db.Where("bill_code = ?", item.BookingCode)
+		db = db.Where("booking_code = ?", item.BookingCode)
 	}
 
 	if item.PaymentUid != "" {
@@ -116,10 +116,3 @@ func (item *AgencyPaymentItem) FindList(db *gorm.DB, page models.Page) ([]Agency
 	}
 	return list, total, db.Error
 }
-
-// func (item *Payment) Delete() error {
-// 	if item.Model.Uid == "" {
-// 		return errors.New("Primary key is undefined!")
-// 	}
-// 	return datasources.GetDatabase().Delete(item).Error
-// }

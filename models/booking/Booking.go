@@ -781,7 +781,9 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(db *gorm.DB) {
 	if isIndex == -1 {
 		//Chua dc add
 		if isConFR >= 0 {
-			mainBook.ListGolfFee = append(listGolfFeeTemp, item.ListGolfFee[0])
+			if len(item.ListGolfFee) > 0 {
+				mainBook.ListGolfFee = append(listGolfFeeTemp, item.ListGolfFee[0])
+			}
 		}
 	} else {
 		if isConFR >= 0 {
