@@ -244,7 +244,33 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 
 	dataRes.BookOtaID = bookingOta.BookingCode
 
+	go unlockTee(body)
 	okResponse(c, dataRes)
+}
+
+func unlockTee(body request.CreateBookingOTABody) {
+	bookDate, _ := utils.GetBookingTimeFrom(body.DateStr)
+
+	lockTeeTime := models.LockTeeTime{
+		CourseUid: body.CourseCode,
+		TeeTime:   body.TeeOffStr,
+		DateTime:  bookDate,
+	}
+
+	if body.Tee == "1" {
+		lockTeeTime.TeeType = "1A"
+	}
+
+	if body.Tee == "10" {
+		lockTeeTime.TeeType = "1B"
+	}
+
+	db := datasources.GetDatabase()
+	if errFind := lockTeeTime.FindFirst(db); errFind != nil {
+		log.Println("UNLOCK Tee Time Error!")
+		return
+	}
+	lockTeeTime.Delete(db)
 }
 
 /*
