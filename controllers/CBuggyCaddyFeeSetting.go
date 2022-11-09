@@ -26,13 +26,57 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 		CourseUid:  form.CourseUid,
 		PartnerUid: form.PartnerUid,
 	}
+	golfFeeTotal := int64(0)
+	caddieFee := int64(0)
+	buggyFee := int64(0)
+	greenFee := int64(0)
 
-	fee, _ := golfFee.GetGuestStyleOnDay(db)
+	handleFeeOnDay := func() {
+		fee, _ := golfFee.GetGuestStyleOnDay(db)
 
-	caddieFee := utils.GetFeeFromListFee(fee.CaddieFee, form.Hole)
-	greenFee := utils.GetFeeFromListFee(fee.GreenFee, form.Hole)
+		caddieFee = utils.GetFeeFromListFee(fee.CaddieFee, form.Hole)
+		buggyFee = utils.GetFeeFromListFee(fee.BuggyFee, form.Hole)
+		greenFee = utils.GetFeeFromListFee(fee.GreenFee, form.Hole)
 
-	golfFeeTotal := caddieFee + greenFee
+		golfFeeTotal = caddieFee + greenFee + buggyFee
+	}
+
+	if form.AgencyId > 0 {
+
+		course := models.Course{}
+		course.Uid = form.CourseUid
+		errCourse := course.FindFirst()
+		if errCourse != nil {
+			response_message.BadRequest(c, errCourse.Error())
+			response_message.BadRequest(c, "agency"+errCourse.Error())
+			return
+		}
+
+		agency := models.Agency{}
+		agency.Id = form.AgencyId
+		errFindAgency := agency.FindFirst(db)
+		if errFindAgency != nil || agency.Id == 0 {
+			response_message.BadRequest(c, "agency"+errFindAgency.Error())
+			return
+		}
+
+		agencySpecialPriceR := models.AgencySpecialPrice{
+			AgencyId: agency.Id,
+		}
+		// Tính lại giá riêng nếu thoả mãn các dk time
+		agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnTime(db)
+		if errFSP == nil && agencySpecialPrice.Id > 0 {
+			// Tính lại giá riêng nếu thoả mãn các dk time,
+			// List Booking GolfFee
+			caddieFee = utils.CalculateFeeByHole(form.Hole, agencySpecialPrice.CaddieFee, course.RateGolfFee)
+			buggyFee = utils.CalculateFeeByHole(form.Hole, agencySpecialPrice.BuggyFee, course.RateGolfFee)
+			greenFee = utils.CalculateFeeByHole(form.Hole, agencySpecialPrice.GreenFee, course.RateGolfFee)
+		} else {
+			handleFeeOnDay()
+		}
+	} else {
+		handleFeeOnDay()
+	}
 
 	// Get Buggy Fee
 	buggyFeeSettingR := models.BuggyFeeSetting{

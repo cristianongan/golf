@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	model_booking "start/models/booking"
+	model_payment "start/models/payment"
 	"start/utils"
 )
 
@@ -167,6 +168,7 @@ type GolfFeeGuestyleParam struct {
 
 type CreateBatchBookingBody struct {
 	BookingList ListCreateBookingBody `json:"booking_list"`
+	FeeInfo     FeeDetail             `json:"fee_detail"`
 }
 
 type ListCreateBookingBody []CreateBookingBody
@@ -177,6 +179,19 @@ func (item *ListCreateBookingBody) Scan(v interface{}) error {
 
 func (item ListCreateBookingBody) Value() (driver.Value, error) {
 	return json.Marshal(&item)
+}
+
+type AgencyGolfFeeInfo struct {
+	Fee          int64 `json:"fee"`
+	NumberPeople int64 `json:"number_people"`
+	Amount       int64 `json:"amount"`
+}
+
+type FeeDetail struct {
+	GolfFee   AgencyGolfFeeInfo                            `json:"golf_fee"`
+	BuggyFee  AgencyGolfFeeInfo                            `json:"buggy_fee"`
+	CaddieFee AgencyGolfFeeInfo                            `json:"caddie_fee"`
+	Players   model_payment.ListBookingAgencyPaymentPlayer `json:"players"` // Booking uids dc agency thanh toán, có options caddie id
 }
 
 type BookingBaseBody struct {
