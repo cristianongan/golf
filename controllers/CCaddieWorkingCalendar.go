@@ -5,7 +5,6 @@ import (
 	"log"
 	"start/constants"
 	"start/controllers/request"
-	"start/controllers/response"
 	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
@@ -118,24 +117,56 @@ func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, pr
 		return
 	}
 
+	//get caddie
 	caddieWorkingCalendar := models.CaddieWorkingCalendar{}
 	caddieWorkingCalendar.CourseUid = body.CourseUid
 	caddieWorkingCalendar.PartnerUid = body.PartnerUid
 	caddieWorkingCalendar.ApplyDate = body.ApplyDate
 
-	list, total, err := caddieWorkingCalendar.FindAllByDate(db)
+	list, _, err := caddieWorkingCalendar.FindAllByDate(db)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
-	res := response.PageResponse{
-		Total: total,
-		Data:  list,
+	//get caddie increase
+	caddieWCI := models.CaddieWorkingCalendar{}
+	caddieWCI.CourseUid = body.CourseUid
+	caddieWCI.PartnerUid = body.PartnerUid
+	caddieWCI.ApplyDate = body.ApplyDate
+	caddieWCI.CaddieIncrease = true
+
+	listIncrease, _, err := caddieWCI.FindAllByDate(db)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
 	}
 
-	c.JSON(200, res)
+	//get note
+	caddieWCNote := models.CaddieWorkingCalendarNote{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		ApplyDate:  body.ApplyDate,
+	}
+
+	if err := caddieWCNote.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Find first caddie working calendar note "+err.Error())
+		return
+	}
+
+	listRes := map[string]interface{}{
+		"data_caddie":          list,
+		"data_caddie_increase": listIncrease,
+		"note":                 caddieWCNote,
+	}
+
+	res := map[string]interface{}{
+		"data": listRes,
+	}
+
+	okResponse(c, res)
 }
 
 func (_ *CCaddieWorkingCalendar) UpdateCaddieWorkingCalendar(c *gin.Context, prof models.CmsUser) {
