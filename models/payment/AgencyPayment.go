@@ -34,10 +34,10 @@ type AgencyPayment struct {
 	PaymentForPlayer string `json:"payment_for_player" gorm:"type:varchar(100);index"` // Thanh toán cho player
 	Note             string `json:"note" gorm:"type:varchar(200)"`                     // Note
 
-	TotalPaid           int64 `json:"total_paid"`             // Tổng số tiền thanh toán, Bao gồm tiền của đại lý đồng ý thanh toán cho khách
-	TotalAmount         int64 `json:"total_amount"`           // Tổng chi phí phải thanh toán cho sân
-	TotalFeeFromBooking int64 `json:"total_fee_from_booking"` // Tổng số tiền booking từ app trả về/ 1 booking Code.
-	PaymentAgencyAmount int64 `json:"payment_agency_amount"`  // Ghi nhận số tiền đại lý thanh toán cho golfer nếu golfer thuộc đại lý
+	TotalPaid   int64 `json:"total_paid"`   // D Tổng số tiền thanh toán, Bao gồm tiền của đại lý đồng ý thanh toán cho khách
+	TotalAmount int64 `json:"total_amount"` // A Tổng chi phí phải thanh toán cho sân
+	// TotalFeeFromBooking int64 `json:"total_fee_from_booking"` // Tổng số tiền booking từ app trả về/ 1 booking Code.
+	AgencyPaid int64 `json:"agency_paid"` // D Ghi nhận số tiền đại lý thanh toán cho golfer nếu golfer thuộc đại lý
 	// PrepaidFromBooking  int64 `json:"prepaid_from_booking"`   // Số tiền thanh toán trên app hoặc booking tại sân
 }
 
@@ -71,8 +71,7 @@ func (item *AgencyPayment) UpdatePlayBookInfo(db *gorm.DB, booking model_booking
 	errFindBO := bookOTA.FindFirst(db)
 	if errFindBO == nil {
 		feeBooking := int64(bookOTA.NumBook) * (bookOTA.CaddieFee + bookOTA.BuggyFee + bookOTA.GreenFee)
-		// item.PrepaidFromBooking = feeBooking
-		item.TotalFeeFromBooking = feeBooking
+		item.AgencyPaid = feeBooking
 		item.PlayerBook = bookOTA.PlayerName
 		item.NumberPeople = bookOTA.NumBook
 	} else {
@@ -113,7 +112,7 @@ func (item *AgencyPayment) UpdateTotalAmount(db *gorm.DB, isUdp bool) {
 	}
 
 	item.TotalAmount = totalAmount
-	item.PaymentAgencyAmount = totalAmount
+	item.AgencyPaid = totalAmount
 
 	if isUdp {
 		errUdp := item.Update(db)

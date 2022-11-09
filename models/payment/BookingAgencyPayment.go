@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"start/constants"
 	"start/models"
-	"start/utils"
 	"strings"
 	"time"
 
@@ -20,9 +19,27 @@ type BookingAgencyPayment struct {
 	BookingCode string                          `json:"booking_code" gorm:"type:varchar(100);index"` // Booking code
 	AgencyId    int64                           `json:"agency_id" gorm:"index"`                      // agency id
 	TotalPaid   int64                           `json:"total_paid"`                                  // Số tiền thanh toán
-	BookingUids utils.ListString                `json:"booking_uids" gorm:"type:json"`               // Booking uids dc agency thanh toán
+	Players     ListBookingAgencyPaymentPlayer  `json:"players" gorm:"type:json"`                    // Booking uids dc agency thanh toán, có options caddie id
 	Fees        ListBookingAgencyPaymentFeeData `json:"fees" gorm:"type:json"`                       // chi tiết Fee
 }
+
+// Player
+type BookingAgencyPaymentPlayer struct {
+	BookingUid string `json:"booking_uid"`
+	CaddieId   string `json:"caddie_id"` // id caddie, nếu player có chọn caddie thì có
+}
+
+type ListBookingAgencyPaymentPlayer []BookingAgencyPaymentPlayer
+
+func (item *ListBookingAgencyPaymentPlayer) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListBookingAgencyPaymentPlayer) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
+// Fees Data
 
 type ListBookingAgencyPaymentFeeData []BookingAgencyPaymentFeeData
 
