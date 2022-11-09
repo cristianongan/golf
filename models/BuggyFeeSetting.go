@@ -54,18 +54,38 @@ func (item *BuggyFeeSetting) FindList(database *gorm.DB, page Page) ([]BuggyFeeS
 	db := database.Model(BuggyFeeSetting{})
 	list := []BuggyFeeSetting{}
 	total := int64(0)
-	status := item.Status
-	item.Status = ""
-	db = db.Where(item)
-
-	if status != "" {
-		db = db.Where("status IN (?)", strings.Split(status, ","))
+	if item.Status != "" {
+		db = db.Where("status IN (?)", strings.Split(item.Status, ","))
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 	db.Count(&total)
-
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)
 	}
+	return list, total, db.Error
+}
+
+func (item *BuggyFeeSetting) FindAll(database *gorm.DB) ([]BuggyFeeSetting, int64, error) {
+	db := database.Model(BuggyFeeSetting{})
+	list := []BuggyFeeSetting{}
+	total := int64(0)
+	if item.Status != "" {
+		db = db.Where("status IN (?)", strings.Split(item.Status, ","))
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	db.Count(&total)
+
+	db = db.Find(&list)
 	return list, total, db.Error
 }
 

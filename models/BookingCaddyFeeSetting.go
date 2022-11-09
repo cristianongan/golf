@@ -20,6 +20,11 @@ type BookingCaddyFeeSetting struct {
 	Name       string `json:"name" gorm:"type:varchar(256)"`
 }
 
+type BookingCaddyFeeSettingRes struct {
+	Fee  int64  `json:"fee"`
+	Name string `json:"name"`
+}
+
 func (item *BookingCaddyFeeSetting) IsValidated() bool {
 	if item.PartnerUid == "" {
 		return false
@@ -81,20 +86,28 @@ func (item *BookingCaddyFeeSetting) FindAll(database *gorm.DB) ([]BookingCaddyFe
 	return list, db.Error
 }
 
-func (item *BookingCaddyFeeSetting) FindList(database *gorm.DB, page Page) ([]BookingCaddyFeeSetting, int64, error) {
+func (item *BookingCaddyFeeSetting) FindList(database *gorm.DB, page Page, isGetAll bool) ([]BookingCaddyFeeSetting, int64, error) {
 	db := database.Model(BookingCaddyFeeSetting{})
 	list := []BookingCaddyFeeSetting{}
 	total := int64(0)
-	status := item.ModelId.Status
-	item.ModelId.Status = ""
-	db = db.Where(item)
-	if status != "" {
-		db = db.Where("status in (?)", strings.Split(status, ","))
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.Status != "" {
+		db = db.Where("status in (?)", strings.Split(item.Status, ","))
 	}
 	db.Count(&total)
 
-	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Find(&list)
+	if isGetAll {
+		if total > 0 && int64(page.Offset()) < total {
+			db = page.Setup(db).Find(&list)
+		}
+	} else {
+		db = db.Find(&list)
 	}
 	return list, total, db.Error
 }
