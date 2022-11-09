@@ -72,6 +72,41 @@ func (_ *CBuggyFeeSetting) GetBuggyFeeSettingList(c *gin.Context, prof models.Cm
 
 	c.JSON(200, res)
 }
+func (_ *CBuggyFeeSetting) UpdateBuggyFeeSetting(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	IdStr := c.Param("id")
+	Id, err := strconv.ParseInt(IdStr, 10, 64) // Nếu uid là int64 mới cần convert
+	if err != nil || Id == 0 {
+		response_message.BadRequest(c, errors.New("id not valid").Error())
+		return
+	}
+
+	body := models.BuggyFeeSetting{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	buggyFeeSetting := models.BuggyFeeSetting{}
+	buggyFeeSetting.Id = Id
+	errF := buggyFeeSetting.FindFirst(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	if body.Status != "" {
+		buggyFeeSetting.Status = body.Status
+	}
+
+	errUpd := buggyFeeSetting.Update(db)
+	if errUpd != nil {
+		response_message.InternalServerError(c, errUpd.Error())
+		return
+	}
+
+	okResponse(c, buggyFeeSetting)
+}
 func (_ *CBuggyFeeSetting) DeleteBuggyFeeSetting(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	IdStr := c.Param("id")

@@ -16,9 +16,20 @@ type CBuggyFeeItemSetting struct{}
 
 func (_ *CBuggyFeeItemSetting) CreateBuggyFeeItemSetting(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	body := request.CreateBuggyFeeItemSetting{}
+	body := models.BuggyFeeItemSetting{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	buggyFeeSetting := models.BuggyFeeSetting{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		ModelId:    models.ModelId{Id: body.SettingId},
+	}
+
+	if errFind := buggyFeeSetting.FindFirst(db); errFind != nil {
+		response_message.BadRequest(c, errFind.Error())
 		return
 	}
 
@@ -30,8 +41,9 @@ func (_ *CBuggyFeeItemSetting) CreateBuggyFeeItemSetting(c *gin.Context, prof mo
 		RentalFee:     body.RentalFee,
 		PrivateCarFee: body.PrivateCarFee,
 		OddCarFee:     body.OddCarFee,
+		SettingId:     body.SettingId,
+		RateGolfFee:   body.RateGolfFee,
 	}
-	buggyFeeItemSetting.ParentId = body.ParentId
 	buggyFeeItemSetting.Status = body.Status
 	errC := buggyFeeItemSetting.Create(db)
 
@@ -76,6 +88,55 @@ func (_ *CBuggyFeeItemSetting) GetBuggyFeeItemSettingList(c *gin.Context, prof m
 
 	c.JSON(200, res)
 }
+
+func (_ *CBuggyFeeItemSetting) UpdateBuggyFeeItemSetting(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	IdStr := c.Param("id")
+	Id, err := strconv.ParseInt(IdStr, 10, 64) // Nếu uid là int64 mới cần convert
+	if err != nil || Id == 0 {
+		response_message.BadRequest(c, errors.New("id not valid").Error())
+		return
+	}
+
+	body := models.BuggyFeeItemSetting{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	buggyFeeItemSetting := models.BuggyFeeItemSetting{}
+	buggyFeeItemSetting.Id = Id
+	errF := buggyFeeItemSetting.FindFirst(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	if body.RateGolfFee != "" {
+		buggyFeeItemSetting.RateGolfFee = body.RateGolfFee
+	}
+	if body.OddCarFee != nil {
+		buggyFeeItemSetting.RateGolfFee = body.RateGolfFee
+	}
+	if body.PrivateCarFee != nil {
+		buggyFeeItemSetting.PrivateCarFee = body.PrivateCarFee
+	}
+	if body.RentalFee != nil {
+		buggyFeeItemSetting.RentalFee = body.RentalFee
+	}
+	if body.Status != "" {
+		buggyFeeItemSetting.Status = body.Status
+	}
+
+	errUpd := buggyFeeItemSetting.Update(db)
+	if errUpd != nil {
+		response_message.InternalServerError(c, errUpd.Error())
+		return
+	}
+
+	okResponse(c, buggyFeeItemSetting)
+}
+
 func (_ *CBuggyFeeItemSetting) DeleteBuggyFeeSetting(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	IdStr := c.Param("id")

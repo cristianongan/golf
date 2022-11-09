@@ -17,13 +17,14 @@ type BuggyFeeItemSetting struct {
 	ModelId
 	PartnerUid     string                `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid      string                `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	ParentId       int64                 `json:"parent_id"`                                  // id của setting cha
+	SettingId      int64                 `form:"setting_id"`
 	GuestStyleName string                `json:"guest_style_name" gorm:"type:varchar(256)"`  // Ten Guest style
 	GuestStyle     string                `json:"guest_style" gorm:"index;type:varchar(200)"` // Guest style
 	Dow            string                `json:"dow" gorm:"type:varchar(100)"`               // Dow
 	RentalFee      utils.ListGolfHoleFee `json:"rental_fee" gorm:"type:varchar(256)"`        // Phi Rental
 	PrivateCarFee  utils.ListGolfHoleFee `json:"private_car_fee" gorm:"type:varchar(256)"`   // Phi Xe rieng
 	OddCarFee      utils.ListGolfHoleFee `json:"odd_car_fee" gorm:"type:varchar(256)"`       // Phi buggy
+	RateGolfFee    string                `json:"rate_golf_fee" gorm:"type:varchar(256)"`
 }
 
 type ListBuggyFeeItemSetting []BuggyFeeItemSetting

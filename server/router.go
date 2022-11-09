@@ -652,12 +652,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/buggy-fee-setting", middlewares.AuthorizedCmsUserHandler(cBuggyFeeSetting.CreateBuggyFeeSetting))
 			cmsApiAuthorized.GET("/buggy-fee-setting/list", middlewares.AuthorizedCmsUserHandler(cBuggyFeeSetting.GetBuggyFeeSettingList))
 			cmsApiAuthorized.DELETE("/buggy-fee-setting/:id", middlewares.AuthorizedCmsUserHandler(cBuggyFeeSetting.DeleteBuggyFeeSetting))
+			cmsApiAuthorized.PUT("/buggy-fee-setting/:id", middlewares.AuthorizedCmsUserHandler(cBuggyFeeSetting.UpdateBuggyFeeSetting))
 
 			cBuggyFeeItemSetting := new(controllers.CBuggyFeeItemSetting)
 			cmsApiAuthorized.POST("/buggy-fee-item-setting", middlewares.AuthorizedCmsUserHandler(cBuggyFeeItemSetting.CreateBuggyFeeItemSetting))
 			cmsApiAuthorized.GET("/buggy-fee-item-setting/list", middlewares.AuthorizedCmsUserHandler(cBuggyFeeItemSetting.GetBuggyFeeItemSettingList))
 			cmsApiAuthorized.DELETE("/buggy-fee-item-setting/:id", middlewares.AuthorizedCmsUserHandler(cBuggyFeeItemSetting.DeleteBuggyFeeSetting))
-			// cmsApiAuthorized.PUT("/buggy-fee-item-setting/:id", middlewares.AuthorizedCmsUserHandler(cBuggyFeeItemSetting.UpdateBuggyFeeItemSetting))
+			cmsApiAuthorized.PUT("/buggy-fee-item-setting/:id", middlewares.AuthorizedCmsUserHandler(cBuggyFeeItemSetting.UpdateBuggyFeeItemSetting))
 		}
 
 		// ----------------------------------------------------------
