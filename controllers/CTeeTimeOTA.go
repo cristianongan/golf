@@ -196,7 +196,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 							GreenFee:     GreenFee,
 							CaddieFee:    CaddieFee,
 							BuggyFee:     BuggyFee,
-							Holes:        18,
+							Holes:        int64(body.Hole),
 						}
 						teeTimeList = append(teeTimeList, teeTime1A)
 					}
