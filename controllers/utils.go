@@ -829,12 +829,7 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 	}
 
 	booking.ShowCaddieBuggy = newTrue(true)
-	if caddie.Id != response.OldCaddie.Id {
-		response.NewCaddie = caddie
-	}
-	if buggy.Id != response.OldBuggy.Id {
-		response.NewBuggy = buggy
-	}
+	response.NewCaddie = caddie
 	response.NewBuggy = buggy
 	response.Booking = booking
 	return nil, response
