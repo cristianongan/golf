@@ -40,42 +40,44 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 			return
 		}
 
-		// Kiểm tra ngày truy vấn có dữ liệu hay không
-		if len(list) > 0 {
-			// Xóa hết dữ liệu ngày truy vấn
-			if errD := caddieWC.DeleteBatch(db); errD != nil {
-				response_message.BadRequest(c, "Delete batch caddie working calendar "+errD.Error())
-				return
-			}
+		if body.ActionType == "IMPORT" {
+			// Kiểm tra ngày truy vấn có dữ liệu hay không
+			if len(list) > 0 {
+				// Xóa hết dữ liệu ngày truy vấn
+				if errD := caddieWC.DeleteBatch(db); errD != nil {
+					response_message.BadRequest(c, "Delete batch caddie working calendar "+errD.Error())
+					return
+				}
 
-			// Update thông note ngày truy vấn
-			caddieWCNote := models.CaddieWorkingCalendarNote{
-				PartnerUid: body.PartnerUid,
-				CourseUid:  body.CourseUid,
-				ApplyDate:  v.ApplyDate,
-			}
+				// Update thông note ngày truy vấn
+				caddieWCNote := models.CaddieWorkingCalendarNote{
+					PartnerUid: body.PartnerUid,
+					CourseUid:  body.CourseUid,
+					ApplyDate:  v.ApplyDate,
+				}
 
-			if err := caddieWCNote.FindFirst(db); err != nil {
-				response_message.BadRequest(c, "Find first caddie working calendar note "+err.Error())
-				return
-			}
-			caddieWCNote.Note = v.Note
-			if err := caddieWCNote.Update(db); err != nil {
-				response_message.BadRequest(c, "Update caddie working calendar note "+err.Error())
-				return
-			}
-		} else {
-			// Tạo lưu ý theo ngày truy vấn
-			caddieWCNoteCreate := models.CaddieWorkingCalendarNote{
-				PartnerUid: body.PartnerUid,
-				CourseUid:  body.CourseUid,
-				ApplyDate:  v.ApplyDate,
-				Note:       v.Note,
-			}
+				if err := caddieWCNote.FindFirst(db); err != nil {
+					response_message.BadRequest(c, "Find first caddie working calendar note "+err.Error())
+					return
+				}
+				caddieWCNote.Note = v.Note
+				if err := caddieWCNote.Update(db); err != nil {
+					response_message.BadRequest(c, "Update caddie working calendar note "+err.Error())
+					return
+				}
+			} else {
+				// Tạo lưu ý theo ngày truy vấn
+				caddieWCNoteCreate := models.CaddieWorkingCalendarNote{
+					PartnerUid: body.PartnerUid,
+					CourseUid:  body.CourseUid,
+					ApplyDate:  v.ApplyDate,
+					Note:       v.Note,
+				}
 
-			if err := caddieWCNoteCreate.Create(db); err != nil {
-				response_message.BadRequest(c, "Create caddie working calendar note "+err.Error())
-				return
+				if err := caddieWCNoteCreate.Create(db); err != nil {
+					response_message.BadRequest(c, "Create caddie working calendar note "+err.Error())
+					return
+				}
 			}
 		}
 
