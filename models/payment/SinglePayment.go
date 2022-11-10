@@ -35,6 +35,7 @@ type SinglePayment struct {
 	Cashiers  string `json:"cashiers" gorm:"type:varchar(100);index"` // Thu ngân, lấy từ acc cms
 	TotalPaid int64  `json:"total_paid"`                              // Số tiền thanh toán
 	Note      string `json:"note" gorm:"type:varchar(200)"`           // Note
+	Type      string `json:"type" gorm:"type:varchar(50);index"`      // SINGLE, AGENCY
 }
 
 type PaymentBagInfo struct {
@@ -203,6 +204,10 @@ func (item *SinglePayment) FindList(db *gorm.DB, page models.Page, playerName st
 
 	if item.Bag != "" {
 		db = db.Where("bag = ?", item.Bag)
+	}
+
+	if item.Type != "" {
+		db = db.Where("type = ?", item.Type)
 	}
 
 	if item.PaymentDate != "" {
