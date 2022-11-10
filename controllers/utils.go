@@ -25,6 +25,7 @@ import (
 	model_report "start/models/report"
 
 	"github.com/gin-gonic/gin"
+	"github.com/twharmon/slices"
 	"gorm.io/gorm"
 )
 
@@ -406,6 +407,78 @@ func updateListGolfFeeWithRound(db *gorm.DB, round *models.Round, booking model_
 		}
 	}
 
+}
+
+func updateGolfFeeInBooking(booking model_booking.Booking, db *gorm.DB) {
+	roundToFindList := models.Round{BillCode: booking.BillCode}
+	listRound, _ := roundToFindList.FindAll(db)
+
+	bookingCaddieFee := slices.Reduce(listRound, func(prev int64, item models.Round) int64 {
+		return prev + item.CaddieFee
+	})
+
+	bookingBuggyFee := slices.Reduce(listRound, func(prev int64, item models.Round) int64 {
+		return prev + item.BuggyFee
+	})
+
+	bookingGreenFee := slices.Reduce(listRound, func(prev int64, item models.Round) int64 {
+		return prev + item.GreenFee
+	})
+
+	bookingGolfFee := booking.ListGolfFee[0]
+	bookingGolfFee.BookingUid = booking.Uid
+	bookingGolfFee.CaddieFee = bookingCaddieFee
+	bookingGolfFee.BuggyFee = bookingBuggyFee
+	bookingGolfFee.GreenFee = bookingGreenFee
+	booking.ListGolfFee[0] = bookingGolfFee
+
+	if len(booking.MainBags) > 0 {
+		// Get data main bag
+		bookingMain := model_booking.Booking{}
+		bookingMain.Uid = booking.MainBags[0].BookingUid
+		if err := bookingMain.FindFirst(db); err != nil {
+			return
+		}
+
+		for _, v1 := range bookingMain.MainBagPay {
+			// TODO: Tính Fee cho sub bag fee
+			if v1 == constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS {
+				for i, v2 := range bookingMain.ListGolfFee {
+					if v2.Bag == booking.Bag {
+						bookingMain.ListGolfFee[i].BookingUid = booking.Uid
+						bookingMain.ListGolfFee[i].BuggyFee = booking.ListGolfFee[0].BuggyFee
+						bookingMain.ListGolfFee[i].CaddieFee = booking.ListGolfFee[0].CaddieFee
+						bookingMain.ListGolfFee[i].GreenFee = booking.ListGolfFee[0].GreenFee
+
+						break
+					}
+				}
+				for i, v2 := range bookingMain.SubBags {
+					if v2.GolfBag == booking.Bag {
+						bookingMain.SubBags[i].BookingUid = booking.Uid
+
+						break
+					}
+				}
+				// Update mush pay, current bag
+				totalPayChange := booking.ListGolfFee[0].CaddieFee + booking.ListGolfFee[0].BuggyFee + booking.ListGolfFee[0].GreenFee
+
+				bookingMain.MushPayInfo.MushPay += totalPayChange
+				bookingMain.MushPayInfo.TotalGolfFee += totalPayChange
+
+				errUpdateBooking := bookingMain.Update(db)
+
+				if errUpdateBooking != nil {
+					log.Println("UpdateGolfFeeInBooking Error")
+				}
+
+				break
+			}
+		}
+	}
+	booking.UpdatePriceDetailCurrentBag(db)
+	booking.UpdateMushPay(db)
+	go booking.Update(db)
 }
 
 /*
