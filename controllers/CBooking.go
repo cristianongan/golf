@@ -452,6 +452,10 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.BookingCode = body.BookingCode
 	}
 
+	if body.IsPrivateBuggy != nil {
+		booking.IsPrivateBuggy = body.IsPrivateBuggy
+	}
+
 	errC := booking.Create(db, bUid)
 
 	if errC != nil {
