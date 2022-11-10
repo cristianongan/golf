@@ -487,6 +487,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	// Create booking payment
 	if booking.AgencyId > 0 && booking.MemberCardUid == "" {
 		go handleAgencyPayment(db, booking)
+		// Tạo thêm single payment cho bag
+
 	} else {
 		if booking.BagStatus == constants.BAG_STATUS_WAITING {
 			// checkin mới tạo payment

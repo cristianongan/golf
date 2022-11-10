@@ -1622,7 +1622,12 @@ func handleSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 		singlePayment.BookingCode = booking.BookingCode
 		singlePayment.BagInfo = bagInfo
 		singlePayment.PaymentDate = booking.BookingDate
-		singlePayment.Type = constants.PAYMENT_CATE_TYPE_SINGLE
+
+		if booking.AgencyId > 0 && booking.MemberCardUid == "" {
+			singlePayment.Type = constants.PAYMENT_CATE_TYPE_AGENCY
+		} else {
+			singlePayment.Type = constants.PAYMENT_CATE_TYPE_SINGLE
+		}
 
 		//Find prepaid from booking
 		if booking.BookingCode != "" {
