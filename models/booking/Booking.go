@@ -207,7 +207,8 @@ type CaddieBuggyInOutNoteForBooking struct {
 	CaddieType     string `json:"caddie_type"`
 	BuggyType      string `json:"buggy_type"`
 	Hole           int    `json:"hole"`
-	IsPrivateBuggy bool   `json:"is_private_buggy"`
+	BagShareBuggy  string `json:"bag_share_buggy"`
+	IsPrivateBuggy *bool  `json:"is_private_buggy"`
 }
 
 type BuggyInOut BuggyInOutNoteForBooking

@@ -73,7 +73,7 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	}
 
 	if item.CaddieCode != "" {
-		db = db.Where("caddie_info->'$.code' = ?", item.CaddieCode)
+		db = db.Where("caddie_info->'$.code' COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CaddieCode+"%")
 	}
 
 	if item.CustomerUid != "" {
@@ -130,7 +130,7 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	}
 
 	if item.GolfBag != "" {
-		db = db.Where("bag = ?", item.GolfBag)
+		db = db.Where("bag COLLATE utf8mb4_general_ci LIKE ?", "%"+item.GolfBag+"%")
 	}
 
 	if item.BagStatus != "" {
