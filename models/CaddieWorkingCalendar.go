@@ -89,7 +89,7 @@ func (item *CaddieWorkingCalendar) FindAllByDate(database *gorm.DB) ([]map[strin
 
 	db.Joins("left join caddies on caddies.code = caddie_working_calendars.caddie_code")
 
-	db.Order("row asc")
+	db.Order("caddie_working_calendars.row asc")
 
 	db.Count(&total)
 
