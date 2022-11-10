@@ -1,6 +1,14 @@
 package constants
 
 /*
+Get base price cho type agency họăc member card
+*/
+const (
+	PAYMENT_CATE_TYPE_AGENCY = "AGENCY"
+	PAYMENT_CATE_TYPE_SINGLE = "SINGLE"
+)
+
+/*
 Service item được add từ đâu, lễ tân, GO,..
 */
 const (
