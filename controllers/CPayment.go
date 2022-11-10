@@ -207,6 +207,7 @@ func (_ *CPayment) GetListSinglePayment(c *gin.Context, prof models.CmsUser) {
 		PaymentDate:   body.PaymentDate,
 		Bag:           body.Bag,
 		PaymentStatus: body.PaymentStatus,
+		Type:          constants.PAYMENT_CATE_TYPE_SINGLE,
 	}
 
 	list, total, err := paymentR.FindList(db, page, body.PlayerName)
