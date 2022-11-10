@@ -671,6 +671,10 @@ func NewRouter() *gin.Engine {
 			/// =================== Get Caddie Buggy Fee Setting ===================
 			cBuggyCaddyFeeSetting := new(controllers.CBuggyCaddyFeeSetting)
 			cmsApiAuthorized.GET("/buggy-caddy-fee-setting", middlewares.AuthorizedCmsUserHandler(cBuggyCaddyFeeSetting.GetBuggyCaddyFeeSetting))
+
+			/// =================== Booking Agency Payment ===================
+			cBookingAgencyPayment := new(controllers.CBookingAgencyPayment)
+			cmsApiAuthorized.GET("/booking-agency-payment/detail", middlewares.AuthorizedCmsUserHandler(cBookingAgencyPayment.GetDetailBookingAgencyPayment))
 		}
 
 		// ----------------------------------------------------------
