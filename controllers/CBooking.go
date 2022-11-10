@@ -11,6 +11,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	model_payment "start/models/payment"
 	model_report "start/models/report"
 	"start/utils"
 	"start/utils/response_message"
@@ -2074,6 +2075,44 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 	}
 
 	listBooking := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+
+	handleAgencyFee := func() {
+		for index, booking := range listBooking {
+			bookingAgencyPayment := model_payment.BookingAgencyPayment{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				BookingCode: booking.BookingCode,
+				AgencyId:    booking.AgencyId,
+				BookingUid:  booking.Uid,
+				CaddieId:    fmt.Sprint(booking.CaddieId),
+			}
+			bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
+				Fee:  bodyRequest.BookingList[index].FeeInfo.GolfFee,
+				Name: "Golf Fee",
+				Type: constants.BOOKING_AGENCY_GOLF_FEE,
+			})
+			if *booking.IsPrivateBuggy {
+				bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
+					Fee:  bodyRequest.BookingList[index].FeeInfo.BuggyFee,
+					Name: "Buggy (1 xe)",
+					Type: constants.BOOKING_AGENCY_BUGGY_FEE,
+				})
+			} else {
+				bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
+					Fee:  bodyRequest.BookingList[index].FeeInfo.BuggyFee,
+					Name: "Buggy (1/2 xe)",
+					Type: constants.BOOKING_AGENCY_BUGGY_FEE,
+				})
+			}
+			bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
+				Fee:  bodyRequest.BookingList[index].FeeInfo.CaddieFee,
+				Name: "Booking Caddie fee",
+				Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
+			})
+		}
+	}
+
+	go handleAgencyFee()
 
 	okResponse(c, listBooking)
 }
