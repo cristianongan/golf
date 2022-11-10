@@ -819,9 +819,9 @@ func (item *Booking) UpdatePriceDetailCurrentBag(db *gorm.DB) {
 	}
 
 	// Xét lại giá PriceCurrentBag khi có Main Bag Pay
-	if len(item.MainBags) > 0 {
-		item.CheckPriceCurrentBagHaveMainBagPay(db, &priceDetail)
-	}
+	// if len(item.MainBags) > 0 {
+	// 	item.CheckPriceCurrentBagHaveMainBagPay(db, &priceDetail)
+	// }
 
 	item.FindServiceItems(db)
 	for _, serviceItem := range item.ListServiceItems {
