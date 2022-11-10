@@ -14,7 +14,7 @@ type CaddieWorkingCalendar struct {
 	CourseUid      string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	CaddieCode     string `json:"caddie_code" gorm:"type:varchar(100);index"` // caddie code
 	ApplyDate      string `json:"apply_date"  gorm:"type:varchar(100)"`       // ngày áp dụng
-	Row            string `json:"row"  gorm:"type:varchar(50)"`               // thứ tự hàng
+	Row            int    `json:"row"`                                        // thứ tự hàng
 	NumberOrder    int64  `json:"number_order"`                               // số thứ tự caddie\
 	CaddieIncrease bool   `json:"caddie_increase"`                            // caddie tăng cường
 }
@@ -89,7 +89,7 @@ func (item *CaddieWorkingCalendar) FindAllByDate(database *gorm.DB) ([]map[strin
 
 	db.Joins("left join caddies on caddies.code = caddie_working_calendars.caddie_code")
 
-	db.Order("number_order asc")
+	db.Order("row asc")
 
 	db.Count(&total)
 
