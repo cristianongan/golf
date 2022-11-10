@@ -24,7 +24,7 @@ type CaddieWorkingCalendarListRequest struct {
 
 type CaddieWorkingCalendarRequest struct {
 	CaddieCode     string `json:"caddie_code"`
-	Row            string `json:"row"`
+	Row            int    `json:"row"`
 	NumberOrder    int64  `json:"number_order"`
 	CaddieIncrease bool   `json:"caddie_increase"`
 }

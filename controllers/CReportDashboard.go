@@ -80,6 +80,113 @@ func (_ *CReportDashboard) GetReportBookingStatusOnDay(c *gin.Context, prof mode
 	okResponse(c, res)
 }
 
+func (_ *CReportDashboard) GetReportGuestOnDay(c *gin.Context, prof models.CmsUser) {
+	body := request.GetReportDashboardRequestForm{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	date, _ := utils.GetDateFromTimestampWithFormat(time.Now().Unix(), constants.DATE_FORMAT_1)
+
+	// Money Bag
+	// bookingBookingList := model_booking.BookingList{
+	// 	BagStatus:       constants.BAG_STATUS_BOOKING,
+	// 	PartnerUid:      body.PartnerUid,
+	// 	CourseUid:       body.CourseUid,
+	// 	BookingDate:     date,
+	// 	IsGroupBillCode: true,
+	// }
+	// _, bookingTotal, _ := bookingBookingList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+
+	// Total Book
+	bookingList := model_booking.BookingList{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: date,
+		InitType:    constants.BOOKING_INIT_TYPE_BOOKING,
+	}
+	_, totalBooking, _ := bookingList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+
+	// Total Book With Check In
+	bookingCIList := model_booking.BookingList{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: date,
+		InitType:    constants.BOOKING_INIT_TYPE_BOOKING,
+		IsCheckIn:   "2",
+	}
+	_, totalBookCI, _ := bookingCIList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+
+	// Total Non golf
+	bookingNGList := model_booking.BookingList{
+		PartnerUid:   body.PartnerUid,
+		CourseUid:    body.CourseUid,
+		BookingDate:  date,
+		CustomerType: constants.CUSTOMER_TYPE_NONE_GOLF,
+	}
+	_, totalNonGolf, _ := bookingNGList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+
+	// Total Visitor
+	bookingVisitorList := model_booking.BookingList{
+		PartnerUid:   body.PartnerUid,
+		CourseUid:    body.CourseUid,
+		BookingDate:  date,
+		CustomerType: constants.BOOKING_CUSTOMER_TYPE_VISITOR,
+	}
+	_, totalVisitor, _ := bookingVisitorList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+
+	// Total Driving
+	// bookingVisitorList := model_booking.BookingList{
+	// 	PartnerUid:      body.PartnerUid,
+	// 	CourseUid:       body.CourseUid,
+	// 	BookingDate:     date,
+	// 	CustomerType: constants.BOOKING_CUSTOMER_TYPE_VISITOR,
+	// }
+	// _, totalVisitor, _ := bookingVisitorList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+
+	// Member
+	bookingMemberList := model_booking.BookingList{
+		PartnerUid:   body.PartnerUid,
+		CourseUid:    body.CourseUid,
+		BookingDate:  date,
+		CustomerType: constants.BOOKING_CUSTOMER_TYPE_MEMBER,
+	}
+	_, totalMember, _ := bookingMemberList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+
+	// Member Guest
+	bookingMemberGuestList := model_booking.BookingList{
+		PartnerUid:   body.PartnerUid,
+		CourseUid:    body.CourseUid,
+		BookingDate:  date,
+		CustomerType: constants.BOOKING_CUSTOMER_TYPE_GUEST,
+	}
+	_, totalMemberGuest, _ := bookingMemberGuestList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+
+	// Agency
+	bookingAgencyList := model_booking.BookingList{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: date,
+		IsAgency:    "1",
+	}
+	_, totalAgency, _ := bookingAgencyList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+
+	res := map[string]interface{}{
+		"money_bag":       0,
+		"book":            totalBooking,
+		"ci_from_booking": totalBookCI,
+		"non_golf":        totalNonGolf,
+		"visitor":         totalVisitor,
+		"driving":         0,
+		"member":          totalMember,
+		"member_guest":    totalMemberGuest,
+		"agency":          totalAgency,
+	}
+
+	okResponse(c, res)
+}
+
 func (_ *CReportDashboard) GetReportTop10Member(c *gin.Context, prof models.CmsUser) {
 	body := request.GetReportTop10MemberForm{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {

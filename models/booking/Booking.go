@@ -207,7 +207,8 @@ type CaddieBuggyInOutNoteForBooking struct {
 	CaddieType     string `json:"caddie_type"`
 	BuggyType      string `json:"buggy_type"`
 	Hole           int    `json:"hole"`
-	IsPrivateBuggy bool   `json:"is_private_buggy"`
+	BagShareBuggy  string `json:"bag_share_buggy"`
+	IsPrivateBuggy *bool  `json:"is_private_buggy"`
 }
 
 type BuggyInOut BuggyInOutNoteForBooking
@@ -818,9 +819,9 @@ func (item *Booking) UpdatePriceDetailCurrentBag(db *gorm.DB) {
 	}
 
 	// Xét lại giá PriceCurrentBag khi có Main Bag Pay
-	if len(item.MainBags) > 0 {
-		item.CheckPriceCurrentBagHaveMainBagPay(db, &priceDetail)
-	}
+	// if len(item.MainBags) > 0 {
+	// 	item.CheckPriceCurrentBagHaveMainBagPay(db, &priceDetail)
+	// }
 
 	item.FindServiceItems(db)
 	for _, serviceItem := range item.ListServiceItems {
