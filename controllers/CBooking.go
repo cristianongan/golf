@@ -2109,6 +2109,8 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 				Name: "Booking Caddie fee",
 				Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
 			})
+
+			bookingAgencyPayment.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
 		}
 	}
 
