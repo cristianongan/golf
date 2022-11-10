@@ -41,6 +41,20 @@ type BookingAgencyPayForBagData struct {
 	Name string `json:"name"`
 }
 
+func (item *BookingAgencyPayment) GetTotalFee() int64 {
+	if item.FeeData == nil || len(item.FeeData) == 0 {
+		return 0
+	}
+
+	totalFee := int64(0)
+
+	for _, v := range item.FeeData {
+		totalFee += v.Fee
+	}
+
+	return totalFee
+}
+
 func (item *BookingAgencyPayment) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()

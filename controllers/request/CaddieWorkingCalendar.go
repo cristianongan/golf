@@ -4,6 +4,7 @@ type CreateCaddieWorkingCalendarBody struct {
 	PartnerUid        string                             `json:"partner_uid"`
 	CourseUid         string                             `json:"course_uid"`
 	CaddieWorkingList []CaddieWorkingCalendarListRequest `json:"caddie_working_list" binding:"required"`
+	ActionType        string                             `json:"action_type"`
 }
 
 type GetCaddieWorkingCalendarList struct {

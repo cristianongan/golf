@@ -1662,7 +1662,7 @@ func newTrue(b bool) *bool {
 /*
 Create Single Payment
 */
-func handleSinglePayment(db *gorm.DB, booking model_booking.Booking) {
+func handleSinglePayment(db *gorm.DB, booking model_booking.Booking, agencyPaid int64) {
 	bagInfo := model_payment.PaymentBagInfo{}
 	bagByte, errM := json.Marshal(booking)
 	if errM != nil {
@@ -1692,8 +1692,11 @@ func handleSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 		singlePayment.PaymentDate = booking.BookingDate
 
 		if booking.AgencyId > 0 && booking.MemberCardUid == "" {
+			// Agency
 			singlePayment.Type = constants.PAYMENT_CATE_TYPE_AGENCY
+			singlePayment.AgencyPaid = agencyPaid
 		} else {
+			// Single
 			singlePayment.Type = constants.PAYMENT_CATE_TYPE_SINGLE
 		}
 
@@ -1793,10 +1796,9 @@ func handlePayment(db *gorm.DB, booking model_booking.Booking) {
 	if booking.AgencyId > 0 && booking.MemberCardUid == "" {
 		// Agency payment
 		go handleAgencyPayment(db, booking)
-	} else {
-		// single payment
-		go handleSinglePayment(db, booking)
 	}
+	// single payment
+	go handleSinglePayment(db, booking, 0)
 }
 
 /*
