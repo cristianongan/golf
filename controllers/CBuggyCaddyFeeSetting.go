@@ -21,18 +21,62 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 		return
 	}
 
-	golfFee := models.GolfFee{
-		GuestStyle: form.GuestStyle,
-		CourseUid:  form.CourseUid,
-		PartnerUid: form.PartnerUid,
+	golfFeeTotal := int64(0)
+	caddieFee := int64(0)
+	buggyFee := int64(0)
+	greenFee := int64(0)
+
+	handleFeeOnDay := func(gs string) {
+		golfFee := models.GolfFee{
+			GuestStyle: gs,
+			CourseUid:  form.CourseUid,
+			PartnerUid: form.PartnerUid,
+		}
+		fee, _ := golfFee.GetGuestStyleOnDay(db)
+
+		caddieFee = utils.GetFeeFromListFee(fee.CaddieFee, form.Hole)
+		buggyFee = utils.GetFeeFromListFee(fee.BuggyFee, form.Hole)
+		greenFee = utils.GetFeeFromListFee(fee.GreenFee, form.Hole)
+
+		golfFeeTotal = caddieFee + greenFee + buggyFee
 	}
 
-	fee, _ := golfFee.GetGuestStyleOnDay(db)
+	if form.AgencyId > 0 {
 
-	caddieFee := utils.GetFeeFromListFee(fee.CaddieFee, form.Hole)
-	greenFee := utils.GetFeeFromListFee(fee.GreenFee, form.Hole)
+		course := models.Course{}
+		course.Uid = form.CourseUid
+		errCourse := course.FindFirst()
+		if errCourse != nil {
+			response_message.BadRequest(c, errCourse.Error())
+			response_message.BadRequest(c, "agency"+errCourse.Error())
+			return
+		}
 
-	golfFeeTotal := caddieFee + greenFee
+		agency := models.Agency{}
+		agency.Id = form.AgencyId
+		errFindAgency := agency.FindFirst(db)
+		if errFindAgency != nil || agency.Id == 0 {
+			response_message.BadRequest(c, "agency"+errFindAgency.Error())
+			return
+		}
+
+		agencySpecialPriceR := models.AgencySpecialPrice{
+			AgencyId: agency.Id,
+		}
+		// Tính lại giá riêng nếu thoả mãn các dk time
+		agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnTime(db)
+		if errFSP == nil && agencySpecialPrice.Id > 0 {
+			// Tính lại giá riêng nếu thoả mãn các dk time,
+			// List Booking GolfFee
+			caddieFee = utils.CalculateFeeByHole(form.Hole, agencySpecialPrice.CaddieFee, course.RateGolfFee)
+			buggyFee = utils.CalculateFeeByHole(form.Hole, agencySpecialPrice.BuggyFee, course.RateGolfFee)
+			greenFee = utils.CalculateFeeByHole(form.Hole, agencySpecialPrice.GreenFee, course.RateGolfFee)
+		} else {
+			handleFeeOnDay(agency.GuestStyle)
+		}
+	} else {
+		handleFeeOnDay(form.GuestStyle)
+	}
 
 	// Get Buggy Fee
 	buggyFeeSettingR := models.BuggyFeeSetting{
@@ -62,6 +106,10 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 		}
 	}
 
+	rentalFee := utils.GetFeeFromListFee(buggyFeeItemSetting.RentalFee, form.Hole)
+	privateCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.RentalFee, form.Hole)
+	oddCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.RentalFee, form.Hole)
+
 	// Get Buggy Fee
 	bookingCaddieFeeSettingR := models.BookingCaddyFeeSetting{
 		PartnerUid: form.PartnerUid,
@@ -79,9 +127,9 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 	res := map[string]interface{}{
 		"golf_fee": golfFeeTotal,
 		"buggy_fee": models.BuggyFeeItemSettingResponse{
-			RentalFee:     buggyFeeItemSetting.RentalFee,
-			PrivateCarFee: buggyFeeItemSetting.PrivateCarFee,
-			OddCarFee:     buggyFeeItemSetting.OddCarFee,
+			RentalFee:     rentalFee,
+			PrivateCarFee: privateCarFee,
+			OddCarFee:     oddCarFee,
 		},
 		"caddie_fee": models.BookingCaddyFeeSettingRes{
 			Fee:  bookingCaddieFeeSetting.Fee,

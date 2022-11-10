@@ -207,6 +207,7 @@ func (_ *CPayment) GetListSinglePayment(c *gin.Context, prof models.CmsUser) {
 		PaymentDate:   body.PaymentDate,
 		Bag:           body.Bag,
 		PaymentStatus: body.PaymentStatus,
+		Type:          constants.PAYMENT_CATE_TYPE_SINGLE,
 	}
 
 	list, total, err := paymentR.FindList(db, page, body.PlayerName)
@@ -401,7 +402,7 @@ func (_ *CPayment) GetListAgencyPayment(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
-	Thanh toán cho agency
+Thanh toán cho agency
 */
 func (_ *CPayment) CreateAgencyPaymentItem(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
@@ -536,4 +537,38 @@ func (_ *CPayment) GetListAgencyPaymentItem(c *gin.Context, prof models.CmsUser)
 	}
 
 	okResponse(c, res)
+}
+
+/*
+Lấy chi tiết số tiền agency thanh toán cho bag
+*/
+func (_ *CPayment) GetAgencyPayForBagDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.GetAgencyPayForBagDetailBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// Checksum
+	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.BookingCode + "|" + body.BookingUid
+	checkSum := utils.GetSHA256Hash(checkSumMessage)
+
+	if checkSum != body.CheckSum {
+		response_message.BadRequest(c, "checksum invalid")
+		return
+	}
+
+	payForBag := model_payment.BookingAgencyPayment{
+		BookingCode: body.BookingCode,
+		BookingUid:  body.BookingUid,
+	}
+
+	err := payForBag.FindFirst(db)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okResponse(c, payForBag)
 }

@@ -249,8 +249,8 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 }
 
 func unlockTee(body request.CreateBookingOTABody) {
+	// get các teetime đang bị khóa ở redis
 	bookDate, _ := utils.GetBookingTimeFrom(body.DateStr)
-
 	lockTeeTime := models.LockTeeTime{
 		CourseUid: body.CourseCode,
 		TeeTime:   body.TeeOffStr,
@@ -265,12 +265,23 @@ func unlockTee(body request.CreateBookingOTABody) {
 		lockTeeTime.TeeType = "1B"
 	}
 
-	db := datasources.GetDatabase()
-	if errFind := lockTeeTime.FindFirst(db); errFind != nil {
-		log.Println("UNLOCK Tee Time Error!")
-		return
+	listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, body.DateStr)
+	hasTeeTimeLock1AOnRedis := false
+	for _, teeTimeLockRedis := range listTeeTimeLockRedis {
+		if teeTimeLockRedis.TeeTime == body.TeeOffStr && teeTimeLockRedis.DateTime == bookDate &&
+			teeTimeLockRedis.CourseUid == body.CourseCode && teeTimeLockRedis.TeeType == lockTeeTime.TeeType {
+			hasTeeTimeLock1AOnRedis = true
+		}
 	}
-	lockTeeTime.Delete(db)
+
+	if !hasTeeTimeLock1AOnRedis {
+		db := datasources.GetDatabase()
+		if errFind := lockTeeTime.FindFirst(db); errFind != nil {
+			log.Println("UNLOCK Tee Time Error!")
+			return
+		}
+		lockTeeTime.Delete(db)
+	}
 }
 
 /*

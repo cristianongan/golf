@@ -11,6 +11,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	model_payment "start/models/payment"
 	model_report "start/models/report"
 	"start/utils"
 	"start/utils/response_message"
@@ -449,6 +450,10 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.BookingCode = bookingCode
 	} else {
 		booking.BookingCode = body.BookingCode
+	}
+
+	if body.IsPrivateBuggy != nil {
+		booking.IsPrivateBuggy = body.IsPrivateBuggy
 	}
 
 	errC := booking.Create(db, bUid)
@@ -2073,7 +2078,49 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		bodyRequest.BookingList[index].BookingCode = bookingCode
 	}
 
-	cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	listBooking := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+
+	handleAgencyFee := func() {
+		for index, booking := range listBooking {
+			bookingAgencyPayment := model_payment.BookingAgencyPayment{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				BookingCode: booking.BookingCode,
+				AgencyId:    booking.AgencyId,
+				BookingUid:  booking.Uid,
+				CaddieId:    fmt.Sprint(booking.CaddieId),
+			}
+			bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
+				Fee:  bodyRequest.BookingList[index].FeeInfo.GolfFee,
+				Name: "Golf Fee",
+				Type: constants.BOOKING_AGENCY_GOLF_FEE,
+			})
+			if *booking.IsPrivateBuggy {
+				bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
+					Fee:  bodyRequest.BookingList[index].FeeInfo.BuggyFee,
+					Name: "Buggy (1 xe)",
+					Type: constants.BOOKING_AGENCY_BUGGY_FEE,
+				})
+			} else {
+				bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
+					Fee:  bodyRequest.BookingList[index].FeeInfo.BuggyFee,
+					Name: "Buggy (1/2 xe)",
+					Type: constants.BOOKING_AGENCY_BUGGY_FEE,
+				})
+			}
+			bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
+				Fee:  bodyRequest.BookingList[index].FeeInfo.CaddieFee,
+				Name: "Booking Caddie fee",
+				Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
+			})
+
+			bookingAgencyPayment.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+		}
+	}
+
+	go handleAgencyFee()
+
+	okResponse(c, listBooking)
 }
 
 func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser) {
@@ -2099,21 +2146,21 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 			}
 		}
 	}
-	cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	listBooking := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	okResponse(c, listBooking)
 }
 
-func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser) {
+func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser) []model_booking.Booking {
 	list := []model_booking.Booking{}
 	for _, body := range bookingList {
 		booking, _ := cBooking.CreateBookingCommon(body, c, prof)
 		if booking != nil {
 			list = append(list, *booking)
-		} else {
-			return
 		}
 	}
-	okResponse(c, list)
+	return list
 }
+
 func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.CancelAllBookingBody{}

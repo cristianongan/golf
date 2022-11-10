@@ -28,10 +28,10 @@ type BuggyFeeItemSetting struct {
 }
 
 type BuggyFeeItemSettingResponse struct {
-	RentalFee     utils.ListGolfHoleFee `json:"rental_fee"`
-	PrivateCarFee utils.ListGolfHoleFee `json:"private_car_fee"`
-	OddCarFee     utils.ListGolfHoleFee `json:"odd_car_fee"`
-	GuestStyle    string                `json:"guest_style"`
+	RentalFee     int64  `json:"rental_fee"`
+	PrivateCarFee int64  `json:"private_car_fee"`
+	OddCarFee     int64  `json:"odd_car_fee"`
+	GuestStyle    string `json:"guest_style"`
 }
 
 type ListBuggyFeeItemSetting []BuggyFeeItemSetting

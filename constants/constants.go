@@ -1,6 +1,14 @@
 package constants
 
 /*
+Get base price cho type agency họăc member card
+*/
+const (
+	PAYMENT_CATE_TYPE_AGENCY = "AGENCY"
+	PAYMENT_CATE_TYPE_SINGLE = "SINGLE"
+)
+
+/*
 Service item được add từ đâu, lễ tân, GO,..
 */
 const (
@@ -400,3 +408,8 @@ const BOOKING_CUSTOMER_TYPE_TRADITIONAL = "TRADITIONAL"
 const BOOKING_CUSTOMER_TYPE_MEMBER = "MEMBER"
 const BOOKING_CUSTOMER_TYPE_GUEST = "GUEST"
 const BOOKING_CUSTOMER_TYPE_VISITOR = "VISITOR"
+
+// Agency Fee
+const BOOKING_AGENCY_GOLF_FEE = "GOLF_FEE"
+const BOOKING_AGENCY_BUGGY_FEE = "BUGGY_FEE"
+const BOOKING_AGENCY_BOOKING_CADDIE_FEE = "BOOKING_CADDIE_FEE"
