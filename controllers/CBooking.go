@@ -219,6 +219,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			return nil, nil
 		}
 
+		if memberCard.AnnualType == constants.ANNUAL_TYPE_SLEEP {
+			response_message.BadRequestDynamicKey(c, "ANNUAL_TYPE_SLEEP_NOT_CHECKIN", "")
+			return nil, nil
+		}
+
 		// Get Owner
 		owner, errOwner := memberCard.GetOwner(db)
 		if errOwner != nil {
@@ -1276,6 +1281,16 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		errFind := memberCard.FindFirst(db)
 		if errFind != nil {
 			response_message.BadRequest(c, errFind.Error())
+			return
+		}
+
+		if memberCard.Status == constants.STATUS_DISABLE {
+			response_message.BadRequestDynamicKey(c, "MEMBER_CARD_INACTIVE", "")
+			return
+		}
+
+		if memberCard.AnnualType == constants.ANNUAL_TYPE_SLEEP {
+			response_message.BadRequestDynamicKey(c, "ANNUAL_TYPE_SLEEP_NOT_CHECKIN", "")
 			return
 		}
 
