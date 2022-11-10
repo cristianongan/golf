@@ -32,13 +32,15 @@ type SinglePayment struct {
 	Invoice       string `json:"invoice" gorm:"type:varchar(100)"`             // Invoice
 	PaymentStatus string `json:"payment_status" gorm:"type:varchar(50);index"` // PAID, UN_PAID, PARTIAL_PAID, DEBT
 	// PrepaidFromBooking int64  `json:"prepaid_from_booking"`                         // Thanh toán trước từ khi booking (nếu có)
-	Cashiers  string `json:"cashiers" gorm:"type:varchar(100);index"` // Thu ngân, lấy từ acc cms
-	TotalPaid int64  `json:"total_paid"`                              // Số tiền thanh toán
-	Note      string `json:"note" gorm:"type:varchar(200)"`           // Note
-	Type      string `json:"type" gorm:"type:varchar(50);index"`      // SINGLE, AGENCY
+	Cashiers   string `json:"cashiers" gorm:"type:varchar(100);index"` // Thu ngân, lấy từ acc cms
+	TotalPaid  int64  `json:"total_paid"`                              // Số tiền thanh toán
+	AgencyPaid int64  `json:"agency_paid"`                             // Số tiền đại lý thanh toán
+	Note       string `json:"note" gorm:"type:varchar(200)"`           // Note
+	Type       string `json:"type" gorm:"type:varchar(50);index"`      // SINGLE, AGENCY
 }
 
 type PaymentBagInfo struct {
+	Hole           int                          `json:"hole"`             // Số hố check in
 	CustomerName   string                       `json:"customer_name"`    // Tên khách hàng
 	GuestStyle     string                       `json:"guest_style"`      // Guest Style
 	GuestStyleName string                       `json:"guest_style_name"` // Guest Style Name
