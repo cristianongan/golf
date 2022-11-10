@@ -492,7 +492,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	} else {
 		if booking.BagStatus == constants.BAG_STATUS_WAITING {
 			// checkin mới tạo payment
-			go handleSinglePayment(db, booking)
+			go handleSinglePayment(db, booking, 0)
 		}
 	}
 
@@ -1589,7 +1589,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	if bookRes.AgencyId > 0 && bookRes.MemberCardUid == "" {
 		// go handleAgencyPayment(db, bookRes)
 	} else {
-		go handleSinglePayment(db, bookRes)
+		go handleSinglePayment(db, bookRes, 0)
 	}
 
 	res := getBagDetailFromBooking(db, bookRes)
@@ -2117,7 +2117,12 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 					Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
 				})
 
+				// Ghi nhận số tiền agency thanh toán của agency
 				bookingAgencyPayment.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+				// create bag payment
+				// Ghi nhận só tiền agency thanh toán cho bag đó
+
+				handleSinglePayment(datasources.GetDatabaseWithPartner(prof.PartnerUid), booking, bookingAgencyPayment.GetTotalFee())
 			}
 		}
 	}
