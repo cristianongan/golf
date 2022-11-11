@@ -86,3 +86,10 @@ type GetAgencyPayForBagDetailBody struct {
 	BookingUid  string `json:"booking_uid" binding:"required"`
 	CheckSum    string `json:"check_sum" binding:"required"` // Checksum
 }
+
+type GetBagsOfAgencyBody struct {
+	BookingCode string `json:"booking_code" binding:"required"`
+	PartnerUid  string `json:"partner_uid" binding:"required"`
+	CourseUid   string `json:"course_uid"`
+	CheckSum    string `json:"check_sum" binding:"required"` // Checksum
+}
