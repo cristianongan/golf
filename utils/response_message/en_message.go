@@ -38,4 +38,5 @@ var EnLanguage = map[string]string{
 	"MERGE_ROUND_NOT_ENOUGH":        "Need minimum 2 round to merge",
 	"MEMBER_CARD_INACTIVE":          "Member Card Inactive",
 	"ANNUAL_TYPE_SLEEP_NOT_CHECKIN": "Annual type is Sleep",
+	"DUPLICATE_BAG":                 "Duplicate bag",
 }

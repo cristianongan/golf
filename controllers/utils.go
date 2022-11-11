@@ -1003,6 +1003,17 @@ func addBuggyCaddieInOutNote(db *gorm.DB, caddieInOut model_gostarter.CaddieBugg
 				lastItem.BuggyType == constants.STATUS_OUT ||
 				caddieInOut.BuggyType == constants.STATUS_OUT ||
 				caddieInOut.CaddieType == constants.STATUS_OUT {
+
+				if caddieInOut.BuggyId > 0 && caddieInOut.CaddieId == 0 {
+					caddieInOut.CaddieId = lastItem.CaddieId
+					caddieInOut.CaddieCode = lastItem.CaddieCode
+					caddieInOut.CaddieType = lastItem.CaddieType
+				} else if caddieInOut.CaddieId > 0 && caddieInOut.BuggyId == 0 {
+					caddieInOut.BuggyId = lastItem.BuggyId
+					caddieInOut.BuggyCode = lastItem.BuggyCode
+					caddieInOut.BuggyType = lastItem.BuggyType
+				}
+
 				err := caddieInOut.Create(db)
 				if err != nil {
 					log.Println("Create addBuggyCaddieInOutNote", err.Error())
