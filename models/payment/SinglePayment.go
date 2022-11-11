@@ -40,6 +40,7 @@ type SinglePayment struct {
 }
 
 type PaymentBagInfo struct {
+	TeeTime        string                       `json:"tee_time"`         // Ex: 16:26 Tee time là thời gian tee off dự kiến
 	Hole           int                          `json:"hole"`             // Số hố check in
 	CustomerName   string                       `json:"customer_name"`    // Tên khách hàng
 	GuestStyle     string                       `json:"guest_style"`      // Guest Style
@@ -190,12 +191,7 @@ func (item *SinglePayment) Count(db *gorm.DB) (int64, error) {
 func (item *SinglePayment) FindAllForAgency(db *gorm.DB) ([]SinglePayment, error) {
 	db = db.Model(SinglePayment{})
 	list := []SinglePayment{}
-	// status := item.Model.Status
-	// item.Model.Status = ""
 
-	// if status != "" {
-	// 	db = db.Where("status in (?)", strings.Split(status, ","))
-	// }
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
