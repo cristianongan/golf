@@ -130,7 +130,7 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	}
 
 	if item.GolfBag != "" {
-		db = db.Where("bag COLLATE utf8mb4_general_ci LIKE ?", "%"+item.GolfBag+"%")
+		db = db.Where("bag = ?", item.GolfBag)
 	}
 
 	if item.BagStatus != "" {
