@@ -73,6 +73,7 @@ func (_ *CBuggyFeeItemSetting) GetBuggyFeeItemSettingList(c *gin.Context, prof m
 	buggyRequest := models.BuggyFeeItemSetting{}
 	buggyRequest.CourseUid = form.CourseUid
 	buggyRequest.PartnerUid = form.PartnerUid
+	buggyRequest.SettingId = form.SettingId
 
 	list, total, err := buggyRequest.FindList(db, page)
 

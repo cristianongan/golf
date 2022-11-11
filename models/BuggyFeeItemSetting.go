@@ -100,7 +100,6 @@ func (item *BuggyFeeItemSetting) FindList(database *gorm.DB, page Page) ([]Buggy
 		db = db.Where("setting_id = ?", item.SettingId)
 	}
 
-	db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
 	db.Count(&total)
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)
