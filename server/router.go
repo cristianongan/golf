@@ -263,6 +263,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/payment/agency-payment/item/delete", middlewares.AuthorizedCmsUserHandler(cPayment.DeleteAgencyPaymentItem))
 			cmsApiAuthorized.POST("/payment/agency-payment/list/item", middlewares.AuthorizedCmsUserHandler(cPayment.GetListAgencyPaymentItem))
 			cmsApiAuthorized.POST("/payment/agency-payment/pay-for-bag/detail", middlewares.AuthorizedCmsUserHandler(cPayment.GetAgencyPayForBagDetail))
+			cmsApiAuthorized.POST("/payment/agency-payment/list-bag", middlewares.AuthorizedCmsUserHandler(cPayment.GetListBagOfAgency))
 
 			/// =================== Rounds ===================
 			cRound := new(controllers.CRound)
