@@ -187,6 +187,31 @@ func (item *SinglePayment) Count(db *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
+func (item *SinglePayment) FindAllForAgency(db *gorm.DB) ([]SinglePayment, error) {
+	db = db.Model(SinglePayment{})
+	list := []SinglePayment{}
+	// status := item.Model.Status
+	// item.Model.Status = ""
+
+	// if status != "" {
+	// 	db = db.Where("status in (?)", strings.Split(status, ","))
+	// }
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.BookingCode != "" {
+		db = db.Where("booking_code = ?", item.BookingCode)
+	}
+
+	db.Find(&list)
+
+	return list, db.Error
+}
+
 func (item *SinglePayment) FindList(db *gorm.DB, page models.Page, playerName string) ([]SinglePayment, int64, error) {
 	db = db.Model(SinglePayment{})
 	list := []SinglePayment{}

@@ -572,3 +572,37 @@ func (_ *CPayment) GetAgencyPayForBagDetail(c *gin.Context, prof models.CmsUser)
 
 	okResponse(c, payForBag)
 }
+
+/*
+Lấy chi tiết số tiền agency thanh toán cho bag
+*/
+func (_ *CPayment) GetListBagOfAgency(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.GetBagsOfAgencyBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// Checksum
+	checkSumMessage := config.GetPaymentSecretKey() + "|" + body.PartnerUid + "|" + body.CourseUid + "|" + body.BookingCode
+	checkSum := utils.GetSHA256Hash(checkSumMessage)
+
+	if checkSum != body.CheckSum {
+		response_message.BadRequest(c, "checksum invalid")
+		return
+	}
+
+	bagPayOfAgencyR := model_payment.SinglePayment{
+		BookingCode: body.BookingCode,
+		PartnerUid:  body.PartnerUid,
+	}
+
+	list, err := bagPayOfAgencyR.FindAllForAgency(db)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okResponse(c, list)
+}
