@@ -39,6 +39,14 @@ type CaddieBuggyInOutWithBooking struct {
 	GuestStyleName string `json:"guest_style_name"`
 }
 
+type CaddieBuggyInOutRequest struct {
+	CaddieBuggyInOut
+	Bag            string
+	Date           string
+	ShareBuggy     *bool
+	BagOrBuggyCode string
+}
+
 func (item *CaddieBuggyInOut) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
@@ -150,7 +158,7 @@ func (item *CaddieBuggyInOut) FindOrderByDateList(database *gorm.DB) ([]CaddieBu
 	return list, total, db.Error
 }
 
-func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB, page models.Page, bag string, date string, shareBuggy *bool) ([]CaddieBuggyInOutWithBooking, int64, error) {
+func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB, page models.Page, request CaddieBuggyInOutRequest) ([]CaddieBuggyInOutWithBooking, int64, error) {
 	db := database.Model(CaddieBuggyInOut{})
 	list := []CaddieBuggyInOutWithBooking{}
 	total := int64(0)
@@ -175,15 +183,18 @@ func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB,
 	if item.CaddieCode != "" {
 		db = db.Where("caddie_buggy_in_outs.caddie_code = ?", item.CaddieCode)
 	}
-	if item.BuggyCode != "" || bag != "" {
-		db = db.Where("caddie_buggy_in_outs.buggy_code LIKE ? OR bookings.bag LIKE ?", "%"+item.BuggyCode+"%", "%"+bag+"%")
+	if request.BagOrBuggyCode != "" {
+		db = db.Where("caddie_buggy_in_outs.buggy_code LIKE ? OR bookings.bag LIKE ?", "%"+request.BagOrBuggyCode+"%", "%"+request.BagOrBuggyCode+"%")
 	}
-	if shareBuggy != nil {
-		db = db.Where("bookings.is_private_buggy = ?", *shareBuggy)
+	if request.ShareBuggy != nil {
+		db = db.Where("bookings.is_private_buggy = ?", *request.ShareBuggy)
+	}
+	if request.Bag != "" {
+		db = db.Where("bookings.bag = ?", request.Bag)
 	}
 	// localTime, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, time.Now().Unix())
-	if date != "" {
-		db = db.Where("bookings.booking_date = ?", date)
+	if request.Date != "" {
+		db = db.Where("bookings.booking_date = ?", request.Date)
 	}
 
 	// db = db.Group("caddie_buggy_in_outs.buggy_common_code")

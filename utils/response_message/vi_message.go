@@ -39,4 +39,5 @@ var ViLanguage = map[string]string{
 	"MERGE_ROUND_NOT_ENOUGH":        "Cần tối thiểu 2 round để merge",
 	"MEMBER_CARD_INACTIVE":          "Member Card Inactive",
 	"ANNUAL_TYPE_SLEEP_NOT_CHECKIN": "Member Card là thẻ ngủ",
+	"DUPLICATE_BAG":                 "Bag này đã được sử dụng",
 }
