@@ -1246,7 +1246,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	if body.Bag != "" {
+	if body.Bag != "" && booking.Bag != body.Bag {
 		booking.Bag = body.Bag
 		//Check duplicated
 		isDuplicated, errDupli := booking.IsDuplicated(db, false, true)
