@@ -440,15 +440,27 @@ func updateGolfFeeInBooking(booking model_booking.Booking, db *gorm.DB) {
 			return
 		}
 
+		round1 := models.Round{}
+		round2 := models.Round{}
+
+		for _, round := range listRound {
+			if round.Index == 1 {
+				round1 = round
+			}
+			if round.Index == 2 {
+				round2 = round
+			}
+		}
+
 		for _, v1 := range bookingMain.MainBagPay {
 			// TODO: Tính Fee cho sub bag fee
-			if v1 == constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS {
+			handlePriceOfBookingMain := func(buggyFee, caddieFee, greenFee int64) {
 				for i, v2 := range bookingMain.ListGolfFee {
 					if v2.Bag == booking.Bag {
 						bookingMain.ListGolfFee[i].BookingUid = booking.Uid
-						bookingMain.ListGolfFee[i].BuggyFee = booking.ListGolfFee[0].BuggyFee
-						bookingMain.ListGolfFee[i].CaddieFee = booking.ListGolfFee[0].CaddieFee
-						bookingMain.ListGolfFee[i].GreenFee = booking.ListGolfFee[0].GreenFee
+						bookingMain.ListGolfFee[i].BuggyFee = buggyFee
+						bookingMain.ListGolfFee[i].CaddieFee = caddieFee
+						bookingMain.ListGolfFee[i].GreenFee = greenFee
 
 						break
 					}
@@ -475,7 +487,20 @@ func updateGolfFeeInBooking(booking model_booking.Booking, db *gorm.DB) {
 				if errUpdateBooking != nil {
 					log.Println("UpdateGolfFeeInBooking Error")
 				}
+			}
 
+			if v1 == constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS &&
+				v1 == constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND {
+				buggyFee := round1.BuggyFee + round2.BuggyFee
+				caddieFee := round1.CaddieFee + round2.CaddieFee
+				greenFee := round1.GreenFee + round2.GreenFee
+				handlePriceOfBookingMain(buggyFee, caddieFee, greenFee)
+				break
+			} else if v1 == constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS {
+				handlePriceOfBookingMain(round2.BuggyFee, round2.CaddieFee, round2.GreenFee)
+				break
+			} else if v1 == constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND {
+				handlePriceOfBookingMain(round1.BuggyFee, round1.CaddieFee, round1.GreenFee)
 				break
 			}
 		}
