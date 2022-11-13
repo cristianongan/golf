@@ -461,10 +461,14 @@ func updateGolfFeeInBooking(booking model_booking.Booking, db *gorm.DB) {
 					}
 				}
 				// Update mush pay, current bag
-				totalPayChange := booking.ListGolfFee[0].CaddieFee + booking.ListGolfFee[0].BuggyFee + booking.ListGolfFee[0].GreenFee
+				var totalGolfFeeOfBookingMain int64 = 0
 
-				bookingMain.MushPayInfo.MushPay += totalPayChange
-				bookingMain.MushPayInfo.TotalGolfFee += totalPayChange
+				for _, v3 := range bookingMain.ListGolfFee {
+					totalGolfFeeOfBookingMain += v3.BuggyFee + v3.CaddieFee + v3.GreenFee
+				}
+
+				bookingMain.MushPayInfo.TotalGolfFee = totalGolfFeeOfBookingMain
+				bookingMain.MushPayInfo.MushPay = bookingMain.MushPayInfo.TotalServiceItem + totalGolfFeeOfBookingMain
 
 				errUpdateBooking := bookingMain.Update(db)
 
