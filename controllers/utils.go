@@ -452,7 +452,7 @@ func updateGolfFeeInBooking(booking model_booking.Booking, db *gorm.DB) {
 			}
 		}
 
-		handlePriceOfBookingMain := func(buggyFee, caddieFee, greenFee int64) {
+		updateGolfFeeOfMainBag := func(buggyFee, caddieFee, greenFee int64) {
 			for i, v2 := range bookingMain.ListGolfFee {
 				if v2.Bag == booking.Bag {
 					bookingMain.ListGolfFee[i].BookingUid = booking.Uid
@@ -493,11 +493,11 @@ func updateGolfFeeInBooking(booking model_booking.Booking, db *gorm.DB) {
 			buggyFee := round1.BuggyFee + round2.BuggyFee
 			caddieFee := round1.CaddieFee + round2.CaddieFee
 			greenFee := round1.GreenFee + round2.GreenFee
-			handlePriceOfBookingMain(buggyFee, caddieFee, greenFee)
+			updateGolfFeeOfMainBag(buggyFee, caddieFee, greenFee)
 		} else if checkIsFirstRound > -1 {
-			handlePriceOfBookingMain(round1.BuggyFee, round1.CaddieFee, round1.GreenFee)
+			updateGolfFeeOfMainBag(round1.BuggyFee, round1.CaddieFee, round1.GreenFee)
 		} else if checkIsNextRound > -1 {
-			handlePriceOfBookingMain(round2.BuggyFee, round2.CaddieFee, round2.GreenFee)
+			updateGolfFeeOfMainBag(round2.BuggyFee, round2.CaddieFee, round2.GreenFee)
 		}
 	}
 	booking.UpdatePriceDetailCurrentBag(db)
