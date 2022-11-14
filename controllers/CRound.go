@@ -106,16 +106,6 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
 		go booking.Update(db)
 
-		//Update mush pay, current bag
-		// if len(booking.ListGolfFee) > 0 {
-		// 	totalPayChange := round.CaddieFee + round.BuggyFee + round.GreenFee
-
-		// 	booking.MushPayInfo.MushPay += totalPayChange
-		// 	booking.MushPayInfo.TotalGolfFee += totalPayChange
-		// 	booking.CurrentBagPrice.Amount += totalPayChange
-		// 	booking.CurrentBagPrice.GolfFee += totalPayChange
-		// }
-
 		// Tạo booking mới khi add round
 		newBooking = cloneToBooking(booking)
 		newBooking.BagStatus = constants.BAG_STATUS_WAITING
@@ -292,87 +282,8 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	go updateGolfFeeInBooking(booking, db)
+	updateGolfFeeInBooking(booking, db)
 	// Update lại giá cho main bag
-	if len(booking.MainBags) > 0 {
-		//init fee
-		var greenFee int64 = 0
-		var buggyFee int64 = 0
-		var caddieFee int64 = 0
-		var totalFeeAfter int64 = 0
-
-		// Get data main bag
-		bookingMain := model_booking.Booking{}
-		bookingMain.Uid = booking.MainBags[0].BookingUid
-		if err := bookingMain.FindFirst(db); err != nil {
-			return
-		}
-
-		// Check loại tính tiền của main bag
-		checkIsFirstRound := utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
-		checkIsNextRound := utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
-
-		// get all round
-		round := models.Round{
-			BillCode: booking.BillCode,
-		}
-
-		rounds, errR := round.FindAll(db)
-		if errR != nil {
-			response_message.BadRequest(c, errR.Error())
-			return
-		}
-
-		if checkIsFirstRound > -1 && checkIsNextRound > -1 {
-			for _, v := range rounds {
-				greenFee += v.GreenFee
-				buggyFee += v.BuggyFee
-				caddieFee += v.CaddieFee
-			}
-
-		} else if checkIsFirstRound > -1 {
-			for _, v := range rounds {
-				greenFee += v.GreenFee
-				buggyFee += v.BuggyFee
-				caddieFee += v.CaddieFee
-
-				break
-			}
-
-		} else if checkIsNextRound > -1 {
-			for i, v := range rounds {
-				if i != 0 {
-					greenFee += v.GreenFee
-					buggyFee += v.BuggyFee
-					caddieFee += v.CaddieFee
-				}
-			}
-		}
-
-		for i, v2 := range bookingMain.ListGolfFee {
-			if v2.Bag == booking.Bag {
-				totalFeeAfter += v2.BuggyFee + v2.CaddieFee + v2.GreenFee
-				bookingMain.ListGolfFee[i].BuggyFee = buggyFee
-				bookingMain.ListGolfFee[i].CaddieFee = caddieFee
-				bookingMain.ListGolfFee[i].GreenFee = greenFee
-
-				break
-			}
-		}
-		// Update mush pay, current bag
-		totalFeeBefore := buggyFee + caddieFee + greenFee
-
-		bookingMain.MushPayInfo.MushPay += totalFeeBefore - totalFeeAfter
-		bookingMain.MushPayInfo.TotalGolfFee += totalFeeBefore - totalFeeAfter
-
-		errUpdateBooking := bookingMain.Update(db)
-
-		if errUpdateBooking != nil {
-			response_message.BadRequest(c, errUpdateBooking.Error())
-			return
-		}
-
-	}
 
 	res := getBagDetailFromBooking(db, booking)
 	okResponse(c, res)
@@ -446,74 +357,7 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// update fee booking
-	go updateGolfFeeInBooking(booking, db)
-
-	// Update lại giá cho main bag
-	if len(booking.MainBags) > 0 {
-		//init fee
-
-		var totalFeeAfter int64 = 0
-
-		// Get data main bag
-		bookingMain := model_booking.Booking{}
-		bookingMain.Uid = booking.MainBags[0].BookingUid
-		if err := bookingMain.FindFirst(db); err != nil {
-			return
-		}
-
-		// Check loại tính tiền của main bag
-		checkIsFirstRound := utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
-		// checkIsNextRound := utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
-
-		if checkIsFirstRound > -1 {
-			for i, v1 := range bookingMain.ListGolfFee {
-				if v1.Bag == booking.Bag {
-					totalFeeAfter += v1.BuggyFee + v1.CaddieFee + v1.GreenFee
-					bookingMain.ListGolfFee[i].BuggyFee = newRound.BuggyFee
-					bookingMain.ListGolfFee[i].CaddieFee = newRound.CaddieFee
-					bookingMain.ListGolfFee[i].GreenFee = newRound.GreenFee
-
-					break
-				}
-			}
-			// Update mush pay, current bag
-			// totalFeeBefore := round.BuggyFee + round.CaddieFee + round.GreenFee
-
-			// bookingMain.MushPayInfo.MushPay += totalFeeBefore - totalFeeAfter
-			// bookingMain.MushPayInfo.TotalGolfFee += totalFeeBefore - totalFeeAfter
-
-		} else {
-			for _, v1 := range bookingMain.ListGolfFee {
-				if v1.Bag == booking.Bag {
-					totalFeeAfter += v1.BuggyFee + v1.CaddieFee + v1.GreenFee
-
-					break
-				}
-			}
-
-			// remove sub bag
-			subBags := utils.ListSubBag{}
-			for _, v2 := range bookingMain.SubBags {
-				if v2.GolfBag != booking.Bag {
-					subBags = append(subBags, v2)
-				}
-			}
-			bookingMain.SubBags = subBags
-
-			// Update mush pay, current bag
-			bookingMain.MushPayInfo.MushPay -= totalFeeAfter
-			bookingMain.MushPayInfo.TotalGolfFee -= totalFeeAfter
-		}
-
-		errUpdateBooking := bookingMain.Update(db)
-
-		if errUpdateBooking != nil {
-			response_message.BadRequest(c, errUpdateBooking.Error())
-			return
-		}
-
-	}
-
+	updateGolfFeeInBooking(booking, db)
 	res := getBagDetailFromBooking(db, booking)
 	okResponse(c, res)
 }
