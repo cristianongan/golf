@@ -563,21 +563,86 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 
 	errF := booking.FindFirst(db)
 	if errF != nil {
-		// response_message.InternalServerError(c, errF.Error())
 		response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
 		return
 	}
 
-	bagDetail := getBagDetailFromBooking(db, booking)
+	bagDetail := model_booking.BagDetail{}
+	if booking.BillCode != "" {
+		round := models.Round{BillCode: booking.BillCode}
+		listRound, _ := round.FindAll(db)
 
-	// if form.HasRoundOfSubBag == "1" && len(booking.SubBags) > 0 {
-	if len(booking.SubBags) > 0 {
-		res := GetGolfFeeInfoOfBag(c, booking, bagDetail)
-		okResponse(c, res)
-		return
+		if len(listRound) > 0 {
+			bagDetail.Rounds = listRound
+		}
 	}
 
 	okResponse(c, bagDetail)
+}
+
+func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.Bag == "" {
+		response_message.BadRequest(c, errors.New("Bag invalid").Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.PartnerUid = form.PartnerUid
+	booking.CourseUid = form.CourseUid
+	booking.Bag = form.Bag
+
+	if form.BookingDate != "" {
+		booking.BookingDate = form.BookingDate
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+		booking.BookingDate = toDayDate
+	}
+
+	errF := booking.FindFirst(db)
+	if errF != nil {
+		response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
+		return
+	}
+
+	// Get List Round Of Main Bag
+	listRoundOfMain := []models.Round{}
+	if booking.BillCode != "" {
+		round := models.Round{BillCode: booking.BillCode}
+		listRound, _ := round.FindAll(db)
+
+		if len(listRound) > 0 {
+			listRoundOfMain = listRound
+		}
+	}
+
+	// Get List Service Item
+	booking.FindServiceItems(db)
+
+	// Get List Round Of Sub Bag
+	listRoundOfSub := []model_booking.RoundOfBag{}
+	if len(booking.SubBags) > 0 {
+		res := GetGolfFeeInfoOfBag(c, booking)
+		listRoundOfSub = res.ListRoundOfSubBag
+	}
+
+	feeResponse := model_booking.BookingFeeOfBag{
+		ListServiceItems:  booking.ListServiceItems,
+		ListRoundOfSubBag: listRoundOfSub,
+		Rounds:            listRoundOfMain,
+	}
+
+	okResponse(c, feeResponse)
 }
 
 /*

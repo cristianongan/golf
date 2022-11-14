@@ -1286,7 +1286,7 @@ find booking with round va service items data
 */
 func getBagDetailFromBooking(db *gorm.DB, booking model_booking.Booking) model_booking.BagDetail {
 	//Get service items
-	booking.FindServiceItems(db)
+	// booking.FindServiceItems(db)
 
 	bagDetail := model_booking.BagDetail{
 		Booking: booking,

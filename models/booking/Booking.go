@@ -139,7 +139,7 @@ type BagDetail struct {
 }
 
 type GolfFeeOfBag struct {
-	BagDetail
+	Booking
 	ListRoundOfSubBag []RoundOfBag `json:"list_round_of_sub_bag"`
 }
 
@@ -496,6 +496,12 @@ func (item BookingBuggy) Value() (driver.Value, error) {
 type NumberPeopleInFlight struct {
 	FlightId int64 `json:"flight_id"`
 	Total    int64 `json:"total"`
+}
+
+type BookingFeeOfBag struct {
+	ListServiceItems  []BookingServiceItem `json:"list_service_items"`
+	ListRoundOfSubBag []RoundOfBag         `json:"list_round_of_sub_bag"`
+	Rounds            models.ListRound     `json:"rounds"`
 }
 
 // -------- Booking Logic --------
