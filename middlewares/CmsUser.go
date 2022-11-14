@@ -5,7 +5,6 @@ import (
 	"start/auth"
 	"start/config"
 	"start/constants"
-	"start/controllers/request"
 	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
@@ -87,15 +86,15 @@ func AuthorizedCmsUserHandler(handler func(*gin.Context, models.CmsUser)) gin.Ha
 			return
 		}
 
-		body := request.CommonRequest{}
-		if bindErr := c.ShouldBind(&body); bindErr != nil {
-			// response_message.BadRequest(c, bindErr.Error())
-			// return
-		}
-		if body.PartnerUid != "" && body.PartnerUid != user.PartnerUid {
-			response_message.Forbidden(c, "forbidden")
-			return
-		}
+		// body := request.CommonRequest{}
+		// if bindErr := c.ShouldBind(&body); bindErr != nil {
+		// 	// response_message.BadRequest(c, bindErr.Error())
+		// 	// return
+		// }
+		// if body.PartnerUid != "" && body.PartnerUid != user.PartnerUid {
+		// 	response_message.Forbidden(c, "forbidden")
+		// 	return
+		// }
 		/// OK
 		handler(c, user)
 	}
