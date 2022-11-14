@@ -112,7 +112,12 @@ func (_ *CBuggyFeeItemSetting) UpdateBuggyFeeItemSetting(c *gin.Context, prof mo
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
-
+	if body.GuestStyle != "" {
+		buggyFeeItemSetting.GuestStyle = body.GuestStyle
+	}
+	if body.Dow != "" {
+		buggyFeeItemSetting.Dow = body.Dow
+	}
 	if body.RateGolfFee != "" {
 		buggyFeeItemSetting.RateGolfFee = body.RateGolfFee
 	}
