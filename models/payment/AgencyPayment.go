@@ -112,7 +112,18 @@ func (item *AgencyPayment) UpdateTotalAmount(db *gorm.DB, isUdp bool) {
 	}
 
 	item.TotalAmount = totalAmount
-	item.AgencyPaid = totalAmount
+
+	// Get agency paid
+	agencyPaid := BookingAgencyPayment{
+		PartnerUid:  item.PartnerUid,
+		BookingCode: item.BookingCode,
+		AgencyId:    item.AgencyId,
+	}
+
+	errAP := agencyPaid.FindFirst(db)
+	if errAP == nil {
+		item.AgencyPaid = agencyPaid.GetTotalFee()
+	}
 
 	if isUdp {
 		errUdp := item.Update(db)
