@@ -29,6 +29,28 @@ func (item *CaddieWorkingCalendarNote) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
+func (item *CaddieWorkingCalendarNote) Find(database *gorm.DB) ([]CaddieWorkingCalendarNote, error) {
+	list := []CaddieWorkingCalendarNote{}
+
+	db := database.Model(CaddieWorkingCalendarNote{})
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.ApplyDate != "" {
+		db = db.Where("apply_date = ?", item.ApplyDate)
+	}
+
+	db.Find(&list)
+
+	return list, db.Error
+}
+
 func (item *CaddieWorkingCalendarNote) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
 	return db.Save(item).Error
