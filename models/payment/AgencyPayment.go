@@ -120,9 +120,13 @@ func (item *AgencyPayment) UpdateTotalAmount(db *gorm.DB, isUdp bool) {
 		AgencyId:    item.AgencyId,
 	}
 
-	errAP := agencyPaid.FindFirst(db)
+	listAgencyPaid, errAP := agencyPaid.FindAll(db)
 	if errAP == nil {
-		item.AgencyPaid = agencyPaid.GetTotalFee()
+		agencyPaid := int64(0)
+		for _, v := range listAgencyPaid {
+			agencyPaid += v.GetTotalFee()
+		}
+		item.AgencyPaid = agencyPaid
 	}
 
 	if isUdp {
