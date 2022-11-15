@@ -620,6 +620,96 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 }
 
 /*
+Need more caddie
+Đổi Caddie
+Out caddie cũ và gán Caddie mới cho Bag
+*/
+func (_ *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.NeedMoreCaddieBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+	// Get Booking detail
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	errF := booking.FindFirst(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	// Check Caddie mới
+	caddieNew := models.Caddie{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		Code:       body.CaddieCode,
+	}
+	errFC := caddieNew.FindFirst(db)
+	if errFC != nil {
+		response_message.BadRequest(c, errFC.Error())
+		return
+	}
+
+	// TODO: validate current_status
+
+	// TODO: validate caddie_holes
+
+	// Out Caddie cũ
+	udpCaddieOut(db, booking.CaddieId)
+
+	caddieOutNote := model_gostarter.CaddieBuggyInOut{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		BookingUid: booking.Uid,
+		CaddieId:   booking.CaddieId,
+		CaddieCode: booking.CaddieInfo.Code,
+		CaddieType: constants.STATUS_OUT,
+		Hole:       body.CaddieHoles,
+		Note:       body.Note,
+	}
+
+	go addBuggyCaddieInOutNote(db, caddieOutNote)
+
+	// Gán Caddie mới
+	booking.CaddieId = caddieNew.Id
+	booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
+	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+	booking.CaddieHoles = booking.Hole - body.CaddieHoles
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	errUdp := booking.Update(db)
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	// Update caddie_current_status
+	caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+	caddieNew.CurrentRound = caddieNew.CurrentRound + 1
+
+	if err := caddieNew.Update(db); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		BookingUid: booking.Uid,
+		CaddieId:   booking.CaddieId,
+		CaddieCode: booking.CaddieInfo.Code,
+		CaddieType: constants.STATUS_IN,
+		Hole:       booking.Hole - body.CaddieHoles,
+		Note:       body.Note,
+	}
+
+	go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
+
+	okResponse(c, booking)
+}
+
+/*
 Delete Attach caddie
 - Trường hợp khách đã ghép Flight  (Đã gán caddie vs Buggy) --> Delete Attach Caddie sẽ out khách ra khỏi filght và xóa caddie và Buggy đã gán.
 (Khách không bị cho vào danh sách out mà trở về trạng thái trước khi ghép)
