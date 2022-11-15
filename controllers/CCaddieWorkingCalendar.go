@@ -153,7 +153,8 @@ func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, pr
 		ApplyDate:  body.ApplyDate,
 	}
 
-	if err := caddieWCNote.FindFirst(db); err != nil {
+	listNote, err := caddieWCNote.Find(db)
+	if err != nil {
 		response_message.BadRequest(c, "Find first caddie working calendar note "+err.Error())
 		return
 	}
@@ -161,7 +162,7 @@ func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, pr
 	listRes := map[string]interface{}{
 		"data_caddie":          list,
 		"data_caddie_increase": listIncrease,
-		"note":                 caddieWCNote,
+		"note":                 listNote,
 	}
 
 	res := map[string]interface{}{

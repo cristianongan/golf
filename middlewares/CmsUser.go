@@ -1,10 +1,14 @@
 package middlewares
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"log"
 	"start/auth"
 	"start/config"
 	"start/constants"
+	"start/controllers/request"
 	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
@@ -86,15 +90,25 @@ func AuthorizedCmsUserHandler(handler func(*gin.Context, models.CmsUser)) gin.Ha
 			return
 		}
 
-		// body := request.CommonRequest{}
-		// if bindErr := c.ShouldBind(&body); bindErr != nil {
-		// 	// response_message.BadRequest(c, bindErr.Error())
-		// 	// return
-		// }
-		// if body.PartnerUid != "" && body.PartnerUid != user.PartnerUid {
-		// 	response_message.Forbidden(c, "forbidden")
-		// 	return
-		// }
+		body := request.CommonRequest{}
+		partnerUidRequest := ""
+		if c.Request.Method == "GET" || c.Request.Method == "DELETE" {
+			b := c.Request.URL.Query()
+			partnerUidRequest = b.Get("partner_uid")
+			body.PartnerUid = partnerUidRequest
+		} else if c.Request.Method == "POST" || c.Request.Method == "PUT" {
+			ByteBody, err := io.ReadAll(c.Request.Body)
+			c.Request.Body = io.NopCloser(bytes.NewBuffer(ByteBody))
+			if err != nil {
+				log.Print(err.Error())
+			}
+			json.Unmarshal(ByteBody, &body)
+		}
+
+		if body.PartnerUid != "" && body.PartnerUid != user.PartnerUid {
+			response_message.Forbidden(c, "forbidden")
+			return
+		}
 		/// OK
 		handler(c, user)
 	}
