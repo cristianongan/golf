@@ -41,4 +41,5 @@ var ViLanguage = map[string]string{
 	"ANNUAL_TYPE_SLEEP_NOT_CHECKIN": "Member Card là thẻ ngủ",
 	"DUPLICATE_BAG":                 "Bag này đã được sử dụng",
 	"OUT_CADDIE_ERROR":              "Booking chưa ghép caddie",
+	"INVENTORY_NOT_FOUND":           "Không tìm thấy kho",
 }
