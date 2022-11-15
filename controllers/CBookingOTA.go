@@ -281,7 +281,8 @@ func unlockTee(body request.CreateBookingOTABody) {
 				teeTimeRedisKey += body.TeeOffStr + "_" + "1B"
 			}
 
-			datasources.DelCacheByKey(teeTimeRedisKey)
+			key := datasources.GetRedisKeyTeeTimeLock(teeTimeRedisKey)
+			datasources.DelCacheByKey(key)
 			break
 		}
 	}

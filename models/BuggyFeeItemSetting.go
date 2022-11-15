@@ -21,10 +21,10 @@ type BuggyFeeItemSetting struct {
 	GuestStyleName string                `json:"guest_style_name" gorm:"type:varchar(256)"`  // Ten Guest style
 	GuestStyle     string                `json:"guest_style" gorm:"index;type:varchar(200)"` // Guest style
 	Dow            string                `json:"dow" gorm:"type:varchar(100)"`               // Dow
-	RentalFee      utils.ListGolfHoleFee `json:"rental_fee" gorm:"type:varchar(256)"`        // Phi Rental
-	PrivateCarFee  utils.ListGolfHoleFee `json:"private_car_fee" gorm:"type:varchar(256)"`   // Phi Xe rieng
-	OddCarFee      utils.ListGolfHoleFee `json:"odd_car_fee" gorm:"type:varchar(256)"`       // Phi buggy
-	RateGolfFee    string                `json:"rate_golf_fee" gorm:"type:varchar(256)"`
+	RentalFee      utils.ListGolfHoleFee `json:"rental_fee" gorm:"type:json"`                // Phi Rental
+	PrivateCarFee  utils.ListGolfHoleFee `json:"private_car_fee" gorm:"type:json"`           // Phi Xe rieng
+	OddCarFee      utils.ListGolfHoleFee `json:"odd_car_fee" gorm:"type:json"`               // Phi buggy
+	RateGolfFee    string                `json:"rate_golf_fee" gorm:"type:json"`
 }
 
 type BuggyFeeItemSettingResponse struct {

@@ -152,7 +152,7 @@ func (item *CaddieBuggyInOut) FindOrderByDateList(database *gorm.DB) ([]CaddieBu
 		db = db.Where("buggy_id = ?", item.BuggyId)
 	}
 
-	db = db.Order("updated_at desc")
+	db = db.Order("created_at desc")
 	db.Count(&total)
 	db.Find(&list)
 	return list, total, db.Error

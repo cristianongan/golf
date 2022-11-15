@@ -122,7 +122,7 @@ func (_ *CBuggyFeeItemSetting) UpdateBuggyFeeItemSetting(c *gin.Context, prof mo
 		buggyFeeItemSetting.RateGolfFee = body.RateGolfFee
 	}
 	if body.OddCarFee != nil {
-		buggyFeeItemSetting.RateGolfFee = body.RateGolfFee
+		buggyFeeItemSetting.OddCarFee = body.OddCarFee
 	}
 	if body.PrivateCarFee != nil {
 		buggyFeeItemSetting.PrivateCarFee = body.PrivateCarFee
