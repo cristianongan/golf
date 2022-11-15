@@ -90,6 +90,29 @@ func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]Boo
 	return list, total, db.Error
 }
 
+func (item *BookingWaiting) FindAll(database *gorm.DB) ([]BookingWaiting, int64, error) {
+	db := database.Model(BookingWaiting{})
+	list := []BookingWaiting{}
+	total := int64(0)
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.BookingTime != "" {
+		db = db.Where("booking_time = ?", item.BookingTime)
+	}
+
+	db.Count(&total)
+
+	db = db.Find(&list)
+	return list, total, db.Error
+}
+
 func (item *BookingWaiting) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
