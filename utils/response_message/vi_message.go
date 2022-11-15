@@ -40,4 +40,5 @@ var ViLanguage = map[string]string{
 	"MEMBER_CARD_INACTIVE":          "Member Card Inactive",
 	"ANNUAL_TYPE_SLEEP_NOT_CHECKIN": "Member Card là thẻ ngủ",
 	"DUPLICATE_BAG":                 "Bag này đã được sử dụng",
+	"OUT_CADDIE_ERROR":              "Booking chưa ghép caddie",
 }
