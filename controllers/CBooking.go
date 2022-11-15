@@ -2165,12 +2165,6 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 					CaddieId:    fmt.Sprint(booking.CaddieId),
 				}
 
-				serviceItem := model_booking.BookingServiceItem{
-					BillCode:   booking.BillCode,
-					PlayerName: booking.CustomerName,
-					BookingUid: booking.Uid,
-				}
-
 				feeInfo := bodyRequest.BookingList[index].FeeInfo
 				if feeInfo.GolfFee > 0 {
 					bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
@@ -2191,10 +2185,16 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 						Name: name,
 						Type: constants.BOOKING_AGENCY_BUGGY_FEE,
 					})
+					serviceItem := model_booking.BookingServiceItem{
+						BillCode:   booking.BillCode,
+						PlayerName: booking.CustomerName,
+						BookingUid: booking.Uid,
+					}
 					serviceItem.Name = name
 					serviceItem.UnitPrice = feeInfo.BuggyFee
 					serviceItem.Amount = feeInfo.BuggyFee
 					serviceItem.Type = constants.GOLF_SERVICE_RENTAL
+					go serviceItem.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
 				}
 				if feeInfo.CaddieFee > 0 {
 					bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
@@ -2202,16 +2202,21 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 						Name: "Booking Caddie fee",
 						Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
 					})
+					serviceItem := model_booking.BookingServiceItem{
+						BillCode:   booking.BillCode,
+						PlayerName: booking.CustomerName,
+						BookingUid: booking.Uid,
+					}
 					serviceItem.Name = "Booking Caddie"
 					serviceItem.UnitPrice = feeInfo.CaddieFee
 					serviceItem.Amount = feeInfo.CaddieFee
 					serviceItem.Type = constants.BOOKING_OTHER_FEE
+					go serviceItem.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
 				}
 
 				if feeInfo.BuggyFee > 0 || feeInfo.CaddieFee > 0 || feeInfo.GolfFee > 0 {
 					// Ghi nhận số tiền agency thanh toán của agency
 					bookingAgencyPayment.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
-					go serviceItem.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
 					// create bag payment
 					// Ghi nhận só tiền agency thanh toán cho bag đó
 
