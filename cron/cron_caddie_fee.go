@@ -27,6 +27,7 @@ func runReportCaddieFeeToDayJob() {
 func runReportCaddieFeeToDay() {
 	//Lấy danh sách caddie in out note trong ngày
 	now := time.Now().Format("02/01/2006")
+	day := time.Now().Weekday()
 	nowUnix := time.Now().Unix()
 
 	log.Println("runReportCaddieFeeToDay", time.Now().UnixNano())
@@ -114,12 +115,15 @@ func runReportCaddieFeeToDay() {
 						caddieFee.Hole += item.Hole
 						caddieFee.Amount += cfs.Fee
 						caddieFee.Round += 1
+
+						break
 					}
 				}
 			}
 		}
 
-		if caddieWorkingSchedule.Id > 0 {
+		if caddieWorkingSchedule.Id > 0 &&
+			(int(day) != 0 && int(day) != 6) {
 			caddieFee.IsDayOff = caddieWorkingSchedule.IsDayOff
 			if len(listCaddieION) > 0 {
 				caddieFee.Note = "Tăng cường"
