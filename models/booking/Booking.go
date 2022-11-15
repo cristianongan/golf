@@ -999,6 +999,21 @@ func (item *Booking) FindAllBookingOTA(database *gorm.DB) ([]Booking, error) {
 	return list, db.Error
 }
 
+func (item *Booking) FindAgencyCancelBooking(database *gorm.DB) ([]Booking, error) {
+	db := database.Model(Booking{})
+	list := []Booking{}
+
+	db = db.Where("partner_uid = ?", item.PartnerUid)
+	db = db.Where("course_uid = ?", item.CourseUid)
+	db = db.Group("booking_code")
+	db = db.Where("agency_id <> ?", 0)
+	db = db.Where("bag_status = ?", constants.BAG_STATUS_CANCEL)
+	db = db.Select("booking_code, agency_info, customer_booking_name, customer_booking_phone, tee_time, tee_off_time, booking_date, hole, note_of_bag, note_of_booking, COUNT(booking_code) as number_people")
+
+	db.Find(&list)
+	return list, db.Error
+}
+
 func (item *Booking) FindAllBookingCheckIn(database *gorm.DB, bookingDate string) ([]Booking, error) {
 	db := database.Model(Booking{})
 	list := []Booking{}
