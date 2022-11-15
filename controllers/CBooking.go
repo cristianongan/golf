@@ -2164,36 +2164,64 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 					BookingUid:  booking.Uid,
 					CaddieId:    fmt.Sprint(booking.CaddieId),
 				}
-				bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
-					Fee:  bodyRequest.BookingList[index].FeeInfo.GolfFee,
-					Name: "Golf Fee",
-					Type: constants.BOOKING_AGENCY_GOLF_FEE,
-				})
-				if *booking.IsPrivateBuggy {
+
+				feeInfo := bodyRequest.BookingList[index].FeeInfo
+				if feeInfo.GolfFee > 0 {
 					bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
-						Fee:  bodyRequest.BookingList[index].FeeInfo.BuggyFee,
-						Name: "Buggy (1 xe)",
-						Type: constants.BOOKING_AGENCY_BUGGY_FEE,
-					})
-				} else {
-					bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
-						Fee:  bodyRequest.BookingList[index].FeeInfo.BuggyFee,
-						Name: "Buggy (1/2 xe)",
-						Type: constants.BOOKING_AGENCY_BUGGY_FEE,
+						Fee:  feeInfo.GolfFee,
+						Name: "Golf Fee",
+						Type: constants.BOOKING_AGENCY_GOLF_FEE,
 					})
 				}
-				bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
-					Fee:  bodyRequest.BookingList[index].FeeInfo.CaddieFee,
-					Name: "Booking Caddie fee",
-					Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
-				})
+				if feeInfo.BuggyFee > 0 {
+					name := ""
+					if *booking.IsPrivateBuggy {
+						name = "Buggy (1 xe)"
+					} else {
+						name = "Buggy (1/2 xe)"
+					}
+					bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
+						Fee:  feeInfo.BuggyFee,
+						Name: name,
+						Type: constants.BOOKING_AGENCY_BUGGY_FEE,
+					})
+					serviceItem := model_booking.BookingServiceItem{
+						BillCode:   booking.BillCode,
+						PlayerName: booking.CustomerName,
+						BookingUid: booking.Uid,
+					}
+					serviceItem.Name = name
+					serviceItem.UnitPrice = feeInfo.BuggyFee
+					serviceItem.Amount = feeInfo.BuggyFee
+					serviceItem.Type = constants.GOLF_SERVICE_RENTAL
+					go serviceItem.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+				}
+				if feeInfo.CaddieFee > 0 {
+					bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
+						Fee:  feeInfo.CaddieFee,
+						Name: "Booking Caddie fee",
+						Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
+					})
+					serviceItem := model_booking.BookingServiceItem{
+						BillCode:   booking.BillCode,
+						PlayerName: booking.CustomerName,
+						BookingUid: booking.Uid,
+					}
+					serviceItem.Name = "Booking Caddie"
+					serviceItem.UnitPrice = feeInfo.CaddieFee
+					serviceItem.Amount = feeInfo.CaddieFee
+					serviceItem.Type = constants.BOOKING_OTHER_FEE
+					go serviceItem.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+				}
 
-				// Ghi nhận số tiền agency thanh toán của agency
-				bookingAgencyPayment.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
-				// create bag payment
-				// Ghi nhận só tiền agency thanh toán cho bag đó
+				if feeInfo.BuggyFee > 0 || feeInfo.CaddieFee > 0 || feeInfo.GolfFee > 0 {
+					// Ghi nhận số tiền agency thanh toán của agency
+					bookingAgencyPayment.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+					// create bag payment
+					// Ghi nhận só tiền agency thanh toán cho bag đó
 
-				handleSinglePayment(datasources.GetDatabaseWithPartner(prof.PartnerUid), booking, bookingAgencyPayment.GetTotalFee())
+					handleSinglePayment(datasources.GetDatabaseWithPartner(prof.PartnerUid), booking, bookingAgencyPayment.GetTotalFee())
+				}
 			}
 		}
 	}

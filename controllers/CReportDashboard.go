@@ -25,22 +25,21 @@ func (_ *CReportDashboard) GetReportBookingStatusOnDay(c *gin.Context, prof mode
 	now := time.Now().Format(constants.DATE_FORMAT_1)
 
 	bookingBookingList := model_booking.BookingList{
-		BagStatus:       constants.BAG_STATUS_BOOKING,
-		PartnerUid:      body.PartnerUid,
-		CourseUid:       body.CourseUid,
-		BookingDate:     now,
-		IsGroupBillCode: true,
+		PartnerUid:            body.PartnerUid,
+		CourseUid:             body.CourseUid,
+		IsCheckIn:             "1",
+		BookingDate:           now,
+		IsGroupBillCode:       true,
+		NotNoneGolfAndWalking: true,
 	}
 	_, bookingTotal, _ := bookingBookingList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
 
-	bookingWaitingList := model_booking.BookingList{
-		BagStatus:       constants.BAG_STATUS_WAITING,
-		PartnerUid:      body.PartnerUid,
-		CourseUid:       body.CourseUid,
-		BookingDate:     now,
-		IsGroupBillCode: true,
+	bookingWaitingList := model_booking.BookingWaiting{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingCode: now,
 	}
-	_, waitingTotal, _ := bookingWaitingList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+	_, waitingTotal, _ := bookingWaitingList.FindAll(datasources.GetDatabaseWithPartner(prof.PartnerUid))
 
 	bookingInCourseList := model_booking.BookingList{
 		BagStatus:       constants.BAG_STATUS_IN_COURSE,
@@ -70,11 +69,11 @@ func (_ *CReportDashboard) GetReportBookingStatusOnDay(c *gin.Context, prof mode
 	_, checkOutTotal, _ := bookingCheckOutList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
 
 	res := map[string]interface{}{
-		"Booking":  bookingTotal,
-		"Waiting":  waitingTotal,
-		"InCourse": inCourseTotal,
-		"TimeOut":  timeoutTotal,
-		"CheckOut": checkOutTotal,
+		"golfer":    bookingTotal,
+		"waiting":   waitingTotal,
+		"in_course": inCourseTotal,
+		"time_out":  timeoutTotal,
+		"check_out": checkOutTotal,
 	}
 
 	okResponse(c, res)

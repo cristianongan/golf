@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -205,6 +206,11 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		caddieTemp := response.NewCaddie
 		buggyTemp := response.NewBuggy
 
+		if bookingTemp.BagStatus != constants.BAG_STATUS_WAITING {
+			response_message.BadRequest(c, "BAG STATUS "+bookingTemp.BagStatus)
+			return
+		}
+
 		if response.OldCaddie.Id > 0 {
 			listOldCaddie = append(listOldCaddie, response.OldCaddie)
 		}
@@ -367,6 +373,11 @@ func (_ *CCourseOperating) OutCaddie(c *gin.Context, prof models.CmsUser) {
 	errF := booking.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	if booking.CaddieId == 0 {
+		response_message.ErrorResponse(c, http.StatusBadRequest, "OUT_CADDIE_ERROR", "", constants.ERROR_OUT_CADDIE)
 		return
 	}
 
@@ -545,10 +556,10 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 
 	booking := bookingResponse[0]
 
-	// if booking.BagStatus != constants.BAG_STATUS_IN_COURSE {
-	// 	response_message.BadRequestDynamicKey(c, "BAG_NOT_IN_COURSE", "")
-	// 	return
-	// }
+	if booking.BagStatus != constants.BAG_STATUS_IN_COURSE {
+		response_message.BadRequestDynamicKey(c, "BAG_NOT_IN_COURSE", "")
+		return
+	}
 
 	errOut := udpOutCaddieBooking(db, &booking)
 	if errBuggy := udpOutBuggy(db, &booking, false); errBuggy != nil {
@@ -1150,6 +1161,11 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		bookingTemp := response.Booking
 		caddieTemp := response.NewCaddie
 		buggyTemp := response.NewBuggy
+
+		if bookingTemp.BagStatus != constants.BAG_STATUS_WAITING {
+			response_message.BadRequest(c, "BAG STATUS "+bookingTemp.BagStatus)
+			return
+		}
 
 		if response.OldCaddie.Id > 0 {
 			listOldCaddie = append(listOldCaddie, response.OldCaddie)

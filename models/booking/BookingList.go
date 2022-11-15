@@ -53,6 +53,7 @@ type BookingList struct {
 	NotPrivateBuggy       bool
 	CustomerUid           string
 	IsGroupBillCode       bool
+	NotNoneGolfAndWalking bool
 }
 
 func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
@@ -254,6 +255,14 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	if item.IsGroupBillCode {
 		db = db.Group("bill_code")
 		db = db.Order("created_at desc")
+	}
+
+	if item.NotNoneGolfAndWalking {
+		customerType := []string{
+			constants.CUSTOMER_TYPE_NONE_GOLF,
+			constants.CUSTOMER_TYPE_WALKING_FEE,
+		}
+		db = db.Where("customer_type NOT IN (?) ", customerType)
 	}
 
 	return db
