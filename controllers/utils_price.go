@@ -8,6 +8,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	model_payment "start/models/payment"
 	"start/utils"
 	"strings"
 	"time"
@@ -328,6 +329,18 @@ func initPriceForBooking(db *gorm.DB, booking *model_booking.Booking, listBookin
 	bookingTemp.ListGolfFee = listBookingGolfFee
 
 	// Current Bag Price Detail
+	bookingPayment := model_payment.BookingAgencyPayment{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		BookingCode: booking.BookingCode,
+	}
+
+	list, _ := bookingPayment.FindAll(db)
+
+	if booking.BookingCode != "" && len(list) > 0 {
+		return
+	}
+
 	currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
 	currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
 	currentBagPriceDetail.UpdateAmount()
@@ -340,10 +353,6 @@ func initPriceForBooking(db *gorm.DB, booking *model_booking.Booking, listBookin
 
 	booking.MushPayInfo = mushPayInfo
 	bookingTemp.MushPayInfo = mushPayInfo
-
-	// Rounds: Init Firsts
-	initListRound(db, bookingTemp, bookingGolfFee, checkInTime)
-	// booking.Rounds = listRounds
 }
 
 func initUpdatePriceBookingForChanegHole(booking *model_booking.Booking, bookingGolfFee model_booking.BookingGolfFee) {

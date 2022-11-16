@@ -148,7 +148,7 @@ func UnAuthorized(c *gin.Context, log string) {
 }
 
 func Forbidden(c *gin.Context, log string) {
-	ErrorResponse(c, http.StatusUnauthorized, "FORBIDDEN", log, http.StatusForbidden) //403
+	ErrorResponse(c, http.StatusForbidden, "FORBIDDEN", log, http.StatusForbidden) //403
 }
 
 func UserLocked(c *gin.Context, log string) {
