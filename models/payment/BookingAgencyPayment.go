@@ -90,17 +90,14 @@ func (item *BookingAgencyPayment) Count(db *gorm.DB) (int64, error) {
 func (item *BookingAgencyPayment) FindAll(db *gorm.DB) ([]BookingAgencyPayment, error) {
 	db = db.Model(BookingAgencyPayment{})
 	list := []BookingAgencyPayment{}
-	status := constants.STATUS_ENABLE
-	item.ModelId.Status = ""
-
-	if status != "" {
-		db = db.Where("status in (?)", strings.Split(status, ","))
-	}
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.AgencyId > 0 {
+		db = db.Where("agency_id = ?", item.AgencyId)
 	}
 
 	if item.BookingCode != "" {

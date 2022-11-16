@@ -2221,8 +2221,9 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 					bookingAgencyPayment.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
 					// create bag payment
 					// Ghi nhận só tiền agency thanh toán cho bag đó
-
 					handleSinglePayment(datasources.GetDatabaseWithPartner(prof.PartnerUid), booking, bookingAgencyPayment.GetTotalFee())
+					//Upd lại số tiền thanh toán của agency
+					handleAgencyPayment(datasources.GetDatabaseWithPartner(prof.PartnerUid), booking)
 				}
 			}
 		}
