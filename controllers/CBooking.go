@@ -2141,6 +2141,7 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 
 func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) {
 	bodyRequest := request.CreateBatchBookingBody{}
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	if bindErr := c.ShouldBind(&bodyRequest); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
@@ -2195,7 +2196,7 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 					serviceItem.Amount = feeInfo.BuggyFee
 					serviceItem.Type = constants.GOLF_SERVICE_RENTAL
 					serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
-					go serviceItem.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+					serviceItem.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
 				}
 				if feeInfo.CaddieFee > 0 {
 					bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
@@ -2213,17 +2214,24 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 					serviceItem.Amount = feeInfo.CaddieFee
 					serviceItem.Type = constants.GOLF_SERVICE_RENTAL
 					serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
-					go serviceItem.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+					serviceItem.Create(db)
 				}
 
 				if feeInfo.BuggyFee > 0 || feeInfo.CaddieFee > 0 || feeInfo.GolfFee > 0 {
 					// Ghi nhận số tiền agency thanh toán của agency
-					bookingAgencyPayment.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
-					// create bag payment
-					// Ghi nhận só tiền agency thanh toán cho bag đó
-					handleSinglePayment(datasources.GetDatabaseWithPartner(prof.PartnerUid), booking, bookingAgencyPayment.GetTotalFee())
-					//Upd lại số tiền thanh toán của agency
-					handleAgencyPayment(datasources.GetDatabaseWithPartner(prof.PartnerUid), booking)
+					bookingAgencyPayment.Create(db)
+
+					go func() {
+						// create bag payment
+						// Ghi nhận só tiền agency thanh toán cho bag đó
+						booking.UpdatePriceDetailCurrentBag(db)
+						booking.UpdateMushPay(db)
+						booking.Update(db)
+
+						handleSinglePayment(db, booking, bookingAgencyPayment.GetTotalFee())
+						//Upd lại số tiền thanh toán của agency
+						handleAgencyPayment(db, booking)
+					}()
 				}
 			}
 		}
