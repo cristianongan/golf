@@ -16,9 +16,9 @@ type Kiosk struct {
 	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	KioskName   string `json:"kiosk_name" gorm:"type:varchar(256)"`        // Tên
-	KioskCode   string `json:"kiosk_code"`
-	ServiceType string `json:"service_type" gorm:"type:varchar(50)"` // Loại rental, kiosk, proshop
-	KioskType   string `json:"kiosk_type" gorm:"type:varchar(50)"`   // Kiểu Kiosk (Mini Bar, Mini Restaurant,...)
+	KioskCode   string `json:"kiosk_code" gorm:"type:varchar(100);index"`  // Mã kiosk
+	ServiceType string `json:"service_type" gorm:"type:varchar(50)"`       // Loại rental, kiosk, proshop
+	KioskType   string `json:"kiosk_type" gorm:"type:varchar(50)"`         // Kiểu Kiosk (Mini Bar, Mini Restaurant,...)
 }
 
 func (item *Kiosk) IsValidated() bool {

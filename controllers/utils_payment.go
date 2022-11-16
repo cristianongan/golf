@@ -160,6 +160,7 @@ func handlePayment(db *gorm.DB, booking model_booking.Booking) {
  Xứ lý tính toán số tiền Agency đã thanh toán
 */
 func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeInfo) {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	bookingAgencyPayment := model_payment.BookingAgencyPayment{
 		PartnerUid:  booking.PartnerUid,
 		CourseUid:   booking.CourseUid,
@@ -199,7 +200,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		serviceItem.Amount = feeInfo.BuggyFee
 		serviceItem.Type = constants.GOLF_SERVICE_RENTAL
 		serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
-		go serviceItem.Create(datasources.GetDatabaseWithPartner(booking.PartnerUid))
+		serviceItem.Create(datasources.GetDatabaseWithPartner(booking.PartnerUid))
 	}
 	if feeInfo.CaddieFee > 0 {
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
@@ -217,16 +218,23 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		serviceItem.Amount = feeInfo.CaddieFee
 		serviceItem.Type = constants.GOLF_SERVICE_RENTAL
 		serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
-		go serviceItem.Create(datasources.GetDatabaseWithPartner(booking.PartnerUid))
+		serviceItem.Create(db)
 	}
 
 	if feeInfo.BuggyFee > 0 || feeInfo.CaddieFee > 0 || feeInfo.GolfFee > 0 {
 		// Ghi nhận số tiền agency thanh toán của agency
-		bookingAgencyPayment.Create(datasources.GetDatabaseWithPartner(booking.PartnerUid))
-		// create bag payment
-		// Ghi nhận só tiền agency thanh toán cho bag đó
-		handleSinglePayment(datasources.GetDatabaseWithPartner(booking.PartnerUid), booking, bookingAgencyPayment.GetTotalFee())
-		//Upd lại số tiền thanh toán của agency
-		handleAgencyPayment(datasources.GetDatabaseWithPartner(booking.PartnerUid), booking)
+		bookingAgencyPayment.Create(db)
+
+		go func() {
+			// create bag payment
+			// Ghi nhận só tiền agency thanh toán cho bag đó
+			booking.UpdatePriceDetailCurrentBag(db)
+			booking.UpdateMushPay(db)
+			booking.Update(db)
+
+			handleSinglePayment(db, booking, bookingAgencyPayment.GetTotalFee())
+			//Upd lại số tiền thanh toán của agency
+			handleAgencyPayment(db, booking)
+		}()
 	}
 }

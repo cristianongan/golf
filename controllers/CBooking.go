@@ -2140,6 +2140,7 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 
 func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) {
 	bodyRequest := request.CreateBatchBookingBody{}
+	// db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	if bindErr := c.ShouldBind(&bodyRequest); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
