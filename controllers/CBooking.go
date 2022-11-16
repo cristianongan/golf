@@ -270,6 +270,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			}
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
 			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
+			initListRound(db, booking, bookingGolfFee)
+
 			booking.SeparatePrice = true
 			body.GuestStyle = memberCard.GetGuestStyle(db)
 		} else {
@@ -326,6 +328,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 				}
 				listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
 				initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
+				initListRound(db, booking, bookingGolfFee)
+
 				booking.SeparatePrice = true
 				body.GuestStyle = agency.GuestStyle
 			} else {
@@ -394,6 +398,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(param, golfFee)
 			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
+			initListRound(db, booking, bookingGolfFee)
 		}
 	}
 
@@ -1079,6 +1084,8 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			}
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
 			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
+			initListRound(db, booking, bookingGolfFee)
+
 			booking.SeparatePrice = true
 			body.GuestStyle = memberCard.GetGuestStyle(db)
 		} else {
@@ -1143,6 +1150,8 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 				}
 				listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
 				initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
+				initListRound(db, booking, bookingGolfFee)
+
 				booking.SeparatePrice = true
 				body.GuestStyle = agency.GuestStyle
 			} else {
@@ -1191,6 +1200,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			}
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(param, golfFee)
 			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
+			initListRound(db, booking, bookingGolfFee)
 		}
 	}
 	//Find Booking Code
@@ -1402,6 +1412,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			}
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
 			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
+			initListRound(db, booking, bookingGolfFee)
 			booking.SeparatePrice = true
 			body.GuestStyle = memberCard.GetGuestStyle(db)
 		} else {
@@ -1466,6 +1477,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 				}
 				listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
 				initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
+				initListRound(db, booking, bookingGolfFee)
 				booking.SeparatePrice = true
 				body.GuestStyle = agency.GuestStyle
 			} else {
@@ -1516,8 +1528,8 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			}
 			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(param, golfFee)
 			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
+			initListRound(db, booking, bookingGolfFee)
 		}
-
 	}
 
 	if body.Locker != "" {
