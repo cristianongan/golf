@@ -425,8 +425,16 @@ func roundHole(hole int) int {
 		return 18
 	} else if hole > 18 && hole <= 27 {
 		return 27
+	} else if hole > 27 && hole <= 36 {
+		return 36
+	} else if hole > 36 && hole <= 45 {
+		return 45
+	} else if hole > 45 && hole <= 54 {
+		return 54
+	} else if hole > 54 && hole <= 63 {
+		return 63
 	}
-	return 36
+	return 72
 }
 
 func IsDateValue(stringDate string) bool {
