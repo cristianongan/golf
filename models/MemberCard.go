@@ -254,103 +254,143 @@ func (item *MemberCard) FindList(database *gorm.DB, page Page, playerName string
 	db := database.Table("member_cards")
 	list := []map[string]interface{}{}
 	total := int64(0)
+	currentYear := utils.GetCurrentYear()
 
-	queryStr := `select * from (select tb0.*, 
-	member_card_types.name as mc_types_name,
-	member_card_types.type as base_type,
-	member_card_types.guest_style as guest_style,
-	member_card_types.guest_style_of_guest as guest_style_of_guest,
-	member_card_types.play_time_on_year as play_time_on_year,
-	customer_users.name as owner_name,
-	customer_users.email as owner_email,
-	customer_users.address1 as owner_address1,
-	customer_users.address2 as owner_address2,
-	customer_users.phone as owner_phone,
-	customer_users.dob as owner_dob,
-	customer_users.sex as owner_sex,
-	customer_users.job as owner_job,
-	customer_users.position as owner_position,
-	customer_users.identify as owner_identify,
-	customer_users.company_id as owner_company_id,
-	customer_users.company_name as owner_company_name,
-	member_connect.name as member_connect_name,
-	member_connect.email as member_connect_email,
-	member_connect.address1 as member_connect_address1,
-	member_connect.address2 as member_connect_address2,
-	member_connect.phone as member_connect_phone,
-	report_customer_plays.total_paid as report_total_paid,
-	report_customer_plays.total_play_count as report_total_play_count,
-	report_customer_plays.total_hour_play_count as report_total_hour_play_count,
-	af.annual_quota_amount as annual_quota_amount,
-	af.total_paid as total_paid,
-	af.play_counts_add as play_counts_add
-	from (select * from member_cards WHERE member_cards.partner_uid = ` + `"` + item.PartnerUid + `"`
+	db = db.Select("member_cards.*, member_card_types.name as mc_types_name,member_card_types.type as base_type,member_card_types.guest_style as guest_style,member_card_types.guest_style_of_guest as guest_style_of_guest,member_card_types.play_time_on_year as play_time_on_year,customer_users.name as owner_name,customer_users.email as owner_email,customer_users.address2 as owner_address2,customer_users.phone as owner_phone,customer_users.dob as owner_dob,customer_users.sex as owner_sex,customer_users.job as owner_job,customer_users.position as owner_position,customer_users.identify as owner_identify,customer_users.company_id as owner_company_id,customer_users.company_name as owner_company_name,member_connect.name as member_connect_name,member_connect.email as member_connect_email,member_connect.address1 as member_connect_address1,member_connect.address2 as member_connect_address2,member_connect.phone as member_connect_phone,report_customer_plays.total_paid as report_total_paid,report_customer_plays.total_play_count as report_total_play_count,report_customer_plays.total_hour_play_count as report_total_hour_play_count,af.annual_quota_amount as annual_quota_amount,af.total_paid as total_paid,af.play_counts_add as play_counts_add")
+
+	db = db.Joins("LEFT JOIN member_card_types on member_cards.mc_type_id = member_card_types.id")
+
+	db = db.Joins("LEFT JOIN customer_users on member_cards.owner_uid = customer_users.uid")
+
+	db = db.Joins("LEFT JOIN customer_users as member_connect on member_cards.member_connect = member_connect.uid")
+
+	db = db.Joins("LEFT JOIN report_customer_plays on member_cards.owner_uid = report_customer_plays.customer_uid")
+
+	db = db.Joins("LEFT JOIN (select * from annual_fees where partner_uid = ? and course_uid = ? and annual_fees.year = ?) af on member_cards.uid = af.member_card_uid", item.PartnerUid, item.CourseUid, currentYear)
 
 	if item.CourseUid != "" {
-		queryStr = queryStr + " and member_cards.course_uid = " + `"` + item.CourseUid + `"`
+		db = db.Where("member_cards.course_uid = ?", item.CourseUid)
 	}
 	if item.OwnerUid != "" {
-		queryStr = queryStr + " and member_cards.owner_uid = " + `"` + item.OwnerUid + `"`
+		db = db.Where("member_cards.owner_uid = ?", item.OwnerUid)
 	}
 	if item.Status != "" {
-		queryStr = queryStr + " and member_cards.status = " + `"` + item.Status + `"`
+		db = db.Where("member_cards.status = ?", item.Status)
 	}
 	if item.CardId != "" {
-		queryStr = queryStr + " and member_cards.card_id LIKE " + `"%` + item.CardId + `%"`
+		db = db.Where("member_cards.card_id LIKE ?", "%"+item.CardId+"%")
 	}
 	if item.McTypeId > 0 {
-		queryStr = queryStr + " and member_cards.mc_type_id = " + strconv.Itoa(int(item.McTypeId))
+		db = db.Where("member_cards.mc_type_id = ?", strconv.Itoa(int(item.McTypeId)))
 	}
 	if item.MemberConnect == constants.MEMBER_CONNECT_NONE {
-		queryStr = queryStr + " and member_cards.member_connect NOT LIKE ''"
+		db = db.Where("member_cards.member_connect NOT LIKE ''")
 	}
-
-	queryStr = queryStr + ") tb0 "
-	queryStr = queryStr + `LEFT JOIN member_card_types on tb0.mc_type_id = member_card_types.id
-	LEFT JOIN customer_users on tb0.owner_uid = customer_users.uid `
-
-	queryStr = queryStr + `LEFT JOIN customer_users as member_connect on tb0.member_connect = member_connect.uid `
-
-	queryStr = queryStr + `LEFT JOIN report_customer_plays on tb0.owner_uid = report_customer_plays.customer_uid `
-
-	queryStr = queryStr + " LEFT JOIN (select * from annual_fees where annual_fees.partner_uid = " + `"` + item.PartnerUid + `"`
-	if item.CourseUid != "" {
-		queryStr = queryStr + " and annual_fees.course_uid = " + `"` + item.CourseUid + `"`
-	}
-	currentYear := utils.GetCurrentYear()
-	if currentYear != "" {
-		queryStr = queryStr + " and annual_fees.year = " + currentYear
-	}
-
-	queryStr = queryStr + ") af on tb0.uid = af.member_card_uid) tb1 "
-
 	if playerName != "" {
-		queryStr = queryStr + " where "
-		queryStr = queryStr + " tb1.owner_name LIKE " + `"%` + playerName + `%"`
-		queryStr = queryStr + " or tb1.card_id LIKE " + `"%` + playerName + `%"`
+		db = db.Where("customer_users.name LIKE ? OR member_cards.card_id LIKE ?", "%"+playerName+"%", "%"+playerName+"%")
 	}
 
-	// var countReturn CountStruct
-	var countReturn utils.CountStruct
-	strSQLCount := " select count(*) as count from ( " + queryStr + " ) as subTable "
-	errCount := db.Raw(strSQLCount).Scan(&countReturn).Error
-	if errCount != nil {
-		log.Println("Membercard err", errCount.Error())
-		return list, total, errCount
-	}
+	// queryStr := `select * from (select tb0.*,
+	// member_card_types.name as mc_types_name,
+	// member_card_types.type as base_type,
+	// member_card_types.guest_style as guest_style,
+	// member_card_types.guest_style_of_guest as guest_style_of_guest,
+	// member_card_types.play_time_on_year as play_time_on_year,
+	// customer_users.name as owner_name,
+	// customer_users.email as owner_email,
+	// customer_users.address1 as owner_address1,
+	// customer_users.address2 as owner_address2,
+	// customer_users.phone as owner_phone,
+	// customer_users.dob as owner_dob,
+	// customer_users.sex as owner_sex,
+	// customer_users.job as owner_job,
+	// customer_users.position as owner_position,
+	// customer_users.identify as owner_identify,
+	// customer_users.company_id as owner_company_id,
+	// customer_users.company_name as owner_company_name,
+	// member_connect.name as member_connect_name,
+	// member_connect.email as member_connect_email,
+	// member_connect.address1 as member_connect_address1,
+	// member_connect.address2 as member_connect_address2,
+	// member_connect.phone as member_connect_phone,
+	// report_customer_plays.total_paid as report_total_paid,
+	// report_customer_plays.total_play_count as report_total_play_count,
+	// report_customer_plays.total_hour_play_count as report_total_hour_play_count,
+	// af.annual_quota_amount as annual_quota_amount,
+	// af.total_paid as total_paid,
+	// af.play_counts_add as play_counts_add
+	// from (select * from member_cards WHERE member_cards.partner_uid = ` + `"` + item.PartnerUid + `"`
 
-	total = countReturn.Count
-	//Check if limit large then set to 50
-	if page.Limit > 50 {
-		page.Limit = 50
-	}
+	// if item.CourseUid != "" {
+	// 	queryStr = queryStr + " and member_cards.course_uid = " + `"` + item.CourseUid + `"`
+	// }
+	// if item.OwnerUid != "" {
+	// 	queryStr = queryStr + " and member_cards.owner_uid = " + `"` + item.OwnerUid + `"`
+	// }
+	// if item.Status != "" {
+	// 	queryStr = queryStr + " and member_cards.status = " + `"` + item.Status + `"`
+	// }
+	// if item.CardId != "" {
+	// 	queryStr = queryStr + " and member_cards.card_id LIKE " + `"%` + item.CardId + `%"`
+	// }
+	// if item.McTypeId > 0 {
+	// 	queryStr = queryStr + " and member_cards.mc_type_id = " + strconv.Itoa(int(item.McTypeId))
+	// }
+	// if item.MemberConnect == constants.MEMBER_CONNECT_NONE {
+	// 	queryStr = queryStr + " and member_cards.member_connect NOT LIKE ''"
+	// }
+
+	// queryStr = queryStr + ") tb0 "
+	// queryStr = queryStr + `LEFT JOIN member_card_types on tb0.mc_type_id = member_card_types.id
+	// LEFT JOIN customer_users on tb0.owner_uid = customer_users.uid `
+
+	// queryStr = queryStr + `LEFT JOIN customer_users as member_connect on tb0.member_connect = member_connect.uid `
+
+	// queryStr = queryStr + `LEFT JOIN report_customer_plays on tb0.owner_uid = report_customer_plays.customer_uid `
+
+	// queryStr = queryStr + " LEFT JOIN (select * from annual_fees where annual_fees.partner_uid = " + `"` + item.PartnerUid + `"`
+	// if item.CourseUid != "" {
+	// 	queryStr = queryStr + " and annual_fees.course_uid = " + `"` + item.CourseUid + `"`
+	// }
+	// if currentYear != "" {
+	// 	queryStr = queryStr + " and annual_fees.year = " + currentYear
+	// }
+
+	// queryStr = queryStr + ") af on tb0.uid = af.member_card_uid) tb1 "
+
+	// if playerName != "" {
+	// 	queryStr = queryStr + " where "
+	// 	queryStr = queryStr + " tb1.owner_name LIKE " + `"%` + playerName + `%"`
+	// 	queryStr = queryStr + " or tb1.card_id LIKE " + `"%` + playerName + `%"`
+	// }
+
+	// // var countReturn CountStruct
+	// var countReturn utils.CountStruct
+	// strSQLCount := " select count(*) as count from ( " + queryStr + " ) as subTable "
+	// errCount := db.Raw(strSQLCount).Scan(&countReturn).Error
+	// if errCount != nil {
+	// 	log.Println("Membercard err", errCount.Error())
+	// 	return list, total, errCount
+	// }
+
+	// total = countReturn.Count
+	// //Check if limit large then set to 50
+	// if page.Limit > 50 {
+	// 	page.Limit = 50
+	// }
+
+	// if total > 0 && int64(page.Offset()) < total {
+	// 	queryStr = queryStr + " order by tb1." + page.SortBy + " " + page.SortDir + " LIMIT " + strconv.Itoa(page.Limit) + " OFFSET " + strconv.Itoa(page.Offset())
+	// }
+	// err := db.Raw(queryStr).Scan(&list).Error
+	// if err != nil {
+	// 	return list, total, err
+	// }
+
+	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
-		queryStr = queryStr + " order by tb1." + page.SortBy + " " + page.SortDir + " LIMIT " + strconv.Itoa(page.Limit) + " OFFSET " + strconv.Itoa(page.Offset())
-	}
-	err := db.Raw(queryStr).Scan(&list).Error
-	if err != nil {
-		return list, total, err
+		db = page.Setup(db).Find(&list)
 	}
 
 	return list, total, db.Error
