@@ -25,8 +25,9 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 	caddieFee := int64(0)
 	buggyFee := int64(0)
 	greenFee := int64(0)
+	guestStyle := ""
 
-	handleFeeOnDay := func(gs string) {
+	handleGolfFeeOnDay := func(gs string) {
 		golfFee := models.GolfFee{
 			GuestStyle: gs,
 			CourseUid:  form.CourseUid,
@@ -72,10 +73,12 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 			buggyFee = utils.CalculateFeeByHole(form.Hole, agencySpecialPrice.BuggyFee, course.RateGolfFee)
 			greenFee = utils.CalculateFeeByHole(form.Hole, agencySpecialPrice.GreenFee, course.RateGolfFee)
 		} else {
-			handleFeeOnDay(agency.GuestStyle)
+			handleGolfFeeOnDay(agency.GuestStyle)
 		}
+		guestStyle = agency.GuestStyle
 	} else {
-		handleFeeOnDay(form.GuestStyle)
+		handleGolfFeeOnDay(form.GuestStyle)
+		guestStyle = form.GuestStyle
 	}
 
 	// Get Buggy Fee
@@ -89,13 +92,14 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 	for _, item := range listBuggySetting {
 		if item.Status == constants.STATUS_ENABLE {
 			buggyFeeSetting = item
+			break
 		}
 	}
 
 	buggyFeeItemSettingR := models.BuggyFeeItemSetting{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
-		GuestStyle: form.GuestStyle,
+		GuestStyle: guestStyle,
 		SettingId:  buggyFeeSetting.Id,
 	}
 	listSetting, _, _ := buggyFeeItemSettingR.FindAll(db)
@@ -103,12 +107,13 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 	for _, item := range listSetting {
 		if item.Status == constants.STATUS_ENABLE {
 			buggyFeeItemSetting = item
+			break
 		}
 	}
 
 	rentalFee := utils.GetFeeFromListFee(buggyFeeItemSetting.RentalFee, form.Hole)
-	privateCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.RentalFee, form.Hole)
-	oddCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.RentalFee, form.Hole)
+	privateCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.PrivateCarFee, form.Hole)
+	oddCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.OddCarFee, form.Hole)
 
 	// Get Buggy Fee
 	bookingCaddieFeeSettingR := models.BookingCaddyFeeSetting{

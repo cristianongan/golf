@@ -4,6 +4,8 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
+	"start/models"
+	model_service "start/models/service"
 	"start/utils/response_message"
 	"time"
 
@@ -17,6 +19,17 @@ func (item CAccountant) ImportInventory(c *gin.Context) {
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 	if err := c.BindJSON(&body); err != nil {
 		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	serviceInventory := model_service.Kiosk{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		ModelId:    models.ModelId{Id: body.ServiceId},
+	}
+
+	if errFind := serviceInventory.FindFirst(db); errFind != nil {
+		response_message.BadRequestDynamicKey(c, "INVENTORY_NOT_FOUND", "")
 		return
 	}
 

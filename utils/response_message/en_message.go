@@ -40,4 +40,5 @@ var EnLanguage = map[string]string{
 	"ANNUAL_TYPE_SLEEP_NOT_CHECKIN": "Annual type is Sleep",
 	"DUPLICATE_BAG":                 "Duplicate bag",
 	"OUT_CADDIE_ERROR":              "Booking have not caddie",
+	"INVENTORY_NOT_FOUND":           "Inventory not found",
 }

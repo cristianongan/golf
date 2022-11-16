@@ -188,6 +188,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	}
 
 	var errCreateBook error
+	listBooking := []model_booking.Booking{}
 
 	for i := 0; i < body.NumBook; i++ {
 		bodyCreate := request.CreateBookingBody{
@@ -229,6 +230,9 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		if errBook != nil {
 			errCreateBook = errBook
 		}
+		if booking != nil && errBook == nil {
+			listBooking = append(listBooking, *booking)
+		}
 	}
 
 	if errCreateBook != nil {
@@ -237,6 +241,21 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, dataRes)
 		return
 	}
+
+	// Handle for agency paid
+	feeInfo := request.AgencyFeeInfo{
+		GolfFee: body.GreenFee + body.CaddieFee + body.BuggyFee,
+	}
+
+	handleAgencyFee := func() {
+		for _, booking_ := range listBooking {
+			if booking_.AgencyId > 0 {
+				handleAgencyPaid(booking_, feeInfo)
+			}
+		}
+	}
+
+	go handleAgencyFee()
 
 	bodyByte, _ := body.Marshal()
 	_ = json.Unmarshal(bodyByte, &dataRes)

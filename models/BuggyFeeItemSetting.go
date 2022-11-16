@@ -121,13 +121,11 @@ func (item *BuggyFeeItemSetting) FindAll(database *gorm.DB) ([]BuggyFeeItemSetti
 	if item.Status != "" {
 		db = db.Where("status IN (?)", strings.Split(item.Status, ","))
 	}
-	if item.GuestStyle != "" {
-		db = db.Where("guest_style = ?", item.GuestStyle)
-	}
 	if item.SettingId > 0 {
 		db = db.Where("setting_id = ?", item.SettingId)
 	}
 
+	db = db.Where("guest_style = ? OR guest_style = ?", item.GuestStyle, "")
 	db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
 	db.Count(&total)
 	db = db.Find(&list)
