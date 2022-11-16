@@ -254,7 +254,7 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 /*
 Init List Round
 */
-func initListRound(db *gorm.DB, booking model_booking.Booking, bookingGolfFee model_booking.BookingGolfFee, checkInTime int64) {
+func initListRound(db *gorm.DB, booking model_booking.Booking, bookingGolfFee model_booking.BookingGolfFee) {
 
 	// create round and add round
 	round := models.Round{}
