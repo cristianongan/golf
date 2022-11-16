@@ -2194,6 +2194,7 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 					serviceItem.UnitPrice = feeInfo.BuggyFee
 					serviceItem.Amount = feeInfo.BuggyFee
 					serviceItem.Type = constants.GOLF_SERVICE_RENTAL
+					serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
 					go serviceItem.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
 				}
 				if feeInfo.CaddieFee > 0 {
@@ -2210,7 +2211,8 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 					serviceItem.Name = "Booking Caddie"
 					serviceItem.UnitPrice = feeInfo.CaddieFee
 					serviceItem.Amount = feeInfo.CaddieFee
-					serviceItem.Type = constants.BOOKING_OTHER_FEE
+					serviceItem.Type = constants.GOLF_SERVICE_RENTAL
+					serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
 					go serviceItem.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
 				}
 

@@ -516,7 +516,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 	}
 	listGolfService, _ := serviceGolfs.FindAll(db)
 	if len(listGolfService) > 0 {
-		for _, v := range listGolfService {
+		for index, v := range listGolfService {
 			// Check trạng thái bill
 			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
 				// Add từ lễ tân thì k cần check
@@ -535,6 +535,12 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 					serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
 					listServiceItems = append(listServiceItems, v)
 				}
+			}
+
+			// Update lại bag cho service item thiếu bag
+			if v.Bag == "" {
+				listGolfService[index].Bag = item.Bag
+				listGolfService[index].Update(db)
 			}
 		}
 	}
