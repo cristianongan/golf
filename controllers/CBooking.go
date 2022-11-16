@@ -524,7 +524,8 @@ func (_ *CBooking) GetBookingDetail(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	okResponse(c, booking)
+	bagDetail := getBagDetailFromBooking(db, booking)
+	okResponse(c, bagDetail)
 }
 
 /*
