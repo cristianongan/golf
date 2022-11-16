@@ -571,6 +571,14 @@ func RandomCharNumber(length int) string {
 	return id
 }
 
+func RandomCharNumberV2(length int) string {
+	id, err := gonanoid.Generate("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz", length)
+	if err != nil {
+		return ""
+	}
+	return id
+}
+
 func VerifyPassword(s string) (bool, bool, bool, bool) {
 	eightOrMore := false
 	number := false

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/datasources"
+	"start/utils"
 	"strings"
 	"time"
 )
@@ -19,8 +20,9 @@ type Course struct {
 	Lng               float64 `json:"lng"`
 	Icon              string  `json:"icon" gorm:"type:varchar(256)"`
 	RateGolfFee       string  `json:"rate_golf_fee" gorm:"type:varchar(256)"`
-	MaxPeopleInFlight int     `json:"max_people_in_flight"`            //số người tối đa trong 1 flight. Mặc định để 4 người.
-	MemberBooking     *bool   `json:"member_booking" gorm:"default:0"` // yêu cầu nguồn booking phải có tối thiểu 1 member.
+	MaxPeopleInFlight int     `json:"max_people_in_flight"`             //số người tối đa trong 1 flight. Mặc định để 4 người.
+	MemberBooking     *bool   `json:"member_booking" gorm:"default:0"`  // yêu cầu nguồn booking phải có tối thiểu 1 member.
+	ApiKey            string  `json:"api_key" gorm:"type:varchar(100)"` // Api key
 }
 
 // ======= CRUD ===========
@@ -32,6 +34,8 @@ func (item *Course) Create() error {
 	if item.Status == "" {
 		item.Status = constants.STATUS_ENABLE
 	}
+
+	item.ApiKey = utils.RandomCharNumberV2(50)
 
 	return db.Create(item).Error
 }
