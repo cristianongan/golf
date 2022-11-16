@@ -11,7 +11,6 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
-	model_payment "start/models/payment"
 	model_report "start/models/report"
 	"start/utils"
 	"start/utils/response_message"
@@ -2156,75 +2155,7 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 	handleAgencyFee := func() {
 		for index, booking := range listBooking {
 			if booking.AgencyId > 0 {
-				bookingAgencyPayment := model_payment.BookingAgencyPayment{
-					PartnerUid:  booking.PartnerUid,
-					CourseUid:   booking.CourseUid,
-					BookingCode: booking.BookingCode,
-					AgencyId:    booking.AgencyId,
-					BookingUid:  booking.Uid,
-					CaddieId:    fmt.Sprint(booking.CaddieId),
-				}
-
-				feeInfo := bodyRequest.BookingList[index].FeeInfo
-				if feeInfo.GolfFee > 0 {
-					bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
-						Fee:  feeInfo.GolfFee,
-						Name: "Golf Fee",
-						Type: constants.BOOKING_AGENCY_GOLF_FEE,
-					})
-				}
-				if feeInfo.BuggyFee > 0 {
-					name := ""
-					if *booking.IsPrivateBuggy {
-						name = "Buggy (1 xe)"
-					} else {
-						name = "Buggy (1/2 xe)"
-					}
-					bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
-						Fee:  feeInfo.BuggyFee,
-						Name: name,
-						Type: constants.BOOKING_AGENCY_BUGGY_FEE,
-					})
-					serviceItem := model_booking.BookingServiceItem{
-						BillCode:   booking.BillCode,
-						PlayerName: booking.CustomerName,
-						BookingUid: booking.Uid,
-					}
-					serviceItem.Name = name
-					serviceItem.UnitPrice = feeInfo.BuggyFee
-					serviceItem.Amount = feeInfo.BuggyFee
-					serviceItem.Type = constants.GOLF_SERVICE_RENTAL
-					serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
-					go serviceItem.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
-				}
-				if feeInfo.CaddieFee > 0 {
-					bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
-						Fee:  feeInfo.CaddieFee,
-						Name: "Booking Caddie fee",
-						Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
-					})
-					serviceItem := model_booking.BookingServiceItem{
-						BillCode:   booking.BillCode,
-						PlayerName: booking.CustomerName,
-						BookingUid: booking.Uid,
-					}
-					serviceItem.Name = "Booking Caddie"
-					serviceItem.UnitPrice = feeInfo.CaddieFee
-					serviceItem.Amount = feeInfo.CaddieFee
-					serviceItem.Type = constants.GOLF_SERVICE_RENTAL
-					serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
-					go serviceItem.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
-				}
-
-				if feeInfo.BuggyFee > 0 || feeInfo.CaddieFee > 0 || feeInfo.GolfFee > 0 {
-					// Ghi nhận số tiền agency thanh toán của agency
-					bookingAgencyPayment.Create(datasources.GetDatabaseWithPartner(prof.PartnerUid))
-					// create bag payment
-					// Ghi nhận só tiền agency thanh toán cho bag đó
-					handleSinglePayment(datasources.GetDatabaseWithPartner(prof.PartnerUid), booking, bookingAgencyPayment.GetTotalFee())
-					//Upd lại số tiền thanh toán của agency
-					handleAgencyPayment(datasources.GetDatabaseWithPartner(prof.PartnerUid), booking)
-				}
+				handleAgencyPaid(booking, bodyRequest.BookingList[index].FeeInfo)
 			}
 		}
 	}
