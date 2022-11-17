@@ -32,27 +32,26 @@ func (_ *CCServiceOTA) GetServiceOTA(c *gin.Context) {
 		CourseCode: body.CourseCode,
 	}
 
-	// Check token
-	checkToken := "CHILINH_TEST" + body.CourseCode
-	token := utils.GetSHA256Hash(checkToken)
+	// Check course code
+	course := models.Course{}
 
-	if strings.ToUpper(token) != body.Token {
+	course.Uid = body.CourseCode
+	errCourse := course.FindFirstHaveKey()
+	if errCourse != nil {
 		dataRes.Result.Status = http.StatusInternalServerError
-		dataRes.Result.Infor = "token invalid"
+		dataRes.Result.Infor = fmt.Sprintf("Course %s %s", body.CourseCode, errCourse.Error())
 
 		okResponse(c, dataRes)
 		return
 	}
 
-	// Check course code
-	course := models.Course{}
+	// Check token
+	checkToken := course.ApiKey + body.CourseCode
+	token := utils.GetSHA256Hash(checkToken)
 
-	course.Uid = body.CourseCode
-
-	errCourse := course.FindFirst()
-	if errCourse != nil {
+	if strings.ToUpper(token) != body.Token {
 		dataRes.Result.Status = http.StatusInternalServerError
-		dataRes.Result.Infor = fmt.Sprintf("Course %s %s", body.CourseCode, errCourse.Error())
+		dataRes.Result.Infor = "token invalid"
 
 		okResponse(c, dataRes)
 		return
@@ -130,27 +129,25 @@ func (_ *CCServiceOTA) CheckServiceOTA(c *gin.Context) {
 		Qty:        body.Qty,
 	}
 
-	checkToken := "CHILINH_TEST" + body.CourseCode + body.CaddieNo + body.RenTalCode
+	// Check course code
+	course := models.Course{}
+	course.Uid = body.CourseCode
+	errCourse := course.FindFirstHaveKey()
+	if errCourse != nil {
+		dataRes.Result.Status = 1000
+		dataRes.Result.Infor = fmt.Sprintf("Course %s %s", body.CourseCode, errCourse.Error())
+
+		okResponse(c, dataRes)
+		return
+	}
+
+	checkToken := course.ApiKey + body.CourseCode + body.CaddieNo + body.RenTalCode
 	token := utils.GetSHA256Hash(checkToken)
 
 	if strings.ToUpper(token) != body.Token {
 		dataRes.Result.Status = http.StatusInternalServerError
 		dataRes.Result.Infor = "token invalid"
 		dataRes.CourseCode = body.CourseCode
-
-		okResponse(c, dataRes)
-		return
-	}
-
-	// Check course code
-	course := models.Course{}
-
-	course.Uid = body.CourseCode
-
-	errCourse := course.FindFirst()
-	if errCourse != nil {
-		dataRes.Result.Status = 1000
-		dataRes.Result.Infor = fmt.Sprintf("Course %s %s", body.CourseCode, errCourse.Error())
 
 		okResponse(c, dataRes)
 		return
