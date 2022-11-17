@@ -38,6 +38,7 @@ func (item CAccountant) ImportInventory(c *gin.Context) {
 			ItemCode: item.ItemCode,
 			Price:    item.Price,
 			Quantity: item.Quantity,
+			Unit:     item.Unit,
 		})
 	}
 
@@ -51,7 +52,13 @@ func (item CAccountant) ImportInventory(c *gin.Context) {
 	billcode := time.Now().Format("20060102150405")
 	if errInputBill := MethodInputBill(c, nil, newBody,
 		constants.KIOSK_BILL_INVENTORY_APPROVED, billcode); errInputBill != nil {
-		response_message.BadRequest(c, errInputBill.Error())
+		errData := response_message.ErrorResponseData{
+			Message:    errInputBill.Error(),
+			Log:        "",
+			StatusCode: 400,
+		}
+
+		c.JSON(400, errData)
 		return
 	}
 

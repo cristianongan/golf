@@ -15,9 +15,10 @@ type AccountantAddInventory struct {
 }
 
 type AccountantInventoryItemBody struct {
-	ItemCode string  `json:"ma_sp" binding:"required"`
-	Quantity int64   `json:"kl" binding:"required"`
-	Price    float64 `json:"gia" binding:"required"`
+	ItemCode string  `json:"ma_sp"`
+	Quantity int64   `json:"so_luong"`
+	Unit     string  `json:"dv"`
+	Price    float64 `json:"gia_ban"`
 }
 
 type ListAccountantInventoryItemBody []AccountantInventoryItemBody
