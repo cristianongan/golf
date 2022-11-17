@@ -347,6 +347,7 @@ type BookingGolfFee struct {
 	BuggyFee   int64  `json:"buggy_fee"`
 	GreenFee   int64  `json:"green_fee"`
 	RoundIndex int    `json:"round_index"`
+	PaidBy     string `json:"paid_by"`
 }
 
 type BookingTeeResponse struct {
@@ -398,7 +399,9 @@ type BookingCurrentBagPriceDetail struct {
 	Rental     int64 `json:"rental"`
 	Proshop    int64 `json:"proshop"`
 	Promotion  int64 `json:"promotion"`
+	AgencyPaid int64 `json:"agency_paid"`
 	Amount     int64 `json:"amount"`
+	AmountUsd  int64 `json:"amount_usd"`
 }
 
 func (item *BookingCurrentBagPriceDetail) Scan(v interface{}) error {

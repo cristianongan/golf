@@ -1,6 +1,11 @@
 package constants
 
 /*
+	Paid By Agency
+*/
+const PAID_BY_AGENCY = "AGENCY"
+
+/*
 Get base price cho type agency họăc member card
 */
 const (
