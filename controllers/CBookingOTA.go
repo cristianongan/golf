@@ -38,8 +38,19 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		body.NumBook = 1
 	}
 
+	// Find course
+	course := models.Course{}
+	course.Uid = body.CourseCode
+	errFCourse := course.FindFirst()
+	if errFCourse != nil {
+		dataRes.Result.Status = http.StatusInternalServerError
+		dataRes.Result.Infor = "Not found course"
+		c.JSON(http.StatusInternalServerError, dataRes)
+		return
+	}
+
 	// Check token
-	checkToken := "CHILINH_TEST" + body.DateStr + body.TeeOffStr + body.BookingCode
+	checkToken := course.ApiKey + body.DateStr + body.TeeOffStr + body.BookingCode
 	token := utils.GetSHA256Hash(checkToken)
 
 	if strings.ToUpper(token) != body.Token {
@@ -71,17 +82,6 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	}
 
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-
-	// Find course
-	course := models.Course{}
-	course.Uid = body.CourseCode
-	errFCourse := course.FindFirst()
-	if errFCourse != nil {
-		dataRes.Result.Status = http.StatusInternalServerError
-		dataRes.Result.Infor = "Not found course"
-		c.JSON(http.StatusInternalServerError, dataRes)
-		return
-	}
 
 	// Convert time
 	dateConvert := body.TeeOffStr
@@ -330,8 +330,19 @@ func (cBooking *CBooking) CancelBookingOTA(c *gin.Context) {
 		return
 	}
 
+	// Find course
+	course := models.Course{}
+	course.Uid = body.CourseCode
+	errFCourse := course.FindFirst()
+	if errFCourse != nil {
+		dataRes.Result.Status = http.StatusInternalServerError
+		dataRes.Result.Infor = "Not found course"
+		c.JSON(http.StatusInternalServerError, dataRes)
+		return
+	}
+
 	// Check token
-	checkToken := "CHILINH_TEST" + body.AgentCode + body.BookingCode
+	checkToken := course.ApiKey + body.AgentCode + body.BookingCode
 	token := utils.GetSHA256Hash(checkToken)
 
 	if strings.ToUpper(token) != body.Token {
