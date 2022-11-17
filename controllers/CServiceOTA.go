@@ -36,7 +36,7 @@ func (_ *CCServiceOTA) GetServiceOTA(c *gin.Context) {
 	course := models.Course{}
 
 	course.Uid = body.CourseCode
-	errCourse := course.FindFirst()
+	errCourse := course.FindFirstHaveKey()
 	if errCourse != nil {
 		dataRes.Result.Status = http.StatusInternalServerError
 		dataRes.Result.Infor = fmt.Sprintf("Course %s %s", body.CourseCode, errCourse.Error())
@@ -132,7 +132,7 @@ func (_ *CCServiceOTA) CheckServiceOTA(c *gin.Context) {
 	// Check course code
 	course := models.Course{}
 	course.Uid = body.CourseCode
-	errCourse := course.FindFirst()
+	errCourse := course.FindFirstHaveKey()
 	if errCourse != nil {
 		dataRes.Result.Status = 1000
 		dataRes.Result.Infor = fmt.Sprintf("Course %s %s", body.CourseCode, errCourse.Error())

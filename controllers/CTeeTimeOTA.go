@@ -44,7 +44,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	// Find Course
 	course := models.Course{}
 	course.Uid = body.CourseCode
-	if errCourse := course.FindFirst(); errCourse != nil {
+	if errCourse := course.FindFirstHaveKey(); errCourse != nil {
 		responseOTA.Result.Status = 500
 		responseOTA.Result.Infor = "Course Code not found"
 		okResponse(c, responseOTA)
@@ -273,7 +273,7 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 	// Find Course
 	course := models.Course{}
 	course.Uid = body.CourseCode
-	if errCourse := course.FindFirst(); errCourse != nil {
+	if errCourse := course.FindFirstHaveKey(); errCourse != nil {
 		responseOTA.Result.Status = 500
 		responseOTA.Result.Infor = "Course Code not found"
 		okResponse(c, responseOTA)
@@ -370,7 +370,7 @@ func (cBooking *CTeeTimeOTA) TeeTimeStatus(c *gin.Context) {
 	// Find course
 	course := models.Course{}
 	course.Uid = body.CourseCode
-	errFCourse := course.FindFirst()
+	errFCourse := course.FindFirstHaveKey()
 	if errFCourse != nil {
 		responseOTA.Result.Status = http.StatusInternalServerError
 		responseOTA.Result.Infor = "Not found course"
@@ -439,7 +439,7 @@ func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
 	// Find course
 	course := models.Course{}
 	course.Uid = body.CourseCode
-	errFCourse := course.FindFirst()
+	errFCourse := course.FindFirstHaveKey()
 	if errFCourse != nil {
 		responseOTA.Result.Status = http.StatusInternalServerError
 		responseOTA.Result.Infor = "Not found course"

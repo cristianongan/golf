@@ -66,6 +66,13 @@ func (item *Course) Update() error {
 
 func (item *Course) FindFirst() error {
 	db := datasources.GetDatabaseAuth()
+	err := db.Where(item).First(item).Error
+	item.ApiKey = ""
+	return err
+}
+
+func (item *Course) FindFirstHaveKey() error {
+	db := datasources.GetDatabaseAuth()
 	return db.Where(item).First(item).Error
 }
 
@@ -78,10 +85,10 @@ func (item *Course) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *Course) FindList(page Page) ([]Course, int64, error) {
+func (item *Course) FindList(page Page) ([]CourseRes, int64, error) {
 	database := datasources.GetDatabaseAuth()
-	db := database.Model(Course{})
-	list := []Course{}
+	db := database.Table("courses")
+	list := []CourseRes{}
 	total := int64(0)
 	status := item.Status
 
@@ -102,10 +109,10 @@ func (item *Course) FindList(page Page) ([]Course, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *Course) FindALL() ([]Course, int64, error) {
+func (item *Course) FindALL() ([]CourseRes, int64, error) {
 	database := datasources.GetDatabaseAuth()
-	db := database.Model(Course{})
-	list := []Course{}
+	db := database.Table("courses")
+	list := []CourseRes{}
 	total := int64(0)
 
 	if item.PartnerUid != "" {
