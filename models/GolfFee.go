@@ -3,6 +3,7 @@ package models
 import (
 	"log"
 	"start/constants"
+	"start/datasources"
 	"strings"
 	"time"
 
@@ -281,11 +282,12 @@ func (item *GolfFee) FindList(database *gorm.DB, page Page, isToday string) ([]G
 	}
 	if isToday != "" {
 		// Lấy table Price hiện tại
+		db1 := datasources.GetDatabaseWithPartner(item.PartnerUid)
 		tablePriceR := TablePrice{
 			PartnerUid: item.PartnerUid,
 			CourseUid:  item.CourseUid,
 		}
-		currentTablePrice, errTB := tablePriceR.FindCurrentUse(db)
+		currentTablePrice, errTB := tablePriceR.FindCurrentUse(db1)
 		if errTB == nil {
 			if currentTablePrice.Id > 0 {
 				db = db.Where("table_price_id = ?", currentTablePrice.Id)
