@@ -195,24 +195,13 @@ func (_ *CReportDashboard) GetReportTop10Member(c *gin.Context, prof models.CmsU
 
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 
-	// Validate date
-	var date string
-	if body.TypeDate == constants.TOP_MEMBER_DATE_TYPE_MONTH {
-		date, _ = utils.GetDateFromTimestampWithFormat(time.Now().Unix(), constants.MONTH_FORMAT)
-	} else if body.TypeDate == constants.TOP_MEMBER_DATE_TYPE_WEEK {
-		_, week := time.Now().ISOWeek()
-		date = strconv.Itoa(week)
-	} else if body.TypeDate == constants.TOP_MEMBER_DATE_TYPE_DAY {
-		date, _ = utils.GetDateFromTimestampWithFormat(time.Now().Unix(), constants.DATE_FORMAT_1)
-	}
-
 	// Get list top 10 member
 	booking := model_booking.Booking{
 		CourseUid:  body.CourseUid,
 		PartnerUid: body.PartnerUid,
 	}
 
-	list, _ := booking.FindTopMember(db, body.TypeMember, body.TypeDate, date)
+	list, _ := booking.FindTopMember(db, body.TypeMember, body.TypeDate, body.Date)
 
 	res := map[string]interface{}{
 		"data": list,
@@ -222,7 +211,7 @@ func (_ *CReportDashboard) GetReportTop10Member(c *gin.Context, prof models.CmsU
 }
 
 func (_ *CReportDashboard) GetReportRevenueFromBooking(c *gin.Context, prof models.CmsUser) {
-	body := request.GetReportDashboardRequestForm{}
+	body := request.GetReportRevenueDashboardRequestForm{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
@@ -243,7 +232,7 @@ func (_ *CReportDashboard) GetReportRevenueFromBooking(c *gin.Context, prof mode
 		}
 
 		var date string
-		year, _ := utils.GetDateFromTimestampWithFormat(time.Now().Unix(), constants.YEAR_FORMAT)
+		year := body.Year
 
 		if month < 9 {
 			date = year + "-0" + strconv.Itoa(month+1)
