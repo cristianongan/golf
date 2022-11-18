@@ -796,6 +796,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.CustomerUid = form.CustomerUid
 	bookings.CustomerType = form.CustomerType
 	bookings.BuggyCode = form.BuggyCode
+	bookings.GuestStyle = form.GuestStyle
 
 	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
 
