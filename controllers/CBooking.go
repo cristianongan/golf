@@ -495,7 +495,12 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	//Update Agency Paid in Current Price
 	if booking.AgencyId > 0 {
-		booking.CurrentBagPrice.AgencyPaid = body.FeeInfo.GolfFee + body.FeeInfo.BuggyFee + body.FeeInfo.CaddieFee
+		booking.AgencyPaid = model_booking.AgencyPaid{
+			GolfFee:   body.FeeInfo.GolfFee,
+			BuggyFee:  body.FeeInfo.BuggyFee,
+			CaddieFee: body.FeeInfo.CaddieFee,
+			Amount:    body.FeeInfo.GolfFee + body.FeeInfo.BuggyFee + body.FeeInfo.CaddieFee,
+		}
 	}
 
 	// Create booking payment
