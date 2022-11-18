@@ -144,8 +144,9 @@ type GolfFeeOfBag struct {
 }
 
 type RoundOfBag struct {
-	Bag    string           `json:"bag"`
-	Rounds models.ListRound `json:"rounds"`
+	Bag        string           `json:"bag"`
+	PlayerName string           `json:"player_name"`
+	Rounds     models.ListRound `json:"rounds"`
 }
 
 type BookingForListServiceIems struct {
@@ -502,11 +503,12 @@ type NumberPeopleInFlight struct {
 }
 
 type BookingFeeOfBag struct {
-	ListGolfFee       ListBookingGolfFee   `json:"list_golf_fee,omitempty"`
-	MushPayInfo       BookingMushPay       `json:"mush_pay_info,omitempty"`
-	ListServiceItems  []BookingServiceItem `json:"list_service_items"`
-	ListRoundOfSubBag []RoundOfBag         `json:"list_round_of_sub_bag"`
-	Rounds            models.ListRound     `json:"rounds"`
+	CurrentBagPrice   BookingCurrentBagPriceDetail `json:"current_bag_price,omitempty"`
+	ListGolfFee       ListBookingGolfFee           `json:"list_golf_fee,omitempty"`
+	MushPayInfo       BookingMushPay               `json:"mush_pay_info,omitempty"`
+	ListServiceItems  []BookingServiceItem         `json:"list_service_items"`
+	ListRoundOfSubBag []RoundOfBag                 `json:"list_round_of_sub_bag"`
+	Rounds            models.ListRound             `json:"rounds"`
 }
 
 // -------- Booking Logic --------

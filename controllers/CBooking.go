@@ -638,6 +638,7 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 	}
 
 	feeResponse := model_booking.BookingFeeOfBag{
+		CurrentBagPrice:   booking.CurrentBagPrice,
 		ListGolfFee:       booking.ListGolfFee,
 		MushPayInfo:       booking.MushPayInfo,
 		ListServiceItems:  booking.ListServiceItems,
