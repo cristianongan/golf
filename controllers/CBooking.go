@@ -2376,8 +2376,12 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 		//Check sub bag
 		if bag.SubBags != nil && len(bag.SubBags) > 0 {
 			for _, v := range bag.SubBags {
-				subBag := model_booking.Booking{}
-				subBag.Uid = v.BookingUid
+				subBag := model_booking.Booking{
+					BookingDate: body.BookingDate,
+					Bag:         v.GolfBag,
+					PartnerUid:  body.PartnerUid,
+					CourseUid:   body.CourseUid,
+				}
 				errF := subBag.FindFirst(db)
 
 				if errF == nil {
