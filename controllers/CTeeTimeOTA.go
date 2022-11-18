@@ -41,7 +41,17 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 		Date:         body.Date,
 	}
 
-	checkToken := "CHILINH_TEST" + body.CourseCode + body.Date
+	// Find Course
+	course := models.Course{}
+	course.Uid = body.CourseCode
+	if errCourse := course.FindFirstHaveKey(); errCourse != nil {
+		responseOTA.Result.Status = 500
+		responseOTA.Result.Infor = "Course Code not found"
+		okResponse(c, responseOTA)
+		return
+	}
+
+	checkToken := course.ApiKey + body.CourseCode + body.Date
 	token := utils.GetSHA256Hash(checkToken)
 
 	if strings.ToUpper(token) != body.Token {
@@ -54,15 +64,6 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 
 	db := datasources.GetDatabase()
 
-	// Lấy rate từ Course
-	course := models.Course{}
-	course.Uid = body.CourseCode
-	if errCourse := course.FindFirst(); errCourse != nil {
-		responseOTA.Result.Status = 500
-		responseOTA.Result.Infor = "Course Code not found"
-		okResponse(c, responseOTA)
-		return
-	}
 	responseOTA.GolfPriceRate = course.RateGolfFee
 
 	// Lấy Fee
@@ -269,7 +270,17 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 		DateStr:      body.DateStr,
 	}
 
-	checkToken := "CHILINH_TEST" + body.DateStr + body.TeeOffStr
+	// Find Course
+	course := models.Course{}
+	course.Uid = body.CourseCode
+	if errCourse := course.FindFirstHaveKey(); errCourse != nil {
+		responseOTA.Result.Status = 500
+		responseOTA.Result.Infor = "Course Code not found"
+		okResponse(c, responseOTA)
+		return
+	}
+
+	checkToken := course.ApiKey + body.DateStr + body.TeeOffStr
 	token := utils.GetSHA256Hash(checkToken)
 
 	if strings.ToUpper(token) != body.Token {
@@ -356,7 +367,18 @@ func (cBooking *CTeeTimeOTA) TeeTimeStatus(c *gin.Context) {
 		DateStr:      body.DateStr,
 	}
 
-	checkToken := "CHILINH_TEST" + body.DateStr + body.TeeOffStr
+	// Find course
+	course := models.Course{}
+	course.Uid = body.CourseCode
+	errFCourse := course.FindFirstHaveKey()
+	if errFCourse != nil {
+		responseOTA.Result.Status = http.StatusInternalServerError
+		responseOTA.Result.Infor = "Not found course"
+		c.JSON(http.StatusInternalServerError, responseOTA)
+		return
+	}
+
+	checkToken := course.ApiKey + body.DateStr + body.TeeOffStr
 	token := utils.GetSHA256Hash(checkToken)
 
 	if strings.ToUpper(token) != body.Token {
@@ -414,7 +436,18 @@ func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
 		DateStr:      body.DateStr,
 	}
 
-	checkToken := "CHILINH_TEST" + body.DateStr + body.TeeOffStr
+	// Find course
+	course := models.Course{}
+	course.Uid = body.CourseCode
+	errFCourse := course.FindFirstHaveKey()
+	if errFCourse != nil {
+		responseOTA.Result.Status = http.StatusInternalServerError
+		responseOTA.Result.Infor = "Not found course"
+		c.JSON(http.StatusInternalServerError, responseOTA)
+		return
+	}
+
+	checkToken := course.ApiKey + body.DateStr + body.TeeOffStr
 	token := utils.GetSHA256Hash(checkToken)
 
 	if strings.ToUpper(token) != body.Token {

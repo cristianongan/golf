@@ -4,7 +4,6 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
-	"start/models"
 	model_service "start/models/service"
 	"start/utils/response_message"
 	"time"
@@ -15,7 +14,7 @@ import (
 type CAccountant struct{}
 
 func (item CAccountant) ImportInventory(c *gin.Context) {
-	var body request.CreateBillBody
+	var body request.AccountantAddInventory
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 	if err := c.BindJSON(&body); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -25,7 +24,7 @@ func (item CAccountant) ImportInventory(c *gin.Context) {
 	serviceInventory := model_service.Kiosk{
 		PartnerUid: body.PartnerUid,
 		CourseUid:  body.CourseUid,
-		ModelId:    models.ModelId{Id: body.ServiceId},
+		KioskCode:  body.InventoryCode,
 	}
 
 	if errFind := serviceInventory.FindFirst(db); errFind != nil {
@@ -33,13 +32,36 @@ func (item CAccountant) ImportInventory(c *gin.Context) {
 		return
 	}
 
+	newListItem := request.ListKioskInventoryInputItemBody{}
+	for _, item := range body.ListItem {
+		newListItem = append(newListItem, request.KioskInventoryItemBody{
+			ItemCode: item.ItemCode,
+			Price:    item.Price,
+			Quantity: item.Quantity,
+			Unit:     item.Unit,
+		})
+	}
+
+	newBody := request.CreateBillBody{
+		ServiceId:  serviceInventory.Id,
+		Note:       body.Note,
+		ListItem:   newListItem,
+		OutputDate: body.OutputDate,
+	}
+
 	billcode := time.Now().Format("20060102150405")
-	if errInputBill := MethodInputBill(c, nil, body,
+	if errInputBill := MethodInputBill(c, nil, newBody,
 		constants.KIOSK_BILL_INVENTORY_APPROVED, billcode); errInputBill != nil {
-		response_message.BadRequest(c, errInputBill.Error())
+		errData := response_message.ErrorResponseData{
+			Message:    errInputBill.Error(),
+			Log:        "",
+			StatusCode: 400,
+		}
+
+		c.JSON(400, errData)
 		return
 	}
 
-	addItemToInventory(db, body.ServiceId, billcode, body.CourseUid, body.PartnerUid)
+	addItemToInventory(db, serviceInventory.Id, billcode, body.CourseUid, body.PartnerUid)
 	okRes(c)
 }

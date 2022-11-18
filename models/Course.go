@@ -4,12 +4,28 @@ import (
 	"errors"
 	"start/constants"
 	"start/datasources"
+	"start/utils"
 	"strings"
 	"time"
 )
 
 // Sân Golf
 type Course struct {
+	Model
+	PartnerUid        string  `json:"partner_uid" gorm:"type:varchar(100);index"`
+	Name              string  `json:"name" gorm:"type:varchar(256)"`
+	Hole              int     `json:"hole"`
+	Address           string  `json:"address" gorm:"type:varchar(500)"`
+	Lat               float64 `json:"lat"`
+	Lng               float64 `json:"lng"`
+	Icon              string  `json:"icon" gorm:"type:varchar(256)"`
+	RateGolfFee       string  `json:"rate_golf_fee" gorm:"type:varchar(256)"`
+	MaxPeopleInFlight int     `json:"max_people_in_flight"`             //số người tối đa trong 1 flight. Mặc định để 4 người.
+	MemberBooking     *bool   `json:"member_booking" gorm:"default:0"`  // yêu cầu nguồn booking phải có tối thiểu 1 member.
+	ApiKey            string  `json:"api_key" gorm:"type:varchar(100)"` // Api key
+}
+
+type CourseRes struct {
 	Model
 	PartnerUid        string  `json:"partner_uid" gorm:"type:varchar(100);index"`
 	Name              string  `json:"name" gorm:"type:varchar(256)"`
@@ -33,6 +49,8 @@ func (item *Course) Create() error {
 		item.Status = constants.STATUS_ENABLE
 	}
 
+	item.ApiKey = utils.RandomCharNumberV2(50)
+
 	return db.Create(item).Error
 }
 
@@ -48,6 +66,13 @@ func (item *Course) Update() error {
 
 func (item *Course) FindFirst() error {
 	db := datasources.GetDatabaseAuth()
+	err := db.Where(item).First(item).Error
+	item.ApiKey = ""
+	return err
+}
+
+func (item *Course) FindFirstHaveKey() error {
+	db := datasources.GetDatabaseAuth()
 	return db.Where(item).First(item).Error
 }
 
@@ -60,10 +85,10 @@ func (item *Course) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *Course) FindList(page Page) ([]Course, int64, error) {
+func (item *Course) FindList(page Page) ([]CourseRes, int64, error) {
 	database := datasources.GetDatabaseAuth()
-	db := database.Model(Course{})
-	list := []Course{}
+	db := database.Table("courses")
+	list := []CourseRes{}
 	total := int64(0)
 	status := item.Status
 
@@ -84,10 +109,10 @@ func (item *Course) FindList(page Page) ([]Course, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *Course) FindALL() ([]Course, int64, error) {
+func (item *Course) FindALL() ([]CourseRes, int64, error) {
 	database := datasources.GetDatabaseAuth()
-	db := database.Model(Course{})
-	list := []Course{}
+	db := database.Table("courses")
+	list := []CourseRes{}
 	total := int64(0)
 
 	if item.PartnerUid != "" {
