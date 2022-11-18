@@ -294,7 +294,7 @@ func initListRound(db *gorm.DB, booking model_booking.Booking, bookingGolfFee mo
 
 	errCreateRound := round.Create(db)
 	if errCreateRound != nil {
-		log.Println("createBagsNote err", errCreateRound.Error())
+		log.Println("create round err", errCreateRound.Error())
 	}
 }
 

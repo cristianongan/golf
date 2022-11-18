@@ -329,16 +329,19 @@ func initPriceForBooking(db *gorm.DB, booking *model_booking.Booking, listBookin
 	bookingTemp.ListGolfFee = listBookingGolfFee
 
 	// Current Bag Price Detail
-	bookingPayment := model_payment.BookingAgencyPayment{
-		PartnerUid:  booking.PartnerUid,
-		CourseUid:   booking.CourseUid,
-		BookingCode: booking.BookingCode,
-	}
+	if booking.AgencyId > 0 {
+		bookingPayment := model_payment.BookingAgencyPayment{
+			PartnerUid: booking.PartnerUid,
+			CourseUid:  booking.CourseUid,
+			BookingUid: booking.Uid,
+			AgencyId:   booking.AgencyId,
+		}
 
-	list, _ := bookingPayment.FindAll(db)
+		list, _ := bookingPayment.FindAll(db)
 
-	if booking.BookingCode != "" && len(list) > 0 {
-		return
+		if booking.BookingCode != "" && len(list) > 0 {
+			return
+		}
 	}
 
 	currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
