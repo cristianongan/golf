@@ -493,6 +493,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
 	}
 
+	//Update Agency Paid in Current Price
+	if booking.AgencyId > 0 {
+		booking.CurrentBagPrice.AgencyPaid = body.FeeInfo.GolfFee + body.FeeInfo.BuggyFee + body.FeeInfo.CaddieFee
+	}
+
 	// Create booking payment
 	if booking.AgencyId > 0 && booking.MemberCardUid == "" {
 		go handleAgencyPayment(db, booking)
