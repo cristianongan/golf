@@ -1211,11 +1211,11 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 	//Find Booking Code
-	list, _ := booking.FindListWithBookingCode(db)
-	if len(list) == 1 {
-		booking.CustomerBookingName = booking.CustomerName
-		booking.CustomerBookingPhone = booking.CustomerInfo.Phone
-	}
+	// list, _ := booking.FindListWithBookingCode(db)
+	// if len(list) == 1 {
+	// 	booking.CustomerBookingName = booking.CustomerName
+	// 	booking.CustomerBookingPhone = booking.CustomerInfo.Phone
+	// }
 
 	// Booking Note
 	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
