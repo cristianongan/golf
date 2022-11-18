@@ -347,6 +347,7 @@ func initPriceForBooking(db *gorm.DB, booking *model_booking.Booking, listBookin
 	currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
 	currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
 	currentBagPriceDetail.UpdateAmount()
+	currentBagPriceDetail.AmountUsd = currentBagPriceDetail.Amount / getListCurencyRate("usd")
 
 	booking.CurrentBagPrice = currentBagPriceDetail
 	bookingTemp.CurrentBagPrice = currentBagPriceDetail
@@ -383,6 +384,7 @@ func initUpdatePriceBookingForChanegHole(booking *model_booking.Booking, booking
 	currentBagPriceDetail := model_booking.BookingCurrentBagPriceDetail{}
 	currentBagPriceDetail.GolfFee = bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
 	currentBagPriceDetail.UpdateAmount()
+	currentBagPriceDetail.AmountUsd = currentBagPriceDetail.Amount / getListCurencyRate("usd")
 
 	booking.CurrentBagPrice = currentBagPriceDetail
 	bookingTemp.CurrentBagPrice = currentBagPriceDetail
@@ -419,6 +421,7 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 	if booking.MainBags != nil && len(booking.MainBags) > 0 {
 		// Nếu bag có Main Bag
 		booking.UpdatePriceForBagHaveMainBags(db)
+		booking.CurrentBagPrice.AmountUsd = booking.CurrentBagPrice.Amount / getListCurencyRate("usd")
 	} else {
 		if booking.SubBags != nil && len(booking.SubBags) > 0 {
 			// Udp orther data
@@ -432,6 +435,7 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 				if errFSub == nil {
 					// TODO: optimal và check xử lý udp cho subbag fail
 					subBook.UpdatePriceForBagHaveMainBags(db)
+					subBook.CurrentBagPrice.AmountUsd = subBook.CurrentBagPrice.Amount / getListCurencyRate("usd")
 					errUdpSubBag := subBook.Update(db)
 					if errUdpSubBag != nil {
 						log.Println("updatePriceWithServiceItem errUdpSubBag", errUdpSubBag.Error())
@@ -463,4 +467,23 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 	} else {
 		handlePayment(db, booking)
 	}
+}
+
+/*
+Get Curency Rate
+*/
+func getListCurencyRate(currency string) int64 {
+	currencyPaidGet := model_payment.CurrencyPaid{
+		Currency: currency,
+	}
+
+	err := currencyPaidGet.FindFirst()
+	if err != nil {
+		log.Println("Currency paid not found")
+	}
+
+	if currencyPaidGet.Rate == 0 {
+		return 1
+	}
+	return currencyPaidGet.Rate
 }

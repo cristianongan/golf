@@ -34,21 +34,6 @@ func (_ CRound) validateBooking(db *gorm.DB, bookindUid string) (model_booking.B
 	return booking, nil
 }
 
-func (_ CRound) updateCurrentBagPrice(booking model_booking.Booking, golfFee int64) (model_booking.BookingCurrentBagPriceDetail, error) {
-	currentBagPriceDetail := booking.CurrentBagPrice
-	currentBagPriceDetail.GolfFee += golfFee
-	currentBagPriceDetail.UpdateAmount()
-
-	return currentBagPriceDetail, nil
-}
-
-func (_ CRound) updateMustPayInfo(booking model_booking.Booking) (model_booking.BookingMushPay, error) {
-	mustPayInfo := booking.MushPayInfo
-	mustPayInfo.TotalGolfFee = booking.GetTotalGolfFee()
-	mustPayInfo.MushPay = mustPayInfo.TotalGolfFee + mustPayInfo.TotalServiceItem
-	return mustPayInfo, nil
-}
-
 func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.AddRoundBody

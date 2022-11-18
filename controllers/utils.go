@@ -234,6 +234,7 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 			booking.MainBags = utils.ListSubBag{}
 			booking.MainBags = append(booking.MainBags, mainBag)
 			booking.UpdatePriceForBagHaveMainBags(db)
+			booking.CurrentBagPrice.AmountUsd = booking.CurrentBagPrice.Amount / getListCurencyRate("usd")
 			errUdp := booking.Update(db)
 			if errUdp != nil {
 				err = errUdp
