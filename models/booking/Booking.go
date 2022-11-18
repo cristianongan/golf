@@ -502,6 +502,8 @@ type NumberPeopleInFlight struct {
 }
 
 type BookingFeeOfBag struct {
+	ListGolfFee       ListBookingGolfFee   `json:"list_golf_fee,omitempty"`
+	MushPayInfo       BookingMushPay       `json:"mush_pay_info,omitempty"`
 	ListServiceItems  []BookingServiceItem `json:"list_service_items"`
 	ListRoundOfSubBag []RoundOfBag         `json:"list_round_of_sub_bag"`
 	Rounds            models.ListRound     `json:"rounds"`
