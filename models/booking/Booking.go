@@ -1508,9 +1508,10 @@ func (item *Booking) FindTopMember(database *gorm.DB, memberType, dateType, date
 		db = db.Where("DATE_FORMAT(STR_TO_DATE(booking_date, '%d/%m/%Y'), '%Y-%m') = ?", date)
 	} else if dateType == constants.TOP_MEMBER_DATE_TYPE_WEEK {
 		db = db.Where("DATE_FORMAT(STR_TO_DATE(booking_date, '%d/%m/%Y'), '%u') = ?", date)
-	} else if dateType == constants.TOP_MEMBER_DATE_TYPE_DAY {
-		db = db.Where("booking_date = ?", date)
 	}
+	// else if dateType == constants.TOP_MEMBER_DATE_TYPE_DAY {
+	// 	db = db.Where("booking_date = ?", date)
+	// }
 
 	db = db.Where("customer_type = ?", constants.BOOKING_CUSTOMER_TYPE_MEMBER)
 
