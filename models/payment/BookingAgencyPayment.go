@@ -104,6 +104,14 @@ func (item *BookingAgencyPayment) FindAll(db *gorm.DB) ([]BookingAgencyPayment, 
 		db = db.Where("booking_code = ?", item.BookingCode)
 	}
 
+	if item.BookingUid != "" {
+		db = db.Where("booking_uid = ?", item.BookingUid)
+	}
+
+	if item.AgencyId > 0 {
+		db = db.Where("agency_id = ?", item.AgencyId)
+	}
+
 	db.Find(&list)
 
 	return list, db.Error

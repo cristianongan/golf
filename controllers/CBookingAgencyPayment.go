@@ -21,9 +21,11 @@ func (_ *CBookingAgencyPayment) GetDetailBookingAgencyPayment(c *gin.Context, pr
 	}
 
 	bookingAgencyPaymentRequest := model_payment.BookingAgencyPayment{
-		PartnerUid: form.PartnerUid,
-		CourseUid:  form.CourseUid,
-		BookingUid: form.BookingCode,
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingCode: form.BookingCode,
+		BookingUid:  form.BookingUid,
+		AgencyId:    form.AgencyId,
 	}
 
 	list, _ := bookingAgencyPaymentRequest.FindAll(db)
