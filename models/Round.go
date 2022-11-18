@@ -28,7 +28,13 @@ type Round struct {
 	Index         int    `json:"index"`
 	Bag           string `json:"bag" gorm:"type:varchar(100);index"` // Golf Bag
 	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"`
-	PaidBy        string `json:"paid_by" gorm:"type:varchar(50)"` // Paid by: cho cây đại lý thanh toán
+	// PaidBy        string `json:"paid_by" gorm:"type:varchar(50)"` // Paid by: cho cây đại lý thanh toán
+}
+
+type FeeOfRound struct {
+	CaddieFee int64 `json:"caddie_fee"`
+	BuggyFee  int64 `json:"buggy_fee"`
+	GreenFee  int64 `json:"green_fee"`
 }
 
 type ListRound []Round

@@ -638,6 +638,9 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 	}
 
 	feeResponse := model_booking.BookingFeeOfBag{
+		CurrentBagPrice:   booking.CurrentBagPrice,
+		ListGolfFee:       booking.ListGolfFee,
+		MushPayInfo:       booking.MushPayInfo,
 		ListServiceItems:  booking.ListServiceItems,
 		ListRoundOfSubBag: listRoundOfSub,
 		Rounds:            listRoundOfMain,
@@ -793,6 +796,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.CustomerUid = form.CustomerUid
 	bookings.CustomerType = form.CustomerType
 	bookings.BuggyCode = form.BuggyCode
+	bookings.GuestStyle = form.GuestStyle
 
 	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
 
@@ -1209,11 +1213,11 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 	//Find Booking Code
-	list, _ := booking.FindListWithBookingCode(db)
-	if len(list) == 1 {
-		booking.CustomerBookingName = booking.CustomerName
-		booking.CustomerBookingPhone = booking.CustomerInfo.Phone
-	}
+	// list, _ := booking.FindListWithBookingCode(db)
+	// if len(list) == 1 {
+	// 	booking.CustomerBookingName = booking.CustomerName
+	// 	booking.CustomerBookingPhone = booking.CustomerInfo.Phone
+	// }
 
 	// Booking Note
 	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
