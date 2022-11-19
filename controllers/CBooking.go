@@ -495,7 +495,12 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	//Update Agency Paid in Current Price
 	if booking.AgencyId > 0 {
-		booking.CurrentBagPrice.AgencyPaid = body.FeeInfo.GolfFee + body.FeeInfo.BuggyFee + body.FeeInfo.CaddieFee
+		booking.AgencyPaid = model_booking.AgencyPaid{
+			GolfFee:   body.FeeInfo.GolfFee,
+			BuggyFee:  body.FeeInfo.BuggyFee,
+			CaddieFee: body.FeeInfo.CaddieFee,
+			Amount:    body.FeeInfo.GolfFee + body.FeeInfo.BuggyFee + body.FeeInfo.CaddieFee,
+		}
 	}
 
 	// Create booking payment
@@ -2371,8 +2376,12 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 		//Check sub bag
 		if bag.SubBags != nil && len(bag.SubBags) > 0 {
 			for _, v := range bag.SubBags {
-				subBag := model_booking.Booking{}
-				subBag.Uid = v.BookingUid
+				subBag := model_booking.Booking{
+					BookingDate: body.BookingDate,
+					Bag:         v.GolfBag,
+					PartnerUid:  body.PartnerUid,
+					CourseUid:   body.CourseUid,
+				}
 				errF := subBag.FindFirst(db)
 
 				if errF == nil {

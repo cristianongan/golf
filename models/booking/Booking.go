@@ -122,6 +122,7 @@ type Booking struct {
 	IsPrivateBuggy   *bool                `json:"is_private_buggy" gorm:"default:0"`               // Bag có dùng buggy riêng không
 	MovedFlight      *bool                `json:"moved_flight" gorm:"default:0"`                   // Đánh dấu booking đã move flight chưa
 	AddedRound       *bool                `json:"added_flight" gorm:"default:0"`                   // Đánh dấu booking đã add chưa
+	AgencyPaid       AgencyPaid           `json:"agency_paid,omitempty"`
 }
 
 type FlyInfoResponse struct {
@@ -400,7 +401,6 @@ type BookingCurrentBagPriceDetail struct {
 	Rental     int64 `json:"rental"`
 	Proshop    int64 `json:"proshop"`
 	Promotion  int64 `json:"promotion"`
-	AgencyPaid int64 `json:"agency_paid"`
 	Amount     int64 `json:"amount"`
 	AmountUsd  int64 `json:"amount_usd"`
 }
@@ -458,6 +458,21 @@ func (item *BookingAgency) Scan(v interface{}) error {
 }
 
 func (item BookingAgency) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
+type AgencyPaid struct {
+	CaddieFee int64 `json:"caddie_fee"`
+	BuggyFee  int64 `json:"buggy_fee"`
+	GolfFee   int64 `json:"golf_fee"`
+	Amount    int64 `json:"amount"`
+}
+
+func (item *AgencyPaid) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item AgencyPaid) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
