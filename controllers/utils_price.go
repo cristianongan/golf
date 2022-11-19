@@ -206,7 +206,7 @@ func updateListGolfFeeWithRound(db *gorm.DB, round *models.Round, booking model_
 
 }
 
-func updateGolfFeeInBooking(booking model_booking.Booking, db *gorm.DB) {
+func updateGolfFeeInBooking(booking *model_booking.Booking, db *gorm.DB) {
 	roundToFindList := models.Round{BillCode: booking.BillCode}
 	listRound, _ := roundToFindList.FindAll(db)
 
@@ -299,7 +299,7 @@ func updateGolfFeeInBooking(booking model_booking.Booking, db *gorm.DB) {
 	}
 	booking.UpdatePriceDetailCurrentBag(db)
 	booking.UpdateMushPay(db)
-	go booking.Update(db)
+	booking.Update(db)
 }
 
 /*
