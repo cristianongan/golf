@@ -16,6 +16,8 @@ func main() {
 	isTesting := flag.Bool("TEST", false, "run with db test")  // -TEST
 	flag.Parse()
 	config.ReadConfigFile(*environment)
+	config.ReadBlackListPassword()
+
 	// envConfig := config.GetConfig()
 
 	log.Println("Env", *environment)
