@@ -2470,6 +2470,9 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	booking.UpdatePriceForBagHaveMainBags(db)
+	booking.Update(db)
+
 	mainBag := list[0]
 	subBags := utils.ListSubBag{}
 
