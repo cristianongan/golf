@@ -412,3 +412,17 @@ func (cRound CRound) UpdateListFeePriceInBookingAndRound(c *gin.Context, db *gor
 		cRound.UpdateListFeePriceInRound(c, db, &booking, round.GuestStyle, &round, hole)
 	}
 }
+
+// Khi changeToMain thì reset lại các round đã trả bởi main bag trước đó
+func (cRound CRound) ResetRoundPaidByMain(billCode string, db *gorm.DB) {
+	round1 := models.Round{BillCode: billCode, Index: 1}
+	if errRound1 := round1.FindFirst(db); errRound1 == nil {
+		round1.MainBagPaid = newTrue(false)
+		round1.Update(db)
+	}
+	round2 := models.Round{BillCode: billCode, Index: 2}
+	if errRound2 := round2.FindFirst(db); errRound2 == nil {
+		round2.MainBagPaid = newTrue(false)
+		round2.Update(db)
+	}
+}

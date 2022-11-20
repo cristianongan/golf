@@ -118,12 +118,12 @@ type Booking struct {
 	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"` // hỗ trợ query tính giá
 	SeparatePrice bool   `json:"separate_price" gorm:"default:0"`          // Giá riêng
 
-	ListServiceItems []BookingServiceItem `json:"list_service_items,omitempty" gorm:"-:migration"` // List service item: rental, proshop, restaurant, kiosk
-	ShowCaddieBuggy  *bool                `json:"show_caddie_buggy" gorm:"default:1"`              // Sau add round thì không hiển thị caddie buggy
-	IsPrivateBuggy   *bool                `json:"is_private_buggy" gorm:"default:0"`               // Bag có dùng buggy riêng không
-	MovedFlight      *bool                `json:"moved_flight" gorm:"default:0"`                   // Đánh dấu booking đã move flight chưa
-	AddedRound       *bool                `json:"added_flight" gorm:"default:0"`                   // Đánh dấu booking đã add chưa
-	AgencyPaid       AgencyPaid           `json:"agency_paid,omitempty"`
+	ListServiceItems []BookingServiceItem                 `json:"list_service_items,omitempty" gorm:"-:migration"` // List service item: rental, proshop, restaurant, kiosk
+	ShowCaddieBuggy  *bool                                `json:"show_caddie_buggy" gorm:"default:1"`              // Sau add round thì không hiển thị caddie buggy
+	IsPrivateBuggy   *bool                                `json:"is_private_buggy" gorm:"default:0"`               // Bag có dùng buggy riêng không
+	MovedFlight      *bool                                `json:"moved_flight" gorm:"default:0"`                   // Đánh dấu booking đã move flight chưa
+	AddedRound       *bool                                `json:"added_flight" gorm:"default:0"`                   // Đánh dấu booking đã add chưa
+	AgencyPaid       utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty" gorm:"type:json"`
 }
 
 type FlyInfoResponse struct {
@@ -462,20 +462,20 @@ func (item BookingAgency) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
-type AgencyPaid struct {
-	CaddieFee int64 `json:"caddie_fee"`
-	BuggyFee  int64 `json:"buggy_fee"`
-	GolfFee   int64 `json:"golf_fee"`
-	Amount    int64 `json:"amount"`
-}
+// type AgencyPaid struct {
+// 	CaddieFee int64 `json:"caddie_fee"`
+// 	BuggyFee  int64 `json:"buggy_fee"`
+// 	GolfFee   int64 `json:"golf_fee"`
+// 	Amount    int64 `json:"amount"`
+// }
 
-func (item *AgencyPaid) Scan(v interface{}) error {
-	return json.Unmarshal(v.([]byte), item)
-}
+// func (item *AgencyPaid) Scan(v interface{}) error {
+// 	return json.Unmarshal(v.([]byte), item)
+// }
 
-func (item AgencyPaid) Value() (driver.Value, error) {
-	return json.Marshal(&item)
-}
+// func (item AgencyPaid) Value() (driver.Value, error) {
+// 	return json.Marshal(&item)
+// }
 
 // Caddie Info
 type BookingCaddie struct {
@@ -519,12 +519,13 @@ type NumberPeopleInFlight struct {
 }
 
 type BookingFeeOfBag struct {
-	CurrentBagPrice   BookingCurrentBagPriceDetail `json:"current_bag_price,omitempty"`
-	ListGolfFee       ListBookingGolfFee           `json:"list_golf_fee,omitempty"`
-	MushPayInfo       BookingMushPay               `json:"mush_pay_info,omitempty"`
-	ListServiceItems  []BookingServiceItem         `json:"list_service_items"`
-	ListRoundOfSubBag []RoundOfBag                 `json:"list_round_of_sub_bag"`
-	Rounds            models.ListRound             `json:"rounds"`
+	AgencyPaid        utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty"`
+	SubBags           utils.ListSubBag                     `json:"sub_bags,omitempty"`
+	ListGolfFee       ListBookingGolfFee                   `json:"list_golf_fee,omitempty"`
+	MushPayInfo       BookingMushPay                       `json:"mush_pay_info,omitempty"`
+	ListServiceItems  []BookingServiceItem                 `json:"list_service_items"`
+	ListRoundOfSubBag []RoundOfBag                         `json:"list_round_of_sub_bag"`
+	Rounds            models.ListRound                     `json:"rounds"`
 }
 
 // -------- Booking Logic --------

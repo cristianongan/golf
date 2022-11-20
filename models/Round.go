@@ -28,6 +28,7 @@ type Round struct {
 	Index         int    `json:"index"`
 	Bag           string `json:"bag" gorm:"type:varchar(100);index"` // Golf Bag
 	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"`
+	MainBagPaid   *bool  `json:"main_bag_paid" gorm:"default:0"`
 	// PaidBy        string `json:"paid_by" gorm:"type:varchar(50)"` // Paid by: cho cây đại lý thanh toán
 }
 
