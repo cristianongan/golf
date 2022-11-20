@@ -4,6 +4,7 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 type CBuggyDiary struct{}
 
 func (_ *CBuggyDiary) CreateBuggyDiary(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CreateBuggyDiaryBody
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		response_message.BadRequest(c, "")
@@ -30,7 +32,7 @@ func (_ *CBuggyDiary) CreateBuggyDiary(c *gin.Context, prof models.CmsUser) {
 
 	buggyRequest := models.Buggy{}
 	buggyRequest.CourseUid = body.CourseId
-	errExist := buggyRequest.FindFirst()
+	errExist := buggyRequest.FindFirst(db)
 
 	if errExist != nil || buggyRequest.ModelId.Id < 1 {
 		response_message.BadRequest(c, "Buggy number did not exist in course")

@@ -3,12 +3,13 @@ package models
 import (
 	"log"
 	"start/constants"
-	"start/datasources"
 	"start/utils"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Phí đặc biệt Agency
@@ -27,7 +28,72 @@ type AgencySpecialPrice struct {
 	Input      string `json:"input" gorm:"type:varchar(100)"`
 }
 
-func (item *AgencySpecialPrice) IsDuplicated() bool {
+/*
+	check giá riêng agency có thoả mãn dk time
+*/
+func (item *AgencySpecialPrice) FindOtherPriceOnTime(db *gorm.DB) (AgencySpecialPrice, error) {
+	listAgency, _, err := item.FindListByAgencyId(db)
+
+	if err != nil {
+		return AgencySpecialPrice{}, err
+	}
+	idx := -1
+	// check for today
+	for i, v := range listAgency {
+		fromH := "00:00"
+		if v.FromHour != "" {
+			fromH = v.FromHour
+		}
+		toH := "00:00"
+		if v.ToHour != "" {
+			toH = v.ToHour
+		}
+
+		hourLast := fromH + "," + toH
+		if utils.CheckDow(v.Dow, hourLast, time.Now()) {
+			idx = i
+		}
+	}
+
+	if idx >= 0 {
+		return listAgency[idx], nil
+	}
+
+	return AgencySpecialPrice{}, errors.New("")
+}
+
+func (item *AgencySpecialPrice) FindOtherPriceOnDate(db *gorm.DB, date time.Time) (AgencySpecialPrice, error) {
+	listAgency, _, err := item.FindListByAgencyId(db)
+
+	if err != nil {
+		return AgencySpecialPrice{}, err
+	}
+	idx := -1
+	// check for today
+	for i, v := range listAgency {
+		fromH := "00:00"
+		if v.FromHour != "" {
+			fromH = v.FromHour
+		}
+		toH := "00:00"
+		if v.ToHour != "" {
+			toH = v.ToHour
+		}
+
+		hourLast := fromH + "," + toH
+		if utils.CheckDow(v.Dow, hourLast, date) {
+			idx = i
+		}
+	}
+
+	if idx >= 0 {
+		return listAgency[idx], nil
+	}
+
+	return AgencySpecialPrice{}, errors.New("")
+}
+
+func (item *AgencySpecialPrice) IsDuplicated(db *gorm.DB) bool {
 	modelCheck := AgencySpecialPrice{
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
@@ -35,7 +101,7 @@ func (item *AgencySpecialPrice) IsDuplicated() bool {
 		AgencyId:   item.AgencyId,
 	}
 
-	errFind := modelCheck.FindFirst()
+	errFind := modelCheck.FindFirst(db)
 	if errFind == nil || modelCheck.Id > 0 {
 		return true
 	}
@@ -55,7 +121,7 @@ func (item *AgencySpecialPrice) IsValidated() bool {
 	return true
 }
 
-func (item *AgencySpecialPrice) Create() error {
+func (item *AgencySpecialPrice) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -63,27 +129,49 @@ func (item *AgencySpecialPrice) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *AgencySpecialPrice) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *AgencySpecialPrice) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *AgencySpecialPrice) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *AgencySpecialPrice) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *AgencySpecialPrice) FindList(page Page, agencyIdStr string) ([]map[string]interface{}, int64, error) {
-	db := datasources.GetDatabase().Table("agency_special_prices")
+func (item *AgencySpecialPrice) FindListByAgencyId(database *gorm.DB) ([]AgencySpecialPrice, int64, error) {
+	db := database.Model(AgencySpecialPrice{})
+	list := []AgencySpecialPrice{}
+	total := int64(0)
+	status := item.ModelId.Status
+	item.ModelId.Status = ""
+	if status != "" {
+		db = db.Where("status in (?)", strings.Split(status, ","))
+	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.AgencyId > 0 {
+		db = db.Where("agency_id = ?", item.AgencyId)
+	}
+
+	db.Count(&total)
+	db.Find(&list)
+	return list, total, db.Error
+}
+
+func (item *AgencySpecialPrice) FindList(database *gorm.DB, page Page, agencyIdStr, agencyName string) ([]map[string]interface{}, int64, error) {
+	db := database.Table("agency_special_prices")
 	list := []map[string]interface{}{}
 	total := int64(0)
 
@@ -109,6 +197,9 @@ func (item *AgencySpecialPrice) FindList(page Page, agencyIdStr string) ([]map[s
 	if agencyIdStr != "" {
 		queryStr = queryStr + " WHERE tb1.agency_id_str = " + `"` + agencyIdStr + `"`
 	}
+	// if agencyName != "" {
+	// 	queryStr = queryStr + " WHERE tb1.agency_name = " + `"` + agencyName + `"`
+	// }
 
 	// queryStr = queryStr + ") af on tb0.uid = af.member_card_uid) tb1 "
 
@@ -138,17 +229,17 @@ func (item *AgencySpecialPrice) FindList(page Page, agencyIdStr string) ([]map[s
 	return list, total, db.Error
 }
 
-func (item *AgencySpecialPrice) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(AgencySpecialPrice{})
+func (item *AgencySpecialPrice) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(AgencySpecialPrice{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *AgencySpecialPrice) Delete() error {
+func (item *AgencySpecialPrice) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

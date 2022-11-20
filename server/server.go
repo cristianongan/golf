@@ -2,20 +2,43 @@ package server
 
 import (
 	"log"
+	"net/http"
 	"start/config"
 	"start/datasources"
-	"start/logger"
+	socket "start/socket"
 
+	ccron "start/cron"
 	// "start/datasources/aws"
 	// "start/datasources/elasticsearch"
 )
 
 func Init() {
+
 	log.Println("server init")
 
 	config := config.GetConfig()
-	// cron.CronStart()
-	// cron.InitCronJobCallApi()
+
+	// --- Socket ---
+	// go socket.RunSocket(config.GetString("socket_port"))
+	// fs := http.FileServer(http.Dir("../public"))
+	// http.Handle("/", fs)
+
+	// Configure websocket route
+	http.HandleFunc("/ws", socket.HandleConnections)
+
+	// Start listening for incoming chat messages
+	go socket.HandleMessages()
+
+	// Start the server on localhost port 8000 and log any errors
+	log.Println("http server started on :8000")
+	a := func() {
+		err := http.ListenAndServe(":8000", nil)
+		log.Println("ListenAndServe", err)
+	}
+	go a()
+
+	// --- Cron ---
+	ccron.CronStart()
 
 	datasources.MinioConnect()
 
@@ -29,12 +52,11 @@ func Init() {
 
 	r := NewRouter()
 
-	routers := r.Routes()
-
+	// routers := r.Routes()
 	// Init authority
-	initAuthority(routers)
+	// initAuthority(routers)
 
-	logger.InitLogger()
+	// logger.InitLogger()
 
 	log.Println("Server is running ...", "listen", config.GetString("backend_port"))
 	r.Run(config.GetString("backend_port"))

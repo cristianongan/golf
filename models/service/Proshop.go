@@ -3,10 +3,11 @@ package model_service
 import (
 	"errors"
 	"start/constants"
-	"start/datasources"
 	"start/models"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Proshop
@@ -15,7 +16,6 @@ type Proshop struct {
 	ProShopId     string  `json:"proshop_id" gorm:"type:varchar(100)"`
 	PartnerUid    string  `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
 	CourseUid     string  `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	GroupCode     string  `json:"group_code" gorm:"type:varchar(100)"`
 	EnglishName   string  `json:"english_name" gorm:"type:varchar(256)"`
 	VieName       string  `json:"vietnamese_name" gorm:"type:varchar(256)"`
 	Brand         string  `json:"brand" gorm:"type:varchar(100)"`
@@ -33,14 +33,18 @@ type Proshop struct {
 	IsInventory   bool    `json:"is_inventory"`                         // Có trong kho
 	Name          string  `json:"name" gorm:"type:varchar(256)"`        // Tên sp default
 	UserUpdate    string  `json:"user_update" gorm:"type:varchar(256)"` // Người update cuối cùng
+	Type          string  `json:"type" gorm:"type:varchar(50)"`         // sub type của Rental
+	GroupCode     string  `json:"group_code" gorm:"type:varchar(100);index"`
+	GroupName     string  `json:"group_name" gorm:"type:varchar(100)"`
 }
 
 type ProshopRequest struct {
 	Proshop
-	GroupName string `json:"group_name"`
+	CodeOrName string `form:"code_or_name"`
+	GroupName  string `json:"group_name"`
 }
 
-func (item *Proshop) Create() error {
+func (item *Proshop) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -48,35 +52,32 @@ func (item *Proshop) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *Proshop) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *Proshop) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *Proshop) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *Proshop) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *Proshop) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(Proshop{})
+func (item *Proshop) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(Proshop{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *ProshopRequest) FindList(page models.Page) ([]ProshopRequest, int64, error) {
-	db := datasources.GetDatabase().Model(Proshop{})
+func (item *ProshopRequest) FindList(database *gorm.DB, page models.Page) ([]ProshopRequest, int64, error) {
+	db := database.Model(Proshop{})
 	list := []ProshopRequest{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -103,6 +104,18 @@ func (item *ProshopRequest) FindList(page models.Page) ([]ProshopRequest, int64,
 	if item.GroupName != "" {
 		db = db.Where("proshops.group_name = ?", item.GroupName)
 	}
+	if item.GroupCode != "" {
+		db = db.Where("proshops.group_code = ?", item.GroupCode)
+	}
+	if item.Type != "" {
+		db = db.Where("proshops.type = ?", item.Type)
+	}
+	if item.CodeOrName != "" {
+		query := "proshops.pro_shop_id COLLATE utf8mb4_general_ci LIKE ? OR " +
+			"proshops.vie_name COLLATE utf8mb4_general_ci LIKE ? OR " +
+			"proshops.english_name COLLATE utf8mb4_general_ci LIKE ?"
+		db = db.Where(query, "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%")
+	}
 
 	db = db.Joins("JOIN group_services ON proshops.group_code = group_services.group_code AND " +
 		"proshops.partner_uid = group_services.partner_uid AND " +
@@ -116,9 +129,9 @@ func (item *ProshopRequest) FindList(page models.Page) ([]ProshopRequest, int64,
 	return list, total, db.Error
 }
 
-func (item *Proshop) Delete() error {
+func (item *Proshop) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

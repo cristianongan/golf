@@ -1,10 +1,14 @@
 package middlewares
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"log"
 	"start/auth"
 	"start/config"
 	"start/constants"
+	"start/controllers/request"
 	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
@@ -85,6 +89,31 @@ func AuthorizedCmsUserHandler(handler func(*gin.Context, models.CmsUser)) gin.Ha
 			c.Abort()
 			return
 		}
+
+		// Với user partner Root là VNPay thì có quyền làm 1 số function cho partner khác
+		// TODO: thêm định nghĩa 1 số function partner root có thể làm, hiện tại mở hết
+		if user.PartnerUid != constants.ROOT_PARTNER_UID {
+			body := request.CommonRequest{}
+			partnerUidRequest := ""
+			if c.Request.Method == "GET" || c.Request.Method == "DELETE" {
+				b := c.Request.URL.Query()
+				partnerUidRequest = b.Get("partner_uid")
+				body.PartnerUid = partnerUidRequest
+			} else if c.Request.Method == "POST" || c.Request.Method == "PUT" {
+				ByteBody, err := io.ReadAll(c.Request.Body)
+				c.Request.Body = io.NopCloser(bytes.NewBuffer(ByteBody))
+				if err != nil {
+					log.Print(err.Error())
+				}
+				json.Unmarshal(ByteBody, &body)
+			}
+
+			if body.PartnerUid != "" && body.PartnerUid != user.PartnerUid {
+				response_message.Forbidden(c, "forbidden")
+				return
+			}
+		}
+
 		/// OK
 		handler(c, user)
 	}

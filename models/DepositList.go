@@ -1,6 +1,8 @@
 package models
 
-import "start/datasources"
+import (
+	"gorm.io/gorm"
+)
 
 type DepositList struct {
 	CustomerIdentity string
@@ -9,18 +11,18 @@ type DepositList struct {
 	InputDate        string
 }
 
-func (item *DepositList) FindList(page Page) ([]Deposit, int64, error) {
+func (item *DepositList) FindList(database *gorm.DB, page Page) ([]Deposit, int64, error) {
 	var list []Deposit
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(Deposit{})
+	db := database.Model(Deposit{})
 
 	if item.CustomerIdentity != "" {
-		db = db.Where("customer_identity = ?", item.CustomerIdentity)
+		db = db.Where("customer_identity LIKE  ?", "%"+item.CustomerIdentity+"%")
 	}
 
 	if item.CustomerPhone != "" {
-		db = db.Where("customer_phone = ?", item.CustomerPhone)
+		db = db.Where("customer_phone LIKE ?", "%"+item.CustomerPhone+"%")
 	}
 
 	if item.CustomerStyle != "" {

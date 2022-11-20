@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	model_service "start/models/service"
 	"start/utils/response_message"
@@ -14,6 +15,7 @@ import (
 type CFoodBeverage struct{}
 
 func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateFoodBeverageBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -37,7 +39,7 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 
 	servicesRequest := model_service.GroupServices{}
 	servicesRequest.GroupCode = body.GroupCode
-	servicesErrFind := servicesRequest.FindFirst()
+	servicesErrFind := servicesRequest.FindFirst(db)
 	if servicesErrFind != nil {
 		response_message.BadRequest(c, servicesErrFind.Error())
 		return
@@ -63,7 +65,7 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 	foodBeverageRequest.CourseUid = body.CourseUid
 	foodBeverageRequest.PartnerUid = body.PartnerUid
 	foodBeverageRequest.FBCode = body.FBCode
-	errExist := foodBeverageRequest.FindFirst()
+	errExist := foodBeverageRequest.FindFirst(db)
 
 	if errExist == nil {
 		response_message.BadRequest(c, "F&B Id existed")
@@ -82,6 +84,7 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		PartnerUid:    body.PartnerUid,
 		CourseUid:     body.CourseUid,
 		GroupCode:     body.GroupCode,
+		GroupName:     body.GroupName,
 		FBCode:        body.FBCode,
 		EnglishName:   body.EnglishName,
 		VieName:       body.VieName,
@@ -101,10 +104,13 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		InternalPrice: body.InternalPrice,
 		IsKitchen:     body.IsKitchen,
 		Name:          name,
+		Type:          body.Type,
+		HotKitchen:    body.HotKitchen,
+		ColdKitchen:   body.ColdKitchen,
 	}
 	service.Status = body.Status
 
-	err := service.Create()
+	err := service.Create(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -114,6 +120,7 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 }
 
 func (_ *CFoodBeverage) GetListFoodBeverage(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListFoodBeverageForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -133,12 +140,16 @@ func (_ *CFoodBeverage) GetListFoodBeverage(c *gin.Context, prof models.CmsUser)
 	fbR.EnglishName = form.EnglishName
 	fbR.VieName = form.VieName
 	fbR.GroupCode = form.GroupCode
+	fbR.FBCode = form.FBCode
 	fbR.Status = form.Status
+	fbR.Type = form.Type
+	fbR.CodeOrName = form.CodeOrName
+
 	if form.FBCodeList != "" {
 		fbR.FBCodeList = strings.Split(form.FBCodeList, ",")
 	}
 
-	list, total, err := fbR.FindList(page)
+	list, total, err := fbR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -153,6 +164,7 @@ func (_ *CFoodBeverage) GetListFoodBeverage(c *gin.Context, prof models.CmsUser)
 }
 
 func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	rentalIdStr := c.Param("id")
 	rentalId, errId := strconv.ParseInt(rentalIdStr, 10, 64)
 	if errId != nil {
@@ -162,7 +174,7 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 
 	foodBeverage := model_service.FoodBeverage{}
 	foodBeverage.Id = rentalId
-	errF := foodBeverage.FindFirst()
+	errF := foodBeverage.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -228,8 +240,20 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 	if body.IsKitchen != nil {
 		foodBeverage.IsKitchen = *body.IsKitchen
 	}
+	if body.ColdKitchen != nil {
+		foodBeverage.ColdKitchen = body.ColdKitchen
+	}
+	if body.HotKitchen != nil {
+		foodBeverage.HotKitchen = body.HotKitchen
+	}
+	if body.Type != "" {
+		foodBeverage.Type = body.Type
+	}
+	if body.GroupName != "" {
+		foodBeverage.GroupName = body.GroupName
+	}
 
-	errUdp := foodBeverage.Update()
+	errUdp := foodBeverage.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -239,6 +263,7 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 }
 
 func (_ *CFoodBeverage) DeleteFoodBeverage(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	fbIdStr := c.Param("id")
 	fbId, errId := strconv.ParseInt(fbIdStr, 10, 64)
 	if errId != nil {
@@ -248,13 +273,13 @@ func (_ *CFoodBeverage) DeleteFoodBeverage(c *gin.Context, prof models.CmsUser) 
 
 	fbModel := model_service.FoodBeverage{}
 	fbModel.Id = fbId
-	errF := fbModel.FindFirst()
+	errF := fbModel.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := fbModel.Delete()
+	errDel := fbModel.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

@@ -3,6 +3,7 @@ package controllers
 import (
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 
@@ -14,6 +15,7 @@ import (
 type CGolfService struct{}
 
 func (_ *CGolfService) GetGolfServiceForReception(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetGolfServiceForReceptionForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -34,15 +36,14 @@ func (_ *CGolfService) GetGolfServiceForReception(c *gin.Context, prof models.Cm
 
 	if form.Type == constants.GOLF_SERVICE_RENTAL {
 		// Get in rental
-		rentalR := model_service.Rental{
-			PartnerUid:  form.PartnerUid,
-			CourseUid:   form.CourseUid,
-			Type:        form.Type,
-			SystemCode:  form.Code,
-			EnglishName: form.Name,
-		}
+		rentalR := model_service.RentalRequest{}
+		rentalR.PartnerUid = form.PartnerUid
+		rentalR.CourseUid = form.CourseUid
+		rentalR.EnglishName = form.Name
+		rentalR.VieName = form.Name
+		rentalR.CodeOrName = form.Code
 
-		list, total, errRentalR := rentalR.FindList(page)
+		list, total, errRentalR := rentalR.FindList(db, page)
 
 		if errRentalR != nil {
 			response_message.InternalServerError(c, errRentalR.Error())
@@ -63,7 +64,7 @@ func (_ *CGolfService) GetGolfServiceForReception(c *gin.Context, prof models.Cm
 		proshopR.CourseUid = form.CourseUid
 		proshopR.Name = form.Name
 
-		list, total, errProshopR := proshopR.FindList(page)
+		list, total, errProshopR := proshopR.FindList(db, page)
 
 		if errProshopR != nil {
 			response_message.InternalServerError(c, errProshopR.Error())
@@ -77,56 +78,24 @@ func (_ *CGolfService) GetGolfServiceForReception(c *gin.Context, prof models.Cm
 
 		okResponse(c, res)
 		return
-	} else if form.Type == constants.GOLF_SERVICE_RESTAURANT {
-		// Get in restaurent
-		restaurentR := model_service.Restaurent{
-			PartnerUid: form.PartnerUid,
-			CourseUid:  form.CourseUid,
-			Type:       form.Type,
-			Code:       form.Code,
-			Name:       form.Name,
-		}
+	}
+	// Get in restaurent
+	restaurentR := model_service.FoodBeverageRequest{}
+	restaurentR.PartnerUid = form.PartnerUid
+	restaurentR.CourseUid = form.CourseUid
+	restaurentR.Name = form.Name
 
-		list, total, errRestaurentR := restaurentR.FindList(page)
+	list, total, errRestaurentR := restaurentR.FindList(db, page)
 
-		if errRestaurentR != nil {
-			response_message.InternalServerError(c, errRestaurentR.Error())
-			return
-		}
-
-		res := map[string]interface{}{
-			"total": total,
-			"data":  list,
-		}
-
-		okResponse(c, res)
-		return
-	} else if form.Type == constants.GOLF_SERVICE_KIOSK {
-		// Get in kiosk
-		kioskR := model_service.Kiosk{
-			PartnerUid: form.PartnerUid,
-			CourseUid:  form.CourseUid,
-			Type:       form.Type,
-			Code:       form.Code,
-			Name:       form.Name,
-		}
-
-		list, total, errKioskR := kioskR.FindList(page)
-
-		if errKioskR != nil {
-			response_message.InternalServerError(c, errKioskR.Error())
-			return
-		}
-
-		res := map[string]interface{}{
-			"total": total,
-			"data":  list,
-		}
-
-		okResponse(c, res)
+	if errRestaurentR != nil {
+		response_message.InternalServerError(c, errRestaurentR.Error())
 		return
 	}
 
-	response_message.BadRequest(c, "type invalid")
-	return
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
 }

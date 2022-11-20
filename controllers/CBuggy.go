@@ -4,9 +4,14 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
+	"start/logger"
 	"start/models"
+	model_booking "start/models/booking"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,6 +19,7 @@ import (
 type CBuggy struct{}
 
 func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CreateBuggyBody
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		response_message.BadRequest(c, "")
@@ -40,7 +46,7 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 	buggyRequest.CourseUid = body.CourseUid
 	buggyRequest.PartnerUid = body.PartnerUid
 	buggyRequest.Code = body.Code // Id Buggy vận hành
-	errExist := buggyRequest.FindFirst()
+	errExist := buggyRequest.FindFirst(db)
 
 	if errExist == nil && buggyRequest.ModelId.Id > 0 {
 		response_message.BadRequest(c, "Code existed in course")
@@ -63,7 +69,11 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 		BuggyStatus:     body.BuggyStatus,
 	}
 
-	err := buggy.Create()
+	if buggy.BuggyStatus == "" {
+		buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_ACTIVE
+	}
+
+	err := buggy.Create(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -72,6 +82,7 @@ func (_ *CBuggy) CreateBuggy(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBuggyForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -86,36 +97,13 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 	}
 
 	buggyRequest := models.Buggy{}
+	buggyRequest.CourseUid = form.CourseUid
+	buggyRequest.PartnerUid = form.PartnerUid
+	buggyRequest.BuggyStatus = form.BuggyStatus
+	buggyRequest.BuggyForVip = form.BuggyForVip
+	buggyRequest.Code = form.Code
 
-	if form.Code != nil {
-		buggyRequest.Code = *form.Code
-	} else {
-		buggyRequest.Code = ""
-	}
-
-	if form.BuggyStatus != nil {
-		buggyRequest.BuggyStatus = *form.BuggyStatus
-	} else {
-		buggyRequest.BuggyStatus = ""
-	}
-
-	if form.BuggyForVip != nil {
-		buggyRequest.BuggyForVip = *form.BuggyForVip
-	}
-
-	if form.CourseUid != nil {
-		buggyRequest.CourseUid = *form.CourseUid
-	} else {
-		buggyRequest.CourseUid = ""
-	}
-
-	if form.PartnerUid != nil {
-		buggyRequest.PartnerUid = *form.PartnerUid
-	} else {
-		buggyRequest.PartnerUid = ""
-	}
-
-	list, total, err := buggyRequest.FindList(page)
+	list, total, err := buggyRequest.FindList(db, page, form.IsReady)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -130,7 +118,102 @@ func (_ *CBuggy) GetBuggyList(c *gin.Context, prof models.CmsUser) {
 	c.JSON(200, res)
 }
 
+func (_ *CBuggy) GetBuggyDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	buggyIdStr := c.Param("id")
+	buggyId, errId := strconv.ParseInt(buggyIdStr, 10, 64)
+
+	if buggyIdStr == "" {
+		response_message.BadRequest(c, errId.Error())
+		return
+	}
+
+	buggyRequest := models.Buggy{}
+	buggyRequest.Id = buggyId
+	errF := buggyRequest.FindFirst(db)
+
+	if errF != nil {
+		response_message.BadRequest(c, errF.Error())
+		return
+	}
+
+	okResponse(c, buggyRequest)
+}
+
+func (_ *CBuggy) GetBuggyReadyList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBuggyForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	buggyRequest := models.BuggyRequest{}
+	buggyRequest.CourseUid = form.CourseUid
+	buggyRequest.PartnerUid = form.PartnerUid
+	buggyRequest.FunctionType = form.FunctionType
+	buggyRequest.Code = form.Code
+
+	listBuggyReady, total, err := buggyRequest.FindBuggyReadyList(db, page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	result := []models.Buggy{}
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	for _, buggy := range listBuggyReady {
+		if buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_IN_COURSE ||
+			buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_LOCK {
+			bookingList := model_booking.BookingList{
+				PartnerUid:  form.PartnerUid,
+				CourseUid:   form.CourseUid,
+				BuggyCode:   buggy.Code,
+				BookingDate: dateDisplay,
+			}
+			if buggyRequest.FunctionType == constants.BAG_STATUS_IN_COURSE {
+				bookingList.BagStatus = constants.BAG_STATUS_IN_COURSE
+			}
+
+			if buggyRequest.FunctionType == constants.BAG_STATUS_WAITING {
+				bookingList.BagStatus = constants.BAG_STATUS_WAITING
+			}
+
+			listBooking := []model_booking.Booking{}
+			db, total, _ := bookingList.FindAllBookingList(db)
+			db.Find(&listBooking)
+			if total < 2 {
+				if total == 1 {
+					if !*listBooking[0].IsPrivateBuggy {
+						result = append(result, buggy)
+					}
+				} else {
+					result = append(result, buggy)
+				}
+			}
+		} else {
+			result = append(result, buggy)
+		}
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  result,
+	}
+
+	c.JSON(200, res)
+}
+
 func (_ *CBuggy) DeleteBuggy(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	buggyIdStr := c.Param("id")
 	buggyId, errId := strconv.ParseInt(buggyIdStr, 10, 64)
 	if errId != nil {
@@ -140,14 +223,14 @@ func (_ *CBuggy) DeleteBuggy(c *gin.Context, prof models.CmsUser) {
 
 	buggyRequest := models.Buggy{}
 	buggyRequest.Id = buggyId
-	errF := buggyRequest.FindFirst()
+	errF := buggyRequest.FindFirst(db)
 
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
 
-	err := buggyRequest.Delete()
+	err := buggyRequest.Delete(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -157,6 +240,7 @@ func (_ *CBuggy) DeleteBuggy(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	buggyIdStr := c.Param("id")
 	buggyId, errId := strconv.ParseInt(buggyIdStr, 10, 64)
 	if errId != nil {
@@ -173,7 +257,7 @@ func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
 	buggyRequest := models.Buggy{}
 	buggyRequest.Id = buggyId
 
-	errF := buggyRequest.FindFirst()
+	errF := buggyRequest.FindFirst(db)
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
@@ -197,7 +281,11 @@ func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 	}
+	// activity log
+	updateLogData := logger.UpdateLogData{}
+	updateLogData.Old = buggyRequest
 
+	// + update data
 	if body.CourseUid != nil {
 		buggyRequest.CourseUid = *body.CourseUid
 	}
@@ -225,12 +313,19 @@ func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
 	if body.WarrantyPeriod != nil {
 		buggyRequest.WarrantyPeriod = *body.WarrantyPeriod
 	}
+	// + END: update data
 
-	err := buggyRequest.Update()
+	err := buggyRequest.Update(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	// updateLogData.New = buggyRequest
+
+	// updateLogDataJson, _ := json.Marshal(updateLogData)
+
+	// logger.Log(logger.EVENT_ACTION_UPDATE, logger.EVENT_CATEOGRY_BUGGY, buggyRequest.Code, string(updateLogDataJson), prof)
 
 	okRes(c)
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/datasources"
+	"start/utils"
 	"strings"
 	"time"
 )
@@ -11,18 +12,36 @@ import (
 // Sân Golf
 type Course struct {
 	Model
-	PartnerUid  string  `json:"partner_uid" gorm:"type:varchar(100);index"`
-	Name        string  `json:"name" gorm:"type:varchar(256)"`
-	Hole        int     `json:"hole"`
-	Address     string  `json:"address" gorm:"type:varchar(500)"`
-	Lat         float64 `json:"lat"`
-	Lng         float64 `json:"lng"`
-	Icon        string  `json:"icon" gorm:"type:varchar(256)"`
-	RateGolfFee string  `json:"rate_golf_fee" gorm:"type:varchar(256)"`
+	PartnerUid        string  `json:"partner_uid" gorm:"type:varchar(100);index"`
+	Name              string  `json:"name" gorm:"type:varchar(256)"`
+	Hole              int     `json:"hole"`
+	Address           string  `json:"address" gorm:"type:varchar(500)"`
+	Lat               float64 `json:"lat"`
+	Lng               float64 `json:"lng"`
+	Icon              string  `json:"icon" gorm:"type:varchar(256)"`
+	RateGolfFee       string  `json:"rate_golf_fee" gorm:"type:varchar(256)"`
+	MaxPeopleInFlight int     `json:"max_people_in_flight"`             //số người tối đa trong 1 flight. Mặc định để 4 người.
+	MemberBooking     *bool   `json:"member_booking" gorm:"default:0"`  // yêu cầu nguồn booking phải có tối thiểu 1 member.
+	ApiKey            string  `json:"api_key" gorm:"type:varchar(100)"` // Api key
+}
+
+type CourseRes struct {
+	Model
+	PartnerUid        string  `json:"partner_uid" gorm:"type:varchar(100);index"`
+	Name              string  `json:"name" gorm:"type:varchar(256)"`
+	Hole              int     `json:"hole"`
+	Address           string  `json:"address" gorm:"type:varchar(500)"`
+	Lat               float64 `json:"lat"`
+	Lng               float64 `json:"lng"`
+	Icon              string  `json:"icon" gorm:"type:varchar(256)"`
+	RateGolfFee       string  `json:"rate_golf_fee" gorm:"type:varchar(256)"`
+	MaxPeopleInFlight int     `json:"max_people_in_flight"`            //số người tối đa trong 1 flight. Mặc định để 4 người.
+	MemberBooking     *bool   `json:"member_booking" gorm:"default:0"` // yêu cầu nguồn booking phải có tối thiểu 1 member.
 }
 
 // ======= CRUD ===========
 func (item *Course) Create() error {
+	db := datasources.GetDatabaseAuth()
 	now := time.Now()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
@@ -30,14 +49,15 @@ func (item *Course) Create() error {
 		item.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
+	item.ApiKey = utils.RandomCharNumberV2(50)
+
 	return db.Create(item).Error
 }
 
 func (item *Course) Update() error {
-	mydb := datasources.GetDatabase()
+	db := datasources.GetDatabaseAuth()
 	item.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
@@ -45,28 +65,41 @@ func (item *Course) Update() error {
 }
 
 func (item *Course) FindFirst() error {
-	db := datasources.GetDatabase()
+	db := datasources.GetDatabaseAuth()
+	err := db.Where(item).First(item).Error
+	item.ApiKey = ""
+	return err
+}
+
+func (item *Course) FindFirstHaveKey() error {
+	db := datasources.GetDatabaseAuth()
 	return db.Where(item).First(item).Error
 }
 
 func (item *Course) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(Course{})
+	database := datasources.GetDatabaseAuth()
+	db := database.Model(Course{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *Course) FindList(page Page) ([]Course, int64, error) {
-	db := datasources.GetDatabase().Model(Course{})
-	list := []Course{}
+func (item *Course) FindList(page Page) ([]CourseRes, int64, error) {
+	database := datasources.GetDatabaseAuth()
+	db := database.Table("courses")
+	list := []CourseRes{}
 	total := int64(0)
 	status := item.Status
-	item.Status = ""
-	db = db.Where(item)
 
 	if status != "" {
 		db = db.Where("status IN (?)", strings.Split(status, ","))
+	}
+	if item.Name != "" {
+		db = db.Where("name LIKE ?", "%"+item.Name+"%")
+	}
+	if item.PartnerUid != "" && item.PartnerUid != constants.ROOT_PARTNER_UID {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
 	db.Count(&total)
 
@@ -76,9 +109,27 @@ func (item *Course) FindList(page Page) ([]Course, int64, error) {
 	return list, total, db.Error
 }
 
+func (item *Course) FindALL() ([]CourseRes, int64, error) {
+	database := datasources.GetDatabaseAuth()
+	db := database.Table("courses")
+	list := []CourseRes{}
+	total := int64(0)
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	db.Count(&total)
+
+	db = db.Find(&list)
+
+	return list, total, db.Error
+}
+
 func (item *Course) Delete() error {
+	db := datasources.GetDatabaseAuth()
 	if item.Uid == "" {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

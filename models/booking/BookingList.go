@@ -2,42 +2,72 @@ package model_booking
 
 import (
 	"fmt"
-	"start/datasources"
+	"start/constants"
 	"start/models"
 	"strconv"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
 )
 
 type BookingList struct {
-	CourseUid   string
-	BookingDate string
-	CaddieUid   string
-	CaddieName  string
-	CaddieCode  string
-	InitType    string
-	IsAgency    string
-	Status      string
-	FromDate    string
-	ToDate      string
-	BuggyUid    string
-	BuggyCode   string
-	GolfBag     string
-	Month       string
-	IsToday     string
-	BookingUid  string
-	IsFlight    string
-	BagStatus   string
+	PartnerUid            string
+	CourseUid             string
+	BookingCode           string
+	BookingDate           string
+	CaddieUid             string
+	CaddieName            string
+	CaddieCode            string
+	InitType              string
+	AgencyId              int64
+	IsAgency              string
+	Status                string
+	FromDate              string
+	ToDate                string
+	BuggyId               int64
+	BuggyCode             string
+	GolfBag               string
+	Month                 string
+	IsToday               string
+	BookingUid            string
+	IsFlight              string
+	BagStatus             string
+	HaveBag               *string
+	TeeTime               string
+	HasBuggy              string
+	IsTimeOut             string
+	HasBookCaddie         string
+	HasCaddie             string
+	HasFlightInfo         string
+	HasCaddieInOut        string
+	CustomerName          string
+	CustomerType          string
+	TeeType               string
+	CourseType            string
+	FlightId              int64
+	IsCheckIn             string
+	IsBuggyPrepareForJoin string
+	GuestStyleName        string
+	GuestStyle            string
+	PlayerOrBag           string
+	NotPrivateBuggy       bool
+	CustomerUid           string
+	IsGroupBillCode       bool
+	NotNoneGolfAndWalking bool
 }
 
-func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
+func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
+	if item.PartnerUid != "" {
+		db = db.Where("bookings.partner_uid = ?", item.PartnerUid)
+	}
+
 	if item.CourseUid != "" {
-		db = db.Where("course_uid = ?", item.CourseUid)
+		db = db.Where("bookings.course_uid = ?", item.CourseUid)
 	}
 
 	if item.BookingDate != "" {
-		db = db.Where("booking_date = ?", item.BookingDate)
+		db = db.Where("bookings.booking_date = ?", item.BookingDate)
 	}
 
 	if item.CaddieName != "" {
@@ -45,7 +75,15 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 	}
 
 	if item.CaddieCode != "" {
-		db = db.Where("caddie_info->'$.code' = ?", item.CaddieCode)
+		db = db.Where("caddie_info->'$.code' COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CaddieCode+"%")
+	}
+
+	if item.CustomerUid != "" {
+		db = db.Where("customer_info->'$.uid' = ?", item.CustomerUid)
+	}
+
+	if item.CustomerType != "" {
+		db = db.Where("customer_info->'$.type'LIKE ?", "%"+item.CustomerType+"%")
 	}
 
 	if item.InitType != "" {
@@ -61,8 +99,16 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 		}
 	}
 
+	if item.BuggyId > 0 {
+		db = db.Where("buggy_id = ?", item.BuggyId)
+	}
+
 	if item.BuggyCode != "" {
-		db = db.Where("buggy_info->'$.code' = ?", item.BuggyCode)
+		db = db.Where("buggy_info->'$.code' COLLATE utf8mb4_general_ci LIKE ?", "%"+item.BuggyCode+"%")
+	}
+
+	if item.TeeTime != "" {
+		db = db.Where("tee_time = ?", item.TeeTime)
 	}
 
 	if item.Month != "" {
@@ -90,28 +136,150 @@ func addFilter(db *gorm.DB, item *BookingList) *gorm.DB {
 	}
 
 	if item.BagStatus != "" {
-		db = db.Where("bag_status = ?", item.BagStatus)
+		status := strings.Split(item.BagStatus, ",")
+		db = db.Where("bag_status in (?)", status)
+	}
+
+	if item.BookingCode != "" {
+		db = db.Where("booking_code LIKE ?", "%"+item.BookingCode+"%")
+	}
+
+	if item.AgencyId > 0 {
+		db = db.Where("agency_id = ?", item.AgencyId)
+	}
+
+	if item.BookingUid != "" {
+		db = db.Where("uid = ?", item.BookingUid)
+	}
+
+	if item.HaveBag != nil {
+		if *item.HaveBag == "1" {
+			db = db.Where("bag <> ?", "")
+		} else {
+			db = db.Where("bag = ?", "")
+		}
+	}
+
+	if item.IsTimeOut != "" {
+		isTimeOut, _ := strconv.ParseInt(item.IsTimeOut, 10, 64)
+		if isTimeOut == 1 {
+			db = db.Where("bag_status = ?", constants.BAG_STATUS_TIMEOUT)
+		} else if isTimeOut == 0 {
+			db = db.Where("bag_status <> ?", constants.BAG_STATUS_TIMEOUT).Where("bag_status <> ?", constants.BAG_STATUS_CHECK_OUT)
+		}
 	}
 
 	if item.IsFlight != "" {
-		isFlight, _ := strconv.ParseInt(item.IsAgency, 10, 8)
+		isFlight, _ := strconv.ParseInt(item.IsFlight, 10, 64)
 		if isFlight == 1 {
-			db = db.Where("flight_uid <> ?", 0)
+			db = db.Where("flight_id <> ?", 0)
 		} else if isFlight == 0 {
-			db = db.Where("flight_uid = ?", 0)
+			db = db.Where("flight_id = ?", 0)
 		}
+	}
+
+	if item.FlightId > 0 {
+		db = db.Where("flight_id = ?", item.FlightId)
+	}
+
+	if item.HasBuggy != "" {
+		hasBuggy, _ := strconv.ParseInt(item.HasBuggy, 10, 64)
+		if hasBuggy == 1 {
+			db = db.Where("buggy_id <> ?", 0)
+		} else if hasBuggy == 0 {
+			db = db.Where("buggy_id = ?", 0)
+		}
+	}
+
+	if item.HasBookCaddie != "" {
+		hasBookCaddie, _ := strconv.ParseInt(item.HasBookCaddie, 10, 64)
+		db = db.Where("has_book_caddie = ?", hasBookCaddie)
+	}
+
+	if item.HasCaddie != "" {
+		hasCaddie, _ := strconv.ParseInt(item.HasCaddie, 10, 64)
+		if hasCaddie == 1 {
+			db = db.Where("caddie_id <> ?", 0)
+		} else if hasCaddie == 0 {
+			db = db.Where("caddie_id = ?", 0)
+		}
+	}
+
+	if item.CustomerName != "" {
+		db = db.Where("customer_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CustomerName+"%")
+	}
+
+	if item.TeeType != "" {
+		db = db.Where("tee_type = ?", item.TeeType)
+	}
+
+	if item.CourseType != "" {
+		db = db.Where("course_type = ?", item.CourseType)
+	}
+
+	if item.GuestStyleName != "" {
+		db = db.Where("guest_style_name = ?", item.GuestStyleName)
+	}
+
+	if item.GuestStyle != "" {
+		db = db.Where("guest_style = ?", item.GuestStyle)
+	}
+
+	if item.PlayerOrBag != "" {
+		db = db.Where("bag COLLATE utf8mb4_general_ci LIKE ? OR customer_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.PlayerOrBag+"%", "%"+item.PlayerOrBag+"%")
+	}
+
+	if item.IsCheckIn != "" {
+		// IsCheckIn = 1 lấy các booking đã check in nhưng chưa check out trong ngày hiện tại
+		// IsCheckIn = 2 lấy lịch sử booking đã check in
+		if item.IsCheckIn == "1" {
+			bagStatus := []string{
+				constants.BAG_STATUS_IN_COURSE,
+				constants.BAG_STATUS_TIMEOUT,
+				constants.BAG_STATUS_WAITING,
+			}
+
+			db = db.Where("bag_status IN (?) ", bagStatus)
+		} else if item.IsCheckIn == "2" {
+			db = db.Where("check_in_time > 0")
+		}
+	}
+
+	if item.IsBuggyPrepareForJoin != "" {
+		bagStatus := []string{
+			constants.BAG_STATUS_WAITING,
+		}
+		db = db.Where("show_caddie_buggy = ?", true)
+		db = db.Where("bag_status IN (?) ", bagStatus)
+	}
+
+	if isGroupBillCode {
+		db = db.Group("bill_code")
+	}
+
+	if item.IsGroupBillCode {
+		db = db.Group("bill_code")
+		db = db.Order("created_at desc")
+	}
+
+	if item.NotNoneGolfAndWalking {
+		customerType := []string{
+			constants.CUSTOMER_TYPE_NONE_GOLF,
+			constants.CUSTOMER_TYPE_WALKING_FEE,
+		}
+		db = db.Where("customer_type NOT IN (?) ", customerType)
 	}
 
 	return db
 }
 
-func (item *BookingList) FindBookingList(page models.Page) ([]Booking, int64, error) {
+func (item *BookingList) FindBookingList(database *gorm.DB, page models.Page) ([]Booking, int64, error) {
 	var list []Booking
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(Booking{})
+	db := database.Model(Booking{})
 
-	db = addFilter(db, item)
+	db = addFilter(db, item, false)
 
 	db.Count(&total)
 
@@ -122,12 +290,12 @@ func (item *BookingList) FindBookingList(page models.Page) ([]Booking, int64, er
 	return list, total, db.Error
 }
 
-func (item *BookingList) FindBookingListWithSelect(page models.Page) (*gorm.DB, int64, error) {
+func (item *BookingList) FindBookingListWithSelect(database *gorm.DB, page models.Page, isGroupBillCode bool) (*gorm.DB, int64, error) {
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(Booking{})
+	db := database.Model(Booking{})
 
-	db = addFilter(db, item)
+	db = addFilter(db, item, isGroupBillCode)
 
 	db.Count(&total)
 
@@ -138,9 +306,20 @@ func (item *BookingList) FindBookingListWithSelect(page models.Page) (*gorm.DB, 
 	return db, total, db.Error
 }
 
-func (item *BookingList) FindFirst() (Booking, error) {
+func (item *BookingList) FindAllBookingList(database *gorm.DB) (*gorm.DB, int64, error) {
+	total := int64(0)
+	db := database.Model(Booking{})
+
+	db = addFilter(db, item, false)
+
+	db.Count(&total)
+
+	return db, total, db.Error
+}
+
+func (item *BookingList) FindFirst(database *gorm.DB) (Booking, error) {
 	var result Booking
-	db := datasources.GetDatabase().Model(Booking{})
+	db := database.Model(Booking{})
 
 	if item.CaddieCode != "" {
 		db = db.Where("caddie_info->'$.code' = ?", item.CaddieCode)

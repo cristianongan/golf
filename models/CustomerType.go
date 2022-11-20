@@ -14,13 +14,13 @@ type CustomerType struct {
 }
 
 func (item *CustomerType) Create() error {
-	db := datasources.GetDatabase()
+	db := datasources.GetDatabaseAuth()
 	return db.Create(item).Error
 }
 
 func (item *CustomerType) Update() error {
-	mydb := datasources.GetDatabase()
-	errUpdate := mydb.Save(item).Error
+	db := datasources.GetDatabaseAuth()
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
@@ -28,12 +28,13 @@ func (item *CustomerType) Update() error {
 }
 
 func (item *CustomerType) FindFirst() error {
-	db := datasources.GetDatabase()
+	db := datasources.GetDatabaseAuth()
 	return db.Where(item).First(item).Error
 }
 
 func (item *CustomerType) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(CustomerType{})
+	database := datasources.GetDatabaseAuth()
+	db := database.Model(CustomerType{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
@@ -41,14 +42,16 @@ func (item *CustomerType) Count() (int64, error) {
 }
 
 func (item *CustomerType) FindAll() ([]CustomerType, error) {
-	db := datasources.GetDatabase().Model(CustomerType{})
+	database := datasources.GetDatabaseAuth()
+	db := database.Model(CustomerType{})
 	list := []CustomerType{}
 	db.Find(&list)
 	return list, db.Error
 }
 
 func (item *CustomerType) FindList(page Page) ([]CustomerType, int64, error) {
-	db := datasources.GetDatabase().Model(CustomerType{})
+	database := datasources.GetDatabaseAuth()
+	db := database.Model(CustomerType{})
 	list := []CustomerType{}
 	total := int64(0)
 	db = db.Where(item)
@@ -61,8 +64,9 @@ func (item *CustomerType) FindList(page Page) ([]CustomerType, int64, error) {
 }
 
 func (item *CustomerType) Delete() error {
+	db := datasources.GetDatabaseAuth()
 	if item.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

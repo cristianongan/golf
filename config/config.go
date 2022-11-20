@@ -96,6 +96,64 @@ func GetIsMigrated() bool {
 	return config.GetBool("mysql.is_migrated")
 }
 
+// =============== Get database2 config ========================
+func GetDbName2() string {
+	return config.GetString("mysql2.db_name")
+}
+
+func GetDbUser2() string {
+	return config.GetString("mysql2.user")
+}
+
+func GetDbPassword2() string {
+	return config.GetString("mysql2.password")
+}
+
+func GetDbHost2() string {
+	return config.GetString("mysql2.host")
+}
+
+func GetDbPort2() string {
+	return config.GetString("mysql2.port")
+}
+
+func GetDbDebug2() bool {
+	return config.GetBool("mysql2.debug")
+}
+
+func GetIsMigrated2() bool {
+	return config.GetBool("mysql2.is_migrated")
+}
+
+// =============== Get database Auth config ========================
+func GetDbAuthName() string {
+	return config.GetString("mysql_auth.db_name")
+}
+
+func GetDbAuthUser() string {
+	return config.GetString("mysql_auth.user")
+}
+
+func GetDbAuthPassword() string {
+	return config.GetString("mysql_auth.password")
+}
+
+func GetDbAuthHost() string {
+	return config.GetString("mysql_auth.host")
+}
+
+func GetDbAuthPort() string {
+	return config.GetString("mysql_auth.port")
+}
+
+func GetDbAuthDebug() bool {
+	return config.GetBool("mysql_auth.debug")
+}
+
+func GetDbAuthIsMigrated() bool {
+	return config.GetBool("mysql_auth.is_migrated")
+}
+
 // ================================================
 func GetKibanaLog() bool {
 	return config.GetBool("kibana_log")
@@ -142,4 +200,19 @@ func GetCronJobSecretKey() string {
 }
 func GetCronJobPageLimit() int {
 	return config.GetInt("cronjob_page_limit")
+}
+
+// =============== Get Payment SecretKey ========================
+func GetPaymentSecretKey() string {
+	return config.GetString("payment_secret_key")
+}
+
+// =============== Get URL Golf Partner ========================
+func GetGolfPartnerURL() string {
+	return config.GetString("golf_partner.url")
+}
+
+// =============== Get Pass SecretKey ========================
+func GetPassSecretKey() string {
+	return config.GetString("aes_pass_secret_key")
 }

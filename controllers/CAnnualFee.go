@@ -4,6 +4,7 @@ import (
 	"errors"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	"start/utils"
 	"start/utils/response_message"
@@ -16,6 +17,7 @@ import (
 type CAnnualFee struct{}
 
 func (_ *CAnnualFee) CreateAnnualFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.AnnualFee{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -27,7 +29,7 @@ func (_ *CAnnualFee) CreateAnnualFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.IsDuplicated() {
+	if body.IsDuplicated(db) {
 		response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
@@ -35,18 +37,18 @@ func (_ *CAnnualFee) CreateAnnualFee(c *gin.Context, prof models.CmsUser) {
 	// Check member card exits
 	memberCard := models.MemberCard{}
 	memberCard.Uid = body.MemberCardUid
-	errFind := memberCard.FindFirst()
+	errFind := memberCard.FindFirst(db)
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
 		return
 	}
 
 	annualFee := models.AnnualFee{
-		PartnerUid:    body.PartnerUid,
-		CourseUid:     body.CourseUid,
-		Year:          body.Year,
-		MemberCardUid: body.MemberCardUid,
-		// PaymentType:       body.PaymentType,
+		PartnerUid:     body.PartnerUid,
+		CourseUid:      body.CourseUid,
+		Year:           body.Year,
+		MemberCardUid:  body.MemberCardUid,
+		ExpirationDate: body.ExpirationDate,
 		// BillNumber:        body.BillNumber,
 		Note:              body.Note,
 		AnnualQuotaAmount: body.AnnualQuotaAmount,
@@ -54,11 +56,10 @@ func (_ *CAnnualFee) CreateAnnualFee(c *gin.Context, prof models.CmsUser) {
 		PaidForfeit:       body.PaidForfeit,
 		LastYearDebit:     body.LastYearDebit,
 		TotalPaid:         body.TotalPaid,
-		PlayCountsAdd:     body.PlayCountsAdd,
 		DaysPaid:          body.DaysPaid,
 	}
 
-	errC := annualFee.Create()
+	errC := annualFee.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
@@ -69,6 +70,7 @@ func (_ *CAnnualFee) CreateAnnualFee(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CAnnualFee) GetListAnnualFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListAnnualFeeForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -97,21 +99,23 @@ func (_ *CAnnualFee) GetListAnnualFee(c *gin.Context, prof models.CmsUser) {
 		MemberCardUid: form.MemberCardUid,
 		Year:          form.Year,
 	}
-	list, total, err := annualFeeR.FindList(page)
+	list, totalData, total, err := annualFeeR.FindList(db, page, form.CardId)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
 	res := map[string]interface{}{
-		"total": total,
-		"data":  list,
+		"total":    total,
+		"data":     list,
+		"sum_data": totalData,
 	}
 
 	okResponse(c, res)
 }
 
 func (_ *CAnnualFee) GetListAnnualFeeWithGroupMemberCard(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListAnnualFeeForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -131,7 +135,7 @@ func (_ *CAnnualFee) GetListAnnualFeeWithGroupMemberCard(c *gin.Context, prof mo
 		MemberCardUid: form.MemberCardUid,
 		Year:          form.Year,
 	}
-	list, total, err := annualFeeR.FindListWithGroupMemberCard(page)
+	list, total, err := annualFeeR.FindListWithGroupMemberCard(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -146,6 +150,7 @@ func (_ *CAnnualFee) GetListAnnualFeeWithGroupMemberCard(c *gin.Context, prof mo
 }
 
 func (_ *CAnnualFee) UpdateAnnualFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	annualFeeIdStr := c.Param("id")
 	annualFeeId, err := strconv.ParseInt(annualFeeIdStr, 10, 64)
 	if err != nil || annualFeeId <= 0 {
@@ -155,7 +160,7 @@ func (_ *CAnnualFee) UpdateAnnualFee(c *gin.Context, prof models.CmsUser) {
 
 	annualFee := models.AnnualFee{}
 	annualFee.Id = annualFeeId
-	errF := annualFee.FindFirst()
+	errF := annualFee.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -167,14 +172,25 @@ func (_ *CAnnualFee) UpdateAnnualFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Check duplicated
+	if body.Year != annualFee.Year && body.IsDuplicated(db) {
+		response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
+		return
+	}
+
 	annualFee.AnnualQuotaAmount = body.AnnualQuotaAmount
 	annualFee.PaidForfeit = body.PaidForfeit
 	annualFee.LastYearDebit = body.LastYearDebit
 	annualFee.TotalPaid = body.TotalPaid
-	annualFee.PlayCountsAdd = body.PlayCountsAdd
 	annualFee.DaysPaid = body.DaysPaid
+	annualFee.PrePaid = body.PrePaid
+	annualFee.PaidReduce = body.PaidReduce
+	annualFee.ExpirationDate = body.ExpirationDate
+	if body.Year > 0 {
+		annualFee.Year = body.Year
+	}
 
-	errUdp := annualFee.Update()
+	errUdp := annualFee.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -184,6 +200,7 @@ func (_ *CAnnualFee) UpdateAnnualFee(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CAnnualFee) DeleteAnnualFee(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	annualFeeIdStr := c.Param("id")
 	annualFeeId, err := strconv.ParseInt(annualFeeIdStr, 10, 64)
 	if err != nil || annualFeeId <= 0 {
@@ -193,13 +210,13 @@ func (_ *CAnnualFee) DeleteAnnualFee(c *gin.Context, prof models.CmsUser) {
 
 	annualFee := models.AnnualFee{}
 	annualFee.Id = annualFeeId
-	errF := annualFee.FindFirst()
+	errF := annualFee.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := annualFee.Delete()
+	errDel := annualFee.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

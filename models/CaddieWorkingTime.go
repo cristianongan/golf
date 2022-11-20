@@ -2,10 +2,10 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 type CaddieWorkingTime struct {
@@ -39,17 +39,16 @@ type WorkingTimeTotal struct {
 	CaddieWorkingTimeList []CaddieWorkingTimeResponse `json:"data"`
 }
 
-func (item *CaddieWorkingTime) Create() error {
+func (item *CaddieWorkingTime) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *CaddieWorkingTime) CreateBatch(caddies []CaddieWorkingTime) error {
+func (item *CaddieWorkingTime) CreateBatch(db *gorm.DB, caddies []CaddieWorkingTime) error {
 	now := time.Now()
 	for i := range caddies {
 		c := &caddies[i]
@@ -58,21 +57,19 @@ func (item *CaddieWorkingTime) CreateBatch(caddies []CaddieWorkingTime) error {
 		c.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.CreateInBatches(caddies, 100).Error
 }
 
-func (item *CaddieWorkingTime) Delete() error {
+func (item *CaddieWorkingTime) Delete(db *gorm.DB) error {
 	if item.ModelId.Id < 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }
 
-func (item *CaddieWorkingTime) Update() error {
+func (item *CaddieWorkingTime) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
 
-	db := datasources.GetDatabase()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -80,34 +77,33 @@ func (item *CaddieWorkingTime) Update() error {
 	return nil
 }
 
-func (item *CaddieWorkingTime) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *CaddieWorkingTime) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *CaddieWorkingTime) Count() (int64, error) {
+func (item *CaddieWorkingTime) Count(database *gorm.DB) (int64, error) {
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(CaddieWorkingTime{})
+	db := database.Model(CaddieWorkingTime{})
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *CaddieWorkingTime) FindCaddieWorkingTimeDetail() *CaddieWorkingTime {
+func (item *CaddieWorkingTime) FindCaddieWorkingTimeDetail(database *gorm.DB) *CaddieWorkingTime {
 	time := CaddieWorkingTime{}
-	db := datasources.GetDatabase().Model(CaddieWorkingTime{})
+	db := database.Model(CaddieWorkingTime{})
 	db.Where(item).Find(&time)
 	return &time
 }
 
-func (item *CaddieWorkingTimeRequest) FindList(page Page, from, to int64) ([]WorkingTimeTotal, int64, error) {
+func (item *CaddieWorkingTimeRequest) FindList(database *gorm.DB, page Page, from, to int64) ([]WorkingTimeTotal, int64, error) {
 	var list []CaddieWorkingTimeRequest
 	var results []WorkingTimeTotal
 
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(CaddieWorkingTime{})
+	db := database.Model(CaddieWorkingTime{})
 
 	if item.CaddieId != "" {
 		db = db.Where("caddie_working_times.caddie_id = ?", item.CaddieId)

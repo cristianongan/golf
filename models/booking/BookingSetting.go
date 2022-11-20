@@ -2,12 +2,12 @@ package model_booking
 
 import (
 	"start/constants"
-	"start/datasources"
 	"start/models"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Booking setting
@@ -36,7 +36,7 @@ type BookingSetting struct {
 	IncludeDays int `json:"include_days"`
 }
 
-func (item *BookingSetting) IsDuplicated() bool {
+func (item *BookingSetting) IsDuplicated(db *gorm.DB) bool {
 	bookingSetting := BookingSetting{
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
@@ -44,7 +44,7 @@ func (item *BookingSetting) IsDuplicated() bool {
 		Dow:        item.Dow,
 	}
 
-	errFind := bookingSetting.FindFirst()
+	errFind := bookingSetting.FindFirst(db)
 	if errFind == nil || bookingSetting.Id > 0 {
 		return true
 	}
@@ -64,7 +64,7 @@ func (item *BookingSetting) IsValidated() bool {
 	return true
 }
 
-func (item *BookingSetting) Create() error {
+func (item *BookingSetting) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -72,35 +72,32 @@ func (item *BookingSetting) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *BookingSetting) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *BookingSetting) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *BookingSetting) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *BookingSetting) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *BookingSetting) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(BookingSetting{})
+func (item *BookingSetting) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(BookingSetting{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *BookingSetting) FindList(page models.Page) ([]BookingSetting, int64, error) {
-	db := datasources.GetDatabase().Model(BookingSetting{})
+func (item *BookingSetting) FindList(database *gorm.DB, page models.Page) ([]BookingSetting, int64, error) {
+	db := database.Model(BookingSetting{})
 	list := []BookingSetting{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -117,9 +114,9 @@ func (item *BookingSetting) FindList(page models.Page) ([]BookingSetting, int64,
 	return list, total, db.Error
 }
 
-func (item *BookingSetting) Delete() error {
+func (item *BookingSetting) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

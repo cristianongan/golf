@@ -9,16 +9,18 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Đại lý
 type Agency struct {
 	ModelId
-	PartnerUid           string         `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid            string         `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	AgencyId             string         `json:"agency_id" gorm:"type:varchar(100);index"`   // Id Agency
-	ShortName            string         `json:"short_name" gorm:"type:varchar(256)"`        // Ten ngắn Dai ly
-	Category             string         `json:"category" gorm:"type:varchar(256);index"`    // Category
+	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	AgencyId   string `json:"agency_id" gorm:"type:varchar(100);index"`   // Id Agency
+	ShortName  string `json:"short_name" gorm:"type:varchar(256)"`        // Ten ngắn Dai ly
+	// Category             string         `json:"category" gorm:"type:varchar(256);index"`    // Category
+	Type                 string         `json:"type" gorm:"type:varchar(256);index"`        // AGENCY / OTA / COMPANY
 	GuestStyle           string         `json:"guest_style" gorm:"type:varchar(256);index"` // Guest Style
 	Name                 string         `json:"name" gorm:"type:varchar(500)"`              // Ten Dai ly
 	Province             string         `json:"province" gorm:"type:varchar(100)"`          //
@@ -26,6 +28,13 @@ type Agency struct {
 	PrimaryContactSecond AgencyContact  `json:"primary_contact_second,omitempty" gorm:"type:json"`
 	ContractDetail       AgencyContract `json:"contract_detail,omitempty" gorm:"type:json"`
 	Avatar               string         `json:"avatar" gorm:"type:varchar(256)"`
+}
+
+type AgencyDetailRes struct {
+	Agency
+	NumberOfContract int64 `json:"number_of_contract"`
+	NumberOfVoucher  int64 `json:"number_of_voucher"`
+	NumberOfCustomer int64 `json:"number_of_customer"`
 }
 
 type AgencyContact struct {
@@ -65,19 +74,36 @@ func (item AgencyContract) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
-func (item *Agency) IsDuplicated() bool {
+func (item *Agency) IsDuplicated(db *gorm.DB) bool {
 	modelCheck := Agency{
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
 		AgencyId:   item.AgencyId,
-		ShortName:  item.ShortName,
+		// ShortName:  item.ShortName,
 	}
 
-	errFind := modelCheck.FindFirst()
+	errFind := modelCheck.FindFirst(db)
 	if errFind == nil || modelCheck.Id > 0 {
 		return true
 	}
 	return false
+}
+
+func (item *Agency) IsDuplicatedContract(database *gorm.DB, contractNo string) error {
+	db := database.Model(Agency{})
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if contractNo != "" {
+		db = db.Where("contract_detail->'$.contract_no' = ?", contractNo)
+	}
+
+	return db.First(item).Error
 }
 
 func (item *Agency) IsValidated() bool {
@@ -114,31 +140,29 @@ func (item *Agency) Create() error {
 	return db.Create(item).Error
 }
 
-func (item *Agency) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *Agency) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *Agency) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *Agency) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *Agency) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(Agency{})
+func (item *Agency) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(Agency{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *Agency) FindList(page Page) ([]Agency, int64, error) {
-	db := datasources.GetDatabase().Model(Agency{})
+func (item *Agency) FindList(database *gorm.DB, page Page) ([]Agency, int64, error) {
+	db := database.Model(Agency{})
 	list := []Agency{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -159,6 +183,9 @@ func (item *Agency) FindList(page Page) ([]Agency, int64, error) {
 	if item.AgencyId != "" {
 		db = db.Where("agency_id = ?", item.AgencyId)
 	}
+	if item.Type != "" {
+		db = db.Where("type = ?", item.Type)
+	}
 
 	db.Count(&total)
 
@@ -168,9 +195,17 @@ func (item *Agency) FindList(page Page) ([]Agency, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *Agency) Delete() error {
+func (item *Agency) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
+}
+
+func (item *Agency) GetNumberCustomer(database *gorm.DB) int64 {
+	total := int64(0)
+	db := database.Model(CustomerUser{})
+	db = db.Where("agency_id = ?", item.Id)
+	db.Count(&total)
+	return total
 }

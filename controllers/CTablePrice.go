@@ -2,8 +2,11 @@ package controllers
 
 import (
 	"errors"
+	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -13,6 +16,7 @@ import (
 type CTablePrice struct{}
 
 func (_ *CTablePrice) CreateTablePrice(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateTablePriceBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -26,22 +30,47 @@ func (_ *CTablePrice) CreateTablePrice(c *gin.Context, prof models.CmsUser) {
 		FromDate:   body.FromDate,
 	}
 	tablePrice.Status = body.Status
-	errC := tablePrice.Create()
+	year, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.YEAR_FORMAT, body.FromDate)
+	yearInt, _ := strconv.Atoi(year)
+	tablePrice.Year = yearInt
+	errC := tablePrice.Create(db)
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
 		return
 	}
 
-	// Tao các golf fee từ Old Price id
+	// Tạo các golf fee từ Old Price id
 	if body.OldPriceId > 0 {
 		//Use Batch Created
+		golfFeeR := models.GolfFee{
+			TablePriceId: body.OldPriceId,
+		}
 
+		listGolfFee, errList := golfFeeR.FindAllByTablePrice(db)
+		if errList == nil {
+			listCreate := []models.GolfFee{}
+			for _, v := range listGolfFee {
+				v.Id = 0
+				v.TablePriceId = tablePrice.Id
+				listCreate = append(listCreate, v)
+			}
+
+			if len(listCreate) > 0 {
+				golfFeeC := models.GolfFee{}
+				errBatchCreate := golfFeeC.BatchInsert(db, listCreate)
+				if errBatchCreate != nil {
+					response_message.InternalServerError(c, errBatchCreate.Error())
+					return
+				}
+			}
+		}
 	}
 
 	okResponse(c, tablePrice)
 }
 
 func (_ *CTablePrice) GetListTablePrice(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListTablePriceForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -58,8 +87,10 @@ func (_ *CTablePrice) GetListTablePrice(c *gin.Context, prof models.CmsUser) {
 	tablePriceR := models.TablePrice{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
+		Name:       form.TablePriceName,
+		Year:       form.Year,
 	}
-	list, total, err := tablePriceR.FindList(page)
+	list, total, err := tablePriceR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -74,6 +105,7 @@ func (_ *CTablePrice) GetListTablePrice(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CTablePrice) UpdateTablePrice(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	tablePriceIdStr := c.Param("id")
 	tablePriceId, err := strconv.ParseInt(tablePriceIdStr, 10, 64)
 	if err != nil || tablePriceId <= 0 {
@@ -83,7 +115,7 @@ func (_ *CTablePrice) UpdateTablePrice(c *gin.Context, prof models.CmsUser) {
 
 	tablePrice := models.TablePrice{}
 	tablePrice.Id = tablePriceId
-	errF := tablePrice.FindFirst()
+	errF := tablePrice.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -100,12 +132,15 @@ func (_ *CTablePrice) UpdateTablePrice(c *gin.Context, prof models.CmsUser) {
 	}
 	if body.FromDate > 0 {
 		tablePrice.FromDate = body.FromDate
+		year, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.YEAR_FORMAT, body.FromDate)
+		yearInt, _ := strconv.Atoi(year)
+		tablePrice.Year = yearInt
 	}
 	if body.Status != "" {
 		tablePrice.Status = body.Status
 	}
 
-	errUdp := tablePrice.Update()
+	errUdp := tablePrice.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -115,6 +150,10 @@ func (_ *CTablePrice) UpdateTablePrice(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CTablePrice) DeleteTablePrice(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	response_message.BadRequest(c, "Không hỗ trợ xoá bảng giá")
+	return
+
 	tablePriceIdStr := c.Param("id")
 	tablePriceId, err := strconv.ParseInt(tablePriceIdStr, 10, 64)
 	if err != nil || tablePriceId <= 0 {
@@ -124,13 +163,13 @@ func (_ *CTablePrice) DeleteTablePrice(c *gin.Context, prof models.CmsUser) {
 
 	tablePrice := models.TablePrice{}
 	tablePrice.Id = tablePriceId
-	errF := tablePrice.FindFirst()
+	errF := tablePrice.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := tablePrice.Delete()
+	errDel := tablePrice.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

@@ -3,6 +3,7 @@ package controllers
 import (
 	"log"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	model_service "start/models/service"
 	"start/utils/response_message"
@@ -14,6 +15,7 @@ import (
 type CRental struct{}
 
 func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateRentalBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
@@ -37,9 +39,9 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 
 	servicesRequest := model_service.GroupServices{}
 	servicesRequest.GroupCode = body.GroupCode
-	servicesErrFind := servicesRequest.FindFirst()
+	servicesErrFind := servicesRequest.FindFirst(db)
 	if servicesErrFind != nil {
-		response_message.BadRequest(c, servicesErrFind.Error())
+		response_message.BadRequest(c, "GroupCode not existed")
 		return
 	}
 
@@ -47,7 +49,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 	partnerRequest.Uid = body.PartnerUid
 	partnerErrFind := partnerRequest.FindFirst()
 	if partnerErrFind != nil {
-		response_message.BadRequest(c, partnerErrFind.Error())
+		response_message.BadRequest(c, "Partner not existed")
 		return
 	}
 
@@ -55,7 +57,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 	courseRequest.Uid = body.CourseUid
 	errFind := courseRequest.FindFirst()
 	if errFind != nil {
-		response_message.BadRequest(c, errFind.Error())
+		response_message.BadRequest(c, "Course not existed")
 		return
 	}
 
@@ -63,7 +65,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 	rentalRequest.CourseUid = body.CourseUid
 	rentalRequest.PartnerUid = body.PartnerUid
 	rentalRequest.RentalId = body.RentalId
-	errExist := rentalRequest.FindFirst()
+	errExist := rentalRequest.FindFirst(db)
 
 	if errExist == nil {
 		response_message.BadRequest(c, "Rental Id existed in course")
@@ -80,7 +82,6 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 
 	rental := model_service.Rental{
 		RentalId:    body.RentalId,
-		SystemCode:  body.SystemCode,
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,
 		EnglishName: body.EnglishName,
@@ -97,7 +98,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 	}
 	rental.Status = body.Status
 
-	err := rental.Create()
+	err := rental.Create(db)
 	if err != nil {
 		log.Print("Caddie.Create()")
 		response_message.InternalServerError(c, err.Error())
@@ -108,6 +109,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CRental) GetListRental(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListRentalForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -121,14 +123,16 @@ func (_ *CRental) GetListRental(c *gin.Context, prof models.CmsUser) {
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	rentalR := model_service.Rental{}
+	rentalR := model_service.RentalRequest{}
 	rentalR.PartnerUid = form.PartnerUid
 	rentalR.CourseUid = form.CourseUid
 	rentalR.EnglishName = form.EnglishName
 	rentalR.VieName = form.VieName
 	rentalR.GroupCode = form.GroupCode
+	rentalR.Type = form.Type
+	rentalR.CodeOrName = form.CodeOrName
 
-	list, total, err := rentalR.FindList(page)
+	list, total, err := rentalR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -143,6 +147,7 @@ func (_ *CRental) GetListRental(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	rentalIdStr := c.Param("id")
 	rentalId, errId := strconv.ParseInt(rentalIdStr, 10, 64)
 	if errId != nil {
@@ -152,7 +157,7 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 
 	rental := model_service.Rental{}
 	rental.Id = rentalId
-	errF := rental.FindFirst()
+	errF := rental.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -169,9 +174,6 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 	}
 	if body.VieName != "" {
 		rental.VieName = body.VieName
-	}
-	if body.GroupCode != "" {
-		rental.GroupCode = body.GroupCode
 	}
 	if body.SystemCode != "" {
 		rental.SystemCode = body.SystemCode
@@ -200,8 +202,16 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 	if body.InputUser != "" {
 		rental.InputUser = body.InputUser
 	}
-
-	errUdp := rental.Update()
+	if body.Type != "" {
+		rental.Type = body.Type
+	}
+	if body.GroupName != "" {
+		rental.GroupName = body.GroupName
+	}
+	if body.GroupCode != "" {
+		rental.GroupCode = body.GroupCode
+	}
+	errUdp := rental.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
@@ -211,6 +221,7 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CRental) DeleteRental(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	rentalIdStr := c.Param("id")
 	rentalId, errId := strconv.ParseInt(rentalIdStr, 10, 64)
 	if errId != nil {
@@ -220,13 +231,13 @@ func (_ *CRental) DeleteRental(c *gin.Context, prof models.CmsUser) {
 
 	rental := model_service.Rental{}
 	rental.Id = rentalId
-	errF := rental.FindFirst()
+	errF := rental.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := rental.Delete()
+	errDel := rental.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

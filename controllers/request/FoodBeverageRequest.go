@@ -4,8 +4,9 @@ type CreateFoodBeverageBody struct {
 	PartnerUid    string  `json:"partner_uid" binding:"required"`
 	CourseUid     string  `json:"course_uid" binding:"required"`
 	GroupCode     string  `json:"group_code" binding:"required"`
+	GroupName     string  `json:"group_name"`
 	FBCode        string  `json:"fb_code" binding:"required"`
-	AccountCode   string  `json:"account_code" binding:"required"`
+	AccountCode   string  `json:"account_code"`
 	EnglishName   string  `json:"english_name"`
 	VieName       string  `json:"vietnamese_name"`
 	Unit          string  `json:"unit"`
@@ -23,6 +24,9 @@ type CreateFoodBeverageBody struct {
 	InternalPrice float64 `json:"internal_price"`
 	IsKitchen     bool    `json:"is_kitchen"`
 	Status        string  `json:"status"`
+	Type          string  `json:"type"`
+	HotKitchen    *bool   `json:"hot_kitchen"`
+	ColdKitchen   *bool   `json:"cold_kitchen"`
 }
 
 type GetListFoodBeverageForm struct {
@@ -32,12 +36,14 @@ type GetListFoodBeverageForm struct {
 	EnglishName string `form:"english_name" json:"english_name"`
 	VieName     string `form:"vietnamese_name" json:"vietnamese_name"`
 	GroupCode   string `form:"group_code" json:"group_code"`
+	FBCode      string `form:"fb_code" json:"fb_code"`
 	Status      string `form:"status" json:"status"`
 	FBCodeList  string `form:"fb_code_list" json:"fb_code_list"`
+	Type        string `form:"type"`
+	CodeOrName  string `form:"code_or_name"`
 }
 
 type UpdateFoodBeverageBody struct {
-	GroupCode     string  `json:"group_code"`
 	EnglishName   string  `json:"english_name"`
 	VieName       string  `json:"vietnamese_name"`
 	Unit          string  `json:"unit"`
@@ -57,4 +63,9 @@ type UpdateFoodBeverageBody struct {
 	IsInventory   *bool   `json:"is_inventory"`
 	IsKitchen     *bool   `json:"is_kitchen"`
 	UserUpdate    string  `json:"user_update"`
+	HotKitchen    *bool   `json:"hot_kitchen"`
+	ColdKitchen   *bool   `json:"cold_kitchen"`
+	Type          string  `json:"type"`
+	GroupCode     string  `json:"group_code"`
+	GroupName     string  `json:"group_name"`
 }

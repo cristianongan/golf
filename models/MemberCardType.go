@@ -1,12 +1,15 @@
 package models
 
 import (
+	"log"
 	"start/constants"
-	"start/datasources"
+	"start/utils"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Loại thẻ
@@ -15,13 +18,102 @@ type MemberCardType struct {
 	PartnerUid         string `json:"partner_uid" gorm:"type:varchar(100);index"`     // Hang Golf
 	CourseUid          string `json:"course_uid" gorm:"type:varchar(256);index"`      // San Golf
 	Name               string `json:"name" gorm:"type:varchar(256)"`                  // Ten Loai Member Card
-	GuestStyle         string `json:"guest_style" gorm:"index"`                       // Guest Style ???
-	GuestStyleOffGuest string `json:"guest_style_off_guest" gorm:"type:varchar(100)"` // Guest Style Off guest ???
+	GuestStyle         string `json:"guest_style" gorm:"index"`                       // Guest Style
+	GuestStyleOfGuest  string `json:"guest_style_of_guest" gorm:"type:varchar(100)"`  // GuestStyle của khách đi cùng. [2, 2B:2345] (2 và 2B là guestStyle tạo ở GolfFee cho khách đi cùng chơi Golf): Mã 2 được đi toàn bộ các ngày, Mã 2B được đi vào ngày thứ 2,3,4,5
 	PromotGuestStyle   string `json:"promot_guest_style" gorm:"type:varchar(100)"`    // Promot guest style ???
-	NormalDayTakeGuest string `json:"normal_day_take_guest" gorm:"type:varchar(100)"` // Normal day take guest ???
-	WeekendTakeGuest   string `json:"weekend_take_guest" gorm:"type:varchar(100)"`    // Weekend take guest ???
+	NormalDayTakeGuest string `json:"normal_day_take_guest" gorm:"type:varchar(100)"` // Số lượt khách ngày thường loại thẻ này dc đưa số khách tới
+	WeekendTakeGuest   string `json:"weekend_take_guest" gorm:"type:varchar(100)"`    // Số lượt khách cuối tuần loại thẻ này dc đưa số khách tới
 	PlayTimesOnMonth   int    `json:"play_times_on_month"`                            // Số lần chơi trên tháng
-	Type               string `json:"type" gorm:"type:varchar(100);index"`            // Type: Friendly, InsideMember, OutsideMember, Promotion...
+	Type               string `json:"type" gorm:"type:varchar(100);index"`            // Type: SHORT_TERM, LONG_TERM, VIP, FOREIGN
+	PlayTimeOnYear     int    `json:"play_time_on_year"`                              // Số lần chơi trong năm
+	AnnualType         string `json:"annual_type" gorm:"type:varchar(100)"`           // loại thường niên: UN_LIMITED (không giới hạn), LIMITED (chơi có giới hạn), SLEEP (thẻ ngủ).
+	CurrentAnnualFee   int64  `json:"current_annual_fee"`                             // Current Annual Fee
+	Subject            string `json:"subject" gorm:"type:varchar(100);index"`         // Đối tượng thẻ: COMPANY, FOREIGN, FAMILY, PERSONAL
+	Float              int64  `json:"float"`                                          // Thẻ không định danh
+}
+
+func (item *MemberCardType) ParseNormalDayTakeGuest() []int {
+	listPlay := []int{}
+
+	if strings.Contains(item.NormalDayTakeGuest, ",") {
+		listTemp := strings.Split(item.NormalDayTakeGuest, ",")
+		for _, v := range listTemp {
+			i, err := strconv.Atoi(v)
+			if err != nil {
+				log.Println("NormalDayTakeGuest err", err.Error())
+			} else {
+				listPlay = append(listPlay, i)
+			}
+		}
+	} else {
+		i, err := strconv.Atoi(item.NormalDayTakeGuest)
+		if err != nil {
+			log.Println("NormalDayTakeGuest err", err.Error())
+		} else {
+			listPlay = append(listPlay, i)
+		}
+	}
+
+	return listPlay
+}
+
+func (item *MemberCardType) ParseWeekendTakeGuest() []int {
+	listPlay := []int{}
+
+	if strings.Contains(item.WeekendTakeGuest, ",") {
+		listTemp := strings.Split(item.WeekendTakeGuest, ",")
+		for _, v := range listTemp {
+			i, err := strconv.Atoi(v)
+			if err != nil {
+				log.Println("ParseWeekendTakeGuest err", err.Error())
+			} else {
+				listPlay = append(listPlay, i)
+			}
+		}
+	} else {
+		i, err := strconv.Atoi(item.WeekendTakeGuest)
+		if err != nil {
+			log.Println("ParseWeekendTakeGuest err", err.Error())
+		} else {
+			listPlay = append(listPlay, i)
+		}
+	}
+
+	return listPlay
+}
+
+func (item *MemberCardType) ParseGsOfGuest() utils.ListGsOfGuest {
+	listGs := utils.ListGsOfGuest{}
+
+	gsTrimSpace := strings.TrimSpace(item.GuestStyleOfGuest) // TrimWhite Space
+	gsLast := strings.ReplaceAll(gsTrimSpace, " ", "")       // replace white space
+
+	if strings.Contains(gsLast, ",") {
+		listTemp := strings.Split(gsLast, ",")
+		for _, v := range listTemp {
+			if v != "" {
+				if strings.Contains(v, ":") {
+					listTemp1 := strings.Split(v, ":")
+					if len(listTemp1) > 1 {
+						gsTemp := utils.GsOfGuest{
+							GuestStyle: listTemp1[0],
+							Dow:        listTemp1[1],
+						}
+						listGs = append(listGs, gsTemp)
+					}
+
+				} else {
+					gsTemp := utils.GsOfGuest{
+						GuestStyle: v,
+						Dow:        "",
+					}
+					listGs = append(listGs, gsTemp)
+				}
+			}
+		}
+	}
+
+	return listGs
 }
 
 func (item *MemberCardType) IsValidated() bool {
@@ -40,10 +132,13 @@ func (item *MemberCardType) IsValidated() bool {
 	if item.GuestStyle == "" {
 		return false
 	}
+	if item.Subject == "" {
+		return false
+	}
 	return true
 }
 
-func (item *MemberCardType) Create() error {
+func (item *MemberCardType) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -51,35 +146,32 @@ func (item *MemberCardType) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *MemberCardType) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *MemberCardType) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *MemberCardType) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *MemberCardType) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *MemberCardType) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(MemberCardType{})
+func (item *MemberCardType) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(MemberCardType{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *MemberCardType) FindList(page Page) ([]MemberCardType, int64, error) {
-	db := datasources.GetDatabase().Model(MemberCardType{})
+func (item *MemberCardType) FindList(database *gorm.DB, page Page) ([]MemberCardType, int64, error) {
+	db := database.Model(MemberCardType{})
 	list := []MemberCardType{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -112,9 +204,9 @@ func (item *MemberCardType) FindList(page Page) ([]MemberCardType, int64, error)
 	return list, total, db.Error
 }
 
-func (item *MemberCardType) Delete() error {
+func (item *MemberCardType) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

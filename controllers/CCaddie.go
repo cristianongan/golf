@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"errors"
+	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
@@ -14,6 +16,7 @@ import (
 type CCaddie struct{}
 
 func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CreateCaddieBody
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		response_message.BadRequest(c, "")
@@ -49,38 +52,50 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 	caddieRequest := models.Caddie{}
 	caddieRequest.CourseUid = body.CourseUid
 	caddieRequest.PartnerUid = body.PartnerUid
-	caddieRequest.Code = body.Code // Id Caddie vận hành
-	errExist := caddieRequest.FindFirst()
+	caddieRequest.Phone = body.Phone
+	errPhoneExist := caddieRequest.FindFirst(db)
 
-	if errExist == nil {
-		response_message.BadRequest(c, "Caddie Id existed in course")
+	if errPhoneExist == nil {
+		response_message.BadRequest(c, "Số điện thoại đã tồn tại")
+		return
+	}
+
+	caddieRequest.Phone = ""
+	caddieRequest.Code = body.Code // Id Caddie vận hành
+	errCodeExist := caddieRequest.FindFirst(db)
+
+	if errCodeExist == nil {
+		response_message.BadRequest(c, "Caddie Code đã tồn tại")
 		return
 	}
 
 	Caddie := models.Caddie{
-		Code:          body.Code,
-		PartnerUid:    body.PartnerUid,
-		CourseUid:     body.CourseUid,
-		Name:          body.Name,
-		Avatar:        body.Avatar,
-		Phone:         body.Phone,
-		Address:       body.Address,
-		Sex:           body.Sex,
-		BirthDay:      body.BirthDay,
-		IdentityCard:  body.IdentityCard,
-		IssuedBy:      body.IssuedBy,
-		ExpiredDate:   body.ExpiredDate,
-		Group:         body.Group,
-		StartedDate:   body.StartedDate,
-		WorkingStatus: body.WorkingStatus,
-		Level:         body.Level,
-		Note:          body.Note,
-		PlaceOfOrigin: body.PlaceOfOrigin,
-		Email:         body.Email,
-		IdHr:          body.IdHr,
+		Code:         body.Code,
+		PartnerUid:   body.PartnerUid,
+		CourseUid:    body.CourseUid,
+		Name:         body.Name,
+		Avatar:       body.Avatar,
+		Phone:        body.Phone,
+		Address:      body.Address,
+		Sex:          body.Sex,
+		BirthDay:     body.BirthDay,
+		IdentityCard: body.IdentityCard,
+		IssuedBy:     body.IssuedBy,
+		ExpiredDate:  body.ExpiredDate,
+		Group:        body.Group,
+		StartedDate:  body.StartedDate,
+		//WorkingStatus: body.WorkingStatus,
+		CurrentStatus:  constants.CADDIE_CURRENT_STATUS_READY,
+		Level:          body.Level,
+		Note:           body.Note,
+		PlaceOfOrigin:  body.PlaceOfOrigin,
+		Email:          body.Email,
+		IdHr:           body.IdHr,
+		GroupId:        body.GroupId,
+		ContractStatus: body.ContractStatus,
 	}
 
-	err := Caddie.Create()
+	err := Caddie.Create(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -89,6 +104,7 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCaddie) CreateCaddieBatch(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body []request.CreateCaddieBody
 	if bindErr := c.BindJSON(&body); bindErr != nil {
 		response_message.BadRequest(c, "")
@@ -118,38 +134,39 @@ func (_ *CCaddie) CreateCaddieBatch(c *gin.Context, prof models.CmsUser) {
 
 		caddieRequest := models.Caddie{}
 		caddieRequest.CourseUid = body.CourseUid
-		errExist := caddieRequest.FindFirst()
+		errExist := caddieRequest.FindFirst(db)
 		if errExist == nil {
 			response_message.BadRequest(c, "Caddie number existed in course")
 			return
 		}
 
 		caddie := models.Caddie{
-			PartnerUid:    body.PartnerUid,
-			Code:          body.Code,
-			CourseUid:     body.CourseUid,
-			Name:          body.Name,
-			Phone:         body.Phone,
-			Address:       body.Address,
-			Sex:           body.Sex,
-			BirthDay:      body.BirthDay,
-			IdentityCard:  body.IdentityCard,
-			IssuedBy:      body.IssuedBy,
-			ExpiredDate:   body.ExpiredDate,
-			Group:         body.Group,
-			StartedDate:   body.StartedDate,
-			WorkingStatus: body.WorkingStatus,
-			Level:         body.Level,
-			Note:          body.Note,
-			PlaceOfOrigin: body.PlaceOfOrigin,
-			Email:         body.Email,
-			IdHr:          body.IdHr,
+			PartnerUid:   body.PartnerUid,
+			Code:         body.Code,
+			CourseUid:    body.CourseUid,
+			Name:         body.Name,
+			Phone:        body.Phone,
+			Address:      body.Address,
+			Sex:          body.Sex,
+			BirthDay:     body.BirthDay,
+			IdentityCard: body.IdentityCard,
+			IssuedBy:     body.IssuedBy,
+			ExpiredDate:  body.ExpiredDate,
+			Group:        body.Group,
+			StartedDate:  body.StartedDate,
+			//WorkingStatus: body.WorkingStatus,
+			Level:          body.Level,
+			Note:           body.Note,
+			PlaceOfOrigin:  body.PlaceOfOrigin,
+			Email:          body.Email,
+			IdHr:           body.IdHr,
+			ContractStatus: body.ContractStatus,
 		}
 
 		caddieBatchRequest = append(caddieBatchRequest, caddie)
 	}
 
-	err := caddieRequest.CreateBatch(caddieBatchRequest)
+	err := caddieRequest.CreateBatch(db, caddieBatchRequest)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -159,6 +176,7 @@ func (_ *CCaddie) CreateCaddieBatch(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CCaddie) GetCaddieList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListCaddieForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -172,32 +190,65 @@ func (_ *CCaddie) GetCaddieList(c *gin.Context, prof models.CmsUser) {
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	caddieRequest := models.Caddie{}
+	caddie := models.CaddieList{}
 
-	if form.CourseId != nil {
-		caddieRequest.CourseUid = *form.CourseId
-	}
-	if form.Level != nil {
-		caddieRequest.Level = *form.Level
-	}
-	if form.Phone != nil {
-		caddieRequest.Phone = *form.Phone
-	}
-	if form.Name != nil {
-		print(*form.Name)
-		caddieRequest.Name = *form.Name
-	}
-	if form.Code != nil {
-		caddieRequest.Code = *form.Code
-	}
-	if form.WorkingStatus != nil {
-		caddieRequest.WorkingStatus = *form.WorkingStatus
-	}
-	if form.PartnerUid != nil {
-		caddieRequest.PartnerUid = *form.PartnerUid
+	if form.PartnerUid != "" {
+		caddie.PartnerUid = form.PartnerUid
 	}
 
-	list, total, err := caddieRequest.FindList(page)
+	if form.CourseId != "" {
+		caddie.CourseUid = form.CourseId
+	}
+
+	if form.Level != "" {
+		caddie.Level = form.Level
+	}
+
+	if form.Phone != "" {
+		caddie.Phone = form.Phone
+	}
+
+	if form.Name != "" {
+		caddie.CaddieName = form.Name
+	}
+
+	if form.Code != "" {
+		caddie.CaddieCode = form.Code
+	}
+
+	if form.WorkingStatus != "" {
+		caddie.WorkingStatus = form.WorkingStatus
+	}
+
+	if form.GroupId != "" {
+		caddie.GroupId, _ = strconv.ParseInt(form.GroupId, 10, 64)
+	}
+
+	if form.IsInGroup != "" {
+		caddie.IsInGroup = form.IsInGroup
+	}
+
+	if form.IsReadyForBooking != "" {
+		caddie.IsReadyForBooking = form.IsReadyForBooking
+	}
+
+	if form.ContractStatus != "" {
+		caddie.ContractStatus = form.ContractStatus
+	}
+
+	if form.CurrentStatus != "" {
+		caddie.CurrentStatus = form.CurrentStatus
+	}
+
+	if form.IsReadyForJoin != "" {
+		caddie.IsReadyForJoin = form.IsReadyForJoin
+	}
+
+	if form.IsBooked != "" {
+		caddie.IsBooked = form.IsBooked
+	}
+
+	list, total, err := caddie.FindList(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -212,7 +263,41 @@ func (_ *CCaddie) GetCaddieList(c *gin.Context, prof models.CmsUser) {
 	c.JSON(200, res)
 }
 
+func (_ *CCaddie) GetCaddieReadyOnDay(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListCaddieReady{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	caddie := models.CaddieList{}
+
+	if form.PartnerUid != "" {
+		caddie.PartnerUid = form.PartnerUid
+	}
+
+	if form.CourseId != "" {
+		caddie.CourseUid = form.CourseId
+	}
+
+	caddie.IsReadyForJoin = "1"
+	list, _, err := caddie.FindAllCaddieReadyOnDayList(db, form.DateTime)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"data": list,
+	}
+
+	c.JSON(200, res)
+}
+
 func (_ *CCaddie) GetCaddieDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	caddieIdStr := c.Param("id")
 
 	if caddieIdStr == "" {
@@ -222,7 +307,7 @@ func (_ *CCaddie) GetCaddieDetail(c *gin.Context, prof models.CmsUser) {
 
 	caddieRequest := models.Caddie{}
 	caddieRequest.Id, _ = strconv.ParseInt(caddieIdStr, 10, 64)
-	caddieDetail, errF := caddieRequest.FindCaddieDetail()
+	caddieDetail, errF := caddieRequest.FindCaddieDetail(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -232,9 +317,9 @@ func (_ *CCaddie) GetCaddieDetail(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
-TODO: chuyen ve id
-*/
+ */
 func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	caddieIdStr := c.Param("id")
 
 	if caddieIdStr == "" {
@@ -244,14 +329,14 @@ func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
 
 	caddieRequest := models.Caddie{}
 	caddieRequest.Id, _ = strconv.ParseInt(caddieIdStr, 10, 64)
-	errF := caddieRequest.FindFirst()
+	errF := caddieRequest.FindFirst(db)
 
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
 
-	err := caddieRequest.Delete()
+	err := caddieRequest.SolfDelete(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -261,9 +346,9 @@ func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
-TODO: chuyen ve id
-*/
+ */
 func (_ *CCaddie) UpdateCaddie(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	caddieIdStr := c.Param("id")
 
 	var body request.UpdateCaddieBody
@@ -280,7 +365,7 @@ func (_ *CCaddie) UpdateCaddie(c *gin.Context, prof models.CmsUser) {
 	caddieRequest := models.Caddie{}
 	caddieRequest.Id, _ = strconv.ParseInt(caddieIdStr, 10, 64)
 
-	errF := caddieRequest.FindFirst()
+	errF := caddieRequest.FindFirst(db)
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
@@ -288,7 +373,7 @@ func (_ *CCaddie) UpdateCaddie(c *gin.Context, prof models.CmsUser) {
 
 	assignCaddieUpdate(&caddieRequest, body)
 
-	err := caddieRequest.Update()
+	err := caddieRequest.Update(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -351,5 +436,11 @@ func assignCaddieUpdate(caddieRequest *models.Caddie, body request.UpdateCaddieB
 	}
 	if body.Avatar != nil {
 		caddieRequest.Avatar = *body.Avatar
+	}
+	if body.GroupId > 0 {
+		caddieRequest.GroupId = body.GroupId
+	}
+	if body.ContractStatus != nil {
+		caddieRequest.ContractStatus = *body.ContractStatus
 	}
 }

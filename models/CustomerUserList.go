@@ -1,9 +1,10 @@
 package models
 
 import (
-	"start/datasources"
 	"strconv"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type CustomerUserList struct {
@@ -12,11 +13,11 @@ type CustomerUserList struct {
 	CourseUid     string
 }
 
-func (item CustomerUserList) FindCustomerList(page Page) ([]CustomerUser, int64, error) {
+func (item CustomerUserList) FindCustomerList(database *gorm.DB, page Page) ([]CustomerUser, int64, error) {
 	var list []CustomerUser
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(CustomerUser{})
+	db := database.Model(CustomerUser{})
 
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)

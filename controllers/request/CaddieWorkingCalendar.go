@@ -1,26 +1,31 @@
 package request
 
 type CreateCaddieWorkingCalendarBody struct {
-	CaddieUid    string `json:"caddie_uid" validate:"required"`
-	CaddieCode   string `json:"caddie_code" validate:"required"`
-	CaddieLabel  string `json:"caddie_label" validate:"required"`
-	CaddieColumn string `json:"caddie_column" validate:"required"`
-	CaddieRow    string `json:"caddie_row" validate:"required"`
-	RowTime      string `json:"row_time" validate:"required"`
-	ApplyDate    string `json:"apply_date" validate:"required,datetime"`
+	PartnerUid        string                             `json:"partner_uid"`
+	CourseUid         string                             `json:"course_uid"`
+	CaddieWorkingList []CaddieWorkingCalendarListRequest `json:"caddie_working_list" binding:"required"`
+	ActionType        string                             `json:"action_type"`
 }
 
 type GetCaddieWorkingCalendarList struct {
-	PageRequest
-	ApplyDate string `form:"apply_date"`
+	PartnerUid string `form:"partner_uid" validate:"required"`
+	CourseUid  string `form:"course_uid" validate:"required"`
+	ApplyDate  string `form:"apply_date" validate:"required"`
 }
 
 type UpdateCaddieWorkingCalendarBody struct {
-	CaddieColumn string `json:"caddie_column" validate:"required"`
-	CaddieRow    string `json:"caddie_row" validate:"required"`
-	RowTime      string `json:"row_time" validate:"required"`
-	ApplyDate    string `json:"apply_date" validate:"required,datetime"`
-	CaddieUid    string `json:"caddie_uid" validate:"required"`
-	CaddieCode   string `json:"caddie_code" validate:"required"`
-	CaddieLabel  string `json:"caddie_label" validate:"required"`
+	CaddieCode string `json:"caddie_code" validate:"required"`
+}
+
+type CaddieWorkingCalendarListRequest struct {
+	ApplyDate  string                         `json:"apply_date"`
+	Note       string                         `json:"note"`
+	CaddieList []CaddieWorkingCalendarRequest `json:"caddie_list"`
+}
+
+type CaddieWorkingCalendarRequest struct {
+	CaddieCode     string `json:"caddie_code"`
+	Row            int    `json:"row"`
+	NumberOrder    int64  `json:"number_order"`
+	CaddieIncrease bool   `json:"caddie_increase"`
 }

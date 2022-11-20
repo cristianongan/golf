@@ -86,6 +86,9 @@ func GetErrorResponseData(language, key, log string, statusCode int) ErrorRespon
 }
 
 func ErrorResponse(c *gin.Context, code int, key, log string, statusCode int) {
+	if c == nil {
+		return
+	}
 	//lang := c.Request.Header.Get(HEADER_KEY_LANGUAGE)
 	lang := c.Request.Header.Get(constants.API_HEADER_KEY_LANGUAGE)
 	internalErr := GetErrorResponseData(lang, key, log, statusCode)
@@ -94,18 +97,30 @@ func ErrorResponse(c *gin.Context, code int, key, log string, statusCode int) {
 
 // ================ For response status 200, hanlde in Reponse status_code = 400, ... in response ==============
 func BadRequestDynamicKey(c *gin.Context, key, log string) {
+	if c == nil {
+		return
+	}
 	ErrorResponse(c, http.StatusBadRequest, key, log, http.StatusBadRequest) //400
 }
 
 func BadRequest(c *gin.Context, log string) {
+	if c == nil {
+		return
+	}
 	ErrorResponse(c, http.StatusBadRequest, "ERROR_REQUEST_DATA", log, http.StatusBadRequest) //400
 }
 
 func InternalServerErrorWithKey(c *gin.Context, log, key string) {
+	if c == nil {
+		return
+	}
 	ErrorResponse(c, http.StatusInternalServerError, key, log, http.StatusInternalServerError) //500
 }
 
 func InternalServerError(c *gin.Context, log string) {
+	if c == nil {
+		return
+	}
 	ErrorResponse(c, http.StatusInternalServerError, "SYSTEM_ERROR", log, http.StatusInternalServerError) //500
 }
 
@@ -118,6 +133,9 @@ func LoginFailed(c *gin.Context) {
 }
 
 func DuplicateRecord(c *gin.Context, log string) {
+	if c == nil {
+		return
+	}
 	ErrorResponse(c, http.StatusConflict, "ERROR_DUP_RECORD", log, http.StatusConflict) // 409
 }
 
@@ -127,6 +145,10 @@ func PermissionDeny(c *gin.Context, log string) {
 
 func UnAuthorized(c *gin.Context, log string) {
 	ErrorResponse(c, http.StatusUnauthorized, "UNAUTHORIZED_LOGIN", log, http.StatusUnauthorized) //401
+}
+
+func Forbidden(c *gin.Context, log string) {
+	ErrorResponse(c, http.StatusForbidden, "FORBIDDEN", log, http.StatusForbidden) //403
 }
 
 func UserLocked(c *gin.Context, log string) {

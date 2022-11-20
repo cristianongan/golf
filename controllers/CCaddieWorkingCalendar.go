@@ -1,147 +1,226 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
-	"gorm.io/datatypes"
+	"errors"
 	"log"
+	"start/constants"
 	"start/controllers/request"
-	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
-	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CCaddieWorkingCalendar struct{}
 
 func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CreateCaddieWorkingCalendarBody
 	if err := c.BindJSON(&body); err != nil {
-		log.Print("CreateCaddieWorkingCalendar BindJSON error")
+		log.Print("CreateCaddieWorkingCalendar BindJSON error", err)
 		response_message.BadRequest(c, "")
 		return
 	}
 
-	// validate caddie_uid
-	caddie := models.Caddie{}
-	caddie.Id, _ = strconv.ParseInt(body.CaddieUid, 10, 64)
-	if err := caddie.FindFirst(); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
+	now := time.Now()
+
+	for _, v := range body.CaddieWorkingList {
+		caddieWC := models.CaddieWorkingCalendar{
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+			ApplyDate:  v.ApplyDate,
+		}
+
+		list, err := caddieWC.FindAll(db)
+		if err != nil {
+			response_message.BadRequest(c, "Find all caddie working calendar "+err.Error())
+			return
+		}
+
+		if body.ActionType == "IMPORT" {
+			// Kiểm tra ngày truy vấn có dữ liệu hay không
+			if len(list) > 0 {
+				// Xóa hết dữ liệu ngày truy vấn
+				if errD := caddieWC.DeleteBatch(db); errD != nil {
+					response_message.BadRequest(c, "Delete batch caddie working calendar "+errD.Error())
+					return
+				}
+
+				// Update thông note ngày truy vấn
+				caddieWCNote := models.CaddieWorkingCalendarNote{
+					PartnerUid: body.PartnerUid,
+					CourseUid:  body.CourseUid,
+					ApplyDate:  v.ApplyDate,
+				}
+
+				if err := caddieWCNote.FindFirst(db); err != nil {
+					response_message.BadRequest(c, "Find first caddie working calendar note "+err.Error())
+					return
+				}
+				caddieWCNote.Note = v.Note
+				if err := caddieWCNote.Update(db); err != nil {
+					response_message.BadRequest(c, "Update caddie working calendar note "+err.Error())
+					return
+				}
+			} else {
+				// Tạo lưu ý theo ngày truy vấn
+				caddieWCNoteCreate := models.CaddieWorkingCalendarNote{
+					PartnerUid: body.PartnerUid,
+					CourseUid:  body.CourseUid,
+					ApplyDate:  v.ApplyDate,
+					Note:       v.Note,
+				}
+
+				if err := caddieWCNoteCreate.Create(db); err != nil {
+					response_message.BadRequest(c, "Create caddie working calendar note "+err.Error())
+					return
+				}
+			}
+		}
+
+		listCreate := []models.CaddieWorkingCalendar{}
+		for _, data := range v.CaddieList {
+			caddieWC := models.CaddieWorkingCalendar{}
+			caddieWC.CreatedAt = now.Unix()
+			caddieWC.UpdatedAt = now.Unix()
+			caddieWC.Status = constants.STATUS_ENABLE
+			caddieWC.PartnerUid = body.PartnerUid
+			caddieWC.CourseUid = body.CourseUid
+			caddieWC.CaddieCode = data.CaddieCode
+			caddieWC.ApplyDate = v.ApplyDate
+			caddieWC.Row = data.Row
+			caddieWC.NumberOrder = data.NumberOrder
+			caddieWC.CaddieIncrease = data.CaddieIncrease
+			listCreate = append(listCreate, caddieWC)
+		}
+
+		// create
+		caddieWCCreate := models.CaddieWorkingCalendar{}
+		if err := caddieWCCreate.BatchInsert(db, listCreate); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+
 	}
 
-	// TODO: validate row_time + apply_date + caddie_column + caddie_row
-
-	applyDate, _ := time.Parse("2006-01-02", body.ApplyDate)
-
-	rowTime := strings.Split(body.RowTime, ":")
-
-	rowTimeHour, _ := strconv.ParseInt(rowTime[0], 10, 32)
-
-	rowTimeMinute, _ := strconv.ParseInt(rowTime[1], 10, 32)
-
-	caddieColumn, _ := strconv.ParseInt(body.CaddieColumn, 10, 32)
-
-	caddieWorkingCalendar := models.CaddieWorkingCalendar{
-		CaddieUid:    body.CaddieUid,
-		CaddieCode:   caddie.Code,
-		PartnerUid:   prof.PartnerUid,
-		CourseUid:    prof.CourseUid,
-		CaddieLabel:  body.CaddieLabel,
-		CaddieColumn: int(caddieColumn),
-		CaddieRow:    body.CaddieRow,
-		RowTime:      datatypes.NewTime(int(rowTimeHour), int(rowTimeMinute), 0, 0),
-		ApplyDate:    datatypes.Date(applyDate),
-	}
-
-	if err := caddieWorkingCalendar.Create(); err != nil {
-		log.Print("CreateCaddieWorkingCalendar.Create()")
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
-	c.JSON(200, caddieWorkingCalendar)
+	okRes(c)
 }
 
 func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	// TODO: filter by from and to
 
-	query := request.GetCaddieWorkingCalendarList{}
-	if err := c.Bind(&query); err != nil {
+	body := request.GetCaddieWorkingCalendarList{}
+	if err := c.Bind(&body); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
 
-	page := models.Page{
-		Limit:   query.PageRequest.Limit,
-		Page:    query.PageRequest.Page,
-		SortBy:  query.PageRequest.SortBy,
-		SortDir: query.PageRequest.SortDir,
-	}
+	//get caddie
+	caddieWorkingCalendar := models.CaddieWorkingCalendar{}
+	caddieWorkingCalendar.CourseUid = body.CourseUid
+	caddieWorkingCalendar.PartnerUid = body.PartnerUid
+	caddieWorkingCalendar.ApplyDate = body.ApplyDate
 
-	caddieWorkingCalendar := models.CaddieWorkingCalendarList{}
-	caddieWorkingCalendar.CourseUid = prof.CourseUid
-	caddieWorkingCalendar.ApplyDate = query.ApplyDate
-
-	list, total, err := caddieWorkingCalendar.FindList(page)
+	list, _, err := caddieWorkingCalendar.FindAllByDate(db)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
-	res := response.PageResponse{
-		Total: total,
-		Data:  list,
+	//get caddie increase
+	caddieWCI := models.CaddieWorkingCalendar{}
+	caddieWCI.CourseUid = body.CourseUid
+	caddieWCI.PartnerUid = body.PartnerUid
+	caddieWCI.ApplyDate = body.ApplyDate
+	caddieWCI.CaddieIncrease = true
+
+	listIncrease, _, err := caddieWCI.FindAllByDate(db)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
 	}
 
-	c.JSON(200, res)
+	//get note
+	caddieWCNote := models.CaddieWorkingCalendarNote{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		ApplyDate:  body.ApplyDate,
+	}
+
+	listNote, err := caddieWCNote.Find(db)
+	if err != nil {
+		response_message.BadRequest(c, "Find first caddie working calendar note "+err.Error())
+		return
+	}
+
+	listRes := map[string]interface{}{
+		"data_caddie":          list,
+		"data_caddie_increase": listIncrease,
+		"note":                 listNote,
+	}
+
+	res := map[string]interface{}{
+		"data": listRes,
+	}
+
+	okResponse(c, res)
 }
 
 func (_ *CCaddieWorkingCalendar) UpdateCaddieWorkingCalendar(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	caddeWCIdStr := c.Param("id")
+	caddeWCId, err := strconv.ParseInt(caddeWCIdStr, 10, 64)
+	if err != nil || caddeWCId <= 0 {
+		response_message.BadRequest(c, errors.New("Id not valid").Error())
+		return
+	}
+
 	var body request.UpdateCaddieWorkingCalendarBody
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("UpdateCaddieWorkingCalendar BindJSON error")
 		response_message.BadRequest(c, "")
 	}
 
-	// validate caddie_uid
-	caddie := models.Caddie{}
-	caddie.Id, _ = strconv.ParseInt(body.CaddieUid, 10, 64)
-	caddie.Code = body.CaddieCode
-	if err := caddie.FindFirst(); err != nil {
+	caddiWC := models.CaddieWorkingCalendar{}
+	caddiWC.Id = caddeWCId
+
+	if err := caddiWC.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
 
-	applyDate, _ := time.Parse("2006-01-02", body.ApplyDate)
+	caddiWC.CaddieCode = body.CaddieCode
 
-	rowTime := strings.Split(body.RowTime, ":")
-
-	rowTimeHour, _ := strconv.ParseInt(rowTime[0], 10, 32)
-
-	rowTimeMinute, _ := strconv.ParseInt(rowTime[1], 10, 32)
-
-	caddieColumn, _ := strconv.ParseInt(body.CaddieColumn, 10, 32)
-
-	caddieWorkingCalendar := models.CaddieWorkingCalendar{}
-	caddieWorkingCalendar.Id, _ = strconv.ParseInt(c.Param("id"), 10, 64)
-	caddieWorkingCalendar.ApplyDate = datatypes.Date(applyDate)
-	caddieWorkingCalendar.CaddieColumn = int(caddieColumn)
-	caddieWorkingCalendar.CaddieRow = body.CaddieRow
-	caddieWorkingCalendar.RowTime = datatypes.NewTime(int(rowTimeHour), int(rowTimeMinute), 0, 0)
-
-	if err := caddieWorkingCalendar.FindFirst(); err != nil {
+	if err := caddiWC.Update(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
 
-	caddieWorkingCalendar.CaddieUid = body.CaddieUid
-	caddieWorkingCalendar.CaddieCode = body.CaddieCode
-	caddieWorkingCalendar.CaddieLabel = body.CaddieLabel
+	okRes(c)
+}
 
-	if err := caddieWorkingCalendar.Update(); err != nil {
-		response_message.InternalServerError(c, err.Error())
+func (_ *CCaddieWorkingCalendar) DeleteCaddieWorkingCalendar(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	caddeWCIdStr := c.Param("id")
+	caddeWCId, err := strconv.ParseInt(caddeWCIdStr, 10, 64)
+	if err != nil || caddeWCId <= 0 {
+		response_message.BadRequest(c, errors.New("Id not valid").Error())
+		return
+	}
+
+	caddiWC := models.CaddieWorkingCalendar{}
+	caddiWC.Id = caddeWCId
+
+	if err := caddiWC.Delete(db); err != nil {
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 

@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"errors"
 	"log"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	model_service "start/models/service"
 	"start/utils/response_message"
@@ -15,32 +17,10 @@ import (
 type CFbPromotionSet struct{}
 
 func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.FbPromotionSetBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
-		return
-	}
-
-	if body.CourseUid == "" {
-		response_message.BadRequest(c, "Course Uid not empty")
-		return
-	}
-
-	if body.PartnerUid == "" {
-		response_message.BadRequest(c, "Partner Uid not empty")
-		return
-	}
-
-	if body.GroupCode == "" {
-		response_message.BadRequest(c, "Group Code not empty")
-		return
-	}
-
-	servicesRequest := model_service.GroupServices{}
-	servicesRequest.GroupCode = body.GroupCode
-	servicesErrFind := servicesRequest.FindFirst()
-	if servicesErrFind != nil {
-		response_message.BadRequest(c, servicesErrFind.Error())
 		return
 	}
 
@@ -60,23 +40,60 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 		return
 	}
 
+	fbList := []model_service.FBItem{}
+	for _, item := range body.FBList {
+		foodBeverage := model_service.FoodBeverage{
+			FBCode:     item.Code,
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+		}
+
+		if err := foodBeverage.FindFirst(db); err != nil {
+			response_message.BadRequest(c, errors.New(item.Code+" không tìm thấy ").Error())
+			return
+		}
+
+		quantity := 1
+		if item.Quantity > 0 {
+			quantity = item.Quantity
+		}
+
+		item := model_service.FBItem{
+			FBCode:      foodBeverage.FBCode,
+			Type:        foodBeverage.Type,
+			EnglishName: foodBeverage.EnglishName,
+			VieName:     foodBeverage.VieName,
+			Price:       foodBeverage.Price,
+			Unit:        foodBeverage.Unit,
+			GroupCode:   foodBeverage.GroupCode,
+			GroupName:   item.GroupName,
+			Quantity:    quantity,
+		}
+
+		fbList = append(fbList, item)
+	}
+
 	base := models.ModelId{
 		Status: constants.STATUS_ENABLE,
 	}
 
 	promotionSet := model_service.FbPromotionSet{
-		ModelId:    base,
-		CourseUid:  body.CourseUid,
-		PartnerUid: body.PartnerUid,
-		GroupCode:  body.GroupCode,
-		SetName:    body.SetName,
-		Discount:   body.Discount,
-		Note:       body.Note,
-		FBList:     body.FBList,
-		InputUser:  body.InputUser,
+		ModelId:     base,
+		CourseUid:   body.CourseUid,
+		PartnerUid:  body.PartnerUid,
+		VieName:     body.VieName,
+		EnglishName: body.EnglishName,
+		Discount:    body.Discount,
+		Note:        body.Note,
+		FBList:      fbList,
+		Code:        body.Code,
+		InputUser:   body.InputUser,
+		Price:       body.Price,
 	}
+
 	promotionSet.Status = body.Status
-	err := promotionSet.Create()
+
+	err := promotionSet.Create(db)
 	if err != nil {
 		log.Print("Create caddieNote error")
 		response_message.InternalServerError(c, err.Error())
@@ -86,6 +103,7 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 }
 
 func (_ *CFbPromotionSet) GetListFoodBeveragepRomotionSet(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListFbPromotionSetForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -99,34 +117,13 @@ func (_ *CFbPromotionSet) GetListFoodBeveragepRomotionSet(c *gin.Context, prof m
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	promotionSetR := model_service.FbPromotionSet{}
-	if form.PartnerUid != nil {
-		promotionSetR.PartnerUid = *form.PartnerUid
-	} else {
-		promotionSetR.PartnerUid = ""
-	}
-	if form.CourseUid != nil {
-		promotionSetR.CourseUid = *form.CourseUid
-	} else {
-		promotionSetR.CourseUid = ""
-	}
-	if form.SetName != nil {
-		promotionSetR.SetName = *form.SetName
-	} else {
-		promotionSetR.SetName = ""
-	}
-	if form.GroupCode != nil {
-		promotionSetR.GroupCode = *form.GroupCode
-	} else {
-		promotionSetR.GroupCode = ""
-	}
-	if form.Status != nil {
-		promotionSetR.Status = *form.Status
-	} else {
-		promotionSetR.Status = ""
-	}
+	promotionSetR := model_service.FbPromotionSetRequest{}
+	promotionSetR.PartnerUid = form.PartnerUid
+	promotionSetR.CourseUid = form.CourseUid
+	promotionSetR.CodeOrName = form.CodeOrName
+	promotionSetR.Status = form.Status
 
-	list, total, err := promotionSetR.FindList(page)
+	list, total, err := promotionSetR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -141,6 +138,7 @@ func (_ *CFbPromotionSet) GetListFoodBeveragepRomotionSet(c *gin.Context, prof m
 }
 
 func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	idStr := c.Param("id")
 	Id, errId := strconv.ParseInt(idStr, 10, 64)
 	if errId != nil {
@@ -157,13 +155,16 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 	promotionSetR := model_service.FbPromotionSet{}
 	promotionSetR.Id = Id
 
-	errF := promotionSetR.FindFirst()
+	errF := promotionSetR.FindFirst(db)
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
-	if body.SetName != nil {
-		promotionSetR.SetName = *body.SetName
+	if body.EnglishName != "" {
+		promotionSetR.EnglishName = body.EnglishName
+	}
+	if body.VieName != "" {
+		promotionSetR.VieName = body.VieName
 	}
 	if body.Note != nil {
 		promotionSetR.Note = *body.Note
@@ -174,11 +175,49 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 	if body.Status != nil {
 		promotionSetR.Status = *body.Status
 	}
-	if body.FBList != nil {
-		promotionSetR.FBList = *body.FBList
+	if body.Price > 0 {
+		promotionSetR.Price = body.Price
 	}
 
-	err := promotionSetR.Update()
+	// var price float64 = 0
+	if body.FBList != nil {
+		fbList := model_service.FBSet{}
+		for _, item := range body.FBList {
+			foodBeverage := model_service.FoodBeverage{
+				FBCode:     item.Code,
+				PartnerUid: promotionSetR.PartnerUid,
+				CourseUid:  promotionSetR.CourseUid,
+			}
+
+			if err := foodBeverage.FindFirst(db); err != nil {
+				response_message.BadRequest(c, errors.New(item.Code+" không tìm thấy ").Error())
+				return
+			}
+
+			quantity := 1
+			if item.Quantity > 0 {
+				quantity = item.Quantity
+			}
+
+			item := model_service.FBItem{
+				FBCode:      foodBeverage.FBCode,
+				Type:        foodBeverage.Type,
+				EnglishName: foodBeverage.EnglishName,
+				VieName:     foodBeverage.VieName,
+				Price:       foodBeverage.Price,
+				Unit:        foodBeverage.Unit,
+				GroupCode:   foodBeverage.GroupCode,
+				GroupName:   item.GroupName,
+				Quantity:    quantity,
+			}
+
+			fbList = append(fbList, item)
+			// price += foodBeverage.Price*float64(item.Quantity)
+		}
+		promotionSetR.FBList = fbList
+	}
+
+	err := promotionSetR.Update(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -187,6 +226,7 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 	okRes(c)
 }
 func (_ *CFbPromotionSet) DeleteFoodBeveragePromotionSet(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	fbIdStr := c.Param("id")
 	fbId, errId := strconv.ParseInt(fbIdStr, 10, 64)
 	if errId != nil {
@@ -196,13 +236,13 @@ func (_ *CFbPromotionSet) DeleteFoodBeveragePromotionSet(c *gin.Context, prof mo
 
 	fbModel := model_service.FbPromotionSet{}
 	fbModel.Id = fbId
-	errF := fbModel.FindFirst()
+	errF := fbModel.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := fbModel.Delete()
+	errDel := fbModel.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return

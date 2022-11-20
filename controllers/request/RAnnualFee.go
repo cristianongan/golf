@@ -6,4 +6,5 @@ type GetListAnnualFeeForm struct {
 	CourseUid     string `form:"course_uid"`
 	Year          int    `form:"year"`
 	MemberCardUid string `form:"member_card_uid"`
+	CardId        string `form:"card_id"`
 }

@@ -2,8 +2,9 @@ package models
 
 import (
 	"start/constants"
-	"start/datasources"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Caddie struct {
@@ -16,7 +17,7 @@ type Caddie struct {
 	Avatar         string           `json:"avatar" gorm:"type:varchar(256);index"` // San Golf
 	BirthDay       int64            `json:"birth_day"`
 	WorkingStatus  string           `json:"working_status" gorm:"type:varchar(128)"` // Active | Inactive
-	Group          string           `json:"group" gorm:"type:varchar(20)"`           // Caddie thuộc nhóm nào
+	Group          string           `json:"group" gorm:"-"`                          // Caddie thuộc nhóm nào
 	StartedDate    int64            `json:"started_date"`                            // Ngày bắt đầu làm việc của Caddie
 	IdHr           string           `json:"id_hr" gorm:"type:varchar(100)"`
 	Phone          string           `json:"phone" gorm:"type:varchar(20)"`
@@ -34,6 +35,9 @@ type Caddie struct {
 	RdStatus       string           `json:"rd_status" gorm:"type:varchar(128)"`
 	DutyStatus     string           `json:"duty_status" gorm:"type:varchar(128)"`
 	CaddieCalendar []CaddieCalendar `json:"caddie_calendar" gorm:"foreignKey:caddie_uid"`
+	GroupId        int64            `json:"group_id" gorm:"default:0"`
+	GroupIndex     uint64           `json:"group_index" gorm:"default:0"`
+	GroupInfo      CaddieGroup      `json:"group_info" gorm:"foreignKey:GroupId"`
 }
 
 type CaddieResponse struct {
@@ -41,17 +45,16 @@ type CaddieResponse struct {
 	Booking int64 `json:"booking"`
 }
 
-func (item *Caddie) Create() error {
+func (item *Caddie) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *Caddie) CreateBatch(caddies []Caddie) error {
+func (item *Caddie) CreateBatch(db *gorm.DB, caddies []Caddie) error {
 	now := time.Now()
 	for i := range caddies {
 		c := &caddies[i]
@@ -60,18 +63,16 @@ func (item *Caddie) CreateBatch(caddies []Caddie) error {
 		c.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.CreateInBatches(caddies, 100).Error
 }
 
-func (item *Caddie) Delete() error {
-	return datasources.GetDatabase().Delete(item).Error
+func (item *Caddie) Delete(db *gorm.DB) error {
+	return db.Delete(item).Error
 }
 
-func (item *Caddie) Update() error {
+func (item *Caddie) SolfDelete(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-
-	db := datasources.GetDatabase()
+	item.ModelId.Status = constants.STATUS_DELETED
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -79,43 +80,55 @@ func (item *Caddie) Update() error {
 	return nil
 }
 
-func (item *Caddie) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *Caddie) Update(db *gorm.DB) error {
+	item.ModelId.UpdatedAt = time.Now().Unix()
+
+	errUpdate := db.Save(item).Error
+	if errUpdate != nil {
+		return errUpdate
+	}
+	return nil
+}
+
+func (item *Caddie) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *Caddie) FindCaddieDetail() (CaddieResponse, error) {
+func (item *Caddie) FindCaddieDetail(database *gorm.DB) (CaddieResponse, error) {
 	total := int64(0)
 	var caddieObj Caddie
-	db := datasources.GetDatabase().Model(Caddie{})
-	db.Where(item).Find(&caddieObj)
+	db1 := database.Model(Caddie{})
+	db1 = db1.Where("caddies.id = ?", item.Id)
+	db1.Preload("GroupInfo")
+	db1.Find(&caddieObj)
 
-	db = db.Where("caddies.id = ?", item.Id)
-	db = db.Joins("JOIN bookings ON bookings.caddie_id = caddies.id")
-	db = db.Count(&total)
+	// Đếm lượt booking của caddie
+	db2 := database.Model(Caddie{})
+	db2 = db2.Joins("JOIN bookings ON bookings.caddie_id = caddies.id")
+	db2.Count(&total)
 
 	caddieResponse := CaddieResponse{
 		Caddie:  caddieObj,
 		Booking: total,
 	}
 
-	return caddieResponse, db.Error
+	return caddieResponse, db1.Error
 }
 
-func (item *Caddie) Count() (int64, error) {
+func (item *Caddie) Count(database *gorm.DB) (int64, error) {
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(Caddie{})
+	db := database.Model(Caddie{})
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *Caddie) FindList(page Page) ([]Caddie, int64, error) {
+func (item *Caddie) FindList(database *gorm.DB, page Page) ([]Caddie, int64, error) {
 	var list []Caddie
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(Caddie{})
+	db := database.Model(Caddie{})
 
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
@@ -130,7 +143,7 @@ func (item *Caddie) FindList(page Page) ([]Caddie, int64, error) {
 		db = db.Where("working_status = ?", item.WorkingStatus)
 	}
 	if item.Code != "" {
-		db = db.Where("code = ?", item.Code)
+		db = db.Where("code LIKE ?", "%"+item.Code+"%")
 	}
 	if item.Level != "" {
 		db = db.Where("level = ?", item.Level)
@@ -144,4 +157,28 @@ func (item *Caddie) FindList(page Page) ([]Caddie, int64, error) {
 		db = page.Setup(db).Find(&list)
 	}
 	return list, total, db.Error
+}
+
+func (item *Caddie) FindListCaddieNotReady(database *gorm.DB) ([]Caddie, int64, error) {
+	var list []Caddie
+	total := int64(0)
+
+	db := database.Model(Caddie{})
+
+	db = db.Not("current_status = ?", constants.CADDIE_CURRENT_STATUS_READY)
+	db.Count(&total)
+
+	db = db.Find(&list)
+	return list, total, db.Error
+}
+
+func (item *Caddie) FindAllCaddieContract(database *gorm.DB) ([]Caddie, error) {
+	var list []Caddie
+
+	db := database.Model(Caddie{})
+
+	db = db.Where("contract_status IN (?, ?)", constants.CADDIE_CONTRACT_STATUS_PARTTIME, constants.CADDIE_CONTRACT_STATUS_FULLTIME)
+	db = db.Find(&list)
+
+	return list, db.Error
 }

@@ -3,10 +3,11 @@ package model_service
 import (
 	"errors"
 	"start/constants"
-	"start/datasources"
 	"start/models"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // FoodBeverage
@@ -16,10 +17,11 @@ type FoodBeverage struct {
 	CourseUid     string  `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	FBCode        string  `json:"fb_code" gorm:"type:varchar(100)"`
 	EnglishName   string  `json:"english_name" gorm:"type:varchar(256)"`    // Tên Tiếng Anh
-	VieName       string  `json:"vietnamese_name" gorm:"type:varchar(256)"` // Tên Tiếng Anh
+	VieName       string  `json:"vietnamese_name" gorm:"type:varchar(256)"` // Tên Tiếng Viet
 	Barcode       string  `json:"barcode"`
 	AccountCode   string  `json:"account_code" gorm:"type:varchar(100)"` // Mã liên kết với Account kế toán
 	GroupCode     string  `json:"group_code" gorm:"type:varchar(100);index"`
+	GroupName     string  `json:"group_name" gorm:"type:varchar(100)"`
 	Unit          string  `json:"unit" gorm:"type:varchar(100)"`
 	Price         float64 `json:"price"`
 	NetCost       float64 `json:"net_cost" gorm:"type:varchar(100)"` // Net cost tự tính từ Cost Price ko bao gồm 10% VAT
@@ -35,6 +37,10 @@ type FoodBeverage struct {
 	IsKitchen     bool    `json:"is_kitchen"`
 	Name          string  `json:"name" gorm:"type:varchar(256)"`        // Tên
 	UserUpdate    string  `json:"user_update" gorm:"type:varchar(256)"` // Người update cuối cùng
+	Type          string  `json:"type" gorm:"type:varchar(256)"`        // sub type của F&B
+	HotKitchen    *bool   `json:"hot_kitchen"`                          // Món ăn chế biến trong bếp nóng
+	ColdKitchen   *bool   `json:"cold_kitchen"`                         // Món ăn chế biến trong bếp lạnh như salad, gỏi
+
 }
 type FoodBeverageResponse struct {
 	FoodBeverage
@@ -42,11 +48,12 @@ type FoodBeverageResponse struct {
 }
 type FoodBeverageRequest struct {
 	FoodBeverage
+	CodeOrName string   `form:"code_or_name"`
 	GroupName  string   `json:"group_name"`
 	FBCodeList []string `form:"fb_code_list"`
 }
 
-func (item *FoodBeverage) Create() error {
+func (item *FoodBeverage) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -54,35 +61,37 @@ func (item *FoodBeverage) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *FoodBeverage) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *FoodBeverage) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *FoodBeverage) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *FoodBeverage) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *FoodBeverage) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(FoodBeverage{})
+func (item *FoodBeverage) FindFirstInKiosk(db *gorm.DB, kioskId int64) error {
+
+	return db.Where(item).Where("(alone_kiosk = ? OR for_kiosk = ?)", kioskId, 1).First(item).Error
+}
+
+func (item *FoodBeverage) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(FoodBeverage{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *FoodBeverageRequest) FindList(page models.Page) ([]FoodBeverageResponse, int64, error) {
-	db := datasources.GetDatabase().Model(FoodBeverage{})
+func (item *FoodBeverageRequest) FindList(database *gorm.DB, page models.Page) ([]FoodBeverageResponse, int64, error) {
+	db := database.Model(FoodBeverage{})
 	list := []FoodBeverageResponse{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -98,16 +107,25 @@ func (item *FoodBeverageRequest) FindList(page models.Page) ([]FoodBeverageRespo
 		db = db.Where("food_beverages.course_uid = ?", item.CourseUid)
 	}
 	if item.EnglishName != "" {
-		db = db.Where("food_beverages.english_name LIKE ?", "%"+item.EnglishName+"%")
+		db = db.Or("food_beverages.english_name LIKE ?", "%"+item.EnglishName+"%")
+	}
+	if item.FBCode != "" {
+		db = db.Or("food_beverages.fb_code = ?", item.FBCode)
 	}
 	if item.VieName != "" {
 		db = db.Where("food_beverages.vie_name LIKE ?", "%"+item.VieName+"%")
 	}
-	if item.FBCode != "" {
-		db = db.Where("food_beverages.fb_code = ?", item.FBCode)
-	}
 	if item.GroupCode != "" {
 		db = db.Where("food_beverages.group_code = ?", item.GroupCode)
+	}
+	if item.Type != "" {
+		db = db.Where("food_beverages.type = ?", item.Type)
+	}
+	if item.CodeOrName != "" {
+		query := "food_beverages.fb_code COLLATE utf8mb4_general_ci LIKE ? OR " +
+			"food_beverages.vie_name COLLATE utf8mb4_general_ci LIKE ? OR " +
+			"food_beverages.english_name COLLATE utf8mb4_general_ci LIKE ?"
+		db = db.Where(query, "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%")
 	}
 	if len(item.FBCodeList) != 0 {
 		db = db.Where("food_beverages.fb_code IN (?)", item.FBCodeList)
@@ -125,9 +143,9 @@ func (item *FoodBeverageRequest) FindList(page models.Page) ([]FoodBeverageRespo
 	return list, total, db.Error
 }
 
-func (item *FoodBeverage) Delete() error {
+func (item *FoodBeverage) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

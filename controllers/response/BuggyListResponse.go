@@ -20,4 +20,6 @@ type BuggyListResponse struct {
 	CustomerInfo *model_booking.CustomerInfo  `json:"customer_info,omitempty"`
 	Hole         int                          `json:"hole,omitempty"`
 	FlightId     int64                        `json:"flight_id,omitempty"`
+	TeeType      string                       `json:"tee_type"`
+	TeeOffTime   string                       `json:"tee_off_time"`
 }

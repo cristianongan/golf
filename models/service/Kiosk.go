@@ -3,30 +3,26 @@ package model_service
 import (
 	"errors"
 	"start/constants"
-	"start/datasources"
 	"start/models"
-	"strconv"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Kiosk
 type Kiosk struct {
 	models.ModelId
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Name       string `json:"name" gorm:"type:varchar(256)"`              // Tên
-	Type       string `json:"type" gorm:"type:varchar(50)"`               // Loại rental, kiosk, proshop,...
-	Code       string `json:"code" gorm:"type:varchar(100)"`
-	GroupId    int64  `json:"group_id" gorm:"index"`
-	GroupCode  string `json:"group_code" gorm:"type:varchar(100);index"`
-	GroupName  string `json:"group_name" gorm:"type:varchar(256)"`
-	Unit       string `json:"unit" gorm:"type:varchar(100);index"`
-	Price      int64  `json:"price"`
+	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	KioskName   string `json:"kiosk_name" gorm:"type:varchar(256)"`        // Tên
+	KioskCode   string `json:"kiosk_code" gorm:"type:varchar(100);index"`  // Mã kiosk
+	ServiceType string `json:"service_type" gorm:"type:varchar(50)"`       // Loại rental, kiosk, proshop
+	KioskType   string `json:"kiosk_type" gorm:"type:varchar(50)"`         // Kiểu Kiosk (Mini Bar, Mini Restaurant,...)
 }
 
 func (item *Kiosk) IsValidated() bool {
-	if item.Name == "" {
+	if item.KioskName == "" {
 		return false
 	}
 	if item.PartnerUid == "" {
@@ -35,19 +31,16 @@ func (item *Kiosk) IsValidated() bool {
 	if item.CourseUid == "" {
 		return false
 	}
-	if item.Type == "" {
+	if item.KioskType == "" {
 		return false
 	}
-	if item.Code == "" {
-		return false
-	}
-	if item.GroupId <= 0 {
+	if item.ServiceType == "" {
 		return false
 	}
 	return true
 }
 
-func (item *Kiosk) Create() error {
+func (item *Kiosk) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -55,39 +48,35 @@ func (item *Kiosk) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 
-func (item *Kiosk) Update() error {
-	mydb := datasources.GetDatabase()
+func (item *Kiosk) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
-	errUpdate := mydb.Save(item).Error
+	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
 	return nil
 }
 
-func (item *Kiosk) FindFirst() error {
-	db := datasources.GetDatabase()
+func (item *Kiosk) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *Kiosk) Count() (int64, error) {
-	db := datasources.GetDatabase().Model(Kiosk{})
+func (item *Kiosk) Count(database *gorm.DB) (int64, error) {
+	db := database.Model(Kiosk{})
 	total := int64(0)
 	db = db.Where(item)
 	db = db.Count(&total)
 	return total, db.Error
 }
 
-func (item *Kiosk) FindList(page models.Page) ([]Kiosk, int64, error) {
-	db := datasources.GetDatabase().Model(Kiosk{})
+func (item *Kiosk) FindList(database *gorm.DB, page models.Page) ([]Kiosk, int64, error) {
+	db := database.Model(Kiosk{})
 	list := []Kiosk{}
 	total := int64(0)
 	status := item.ModelId.Status
-	item.ModelId.Status = ""
 
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
@@ -98,17 +87,8 @@ func (item *Kiosk) FindList(page models.Page) ([]Kiosk, int64, error) {
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
-	if item.Name != "" {
-		db = db.Where("name LIKE ?", "%"+item.Name+"%")
-	}
-	if item.GroupCode != "" {
-		db = db.Where("group_code = ?", item.GroupCode)
-	}
-	if item.GroupId > 0 {
-		db = db.Where("group_id = ?", strconv.FormatInt(item.GroupId, 10))
-	}
-	if item.Code != "" {
-		db = db.Where("code = ?", item.Code)
+	if item.KioskName != "" {
+		db = db.Where("name LIKE ?", "%"+item.KioskName+"%")
 	}
 
 	db.Count(&total)
@@ -119,9 +99,9 @@ func (item *Kiosk) FindList(page models.Page) ([]Kiosk, int64, error) {
 	return list, total, db.Error
 }
 
-func (item *Kiosk) Delete() error {
+func (item *Kiosk) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
-	return datasources.GetDatabase().Delete(item).Error
+	return db.Delete(item).Error
 }

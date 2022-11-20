@@ -3,6 +3,7 @@ package controllers
 import (
 	"start/controllers/request"
 	"start/controllers/response"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils/response_message"
@@ -13,6 +14,7 @@ import (
 type CGolfBag struct{}
 
 func (_ CGolfBag) GetGolfBag(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetGolfBagRequest{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -36,7 +38,7 @@ func (_ CGolfBag) GetGolfBag(c *gin.Context, prof models.CmsUser) {
 	// add course_uid
 	bookings.CourseUid = prof.CourseUid
 
-	db, total, err := bookings.FindBookingListWithSelect(page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page, false)
 
 	var list []response.GolfBagResponse
 	db.Find(&list)

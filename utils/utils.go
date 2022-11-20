@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"regexp"
 	"sort"
 	"start/constants"
 	"strconv"
@@ -13,12 +14,14 @@ import (
 	"time"
 	"unicode"
 
+	"gitee.com/mirrors/govaluate"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/transform"
 	"golang.org/x/text/unicode/norm"
 
 	"github.com/google/uuid"
 	"github.com/leekchan/accounting"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/ttacon/libphonenumber"
 )
 
@@ -29,6 +32,11 @@ func GetCurrentYear() string {
 
 func GetCurrentDay() string {
 	currentDayStr, _ := GetDateFromTimestampWithFormat(time.Now().Unix(), constants.DATE_FORMAT)
+	return currentDayStr
+}
+
+func GetCurrentDay1() string {
+	currentDayStr, _ := GetDateFromTimestampWithFormat(time.Now().Unix(), constants.DATE_FORMAT_1)
 	return currentDayStr
 }
 
@@ -81,6 +89,27 @@ func GetLocalTimeFromTimeStamp(location, format string, timeStamp int64) (string
 	}
 	tm := time.Unix(timeStamp, 0).In(loc)
 	return tm.Format(format), nil
+}
+
+func GetBookingTimeFrom(timeStr string) (string, error) {
+	location := constants.LOCATION_DEFAULT
+	formatTime := constants.DATE_FORMAT
+	loc, errLoc := time.LoadLocation(location)
+	if errLoc != nil {
+		log.Println(errLoc)
+		return "", errLoc
+	}
+	time, errParse := time.ParseInLocation(formatTime, timeStr, loc)
+	if errParse != nil {
+		log.Println(errParse)
+		return "", errParse
+	}
+
+	localTime, errLocalTime := GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, time.Unix())
+	if errLocalTime != nil {
+		return "", errLocalTime
+	}
+	return localTime, nil
 }
 
 func GetYearMonthDateFromTimestamp(timeStamp int64) (string, error) {
@@ -278,7 +307,10 @@ func ConvertHourToTime(hourStr string) (time.Time, error) {
 	return t, nil
 }
 
-func CheckDow(dow string, timeCheck time.Time) bool {
+/*
+Check ngày và h
+*/
+func CheckDow(dow, hour string, timeCheck time.Time) bool {
 	if dow == "" {
 		return false
 	}
@@ -295,20 +327,88 @@ func CheckDow(dow string, timeCheck time.Time) bool {
 		if err != nil {
 			log.Println("CheckDow err", err.Error())
 		}
-		dayInt = dayInt - 1 // Vì Dow 0 là ngày lễ
-		if dayInt == int(timeCheck.Weekday()) {
-			isOk = true
+		if dayInt == int(timeCheck.Weekday()+1) {
+			if hour != "" {
+				if CheckHour(hour, timeCheck) {
+					isOk = true
+				}
+			} else {
+				isOk = true
+			}
 		}
 	}
 
 	return isOk
 }
 
+/*
+Check giờ: format 13:00,23:00
+*/
+func CheckHour(hour string, timeCheck time.Time) bool {
+
+	currentHour := timeCheck.Hour()
+	currentMinute := timeCheck.Minute()
+
+	// Parse Hour
+	fromHour := -1
+	fromMinute := -1
+	toHour := -1
+	toMinute := -1
+	if strings.Contains(hour, ",") {
+		listH := strings.Split(hour, ",")
+		for i, v := range listH {
+			if i == 0 {
+				timeHour, err := ConvertHourToTime(v)
+				if err == nil {
+					fromHour = timeHour.Hour()
+					fromMinute = timeHour.Minute()
+				} else {
+					log.Println("CheckHour err0", err.Error())
+				}
+			} else if i == 1 {
+				timeHour, err := ConvertHourToTime(v)
+				if err == nil {
+					toHour = timeHour.Hour()
+					toMinute = timeHour.Minute()
+				} else {
+					log.Println("CheckHour err1", err.Error())
+				}
+			}
+		}
+	}
+
+	if fromHour >= 0 && toHour == -1 {
+		if currentHour > fromHour {
+			return true
+		}
+		if currentHour == fromHour && currentMinute >= fromMinute {
+			return true
+		}
+	}
+
+	if fromHour == -1 && toHour >= 0 {
+		if currentHour < toHour {
+			return true
+		}
+		if currentHour == toHour && currentMinute <= toMinute {
+			return true
+		}
+	}
+	if fromHour >= 0 && toHour >= 0 {
+		if fromHour <= currentHour && currentHour <= toHour {
+			return true
+		}
+
+	}
+	return false
+}
+
 func GetFeeFromListFee(feeList ListGolfHoleFee, hole int) int64 {
 	fee := int64(0)
 
+	roundedHole := roundHole(hole)
 	for _, feeModel := range feeList {
-		if feeModel.Hole == hole {
+		if feeModel.Hole == roundedHole {
 			fee = feeModel.Fee
 		}
 	}
@@ -316,7 +416,203 @@ func GetFeeFromListFee(feeList ListGolfHoleFee, hole int) int64 {
 	return fee
 }
 
+func roundHole(hole int) int {
+	if hole > 0 && hole <= 2 {
+		return 0
+	} else if hole > 2 && hole <= 9 {
+		return 9
+	} else if hole > 9 && hole <= 18 {
+		return 18
+	} else if hole > 18 && hole <= 27 {
+		return 27
+	} else if hole > 27 && hole <= 36 {
+		return 36
+	} else if hole > 36 && hole <= 45 {
+		return 45
+	} else if hole > 45 && hole <= 54 {
+		return 54
+	} else if hole > 54 && hole <= 63 {
+		return 63
+	}
+	return 72
+}
+
 func IsDateValue(stringDate string) bool {
 	_, err := time.Parse("01/02/2006", stringDate)
 	return err == nil
+}
+
+func IsWeekend(ti int64) bool {
+	t := time.Unix(ti, 0).Local()
+	switch t.Weekday() {
+	// case time.Friday:
+	//     h, _, _ := t.Clock()
+	//     if h >= 12+10 {
+	//         return true
+	//     }
+	case time.Saturday:
+		return true
+	case time.Sunday:
+		return true
+	}
+	return false
+}
+func Contains[T comparable](s []T, e T) bool {
+	for _, v := range s {
+		if v == e {
+			return true
+		}
+	}
+	return false
+}
+
+func removeDuplicateStr(str []string) []string {
+	keys := make(map[string]bool)
+	list := []string{}
+	for _, item := range str {
+		if _, value := keys[item]; !value {
+			keys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
+}
+
+func GetFeeWidthHolePrice(feeList ListGolfHoleFee, hole int, formula string) int64 {
+	re := regexp.MustCompile(`(gia)\w+`)
+
+	confifFeeRaw := re.FindAllString(formula, -1)
+
+	confifFees := removeDuplicateStr(confifFeeRaw)
+
+	expression, err := govaluate.NewEvaluableExpression(formula)
+
+	if err != nil {
+		log.Println("NewEvaluableExpression err", err.Error())
+		return 0
+	}
+
+	parameters := make(map[string]interface{}, 8)
+
+	parameters["ho"] = hole
+
+	for _, item := range confifFees {
+		hole, err := strconv.Atoi(item[3:])
+		if err != nil {
+			log.Println("Convert string to int err", err.Error())
+			return 0
+		}
+
+		parameters[item] = GetFeeFromListFee(feeList, hole)
+	}
+
+	result, _ := expression.Evaluate(parameters)
+
+	return int64(result.(float64))
+}
+
+func CalculateFeeByHole(hole int, fee int64, rateRaw string) int64 {
+	re := regexp.MustCompile(`(\d[.]\d)|(\d)+`)
+	roundedHole := roundHole(hole)
+
+	index := (roundedHole / 9) - 1
+	listRate := re.FindAllString(rateRaw, -1)
+
+	rate := listRate[index]
+
+	parseRate, err := strconv.ParseFloat(rate, 64)
+	if err != nil {
+		log.Println("Convert string to int64 err", err.Error())
+		return fee
+	}
+
+	return int64(float64(fee) * parseRate)
+}
+
+/* trong Go thì Sunday = 0
+		// A Weekday specifies a day of the week (Sunday = 0, ...).
+	type Weekday int
+
+	const (
+		Sunday Weekday = iota
+		Monday
+		Tuesday
+		Wednesday
+		Thursday
+		Friday
+		Saturday
+	)
+	Theo mockup dự án
+	Note
+
+D.O.W được quy định như sau
+
+là cấu hình bảng giá theo thứ
+
+1/ Chủ nhật
+
+2/Thứ 2
+
+3/Thứ 3
+
+4/Thứ 4
+
+5/Thứ 5
+
+6/ Thứ 6
+
+7/ Thứ 7
+
+0/ Ngày lễ, ngày nghỉ
+*/
+func GetCurrentDayStrWithMap() string {
+	day := strconv.FormatInt(int64(time.Now().Weekday())+1, 10)
+	log.Println("GetCurrentDayStrWithMap ", day)
+	return day
+}
+
+func RandomCharNumber(length int) string {
+	id, err := gonanoid.Generate("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 5)
+	if err != nil {
+		return ""
+	}
+	return id
+}
+
+func RandomCharNumberV2(length int) string {
+	id, err := gonanoid.Generate("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz", length)
+	if err != nil {
+		return ""
+	}
+	return id
+}
+
+func VerifyPassword(s string) (bool, bool, bool, bool) {
+	eightOrMore := false
+	number := false
+	upper := false
+	special := false
+
+	if len(s) >= 8 {
+		eightOrMore = true
+	}
+
+	letters := 0
+	for _, c := range s {
+		switch {
+		case unicode.IsNumber(c):
+			number = true
+		case unicode.IsUpper(c):
+			upper = true
+			letters++
+		case unicode.IsPunct(c) || unicode.IsSymbol(c):
+			special = true
+		case unicode.IsLetter(c) || c == ' ':
+			letters++
+		default:
+			//return false, false, false, false
+		}
+	}
+	// eightOrMore = letters >= 8
+	return eightOrMore, number, upper, special
 }

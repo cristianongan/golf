@@ -1,6 +1,8 @@
 package models
 
-import "start/datasources"
+import (
+	"gorm.io/gorm"
+)
 
 type CaddieEvaluationList struct {
 	CourseUid  string
@@ -10,11 +12,11 @@ type CaddieEvaluationList struct {
 	BookingUid string
 }
 
-func (item *CaddieEvaluationList) FindList(page Page) ([]CaddieEvaluation, int64, error) {
+func (item *CaddieEvaluationList) FindList(database *gorm.DB, page Page) ([]CaddieEvaluation, int64, error) {
 	var list []CaddieEvaluation
 	total := int64(0)
 
-	db := datasources.GetDatabase().Model(CaddieEvaluation{})
+	db := database.Model(CaddieEvaluation{})
 
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
@@ -40,9 +42,9 @@ func (item *CaddieEvaluationList) FindList(page Page) ([]CaddieEvaluation, int64
 	return list, total, db.Error
 }
 
-func (item *CaddieEvaluationList) FindFirst() (CaddieEvaluation, error) {
+func (item *CaddieEvaluationList) FindFirst(database *gorm.DB) (CaddieEvaluation, error) {
 	var result CaddieEvaluation
-	db := datasources.GetDatabase().Model(CaddieEvaluation{})
+	db := database.Model(CaddieEvaluation{})
 	err := db.Where(item).First(&result).Error
 	return result, err
 }

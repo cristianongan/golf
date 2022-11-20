@@ -7,9 +7,11 @@ import (
 
 // -------- Booking Sub Bag ------
 type BookingSubBag struct {
-	GolfBag    string `json:"golf_bag"` // Có thể bỏ
-	BookingUid string `json:"booking_uid"`
-	PlayerName string `json:"player_name"`
+	GolfBag    string                         `json:"golf_bag"` // Có thể bỏ
+	BookingUid string                         `json:"booking_uid"`
+	PlayerName string                         `json:"player_name"`
+	BillCode   string                         `json:"bill_code"`
+	AgencyPaid ListBookingAgencyPayForBagData `json:"sub_agency_paid,omitempty"`
 }
 
 type GolfHoleFee struct {
@@ -19,6 +21,19 @@ type GolfHoleFee struct {
 
 type CountStruct struct {
 	Count int64 `json:"count"`
+}
+
+type TotalStruct struct {
+	TotalAmount int64 `json:"total_amount"`
+}
+
+type CountAnnualFeeStruct struct {
+	TotalA int64 `json:"total_a"`
+	TotalB int64 `json:"total_b"`
+	TotalC int64 `json:"total_c"`
+	TotalD int64 `json:"total_d"`
+	TotalE int64 `json:"total_e"`
+	TotalG int64 `json:"total_g"`
 }
 
 type BookingRestaurant struct {
