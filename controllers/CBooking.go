@@ -981,9 +981,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking := model_booking.Booking{}
-	booking.Uid = bookingIdStr
-	errF := booking.FindFirst(db)
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = bookingIdStr
+	booking, errF := bookingR.FindFirstByUId(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -1169,7 +1169,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 	// GuestStyle
-	if body.GuestStyle != "" {
+	if body.GuestStyle != "" && booking.GuestStyle != body.GuestStyle {
 		//Update Agency
 		if body.AgencyId == 0 {
 			booking.AgencyInfo = model_booking.BookingAgency{}
@@ -1235,7 +1235,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Update caddie
-	if body.CaddieCode != "" {
+	if body.CaddieCode != "" && booking.CaddieInfo.Code != body.CaddieCode {
 		cBooking.UpdateBookingCaddieCommon(db, body.PartnerUid, body.CourseUid, &booking, caddie)
 	}
 
@@ -2452,9 +2452,9 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking := model_booking.Booking{}
-	booking.Uid = body.BookingUid
-	errF := booking.FindFirst(db)
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = body.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
 	if errF != nil {
 		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
 		return
