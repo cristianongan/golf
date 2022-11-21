@@ -32,7 +32,7 @@ func (_ *CCmsUser) Test(c *gin.Context, prof models.CmsUser) {
 }
 
 func CheckLoginFailedManyTime(user *models.CmsUser) {
-	redisLoginKey := user.UserName
+	redisLoginKey := datasources.GetRedisKeyUserLogin(user.UserName)
 	countLogin, errRedis := datasources.GetCache(redisLoginKey)
 
 	if errRedis != nil {
@@ -68,7 +68,8 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 		UserName: body.UserName,
 	}
 
-	countLogin, errRedis := datasources.GetCache(body.UserName)
+	redisLoginKey := datasources.GetRedisKeyUserLogin(body.UserName)
+	countLogin, errRedis := datasources.GetCache(redisLoginKey)
 	if errRedis == nil {
 		i, err := strconv.Atoi(countLogin)
 		if err == nil && i >= 5 {
@@ -400,7 +401,8 @@ func (_ *CCmsUser) EnableCmsUser(c *gin.Context) {
 	user := models.CmsUser{}
 	listUserLocked, _, _ := user.FindUserLocked()
 	for _, v := range listUserLocked {
-		datasources.DelCacheByKey(v.UserName)
+		redisLoginKey := datasources.GetRedisKeyUserLogin(v.UserName)
+		datasources.DelCacheByKey(redisLoginKey)
 		v.Status = constants.STATUS_ENABLE
 		v.Update()
 	}

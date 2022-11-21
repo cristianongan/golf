@@ -90,6 +90,10 @@ func GetRedisKeyTeeTimeLock(teeTime string) string {
 	return config.GetEnvironmentName() + "_" + "redis_tee_time_lock" + "_" + teeTime
 }
 
+func GetRedisKeyUserLogin(userName string) string {
+	return config.GetEnvironmentName() + "_" + "redis_user_login" + "_" + userName
+}
+
 //	func GetRedis() *redis.Client {
 //		return redisdb
 //	}
