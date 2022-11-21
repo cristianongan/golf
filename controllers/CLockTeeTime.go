@@ -224,11 +224,14 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	newTeeType := query.TeeType + query.CourseType
+
 	lockTeeTime := models.LockTeeTime{
-		PartnerUid:     query.PartnerUid,
-		CourseUid:      query.CourseUid,
-		CurrentTeeTime: query.TeeTime,
-		DateTime:       query.BookingDate,
+		PartnerUid: query.PartnerUid,
+		CourseUid:  query.CourseUid,
+		TeeTime:    query.TeeTime,
+		DateTime:   query.BookingDate,
+		TeeType:    newTeeType,
 	}
 
 	list, _, _ := lockTeeTime.FindList(db, query.RequestType)

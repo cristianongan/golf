@@ -1645,7 +1645,6 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 					BillCode:    subBooking.BillCode,
 					AgencyPaid:  subBooking.AgencyPaid,
 					BookingCode: subBooking.BookingCode,
-					GuestStyle:  subBooking.GuestStyle,
 					CmsUser:     subBooking.CmsUser,
 					CmsUserLog:  subBooking.CmsUserLog,
 				}

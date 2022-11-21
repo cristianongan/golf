@@ -12,7 +12,6 @@ type BookingSubBag struct {
 	PlayerName  string                         `json:"player_name"`
 	BillCode    string                         `json:"bill_code"`
 	BookingCode string                         `json:"booking_code"`
-	GuestStyle  string                         `json:"guest_style"`
 	CmsUser     string                         `json:"cms_user"`
 	CmsUserLog  string                         `json:"cms_user_log"`
 	AgencyPaid  ListBookingAgencyPayForBagData `json:"sub_agency_paid,omitempty"`
