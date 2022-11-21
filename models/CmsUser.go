@@ -19,7 +19,7 @@ type CmsUser struct {
 
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng Golf
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	UserName   string `json:"user_name" gorm:"type:varchar(20);uniqueIndex"`
+	UserName   string `json:"user_name" gorm:"type:varchar(100);uniqueIndex"`
 
 	FullName string `json:"full_name" gorm:"type:varchar(256);index"`
 	Password string `json:"-" gorm:"type:varchar(256)"`
@@ -137,4 +137,17 @@ func (item *CmsUser) Delete() error {
 		return errors.New("Primary key is undefined!")
 	}
 	return datasources.GetDatabaseAuth().Delete(item).Error
+}
+
+func (item *CmsUser) FindUserLocked() ([]CmsUser, int64, error) {
+	var list []CmsUser
+	total := int64(0)
+
+	db := datasources.GetDatabaseAuth().Model(CmsUser{})
+
+	db = db.Where("status = ?", constants.STATUS_DISABLE)
+	db.Count(&total)
+
+	db = db.Find(&list)
+	return list, total, db.Error
 }

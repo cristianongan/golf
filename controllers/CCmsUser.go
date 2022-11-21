@@ -12,6 +12,7 @@ import (
 	model_role "start/models/role"
 	"start/utils"
 	"start/utils/response_message"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -30,6 +31,28 @@ func (_ *CCmsUser) Test(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, gin.H{"message": "success"})
 }
 
+func CheckLoginFailedManyTime(user *models.CmsUser) {
+	redisLoginKey := user.UserName
+	countLogin, errRedis := datasources.GetCache(redisLoginKey)
+
+	if errRedis != nil {
+		datasources.SetCache(redisLoginKey, "1", 10*60)
+	} else {
+		i, err := strconv.Atoi(countLogin)
+		if err != nil {
+			// panic(err)
+			print(err)
+		} else {
+			i++
+			datasources.SetCache(redisLoginKey, strconv.Itoa(i), 10*60)
+			if i >= 5 {
+				user.Status = constants.STATUS_DISABLE
+				user.Update()
+			}
+		}
+	}
+}
+
 func (_ *CCmsUser) Login(c *gin.Context) {
 	body := request.LoginBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -43,6 +66,15 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 
 	user := models.CmsUser{
 		UserName: body.UserName,
+	}
+
+	countLogin, errRedis := datasources.GetCache(body.UserName)
+	if errRedis == nil {
+		i, err := strconv.Atoi(countLogin)
+		if err == nil && i >= 5 {
+			response_message.BadRequestDynamicKey(c, "USER_BE_LOCKED", errors.New("account be locked").Error())
+			return
+		}
 	}
 
 	errFind := user.FindFirst()
@@ -59,15 +91,18 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 	if user.LoggedIn {
 		errCheck := utils.ComparePassword(user.Password, body.Password)
 		if errCheck != nil {
-			response_message.BadRequest(c, errFind.Error())
+			CheckLoginFailedManyTime(&user)
+			response_message.BadRequest(c, "login failse")
 			return
 		}
 	} else {
 		//TODO: check password
 		if user.Password != "" && user.Password != body.Password {
+			CheckLoginFailedManyTime(&user)
 			response_message.BadRequest(c, errors.New("wrong info").Error())
 			return
 		}
+
 		hashPass, errHash := utils.GeneratePassword(body.Password)
 		if errHash != nil {
 			response_message.BadRequest(c, errHash.Error())
@@ -237,6 +272,11 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if checkStringInArray(config.GetBlacklistPass(), body.Password) {
+		response_message.BadRequest(c, "Password too week")
+		return
+	}
+
 	partner := models.Partner{}
 	partner.Uid = body.PartnerUid
 	errFind := partner.FindFirst()
@@ -330,7 +370,7 @@ func (_ *CCmsUser) UpdateCmsUser(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
- Delete Role
+Delete Role
 */
 func (_ *CCmsUser) DeleteCmsUser(c *gin.Context, prof models.CmsUser) {
 	userUidStr := c.Param("uid")
@@ -353,5 +393,16 @@ func (_ *CCmsUser) DeleteCmsUser(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	okRes(c)
+}
+
+func (_ *CCmsUser) EnableCmsUser(c *gin.Context) {
+	user := models.CmsUser{}
+	listUserLocked, _, _ := user.FindUserLocked()
+	for _, v := range listUserLocked {
+		datasources.DelCacheByKey(v.UserName)
+		v.Status = constants.STATUS_ENABLE
+		v.Update()
+	}
 	okRes(c)
 }
