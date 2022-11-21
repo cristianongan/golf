@@ -138,3 +138,16 @@ func (item *CmsUser) Delete() error {
 	}
 	return datasources.GetDatabaseAuth().Delete(item).Error
 }
+
+func (item *CmsUser) FindUserLocked() ([]CmsUser, int64, error) {
+	var list []CmsUser
+	total := int64(0)
+
+	db := datasources.GetDatabaseAuth().Model(CmsUser{})
+
+	db = db.Where("status = ?", constants.STATUS_DISABLE)
+	db.Count(&total)
+
+	db = db.Find(&list)
+	return list, total, db.Error
+}

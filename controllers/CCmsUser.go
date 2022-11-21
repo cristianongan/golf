@@ -60,11 +60,6 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 		return
 	}
 
-	if checkStringInArray(config.GetBlacklistPass(), body.Password) {
-		response_message.BadRequest(c, "Password too week")
-		return
-	}
-
 	if body.Ttl <= 0 {
 		body.Ttl = 604800 // 1 Tuần
 	}
@@ -97,7 +92,7 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 		errCheck := utils.ComparePassword(user.Password, body.Password)
 		if errCheck != nil {
 			CheckLoginFailedManyTime(&user)
-			response_message.BadRequest(c, errFind.Error())
+			response_message.BadRequest(c, "login failse")
 			return
 		}
 	} else {
@@ -277,6 +272,11 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if checkStringInArray(config.GetBlacklistPass(), body.Password) {
+		response_message.BadRequest(c, "Password too week")
+		return
+	}
+
 	partner := models.Partner{}
 	partner.Uid = body.PartnerUid
 	errFind := partner.FindFirst()
@@ -393,5 +393,16 @@ func (_ *CCmsUser) DeleteCmsUser(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	okRes(c)
+}
+
+func (_ *CCmsUser) EnableCmsUser(c *gin.Context) {
+	user := models.CmsUser{}
+	listUserLocked, _, _ := user.FindUserLocked()
+	for _, v := range listUserLocked {
+		datasources.DelCacheByKey(v.UserName)
+		v.Status = constants.STATUS_ENABLE
+		v.Update()
+	}
 	okRes(c)
 }
