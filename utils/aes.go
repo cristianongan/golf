@@ -35,8 +35,14 @@ func DecryptAES(key []byte, ct string) (string, error) {
 
 	pt := make([]byte, len(ciphertext))
 	c.Decrypt(pt, ciphertext)
-
-	s := string(pt[:])
+	ptUnPadding := pkcs7Unpadding(pt)
+	s := string(ptUnPadding[:])
 	fmt.Println("DECRYPTED:", s)
 	return s, nil
+}
+
+func pkcs7Unpadding(src []byte) []byte {
+	length := len(src)
+	unPadding := int(src[length-1])
+	return src[:(length - unPadding)]
 }
