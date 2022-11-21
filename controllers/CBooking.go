@@ -1639,11 +1639,15 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 			if err1 == nil {
 				//Subbag
 				subBag := utils.BookingSubBag{
-					BookingUid: v.BookingUid,
-					GolfBag:    subBooking.Bag,
-					PlayerName: subBooking.CustomerName,
-					BillCode:   subBooking.BillCode,
-					AgencyPaid: subBooking.AgencyPaid,
+					BookingUid:  v.BookingUid,
+					GolfBag:     subBooking.Bag,
+					PlayerName:  subBooking.CustomerName,
+					BillCode:    subBooking.BillCode,
+					AgencyPaid:  subBooking.AgencyPaid,
+					BookingCode: subBooking.BookingCode,
+					GuestStyle:  subBooking.GuestStyle,
+					CmsUser:     subBooking.CmsUser,
+					CmsUserLog:  subBooking.CmsUserLog,
 				}
 				booking.SubBags = append(booking.SubBags, subBag)
 			} else {
