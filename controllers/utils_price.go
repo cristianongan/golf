@@ -294,7 +294,7 @@ func updateGolfFeeInBooking(booking *model_booking.Booking, db *gorm.DB) {
 		checkIsFirstRound := utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
 		checkIsNextRound := utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
 		totalGolfFeeOfSubBag := bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
-		golfFeeMustPayOfSubbag := int64(0)
+		golfFeeMustPayOfSubbag := totalGolfFeeOfSubBag
 		if checkIsFirstRound > -1 && checkIsNextRound > -1 {
 			buggyFee := round1.BuggyFee + round2.BuggyFee
 			caddieFee := round1.CaddieFee + round2.CaddieFee
@@ -315,11 +315,9 @@ func updateGolfFeeInBooking(booking *model_booking.Booking, db *gorm.DB) {
 			golfFeeMustPayOfSubbag = totalGolfFeeOfSubBag - round2.BuggyFee - round2.CaddieFee - round2.GreenFee
 		}
 
-		if golfFeeMustPayOfSubbag > 0 {
-			booking.MushPayInfo.TotalGolfFee = golfFeeMustPayOfSubbag
-			bookingMain.MushPayInfo.MushPay = bookingMain.MushPayInfo.TotalServiceItem + golfFeeMustPayOfSubbag
-			booking.Update(db)
-		}
+		booking.MushPayInfo.TotalGolfFee = golfFeeMustPayOfSubbag
+		booking.MushPayInfo.MushPay = booking.MushPayInfo.TotalServiceItem + golfFeeMustPayOfSubbag
+		booking.Update(db)
 	}
 }
 
