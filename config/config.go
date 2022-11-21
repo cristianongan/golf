@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bufio"
 	"os"
 	"strings"
 
@@ -9,6 +10,12 @@ import (
 )
 
 var config *viper.Viper
+
+var blacklistPass []string
+
+func GetBlacklistPass() []string {
+	return blacklistPass
+}
 
 func ReadConfigFile(env string) {
 	config = viper.New()
@@ -32,6 +39,26 @@ func ReadConfigFile(env string) {
 	//log.Println("Using config: ", config.ConfigFileUsed())
 	//log.Println("name", config.GetString("name"))
 
+}
+
+func ReadBlackListPassword() {
+	pwd, err := os.Getwd()
+	file, err := os.Open(pwd + "/config/blacklist_pass.txt")
+	if err != nil {
+		blacklistPass = []string{}
+		// return nil, err
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	if scanner.Err() == nil {
+		blacklistPass = lines
+	}
+	// return lines, scanner.Err()
 }
 
 func GetConfig() *viper.Viper {

@@ -53,6 +53,7 @@ func NewRouter() *gin.Engine {
 			cCmsUser := new(controllers.CCmsUser)
 			groupApi.POST("/user/login", cCmsUser.Login)
 			// groupApi.POST("/user", cCmsUser.CreateCmsUser)
+			groupApi.GET("/user/enable", cCmsUser.EnableCmsUser)
 
 			/// =================== Upload Image =====================
 			cUpload := new(controllers.CUpload)

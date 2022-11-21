@@ -1,10 +1,8 @@
 package models
 
 import (
-	"log"
 	"start/constants"
 	"start/utils"
-	"strconv"
 	"strings"
 	"time"
 
@@ -29,7 +27,7 @@ type AgencySpecialPrice struct {
 }
 
 /*
-	check giá riêng agency có thoả mãn dk time
+check giá riêng agency có thoả mãn dk time
 */
 func (item *AgencySpecialPrice) FindOtherPriceOnTime(db *gorm.DB) (AgencySpecialPrice, error) {
 	listAgency, _, err := item.FindListByAgencyId(db)
@@ -175,55 +173,83 @@ func (item *AgencySpecialPrice) FindList(database *gorm.DB, page Page, agencyIdS
 	list := []map[string]interface{}{}
 	total := int64(0)
 
-	queryStr := `select * from (select tb0.*, 
+	db = db.Select(`agency_special_prices.*, 
 	agencies.agency_id as agency_id_str,
 	agencies.name as agency_name,
 	agencies.short_name as short_name,
 	agencies.guest_style as guest_style,
-	agencies.category as category
-	from (select * from agency_special_prices WHERE agency_special_prices.partner_uid = ` + `"` + item.PartnerUid + `"`
+	agencies.category as category`)
 
+	db = db.Joins("LEFT JOIN agencies on agency_special_prices.agency_id = agencies.id")
+
+	if item.PartnerUid != "" {
+		db = db.Where("agency_special_prices.partner_uid = ?", item.PartnerUid)
+	}
 	if item.CourseUid != "" {
-		queryStr = queryStr + " and agency_special_prices.course_uid = " + `"` + item.CourseUid + `"`
+		db = db.Where("agency_special_prices.course_uid = ?", item.CourseUid)
 	}
 	if item.Status != "" {
-		queryStr = queryStr + " and agency_special_prices.status = " + `"` + item.Status + `"`
+		db = db.Where("agency_special_prices.status = ?", item.Status)
 	}
-
-	queryStr = queryStr + ") tb0 "
-	queryStr = queryStr + `LEFT JOIN agencies on tb0.agency_id = agencies.id ) tb1 `
-
-	// TODO: chưa tối ưu truy vấn
 	if agencyIdStr != "" {
-		queryStr = queryStr + " WHERE tb1.agency_id_str = " + `"` + agencyIdStr + `"`
+		db = db.Where("agency_special_prices.agency_id = ?", agencyIdStr)
 	}
-	// if agencyName != "" {
-	// 	queryStr = queryStr + " WHERE tb1.agency_name = " + `"` + agencyName + `"`
+
+	// queryStr := `select * from (select tb0.*,
+	// agencies.agency_id as agency_id_str,
+	// agencies.name as agency_name,
+	// agencies.short_name as short_name,
+	// agencies.guest_style as guest_style,
+	// agencies.category as category
+	// from (select * from agency_special_prices WHERE agency_special_prices.partner_uid = ` + `"` + item.PartnerUid + `"`
+
+	// if item.CourseUid != "" {
+	// 	queryStr = queryStr + " and agency_special_prices.course_uid = " + `"` + item.CourseUid + `"`
+	// }
+	// if item.Status != "" {
+	// 	queryStr = queryStr + " and agency_special_prices.status = " + `"` + item.Status + `"`
 	// }
 
-	// queryStr = queryStr + ") af on tb0.uid = af.member_card_uid) tb1 "
+	// queryStr = queryStr + ") tb0 "
+	// queryStr = queryStr + `LEFT JOIN agencies on tb0.agency_id = agencies.id ) tb1 `
 
-	// var countReturn CountStruct
-	var countReturn utils.CountStruct
-	strSQLCount := " select count(*) as count from ( " + queryStr + " ) as subTable "
-	errCount := db.Raw(strSQLCount).Scan(&countReturn).Error
-	if errCount != nil {
-		log.Println("AgencySpecialPrice err", errCount.Error())
-		return list, total, errCount
-	}
+	// // TODO: chưa tối ưu truy vấn
+	// if agencyIdStr != "" {
+	// 	queryStr = queryStr + " WHERE tb1.agency_id_str = " + `"` + agencyIdStr + `"`
+	// }
+	// // if agencyName != "" {
+	// // 	queryStr = queryStr + " WHERE tb1.agency_name = " + `"` + agencyName + `"`
+	// // }
 
-	total = countReturn.Count
-	//Check if limit large then set to 50
-	if page.Limit > 50 {
-		page.Limit = 50
-	}
+	// // queryStr = queryStr + ") af on tb0.uid = af.member_card_uid) tb1 "
+
+	// // var countReturn CountStruct
+	// var countReturn utils.CountStruct
+	// strSQLCount := " select count(*) as count from ( " + queryStr + " ) as subTable "
+	// errCount := db.Raw(strSQLCount).Scan(&countReturn).Error
+	// if errCount != nil {
+	// 	log.Println("AgencySpecialPrice err", errCount.Error())
+	// 	return list, total, errCount
+	// }
+
+	// total = countReturn.Count
+	// //Check if limit large then set to 50
+	// if page.Limit > 50 {
+	// 	page.Limit = 50
+	// }
+
+	// if total > 0 && int64(page.Offset()) < total {
+	// 	queryStr = queryStr + " order by tb1." + page.SortBy + " " + page.SortDir + " LIMIT " + strconv.Itoa(page.Limit) + " OFFSET " + strconv.Itoa(page.Offset())
+	// }
+	// err := db.Raw(queryStr).Scan(&list).Error
+	// if err != nil {
+	// 	return list, total, err
+	// }
+
+	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
-		queryStr = queryStr + " order by tb1." + page.SortBy + " " + page.SortDir + " LIMIT " + strconv.Itoa(page.Limit) + " OFFSET " + strconv.Itoa(page.Offset())
-	}
-	err := db.Raw(queryStr).Scan(&list).Error
-	if err != nil {
-		return list, total, err
+		db = page.Setup(db).Find(&list)
 	}
 
 	return list, total, db.Error
