@@ -9,6 +9,7 @@ import (
 	"start/datasources"
 	model_booking "start/models/booking"
 	model_payment "start/models/payment"
+	"start/utils"
 
 	"gorm.io/gorm"
 )
@@ -172,7 +173,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 
 	// feeInfo := bodyRequest.BookingList[index].FeeInfo
 	if feeInfo.GolfFee > 0 {
-		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
+		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
 			Fee:  feeInfo.GolfFee,
 			Name: "Golf Fee",
 			Type: constants.BOOKING_AGENCY_GOLF_FEE,
@@ -185,7 +186,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		} else {
 			name = "Buggy (1/2 xe)"
 		}
-		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
+		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
 			Fee:  feeInfo.BuggyFee,
 			Name: name,
 			Type: constants.BOOKING_AGENCY_BUGGY_FEE,
@@ -204,7 +205,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		serviceItem.Create(datasources.GetDatabaseWithPartner(booking.PartnerUid))
 	}
 	if feeInfo.CaddieFee > 0 {
-		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, model_payment.BookingAgencyPayForBagData{
+		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
 			Fee:  feeInfo.CaddieFee,
 			Name: "Booking Caddie fee",
 			Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
@@ -230,6 +231,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		go func() {
 			// create bag payment
 			// Ghi nhận só tiền agency thanh toán cho bag đó
+			booking.AgencyPaid = bookingAgencyPayment.FeeData
 			booking.UpdatePriceDetailCurrentBag(db)
 			booking.UpdateMushPay(db)
 			booking.Update(db)

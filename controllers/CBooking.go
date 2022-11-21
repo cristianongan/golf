@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"reflect"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -493,16 +494,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
 	}
 
-	//Update Agency Paid in Current Price
-	if booking.AgencyId > 0 {
-		booking.AgencyPaid = model_booking.AgencyPaid{
-			GolfFee:   body.FeeInfo.GolfFee,
-			BuggyFee:  body.FeeInfo.BuggyFee,
-			CaddieFee: body.FeeInfo.CaddieFee,
-			Amount:    body.FeeInfo.GolfFee + body.FeeInfo.BuggyFee + body.FeeInfo.CaddieFee,
-		}
-	}
-
 	// Create booking payment
 	if booking.AgencyId > 0 && booking.MemberCardUid == "" {
 		go handleAgencyPayment(db, booking)
@@ -643,7 +634,8 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 	}
 
 	feeResponse := model_booking.BookingFeeOfBag{
-		CurrentBagPrice:   booking.CurrentBagPrice,
+		AgencyPaid:        booking.AgencyPaid,
+		SubBags:           booking.SubBags,
 		ListGolfFee:       booking.ListGolfFee,
 		MushPayInfo:       booking.MushPayInfo,
 		ListServiceItems:  booking.ListServiceItems,
@@ -1029,7 +1021,10 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	//Upd Main Pay for Sub
 	if body.MainBagPay != nil {
-		booking.MainBagPay = body.MainBagPay
+		if !reflect.DeepEqual(booking.MainBagPay, body.MainBagPay) {
+			booking.MainBagPay = body.MainBagPay
+			go bookMarkRoundPaidByMainBag(booking, db)
+		}
 	}
 
 	if body.LockerNo != "" {
@@ -1648,7 +1643,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 					GolfBag:    subBooking.Bag,
 					PlayerName: subBooking.CustomerName,
 					BillCode:   subBooking.BillCode,
-					BagStatus:  subBooking.BagStatus,
+					AgencyPaid: subBooking.AgencyPaid,
 				}
 				booking.SubBags = append(booking.SubBags, subBag)
 			} else {
@@ -1689,6 +1684,8 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		go handleSinglePayment(db, bookRes, 0)
 	}
 
+	//Đánh dấu các round(của sub bag) đã được trả bởi main bag
+	go bookMarkRoundPaidByMainBag(booking, db)
 	res := getBagDetailFromBooking(db, bookRes)
 
 	okResponse(c, res)
@@ -2470,6 +2467,9 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	booking.UpdatePriceForBagHaveMainBags(db)
+	booking.Update(db)
+
 	mainBag := list[0]
 	subBags := utils.ListSubBag{}
 
@@ -2490,6 +2490,11 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequestDynamicKey(c, "UPDATE_BOOKING_ERROR", "")
 		return
 	}
+
+	go func() {
+		cRound := CRound{}
+		cRound.ResetRoundPaidByMain(booking.BillCode, db)
+	}()
 
 	okResponse(c, booking)
 }

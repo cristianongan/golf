@@ -117,3 +117,19 @@ func DeleteItemInStringArray(s []string, index int) []string {
 	s[len(s)-1] = ""             // Erase last element (write zero value).
 	return s[:len(s)-1]          // Truncate slice.
 }
+
+type BookingAgencyPayForBagData struct {
+	Type string `json:"type"` // GOLF_FEE, BUGGY_FEE, BOOKING_CADDIE_FEE
+	Fee  int64  `json:"fee"`
+	Name string `json:"name"`
+}
+
+type ListBookingAgencyPayForBagData []BookingAgencyPayForBagData
+
+func (item *ListBookingAgencyPayForBagData) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListBookingAgencyPayForBagData) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}

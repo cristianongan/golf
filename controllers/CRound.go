@@ -27,9 +27,9 @@ func (_ CRound) validateBooking(db *gorm.DB, bookindUid string) (model_booking.B
 		return booking, err
 	}
 
-	if booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
-		return booking, errors.New("Lỗi Add Round")
-	}
+	// if booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
+	// 	return booking, errors.New("Lỗi Add Round")
+	// }
 
 	return booking, nil
 }
@@ -89,7 +89,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		// Update lại bag_status của booking cũ
 		booking.AddedRound = newTrue(true)
 		booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
-		go booking.Update(db)
+		booking.Update(db)
 
 		// Tạo booking mới khi add round
 		newBooking = cloneToBooking(booking)
@@ -204,7 +204,7 @@ func (cRound CRound) UpdateListFeePriceInRound(c *gin.Context, db *gorm.DB, book
 	}
 
 	if booking != nil {
-		go updateGolfFeeInBooking(*booking, db)
+		updateGolfFeeInBooking(booking, db)
 	}
 }
 
@@ -267,7 +267,7 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	updateGolfFeeInBooking(booking, db)
+	updateGolfFeeInBooking(&booking, db)
 	// Update lại giá cho main bag
 
 	res := getBagDetailFromBooking(db, booking)
@@ -342,7 +342,7 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// update fee booking
-	updateGolfFeeInBooking(booking, db)
+	updateGolfFeeInBooking(&booking, db)
 	res := getBagDetailFromBooking(db, booking)
 	okResponse(c, res)
 }
@@ -410,5 +410,19 @@ func (cRound CRound) UpdateListFeePriceInBookingAndRound(c *gin.Context, db *gor
 		// Update lại giá của Round theo số hố
 		cRound := CRound{}
 		cRound.UpdateListFeePriceInRound(c, db, &booking, round.GuestStyle, &round, hole)
+	}
+}
+
+// Khi changeToMain thì reset lại các round đã trả bởi main bag trước đó
+func (cRound CRound) ResetRoundPaidByMain(billCode string, db *gorm.DB) {
+	round1 := models.Round{BillCode: billCode, Index: 1}
+	if errRound1 := round1.FindFirst(db); errRound1 == nil {
+		round1.MainBagPaid = newTrue(false)
+		round1.Update(db)
+	}
+	round2 := models.Round{BillCode: billCode, Index: 2}
+	if errRound2 := round2.FindFirst(db); errRound2 == nil {
+		round2.MainBagPaid = newTrue(false)
+		round2.Update(db)
 	}
 }

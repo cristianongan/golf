@@ -1,10 +1,9 @@
 package model_payment
 
 import (
-	"database/sql/driver"
-	"encoding/json"
 	"start/constants"
 	"start/models"
+	"start/utils"
 	"strings"
 	"time"
 
@@ -14,31 +13,13 @@ import (
 // Booking Agency Payment
 type BookingAgencyPayment struct {
 	models.ModelId
-	PartnerUid  string                         `json:"partner_uid" gorm:"type:varchar(100);index"`  // Hang Golf
-	CourseUid   string                         `json:"course_uid" gorm:"type:varchar(256);index"`   // San Golf
-	BookingCode string                         `json:"booking_code" gorm:"type:varchar(100);index"` // Booking code
-	AgencyId    int64                          `json:"agency_id" gorm:"index"`                      // agency id
-	BookingUid  string                         `json:"booking_uid" gorm:"type:varchar(100);index"`  // Booking Uid
-	CaddieId    string                         `json:"caddie_id" gorm:"type:varchar(100)"`          // Caddie Id
-	FeeData     ListBookingAgencyPayForBagData `json:"fee_data,omitempty" gorm:"type:json"`         // fee data
-}
-
-// Fees Data
-
-type ListBookingAgencyPayForBagData []BookingAgencyPayForBagData
-
-func (item *ListBookingAgencyPayForBagData) Scan(v interface{}) error {
-	return json.Unmarshal(v.([]byte), item)
-}
-
-func (item ListBookingAgencyPayForBagData) Value() (driver.Value, error) {
-	return json.Marshal(&item)
-}
-
-type BookingAgencyPayForBagData struct {
-	Type string `json:"type"` // GOLF_FEE, BUGGY_FEE, BOOKING_CADDIE_FEE
-	Fee  int64  `json:"fee"`
-	Name string `json:"name"`
+	PartnerUid  string                               `json:"partner_uid" gorm:"type:varchar(100);index"`  // Hang Golf
+	CourseUid   string                               `json:"course_uid" gorm:"type:varchar(256);index"`   // San Golf
+	BookingCode string                               `json:"booking_code" gorm:"type:varchar(100);index"` // Booking code
+	AgencyId    int64                                `json:"agency_id" gorm:"index"`                      // agency id
+	BookingUid  string                               `json:"booking_uid" gorm:"type:varchar(100);index"`  // Booking Uid
+	CaddieId    string                               `json:"caddie_id" gorm:"type:varchar(100)"`          // Caddie Id
+	FeeData     utils.ListBookingAgencyPayForBagData `json:"fee_data,omitempty" gorm:"type:json"`         // fee data
 }
 
 func (item *BookingAgencyPayment) GetTotalFee() int64 {

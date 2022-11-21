@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/twharmon/slices"
 	"gorm.io/gorm"
 )
 
@@ -117,12 +118,12 @@ type Booking struct {
 	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"` // hỗ trợ query tính giá
 	SeparatePrice bool   `json:"separate_price" gorm:"default:0"`          // Giá riêng
 
-	ListServiceItems []BookingServiceItem `json:"list_service_items,omitempty" gorm:"-:migration"` // List service item: rental, proshop, restaurant, kiosk
-	ShowCaddieBuggy  *bool                `json:"show_caddie_buggy" gorm:"default:1"`              // Sau add round thì không hiển thị caddie buggy
-	IsPrivateBuggy   *bool                `json:"is_private_buggy" gorm:"default:0"`               // Bag có dùng buggy riêng không
-	MovedFlight      *bool                `json:"moved_flight" gorm:"default:0"`                   // Đánh dấu booking đã move flight chưa
-	AddedRound       *bool                `json:"added_flight" gorm:"default:0"`                   // Đánh dấu booking đã add chưa
-	AgencyPaid       AgencyPaid           `json:"agency_paid,omitempty"`
+	ListServiceItems []BookingServiceItem                 `json:"list_service_items,omitempty" gorm:"-:migration"` // List service item: rental, proshop, restaurant, kiosk
+	ShowCaddieBuggy  *bool                                `json:"show_caddie_buggy" gorm:"default:1"`              // Sau add round thì không hiển thị caddie buggy
+	IsPrivateBuggy   *bool                                `json:"is_private_buggy" gorm:"default:0"`               // Bag có dùng buggy riêng không
+	MovedFlight      *bool                                `json:"moved_flight" gorm:"default:0"`                   // Đánh dấu booking đã move flight chưa
+	AddedRound       *bool                                `json:"added_flight" gorm:"default:0"`                   // Đánh dấu booking đã add chưa
+	AgencyPaid       utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty" gorm:"type:json"`
 }
 
 type FlyInfoResponse struct {
@@ -461,20 +462,20 @@ func (item BookingAgency) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
-type AgencyPaid struct {
-	CaddieFee int64 `json:"caddie_fee"`
-	BuggyFee  int64 `json:"buggy_fee"`
-	GolfFee   int64 `json:"golf_fee"`
-	Amount    int64 `json:"amount"`
-}
+// type AgencyPaid struct {
+// 	CaddieFee int64 `json:"caddie_fee"`
+// 	BuggyFee  int64 `json:"buggy_fee"`
+// 	GolfFee   int64 `json:"golf_fee"`
+// 	Amount    int64 `json:"amount"`
+// }
 
-func (item *AgencyPaid) Scan(v interface{}) error {
-	return json.Unmarshal(v.([]byte), item)
-}
+// func (item *AgencyPaid) Scan(v interface{}) error {
+// 	return json.Unmarshal(v.([]byte), item)
+// }
 
-func (item AgencyPaid) Value() (driver.Value, error) {
-	return json.Marshal(&item)
-}
+// func (item AgencyPaid) Value() (driver.Value, error) {
+// 	return json.Marshal(&item)
+// }
 
 // Caddie Info
 type BookingCaddie struct {
@@ -518,12 +519,13 @@ type NumberPeopleInFlight struct {
 }
 
 type BookingFeeOfBag struct {
-	CurrentBagPrice   BookingCurrentBagPriceDetail `json:"current_bag_price,omitempty"`
-	ListGolfFee       ListBookingGolfFee           `json:"list_golf_fee,omitempty"`
-	MushPayInfo       BookingMushPay               `json:"mush_pay_info,omitempty"`
-	ListServiceItems  []BookingServiceItem         `json:"list_service_items"`
-	ListRoundOfSubBag []RoundOfBag                 `json:"list_round_of_sub_bag"`
-	Rounds            models.ListRound             `json:"rounds"`
+	AgencyPaid        utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty"`
+	SubBags           utils.ListSubBag                     `json:"sub_bags,omitempty"`
+	ListGolfFee       ListBookingGolfFee                   `json:"list_golf_fee,omitempty"`
+	MushPayInfo       BookingMushPay                       `json:"mush_pay_info,omitempty"`
+	ListServiceItems  []BookingServiceItem                 `json:"list_service_items"`
+	ListRoundOfSubBag []RoundOfBag                         `json:"list_round_of_sub_bag"`
+	Rounds            models.ListRound                     `json:"rounds"`
 }
 
 // -------- Booking Logic --------
@@ -713,8 +715,12 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(db *gorm.DB) {
 	if item.MainBags == nil || len(item.MainBags) == 0 {
 		return
 	}
-	mainBook := Booking{}
-	mainBook.Uid = item.MainBags[0].BookingUid
+	mainBook := Booking{
+		CourseUid:   item.CourseUid,
+		PartnerUid:  item.PartnerUid,
+		Bag:         item.MainBags[0].GolfBag,
+		BookingDate: item.BookingDate,
+	}
 	errFMB := mainBook.FindFirst(db)
 	if errFMB != nil {
 		log.Println("UpdatePriceForBagHaveMainBags errFMB", errFMB.Error())
@@ -730,20 +736,36 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(db *gorm.DB) {
 	isConFR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
 	// Check thanh toán next round
 	isConNR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
-	for i, v := range item.ListGolfFee {
-		if i == 0 {
-			if isConFR < 0 {
-				// Nếu main k thanh toán FR cho sub thì add vào sub
-				totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
-			}
-		} else {
-			if isConNR < 0 {
-				// Nếu main k thanh toán NR cho sub thì add vào sub
-				totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
-			}
-		}
-	}
+	// for i, v := range item.ListGolfFee {
+	// 	if i == 0 {
+	// 		if isConFR < 0 {
+	// 			// Nếu main k thanh toán FR cho sub thì add vào sub
+	// 			totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
+	// 		}
+	// 	} else {
+	// 		if isConNR < 0 {
+	// 			// Nếu main k thanh toán NR cho sub thì add vào sub
+	// 			totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
+	// 		}
+	// 	}
+	// }
 
+	roundToFindList := models.Round{BillCode: item.BillCode}
+	listRound, _ := roundToFindList.FindAll(db)
+
+	bookingCaddieFee := slices.Reduce(listRound, func(prev int64, item models.Round) int64 {
+		return prev + item.CaddieFee
+	})
+
+	bookingBuggyFee := slices.Reduce(listRound, func(prev int64, item models.Round) int64 {
+		return prev + item.BuggyFee
+	})
+
+	bookingGreenFee := slices.Reduce(listRound, func(prev int64, item models.Round) int64 {
+		return prev + item.GreenFee
+	})
+
+	totalGolfFee = bookingCaddieFee + bookingBuggyFee + bookingGreenFee
 	// Tính total golf fee cho sub
 	mushPay.TotalGolfFee = totalGolfFee
 
@@ -799,28 +821,69 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(db *gorm.DB) {
 			isIndex = i
 		}
 	}
-	if isIndex == -1 {
+
+	handleGolfFeeInRound := func() BookingGolfFee {
 		//Chua dc add
-		if isConFR >= 0 {
-			if len(item.ListGolfFee) > 0 {
-				mainBook.ListGolfFee = append(listGolfFeeTemp, item.ListGolfFee[0])
+		golfFee := item.ListGolfFee[0]
+		roundToFindList := models.Round{BillCode: item.BillCode}
+		listRound, _ := roundToFindList.FindAll(db)
+
+		round1 := models.Round{}
+		round2 := models.Round{}
+
+		for _, round := range listRound {
+			if round.Index == 1 {
+				round1 = round
+			}
+			if round.Index == 2 {
+				round2 = round
 			}
 		}
-	} else {
-		if isConFR >= 0 {
-			// add them vao
-			mainBook.ListGolfFee[isIndex] = item.ListGolfFee[0]
-		} else {
-			// remove di
-			listTempGF1 := ListBookingGolfFee{}
-			for _, v := range mainBook.ListGolfFee {
-				if v.BookingUid != item.Uid {
-					listTempGF1 = append(listTempGF1, v)
-				}
-			}
-			mainBook.ListGolfFee = listTempGF1
+
+		if isConFR > -1 && isConNR > -1 {
+			buggyFee := round1.BuggyFee + round2.BuggyFee
+			caddieFee := round1.CaddieFee + round2.CaddieFee
+			greenFee := round1.GreenFee + round2.GreenFee
+
+			golfFee.BuggyFee = buggyFee
+			golfFee.CaddieFee = caddieFee
+			golfFee.GreenFee = greenFee
+		} else if isConFR > -1 {
+			golfFee.BuggyFee = round1.BuggyFee
+			golfFee.CaddieFee = round1.CaddieFee
+			golfFee.GreenFee = round1.GreenFee
+		} else if isConNR > -1 {
+			golfFee.BuggyFee = round2.BuggyFee
+			golfFee.CaddieFee = round2.CaddieFee
+			golfFee.GreenFee = round2.GreenFee
 		}
+
+		return golfFee
 	}
+
+	if isConFR > -1 || isConNR > -1 {
+		golfFee := handleGolfFeeInRound()
+		if isIndex == -1 {
+			//Chua dc add
+			mainBook.ListGolfFee = append(listGolfFeeTemp, golfFee)
+		} else {
+			mainBook.ListGolfFee[isIndex] = golfFee
+		}
+
+		// update lại must pay của sub
+		golfFeeNotMustPay := golfFee.BuggyFee + golfFee.CaddieFee + golfFee.GreenFee
+		item.MushPayInfo.TotalGolfFee = item.MushPayInfo.TotalGolfFee - golfFeeNotMustPay
+		item.MushPayInfo.MushPay = item.MushPayInfo.TotalGolfFee + item.MushPayInfo.TotalServiceItem
+	} else {
+		listTempGF1 := ListBookingGolfFee{}
+		for _, v := range mainBook.ListGolfFee {
+			if v.BookingUid != item.Uid {
+				listTempGF1 = append(listTempGF1, v)
+			}
+		}
+		mainBook.ListGolfFee = listTempGF1
+	}
+
 	mainBook.UpdateMushPay(db)
 	mainBook.UpdatePriceDetailCurrentBag(db)
 	errUdpMB := mainBook.Update(db)
@@ -994,6 +1057,22 @@ func (item *Booking) CreateBatch(db *gorm.DB, bookings []Booking) error {
 func (item *Booking) FindFirst(database *gorm.DB) error {
 	db := database.Order("created_at desc")
 	return db.Where(item).First(item).Error
+}
+
+func (item *Booking) FindFirstByUId(database *gorm.DB) (Booking, error) {
+	errFSub := item.FindFirst(database)
+	if errFSub == nil {
+		booking := Booking{
+			CourseUid:   item.CourseUid,
+			PartnerUid:  item.PartnerUid,
+			Bag:         item.Bag,
+			BookingDate: item.BookingDate,
+		}
+		db := database.Order("created_at desc")
+		db.Where(&booking).First(&booking)
+		return booking, db.Error
+	}
+	return Booking{}, errFSub
 }
 
 func (item *Booking) FindFirstWithJoin(database *gorm.DB) error {

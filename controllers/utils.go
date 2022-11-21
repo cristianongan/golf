@@ -1278,3 +1278,34 @@ func getTeeTimeLockRedis(courseUid string, date string) []models.LockTeeTime {
 	}
 	return listTeeTimeLockRedis
 }
+
+/*
+Đánh dấu lại round đã được trả bởi Main Bag
+*/
+func bookMarkRoundPaidByMainBag(mainBooking model_booking.Booking, db *gorm.DB) {
+	checkIsFirstRound := utils.ContainString(mainBooking.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+	checkIsNextRound := utils.ContainString(mainBooking.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
+
+	if len(mainBooking.SubBags) > 0 {
+		for _, subBooking := range mainBooking.SubBags {
+			round1 := models.Round{BillCode: subBooking.BillCode, Index: 1}
+			if errRound1 := round1.FindFirst(db); errRound1 == nil {
+				if checkIsFirstRound > -1 {
+					round1.MainBagPaid = newTrue(true)
+				} else {
+					round1.MainBagPaid = newTrue(false)
+				}
+				round1.Update(db)
+			}
+			round2 := models.Round{BillCode: subBooking.BillCode, Index: 2}
+			if errRound2 := round2.FindFirst(db); errRound2 == nil {
+				if checkIsNextRound > -1 {
+					round2.MainBagPaid = newTrue(true)
+				} else {
+					round2.MainBagPaid = newTrue(false)
+				}
+				round2.Update(db)
+			}
+		}
+	}
+}
