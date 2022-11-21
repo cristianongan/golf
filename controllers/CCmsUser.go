@@ -268,12 +268,12 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 	//verify password
 	eightOrMore, number, upper, special := utils.VerifyPassword(passw)
 	if !eightOrMore || !number || !upper || !special {
-		response_message.BadRequest(c, "Mật khẩu ít nhất 8 ký tự, kết hợp các ký tự: Chữ, Số, Ký tự đặc biệt")
+		response_message.BadRequestDynamicKey(c, "USER_VALIDATE_PASSWORD_POLICY", "")
 		return
 	}
 
 	if checkStringInArray(config.GetBlacklistPass(), body.Password) {
-		response_message.BadRequest(c, "Password too week")
+		response_message.BadRequestDynamicKey(c, "USER_VALIDATE_PASSWORD_WEEK", "")
 		return
 	}
 
