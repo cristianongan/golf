@@ -19,7 +19,7 @@ type CmsUser struct {
 
 	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng Golf
 	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	UserName   string `json:"user_name" gorm:"type:varchar(20);uniqueIndex"`
+	UserName   string `json:"user_name" gorm:"type:varchar(100);uniqueIndex"`
 
 	FullName string `json:"full_name" gorm:"type:varchar(256);index"`
 	Password string `json:"-" gorm:"type:varchar(256)"`
