@@ -2467,9 +2467,6 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking.UpdatePriceForBagHaveMainBags(db)
-	booking.Update(db)
-
 	mainBag := list[0]
 	subBags := utils.ListSubBag{}
 
@@ -2479,13 +2476,22 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	listTempGF1 := model_booking.ListBookingGolfFee{}
+	for _, v := range mainBag.ListGolfFee {
+		if v.BookingUid != booking.Uid {
+			listTempGF1 = append(listTempGF1, v)
+		}
+	}
+	mainBag.ListGolfFee = listTempGF1
 	mainBag.SubBags = subBags
+	mainBag.UpdateMushPay(db)
 	if errUpdateMainBag := mainBag.Update(db); errUpdateMainBag != nil {
 		response_message.BadRequestDynamicKey(c, "UPDATE_BOOKING_ERROR", "")
 		return
 	}
 
 	booking.MainBags = utils.ListSubBag{}
+	booking.UpdateMushPay(db)
 	if errUpdateSubBag := booking.Update(db); errUpdateSubBag != nil {
 		response_message.BadRequestDynamicKey(c, "UPDATE_BOOKING_ERROR", "")
 		return

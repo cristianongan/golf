@@ -736,19 +736,6 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(db *gorm.DB) {
 	isConFR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
 	// Check thanh toán next round
 	isConNR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
-	// for i, v := range item.ListGolfFee {
-	// 	if i == 0 {
-	// 		if isConFR < 0 {
-	// 			// Nếu main k thanh toán FR cho sub thì add vào sub
-	// 			totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
-	// 		}
-	// 	} else {
-	// 		if isConNR < 0 {
-	// 			// Nếu main k thanh toán NR cho sub thì add vào sub
-	// 			totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
-	// 		}
-	// 	}
-	// }
 
 	roundToFindList := models.Round{BillCode: item.BillCode}
 	listRound, _ := roundToFindList.FindAll(db)
