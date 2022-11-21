@@ -25,4 +25,5 @@ type DeleteLockRequest struct {
 	TeeTime     string `json:"tee_time"`
 	BookingDate string `json:"booking_date"`
 	RequestType string `json:"request_type"`
+	TeeType     string `json:"tee_type"`
 }
