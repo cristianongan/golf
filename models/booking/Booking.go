@@ -146,9 +146,10 @@ type GolfFeeOfBag struct {
 }
 
 type RoundOfBag struct {
-	Bag        string           `json:"bag"`
-	PlayerName string           `json:"player_name"`
-	Rounds     models.ListRound `json:"rounds"`
+	Bag         string           `json:"bag"`
+	BookingCode string           `json:"booking_code"`
+	PlayerName  string           `json:"player_name"`
+	Rounds      models.ListRound `json:"rounds"`
 }
 
 type BookingForListServiceIems struct {

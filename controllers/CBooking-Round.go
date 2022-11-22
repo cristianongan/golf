@@ -28,9 +28,10 @@ func GetGolfFeeInfoOfBag(c *gin.Context, mainBooking model_booking.Booking) mode
 		listRound, _ := subRound.FindAll(db)
 
 		roundOfBag := model_booking.RoundOfBag{
-			Bag:        subBooking.GolfBag,
-			PlayerName: subBooking.PlayerName,
-			Rounds:     []models.Round{},
+			Bag:         subBooking.GolfBag,
+			BookingCode: subBooking.BookingCode,
+			PlayerName:  subBooking.PlayerName,
+			Rounds:      []models.Round{},
 		}
 
 		if checkIsFirstRound > -1 && len(listRound) > 0 {
