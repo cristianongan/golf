@@ -30,6 +30,7 @@ type Rental struct {
 	Type        string  `json:"type" gorm:"type:varchar(50)"`  // sub type của Rental
 	GroupCode   string  `json:"group_code" gorm:"type:varchar(100);index"`
 	GroupName   string  `json:"group_name" gorm:"type:varchar(100)"`
+	IsDriving   *bool   `json:"is_driving" gorm:"default:0"`
 }
 
 type RentalRequest struct {
@@ -103,6 +104,9 @@ func (item *RentalRequest) FindList(database *gorm.DB, page models.Page) ([]Rent
 	}
 	if item.Type != "" {
 		db = db.Where("rentals.type = ?", item.Type)
+	}
+	if item.IsDriving != nil {
+		db = db.Where("rentals.is_driving = ?", item.IsDriving)
 	}
 	if item.CodeOrName != "" {
 		query := "rentals.rental_id COLLATE utf8mb4_general_ci LIKE ? OR " +
