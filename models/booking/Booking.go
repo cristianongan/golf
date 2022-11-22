@@ -145,6 +145,11 @@ type GolfFeeOfBag struct {
 	ListRoundOfSubBag []RoundOfBag `json:"list_round_of_sub_bag"`
 }
 
+type PaymentOfBag struct {
+	BagDetail
+	ListRoundOfSubBag []RoundOfBag `json:"list_round_of_sub_bag"`
+}
+
 type RoundOfBag struct {
 	Bag         string           `json:"bag"`
 	BookingCode string           `json:"booking_code"`
@@ -522,7 +527,6 @@ type NumberPeopleInFlight struct {
 type BookingFeeOfBag struct {
 	AgencyPaid        utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty"`
 	SubBags           utils.ListSubBag                     `json:"sub_bags,omitempty"`
-	ListGolfFee       ListBookingGolfFee                   `json:"list_golf_fee,omitempty"`
 	MushPayInfo       BookingMushPay                       `json:"mush_pay_info,omitempty"`
 	ListServiceItems  []BookingServiceItem                 `json:"list_service_items"`
 	ListRoundOfSubBag []RoundOfBag                         `json:"list_round_of_sub_bag"`
