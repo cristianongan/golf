@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"log"
+	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
@@ -244,4 +245,73 @@ func (_ *CRental) DeleteRental(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okRes(c)
+}
+
+func (_ *CRental) GetGolfClubRental(c *gin.Context, prof models.CmsUser) {
+	form := request.GetListRentalForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+	rentalR := model_service.Rental{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	rentalList, _, err := rentalR.FindALL(db)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	// Get Buggy Fee
+	buggyFeeSettingR := models.BuggyFeeSetting{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+
+	listBuggySetting, _, _ := buggyFeeSettingR.FindAll(db)
+	buggyFeeSetting := models.BuggyFeeSetting{}
+	for _, item := range listBuggySetting {
+		if item.Status == constants.STATUS_ENABLE {
+			buggyFeeSetting = item
+			break
+		}
+	}
+
+	buggyFeeItemSettingR := models.BuggyFeeItemSetting{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		SettingId:  buggyFeeSetting.Id,
+		ModelId: models.ModelId{
+			Status: constants.STATUS_ENABLE,
+		},
+	}
+	listSetting, _, _ := buggyFeeItemSettingR.FindAllToday(db)
+
+	// Get Buggy Fee
+	bookingCaddieFeeSettingR := models.BookingCaddyFeeSetting{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+
+	listBookingBuggyCaddySetting, _, _ := bookingCaddieFeeSettingR.FindList(db, models.Page{}, false)
+	bookingCaddieFeeSetting := models.BookingCaddyFeeSettingRes{}
+	for _, item := range listBookingBuggyCaddySetting {
+		if item.Status == constants.STATUS_ENABLE {
+			bookingCaddieFeeSetting = models.BookingCaddyFeeSettingRes{
+				Fee:  item.Fee,
+				Name: item.Name,
+			}
+		}
+	}
+
+	res := map[string]interface{}{
+		"rentals":        rentalList,
+		"booking_buggy":  listSetting,
+		"booking_caddie": bookingCaddieFeeSetting,
+	}
+
+	okResponse(c, res)
 }

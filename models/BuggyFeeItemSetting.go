@@ -34,6 +34,13 @@ type BuggyFeeItemSettingResponse struct {
 	GuestStyle    string `json:"guest_style"`
 }
 
+type BuggyFeeItemSettingResForRental struct {
+	RentalFee     utils.ListGolfHoleFee `json:"rental_fee"`
+	PrivateCarFee utils.ListGolfHoleFee `json:"private_car_fee"`
+	OddCarFee     utils.ListGolfHoleFee `json:"odd_car_fee"`
+	GuestStyle    string                `json:"guest_style"`
+}
+
 type ListBuggyFeeItemSetting []BuggyFeeItemSetting
 
 func (item *ListBuggyFeeItemSetting) Scan(v interface{}) error {
@@ -126,6 +133,30 @@ func (item *BuggyFeeItemSetting) FindAll(database *gorm.DB) ([]BuggyFeeItemSetti
 	}
 
 	db = db.Where("guest_style = ? OR guest_style = ?", item.GuestStyle, "")
+	db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+	db.Count(&total)
+	db = db.Find(&list)
+	return list, total, db.Error
+}
+
+func (item *BuggyFeeItemSetting) FindAllToday(database *gorm.DB) ([]BuggyFeeItemSettingResForRental, int64, error) {
+	db := database.Model(BuggyFeeItemSetting{})
+	list := []BuggyFeeItemSettingResForRental{}
+	total := int64(0)
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.Status != "" {
+		db = db.Where("status IN (?)", strings.Split(item.Status, ","))
+	}
+	if item.SettingId > 0 {
+		db = db.Where("setting_id = ?", item.SettingId)
+	}
+
 	db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
 	db.Count(&total)
 	db = db.Find(&list)

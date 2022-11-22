@@ -453,6 +453,7 @@ func NewRouter() *gin.Engine {
 			cRental := new(controllers.CRental)
 			cmsApiAuthorized.POST("/rental", middlewares.AuthorizedCmsUserHandler(cRental.CreateRental))
 			cmsApiAuthorized.GET("/rental/list", middlewares.AuthorizedCmsUserHandler(cRental.GetListRental))
+			cmsApiAuthorized.GET("/rental/golf-club", middlewares.AuthorizedCmsUserHandler(cRental.GetGolfClubRental))
 			cmsApiAuthorized.PUT("/rental/:id", middlewares.AuthorizedCmsUserHandler(cRental.UpdateRental))
 			cmsApiAuthorized.DELETE("/rental/:id", middlewares.AuthorizedCmsUserHandler(cRental.DeleteRental))
 

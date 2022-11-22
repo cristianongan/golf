@@ -90,7 +90,12 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 	}
 
 	if user.LoggedIn {
-		errCheck := utils.ComparePassword(user.Password, body.Password)
+		passw, errDec := utils.DecryptAES([]byte(config.GetPassSecretKey()), body.Password)
+		if errDec != nil {
+			response_message.BadRequest(c, errDec.Error())
+			return
+		}
+		errCheck := utils.ComparePassword(user.Password, passw)
 		if errCheck != nil {
 			CheckLoginFailedManyTime(&user)
 			response_message.BadRequest(c, "login failse")
