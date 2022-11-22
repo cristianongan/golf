@@ -96,6 +96,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 		OnlyForRen:  body.OnlyForRen,
 		InputUser:   body.InputUser,
 		Name:        name,
+		IsDriving:   body.IsDriving,
 	}
 	rental.Status = body.Status
 
@@ -132,6 +133,7 @@ func (_ *CRental) GetListRental(c *gin.Context, prof models.CmsUser) {
 	rentalR.GroupCode = form.GroupCode
 	rentalR.Type = form.Type
 	rentalR.CodeOrName = form.CodeOrName
+	rentalR.IsDriving = form.IsDriving
 
 	list, total, err := rentalR.FindList(db, page)
 	if err != nil {
@@ -211,6 +213,9 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 	}
 	if body.GroupCode != "" {
 		rental.GroupCode = body.GroupCode
+	}
+	if body.IsDriving != nil {
+		rental.IsDriving = body.IsDriving
 	}
 	errUdp := rental.Update(db)
 	if errUdp != nil {

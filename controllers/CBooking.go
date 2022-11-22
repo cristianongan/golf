@@ -535,6 +535,41 @@ func (_ *CBooking) GetBookingDetail(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
+Get booking payment
+*/
+func (_ *CBooking) GetBookingPaymentDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	bookingIdStr := c.Param("uid")
+	if bookingIdStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = bookingIdStr
+	booking, errF := bookingR.FindFirstByUId(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	bagDetail := getBagDetailFromBooking(db, booking)
+	// Get List Round Of Sub Bag
+	listRoundOfSub := []model_booking.RoundOfBag{}
+	if len(booking.SubBags) > 0 {
+		res := GetGolfFeeInfoOfBag(c, booking)
+		listRoundOfSub = res.ListRoundOfSubBag
+	}
+
+	res := model_booking.PaymentOfBag{
+		BagDetail:         bagDetail,
+		ListRoundOfSubBag: listRoundOfSub,
+	}
+
+	okResponse(c, res)
+}
+
+/*
 Get booking by Bag
 Get Booking Bag trong ngày
 */
@@ -636,7 +671,6 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 	feeResponse := model_booking.BookingFeeOfBag{
 		AgencyPaid:        booking.AgencyPaid,
 		SubBags:           booking.SubBags,
-		ListGolfFee:       booking.ListGolfFee,
 		MushPayInfo:       booking.MushPayInfo,
 		ListServiceItems:  booking.ListServiceItems,
 		ListRoundOfSubBag: listRoundOfSub,

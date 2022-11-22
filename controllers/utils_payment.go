@@ -234,6 +234,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 			booking.AgencyPaid = bookingAgencyPayment.FeeData
 			booking.UpdatePriceDetailCurrentBag(db)
 			booking.UpdateMushPay(db)
+			booking.CurrentBagPrice.AmountUsd = booking.CurrentBagPrice.Amount / getListCurencyRate("usd")
 			booking.Update(db)
 
 			handleSinglePayment(db, booking, bookingAgencyPayment.GetTotalFee())
