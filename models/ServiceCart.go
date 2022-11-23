@@ -40,6 +40,7 @@ type ServiceCart struct {
 	CostPrice       bool           `json:"cost_price"`                                  // Có giá VAT hay ko
 	ResFloor        int            `json:"res_floor"`                                   // Số tầng bàn được đặt\
 	RentalStatus    string         `json:"rental_status" gorm:"type:varchar(100)"`      // Trạng thái thuê đồ
+	CaddieCode      string         `json:"caddie_code" gorm:"type:varchar(100)"`        // Caddie đi cùng bag
 }
 
 func (item *ServiceCart) Create(db *gorm.DB) error {
