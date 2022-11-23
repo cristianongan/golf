@@ -266,7 +266,7 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.Hole > 0 {
-
+		serviceCartItem.Hole = body.Hole
 	}
 
 	// check service cart
