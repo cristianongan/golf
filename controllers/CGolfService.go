@@ -34,7 +34,7 @@ func (_ *CGolfService) GetGolfServiceForReception(c *gin.Context, prof models.Cm
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	if form.Type == constants.GOLF_SERVICE_RENTAL {
+	if form.Type == constants.GOLF_SERVICE_RENTAL || form.Type == constants.DRIVING_SETTING {
 		// Get in rental
 		rentalR := model_service.RentalRequest{}
 		rentalR.PartnerUid = form.PartnerUid
@@ -42,6 +42,9 @@ func (_ *CGolfService) GetGolfServiceForReception(c *gin.Context, prof models.Cm
 		rentalR.EnglishName = form.Name
 		rentalR.VieName = form.Name
 		rentalR.CodeOrName = form.Code
+		if form.Type == constants.DRIVING_SETTING {
+			rentalR.IsDriving = setBoolForCursor(true)
+		}
 
 		list, total, errRentalR := rentalR.FindList(db, page)
 
