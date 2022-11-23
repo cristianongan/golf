@@ -21,6 +21,7 @@ type AddItemRentalCartBody struct {
 	Name       string `json:"name"`
 	Price      int64  `json:"price"`
 	Hole       int    `json:"hole"`
+	CaddieCode string `json:"caddie_code"`
 }
 
 type AddDiscountServiceItemBody struct {
