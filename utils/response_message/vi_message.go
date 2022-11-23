@@ -19,6 +19,7 @@ var ViLanguage = map[string]string{
 	"UNAUTHORIZED_LOGIN":         "Lỗi đăng nhập",
 	"USER_BE_LOCKED":             "Tài khoản bị khóa",
 	"PHONE_INVALID":              "Số điện thoại không hợp lệ",
+	"TABLE_PRICE_DEL_NOTE":       "Không hỗ trợ xoá bảng giá",
 
 	// USER
 	"JWT_TOKEN_INVALID":             "Đăng nhập không thành công",

@@ -150,9 +150,10 @@ func (_ *CTablePrice) UpdateTablePrice(c *gin.Context, prof models.CmsUser) {
 }
 
 func (_ *CTablePrice) DeleteTablePrice(c *gin.Context, prof models.CmsUser) {
-	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	response_message.BadRequest(c, "Không hỗ trợ xoá bảng giá")
+	response_message.BadRequestDynamicKey(c, "TABLE_PRICE_DEL_NOTE", "")
 	return
+
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 
 	tablePriceIdStr := c.Param("id")
 	tablePriceId, err := strconv.ParseInt(tablePriceIdStr, 10, 64)
