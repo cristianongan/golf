@@ -261,6 +261,7 @@ func (_ *CRental) GetGolfClubRental(c *gin.Context, prof models.CmsUser) {
 	rentalR := model_service.Rental{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
+		IsDriving:  form.IsDriving,
 	}
 
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
@@ -297,6 +298,7 @@ func (_ *CRental) GetGolfClubRental(c *gin.Context, prof models.CmsUser) {
 	listSetting, _, _ := buggyFeeItemSettingR.FindAllToday(db)
 	buggyFeeItemSetting := models.BuggyFeeItemSettingResForRental{}
 	for _, v := range listSetting {
+		// Ưu tiên All Guest Style (GuestStyle = "")
 		if v.GuestStyle == "" {
 			buggyFeeItemSetting = v
 			break
