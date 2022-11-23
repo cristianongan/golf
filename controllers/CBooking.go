@@ -1611,6 +1611,9 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	// Create payment info
 	handlePayment(db, booking)
 
+	cRound := CRound{}
+	go cRound.UpdateBag(booking, db)
+
 	res := getBagDetailFromBooking(db, booking)
 
 	okResponse(c, res)
