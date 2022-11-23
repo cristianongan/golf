@@ -25,7 +25,7 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Check Exits
-	isDupli := checkDuplicateGolfFee(db, body)
+	isDupli := checkDuplicateGolfFee(db, body, false)
 	if isDupli {
 		response_message.DuplicateRecord(c, "duplicated golf fee")
 		return
@@ -160,7 +160,7 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 		listTemp := listTempR.GetGuestStyleGolfFeeByGuestStyle(db)
 		// Cho trường hợp sửa golf fee có 1 row
 		if len(listTemp) > 1 {
-			isDupli := checkDuplicateGolfFee(db, body)
+			isDupli := checkDuplicateGolfFee(db, body, true)
 			if isDupli {
 				response_message.DuplicateRecord(c, "duplicated golf fee")
 				return

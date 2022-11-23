@@ -495,6 +495,10 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	// Create booking payment
+	if booking.AgencyId > 0 {
+		go handleAgencyPaid(booking, body.FeeInfo)
+	}
+
 	if booking.AgencyId > 0 && booking.MemberCardUid == "" {
 		go handleAgencyPayment(db, booking)
 		// Tạo thêm single payment cho bag
@@ -2216,16 +2220,6 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 	}
 
 	listBooking := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
-
-	handleAgencyFee := func() {
-		for index, booking := range listBooking {
-			if booking.AgencyId > 0 {
-				handleAgencyPaid(booking, bodyRequest.BookingList[index].FeeInfo)
-			}
-		}
-	}
-
-	go handleAgencyFee()
 
 	okResponse(c, listBooking)
 }
