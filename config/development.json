@@ -16,7 +16,7 @@
         "password": "4vB!qVugg!vmSY8pGP$vQQXA5r#@2MW=",
         "host": "103.176.145.22",
         "port": "3306",
-        "is_migrated": true,
+        "is_migrated": false,
         "debug": true
     },
     "mysql_auth": {
