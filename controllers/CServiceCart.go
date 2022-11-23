@@ -135,25 +135,138 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCartItem.Unit = proshop.Unit
 	}
 
-	if kiosk.ServiceType == constants.GROUP_RENTAL {
+	// check service cart
+	serviceCart := models.ServiceCart{}
+	serviceCart.PartnerUid = body.PartnerUid
+	serviceCart.CourseUid = body.CourseUid
+
+	if body.BillId != 0 {
+		serviceCart.Id = body.BillId
+	} else {
+		serviceCart.GolfBag = body.GolfBag
+		serviceCart.BookingUid = booking.Uid
+		serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
+		serviceCart.ServiceId = body.ServiceId
+		serviceCart.BillCode = constants.BILL_NONE
+		serviceCart.StaffOrder = prof.UserName
+		serviceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
+	}
+
+	err := serviceCart.FindFirst(db)
+	// no cart
+	if err != nil {
+		// create cart
+		serviceCart.Amount = body.Quantity * serviceCartItem.UnitPrice
+		if err := serviceCart.Create(db); err != nil {
+			response_message.InternalServerError(c, "Create cart "+err.Error())
+			return
+		}
+	} else {
+		// Kiểm tra trạng thái bill
+		// if serviceCart.BillStatus != constants.POS_BILL_STATUS_PENDING {
+		// 	response_message.BadRequest(c, "Bill status invalid")
+		// 	return
+		// }
+		// update tổng giá bill
+		serviceCart.Amount += body.Quantity * serviceCartItem.UnitPrice
+		if err := serviceCart.Update(db); err != nil {
+			response_message.InternalServerError(c, "Update cart "+err.Error())
+			return
+		}
+	}
+
+	// add infor cart item
+	serviceCartItem.PartnerUid = body.PartnerUid
+	serviceCartItem.CourseUid = body.CourseUid
+	serviceCartItem.ServiceType = kiosk.ServiceType
+	serviceCartItem.Bag = booking.Bag
+	serviceCartItem.BillCode = booking.BillCode
+	serviceCartItem.BookingUid = booking.Uid
+	serviceCartItem.PlayerName = booking.CustomerName
+	serviceCartItem.ServiceId = strconv.Itoa(int(serviceCart.ServiceId))
+	serviceCartItem.ServiceBill = serviceCart.Id
+	serviceCartItem.ItemCode = body.ItemCode
+	serviceCartItem.Quality = int(body.Quantity)
+	serviceCartItem.Amount = body.Quantity * serviceCartItem.UnitPrice
+	serviceCartItem.UserAction = prof.UserName
+
+	if err := serviceCartItem.Create(db); err != nil {
+		response_message.InternalServerError(c, "Create item "+err.Error())
+		return
+	}
+
+	c.JSON(200, serviceCart)
+}
+
+func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.AddItemRentalCartBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	validate := validator.New()
+
+	if err := validate.Struct(body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate golf bag
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
+	booking := model_booking.Booking{}
+	booking.PartnerUid = body.PartnerUid
+	booking.CourseUid = body.CourseUid
+	booking.Bag = body.GolfBag
+	booking.BookingDate = dateDisplay
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
+	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	// validate kiosk
+	kiosk := model_service.Kiosk{}
+	kiosk.Id = body.ServiceId
+	if err := kiosk.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Kiosk "+err.Error())
+		return
+	}
+
+	// create cart item
+	serviceCartItem := model_booking.BookingServiceItem{}
+
+	// add infor cart item
+	serviceCartItem.Type = kiosk.KioskType
+	serviceCartItem.Location = kiosk.KioskName
+	serviceCartItem.Name = body.Name
+	serviceCartItem.UnitPrice = body.Price
+
+	if body.ItemCode != "" {
 		rental := model_service.Rental{}
 		rental.PartnerUid = body.PartnerUid
 		rental.CourseUid = body.CourseUid
 		rental.RentalId = body.ItemCode
 
 		if err := rental.FindFirst(db); err != nil {
-			response_message.BadRequest(c, "Rental "+err.Error())
+			response_message.BadRequest(c, "Proshop "+err.Error())
 			return
 		}
-		// add infor cart item
+
 		serviceCartItem.ItemId = rental.Id
-		serviceCartItem.Type = kiosk.KioskType
-		serviceCartItem.Location = kiosk.KioskName
 		serviceCartItem.GroupCode = rental.GroupCode
-		serviceCartItem.Name = rental.VieName
 		serviceCartItem.EngName = rental.EnglishName
-		serviceCartItem.UnitPrice = int64(rental.Price)
 		serviceCartItem.Unit = rental.Unit
+	}
+
+	if body.Hole > 0 {
+
 	}
 
 	// check service cart
@@ -171,6 +284,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCart.BillCode = constants.BILL_NONE
 		serviceCart.StaffOrder = prof.UserName
 		serviceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
+		serviceCart.RentalStatus = constants.POS_RETAL_STATUS_RENT
 	}
 
 	err := serviceCart.FindFirst(db)
@@ -844,6 +958,10 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 
 	serviceCart.BillStatus = constants.POS_BILL_STATUS_OUT
 
+	if serviceCart.RentalStatus == constants.POS_RETAL_STATUS_RENT {
+		serviceCart.RentalStatus = constants.POS_RETAL_STATUS_CANCEL
+	}
+
 	if err := serviceCart.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -1065,6 +1183,41 @@ func (_ CServiceCart) UndoStatus(c *gin.Context, prof models.CmsUser) {
 
 	//Update lại giá trong booking
 	updatePriceWithServiceItem(booking, prof)
+
+	okRes(c)
+}
+
+// Chuyển trạng thái thuê đô
+func (_ CServiceCart) ChangeRentalStatus(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.FinishOrderBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// validate body
+	validate := validator.New()
+
+	if err := validate.Struct(body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate bill
+	serviceCart := models.ServiceCart{}
+	serviceCart.Id = body.BillId
+	if err := serviceCart.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Find service Cart "+err.Error())
+		return
+	}
+
+	// Update trạng thái
+	serviceCart.RentalStatus = constants.POS_RETAL_STATUS_RETURN
+	if err := serviceCart.Update(db); err != nil {
+		response_message.BadRequest(c, "Update service Cart "+err.Error())
+		return
+	}
 
 	okRes(c)
 }

@@ -306,6 +306,15 @@ const (
 )
 
 /*
+Các trạng thái đơn của point of sale
+*/
+const (
+	POS_RETAL_STATUS_RENT   = "RENT"   // Đơn hàng đang ở trạng thái chưa xác nhận
+	POS_RETAL_STATUS_RETURN = "RETURN" // Đơn hàng đã được xác nhận và chốt đơn (ở lễ tân lấy để tính tiền)
+	POS_RETAL_STATUS_CANCEL = "CANCEL" // Đơn hàng đã hủy
+)
+
+/*
 Các loại thay đổi hố booking
 */
 const (

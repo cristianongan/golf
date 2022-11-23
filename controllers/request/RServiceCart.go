@@ -10,6 +10,19 @@ type AddItemServiceCartBody struct {
 	BillId     int64  `json:"bill_id"`
 }
 
+type AddItemRentalCartBody struct {
+	PartnerUid string `json:"partner_uid"`
+	CourseUid  string `json:"course_uid"`
+	GolfBag    string `json:"golf_bag" binding:"required"`
+	ItemCode   string `json:"item_code" binding:"required"`
+	Quantity   int64  `json:"quantity"`
+	ServiceId  int64  `json:"service_id"`
+	BillId     int64  `json:"bill_id"`
+	Name       string `json:"name"`
+	Price      int64  `json:"price"`
+	Hole       int    `json:"hole"`
+}
+
 type AddDiscountServiceItemBody struct {
 	CartItemId     int64  `json:"cart_item_id"`
 	DiscountType   string `json:"discount_type"`
