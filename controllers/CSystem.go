@@ -8,8 +8,6 @@ import (
 	"start/utils/response_message"
 	"strconv"
 
-	model_payment "start/models/payment"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,7 +15,7 @@ type CSystem struct{}
 
 // Currency Paid
 func (_ *CSystem) GetListCurencyRate(c *gin.Context, prof models.CmsUser) {
-	currencyPaidGet := model_payment.CurrencyPaid{}
+	currencyPaidGet := models.CurrencyPaid{}
 
 	list, err := currencyPaidGet.FindAll()
 	if err != nil {
