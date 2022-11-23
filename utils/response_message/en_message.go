@@ -18,6 +18,7 @@ var EnLanguage = map[string]string{
 	"PERMISSION_DENY":            "Bạn không có quyền cho tính năng này",
 	"UNAUTHORIZED_LOGIN":         "Unauthorized, please login again",
 	"USER_BE_LOCKED":             "Account be deactived",
+	"TABLE_PRICE_DEL_NOTE":       "Không hỗ trợ xoá bảng giá",
 
 	// USER
 	"JWT_TOKEN_INVALID":             "Đăng nhập không thành công",
