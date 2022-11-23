@@ -1,4 +1,4 @@
-package model_payment
+package models
 
 import (
 	"start/datasources"

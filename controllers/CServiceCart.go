@@ -546,6 +546,45 @@ func (_ CServiceCart) GetListCart(c *gin.Context, prof models.CmsUser) {
 	c.JSON(200, res)
 }
 
+func (_ CServiceCart) GetListRentalCart(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	query := request.GetServiceCartRentalBody{}
+	if bindErr := c.ShouldBind(&query); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   query.PageRequest.Limit,
+		Page:    query.PageRequest.Page,
+		SortBy:  query.PageRequest.SortBy,
+		SortDir: query.PageRequest.SortDir,
+	}
+
+	bookingDate, _ := time.Parse(constants.DATE_FORMAT, query.BookingDate)
+
+	serviceCart := models.ServiceCart{}
+	serviceCart.PartnerUid = query.PartnerUid
+	serviceCart.CourseUid = query.CourseUid
+	serviceCart.ServiceId = query.ServiceId
+	serviceCart.BookingDate = datatypes.Date(bookingDate)
+	serviceCart.RentalStatus = query.RentalStatus
+
+	list, total, err := serviceCart.FindList(db, page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	c.JSON(200, res)
+}
+
 func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.UpdateServiceCartBody{}
@@ -605,29 +644,32 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	// }
 
 	if body.Quantity > 0 {
-		// validate quantity
-		inventory := kiosk_inventory.InventoryItem{}
-		inventory.PartnerUid = body.PartnerUid
-		inventory.CourseUid = body.CourseUid
-		inventory.ServiceId = serviceCart.ServiceId
-		inventory.Code = serviceCartItem.ItemCode
+		if serviceCartItem.Type != constants.RENTAL_SETTING &&
+			serviceCartItem.Type != constants.DRIVING_SETTING {
+			// validate quantity
+			inventory := kiosk_inventory.InventoryItem{}
+			inventory.PartnerUid = body.PartnerUid
+			inventory.CourseUid = body.CourseUid
+			inventory.ServiceId = serviceCart.ServiceId
+			inventory.Code = serviceCartItem.ItemCode
 
-		if err := inventory.FindFirst(db); err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
-		}
+			if err := inventory.FindFirst(db); err != nil {
+				response_message.BadRequest(c, err.Error())
+				return
+			}
 
-		// Kiểm tra số lượng hàng tồn trong kho
-		if body.Quantity > inventory.Quantity+int64(serviceCartItem.Quality) {
-			response_message.BadRequest(c, "The quantity of goods in stock is not enough")
-			return
-		}
+			// Kiểm tra số lượng hàng tồn trong kho
+			if body.Quantity > inventory.Quantity+int64(serviceCartItem.Quality) {
+				response_message.BadRequest(c, "The quantity of goods in stock is not enough")
+				return
+			}
 
-		// Update số lượng hàng tồn trong kho
-		inventory.Quantity = inventory.Quantity + int64(serviceCartItem.Quality) - body.Quantity
-		if err := inventory.Update(db); err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
+			// Update số lượng hàng tồn trong kho
+			inventory.Quantity = inventory.Quantity + int64(serviceCartItem.Quality) - body.Quantity
+			if err := inventory.Update(db); err != nil {
+				response_message.BadRequest(c, err.Error())
+				return
+			}
 		}
 
 		// update service cart
