@@ -95,6 +95,9 @@ func (item *LockTeeTime) FindList(database *gorm.DB, requestType string) ([]Lock
 	if item.CurrentTeeTime != "" {
 		db = db.Where("current_tee_time = ?", item.CurrentTeeTime)
 	}
+	if item.TeeTime != "" {
+		db = db.Where("tee_time = ?", item.TeeTime)
+	}
 	if requestType == "TURN_TIME" {
 		db = db.Where("current_tee_time <> tee_time")
 	}

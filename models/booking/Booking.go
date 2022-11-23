@@ -145,10 +145,16 @@ type GolfFeeOfBag struct {
 	ListRoundOfSubBag []RoundOfBag `json:"list_round_of_sub_bag"`
 }
 
+type PaymentOfBag struct {
+	BagDetail
+	ListRoundOfSubBag []RoundOfBag `json:"list_round_of_sub_bag"`
+}
+
 type RoundOfBag struct {
-	Bag        string           `json:"bag"`
-	PlayerName string           `json:"player_name"`
-	Rounds     models.ListRound `json:"rounds"`
+	Bag         string           `json:"bag"`
+	BookingCode string           `json:"booking_code"`
+	PlayerName  string           `json:"player_name"`
+	Rounds      models.ListRound `json:"rounds"`
 }
 
 type BookingForListServiceIems struct {
@@ -521,7 +527,6 @@ type NumberPeopleInFlight struct {
 type BookingFeeOfBag struct {
 	AgencyPaid        utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty"`
 	SubBags           utils.ListSubBag                     `json:"sub_bags,omitempty"`
-	ListGolfFee       ListBookingGolfFee                   `json:"list_golf_fee,omitempty"`
 	MushPayInfo       BookingMushPay                       `json:"mush_pay_info,omitempty"`
 	ListServiceItems  []BookingServiceItem                 `json:"list_service_items"`
 	ListRoundOfSubBag []RoundOfBag                         `json:"list_round_of_sub_bag"`
@@ -704,7 +709,18 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 		}
 	}
 
-	mushPay.MushPay = mushPay.TotalGolfFee + mushPay.TotalServiceItem
+	// Tổng tiền Agency đã trả
+	totalAgencyPaid := int64(0)
+	for _, v := range item.AgencyPaid {
+		totalAgencyPaid += v.Fee
+	}
+	for _, sub := range item.SubBags {
+		for _, itemFee := range sub.AgencyPaid {
+			totalAgencyPaid += itemFee.Fee
+		}
+	}
+
+	mushPay.MushPay = mushPay.TotalGolfFee + mushPay.TotalServiceItem - totalAgencyPaid
 	item.MushPayInfo = mushPay
 }
 
@@ -736,19 +752,6 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(db *gorm.DB) {
 	isConFR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
 	// Check thanh toán next round
 	isConNR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
-	// for i, v := range item.ListGolfFee {
-	// 	if i == 0 {
-	// 		if isConFR < 0 {
-	// 			// Nếu main k thanh toán FR cho sub thì add vào sub
-	// 			totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
-	// 		}
-	// 	} else {
-	// 		if isConNR < 0 {
-	// 			// Nếu main k thanh toán NR cho sub thì add vào sub
-	// 			totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
-	// 		}
-	// 	}
-	// }
 
 	roundToFindList := models.Round{BillCode: item.BillCode}
 	listRound, _ := roundToFindList.FindAll(db)

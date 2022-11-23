@@ -21,7 +21,8 @@ func runEnableUser() {
 	user := models.CmsUser{}
 	listUserLocked, _, _ := user.FindUserLocked()
 	for _, v := range listUserLocked {
-		datasources.DelCacheByKey(v.UserName)
+		redisLoginKey := datasources.GetRedisKeyUserLogin(v.UserName)
+		datasources.DelCacheByKey(redisLoginKey)
 		v.Status = constants.STATUS_ENABLE
 		v.Update()
 	}

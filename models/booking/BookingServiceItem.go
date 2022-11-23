@@ -41,7 +41,8 @@ type BookingServiceItem struct {
 	ServiceBill    int64  `json:"service_bill" gorm:"index"`               // id service cart
 	SaleQuantity   int64  `json:"sale_quantity"`                           // tổng số lượng bán được
 	Location       string `json:"location" gorm:"type:varchar(100);index"` // Dc add từ đâu
-	// PaidBy         string `json:"paid_by" gorm:"type:varchar(50)"`         // Paid by: cho case đại lý thanh toán
+	PaidBy         string `json:"paid_by" gorm:"type:varchar(50)"`         // Paid by: cho case đại lý thanh toán
+	Hole           int    `json:"hole"`                                    // Số hố check in
 }
 
 // Response cho FE

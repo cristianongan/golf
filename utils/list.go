@@ -122,6 +122,7 @@ type BookingAgencyPayForBagData struct {
 	Type string `json:"type"` // GOLF_FEE, BUGGY_FEE, BOOKING_CADDIE_FEE
 	Fee  int64  `json:"fee"`
 	Name string `json:"name"`
+	Hole int    `json:"hole"`
 }
 
 type ListBookingAgencyPayForBagData []BookingAgencyPayForBagData

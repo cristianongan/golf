@@ -32,7 +32,7 @@ func (_ *CCmsUser) Test(c *gin.Context, prof models.CmsUser) {
 }
 
 func CheckLoginFailedManyTime(user *models.CmsUser) {
-	redisLoginKey := user.UserName
+	redisLoginKey := datasources.GetRedisKeyUserLogin(user.UserName)
 	countLogin, errRedis := datasources.GetCache(redisLoginKey)
 
 	if errRedis != nil {
@@ -68,7 +68,8 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 		UserName: body.UserName,
 	}
 
-	countLogin, errRedis := datasources.GetCache(body.UserName)
+	redisLoginKey := datasources.GetRedisKeyUserLogin(body.UserName)
+	countLogin, errRedis := datasources.GetCache(redisLoginKey)
 	if errRedis == nil {
 		i, err := strconv.Atoi(countLogin)
 		if err == nil && i >= 5 {
@@ -89,7 +90,12 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 	}
 
 	if user.LoggedIn {
-		errCheck := utils.ComparePassword(user.Password, body.Password)
+		passw, errDec := utils.DecryptAES([]byte(config.GetPassSecretKey()), body.Password)
+		if errDec != nil {
+			response_message.BadRequest(c, errDec.Error())
+			return
+		}
+		errCheck := utils.ComparePassword(user.Password, passw)
 		if errCheck != nil {
 			CheckLoginFailedManyTime(&user)
 			response_message.BadRequest(c, "login failse")
@@ -268,12 +274,12 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 	//verify password
 	eightOrMore, number, upper, special := utils.VerifyPassword(passw)
 	if !eightOrMore || !number || !upper || !special {
-		response_message.BadRequest(c, "Mật khẩu ít nhất 8 ký tự, kết hợp các ký tự: Chữ, Số, Ký tự đặc biệt")
+		response_message.BadRequestDynamicKey(c, "USER_VALIDATE_PASSWORD_POLICY", "")
 		return
 	}
 
 	if checkStringInArray(config.GetBlacklistPass(), body.Password) {
-		response_message.BadRequest(c, "Password too week")
+		response_message.BadRequestDynamicKey(c, "USER_VALIDATE_PASSWORD_WEEK", "")
 		return
 	}
 
@@ -400,7 +406,8 @@ func (_ *CCmsUser) EnableCmsUser(c *gin.Context) {
 	user := models.CmsUser{}
 	listUserLocked, _, _ := user.FindUserLocked()
 	for _, v := range listUserLocked {
-		datasources.DelCacheByKey(v.UserName)
+		redisLoginKey := datasources.GetRedisKeyUserLogin(v.UserName)
+		datasources.DelCacheByKey(redisLoginKey)
 		v.Status = constants.STATUS_ENABLE
 		v.Update()
 	}

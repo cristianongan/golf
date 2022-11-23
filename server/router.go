@@ -221,6 +221,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/booking/list/flight", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingWithFightInfo))
 			cmsApiAuthorized.GET("/booking/list-service-item", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingWithListServiceItems))
 			cmsApiAuthorized.GET("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingDetail))                       // Get Booking detail by uid
+			cmsApiAuthorized.GET("/booking/payment/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingPaymentDetail))        // Thêm Info...
 			cmsApiAuthorized.GET("/booking/by-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingByBag))                      // Get booking detail by Bag
 			cmsApiAuthorized.GET("/booking/fee-of-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingFeeOfBag))               // Get booking detail by Bag
 			cmsApiAuthorized.PUT("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.UpdateBooking))                          // Thêm Info...
@@ -453,6 +454,7 @@ func NewRouter() *gin.Engine {
 			cRental := new(controllers.CRental)
 			cmsApiAuthorized.POST("/rental", middlewares.AuthorizedCmsUserHandler(cRental.CreateRental))
 			cmsApiAuthorized.GET("/rental/list", middlewares.AuthorizedCmsUserHandler(cRental.GetListRental))
+			cmsApiAuthorized.GET("/rental/golf-club", middlewares.AuthorizedCmsUserHandler(cRental.GetGolfClubRental))
 			cmsApiAuthorized.PUT("/rental/:id", middlewares.AuthorizedCmsUserHandler(cRental.UpdateRental))
 			cmsApiAuthorized.DELETE("/rental/:id", middlewares.AuthorizedCmsUserHandler(cRental.DeleteRental))
 

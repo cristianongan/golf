@@ -19,11 +19,14 @@ var ViLanguage = map[string]string{
 	"UNAUTHORIZED_LOGIN":         "Lỗi đăng nhập",
 	"USER_BE_LOCKED":             "Tài khoản bị khóa",
 	"PHONE_INVALID":              "Số điện thoại không hợp lệ",
+	"TABLE_PRICE_DEL_NOTE":       "Không hỗ trợ xoá bảng giá",
 
 	// USER
-	"JWT_TOKEN_INVALID":            "Đăng nhập không thành công",
-	"VALIDATE_SOURCE_INVALID":      "Start point is not available",
-	"VALIDATE_DESTINATION_INVALID": "Destination point is not available",
+	"JWT_TOKEN_INVALID":             "Đăng nhập không thành công",
+	"VALIDATE_SOURCE_INVALID":       "Start point is not available",
+	"VALIDATE_DESTINATION_INVALID":  "Destination point is not available",
+	"USER_VALIDATE_PASSWORD_POLICY": "Mật khẩu ít nhất 8 ký tự, kết hợp các ký tự: Chữ, Số, Ký tự đặc biệt",
+	"USER_VALIDATE_PASSWORD_WEEK":   "Mật khẩu yếu",
 
 	//BAG
 	"BAG_NOT_FOUND":                 "Không tìm thấy Bag này",

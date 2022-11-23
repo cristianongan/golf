@@ -18,12 +18,16 @@ var EnLanguage = map[string]string{
 	"PERMISSION_DENY":            "Bạn không có quyền cho tính năng này",
 	"UNAUTHORIZED_LOGIN":         "Unauthorized, please login again",
 	"USER_BE_LOCKED":             "Account be deactived",
+	"TABLE_PRICE_DEL_NOTE":       "Không hỗ trợ xoá bảng giá",
 
 	// USER
-	"JWT_TOKEN_INVALID":            "Đăng nhập không thành công",
-	"VALIDATE_SOURCE_INVALID":      "Start point is not available",
-	"VALIDATE_DESTINATION_INVALID": "Destination point is not available",
-	"PHONE_INVALID":                "Invalid phone number",
+	"JWT_TOKEN_INVALID":             "Đăng nhập không thành công",
+	"VALIDATE_SOURCE_INVALID":       "Start point is not available",
+	"VALIDATE_DESTINATION_INVALID":  "Destination point is not available",
+	"PHONE_INVALID":                 "Invalid phone number",
+	"USER_VALIDATE_PASSWORD_POLICY": "Mật khẩu ít nhất 8 ký tự, kết hợp các ký tự: Chữ, Số, Ký tự đặc biệt",
+	"USER_VALIDATE_PASSWORD_WEEK":   "Mật khẩu yếu",
+
 	//BAG
 	"BAG_NOT_FOUND":                 "Cannot found this bag",
 	"PLAY_COUNT_INVALID":            "Play count remain over",

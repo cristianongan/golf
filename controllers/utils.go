@@ -145,7 +145,7 @@ func udpCourseUid(courseUid, partnerUid string) string {
 	return strings.ToUpper(partnerUid + "-" + courseUid2)
 }
 
-func checkDuplicateGolfFee(db *gorm.DB, body models.GolfFee) bool {
+func checkDuplicateGolfFee(db *gorm.DB, body models.GolfFee, isUdp bool) bool {
 	golfFee := models.GolfFee{
 		PartnerUid:   body.PartnerUid,
 		CourseUid:    body.CourseUid,
@@ -184,14 +184,17 @@ func checkDuplicateGolfFee(db *gorm.DB, body models.GolfFee) bool {
 
 	isdup := false
 	for _, v := range listTemp {
-		for _, v1 := range listDowStr {
-			if strings.Contains(v.Dow, v1) {
-				log.Print("checkDuplicateGolfFee1 true")
-				isdup = true
-				break
+		if isUdp && v.Id == body.Id {
+			// Nếu là item đó và udp thì cứ udp
+		} else {
+			for _, v1 := range listDowStr {
+				if strings.Contains(v.Dow, v1) {
+					log.Print("checkDuplicateGolfFee1 true")
+					isdup = true
+					break
+				}
 			}
 		}
-
 	}
 
 	return isdup
@@ -272,7 +275,11 @@ func initListRound(db *gorm.DB, booking model_booking.Booking, bookingGolfFee mo
 		round.Hole = booking.Hole
 		round.MemberCardUid = booking.MemberCardUid
 		round.TeeOffTime = booking.CheckInTime
-
+		for _, v := range booking.AgencyPaid {
+			if v.Type == constants.BOOKING_AGENCY_GOLF_FEE && v.Fee > 0 {
+				round.PaidBy = constants.PAID_BY_AGENCY
+			}
+		}
 		errUdp := round.Update(db)
 		if errUdp != nil {
 			log.Println("createBagsNote errUdp", errUdp.Error())
@@ -292,6 +299,11 @@ func initListRound(db *gorm.DB, booking model_booking.Booking, bookingGolfFee mo
 	round.MemberCardUid = booking.MemberCardUid
 	round.TeeOffTime = booking.CheckInTime
 	round.Pax = 1
+	for _, v := range booking.AgencyPaid {
+		if v.Type == constants.BOOKING_AGENCY_GOLF_FEE && v.Fee > 0 {
+			round.PaidBy = constants.PAID_BY_AGENCY
+		}
+	}
 
 	errCreateRound := round.Create(db)
 	if errCreateRound != nil {
