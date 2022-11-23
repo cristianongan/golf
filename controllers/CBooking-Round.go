@@ -13,7 +13,7 @@ import (
 /*
 Get chi tiết Golf Fee của bag: Round, Sub bag
 */
-func GetGolfFeeInfoOfBag(c *gin.Context, mainBooking model_booking.Booking) model_booking.GolfFeeOfBag {
+func GetGolfFeeInfoOfBag(c *gin.Context, mainBooking model_booking.Booking, forAgency bool) model_booking.GolfFeeOfBag {
 	db := datasources.GetDatabaseWithPartner(mainBooking.PartnerUid)
 	golfFeeOfBag := model_booking.GolfFeeOfBag{
 		Booking:           mainBooking,
@@ -34,14 +34,36 @@ func GetGolfFeeInfoOfBag(c *gin.Context, mainBooking model_booking.Booking) mode
 			Rounds:      []models.Round{},
 		}
 
-		if checkIsFirstRound > -1 && len(listRound) > 0 {
-			round1 := models.Round{}
-			for _, item := range listRound {
-				if item.Index == 1 {
-					round1 = item
+		if forAgency {
+			if checkIsFirstRound > -1 && len(listRound) > 0 {
+				round1 := models.Round{}
+				for _, item := range listRound {
+					if item.Index == 1 {
+						round1 = item
+					}
+				}
+
+				isAgencyPaid := false
+				for _, v := range subBooking.AgencyPaid {
+					if v.Type == constants.BOOKING_AGENCY_GOLF_FEE && v.Fee > 0 {
+						isAgencyPaid = true
+					}
+				}
+
+				if !isAgencyPaid {
+					roundOfBag.Rounds = append(roundOfBag.Rounds, round1)
 				}
 			}
-			roundOfBag.Rounds = append(roundOfBag.Rounds, round1)
+		} else {
+			if checkIsFirstRound > -1 && len(listRound) > 0 {
+				round1 := models.Round{}
+				for _, item := range listRound {
+					if item.Index == 1 {
+						round1 = item
+					}
+				}
+				roundOfBag.Rounds = append(roundOfBag.Rounds, round1)
+			}
 		}
 
 		if checkIsNextRound > -1 && len(listRound) > 1 {

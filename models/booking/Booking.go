@@ -709,7 +709,18 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 		}
 	}
 
-	mushPay.MushPay = mushPay.TotalGolfFee + mushPay.TotalServiceItem
+	// Tổng tiền Agency đã trả
+	totalAgencyPaid := int64(0)
+	for _, v := range item.AgencyPaid {
+		totalAgencyPaid += v.Fee
+	}
+	for _, sub := range item.SubBags {
+		for _, itemFee := range sub.AgencyPaid {
+			totalAgencyPaid += itemFee.Fee
+		}
+	}
+
+	mushPay.MushPay = mushPay.TotalGolfFee + mushPay.TotalServiceItem - totalAgencyPaid
 	item.MushPayInfo = mushPay
 }
 
