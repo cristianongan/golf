@@ -289,11 +289,22 @@ func (_ *CRental) GetGolfClubRental(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 		SettingId:  buggyFeeSetting.Id,
+		GuestStyle: form.GuestStyle,
 		ModelId: models.ModelId{
 			Status: constants.STATUS_ENABLE,
 		},
 	}
 	listSetting, _, _ := buggyFeeItemSettingR.FindAllToday(db)
+	buggyFeeItemSetting := models.BuggyFeeItemSettingResForRental{}
+	for _, v := range listSetting {
+		if v.GuestStyle == "" {
+			buggyFeeItemSetting = v
+			break
+		} else if v.GuestStyle == form.GuestStyle {
+			buggyFeeItemSetting = v
+			break
+		}
+	}
 
 	// Get Buggy Fee
 	bookingCaddieFeeSettingR := models.BookingCaddyFeeSetting{
@@ -314,7 +325,7 @@ func (_ *CRental) GetGolfClubRental(c *gin.Context, prof models.CmsUser) {
 
 	res := map[string]interface{}{
 		"rentals":        rentalList,
-		"booking_buggy":  listSetting,
+		"booking_buggy":  buggyFeeItemSetting,
 		"booking_caddie": bookingCaddieFeeSetting,
 	}
 

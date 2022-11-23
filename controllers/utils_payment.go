@@ -233,8 +233,8 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 			// Ghi nhận só tiền agency thanh toán cho bag đó
 			booking.AgencyPaid = bookingAgencyPayment.FeeData
 			booking.UpdatePriceDetailCurrentBag(db)
-			booking.UpdateMushPay(db)
 			booking.CurrentBagPrice.AmountUsd = booking.CurrentBagPrice.Amount / getListCurencyRate("usd")
+			booking.UpdateMushPay(db)
 			booking.Update(db)
 
 			handleSinglePayment(db, booking, bookingAgencyPayment.GetTotalFee())

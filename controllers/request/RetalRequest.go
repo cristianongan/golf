@@ -29,6 +29,7 @@ type GetListRentalForm struct {
 	Type        string `form:"type"`
 	CodeOrName  string `form:"code_or_name"`
 	IsDriving   *bool  `form:"is_driving"`
+	GuestStyle  string `form:"guest_style"`
 }
 
 type UpdateRentalBody struct {

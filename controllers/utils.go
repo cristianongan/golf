@@ -272,7 +272,11 @@ func initListRound(db *gorm.DB, booking model_booking.Booking, bookingGolfFee mo
 		round.Hole = booking.Hole
 		round.MemberCardUid = booking.MemberCardUid
 		round.TeeOffTime = booking.CheckInTime
-
+		for _, v := range booking.AgencyPaid {
+			if v.Type == constants.BOOKING_AGENCY_GOLF_FEE && v.Fee > 0 {
+				round.PaidBy = constants.PAID_BY_AGENCY
+			}
+		}
 		errUdp := round.Update(db)
 		if errUdp != nil {
 			log.Println("createBagsNote errUdp", errUdp.Error())
@@ -292,6 +296,11 @@ func initListRound(db *gorm.DB, booking model_booking.Booking, bookingGolfFee mo
 	round.MemberCardUid = booking.MemberCardUid
 	round.TeeOffTime = booking.CheckInTime
 	round.Pax = 1
+	for _, v := range booking.AgencyPaid {
+		if v.Type == constants.BOOKING_AGENCY_GOLF_FEE && v.Fee > 0 {
+			round.PaidBy = constants.PAID_BY_AGENCY
+		}
+	}
 
 	errCreateRound := round.Create(db)
 	if errCreateRound != nil {
