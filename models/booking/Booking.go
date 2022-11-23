@@ -422,6 +422,14 @@ func (item BookingCurrentBagPriceDetail) Value() (driver.Value, error) {
 
 func (item *BookingCurrentBagPriceDetail) UpdateAmount() {
 	item.Amount = item.Transfer + item.Debit + item.GolfFee + item.Restaurant + item.Kiosk + item.Rental + item.Proshop + item.Promotion
+
+	// Update date lại giá USD
+	currencyPaidGet := models.CurrencyPaid{
+		Currency: "usd",
+	}
+	if err := currencyPaidGet.FindFirst(); err == nil {
+		item.AmountUsd = item.Amount / currencyPaidGet.Rate
+	}
 }
 
 // Booking Round
@@ -598,7 +606,14 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 						}
 
 						// Check trong MainBag có trả mới add
-						if v2 == v1.Type {
+						serviceTypV1 := v1.Type
+						if serviceTypV1 == constants.MINI_B_SETTING || serviceTypV1 == constants.MINI_R_SETTING {
+							serviceTypV1 = constants.GOLF_SERVICE_RESTAURANT
+						}
+						if serviceTypV1 == constants.DRIVING_SETTING {
+							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
+						}
+						if v2 == serviceTypV1 {
 							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
 								isCanAdd = true
 							} else {
@@ -790,18 +805,29 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(db *gorm.DB) {
 	priceDetail.GolfFee = item.CurrentBagPrice.GolfFee
 
 	for _, serviceItem := range item.ListServiceItems {
-		isCon := utils.ContainString(listPay, serviceItem.Type)
+		serviceType := serviceItem.Type
+		if serviceType == constants.MINI_B_SETTING || serviceType == constants.MINI_R_SETTING {
+			serviceType = constants.GOLF_SERVICE_RESTAURANT
+		}
+		if serviceType == constants.DRIVING_SETTING {
+			serviceType = constants.GOLF_SERVICE_RENTAL
+		}
+
+		isCon := utils.ContainString(listPay, serviceType)
 		if isCon < 0 {
 			// Main bag không thanh toán cho sub bag thì cộng vào
 			if serviceItem.BillCode == item.BillCode {
 				// Udp service detail cho booking uid
-				if serviceItem.Type == constants.GOLF_SERVICE_RENTAL {
+				if serviceItem.Type == constants.GOLF_SERVICE_RENTAL ||
+					serviceItem.Type == constants.DRIVING_SETTING {
 					priceDetail.Rental += serviceItem.Amount
 				}
 				if serviceItem.Type == constants.GOLF_SERVICE_PROSHOP {
 					priceDetail.Proshop += serviceItem.Amount
 				}
-				if serviceItem.Type == constants.GOLF_SERVICE_RESTAURANT {
+				if serviceItem.Type == constants.GOLF_SERVICE_RESTAURANT ||
+					serviceItem.Type == constants.MINI_B_SETTING ||
+					serviceItem.Type == constants.MINI_R_SETTING {
 					priceDetail.Restaurant += serviceItem.Amount
 				}
 				if serviceItem.Type == constants.GOLF_SERVICE_KIOSK {

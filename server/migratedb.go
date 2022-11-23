@@ -192,7 +192,7 @@ func MigrateDbAuth() {
 		db.AutoMigrate(&model_role.Permission{})
 		db.AutoMigrate(&model_role.RolePermission{})
 		db.AutoMigrate(&model_role.UserRole{})
-		db.AutoMigrate(&model_payment.CurrencyPaid{})
+		db.AutoMigrate(&models.CurrencyPaid{})
 		db.AutoMigrate(&models.CmsUser{})
 		db.AutoMigrate(&models.CmsUserToken{})
 		db.AutoMigrate(&models.Partner{})
