@@ -177,6 +177,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 			Fee:  feeInfo.GolfFee,
 			Name: "Golf Fee",
 			Type: constants.BOOKING_AGENCY_GOLF_FEE,
+			Hole: booking.Hole,
 		})
 	}
 	if feeInfo.BuggyFee > 0 {
@@ -190,6 +191,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 			Fee:  feeInfo.BuggyFee,
 			Name: name,
 			Type: constants.BOOKING_AGENCY_BUGGY_FEE,
+			Hole: booking.Hole,
 		})
 		serviceItem := model_booking.BookingServiceItem{
 			BillCode:   booking.BillCode,
@@ -202,6 +204,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		serviceItem.Type = constants.GOLF_SERVICE_RENTAL
 		serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
 		serviceItem.PaidBy = constants.PAID_BY_AGENCY
+		serviceItem.Hole = booking.Hole
 		serviceItem.Create(datasources.GetDatabaseWithPartner(booking.PartnerUid))
 	}
 	if feeInfo.CaddieFee > 0 {
@@ -209,6 +212,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 			Fee:  feeInfo.CaddieFee,
 			Name: "Booking Caddie fee",
 			Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
+			Hole: booking.Hole,
 		})
 		serviceItem := model_booking.BookingServiceItem{
 			BillCode:   booking.BillCode,
@@ -221,6 +225,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		serviceItem.Type = constants.GOLF_SERVICE_RENTAL
 		serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
 		serviceItem.PaidBy = constants.PAID_BY_AGENCY
+		serviceItem.Hole = booking.Hole
 		serviceItem.Create(db)
 	}
 
