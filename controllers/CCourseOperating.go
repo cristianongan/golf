@@ -240,10 +240,10 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		}
 
 		if buggyTemp.Id > 0 {
-			bookingTemp.IsPrivateBuggy = newTrue(v.IsPrivateBuggy)
+			bookingTemp.IsPrivateBuggy = setBoolForCursor(v.IsPrivateBuggy)
 
 			buggyTemp.BuggyStatus = constants.BUGGY_CURRENT_STATUS_IN_COURSE
-			caddieBuggyInNote.IsPrivateBuggy = newTrue(v.IsPrivateBuggy)
+			caddieBuggyInNote.IsPrivateBuggy = setBoolForCursor(v.IsPrivateBuggy)
 			caddieBuggyInNote.BuggyId = buggyTemp.Id
 			caddieBuggyInNote.BuggyCode = buggyTemp.Code
 			caddieBuggyInNote.BuggyType = constants.STATUS_IN
@@ -981,7 +981,7 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 	// set new buggy
 	booking.BuggyId = buggyNew.Id
 	booking.BuggyInfo = cloneToBuggyBooking(buggyNew)
-	booking.IsPrivateBuggy = newTrue(body.IsPrivateBuggy)
+	booking.IsPrivateBuggy = setBoolForCursor(body.IsPrivateBuggy)
 	//booking.BuggyStatus
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
@@ -1337,7 +1337,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
 	booking.TimeOutFlight = time.Now().Unix()
 	booking.HoleTimeOut = int(body.HolePlayed)
-	booking.MovedFlight = newTrue(true)
+	booking.MovedFlight = setBoolForCursor(true)
 	errBookingUpd := booking.Update(db)
 	if errBookingUpd != nil {
 		response_message.InternalServerError(c, errBookingUpd.Error())
@@ -1347,7 +1347,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	// Tạo booking mới với flightID và bag_status in course
 	bookingUid := uuid.New()
 	newBooking := cloneToBooking(booking)
-	newBooking.MovedFlight = newTrue(false)
+	newBooking.MovedFlight = setBoolForCursor(false)
 	newBooking.HoleTimeOut = 0
 	newBooking.HoleMoveFlight = body.HoleMoveFlight
 	newBooking.BagStatus = constants.BAG_STATUS_IN_COURSE

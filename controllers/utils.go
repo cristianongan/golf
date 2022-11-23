@@ -554,11 +554,11 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 		}
 
 		booking.BuggyId = buggy.Id
-		booking.IsPrivateBuggy = newTrue(isPrivateBuggy)
+		booking.IsPrivateBuggy = setBoolForCursor(isPrivateBuggy)
 		booking.BuggyInfo = cloneToBuggyBooking(buggy)
 	}
 
-	booking.ShowCaddieBuggy = newTrue(true)
+	booking.ShowCaddieBuggy = setBoolForCursor(true)
 	response.NewCaddie = caddie
 	response.NewBuggy = buggy
 	response.Booking = booking
@@ -1263,7 +1263,7 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 	return kiosk_inventory.ItemInfo{}, errors.New(fmt.Sprintln(itemCode, "not found"))
 }
 
-func newTrue(b bool) *bool {
+func setBoolForCursor(b bool) *bool {
 	boolVar := b
 	return &boolVar
 }
@@ -1302,18 +1302,18 @@ func bookMarkRoundPaidByMainBag(mainBooking model_booking.Booking, db *gorm.DB) 
 			round1 := models.Round{BillCode: subBooking.BillCode, Index: 1}
 			if errRound1 := round1.FindFirst(db); errRound1 == nil {
 				if checkIsFirstRound > -1 {
-					round1.MainBagPaid = newTrue(true)
+					round1.MainBagPaid = setBoolForCursor(true)
 				} else {
-					round1.MainBagPaid = newTrue(false)
+					round1.MainBagPaid = setBoolForCursor(false)
 				}
 				round1.Update(db)
 			}
 			round2 := models.Round{BillCode: subBooking.BillCode, Index: 2}
 			if errRound2 := round2.FindFirst(db); errRound2 == nil {
 				if checkIsNextRound > -1 {
-					round2.MainBagPaid = newTrue(true)
+					round2.MainBagPaid = setBoolForCursor(true)
 				} else {
-					round2.MainBagPaid = newTrue(false)
+					round2.MainBagPaid = setBoolForCursor(false)
 				}
 				round2.Update(db)
 			}

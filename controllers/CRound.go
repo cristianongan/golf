@@ -87,7 +87,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		// Update giá
 		cRound.UpdateListFeePriceInRound(c, db, &booking, booking.GuestStyle, &round, hole)
 		// Update lại bag_status của booking cũ
-		booking.AddedRound = newTrue(true)
+		booking.AddedRound = setBoolForCursor(true)
 		booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
 		booking.Update(db)
 
@@ -99,7 +99,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		newBooking.HoleTimeOut = 0
 		newBooking.TimeOutFlight = 0
 		newBooking.CourseType = body.CourseType
-		newBooking.ShowCaddieBuggy = newTrue(false)
+		newBooking.ShowCaddieBuggy = setBoolForCursor(false)
 		errCreateBooking := newBooking.Create(db, bUid)
 
 		if errCreateBooking != nil {
@@ -417,12 +417,12 @@ func (cRound CRound) UpdateListFeePriceInBookingAndRound(c *gin.Context, db *gor
 func (cRound CRound) ResetRoundPaidByMain(billCode string, db *gorm.DB) {
 	round1 := models.Round{BillCode: billCode, Index: 1}
 	if errRound1 := round1.FindFirst(db); errRound1 == nil {
-		round1.MainBagPaid = newTrue(false)
+		round1.MainBagPaid = setBoolForCursor(false)
 		round1.Update(db)
 	}
 	round2 := models.Round{BillCode: billCode, Index: 2}
 	if errRound2 := round2.FindFirst(db); errRound2 == nil {
-		round2.MainBagPaid = newTrue(false)
+		round2.MainBagPaid = setBoolForCursor(false)
 		round2.Update(db)
 	}
 }

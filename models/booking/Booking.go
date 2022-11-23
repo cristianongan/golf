@@ -613,7 +613,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 						if serviceTypV1 == constants.DRIVING_SETTING {
 							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
 						}
-						if v2 == serviceTypV1 {
+						if v2 == serviceTypV1 && v1.PaidBy != constants.PAID_BY_AGENCY {
 							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
 								isCanAdd = true
 							} else {

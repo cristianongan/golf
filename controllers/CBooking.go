@@ -561,7 +561,7 @@ func (_ *CBooking) GetBookingPaymentDetail(c *gin.Context, prof models.CmsUser) 
 	// Get List Round Of Sub Bag
 	listRoundOfSub := []model_booking.RoundOfBag{}
 	if len(booking.SubBags) > 0 {
-		res := GetGolfFeeInfoOfBag(c, booking, true)
+		res := GetGolfFeeInfoOfBag(c, booking)
 		listRoundOfSub = res.ListRoundOfSubBag
 	}
 
@@ -668,7 +668,7 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 	// Get List Round Of Sub Bag
 	listRoundOfSub := []model_booking.RoundOfBag{}
 	if len(booking.SubBags) > 0 {
-		res := GetGolfFeeInfoOfBag(c, booking, false)
+		res := GetGolfFeeInfoOfBag(c, booking)
 		listRoundOfSub = res.ListRoundOfSubBag
 	}
 
