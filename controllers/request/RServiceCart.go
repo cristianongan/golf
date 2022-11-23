@@ -64,6 +64,15 @@ type GetServiceCartBody struct {
 	ServiceId   int64  `form:"service_id"`
 }
 
+type GetServiceCartRentalBody struct {
+	PageRequest
+	PartnerUid   string `form:"partner_uid"`
+	CourseUid    string `form:"course_uid"`
+	BookingDate  string `form:"booking_date" binding:"required"`
+	ServiceId    int64  `form:"service_id"`
+	RentalStatus string `form:"rental_status"`
+}
+
 type UpdateServiceCartBody struct {
 	PartnerUid string `json:"partner_uid"`
 	CourseUid  string `json:"course_uid"`
