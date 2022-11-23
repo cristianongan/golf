@@ -644,8 +644,8 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	// }
 
 	if body.Quantity > 0 {
-		if serviceCartItem.Type == constants.RENTAL_SETTING ||
-			serviceCartItem.Type == constants.DRIVING_SETTING {
+		if serviceCartItem.Type != constants.RENTAL_SETTING &&
+			serviceCartItem.Type != constants.DRIVING_SETTING {
 			// validate quantity
 			inventory := kiosk_inventory.InventoryItem{}
 			inventory.PartnerUid = body.PartnerUid
