@@ -14,7 +14,7 @@ type AddItemRentalCartBody struct {
 	PartnerUid string `json:"partner_uid"`
 	CourseUid  string `json:"course_uid"`
 	GolfBag    string `json:"golf_bag" binding:"required"`
-	ItemCode   string `json:"item_code" binding:"required"`
+	ItemCode   string `json:"item_code"`
 	Quantity   int64  `json:"quantity"`
 	ServiceId  int64  `json:"service_id"`
 	BillId     int64  `json:"bill_id"`
