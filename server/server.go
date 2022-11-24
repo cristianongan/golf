@@ -23,19 +23,21 @@ func Init() {
 	// fs := http.FileServer(http.Dir("../public"))
 	// http.Handle("/", fs)
 
-	// Configure websocket route
-	http.HandleFunc("/ws", socket.HandleConnections)
+	if config.GetBool("is_open_socket") {
+		// Configure websocket route
+		http.HandleFunc("/ws", socket.HandleConnections)
 
-	// Start listening for incoming chat messages
-	go socket.HandleMessages()
+		// Start listening for incoming chat messages
+		go socket.HandleMessages()
 
-	// Start the server on localhost port 8000 and log any errors
-	log.Println("http server started on :8000")
-	a := func() {
-		err := http.ListenAndServe(":8000", nil)
-		log.Println("ListenAndServe", err)
+		// Start the server on localhost port 8000 and log any errors
+		log.Println("socket http server started on :8000")
+		a := func() {
+			err := http.ListenAndServe(":8000", nil)
+			log.Println("ListenAndServe", err)
+		}
+		go a()
 	}
-	go a()
 
 	// --- Cron ---
 	ccron.CronStart()
@@ -51,12 +53,6 @@ func Init() {
 	// elasticsearch.ElasticSearchInit()
 
 	r := NewRouter()
-
-	// routers := r.Routes()
-	// Init authority
-	// initAuthority(routers)
-
-	// logger.InitLogger()
 
 	log.Println("Server is running ...", "listen", config.GetString("backend_port"))
 	r.Run(config.GetString("backend_port"))
