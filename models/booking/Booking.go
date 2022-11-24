@@ -776,12 +776,12 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 		}
 	}
 
-	if item.CheckAgencyPaidRound1() {
-		mushPay.TotalGolfFee -= item.AgencyPaid[0].Fee
-		if mushPay.TotalGolfFee < 0 {
-			mushPay.TotalGolfFee = 0
-		}
-	}
+	// if item.CheckAgencyPaidRound1() {
+	// 	mushPay.TotalGolfFee -= item.AgencyPaid[0].Fee
+	// 	if mushPay.TotalGolfFee < 0 {
+	// 		mushPay.TotalGolfFee = 0
+	// 	}
+	// }
 
 	total := mushPay.TotalGolfFee + mushPay.TotalServiceItem
 
