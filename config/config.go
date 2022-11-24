@@ -243,3 +243,8 @@ func GetGolfPartnerURL() string {
 func GetPassSecretKey() string {
 	return config.GetString("aes_pass_secret_key")
 }
+
+// =============== Có mở socket không ============
+func GetIsOpenSocket() bool {
+	return config.GetBool("is_open_socket")
+}
