@@ -31,6 +31,7 @@ type Rental struct {
 	GroupCode   string  `json:"group_code" gorm:"type:varchar(100);index"`
 	GroupName   string  `json:"group_name" gorm:"type:varchar(100)"`
 	IsDriving   *bool   `json:"is_driving" gorm:"default:0"`
+	Rate        string  `json:"rate" gorm:"type:varchar(100)"`
 }
 
 type RentalRequest struct {

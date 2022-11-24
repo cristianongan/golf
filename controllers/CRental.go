@@ -97,6 +97,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 		InputUser:   body.InputUser,
 		Name:        name,
 		IsDriving:   body.IsDriving,
+		Rate:        body.Rate,
 	}
 	rental.Status = body.Status
 
@@ -216,6 +217,9 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 	}
 	if body.IsDriving != nil {
 		rental.IsDriving = body.IsDriving
+	}
+	if body.Rate != "" {
+		rental.Rate = body.Rate
 	}
 	errUdp := rental.Update(db)
 	if errUdp != nil {

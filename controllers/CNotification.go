@@ -91,7 +91,7 @@ func (_ *CNotification) SeenNotification(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	notification.IsRead = newTrue(true)
+	notification.IsRead = setBoolForCursor(true)
 	if errUpd := notification.Update(db); errUpd != nil {
 		response_message.BadRequest(c, errUpd.Error())
 		return

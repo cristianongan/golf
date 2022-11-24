@@ -16,6 +16,7 @@ type CreateRentalBody struct {
 	InputUser   string  `json:"input_user"`
 	Status      string  `json:"status"`
 	IsDriving   *bool   `json:"is_driving"`
+	Rate        string  `json:"rate"`
 }
 
 type GetListRentalForm struct {
@@ -48,4 +49,5 @@ type UpdateRentalBody struct {
 	GroupCode   string   `json:"group_code"`
 	GroupName   string   `json:"group_name"`
 	IsDriving   *bool    `json:"is_driving"`
+	Rate        string   `json:"rate"`
 }
