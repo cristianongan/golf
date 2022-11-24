@@ -683,11 +683,55 @@ func (item *Booking) UpdateBagGolfFee() {
 func (item *Booking) UpdateMushPay(db *gorm.DB) {
 	mushPay := BookingMushPay{}
 
-	totalGolfFee := int64(0)
-	for _, v := range item.ListGolfFee {
-		totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
+	listRoundGolfFee := []models.Round{}
+
+	roundToFindList := models.Round{BillCode: item.BillCode}
+	listMainRound, _ := roundToFindList.FindAll(db)
+
+	for _, round := range listMainRound {
+		if round.Index == 1 {
+			if !item.CheckAgencyPaidRound1() {
+				listRoundGolfFee = append(listRoundGolfFee, round)
+			}
+		} else {
+			listRoundGolfFee = append(listRoundGolfFee, round)
+		}
 	}
-	mushPay.TotalGolfFee = totalGolfFee
+
+	if len(item.SubBags) > 0 {
+		checkIsFirstRound := utils.ContainString(item.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+		checkIsNextRound := utils.ContainString(item.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
+		for _, sub := range item.SubBags {
+			roundToFindList := models.Round{BillCode: sub.BillCode}
+			listSubRound, _ := roundToFindList.FindAll(db)
+
+			for _, round := range listSubRound {
+				if round.Index == 1 {
+					if !(len(sub.AgencyPaid) > 0 && sub.AgencyPaid[0].Fee > 0) && checkIsFirstRound > -1 {
+						listRoundGolfFee = append(listRoundGolfFee, round)
+					}
+				}
+				if round.Index == 2 && checkIsNextRound > -1 {
+					listRoundGolfFee = append(listRoundGolfFee, round)
+				}
+			}
+		}
+	}
+
+	bookingCaddieFee := slices.Reduce(listRoundGolfFee, func(prev int64, item models.Round) int64 {
+		return prev + item.CaddieFee
+	})
+
+	bookingBuggyFee := slices.Reduce(listRoundGolfFee, func(prev int64, item models.Round) int64 {
+		return prev + item.BuggyFee
+	})
+
+	bookingGreenFee := slices.Reduce(listRoundGolfFee, func(prev int64, item models.Round) int64 {
+		return prev + item.GreenFee
+	})
+
+	totalGolfFeeOfSubBag := bookingCaddieFee + bookingBuggyFee + bookingGreenFee
+	mushPay.TotalGolfFee = totalGolfFeeOfSubBag
 
 	// SubBag
 

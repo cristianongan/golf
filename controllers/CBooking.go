@@ -2580,5 +2580,5 @@ func (cBooking *CBooking) Test(c *gin.Context, prof models.CmsUser) {
 
 	// booking.UpdateMushPay(db)
 	cRound := CRound{}
-	cRound.UpdateListFeePriceInBookingAndRound(c, db, booking, booking.GuestStyle, 6)
+	cRound.UpdateListFeePriceInBookingAndRound(c, db, booking, booking.GuestStyle, 7)
 }
