@@ -771,10 +771,16 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 	// Tổng tiền Agency đã trả
 	if item.CheckAgencyPaidRound1() {
 		mushPay.TotalServiceItem -= item.GetAgencyService()
+		if mushPay.TotalServiceItem < 0 {
+			mushPay.TotalServiceItem = 0
+		}
 	}
 
 	if item.CheckAgencyPaidRound1() {
 		mushPay.TotalGolfFee -= item.AgencyPaid[0].Fee
+		if mushPay.TotalGolfFee < 0 {
+			mushPay.TotalGolfFee = 0
+		}
 	}
 
 	total := mushPay.TotalGolfFee + mushPay.TotalServiceItem

@@ -403,14 +403,14 @@ func (cRound CRound) UpdateListFeePriceInBookingAndRound(c *gin.Context, db *gor
 		return
 	}
 
-	if round.Hole != hole {
-		// Update số hole của Round
-		round.Hole = hole
+	// if round.Hole != hole {
+	// Update số hole của Round
+	round.Hole = hole
 
-		// Update lại giá của Round theo số hố
-		cRound := CRound{}
-		cRound.UpdateListFeePriceInRound(c, db, &booking, round.GuestStyle, &round, hole)
-	}
+	// Update lại giá của Round theo số hố
+	cRound1 := CRound{}
+	cRound1.UpdateListFeePriceInRound(c, db, &booking, round.GuestStyle, &round, hole)
+	// }
 }
 
 // Khi changeToMain thì reset lại các round đã trả bởi main bag trước đó
