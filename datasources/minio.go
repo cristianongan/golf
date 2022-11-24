@@ -71,10 +71,10 @@ func mackePublicBucket(bucketName string) error {
 }
 
 func minioUploadFile(bucketname, path string, file *multipart.File) (string, error) {
-	errMake := mackePublicBucket(bucketname)
-	if errMake != nil {
-		return "", errMake
-	}
+	// errMake := mackePublicBucket(bucketname)
+	// if errMake != nil {
+	// 	return "", errMake
+	// }
 
 	var buff bytes.Buffer
 	io.Copy(&buff, *file)
