@@ -737,23 +737,26 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// validate quantity
-	inventory := kiosk_inventory.InventoryItem{}
-	inventory.PartnerUid = serviceCartItem.PartnerUid
-	inventory.CourseUid = serviceCartItem.CourseUid
-	inventory.ServiceId = serviceCart.ServiceId
-	inventory.Code = serviceCartItem.ItemCode
+	if serviceCartItem.Type != constants.RENTAL_SETTING &&
+		serviceCartItem.Type != constants.DRIVING_SETTING {
+		// validate quantity
+		inventory := kiosk_inventory.InventoryItem{}
+		inventory.PartnerUid = serviceCartItem.PartnerUid
+		inventory.CourseUid = serviceCartItem.CourseUid
+		inventory.ServiceId = serviceCart.ServiceId
+		inventory.Code = serviceCartItem.ItemCode
 
-	if err := inventory.FindFirst(db); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
+		if err := inventory.FindFirst(db); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
 
-	// Update số lượng hàng tồn trong kho
-	inventory.Quantity += int64(serviceCartItem.Quality)
-	if err := inventory.Update(db); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
+		// Update số lượng hàng tồn trong kho
+		inventory.Quantity += int64(serviceCartItem.Quality)
+		if err := inventory.Update(db); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
 	}
 
 	// update service cart
