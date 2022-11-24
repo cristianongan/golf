@@ -1290,10 +1290,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// udp ok -> Tính lại giá
-	// updatePriceWithServiceItem(booking, prof)
-	booking.UpdatePriceDetailCurrentBag(db)
-	booking.UpdateMushPay(db)
-	booking.Update(db)
+	updatePriceWithServiceItem(booking, prof)
 
 	// Get lai booking mới nhất trong DB
 	bookLast := model_booking.Booking{}

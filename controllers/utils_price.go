@@ -430,7 +430,10 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 
 	if booking.MainBags != nil && len(booking.MainBags) > 0 {
 		// Nếu bag có Main Bag
-		booking.UpdatePriceForBagHaveMainBags(db)
+		// booking.UpdatePriceForBagHaveMainBags(db)
+		booking.UpdatePriceDetailCurrentBag(db)
+		booking.UpdateMushPay(db)
+		booking.Update(db)
 	} else {
 		if booking.SubBags != nil && len(booking.SubBags) > 0 {
 			// Udp orther data
@@ -443,7 +446,9 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 				subBook, errFSub := subBookR.FindFirstByUId(db)
 				if errFSub == nil {
 					// TODO: optimal và check xử lý udp cho subbag fail
-					subBook.UpdatePriceForBagHaveMainBags(db)
+					subBook.UpdatePriceDetailCurrentBag(db)
+					subBook.UpdateMushPay(db)
+					subBook.Update(db)
 					errUdpSubBag := subBook.Update(db)
 					if errUdpSubBag != nil {
 						log.Println("updatePriceWithServiceItem errUdpSubBag", errUdpSubBag.Error())
@@ -466,8 +471,8 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 
 			return
 		}
-		booking.UpdateMushPay(db)
 		booking.UpdatePriceDetailCurrentBag(db)
+		booking.UpdateMushPay(db)
 	}
 	errUdp := booking.Update(db)
 	if errUdp != nil {
