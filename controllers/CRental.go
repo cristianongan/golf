@@ -329,11 +329,17 @@ func (_ *CRental) GetGolfClubRental(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	if form.IsDriving != nil && *form.IsDriving {
+		res := map[string]interface{}{
+			"rentals": rentalList,
+		}
+		okResponse(c, res)
+		return
+	}
 	res := map[string]interface{}{
 		"rentals":        rentalList,
 		"booking_buggy":  buggyFeeItemSetting,
 		"booking_caddie": bookingCaddieFeeSetting,
 	}
-
 	okResponse(c, res)
 }

@@ -139,6 +139,9 @@ func (item *Rental) FindALL(database *gorm.DB) ([]Rental, int64, error) {
 	if item.CourseUid != "" {
 		db = db.Where("rentals.course_uid = ?", item.CourseUid)
 	}
+	if item.IsDriving != nil {
+		db = db.Where("rentals.is_driving = ?", item.IsDriving)
+	}
 
 	db.Count(&total)
 
