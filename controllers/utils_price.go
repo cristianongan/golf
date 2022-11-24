@@ -281,6 +281,9 @@ func updateGolfFeeInBooking(booking *model_booking.Booking, db *gorm.DB) {
 				totalGolfFeeOfBookingMain += v3.BuggyFee + v3.CaddieFee + v3.GreenFee
 			}
 
+			if bookingMain.CheckAgencyPaidRound1() {
+				bookingMain.MushPayInfo.TotalGolfFee -= bookingMain.AgencyPaid[0].Fee
+			}
 			bookingMain.MushPayInfo.TotalGolfFee = totalGolfFeeOfBookingMain
 			bookingMain.MushPayInfo.MushPay = bookingMain.MushPayInfo.TotalServiceItem + totalGolfFeeOfBookingMain
 
@@ -291,7 +294,11 @@ func updateGolfFeeInBooking(booking *model_booking.Booking, db *gorm.DB) {
 			}
 		}
 
-		checkIsFirstRound := utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+		checkIsFirstRound := -1
+
+		if !booking.CheckAgencyPaidRound1() {
+			checkIsFirstRound = utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+		}
 		checkIsNextRound := utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
 		totalGolfFeeOfSubBag := bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
 		golfFeeMustPayOfSubbag := totalGolfFeeOfSubBag
@@ -313,6 +320,10 @@ func updateGolfFeeInBooking(booking *model_booking.Booking, db *gorm.DB) {
 
 			//update lại giá của booking(sub bag)
 			golfFeeMustPayOfSubbag = totalGolfFeeOfSubBag - round2.BuggyFee - round2.CaddieFee - round2.GreenFee
+		}
+
+		if booking.CheckAgencyPaidRound1() {
+			golfFeeMustPayOfSubbag -= booking.AgencyPaid[0].Fee
 		}
 
 		booking.MushPayInfo.TotalGolfFee = golfFeeMustPayOfSubbag

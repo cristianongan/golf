@@ -725,19 +725,84 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 	}
 
 	// Tổng tiền Agency đã trả
-	totalAgencyPaid := int64(0)
-	for _, v := range item.AgencyPaid {
-		totalAgencyPaid += v.Fee
-	}
-	for _, sub := range item.SubBags {
-		for _, itemFee := range sub.AgencyPaid {
-			totalAgencyPaid += itemFee.Fee
-		}
+	if item.CheckAgencyPaidRound1() {
+		mushPay.TotalServiceItem -= item.GetAgencyService()
 	}
 
-	mushPay.MushPay = mushPay.TotalGolfFee + mushPay.TotalServiceItem - totalAgencyPaid
+	if item.CheckAgencyPaidRound1() {
+		mushPay.TotalGolfFee -= item.AgencyPaid[0].Fee
+	}
+
+	mushPay.MushPay = mushPay.TotalGolfFee + mushPay.TotalServiceItem
 	item.MushPayInfo = mushPay
 }
+
+// func (item *Booking) UpdateMushPay1(db *gorm.DB) {
+// 	mainBook := Booking{
+// 		CourseUid:   item.CourseUid,
+// 		PartnerUid:  item.PartnerUid,
+// 		Bag:         item.MainBags[0].GolfBag,
+// 		BookingDate: item.BookingDate,
+// 	}
+// 	errFMB := mainBook.FindFirst(db)
+// 	if errFMB != nil {
+// 		log.Println("UpdatePriceForBagHaveMainBags errFMB", errFMB.Error())
+// 		return
+// 	}
+// 	listPay := mainBook.MainBagPay
+// 	mushPay := BookingMushPay{}
+// 	mushPay := BookingMushPay{}
+
+// 	totalGolfFee := int64(0)
+// 	for _, v := range item.ListGolfFee {
+// 		totalGolfFee += (v.BuggyFee + v.CaddieFee + v.GreenFee)
+// 	}
+// 	mushPay.TotalGolfFee = totalGolfFee
+
+// 	// SubBag
+
+// 	// Sub Service Item của current Bag
+// 	// Get item for current Bag
+// 	// update lại lấy service items mới
+// 	item.FindServiceItems(db)
+// 	for _, v := range item.ListServiceItems {
+// 		isNeedPay := false
+// 		if len(item.MainBagPay) > 0 && item.BillCode != v.BillCode {
+// 			for _, v1 := range item.MainBagPay {
+// 				if v1 == constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS {
+// 					// Next Round
+// 				} else if v1 == constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND {
+// 					// First Round
+// 				} else if v1 == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE {
+// 					// Other Fee cũng nằm trong service items
+// 					if v1 == v.Type {
+// 						isNeedPay = true
+// 					}
+// 				} else {
+// 					if v1 == v.Type {
+// 						isNeedPay = true
+// 					}
+// 				}
+// 			}
+// 		} else {
+// 			if item.BillCode == v.BillCode {
+// 				isNeedPay = true
+// 			}
+// 		}
+// 		if isNeedPay {
+// 			mushPay.TotalServiceItem += v.Amount
+// 		}
+// 	}
+
+// 	// Tổng tiền Agency đã trả
+// 	totalAgencyPaid := int64(0)
+// 	for _, v := range item.AgencyPaid {
+// 		totalAgencyPaid += v.Fee
+// 	}
+
+// 	mushPay.MushPay = mushPay.TotalGolfFee + mushPay.TotalServiceItem - totalAgencyPaid
+// 	item.MushPayInfo = mushPay
+// }
 
 /*
 Update mush price bag have main bag
@@ -764,7 +829,12 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(db *gorm.DB) {
 
 	// Check xem main bag có trả golf fee cho sub bag không
 	// Check thanh toán first round
-	isConFR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+	isAgencyPaid := item.CheckAgencyPaidRound1()
+	isConFR := -1
+
+	if !isAgencyPaid {
+		isConFR = utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+	}
 	// Check thanh toán next round
 	isConNR := utils.ContainString(listPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
 
@@ -786,18 +856,30 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(db *gorm.DB) {
 	totalGolfFee = bookingCaddieFee + bookingBuggyFee + bookingGreenFee
 	// Tính total golf fee cho sub
 	mushPay.TotalGolfFee = totalGolfFee
+	if isAgencyPaid {
+		mushPay.TotalGolfFee -= item.AgencyPaid[0].Fee
+	}
 
 	item.FindServiceItems(db)
 	for _, v := range item.ListServiceItems {
 		isCon := utils.ContainString(listPay, v.Type)
-		if isCon < 0 {
-			// Main bag không thanh toán cho sub bag thì cộng vào
+		if v.PaidBy == constants.PAID_BY_AGENCY {
 			mushPay.TotalServiceItem += v.Amount
+		} else {
+			if isCon < 0 {
+				// Main bag không thanh toán cho sub bag thì cộng vào
+				mushPay.TotalServiceItem += v.Amount
+			}
 		}
+	}
+
+	if isAgencyPaid {
+		mushPay.TotalServiceItem -= item.GetAgencyService()
 	}
 
 	// Mush pay
 	mushPay.MushPay = mushPay.TotalGolfFee + mushPay.TotalServiceItem
+
 	item.MushPayInfo = mushPay
 
 	//Udp current Bag price
@@ -813,28 +895,28 @@ func (item *Booking) UpdatePriceForBagHaveMainBags(db *gorm.DB) {
 			serviceType = constants.GOLF_SERVICE_RENTAL
 		}
 
-		isCon := utils.ContainString(listPay, serviceType)
-		if isCon < 0 {
-			// Main bag không thanh toán cho sub bag thì cộng vào
-			if serviceItem.BillCode == item.BillCode {
-				// Udp service detail cho booking uid
-				if serviceItem.Type == constants.GOLF_SERVICE_RENTAL ||
-					serviceItem.Type == constants.DRIVING_SETTING {
-					priceDetail.Rental += serviceItem.Amount
-				}
-				if serviceItem.Type == constants.GOLF_SERVICE_PROSHOP {
-					priceDetail.Proshop += serviceItem.Amount
-				}
-				if serviceItem.Type == constants.GOLF_SERVICE_RESTAURANT ||
-					serviceItem.Type == constants.MINI_B_SETTING ||
-					serviceItem.Type == constants.MINI_R_SETTING {
-					priceDetail.Restaurant += serviceItem.Amount
-				}
-				if serviceItem.Type == constants.GOLF_SERVICE_KIOSK {
-					priceDetail.Kiosk += serviceItem.Amount
-				}
+		// isCon := utils.ContainString(listPay, serviceType)
+		// if isCon < 0 {
+		// Main bag không thanh toán cho sub bag thì cộng vào
+		if serviceItem.BillCode == item.BillCode {
+			// Udp service detail cho booking uid
+			if serviceItem.Type == constants.GOLF_SERVICE_RENTAL ||
+				serviceItem.Type == constants.DRIVING_SETTING {
+				priceDetail.Rental += serviceItem.Amount
+			}
+			if serviceItem.Type == constants.GOLF_SERVICE_PROSHOP {
+				priceDetail.Proshop += serviceItem.Amount
+			}
+			if serviceItem.Type == constants.GOLF_SERVICE_RESTAURANT ||
+				serviceItem.Type == constants.MINI_B_SETTING ||
+				serviceItem.Type == constants.MINI_R_SETTING {
+				priceDetail.Restaurant += serviceItem.Amount
+			}
+			if serviceItem.Type == constants.GOLF_SERVICE_KIOSK {
+				priceDetail.Kiosk += serviceItem.Amount
 			}
 		}
+		// }
 	}
 
 	priceDetail.UpdateAmount()
@@ -939,13 +1021,16 @@ func (item *Booking) UpdatePriceDetailCurrentBag(db *gorm.DB) {
 	for _, serviceItem := range item.ListServiceItems {
 		if serviceItem.BillCode == item.BillCode {
 			// Udp service detail cho booking uid
-			if serviceItem.Type == constants.GOLF_SERVICE_RENTAL {
+			if serviceItem.Type == constants.GOLF_SERVICE_RENTAL ||
+				serviceItem.Type == constants.DRIVING_SETTING {
 				priceDetail.Rental += serviceItem.Amount
 			}
 			if serviceItem.Type == constants.GOLF_SERVICE_PROSHOP {
 				priceDetail.Proshop += serviceItem.Amount
 			}
-			if serviceItem.Type == constants.GOLF_SERVICE_RESTAURANT {
+			if serviceItem.Type == constants.GOLF_SERVICE_RESTAURANT ||
+				serviceItem.Type == constants.MINI_B_SETTING ||
+				serviceItem.Type == constants.MINI_R_SETTING {
 				priceDetail.Restaurant += serviceItem.Amount
 			}
 			if serviceItem.Type == constants.GOLF_SERVICE_KIOSK {
@@ -1030,6 +1115,26 @@ func (item *Booking) IsDuplicated(db *gorm.DB, checkTeeTime, checkBag bool) (boo
 	}
 
 	return false, nil
+}
+
+func (item *Booking) CheckAgencyPaidRound1() bool {
+	return len(item.AgencyPaid) > 0 && item.AgencyPaid[0].Fee > 0
+}
+func (item *Booking) GetAgencyPaid() int64 {
+	totalAgencyPaid := int64(0)
+	for _, v := range item.AgencyPaid {
+		totalAgencyPaid += v.Fee
+	}
+	return totalAgencyPaid
+}
+func (item *Booking) GetAgencyService() int64 {
+	totalAgencyPaid := int64(0)
+	for _, v := range item.AgencyPaid {
+		if v.Type != constants.BOOKING_AGENCY_GOLF_FEE {
+			totalAgencyPaid += v.Fee
+		}
+	}
+	return totalAgencyPaid
 }
 
 func (item *Booking) CheckDuplicatedCaddieInTeeTime(db *gorm.DB) bool {
