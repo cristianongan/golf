@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/twharmon/slices"
 	"gorm.io/gorm"
 )
 
@@ -207,27 +206,6 @@ func updateListGolfFeeWithRound(db *gorm.DB, round *models.Round, booking model_
 }
 
 func updateGolfFeeInBooking(booking *model_booking.Booking, db *gorm.DB) {
-	roundToFindList := models.Round{BillCode: booking.BillCode}
-	listRound, _ := roundToFindList.FindAll(db)
-
-	bookingCaddieFee := slices.Reduce(listRound, func(prev int64, item models.Round) int64 {
-		return prev + item.CaddieFee
-	})
-
-	bookingBuggyFee := slices.Reduce(listRound, func(prev int64, item models.Round) int64 {
-		return prev + item.BuggyFee
-	})
-
-	bookingGreenFee := slices.Reduce(listRound, func(prev int64, item models.Round) int64 {
-		return prev + item.GreenFee
-	})
-
-	bookingGolfFee := booking.ListGolfFee[0]
-	bookingGolfFee.BookingUid = booking.Uid
-	bookingGolfFee.CaddieFee = bookingCaddieFee
-	bookingGolfFee.BuggyFee = bookingBuggyFee
-	bookingGolfFee.GreenFee = bookingGreenFee
-	booking.ListGolfFee[0] = bookingGolfFee
 	booking.UpdatePriceDetailCurrentBag(db)
 	booking.UpdateMushPay(db)
 	booking.Update(db)
@@ -244,91 +222,95 @@ func updateGolfFeeInBooking(booking *model_booking.Booking, db *gorm.DB) {
 			return
 		}
 
-		round1 := models.Round{}
-		round2 := models.Round{}
+		bookingMain.UpdatePriceDetailCurrentBag(db)
+		bookingMain.UpdateMushPay(db)
+		bookingMain.Update(db)
 
-		for _, round := range listRound {
-			if round.Index == 1 {
-				round1 = round
-			}
-			if round.Index == 2 {
-				round2 = round
-			}
-		}
+		// round1 := models.Round{}
+		// round2 := models.Round{}
 
-		updateGolfFeeOfMainBag := func(buggyFee, caddieFee, greenFee int64) {
-			for i, v2 := range bookingMain.ListGolfFee {
-				if v2.Bag == booking.Bag {
-					bookingMain.ListGolfFee[i].BookingUid = booking.Uid
-					bookingMain.ListGolfFee[i].BuggyFee = buggyFee
-					bookingMain.ListGolfFee[i].CaddieFee = caddieFee
-					bookingMain.ListGolfFee[i].GreenFee = greenFee
+		// for _, round := range listRound {
+		// 	if round.Index == 1 {
+		// 		round1 = round
+		// 	}
+		// 	if round.Index == 2 {
+		// 		round2 = round
+		// 	}
+		// }
 
-					break
-				}
-			}
-			for i, v2 := range bookingMain.SubBags {
-				if v2.GolfBag == booking.Bag {
-					bookingMain.SubBags[i].BookingUid = booking.Uid
+		// updateGolfFeeOfMainBag := func(buggyFee, caddieFee, greenFee int64) {
+		// 	for i, v2 := range bookingMain.ListGolfFee {
+		// 		if v2.Bag == booking.Bag {
+		// 			bookingMain.ListGolfFee[i].BookingUid = booking.Uid
+		// 			bookingMain.ListGolfFee[i].BuggyFee = buggyFee
+		// 			bookingMain.ListGolfFee[i].CaddieFee = caddieFee
+		// 			bookingMain.ListGolfFee[i].GreenFee = greenFee
 
-					break
-				}
-			}
-			// Update mush pay, current bag
-			var totalGolfFeeOfBookingMain int64 = 0
+		// 			break
+		// 		}
+		// 	}
+		// 	for i, v2 := range bookingMain.SubBags {
+		// 		if v2.GolfBag == booking.Bag {
+		// 			bookingMain.SubBags[i].BookingUid = booking.Uid
 
-			for _, v3 := range bookingMain.ListGolfFee {
-				totalGolfFeeOfBookingMain += v3.BuggyFee + v3.CaddieFee + v3.GreenFee
-			}
+		// 			break
+		// 		}
+		// 	}
+		// 	// Update mush pay, current bag
+		// 	var totalGolfFeeOfBookingMain int64 = 0
 
-			bookingMain.MushPayInfo.TotalGolfFee = totalGolfFeeOfBookingMain
-			bookingMain.MushPayInfo.MushPay = bookingMain.MushPayInfo.TotalServiceItem + totalGolfFeeOfBookingMain
-			if bookingMain.CheckAgencyPaidRound1() {
-				bookingMain.MushPayInfo.MushPay -= bookingMain.AgencyPaid[0].Fee
-			}
+		// 	for _, v3 := range bookingMain.ListGolfFee {
+		// 		totalGolfFeeOfBookingMain += v3.BuggyFee + v3.CaddieFee + v3.GreenFee
+		// 	}
 
-			errUpdateBooking := bookingMain.Update(db)
+		// 	bookingMain.MushPayInfo.TotalGolfFee = totalGolfFeeOfBookingMain
+		// 	bookingMain.MushPayInfo.MushPay = bookingMain.MushPayInfo.TotalServiceItem + totalGolfFeeOfBookingMain
+		// 	if bookingMain.CheckAgencyPaidRound1() {
+		// 		bookingMain.MushPayInfo.MushPay -= bookingMain.AgencyPaid[0].Fee
+		// 	}
 
-			if errUpdateBooking != nil {
-				log.Println("UpdateGolfFeeInBooking Error")
-			}
-		}
+		// 	errUpdateBooking := bookingMain.Update(db)
 
-		checkIsFirstRound := -1
+		// 	if errUpdateBooking != nil {
+		// 		log.Println("UpdateGolfFeeInBooking Error")
+		// 	}
+		// }
 
-		if !booking.CheckAgencyPaidRound1() {
-			checkIsFirstRound = utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
-		}
-		checkIsNextRound := utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
-		totalGolfFeeOfSubBag := bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
-		golfFeeMustPayOfSubbag := totalGolfFeeOfSubBag
-		if checkIsFirstRound > -1 && checkIsNextRound > -1 {
-			buggyFee := round1.BuggyFee + round2.BuggyFee
-			caddieFee := round1.CaddieFee + round2.CaddieFee
-			greenFee := round1.GreenFee + round2.GreenFee
-			updateGolfFeeOfMainBag(buggyFee, caddieFee, greenFee)
+		// checkIsFirstRound := -1
 
-			//update lại giá của booking(sub bag)
-			golfFeeMustPayOfSubbag = totalGolfFeeOfSubBag - buggyFee - caddieFee - greenFee
-		} else if checkIsFirstRound > -1 {
-			updateGolfFeeOfMainBag(round1.BuggyFee, round1.CaddieFee, round1.GreenFee)
+		// if !booking.CheckAgencyPaidRound1() {
+		// 	checkIsFirstRound = utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+		// }
+		// checkIsNextRound := utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
+		// totalGolfFeeOfSubBag := bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
+		// golfFeeMustPayOfSubbag := totalGolfFeeOfSubBag
+		// if checkIsFirstRound > -1 && checkIsNextRound > -1 {
+		// 	buggyFee := round1.BuggyFee + round2.BuggyFee
+		// 	caddieFee := round1.CaddieFee + round2.CaddieFee
+		// 	greenFee := round1.GreenFee + round2.GreenFee
+		// 	updateGolfFeeOfMainBag(buggyFee, caddieFee, greenFee)
 
-			//update lại giá của booking(sub bag)
-			golfFeeMustPayOfSubbag = totalGolfFeeOfSubBag - round1.BuggyFee - round1.CaddieFee - round1.GreenFee
-		} else if checkIsNextRound > -1 {
-			updateGolfFeeOfMainBag(round2.BuggyFee, round2.CaddieFee, round2.GreenFee)
+		// 	//update lại giá của booking(sub bag)
+		// 	golfFeeMustPayOfSubbag = totalGolfFeeOfSubBag - buggyFee - caddieFee - greenFee
+		// } else if checkIsFirstRound > -1 {
+		// 	updateGolfFeeOfMainBag(round1.BuggyFee, round1.CaddieFee, round1.GreenFee)
 
-			//update lại giá của booking(sub bag)
-			golfFeeMustPayOfSubbag = totalGolfFeeOfSubBag - round2.BuggyFee - round2.CaddieFee - round2.GreenFee
-		}
+		// 	//update lại giá của booking(sub bag)
+		// 	golfFeeMustPayOfSubbag = totalGolfFeeOfSubBag - round1.BuggyFee - round1.CaddieFee - round1.GreenFee
+		// } else if checkIsNextRound > -1 {
+		// 	updateGolfFeeOfMainBag(round2.BuggyFee, round2.CaddieFee, round2.GreenFee)
 
-		if booking.CheckAgencyPaidRound1() {
-			golfFeeMustPayOfSubbag -= booking.AgencyPaid[0].Fee
-		}
+		// 	//update lại giá của booking(sub bag)
+		// 	golfFeeMustPayOfSubbag = totalGolfFeeOfSubBag - round2.BuggyFee - round2.CaddieFee - round2.GreenFee
+		// }
 
-		booking.MushPayInfo.TotalGolfFee = golfFeeMustPayOfSubbag
-		booking.MushPayInfo.MushPay = booking.MushPayInfo.TotalServiceItem + golfFeeMustPayOfSubbag
-		booking.Update(db)
+		// if booking.CheckAgencyPaidRound1() {
+		// 	golfFeeMustPayOfSubbag -= booking.AgencyPaid[0].Fee
+		// }
+
+		// booking.MushPayInfo.TotalGolfFee = golfFeeMustPayOfSubbag
+		// booking.MushPayInfo.MushPay = booking.MushPayInfo.TotalServiceItem + golfFeeMustPayOfSubbag
+		// booking.Update(db)
 	}
 }
 
