@@ -10,7 +10,7 @@ spec:
       protocol: TCP
       port: 4000
       targetPort: 4000
-    - name: service-2
-      protocol: TCP
-      port: 8000
-      targetPort: 8000
+    # - name: service-2
+    #   protocol: TCP
+    #   port: 8000
+    #   targetPort: 8000
