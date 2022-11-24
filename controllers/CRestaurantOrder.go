@@ -711,6 +711,7 @@ func (_ CRestaurantOrder) UpdateResItem(c *gin.Context, prof models.CmsUser) {
 	// validate restaurant item
 	resItem := models.RestaurantItem{}
 	resItem.Id = body.ItemId
+	resItem.ItemStatus = constants.RES_STATUS_PROCESS
 
 	if err := resItem.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -730,32 +731,6 @@ func (_ CRestaurantOrder) UpdateResItem(c *gin.Context, prof models.CmsUser) {
 	// Update trạng thái khi trả hết món
 	if resItem.QuantityProgress-1 == 0 {
 		resItem.ItemStatus = constants.RES_STATUS_DONE
-
-		// Kiểm tra trạng thái các món
-		restaurantItem := models.RestaurantItem{
-			PartnerUid: resItem.PartnerUid,
-			CourseUid:  resItem.CourseUid,
-			ServiceId:  resItem.ServiceId,
-			BillId:     resItem.BillId,
-			ItemStatus: constants.RES_STATUS_PROCESS,
-		}
-
-		list, errRI := restaurantItem.FindAll(db)
-
-		if errRI != nil {
-			response_message.BadRequest(c, errRI.Error())
-			return
-		}
-
-		if len(list) == 0 {
-			bill.BillStatus = constants.RES_BILL_STATUS_FINISH
-
-			if errBU := bill.Update(db); errBU != nil {
-				response_message.BadRequest(c, errBU.Error())
-				return
-			}
-		}
-
 	}
 
 	// Update quantity progress when finish
@@ -765,6 +740,31 @@ func (_ CRestaurantOrder) UpdateResItem(c *gin.Context, prof models.CmsUser) {
 	if err := resItem.Update(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
+	}
+
+	// Kiểm tra trạng thái các món
+	restaurantItem := models.RestaurantItem{
+		PartnerUid: resItem.PartnerUid,
+		CourseUid:  resItem.CourseUid,
+		ServiceId:  resItem.ServiceId,
+		BillId:     resItem.BillId,
+		ItemStatus: constants.RES_STATUS_PROCESS,
+	}
+
+	list, errRI := restaurantItem.FindAll(db)
+
+	if errRI != nil {
+		response_message.BadRequest(c, errRI.Error())
+		return
+	}
+
+	if len(list) == 0 {
+		bill.BillStatus = constants.RES_BILL_STATUS_FINISH
+
+		if errBU := bill.Update(db); errBU != nil {
+			response_message.BadRequest(c, errBU.Error())
+			return
+		}
 	}
 
 	okRes(c)
