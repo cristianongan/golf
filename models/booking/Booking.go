@@ -733,7 +733,14 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 		mushPay.TotalGolfFee -= item.AgencyPaid[0].Fee
 	}
 
-	mushPay.MushPay = mushPay.TotalGolfFee + mushPay.TotalServiceItem
+	total := mushPay.TotalGolfFee + mushPay.TotalServiceItem
+
+	if total < 0 {
+		mushPay.MushPay = 0
+	} else {
+		mushPay.MushPay = mushPay.TotalGolfFee + mushPay.TotalServiceItem
+	}
+
 	item.MushPayInfo = mushPay
 }
 
