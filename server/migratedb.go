@@ -191,6 +191,7 @@ func MigrateDbAuth() {
 		db.AutoMigrate(&model_role.Role{})
 		db.AutoMigrate(&model_role.Permission{})
 		db.AutoMigrate(&model_role.RolePermission{})
+		db.AutoMigrate(&model_role.RoleHierarchy{})
 		db.AutoMigrate(&model_role.UserRole{})
 		db.AutoMigrate(&model_payment.CurrencyPaid{})
 		db.AutoMigrate(&models.CmsUser{})

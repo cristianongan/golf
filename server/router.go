@@ -508,6 +508,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Role ===================
 			cRole := new(controllers.CRole)
 			cmsApiAuthorized.POST("/role/add", middlewares.AuthorizedCmsUserHandler(cRole.CreateRole))
+			// cmsApiAuthorized.GET("/role/list", middlewares.AuthorizedCmsUserHandler(middlewares.PermissionHandler(cRole.GetListRole)))
 			cmsApiAuthorized.GET("/role/list", middlewares.AuthorizedCmsUserHandler(cRole.GetListRole))
 			cmsApiAuthorized.PUT("/role/:id", middlewares.AuthorizedCmsUserHandler(cRole.UpdateRole))
 			cmsApiAuthorized.DELETE("/role/:id", middlewares.AuthorizedCmsUserHandler(cRole.DeleteRole))

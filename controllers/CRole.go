@@ -36,6 +36,16 @@ func (_ *CRole) CreateRole(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//create role hierarchies
+	roleHierarchy := model_role.RoleHierarchy{}
+	roleHierarchy.ParentRoleUid = prof.RoleId
+	roleHierarchy.RoleUid = role.Id
+	errCreateHierarchy := roleHierarchy.Create()
+	if errCreateHierarchy != nil {
+		response_message.InternalServerError(c, errCreateHierarchy.Error())
+		return
+	}
+
 	//Create role - permission
 	if body.Permissions != nil && len(body.Permissions) > 0 {
 		listRolePermission := []model_role.RolePermission{}
@@ -84,7 +94,14 @@ func (_ *CRole) GetListRole(c *gin.Context, prof models.CmsUser) {
 		CourseUid:  form.CourseUid,
 		Name:       form.Search,
 	}
-	list, total, err := roleR.FindList(page)
+
+	subRoles, err := model_role.GetAllSubRoleUids(int(prof.RoleId))
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	list, total, err := roleR.FindList(page, subRoles)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -157,6 +174,17 @@ func (_ *CRole) UpdateRole(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	//update role hierarchies
+	roleHierarchy := model_role.RoleHierarchy{}
+	roleHierarchy.ParentRoleUid = prof.RoleId
+	roleHierarchy.RoleUid = role.Id
+	errDeleteHierarchy := roleHierarchy.FindFirst()
+	if errDeleteHierarchy != nil {
+		// response_message.InternalServerError(c, errDeleteHierarchy.Error())
+		// return
+		roleHierarchy.Create()
+	}
+
 	errUdp := role.Update()
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
@@ -167,7 +195,7 @@ func (_ *CRole) UpdateRole(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
- Delete Role
+Delete Role
 */
 func (_ *CRole) DeleteRole(c *gin.Context, prof models.CmsUser) {
 	roleIdStr := c.Param("id")
@@ -193,6 +221,18 @@ func (_ *CRole) DeleteRole(c *gin.Context, prof models.CmsUser) {
 	if err1 == nil {
 		roleDel := model_role.RolePermission{}
 		roleDel.DeleteList(listRolePers)
+	}
+
+	//delete role hierarchies
+	roleHierarchy := model_role.RoleHierarchy{}
+	roleHierarchy.ParentRoleUid = prof.RoleId
+	roleHierarchy.RoleUid = role.Id
+	errDeleteHierarchy := roleHierarchy.FindFirst()
+	if errDeleteHierarchy != nil {
+		// response_message.InternalServerError(c, errDeleteHierarchy.Error())
+		// return
+	} else {
+		roleHierarchy.Delete()
 	}
 
 	errDel := role.Delete()

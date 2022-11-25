@@ -16,7 +16,7 @@
         "password": "4vB!qVugg!vmSY8pGP$vQQXA5r#@2MW=",
         "host": "103.176.145.22",
         "port": "3306",
-        "is_migrated": true,
+        "is_migrated": false,
         "debug": true
     },
     "mysql_auth": {
@@ -25,7 +25,7 @@
         "password": "4vB!qVugg!vmSY8pGP$vQQXA5r#@2MW=",
         "host": "103.176.145.22",
         "port": "3306",
-        "is_migrated": false,
+        "is_migrated": true,
         "debug": false
     },
     "redis": {
@@ -40,12 +40,12 @@
         "user_name": "admin",
         "password": "9INFec20LYOINV0e9L8NToOeAYinUk8oxTpeWgaWlpY0"
     },
-    "minio":{
-        "endpoint":"minio.vntaxi.net",
+    "minio": {
+        "endpoint": "minio.vntaxi.net",
         "bucket": "golf-staging",
-        "access_key":"H69hpW0j0wanZrmtBCJwUh7jurTTuKQgINziWHH9Kxk0",
-        "secret_key":"1eWZBv0VqTmSgFfW2KNJ18vXhJdNJP5tsaCokq1AZjs0",
-        "ssl":false,
+        "access_key": "H69hpW0j0wanZrmtBCJwUh7jurTTuKQgINziWHH9Kxk0",
+        "secret_key": "1eWZBv0VqTmSgFfW2KNJ18vXhJdNJP5tsaCokq1AZjs0",
+        "ssl": false,
         "get_data_host": "https://minio.vntaxi.net/"
     },
     "golf_partner": {
@@ -53,5 +53,4 @@
     },
     "payment_secret_key": "KedL44Y6EX7rELdDfQUcim6uM6Ni5xNnCUqZ6IG4cXTgm7FIAH",
     "aes_pass_secret_key": "KujEOYTVLtdfNopHmVnuTjEiZyqAmZpV"
-
 }
