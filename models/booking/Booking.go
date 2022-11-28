@@ -771,7 +771,9 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 		isNeedPay := false
 		if len(item.MainBags) > 0 {
 			// Nếu có main bag
-			if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL || v.Type == constants.DRIVING_SETTING) && !mainPaidRental {
+			if v.PaidBy == constants.PAID_BY_AGENCY {
+				isNeedPay = false
+			} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL || v.Type == constants.DRIVING_SETTING) && !mainPaidRental {
 				isNeedPay = true
 			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP && !mainPaidProshop {
 				isNeedPay = true
@@ -781,19 +783,15 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 				isNeedPay = true
 			}
 		} else {
-			isNeedPay = true
+			if v.PaidBy == constants.PAID_BY_AGENCY {
+				isNeedPay = false
+			} else {
+				isNeedPay = true
+			}
 		}
 
 		if isNeedPay {
 			mushPay.TotalServiceItem += v.Amount
-		}
-	}
-
-	// Tổng tiền Agency đã trả
-	if item.CheckAgencyPaidRound1() {
-		mushPay.TotalServiceItem -= item.GetAgencyService()
-		if mushPay.TotalServiceItem < 0 {
-			mushPay.TotalServiceItem = 0
 		}
 	}
 
