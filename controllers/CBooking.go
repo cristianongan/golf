@@ -660,7 +660,7 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 		if len(listRound) > 0 {
 			listRoundOfMain = []models.Round{}
 			for _, round := range listRound {
-				if !(round.Index == 1 && len(booking.AgencyPaid) > 0 && booking.AgencyPaid[0].Fee > 0) {
+				if !(round.Index == 1 && booking.CheckAgencyPaidRound1()) {
 					listRoundOfMain = append(listRoundOfMain, round)
 				}
 			}
@@ -852,7 +852,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	}
 
 	var list []model_booking.Booking
-	db.Find(&list)
+	db.Debug().Find(&list)
 	res = response.PageResponse{
 		Total: total,
 		Data:  list,
@@ -2542,4 +2542,43 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 	}()
 
 	okResponse(c, booking)
+}
+func (cBooking *CBooking) Test(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.Bag == "" {
+		response_message.BadRequest(c, errors.New("Bag invalid").Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.PartnerUid = form.PartnerUid
+	booking.CourseUid = form.CourseUid
+	booking.Bag = form.Bag
+
+	if form.BookingDate != "" {
+		booking.BookingDate = form.BookingDate
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+		booking.BookingDate = toDayDate
+	}
+
+	errF := booking.FindFirst(db)
+	if errF != nil {
+		response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
+		return
+	}
+
+	// booking.UpdateMushPay(db)
+	cRound := CRound{}
+	cRound.UpdateListFeePriceInBookingAndRound(c, db, booking, booking.GuestStyle, 12)
 }

@@ -236,8 +236,13 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 			}
 			booking.MainBags = utils.ListSubBag{}
 			booking.MainBags = append(booking.MainBags, mainBag)
-			booking.UpdatePriceForBagHaveMainBags(db)
+
 			errUdp := booking.Update(db)
+
+			// Tính lại giá của sub
+			booking.UpdatePriceDetailCurrentBag(db)
+			booking.UpdateMushPay(db)
+			booking.Update(db)
 			if errUdp != nil {
 				err = errUdp
 				log.Println("UpdateMainBagForSubBag errUdp", errUdp.Error())
@@ -250,6 +255,11 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 			log.Println("UpdateMainBagForSubBag errFind", errFind.Error())
 		}
 	}
+
+	// Tính lại giá của main
+	mainBooking.UpdatePriceDetailCurrentBag(db)
+	mainBooking.UpdateMushPay(db)
+	mainBooking.Update(db)
 
 	return err
 }

@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/twharmon/slices"
 	"gorm.io/gorm"
 )
 
@@ -206,121 +205,6 @@ func updateListGolfFeeWithRound(db *gorm.DB, round *models.Round, booking model_
 
 }
 
-func updateGolfFeeInBooking(booking *model_booking.Booking, db *gorm.DB) {
-	roundToFindList := models.Round{BillCode: booking.BillCode}
-	listRound, _ := roundToFindList.FindAll(db)
-
-	bookingCaddieFee := slices.Reduce(listRound, func(prev int64, item models.Round) int64 {
-		return prev + item.CaddieFee
-	})
-
-	bookingBuggyFee := slices.Reduce(listRound, func(prev int64, item models.Round) int64 {
-		return prev + item.BuggyFee
-	})
-
-	bookingGreenFee := slices.Reduce(listRound, func(prev int64, item models.Round) int64 {
-		return prev + item.GreenFee
-	})
-
-	bookingGolfFee := booking.ListGolfFee[0]
-	bookingGolfFee.BookingUid = booking.Uid
-	bookingGolfFee.CaddieFee = bookingCaddieFee
-	bookingGolfFee.BuggyFee = bookingBuggyFee
-	bookingGolfFee.GreenFee = bookingGreenFee
-	booking.ListGolfFee[0] = bookingGolfFee
-	booking.UpdatePriceDetailCurrentBag(db)
-	booking.UpdateMushPay(db)
-	booking.Update(db)
-
-	if len(booking.MainBags) > 0 {
-		// Get data main bag
-		bookingMain := model_booking.Booking{
-			CourseUid:   booking.CourseUid,
-			PartnerUid:  booking.PartnerUid,
-			Bag:         booking.MainBags[0].GolfBag,
-			BookingDate: booking.BookingDate,
-		}
-		if err := bookingMain.FindFirst(db); err != nil {
-			return
-		}
-
-		round1 := models.Round{}
-		round2 := models.Round{}
-
-		for _, round := range listRound {
-			if round.Index == 1 {
-				round1 = round
-			}
-			if round.Index == 2 {
-				round2 = round
-			}
-		}
-
-		updateGolfFeeOfMainBag := func(buggyFee, caddieFee, greenFee int64) {
-			for i, v2 := range bookingMain.ListGolfFee {
-				if v2.Bag == booking.Bag {
-					bookingMain.ListGolfFee[i].BookingUid = booking.Uid
-					bookingMain.ListGolfFee[i].BuggyFee = buggyFee
-					bookingMain.ListGolfFee[i].CaddieFee = caddieFee
-					bookingMain.ListGolfFee[i].GreenFee = greenFee
-
-					break
-				}
-			}
-			for i, v2 := range bookingMain.SubBags {
-				if v2.GolfBag == booking.Bag {
-					bookingMain.SubBags[i].BookingUid = booking.Uid
-
-					break
-				}
-			}
-			// Update mush pay, current bag
-			var totalGolfFeeOfBookingMain int64 = 0
-
-			for _, v3 := range bookingMain.ListGolfFee {
-				totalGolfFeeOfBookingMain += v3.BuggyFee + v3.CaddieFee + v3.GreenFee
-			}
-
-			bookingMain.MushPayInfo.TotalGolfFee = totalGolfFeeOfBookingMain
-			bookingMain.MushPayInfo.MushPay = bookingMain.MushPayInfo.TotalServiceItem + totalGolfFeeOfBookingMain
-
-			errUpdateBooking := bookingMain.Update(db)
-
-			if errUpdateBooking != nil {
-				log.Println("UpdateGolfFeeInBooking Error")
-			}
-		}
-
-		checkIsFirstRound := utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
-		checkIsNextRound := utils.ContainString(bookingMain.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
-		totalGolfFeeOfSubBag := bookingGolfFee.CaddieFee + bookingGolfFee.BuggyFee + bookingGolfFee.GreenFee
-		golfFeeMustPayOfSubbag := totalGolfFeeOfSubBag
-		if checkIsFirstRound > -1 && checkIsNextRound > -1 {
-			buggyFee := round1.BuggyFee + round2.BuggyFee
-			caddieFee := round1.CaddieFee + round2.CaddieFee
-			greenFee := round1.GreenFee + round2.GreenFee
-			updateGolfFeeOfMainBag(buggyFee, caddieFee, greenFee)
-
-			//update lại giá của booking(sub bag)
-			golfFeeMustPayOfSubbag = totalGolfFeeOfSubBag - buggyFee - caddieFee - greenFee
-		} else if checkIsFirstRound > -1 {
-			updateGolfFeeOfMainBag(round1.BuggyFee, round1.CaddieFee, round1.GreenFee)
-
-			//update lại giá của booking(sub bag)
-			golfFeeMustPayOfSubbag = totalGolfFeeOfSubBag - round1.BuggyFee - round1.CaddieFee - round1.GreenFee
-		} else if checkIsNextRound > -1 {
-			updateGolfFeeOfMainBag(round2.BuggyFee, round2.CaddieFee, round2.GreenFee)
-
-			//update lại giá của booking(sub bag)
-			golfFeeMustPayOfSubbag = totalGolfFeeOfSubBag - round2.BuggyFee - round2.CaddieFee - round2.GreenFee
-		}
-
-		booking.MushPayInfo.TotalGolfFee = golfFeeMustPayOfSubbag
-		booking.MushPayInfo.MushPay = booking.MushPayInfo.TotalServiceItem + golfFeeMustPayOfSubbag
-		booking.Update(db)
-	}
-}
-
 /*
 	Booking Init and Update
 
@@ -420,6 +304,12 @@ func initBookingMushPayInfo(booking model_booking.Booking) model_booking.Booking
 	mushPayInfo.TotalGolfFee = booking.GetTotalGolfFee()
 	mushPayInfo.TotalServiceItem = booking.GetTotalServicesFee()
 	mushPayInfo.MushPay = mushPayInfo.TotalGolfFee + mushPayInfo.TotalServiceItem
+	currencyPaidGet := models.CurrencyPaid{
+		Currency: "usd",
+	}
+	if err := currencyPaidGet.FindFirst(); err == nil {
+		booking.CurrentBagPrice.AmountUsd = mushPayInfo.MushPay / currencyPaidGet.Rate
+	}
 	return mushPayInfo
 }
 
@@ -437,7 +327,25 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 
 	if booking.MainBags != nil && len(booking.MainBags) > 0 {
 		// Nếu bag có Main Bag
-		booking.UpdatePriceForBagHaveMainBags(db)
+		mainBook := model_booking.Booking{
+			CourseUid:   booking.CourseUid,
+			PartnerUid:  booking.PartnerUid,
+			Bag:         booking.MainBags[0].GolfBag,
+			BookingDate: booking.BookingDate,
+		}
+
+		errFMB := mainBook.FindFirst(db)
+		if errFMB != nil {
+			log.Println("UpdateMushPay-"+booking.Bag+"-Find Main Bag", errFMB.Error())
+		}
+
+		mainBook.UpdateMushPay(db)
+		errUdp := mainBook.Update(db)
+		if errUdp != nil {
+			log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
+		} else {
+			handlePayment(db, mainBook)
+		}
 	} else {
 		if booking.SubBags != nil && len(booking.SubBags) > 0 {
 			// Udp orther data
@@ -450,7 +358,8 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 				subBook, errFSub := subBookR.FindFirstByUId(db)
 				if errFSub == nil {
 					// TODO: optimal và check xử lý udp cho subbag fail
-					subBook.UpdatePriceForBagHaveMainBags(db)
+					subBook.UpdatePriceDetailCurrentBag(db)
+					subBook.UpdateMushPay(db)
 					errUdpSubBag := subBook.Update(db)
 					if errUdpSubBag != nil {
 						log.Println("updatePriceWithServiceItem errUdpSubBag", errUdpSubBag.Error())
@@ -461,6 +370,10 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 					log.Println("updatePriceWithServiceItem errFSub", errFSub.Error())
 				}
 			}
+
+			booking.UpdatePriceDetailCurrentBag(db)
+			booking.UpdateMushPay(db)
+			booking.Update(db)
 			// Co sub bag thì main bag dc udp ở trên rồi
 			// find main bag udp lại payment
 			mainBookUdp := model_booking.Booking{}
@@ -473,13 +386,5 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 
 			return
 		}
-		booking.UpdateMushPay(db)
-		booking.UpdatePriceDetailCurrentBag(db)
-	}
-	errUdp := booking.Update(db)
-	if errUdp != nil {
-		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
-	} else {
-		handlePayment(db, booking)
 	}
 }
