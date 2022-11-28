@@ -327,10 +327,25 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 
 	if booking.MainBags != nil && len(booking.MainBags) > 0 {
 		// Nếu bag có Main Bag
-		// booking.UpdatePriceForBagHaveMainBags(db)
-		booking.UpdatePriceDetailCurrentBag(db)
-		booking.UpdateMushPay(db)
-		booking.Update(db)
+		mainBook := model_booking.Booking{
+			CourseUid:   booking.CourseUid,
+			PartnerUid:  booking.PartnerUid,
+			Bag:         booking.MainBags[0].GolfBag,
+			BookingDate: booking.BookingDate,
+		}
+
+		errFMB := mainBook.FindFirst(db)
+		if errFMB != nil {
+			log.Println("UpdateMushPay-"+booking.Bag+"-Find Main Bag", errFMB.Error())
+		}
+
+		mainBook.UpdateMushPay(db)
+		errUdp := mainBook.Update(db)
+		if errUdp != nil {
+			log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
+		} else {
+			handlePayment(db, mainBook)
+		}
 	} else {
 		if booking.SubBags != nil && len(booking.SubBags) > 0 {
 			// Udp orther data
@@ -371,11 +386,5 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 
 			return
 		}
-	}
-	errUdp := booking.Update(db)
-	if errUdp != nil {
-		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
-	} else {
-		handlePayment(db, booking)
 	}
 }
