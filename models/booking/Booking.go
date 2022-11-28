@@ -422,14 +422,6 @@ func (item BookingCurrentBagPriceDetail) Value() (driver.Value, error) {
 
 func (item *BookingCurrentBagPriceDetail) UpdateAmount() {
 	item.Amount = item.Transfer + item.Debit + item.GolfFee + item.Restaurant + item.Kiosk + item.Rental + item.Proshop + item.Promotion
-
-	// Update date lại giá USD
-	currencyPaidGet := models.CurrencyPaid{
-		Currency: "usd",
-	}
-	if err := currencyPaidGet.FindFirst(); err == nil {
-		item.AmountUsd = item.Amount / currencyPaidGet.Rate
-	}
 }
 
 // Booking Round
@@ -820,6 +812,13 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 	}
 
 	item.MushPayInfo = mushPay
+	// Update date lại giá USD
+	currencyPaidGet := models.CurrencyPaid{
+		Currency: "usd",
+	}
+	if err := currencyPaidGet.FindFirst(); err == nil {
+		item.CurrentBagPrice.AmountUsd = mushPay.MushPay / currencyPaidGet.Rate
+	}
 }
 
 // func (item *Booking) UpdateMushPay1(db *gorm.DB) {
