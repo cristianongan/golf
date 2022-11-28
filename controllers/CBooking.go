@@ -1392,7 +1392,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.MemberCardUid != "" && (body.MemberCardUid != booking.MemberCardUid ||
-		body.AgencyId != booking.AgencyId) {
+		body.AgencyId != booking.AgencyId || body.Hole != booking.Hole) {
 		// Get Member Card
 		memberCard := models.MemberCard{}
 		memberCard.Uid = body.MemberCardUid
@@ -1485,7 +1485,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Agency id
-	if body.AgencyId > 0 && body.AgencyId != booking.AgencyId {
+	if body.AgencyId > 0 && (body.AgencyId != booking.AgencyId || body.Hole != booking.Hole) {
 		// Get config course
 		course := models.Course{}
 		course.Uid = booking.CourseUid
@@ -1620,6 +1620,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	// Create payment info
 	handlePayment(db, booking)
 
+	// Update lại round còn thiếu bag
 	cRound := CRound{}
 	go cRound.UpdateBag(booking, db)
 

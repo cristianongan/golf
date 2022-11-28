@@ -431,8 +431,10 @@ func (cRound CRound) ResetRoundPaidByMain(billCode string, db *gorm.DB) {
 func (cRound CRound) UpdateBag(booking model_booking.Booking, db *gorm.DB) {
 	round1 := models.Round{BillCode: booking.BillCode, Index: 1}
 	if errRound1 := round1.FindFirst(db); errRound1 == nil {
-		round1.Bag = booking.Bag
-		round1.Update(db)
+		if round1.Bag == "" {
+			round1.Bag = booking.Bag
+			round1.Update(db)
+		}
 	}
 }
 
