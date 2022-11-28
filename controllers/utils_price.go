@@ -413,6 +413,12 @@ func initBookingMushPayInfo(booking model_booking.Booking) model_booking.Booking
 	mushPayInfo.TotalGolfFee = booking.GetTotalGolfFee()
 	mushPayInfo.TotalServiceItem = booking.GetTotalServicesFee()
 	mushPayInfo.MushPay = mushPayInfo.TotalGolfFee + mushPayInfo.TotalServiceItem
+	currencyPaidGet := models.CurrencyPaid{
+		Currency: "usd",
+	}
+	if err := currencyPaidGet.FindFirst(); err == nil {
+		booking.CurrentBagPrice.AmountUsd = mushPayInfo.MushPay / currencyPaidGet.Rate
+	}
 	return mushPayInfo
 }
 
