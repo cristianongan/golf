@@ -387,4 +387,12 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 			return
 		}
 	}
+	booking.UpdatePriceDetailCurrentBag(db)
+	booking.UpdateMushPay(db)
+	errUdp := booking.Update(db)
+	if errUdp != nil {
+		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
+	} else {
+		handlePayment(db, booking)
+	}
 }
