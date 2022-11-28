@@ -67,7 +67,7 @@ func (item *CaddieWorkingCalendar) FindAllByDate(database *gorm.DB) ([]map[strin
 
 	db := database.Table("caddie_working_calendars")
 
-	db.Select("caddie_working_calendars.*, caddies.current_status")
+	db.Select("caddie_working_calendars.*, caddies.current_status, caddies.name")
 
 	if item.PartnerUid != "" {
 		db = db.Where("caddie_working_calendars.partner_uid = ?", item.PartnerUid)
