@@ -174,17 +174,6 @@ func (_ *CRole) UpdateRole(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	//update role hierarchies
-	roleHierarchy := model_role.RoleHierarchy{}
-	roleHierarchy.ParentRoleUid = prof.RoleId
-	roleHierarchy.RoleUid = role.Id
-	errDeleteHierarchy := roleHierarchy.FindFirst()
-	if errDeleteHierarchy != nil {
-		// response_message.InternalServerError(c, errDeleteHierarchy.Error())
-		// return
-		roleHierarchy.Create()
-	}
-
 	errUdp := role.Update()
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())

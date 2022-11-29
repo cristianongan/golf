@@ -44,7 +44,7 @@ func GetAllSubRoleUids(roleId int) ([]int, error) {
 	SELECT DISTINCT(role_uid) AS sub_group FROM hierarchies
 	WHERE role_uid <> ? -- Ignore parent groups.`
 
-	db := datasources.GetDatabaseAuth().Debug().Raw(sql, roleId, roleId).Scan(&resultSet)
+	db := datasources.GetDatabaseAuth().Raw(sql, roleId, roleId).Scan(&resultSet)
 
 	subRoleUids := make([]int, len(resultSet))
 	for i, row := range resultSet {
