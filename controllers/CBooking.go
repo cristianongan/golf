@@ -837,6 +837,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.CustomerType = form.CustomerType
 	bookings.BuggyCode = form.BuggyCode
 	bookings.GuestStyle = form.GuestStyle
+	bookings.CaddieName = form.CaddieName
 
 	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
 
@@ -2055,11 +2056,11 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 	// Kiểm tra xem đủ điều kiện cancel booking không
-	cancelBookingSetting := model_booking.CancelBookingSetting{}
-	if err := cancelBookingSetting.ValidateBookingCancel(db, booking); err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
+	// cancelBookingSetting := model_booking.CancelBookingSetting{}
+	// if err := cancelBookingSetting.ValidateBookingCancel(db, booking); err != nil {
+	// 	response_message.InternalServerError(c, err.Error())
+	// 	return
+	// }
 
 	booking.BagStatus = constants.BAG_STATUS_CANCEL
 	booking.CancelNote = body.Note
@@ -2214,7 +2215,6 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 
 func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) {
 	bodyRequest := request.CreateBatchBookingBody{}
-	// db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	if bindErr := c.ShouldBind(&bodyRequest); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
@@ -2226,6 +2226,15 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 	}
 
 	listBooking := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+
+	// khi book restaurant enable thì auto tạo 1 book reservation trong restaurant
+	if len(bodyRequest.BookingList) > 0 {
+		item := bodyRequest.BookingList[0]
+		if item.BookingRestaurant.Enable {
+			db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+			go addServiceCart(db, len(bodyRequest.BookingList), item.PartnerUid, item.CourseUid, item.CustomerBookingName, item.CustomerBookingPhone, prof.FullName)
+		}
+	}
 
 	okResponse(c, listBooking)
 }
@@ -2269,7 +2278,7 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 }
 
 func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
-	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	db1 := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.CancelAllBookingBody{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -2284,7 +2293,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 		BookingCode: form.BookingCode,
 	}
 
-	db, _, err := bookingR.FindAllBookingList(db)
+	db, _, err := bookingR.FindAllBookingList(db1)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -2303,7 +2312,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CancelNote = form.Reason
 		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
-		errUdp := booking.Update(db)
+		errUdp := booking.Update(db1)
 		if errUdp != nil {
 			response_message.InternalServerError(c, errUdp.Error())
 			return
