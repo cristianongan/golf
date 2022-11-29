@@ -1339,12 +1339,17 @@ Tạo book reservation cho restaurant
 
 func addServiceCart(db *gorm.DB, numberGuest int, partnerUid, courseUid, playerName, phone, staffName string) {
 	// create service cart
+	kiosk := model_service.Kiosk{
+		KioskType: constants.RESTAURANT_SETTING,
+	}
+	kiosk.FindFirst(db)
+
 	serviceCart := models.ServiceCart{}
 	serviceCart.PartnerUid = partnerUid
 	serviceCart.CourseUid = courseUid
 	serviceCart.BookingDate = datatypes.Date(time.Now().Local())
-	serviceCart.ServiceId = 28
-	serviceCart.ServiceType = constants.RESTAURANT_SETTING
+	serviceCart.ServiceId = kiosk.Id
+	serviceCart.ServiceType = kiosk.KioskType
 	serviceCart.BillCode = constants.BILL_NONE
 	serviceCart.BillStatus = constants.RES_BILL_STATUS_BOOKING
 	serviceCart.Type = constants.RES_TYPE_TABLE
@@ -1354,5 +1359,7 @@ func addServiceCart(db *gorm.DB, numberGuest int, partnerUid, courseUid, playerN
 	serviceCart.Phone = phone
 	serviceCart.OrderTime = time.Now().Unix()
 
-	serviceCart.Create(db)
+	if err := serviceCart.Create(db); err != nil {
+		log.Println("add service cart error!")
+	}
 }
