@@ -1124,9 +1124,10 @@ func updateReportTotalPaidForCustomerUser(db *gorm.DB, userUid string, partnerUi
 /*
 Udp report số lần chơi của user
 */
-func updateReportTotalPlayCountForCustomerUser(userUid string, partnerUid, courseUid string) {
+func updateReportTotalPlayCountForCustomerUser(userUid string, cardId string, partnerUid, courseUid string) {
 	reportCustomer := model_report.ReportCustomerPlay{
 		CustomerUid: userUid,
+		CardId:      cardId,
 	}
 
 	errF := reportCustomer.FindFirst()

@@ -491,7 +491,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	if body.IsCheckIn && booking.CustomerUid != "" {
-		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
+		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.CardId, booking.PartnerUid, booking.CourseUid)
 	}
 
 	// Create booking payment
@@ -1614,7 +1614,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if booking.CustomerUid != "" {
-		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
+		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.CardId, booking.PartnerUid, booking.CourseUid)
 	}
 
 	// Create payment info
