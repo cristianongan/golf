@@ -1,118 +1,60 @@
 variables:
-  PROJECT_NAME: golf-cms
-  APP_VERSION: "1.0"
+  IMAGE_NAME: golf-backend
+  LOCAL_REGISTRY: registry.vnpay.vn
+  REGISTRY_USERNAME: dvtt
 
-  # ================= GOLF =========================
-  GOLF_KUBE_CONFIG_FILE: /home/gitlab-runner/.kube/stag-config
-
-  GOLF_DOCKER_REGISTRY: harbor.vntaxi.net/golf
-  GOLF_IMAGE_NAME: $GOLF_DOCKER_REGISTRY/$PROJECT_NAME
-
-  GOLF_K8S_NAMESPACE_DEV: development
-  GOLF_VAR_FILE_DEV: "values-dev.yaml"
- 
-  GOLF_K8S_NAMESPACE_STAGING: staging
-  GOLF_VAR_FILE_STAGING: "values-staging.yaml"
-
-  GOLF_K8S_NAMESPACE_PROD: prod
-  GOLF_VAR_FILE_PROD: "values-prod.yaml"
-  
 stages:
-  - lint
-  - build
-  - deploy
+  # - test ###UnitTest
+  - dockerize
 
-# -------------------------------------------------------------------------------
-# ----------------- GOLF Development ----------------------------------------------------
-# -------------------------------------------------------------------------------
-build_dev:
-  stage: build
+# Docker template ########
+.dockerize_template: &dockerize
+  stage: dockerize
+  image: docker:19.03.12
   script:
-    - docker build -t $GOLF_IMAGE_NAME:$IMAGE_TAG --file=Dockerfile .
-    - docker tag $GOLF_IMAGE_NAME:$IMAGE_TAG $GOLF_IMAGE_NAME:b$APP_VERSION
-    - docker push $GOLF_IMAGE_NAME:$IMAGE_TAG
-    - docker push $GOLF_IMAGE_NAME:b$APP_VERSION
-
-    # remove old images version keep 2 version
-    - docker images | egrep -e "$GOLF_IMAGE_NAME" | tail -n +3 | awk '{print $3}' | xargs -r docker rmi -f
-  variables:
-    IMAGE_TAG: b$APP_VERSION.$CI_PIPELINE_ID
-  tags:
-  - golf
+    - echo "$REGISTRY_PASSWORD" | docker login $LOCAL_REGISTRY --username $REGISTRY_USERNAME --password-stdin
+    - echo building docker image ${IMAGE_NAME}:${IMAGE_TAG}
+    - docker build --build-arg IMAGE_TAG_ARG=${IMAGE_TAG} -t ${IMAGE_NAME}:${IMAGE_TAG} --file=${DOCKERFILE_NAME} .
+    - docker tag ${IMAGE_NAME}:${IMAGE_TAG} $LOCAL_REGISTRY/$DEPLOY_ZONE/${IMAGE_NAME}:${IMAGE_TAG}
+    - docker push $LOCAL_REGISTRY/$DEPLOY_ZONE/${IMAGE_NAME}:${IMAGE_TAG}
   only:
-  - dev
+    refs:
+      - tags
+  tags: [dvtt]
+  allow_failure: false
 
-deploy_dev:
-  stage: deploy
-  script:
-    - sh deploy.sh ${PROJECT_NAME} ${GOLF_K8S_NAMESPACE_DEV} ${IMAGE_TAG} $GOLF_KUBE_CONFIG_FILE ${GOLF_VAR_FILE_DEV}
+# On the feature/deploy_dev branch
+# Dockerize
+dockerize:deploy_dev:
+  <<: *dockerize
   variables:
-    IMAGE_TAG: b$APP_VERSION.$CI_PIPELINE_ID
-  tags:
-  - golf
+    DEPLOY_ZONE: vnpay
   only:
-  - dev
+    refs:
+      - feature/deploy_dev
+  before_script:
+    - export IMAGE_TAG=d-${CI_COMMIT_SHORT_SHA}
+    - export DOCKERFILE_NAME=Dockerfile
 
-# -------------------------------------------------------------------------------
-# ----------------- GOLF Staging ----------------------------------------------------
-# -------------------------------------------------------------------------------
-build_staging:
-  stage: build
-  script:
-    - docker build -t $GOLF_IMAGE_NAME:$IMAGE_TAG --file=Dockerfile.staging .
-    - docker tag $GOLF_IMAGE_NAME:$IMAGE_TAG $GOLF_IMAGE_NAME:b$APP_VERSION
-    - docker push $GOLF_IMAGE_NAME:$IMAGE_TAG
-    - docker push $GOLF_IMAGE_NAME:b$APP_VERSION
-
-    # remove old images version keep 2 version
-    - docker images | egrep -e "$GOLF_IMAGE_NAME" | tail -n +3 | awk '{print $3}' | xargs -r docker rmi -f
+# On the feature/deploy_test branch
+# Dockerize
+dockerize:deploy_test:
+  <<: *dockerize
   variables:
-    IMAGE_TAG: b$APP_VERSION.$CI_PIPELINE_ID
-  tags:
-  - golf
+    DEPLOY_ZONE: vnpay-ocp/dvtt/vn-golf-platform
   only:
-  - master
+    refs:
+      - feature/deploy_test
+  before_script:
+    - export IMAGE_TAG=t-${CI_COMMIT_SHORT_SHA}
+    - export DOCKERFILE_NAME=Dockerfile.staging
 
-deploy_staging:
-  stage: deploy
-  script:
-    - sh deploy.sh ${PROJECT_NAME} ${GOLF_K8S_NAMESPACE_STAGING} ${IMAGE_TAG} $GOLF_KUBE_CONFIG_FILE ${GOLF_VAR_FILE_STAGING}
+# On the Master branch
+# Dockerize
+dockerize:master:
+  <<: *dockerize
   variables:
-    IMAGE_TAG: b$APP_VERSION.$CI_PIPELINE_ID
-  tags:
-  - golf
-  only:
-  - master
-
-
-# -------------------------------------------------------------------------------
-# ----------------- GOLF Prod ---------------------------------------------
-# -------------------------------------------------------------------------------
-build_prod:
-  stage: build
-  script:
-    - docker build -t $GOLF_IMAGE_NAME:$IMAGE_TAG --file=Dockerfile.prod .
-    - docker tag $GOLF_IMAGE_NAME:$IMAGE_TAG $GOLF_IMAGE_NAME:b$APP_VERSION
-    - docker push $GOLF_IMAGE_NAME:$IMAGE_TAG
-    - docker push $GOLF_IMAGE_NAME:b$APP_VERSION
-
-    # remove old images version keep 2 version
-    - docker images | egrep -e "$GOLF_IMAGE_NAME" | tail -n +3 | awk '{print $3}' | xargs -r docker rmi -f
-  variables:
-    IMAGE_TAG: b$APP_VERSION.$CI_PIPELINE_ID
-  tags:
-  - golf
-  only:
-  - prod
-
-deploy_prod:
-  stage: deploy
-  script:
-    - sh deploy.sh ${PROJECT_NAME} ${GOLF_K8S_NAMESPACE_PROD} ${IMAGE_TAG} $GOLF_KUBE_CONFIG_FILE ${GOLF_VAR_FILE_PROD}
-  variables:
-    IMAGE_TAG: b$APP_VERSION.$CI_PIPELINE_ID
-  tags:
-  - golf
-  only:
-  - prod
-  # when: manual
+    DEPLOY_ZONE: gd-ocp/dvtt/vn-golf-platform
+  before_script:
+    - export IMAGE_TAG=m-${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}
+    - export DOCKERFILE_NAME=Dockerfile.prod
