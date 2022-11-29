@@ -2215,7 +2215,6 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 
 func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) {
 	bodyRequest := request.CreateBatchBookingBody{}
-	// db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	if bindErr := c.ShouldBind(&bodyRequest); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
@@ -2227,6 +2226,15 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 	}
 
 	listBooking := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+
+	// khi book restaurant enable thì auto tạo 1 book reservation trong restaurant
+	if len(bodyRequest.BookingList) > 0 {
+		item := bodyRequest.BookingList[0]
+		if item.BookingRestaurant.Enable {
+			db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+			go addServiceCart(db, len(bodyRequest.BookingList), item.PartnerUid, item.CourseUid, item.CustomerBookingName, item.CustomerBookingPhone, prof.FullName)
+		}
+	}
 
 	okResponse(c, listBooking)
 }
