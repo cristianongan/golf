@@ -2056,11 +2056,11 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 	// Kiểm tra xem đủ điều kiện cancel booking không
-	cancelBookingSetting := model_booking.CancelBookingSetting{}
-	if err := cancelBookingSetting.ValidateBookingCancel(db, booking); err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
+	// cancelBookingSetting := model_booking.CancelBookingSetting{}
+	// if err := cancelBookingSetting.ValidateBookingCancel(db, booking); err != nil {
+	// 	response_message.InternalServerError(c, err.Error())
+	// 	return
+	// }
 
 	booking.BagStatus = constants.BAG_STATUS_CANCEL
 	booking.CancelNote = body.Note
@@ -2278,7 +2278,7 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 }
 
 func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
-	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	db1 := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.CancelAllBookingBody{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -2293,7 +2293,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 		BookingCode: form.BookingCode,
 	}
 
-	db, _, err := bookingR.FindAllBookingList(db)
+	db, _, err := bookingR.FindAllBookingList(db1)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -2312,7 +2312,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CancelNote = form.Reason
 		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
-		errUdp := booking.Update(db)
+		errUdp := booking.Update(db1)
 		if errUdp != nil {
 			response_message.InternalServerError(c, errUdp.Error())
 			return
