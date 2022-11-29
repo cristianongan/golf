@@ -241,7 +241,14 @@ func (_ *CCmsUser) GetList(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
-	list, total, err := cmsUserR.FindList(page, form.Search)
+
+	subRoles, err := model_role.GetAllSubRoleUids(int(prof.RoleId))
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	list, total, err := cmsUserR.FindList(page, form.Search, subRoles)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

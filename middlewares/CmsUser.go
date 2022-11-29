@@ -11,10 +11,19 @@ import (
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
+	model_role "start/models/role"
 	"start/utils/response_message"
+
+	. "github.com/vibrantbyte/go-antpath/antpath"
 
 	"github.com/gin-gonic/gin"
 )
+
+var matcher PathMatcher
+
+func init() {
+	matcher = New()
+}
 
 // ================= JWT Token User Auth ================
 func getUserJWTToken(c *gin.Context) string {
@@ -117,4 +126,51 @@ func AuthorizedCmsUserHandler(handler func(*gin.Context, models.CmsUser)) gin.Ha
 		/// OK
 		handler(c, user)
 	}
+}
+
+func PermissionHandler(handler func(*gin.Context, models.CmsUser)) func(*gin.Context, models.CmsUser) {
+	return func(c *gin.Context, user models.CmsUser) {
+		role := model_role.Role{}
+		if user.RoleId > 0 {
+			role.Id = user.RoleId
+			errFR := role.FindFirst()
+			if errFR == nil {
+				rolePR := model_role.RolePermission{
+					RoleId: role.Id,
+				}
+				listPermission, errRolePR := rolePR.FindAllPermission()
+				if errRolePR == nil {
+					accessible := isAccessible(listPermission, c.Request.Method, c.Request.URL.Path)
+					if !accessible {
+						response_message.Forbidden(c, "forbidden")
+						return
+					}
+					handler(c, user)
+				} else {
+					response_message.BadRequest(c, errRolePR.Error())
+					return
+				}
+			}
+		} else {
+			if user.RoleId == -1 {
+				// Root Account
+				handler(c, user)
+			}
+		}
+	}
+}
+
+func isAccessible(permissions []model_role.Permission, method, reqPath string) bool {
+	if len(permissions) == 0 {
+		return true
+	}
+	for _, permission := range permissions {
+		for _, httpAction := range permission.Resources {
+			if (httpAction.Method == method || httpAction.Method == "ANY") &&
+				matcher.Match(httpAction.Path, reqPath) {
+				return true
+			}
+		}
+	}
+	return false
 }
