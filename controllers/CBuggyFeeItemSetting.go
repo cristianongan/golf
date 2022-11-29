@@ -34,15 +34,16 @@ func (_ *CBuggyFeeItemSetting) CreateBuggyFeeItemSetting(c *gin.Context, prof mo
 	}
 
 	buggyFeeItemSetting := models.BuggyFeeItemSetting{
-		PartnerUid:    body.PartnerUid,
-		CourseUid:     body.CourseUid,
-		GuestStyle:    body.GuestStyle,
-		Dow:           body.Dow,
-		RentalFee:     body.RentalFee,
-		PrivateCarFee: body.PrivateCarFee,
-		OddCarFee:     body.OddCarFee,
-		SettingId:     body.SettingId,
-		RateGolfFee:   body.RateGolfFee,
+		PartnerUid:     body.PartnerUid,
+		CourseUid:      body.CourseUid,
+		GuestStyle:     body.GuestStyle,
+		GuestStyleName: body.GuestStyleName,
+		Dow:            body.Dow,
+		RentalFee:      body.RentalFee,
+		PrivateCarFee:  body.PrivateCarFee,
+		OddCarFee:      body.OddCarFee,
+		SettingId:      body.SettingId,
+		RateGolfFee:    body.RateGolfFee,
 	}
 	buggyFeeItemSetting.Status = body.Status
 	errC := buggyFeeItemSetting.Create(db)

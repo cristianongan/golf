@@ -15,6 +15,8 @@ type CreateRentalBody struct {
 	OnlyForRen  bool    `json:"only_for_ren"`
 	InputUser   string  `json:"input_user"`
 	Status      string  `json:"status"`
+	IsDriving   *bool   `json:"is_driving"`
+	Rate        string  `json:"rate"`
 }
 
 type GetListRentalForm struct {
@@ -27,6 +29,8 @@ type GetListRentalForm struct {
 	Status      string `json:"status"`
 	Type        string `form:"type"`
 	CodeOrName  string `form:"code_or_name"`
+	IsDriving   *bool  `form:"is_driving"`
+	GuestStyle  string `form:"guest_style"`
 }
 
 type UpdateRentalBody struct {
@@ -44,4 +48,6 @@ type UpdateRentalBody struct {
 	Type        string   `json:"type"`
 	GroupCode   string   `json:"group_code"`
 	GroupName   string   `json:"group_name"`
+	IsDriving   *bool    `json:"is_driving"`
+	Rate        string   `json:"rate"`
 }

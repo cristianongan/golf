@@ -87,7 +87,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		// Update giá
 		cRound.UpdateListFeePriceInRound(c, db, &booking, booking.GuestStyle, &round, hole)
 		// Update lại bag_status của booking cũ
-		booking.AddedRound = newTrue(true)
+		booking.AddedRound = setBoolForCursor(true)
 		booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
 		booking.Update(db)
 
@@ -99,7 +99,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		newBooking.HoleTimeOut = 0
 		newBooking.TimeOutFlight = 0
 		newBooking.CourseType = body.CourseType
-		newBooking.ShowCaddieBuggy = newTrue(false)
+		newBooking.ShowCaddieBuggy = setBoolForCursor(false)
 		errCreateBooking := newBooking.Create(db, bUid)
 
 		if errCreateBooking != nil {
@@ -204,7 +204,7 @@ func (cRound CRound) UpdateListFeePriceInRound(c *gin.Context, db *gorm.DB, book
 	}
 
 	if booking != nil {
-		updateGolfFeeInBooking(booking, db)
+		cRound.UpdateGolfFeeInBooking(booking, db)
 	}
 }
 
@@ -267,7 +267,7 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	updateGolfFeeInBooking(&booking, db)
+	cRound.UpdateGolfFeeInBooking(&booking, db)
 	// Update lại giá cho main bag
 
 	res := getBagDetailFromBooking(db, booking)
@@ -342,7 +342,7 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// update fee booking
-	updateGolfFeeInBooking(&booking, db)
+	cRound.UpdateGolfFeeInBooking(&booking, db)
 	res := getBagDetailFromBooking(db, booking)
 	okResponse(c, res)
 }
@@ -403,26 +403,61 @@ func (cRound CRound) UpdateListFeePriceInBookingAndRound(c *gin.Context, db *gor
 		return
 	}
 
-	if round.Hole != hole {
-		// Update số hole của Round
-		round.Hole = hole
+	// if round.Hole != hole {
+	// Update số hole của Round
+	round.Hole = hole
 
-		// Update lại giá của Round theo số hố
-		cRound := CRound{}
-		cRound.UpdateListFeePriceInRound(c, db, &booking, round.GuestStyle, &round, hole)
-	}
+	// Update lại giá của Round theo số hố
+	cRound1 := CRound{}
+	cRound1.UpdateListFeePriceInRound(c, db, &booking, round.GuestStyle, &round, hole)
+	// }
 }
 
 // Khi changeToMain thì reset lại các round đã trả bởi main bag trước đó
 func (cRound CRound) ResetRoundPaidByMain(billCode string, db *gorm.DB) {
 	round1 := models.Round{BillCode: billCode, Index: 1}
 	if errRound1 := round1.FindFirst(db); errRound1 == nil {
-		round1.MainBagPaid = newTrue(false)
+		round1.MainBagPaid = setBoolForCursor(false)
 		round1.Update(db)
 	}
 	round2 := models.Round{BillCode: billCode, Index: 2}
 	if errRound2 := round2.FindFirst(db); errRound2 == nil {
-		round2.MainBagPaid = newTrue(false)
+		round2.MainBagPaid = setBoolForCursor(false)
 		round2.Update(db)
+	}
+}
+
+// Update lại bag cho round 1 khi check in
+func (cRound CRound) UpdateBag(booking model_booking.Booking, db *gorm.DB) {
+	round1 := models.Round{BillCode: booking.BillCode, Index: 1}
+	if errRound1 := round1.FindFirst(db); errRound1 == nil {
+		if round1.Bag == "" {
+			round1.Bag = booking.Bag
+			round1.Update(db)
+		}
+	}
+}
+
+// Update lại giá sau khi add, merge, split round
+func (cRound CRound) UpdateGolfFeeInBooking(booking *model_booking.Booking, db *gorm.DB) {
+	booking.UpdatePriceDetailCurrentBag(db)
+	booking.UpdateMushPay(db)
+	booking.Update(db)
+
+	if len(booking.MainBags) > 0 {
+		// Get data main bag
+		bookingMain := model_booking.Booking{
+			CourseUid:   booking.CourseUid,
+			PartnerUid:  booking.PartnerUid,
+			Bag:         booking.MainBags[0].GolfBag,
+			BookingDate: booking.BookingDate,
+		}
+		if err := bookingMain.FindFirst(db); err != nil {
+			return
+		}
+
+		bookingMain.UpdatePriceDetailCurrentBag(db)
+		bookingMain.UpdateMushPay(db)
+		bookingMain.Update(db)
 	}
 }

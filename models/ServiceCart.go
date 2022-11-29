@@ -38,7 +38,9 @@ type ServiceCart struct {
 	DiscountValue   int64          `json:"discount_value"`                              // Giá tiền được giảm
 	DiscountReason  string         `json:"discount_reason" gorm:"type:varchar(50)"`     // Lý do giảm giá
 	CostPrice       bool           `json:"cost_price"`                                  // Có giá VAT hay ko
-	ResFloor        int            `json:"res_floor"`                                   // Số tầng bàn được đặt
+	ResFloor        int            `json:"res_floor"`                                   // Số tầng bàn được đặt\
+	RentalStatus    string         `json:"rental_status" gorm:"type:varchar(100)"`      // Trạng thái thuê đồ
+	CaddieCode      string         `json:"caddie_code" gorm:"type:varchar(100)"`        // Caddie đi cùng bag
 }
 
 func (item *ServiceCart) Create(db *gorm.DB) error {
@@ -114,6 +116,10 @@ func (item *ServiceCart) FindList(database *gorm.DB, page Page) ([]ServiceCart, 
 
 	if item.FromService != 0 {
 		db = db.Where("from_service = ?", item.FromService)
+	}
+
+	if item.RentalStatus != "" {
+		db = db.Where("rental_status = ?", item.RentalStatus)
 	}
 
 	db = db.Where("booking_date = ?", item.BookingDate)

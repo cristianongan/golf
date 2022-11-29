@@ -96,6 +96,8 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 		OnlyForRen:  body.OnlyForRen,
 		InputUser:   body.InputUser,
 		Name:        name,
+		IsDriving:   body.IsDriving,
+		Rate:        body.Rate,
 	}
 	rental.Status = body.Status
 
@@ -132,6 +134,7 @@ func (_ *CRental) GetListRental(c *gin.Context, prof models.CmsUser) {
 	rentalR.GroupCode = form.GroupCode
 	rentalR.Type = form.Type
 	rentalR.CodeOrName = form.CodeOrName
+	rentalR.IsDriving = form.IsDriving
 
 	list, total, err := rentalR.FindList(db, page)
 	if err != nil {
@@ -212,6 +215,12 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 	if body.GroupCode != "" {
 		rental.GroupCode = body.GroupCode
 	}
+	if body.IsDriving != nil {
+		rental.IsDriving = body.IsDriving
+	}
+	if body.Rate != "" {
+		rental.Rate = body.Rate
+	}
 	errUdp := rental.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
@@ -256,6 +265,7 @@ func (_ *CRental) GetGolfClubRental(c *gin.Context, prof models.CmsUser) {
 	rentalR := model_service.Rental{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
+		IsDriving:  form.IsDriving,
 	}
 
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
@@ -284,11 +294,23 @@ func (_ *CRental) GetGolfClubRental(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 		SettingId:  buggyFeeSetting.Id,
+		GuestStyle: form.GuestStyle,
 		ModelId: models.ModelId{
 			Status: constants.STATUS_ENABLE,
 		},
 	}
 	listSetting, _, _ := buggyFeeItemSettingR.FindAllToday(db)
+	buggyFeeItemSetting := models.BuggyFeeItemSettingResForRental{}
+	for _, v := range listSetting {
+		// Ưu tiên All Guest Style (GuestStyle = "")
+		if v.GuestStyle == "" {
+			buggyFeeItemSetting = v
+			break
+		} else if v.GuestStyle == form.GuestStyle {
+			buggyFeeItemSetting = v
+			break
+		}
+	}
 
 	// Get Buggy Fee
 	bookingCaddieFeeSettingR := models.BookingCaddyFeeSetting{
@@ -307,11 +329,17 @@ func (_ *CRental) GetGolfClubRental(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	if form.IsDriving != nil && *form.IsDriving {
+		res := map[string]interface{}{
+			"rentals": rentalList,
+		}
+		okResponse(c, res)
+		return
+	}
 	res := map[string]interface{}{
 		"rentals":        rentalList,
-		"booking_buggy":  listSetting,
+		"booking_buggy":  buggyFeeItemSetting,
 		"booking_caddie": bookingCaddieFeeSetting,
 	}
-
 	okResponse(c, res)
 }

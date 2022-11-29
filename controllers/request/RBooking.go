@@ -58,6 +58,7 @@ type GetListBookingWithSelectForm struct {
 	BagStatus       string  `form:"bag_status"`
 	HaveBag         *string `form:"have_bag"`
 	CaddieCode      string  `form:"caddie_code"`
+	CaddieName      string  `form:"caddie_name"`
 	HasBookCaddie   string  `form:"has_book_caddie"`
 	PlayerName      string  `form:"player_name"`
 	HasFlightInfo   string  `form:"has_flight_info"`

@@ -491,10 +491,14 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	if body.IsCheckIn && booking.CustomerUid != "" {
-		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
+		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.CardId, booking.PartnerUid, booking.CourseUid)
 	}
 
 	// Create booking payment
+	if booking.AgencyId > 0 {
+		go handleAgencyPaid(booking, body.FeeInfo)
+	}
+
 	if booking.AgencyId > 0 && booking.MemberCardUid == "" {
 		go handleAgencyPayment(db, booking)
 		// Tạo thêm single payment cho bag
@@ -532,6 +536,41 @@ func (_ *CBooking) GetBookingDetail(c *gin.Context, prof models.CmsUser) {
 
 	bagDetail := getBagDetailFromBooking(db, booking)
 	okResponse(c, bagDetail)
+}
+
+/*
+Get booking payment
+*/
+func (_ *CBooking) GetBookingPaymentDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	bookingIdStr := c.Param("uid")
+	if bookingIdStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = bookingIdStr
+	booking, errF := bookingR.FindFirstByUId(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	bagDetail := getBagDetailFromBooking(db, booking)
+	// Get List Round Of Sub Bag
+	listRoundOfSub := []model_booking.RoundOfBag{}
+	if len(booking.SubBags) > 0 {
+		res := GetGolfFeeInfoOfBag(c, booking)
+		listRoundOfSub = res.ListRoundOfSubBag
+	}
+
+	res := model_booking.PaymentOfBag{
+		BagDetail:         bagDetail,
+		ListRoundOfSubBag: listRoundOfSub,
+	}
+
+	okResponse(c, res)
 }
 
 /*
@@ -619,7 +658,12 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 		listRound, _ := round.FindAll(db)
 
 		if len(listRound) > 0 {
-			listRoundOfMain = listRound
+			listRoundOfMain = []models.Round{}
+			for _, round := range listRound {
+				if !(round.Index == 1 && booking.CheckAgencyPaidRound1()) {
+					listRoundOfMain = append(listRoundOfMain, round)
+				}
+			}
 		}
 	}
 
@@ -636,7 +680,6 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 	feeResponse := model_booking.BookingFeeOfBag{
 		AgencyPaid:        booking.AgencyPaid,
 		SubBags:           booking.SubBags,
-		ListGolfFee:       booking.ListGolfFee,
 		MushPayInfo:       booking.MushPayInfo,
 		ListServiceItems:  booking.ListServiceItems,
 		ListRoundOfSubBag: listRoundOfSub,
@@ -1349,7 +1392,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.MemberCardUid != "" && (body.MemberCardUid != booking.MemberCardUid ||
-		body.AgencyId != booking.AgencyId) {
+		body.AgencyId != booking.AgencyId || body.Hole != booking.Hole) {
 		// Get Member Card
 		memberCard := models.MemberCard{}
 		memberCard.Uid = body.MemberCardUid
@@ -1442,7 +1485,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Agency id
-	if body.AgencyId > 0 && body.AgencyId != booking.AgencyId {
+	if body.AgencyId > 0 && (body.AgencyId != booking.AgencyId || body.Hole != booking.Hole) {
 		// Get config course
 		course := models.Course{}
 		course.Uid = booking.CourseUid
@@ -1571,11 +1614,15 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if booking.CustomerUid != "" {
-		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.PartnerUid, booking.CourseUid)
+		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.CardId, booking.PartnerUid, booking.CourseUid)
 	}
 
 	// Create payment info
 	handlePayment(db, booking)
+
+	// Update lại round còn thiếu bag
+	cRound := CRound{}
+	go cRound.UpdateBag(booking, db)
 
 	res := getBagDetailFromBooking(db, booking)
 
@@ -2180,16 +2227,6 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 
 	listBooking := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
 
-	handleAgencyFee := func() {
-		for index, booking := range listBooking {
-			if booking.AgencyId > 0 {
-				handleAgencyPaid(booking, bodyRequest.BookingList[index].FeeInfo)
-			}
-		}
-	}
-
-	go handleAgencyFee()
-
 	okResponse(c, listBooking)
 }
 
@@ -2506,4 +2543,43 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 	}()
 
 	okResponse(c, booking)
+}
+func (cBooking *CBooking) Test(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.Bag == "" {
+		response_message.BadRequest(c, errors.New("Bag invalid").Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.PartnerUid = form.PartnerUid
+	booking.CourseUid = form.CourseUid
+	booking.Bag = form.Bag
+
+	if form.BookingDate != "" {
+		booking.BookingDate = form.BookingDate
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+		booking.BookingDate = toDayDate
+	}
+
+	errF := booking.FindFirst(db)
+	if errF != nil {
+		response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
+		return
+	}
+
+	// booking.UpdateMushPay(db)
+	cRound := CRound{}
+	cRound.UpdateListFeePriceInBookingAndRound(c, db, booking, booking.GuestStyle, 12)
 }

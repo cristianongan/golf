@@ -221,6 +221,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/booking/list/flight", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingWithFightInfo))
 			cmsApiAuthorized.GET("/booking/list-service-item", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingWithListServiceItems))
 			cmsApiAuthorized.GET("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingDetail))                       // Get Booking detail by uid
+			cmsApiAuthorized.GET("/booking/payment/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingPaymentDetail))        // Thêm Info...
 			cmsApiAuthorized.GET("/booking/by-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingByBag))                      // Get booking detail by Bag
 			cmsApiAuthorized.GET("/booking/fee-of-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingFeeOfBag))               // Get booking detail by Bag
 			cmsApiAuthorized.PUT("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.UpdateBooking))                          // Thêm Info...
@@ -234,6 +235,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/booking/moving", middlewares.AuthorizedCmsUserHandler(cBooking.MovingBooking))                       // Moving booking
 			cmsApiAuthorized.GET("/booking-tee-time/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingTeeTime))
 			cmsApiAuthorized.GET("/booking/round-of-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetRoundOfBag))
+			cmsApiAuthorized.GET("/booking/agency/cancel-booking/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListAgencyCancelBooking))
 			cmsApiAuthorized.POST("/booking/change-to-main-bag", middlewares.AuthorizedCmsUserHandler(cBooking.ChangeToMainBag)) // Change To Main Bag
 			// cmsApiAuthorized.GET("/booking/golf-fee", middlewares.AuthorizedCmsUserHandler(cBooking.GetGolfFeeInfoOfBag))
 
@@ -589,9 +591,11 @@ func NewRouter() *gin.Engine {
 			/// * multiple cart
 			cmsApiAuthorized.GET("/service-cart/list-cart-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetItemInCart))
 			cmsApiAuthorized.GET("/service-cart/list", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetListCart))
+			cmsApiAuthorized.GET("/service-cart/list-bill-rental", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetListRentalCart))
 			cmsApiAuthorized.GET("/service-cart/list-best-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetBestItemInKiosk))
 			cmsApiAuthorized.GET("/service-cart/list-best-group", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetBestGroupInKiosk))
 			cmsApiAuthorized.POST("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddItemServiceToCart))
+			cmsApiAuthorized.POST("/service-cart/rental", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddItemRentalToCart))
 			cmsApiAuthorized.POST("/service-cart/add-discount", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddDiscountToItem))
 			cmsApiAuthorized.POST("/service-cart/create-billing", middlewares.AuthorizedCmsUserHandler(cServiceCart.CreateBilling))
 			cmsApiAuthorized.POST("/service-cart/move-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.MoveItemToOtherCart))
@@ -599,6 +603,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.UpdateItemCart))
 			cmsApiAuthorized.PUT("/service-cart/finish-order", middlewares.AuthorizedCmsUserHandler(cServiceCart.FinishOrder))
 			cmsApiAuthorized.PUT("/service-cart/undo-order", middlewares.AuthorizedCmsUserHandler(cServiceCart.UndoStatus))
+			cmsApiAuthorized.PUT("/service-cart/change-status-rental", middlewares.AuthorizedCmsUserHandler(cServiceCart.ChangeRentalStatus))
 			cmsApiAuthorized.DELETE("/service-cart/item/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteItemInCart))
 			cmsApiAuthorized.DELETE("/service-cart/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteCart))
 
@@ -681,6 +686,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Booking Agency Payment ===================
 			cBookingAgencyPayment := new(controllers.CBookingAgencyPayment)
 			cmsApiAuthorized.GET("/booking-agency-payment/detail", middlewares.AuthorizedCmsUserHandler(cBookingAgencyPayment.GetDetailBookingAgencyPayment))
+			cmsApiAuthorized.GET("/test", middlewares.AuthorizedCmsUserHandler(cBooking.Test))
 		}
 
 		// ----------------------------------------------------------

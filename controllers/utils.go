@@ -145,7 +145,7 @@ func udpCourseUid(courseUid, partnerUid string) string {
 	return strings.ToUpper(partnerUid + "-" + courseUid2)
 }
 
-func checkDuplicateGolfFee(db *gorm.DB, body models.GolfFee) bool {
+func checkDuplicateGolfFee(db *gorm.DB, body models.GolfFee, isUdp bool) bool {
 	golfFee := models.GolfFee{
 		PartnerUid:   body.PartnerUid,
 		CourseUid:    body.CourseUid,
@@ -184,14 +184,17 @@ func checkDuplicateGolfFee(db *gorm.DB, body models.GolfFee) bool {
 
 	isdup := false
 	for _, v := range listTemp {
-		for _, v1 := range listDowStr {
-			if strings.Contains(v.Dow, v1) {
-				log.Print("checkDuplicateGolfFee1 true")
-				isdup = true
-				break
+		if isUdp && v.Id == body.Id {
+			// Nếu là item đó và udp thì cứ udp
+		} else {
+			for _, v1 := range listDowStr {
+				if strings.Contains(v.Dow, v1) {
+					log.Print("checkDuplicateGolfFee1 true")
+					isdup = true
+					break
+				}
 			}
 		}
-
 	}
 
 	return isdup
@@ -233,9 +236,13 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 			}
 			booking.MainBags = utils.ListSubBag{}
 			booking.MainBags = append(booking.MainBags, mainBag)
-			booking.UpdatePriceForBagHaveMainBags(db)
-			booking.CurrentBagPrice.AmountUsd = booking.CurrentBagPrice.Amount / getListCurencyRate("usd")
+
 			errUdp := booking.Update(db)
+
+			// Tính lại giá của sub
+			booking.UpdatePriceDetailCurrentBag(db)
+			booking.UpdateMushPay(db)
+			booking.Update(db)
 			if errUdp != nil {
 				err = errUdp
 				log.Println("UpdateMainBagForSubBag errUdp", errUdp.Error())
@@ -248,6 +255,11 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 			log.Println("UpdateMainBagForSubBag errFind", errFind.Error())
 		}
 	}
+
+	// Tính lại giá của main
+	mainBooking.UpdatePriceDetailCurrentBag(db)
+	mainBooking.UpdateMushPay(db)
+	mainBooking.Update(db)
 
 	return err
 }
@@ -272,7 +284,11 @@ func initListRound(db *gorm.DB, booking model_booking.Booking, bookingGolfFee mo
 		round.Hole = booking.Hole
 		round.MemberCardUid = booking.MemberCardUid
 		round.TeeOffTime = booking.CheckInTime
-
+		for _, v := range booking.AgencyPaid {
+			if v.Type == constants.BOOKING_AGENCY_GOLF_FEE && v.Fee > 0 {
+				round.PaidBy = constants.PAID_BY_AGENCY
+			}
+		}
 		errUdp := round.Update(db)
 		if errUdp != nil {
 			log.Println("createBagsNote errUdp", errUdp.Error())
@@ -292,6 +308,11 @@ func initListRound(db *gorm.DB, booking model_booking.Booking, bookingGolfFee mo
 	round.MemberCardUid = booking.MemberCardUid
 	round.TeeOffTime = booking.CheckInTime
 	round.Pax = 1
+	for _, v := range booking.AgencyPaid {
+		if v.Type == constants.BOOKING_AGENCY_GOLF_FEE && v.Fee > 0 {
+			round.PaidBy = constants.PAID_BY_AGENCY
+		}
+	}
 
 	errCreateRound := round.Create(db)
 	if errCreateRound != nil {
@@ -543,11 +564,11 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 		}
 
 		booking.BuggyId = buggy.Id
-		booking.IsPrivateBuggy = newTrue(isPrivateBuggy)
+		booking.IsPrivateBuggy = setBoolForCursor(isPrivateBuggy)
 		booking.BuggyInfo = cloneToBuggyBooking(buggy)
 	}
 
-	booking.ShowCaddieBuggy = newTrue(true)
+	booking.ShowCaddieBuggy = setBoolForCursor(true)
 	response.NewCaddie = caddie
 	response.NewBuggy = buggy
 	response.Booking = booking
@@ -1103,9 +1124,10 @@ func updateReportTotalPaidForCustomerUser(db *gorm.DB, userUid string, partnerUi
 /*
 Udp report số lần chơi của user
 */
-func updateReportTotalPlayCountForCustomerUser(userUid string, partnerUid, courseUid string) {
+func updateReportTotalPlayCountForCustomerUser(userUid string, cardId string, partnerUid, courseUid string) {
 	reportCustomer := model_report.ReportCustomerPlay{
 		CustomerUid: userUid,
+		CardId:      cardId,
 	}
 
 	errF := reportCustomer.FindFirst()
@@ -1252,7 +1274,7 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 	return kiosk_inventory.ItemInfo{}, errors.New(fmt.Sprintln(itemCode, "not found"))
 }
 
-func newTrue(b bool) *bool {
+func setBoolForCursor(b bool) *bool {
 	boolVar := b
 	return &boolVar
 }
@@ -1291,18 +1313,18 @@ func bookMarkRoundPaidByMainBag(mainBooking model_booking.Booking, db *gorm.DB) 
 			round1 := models.Round{BillCode: subBooking.BillCode, Index: 1}
 			if errRound1 := round1.FindFirst(db); errRound1 == nil {
 				if checkIsFirstRound > -1 {
-					round1.MainBagPaid = newTrue(true)
+					round1.MainBagPaid = setBoolForCursor(true)
 				} else {
-					round1.MainBagPaid = newTrue(false)
+					round1.MainBagPaid = setBoolForCursor(false)
 				}
 				round1.Update(db)
 			}
 			round2 := models.Round{BillCode: subBooking.BillCode, Index: 2}
 			if errRound2 := round2.FindFirst(db); errRound2 == nil {
 				if checkIsNextRound > -1 {
-					round2.MainBagPaid = newTrue(true)
+					round2.MainBagPaid = setBoolForCursor(true)
 				} else {
-					round2.MainBagPaid = newTrue(false)
+					round2.MainBagPaid = setBoolForCursor(false)
 				}
 				round2.Update(db)
 			}
