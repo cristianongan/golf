@@ -64,14 +64,17 @@ func (item *Role) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *Role) FindList(page models.Page) ([]Role, int64, error) {
+func (item *Role) FindList(page models.Page, roleIds []int) ([]Role, int64, error) {
+
 	database := datasources.GetDatabaseAuth()
 	db := database.Model(Role{})
 	list := []Role{}
 	total := int64(0)
 	status := item.Status
 	item.Status = ""
+
 	db = db.Where(item)
+	db = db.Where("id IN (?)", roleIds)
 
 	if status != "" {
 		db = db.Where("status IN (?)", strings.Split(status, ","))

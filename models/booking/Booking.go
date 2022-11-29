@@ -533,6 +533,20 @@ type BookingFeeOfBag struct {
 	Rounds            models.ListRound                     `json:"rounds"`
 }
 
+type AgencyCancelBookingList struct {
+	BookingCode          string        `json:"booking_code"`
+	AgencyId             int64         `json:"agency_id"`
+	AgencyInfo           BookingAgency `json:"agency_info"`
+	CustomerBookingName  string        `json:"customer_booking_name"`
+	CustomerBookingPhone string        `json:"customer_booking_phone"`
+	TeeOffTime           string        `json:"tee_off_time"`
+	TeeTime              string        `json:"tee_time"`
+	Hole                 int           `json:"hole"`
+	NoteOfBag            string        `json:"note_of_bag"`
+	NoteOfBooking        string        `json:"note_of_booking"`
+	NumberPeople         int           `json:"number_people"`
+}
+
 // -------- Booking Logic --------
 /*
 	Lấy service item của main bag và sub bag nếu có
@@ -1236,19 +1250,33 @@ func (item *Booking) FindAllBookingOTA(database *gorm.DB) ([]Booking, error) {
 	return list, db.Error
 }
 
-func (item *Booking) FindAgencyCancelBooking(database *gorm.DB) ([]Booking, error) {
+func (item *Booking) FindAgencyCancelBooking(database *gorm.DB, page models.Page) ([]AgencyCancelBookingList, int64, error) {
 	db := database.Model(Booking{})
-	list := []Booking{}
+	list := []AgencyCancelBookingList{}
+	total := int64(0)
 
 	db = db.Where("partner_uid = ?", item.PartnerUid)
 	db = db.Where("course_uid = ?", item.CourseUid)
+
+	if item.BookingCode != "" {
+		db = db.Where("booking_code = ?", item.BookingCode)
+	}
+
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+
 	db = db.Group("booking_code")
 	db = db.Where("agency_id <> ?", 0)
 	db = db.Where("bag_status = ?", constants.BAG_STATUS_CANCEL)
-	db = db.Select("booking_code, agency_info, customer_booking_name, customer_booking_phone, tee_time, tee_off_time, booking_date, hole, note_of_bag, note_of_booking, COUNT(booking_code) as number_people")
+	db = db.Select("bookings.*, COUNT(booking_code) as number_people")
 
-	db.Find(&list)
-	return list, db.Error
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+	return list, total, db.Error
 }
 
 func (item *Booking) FindAllBookingCheckIn(database *gorm.DB, bookingDate string) ([]Booking, error) {
