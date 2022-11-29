@@ -34,12 +34,14 @@ func (_ *CReportDashboard) GetReportBookingStatusOnDay(c *gin.Context, prof mode
 	}
 	_, bookingTotal, _ := bookingBookingList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
 
-	bookingWaitingList := model_booking.BookingWaiting{
-		PartnerUid:  body.PartnerUid,
-		CourseUid:   body.CourseUid,
-		BookingCode: now,
+	bookingWaitingList := model_booking.BookingList{
+		BagStatus:       constants.BAG_STATUS_WAITING,
+		PartnerUid:      body.PartnerUid,
+		CourseUid:       body.CourseUid,
+		BookingDate:     now,
+		IsGroupBillCode: true,
 	}
-	_, waitingTotal, _ := bookingWaitingList.FindAll(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+	_, waitingTotal, _ := bookingWaitingList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
 
 	bookingInCourseList := model_booking.BookingList{
 		BagStatus:       constants.BAG_STATUS_IN_COURSE,
