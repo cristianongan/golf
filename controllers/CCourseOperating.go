@@ -234,7 +234,13 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		if caddieTemp.Id > 0 {
 			if errB == nil {
 				// Update caddie_current_status
-				caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+				if caddieTemp.CurrentRound == 0 {
+					caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+				} else if caddieTemp.CurrentRound == 1 {
+					caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE_R2
+				} else if caddieTemp.CurrentRound == 2 {
+					caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE_R3
+				}
 				caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
 
 				caddieBuggyInNote.CaddieId = caddieTemp.Id
@@ -320,6 +326,12 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 			log.Println("CreateFlight err udp caddie ", errUdp.Error())
 		}
 	}
+
+	// Bắn socket để update xếp nốt caddie
+	go func() {
+		cNotification := CNotification{}
+		cNotification.CreateCaddieWorkingStatusNotification("")
+	}()
 
 	// Udp Caddie In Out Note
 	for _, data := range listCaddieInOut {
