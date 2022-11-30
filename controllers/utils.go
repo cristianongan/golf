@@ -23,6 +23,7 @@ import (
 	model_report "start/models/report"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -1329,5 +1330,36 @@ func bookMarkRoundPaidByMainBag(mainBooking model_booking.Booking, db *gorm.DB) 
 				round2.Update(db)
 			}
 		}
+	}
+}
+
+/*
+Tạo book reservation cho restaurant
+*/
+
+func addServiceCart(db *gorm.DB, numberGuest int, partnerUid, courseUid, playerName, phone, staffName string) {
+	// create service cart
+	kiosk := model_service.Kiosk{
+		KioskType: constants.RESTAURANT_SETTING,
+	}
+	kiosk.FindFirst(db)
+
+	serviceCart := models.ServiceCart{}
+	serviceCart.PartnerUid = partnerUid
+	serviceCart.CourseUid = courseUid
+	serviceCart.BookingDate = datatypes.Date(time.Now().Local())
+	serviceCart.ServiceId = kiosk.Id
+	serviceCart.ServiceType = kiosk.KioskType
+	serviceCart.BillCode = constants.BILL_NONE
+	serviceCart.BillStatus = constants.RES_BILL_STATUS_BOOKING
+	serviceCart.Type = constants.RES_TYPE_TABLE
+	serviceCart.NumberGuest = numberGuest
+	serviceCart.StaffOrder = staffName
+	serviceCart.PlayerName = playerName
+	serviceCart.Phone = phone
+	serviceCart.OrderTime = time.Now().Unix()
+
+	if err := serviceCart.Create(db); err != nil {
+		log.Println("add service cart error!")
 	}
 }

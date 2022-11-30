@@ -33,6 +33,13 @@ func (_ *CBuggyFeeItemSetting) CreateBuggyFeeItemSetting(c *gin.Context, prof mo
 		return
 	}
 
+	if len(body.RentalFee) == 0 || len(body.PrivateCarFee) == 0 || len(body.OddCarFee) == 0 {
+		response_message.BadRequestFreeMessage(c, "Fee empty!")
+		return
+	}
+
+	//Validate input
+
 	buggyFeeItemSetting := models.BuggyFeeItemSetting{
 		PartnerUid:     body.PartnerUid,
 		CourseUid:      body.CourseUid,
@@ -45,6 +52,12 @@ func (_ *CBuggyFeeItemSetting) CreateBuggyFeeItemSetting(c *gin.Context, prof mo
 		SettingId:      body.SettingId,
 		RateGolfFee:    body.RateGolfFee,
 	}
+
+	if errVal := buggyFeeItemSetting.ValidateCreate(db); errVal != nil {
+		response_message.BadRequestFreeMessage(c, "Data duplicated!")
+		return
+	}
+
 	buggyFeeItemSetting.Status = body.Status
 	errC := buggyFeeItemSetting.Create(db)
 

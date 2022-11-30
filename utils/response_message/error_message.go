@@ -103,6 +103,18 @@ func BadRequestDynamicKey(c *gin.Context, key, log string) {
 	ErrorResponse(c, http.StatusBadRequest, key, log, http.StatusBadRequest) //400
 }
 
+func BadRequestFreeMessage(c *gin.Context, message string) {
+	if c == nil {
+		return
+	}
+
+	errorMessage := ErrorResponseData{
+		Message:    message,
+		StatusCode: http.StatusBadRequest,
+	}
+	c.JSON(http.StatusBadRequest, errorMessage)
+}
+
 func BadRequest(c *gin.Context, log string) {
 	if c == nil {
 		return

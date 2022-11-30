@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
@@ -29,21 +28,20 @@ func (_ *CBooking) GetListAgencyCancelBooking(c *gin.Context, prof models.CmsUse
 		return
 	}
 
-	bookings := model_booking.BookingList{}
-	bookings.PartnerUid = form.PartnerUid
-	bookings.CourseUid = form.CourseUid
-	bookings.BookingDate = form.BookingDate
-	bookings.GolfBag = form.GolfBag
-	bookings.BookingCode = form.BookingCode
-	bookings.CaddieCode = form.CaddieCode
-	bookings.HasBookCaddie = form.HasBookCaddie
-	bookings.CustomerName = form.PlayerName
-	bookings.CaddieName = form.CaddieName
-	bookings.PlayerOrBag = form.PlayerOrBag
-	bookings.IsAgency = "1"
-	bookings.BagStatus = constants.BAG_STATUS_CANCEL
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
 
-	db, total, err := bookings.FindAllBookingList(db)
+	booking := model_booking.Booking{}
+	booking.PartnerUid = form.PartnerUid
+	booking.CourseUid = form.CourseUid
+	booking.BookingDate = form.BookingDate
+	booking.BookingCode = form.BookingCode
+
+	list, total, err := booking.FindAgencyCancelBooking(db, page)
 
 	res := response.PageResponse{}
 
@@ -52,8 +50,6 @@ func (_ *CBooking) GetListAgencyCancelBooking(c *gin.Context, prof models.CmsUse
 		return
 	}
 
-	var list []model_booking.Booking
-	db.Debug().Find(&list)
 	res = response.PageResponse{
 		Total: total,
 		Data:  list,

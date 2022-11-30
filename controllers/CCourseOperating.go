@@ -206,8 +206,13 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		caddieTemp := response.NewCaddie
 		buggyTemp := response.NewBuggy
 
-		if bookingTemp.BagStatus != constants.BAG_STATUS_WAITING {
-			response_message.BadRequest(c, "BAG STATUS "+bookingTemp.BagStatus)
+		if errB != nil {
+			response_message.BadRequestFreeMessage(c, errB.Error())
+			return
+		}
+
+		if bookingTemp.Uid != "" && bookingTemp.BagStatus != constants.BAG_STATUS_WAITING {
+			response_message.BadRequestFreeMessage(c, fmt.Sprintln("Bag", bookingTemp.Bag, bookingTemp.BagStatus))
 			return
 		}
 

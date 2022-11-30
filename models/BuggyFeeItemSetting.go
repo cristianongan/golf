@@ -64,6 +64,20 @@ func (item *BuggyFeeItemSetting) Create(db *gorm.DB) error {
 	return db.Create(item).Error
 }
 
+func (item *BuggyFeeItemSetting) ValidateCreate(db *gorm.DB) error {
+	data1 := BuggyFeeItemSetting{
+		GuestStyle: item.GuestStyle,
+		Dow:        item.Dow,
+	}
+	_, total, _ := data1.FindAll(db)
+
+	if total > 0 {
+		return errors.New("All Guest for Dow existed!")
+	}
+
+	return nil
+}
+
 func (item *BuggyFeeItemSetting) Update(db *gorm.DB) error {
 	mydb := datasources.GetDatabase()
 	item.UpdatedAt = time.Now().Unix()
