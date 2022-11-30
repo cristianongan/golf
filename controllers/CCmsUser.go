@@ -372,6 +372,9 @@ func (_ *CCmsUser) UpdateCmsUser(c *gin.Context, prof models.CmsUser) {
 	if body.RoleId > 0 {
 		cmsUser.RoleId = body.RoleId
 	}
+	if body.Status != "" {
+		cmsUser.Status = body.Status
+	}
 
 	errUdp := cmsUser.Update()
 	if errUdp != nil {
