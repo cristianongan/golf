@@ -37,7 +37,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			log.Printf("error: %v", err)
-			// break
+			break
 		}
 		// Send the newly received message to the broadcast channel
 		Broadcast <- msg
