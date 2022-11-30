@@ -1,5 +1,9 @@
 start
 gin-bin
 start.exe
-.idea
 server/migratedb_local.go
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
