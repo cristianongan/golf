@@ -20,7 +20,7 @@ stages:
   only:
     refs:
       - tags
-  tags: [dvtt]
+  tags: [caro-golf]
   allow_failure: false
 
 # On the feature/deploy_dev branch
