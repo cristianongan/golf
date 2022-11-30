@@ -327,11 +327,13 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	// Bắn socket để update xếp nốt caddie
-	go func() {
-		cNotification := CNotification{}
-		cNotification.CreateCaddieWorkingStatusNotification("")
-	}()
+	if len(listCaddie) > 0 {
+		// Bắn socket để update xếp nốt caddie
+		go func() {
+			cNotification := CNotification{}
+			cNotification.CreateCaddieWorkingStatusNotification("")
+		}()
+	}
 
 	// Udp Caddie In Out Note
 	for _, data := range listCaddieInOut {
