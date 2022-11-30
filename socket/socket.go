@@ -34,11 +34,9 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		// Read in a new message as JSON and map it to a Message object
 
 		err := ws.ReadJSON(&msg)
-		log.Printf("msg socket: %v", msg)
 
 		if err != nil {
 			log.Printf("error: %v", err)
-			delete(clients, ws)
 			break
 		}
 		// Send the newly received message to the broadcast channel
