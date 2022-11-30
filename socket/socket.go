@@ -32,6 +32,8 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	for {
 		var msg any
 		// Read in a new message as JSON and map it to a Message object
+		log.Printf("msg socket: %v", msg)
+
 		err := ws.ReadJSON(&msg)
 		if err != nil {
 			log.Printf("error: %v", err)
