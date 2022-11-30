@@ -1619,7 +1619,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Create payment info
-	handlePayment(db, booking)
+	go handlePayment(db, booking)
 
 	// Update lại round còn thiếu bag
 	cRound := CRound{}
@@ -2538,6 +2538,8 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequestDynamicKey(c, "UPDATE_BOOKING_ERROR", "")
 		return
 	}
+	// update lại payment
+	go handlePayment(db, mainBag)
 
 	booking.MainBags = utils.ListSubBag{}
 	booking.UpdateMushPay(db)
@@ -2545,6 +2547,8 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequestDynamicKey(c, "UPDATE_BOOKING_ERROR", "")
 		return
 	}
+	// update lại payment
+	go handlePayment(db, booking)
 
 	go func() {
 		cRound := CRound{}
@@ -2623,7 +2627,6 @@ func (cBooking *CBooking) Test(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// booking.UpdateMushPay(db)
 	cRound := CRound{}
 	cRound.UpdateListFeePriceInBookingAndRound(c, db, booking, booking.GuestStyle, 12)
 }

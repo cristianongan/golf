@@ -443,6 +443,7 @@ func (cRound CRound) UpdateGolfFeeInBooking(booking *model_booking.Booking, db *
 	booking.UpdatePriceDetailCurrentBag(db)
 	booking.UpdateMushPay(db)
 	booking.Update(db)
+	go handlePayment(db, *booking)
 
 	if len(booking.MainBags) > 0 {
 		// Get data main bag
@@ -459,5 +460,6 @@ func (cRound CRound) UpdateGolfFeeInBooking(booking *model_booking.Booking, db *
 		bookingMain.UpdatePriceDetailCurrentBag(db)
 		bookingMain.UpdateMushPay(db)
 		bookingMain.Update(db)
+		go handlePayment(db, bookingMain)
 	}
 }
