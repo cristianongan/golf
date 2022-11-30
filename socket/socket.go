@@ -24,7 +24,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	// Make sure we close the connection when the function returns
-	// defer ws.Close()
+	defer ws.Close()
 
 	// Register our new client
 	clients[ws] = true
