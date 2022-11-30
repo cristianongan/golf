@@ -344,7 +344,7 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 		if errUdp != nil {
 			log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
 		} else {
-			handlePayment(db, mainBook)
+			go handlePayment(db, mainBook)
 		}
 	} else {
 		if booking.SubBags != nil && len(booking.SubBags) > 0 {
@@ -364,7 +364,7 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 					if errUdpSubBag != nil {
 						log.Println("updatePriceWithServiceItem errUdpSubBag", errUdpSubBag.Error())
 					} else {
-						handlePayment(db, subBook)
+						go handlePayment(db, subBook)
 					}
 				} else {
 					log.Println("updatePriceWithServiceItem errFSub", errFSub.Error())
@@ -373,15 +373,15 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 
 			booking.UpdatePriceDetailCurrentBag(db)
 			booking.UpdateMushPay(db)
-			booking.Update(db)
+			errFMB := booking.Update(db)
 			// Co sub bag thì main bag dc udp ở trên rồi
 			// find main bag udp lại payment
-			mainBookUdp := model_booking.Booking{}
-			mainBookUdp.Uid = booking.Uid
-			mainBookUdp.PartnerUid = booking.PartnerUid
-			errFMB := mainBookUdp.FindFirst(db)
+			// mainBookUdp := model_booking.Booking{}
+			// mainBookUdp.Uid = booking.Uid
+			// mainBookUdp.PartnerUid = booking.PartnerUid
+			// errFMB := mainBookUdp.FindFirst(db)
 			if errFMB == nil {
-				handlePayment(db, mainBookUdp)
+				go handlePayment(db, booking)
 			}
 
 			return
@@ -393,6 +393,6 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 	if errUdp != nil {
 		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
 	} else {
-		handlePayment(db, booking)
+		go handlePayment(db, booking)
 	}
 }

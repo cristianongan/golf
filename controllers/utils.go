@@ -249,7 +249,7 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 				log.Println("UpdateMainBagForSubBag errUdp", errUdp.Error())
 			} else {
 				// Udp lai info payment
-				handlePayment(db, booking)
+				go handlePayment(db, booking)
 			}
 		} else {
 			err = errFind
@@ -260,7 +260,9 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 	// Tính lại giá của main
 	mainBooking.UpdatePriceDetailCurrentBag(db)
 	mainBooking.UpdateMushPay(db)
-	mainBooking.Update(db)
+	if errUdpM := mainBooking.Update(db); errUdpM != nil {
+		go handlePayment(db, mainBooking)
+	}
 
 	return err
 }
