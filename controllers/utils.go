@@ -631,18 +631,25 @@ func udpCaddieOut(db *gorm.DB, caddieId int64) error {
 	caddie := models.Caddie{}
 	caddie.Id = caddieId
 	err := caddie.FindFirst(db)
-	if caddie.CurrentRound == 0 {
-		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
-	} else {
-		if caddie.CurrentRound > 1 {
-			caddie.CurrentStatus = fmt.Sprintln(constants.CADDIE_CURRENT_STATUS_FINISH, "R", caddie.CurrentRound)
+	if !(utils.ContainString(constants.LIST_CADDIE_READY_JOIN, caddie.CurrentStatus) > -1) {
+		if caddie.CurrentRound == 0 {
+			caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
 		} else {
-			caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
+			if caddie.CurrentRound > 1 {
+				caddie.CurrentStatus = fmt.Sprint(constants.CADDIE_CURRENT_STATUS_FINISH, " ", "R", caddie.CurrentRound)
+			} else {
+				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
+			}
 		}
-	}
-	err = caddie.Update(db)
-	if err != nil {
-		log.Println("udpCaddieOut err", err.Error())
+		errUpd := caddie.Update(db)
+		if errUpd != nil {
+			log.Println("udpCaddieOut err", err.Error())
+		}
+		go func() {
+			cNotification := CNotification{}
+			title := fmt.Sprint("Caddie", " ", caddie.Code, " ", caddie.CurrentStatus)
+			cNotification.CreateCaddieWorkingStatusNotification(title)
+		}()
 	}
 	return err
 }
@@ -1000,7 +1007,9 @@ Check Caddie có đang sẵn sàng để ghép không
 */
 func checkCaddieReady(booking model_booking.Booking, caddie models.Caddie) error {
 	if !(caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
-		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH) {
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH ||
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH_R2 ||
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH_R3) {
 		return errors.New("Caddie " + caddie.Code + " chưa sẵn sàng để ghép ")
 	}
 	return nil

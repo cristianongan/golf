@@ -191,3 +191,12 @@ func (_ *CNotification) CreateCaddieVacationNotification(db *gorm.DB, body reque
 	notiData.Create(db)
 	socket.Broadcast <- notiData
 }
+
+func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
+	notiData := map[string]interface{}{
+		"type":  constants.NOTIFICATION_CADDIE_WORKING_STATUS_UPDATE,
+		"title": title,
+	}
+
+	socket.Broadcast <- notiData
+}
