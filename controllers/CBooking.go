@@ -2553,6 +2553,41 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 
 	okResponse(c, booking)
 }
+
+/*
+Get Bag Not Check Out
+*/
+func (cBooking *CBooking) GetBagNotCheckOut(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	now := time.Now().Format(constants.DATE_FORMAT_1)
+	bookings := model_booking.BookingList{}
+	bookings.PartnerUid = form.PartnerUid
+	bookings.CourseUid = form.CourseUid
+	bookings.BookingDate = now
+	bookings.IsCheckIn = "1"
+
+	db, total, err := bookings.FindAllBookingList(db)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+	res := map[string]interface{}{
+		"total": total,
+	}
+
+	okResponse(c, res)
+}
+
 func (cBooking *CBooking) Test(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingForm{}
