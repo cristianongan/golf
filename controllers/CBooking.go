@@ -2191,3 +2191,48 @@ func (cBooking *CBooking) Test(c *gin.Context, prof models.CmsUser) {
 	cRound := CRound{}
 	cRound.UpdateListFeePriceInBookingAndRound(c, db, booking, booking.GuestStyle, 12)
 }
+
+func (cBooking *CBooking) GetSlotRemainInTeeTime(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.TeeTime == "" {
+		response_message.BadRequestFreeMessage(c, "TeeTime empty!")
+		return
+	}
+
+	if form.TeeType == "" {
+		response_message.BadRequestFreeMessage(c, "TeeType empty!")
+		return
+	}
+
+	if form.CourseType == "" {
+		response_message.BadRequestFreeMessage(c, "CourseType empty!")
+		return
+	}
+
+	if form.BookingDate == "" {
+		response_message.BadRequestFreeMessage(c, "BookingDate empty!")
+		return
+	}
+
+	bookings := model_booking.BookingList{}
+	bookings.PartnerUid = form.PartnerUid
+	bookings.CourseUid = form.CourseUid
+	bookings.BookingDate = form.BookingDate
+	bookings.TeeTime = form.TeeTime
+	bookings.TeeType = form.TeeType
+	bookings.CourseType = form.CourseType
+
+	_, total, _ := bookings.FindAllBookingList(db)
+
+	res := map[string]interface{}{
+		"total": constants.SLOT_TEE_TIME - total,
+	}
+
+	okResponse(c, res)
+}
