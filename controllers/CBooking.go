@@ -1637,9 +1637,11 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 	// add cái mới
 	for _, v := range body.OtherPaids {
 		serviceItem := model_booking.BookingServiceItem{
-			Type:     constants.BOOKING_OTHER_FEE,
-			Name:     v.Reason,
-			BillCode: booking.BillCode,
+			Type:       constants.BOOKING_OTHER_FEE,
+			Name:       v.Reason,
+			BillCode:   booking.BillCode,
+			PartnerUid: booking.PartnerUid,
+			CourseUid:  booking.CourseUid,
 		}
 		errF := serviceItem.FindFirst(db)
 		if errF != nil {
@@ -1648,6 +1650,7 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 			serviceItem.PlayerName = booking.CustomerName
 			serviceItem.Bag = booking.Bag
 			serviceItem.BookingUid = booking.Uid
+			serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
 			errC := serviceItem.Create(db)
 			if errC != nil {
 				log.Println("AddOtherPaid errC", errC.Error())

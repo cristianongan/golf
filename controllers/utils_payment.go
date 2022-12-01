@@ -197,6 +197,8 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 			BillCode:   booking.BillCode,
 			PlayerName: booking.CustomerName,
 			BookingUid: booking.Uid,
+			PartnerUid: booking.PartnerUid,
+			CourseUid:  booking.CourseUid,
 		}
 		serviceItem.Name = name
 		serviceItem.UnitPrice = feeInfo.BuggyFee
@@ -219,6 +221,8 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 			BillCode:   booking.BillCode,
 			PlayerName: booking.CustomerName,
 			BookingUid: booking.Uid,
+			PartnerUid: booking.PartnerUid,
+			CourseUid:  booking.CourseUid,
 		}
 		serviceItem.Name = "Booking Caddie"
 		serviceItem.UnitPrice = feeInfo.CaddieFee
