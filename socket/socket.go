@@ -12,6 +12,7 @@ var Broadcast = make(chan any)               // broadcast channel
 
 // Configure the upgrader
 var upgrader = websocket.Upgrader{
+	HandshakeTimeout: 0,
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
@@ -32,12 +33,11 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	for {
 		var msg any
 		// Read in a new message as JSON and map it to a Message object
-		log.Printf("msg socket: %v", msg)
 
 		err := ws.ReadJSON(&msg)
+
 		if err != nil {
 			log.Printf("error: %v", err)
-			delete(clients, ws)
 			break
 		}
 		// Send the newly received message to the broadcast channel
