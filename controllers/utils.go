@@ -1291,6 +1291,10 @@ func setBoolForCursor(b bool) *bool {
 	return &boolVar
 }
 
+func getIntPointer(value int) *int {
+	return &value
+}
+
 /*
 Get Tee Time Lock Redis
 */
@@ -1373,4 +1377,19 @@ func addServiceCart(db *gorm.DB, numberGuest int, partnerUid, courseUid, playerN
 	if err := serviceCart.Create(db); err != nil {
 		log.Println("add service cart error!")
 	}
+}
+
+/*
+Tạo row index cho booking
+*/
+
+func generateRowIndex(rowsCurrent []int) int {
+	if !utils.Contains(rowsCurrent, 0) {
+		return 0
+	} else if !utils.Contains(rowsCurrent, 1) {
+		return 1
+	} else if !utils.Contains(rowsCurrent, 2) {
+		return 2
+	}
+	return 3
 }

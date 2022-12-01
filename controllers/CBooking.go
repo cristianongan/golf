@@ -108,6 +108,33 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 	}
 
+	// Case booking tee time, nếu chưa có row_index thì auto gen
+	if body.BookingTeeTime && body.RowIndex == nil {
+		bookings := model_booking.BookingList{}
+		bookings.PartnerUid = body.PartnerUid
+		bookings.CourseUid = body.CourseUid
+		bookings.BookingDate = body.BookingDate
+		bookings.TeeTime = body.TeeTime
+		bookings.TeeType = body.TeeType
+		bookings.CourseType = body.CourseType
+
+		db1 := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+		db1, total, _ := bookings.FindAllBookingList(db1)
+
+		if total == constants.SLOT_TEE_TIME {
+			response_message.ErrorResponse(c, http.StatusBadRequest, "TEE_TIME_SLOT_FULL", "", http.StatusBadRequest)
+			return nil, nil
+		}
+		var list []model_booking.Booking
+		db1.Find(&list)
+		rowIndexs := []int{}
+		for _, item := range list {
+			rowIndexs = append(rowIndexs, *item.RowIndex)
+		}
+
+		body.RowIndex = getIntPointer(generateRowIndex(rowIndexs))
+	}
+
 	booking := model_booking.Booking{
 		PartnerUid:         body.PartnerUid,
 		CourseUid:          body.CourseUid,
@@ -1853,6 +1880,7 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 	bookingCode := utils.HashCodeUuid(uuid.New().String())
 	for index := range bodyRequest.BookingList {
 		bodyRequest.BookingList[index].BookingCode = bookingCode
+		bodyRequest.BookingList[index].BookingTeeTime = true
 	}
 
 	listBooking := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)

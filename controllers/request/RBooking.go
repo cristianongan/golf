@@ -157,6 +157,7 @@ type CreateBookingBody struct {
 	FeeInfo            AgencyFeeInfo           `json:"fee_info"`
 	BookMark           bool
 	BookFromOTA        bool
+	BookingTeeTime     bool
 }
 
 type GolfFeeGuestyleParam struct {

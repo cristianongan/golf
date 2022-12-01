@@ -45,4 +45,5 @@ var EnLanguage = map[string]string{
 	"DUPLICATE_BAG":                 "Duplicate bag",
 	"OUT_CADDIE_ERROR":              "Booking have not caddie",
 	"INVENTORY_NOT_FOUND":           "Inventory not found",
+	"TEE_TIME_SLOT_FULL":            "Tee Time is full 4 slot",
 }
