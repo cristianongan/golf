@@ -2,15 +2,18 @@
 # Default to Go 1.11
 ARG GO_VERSION=1.18
 
-# First stage: build the executable.
+#---------------- First stage: build the executable.
 FROM golang:${GO_VERSION}-alpine AS builder
+
+# Mofify URL default Alpine to Nexus Alpine Repo
+COPY apk-repositories /etc/apk/repositories
 
 # Create the user and group files that will be used in the running container to
 # run the process as an unprivileged user.
 RUN mkdir /user && \
     echo 'nobody:x:65534:65534:nobody:/:' > /user/passwd && \
     echo 'nobody:x:65534:' > /user/group
-RUN export GOPROXY=https://artifact.vnpay.vn/nexus/repository/go-proxy
+RUN export GOPROXY=https://artifact.vnpay.vn/nexus/repository/go-proxy/
 RUN apk add --no-cache ca-certificates git
 
 # Set the working directory outside $GOPATH to enable the support for modules.
@@ -28,8 +31,11 @@ COPY ./ ./
 RUN CGO_ENABLED=0 go build \
     -installsuffix 'static' \
     -o ./executable .
-# Final stage: the running container.
+#---------------- Final stage: the running container.
 FROM alpine:latest AS final
+
+# Mofify URL default Alpine to Nexus Alpine Repo
+COPY apk-repositories /etc/apk/repositories
 
 RUN apk --no-cache add tzdata
 # Import the user and group files from the first stage.

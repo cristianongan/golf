@@ -1,0 +1,4 @@
+#https://dl-cdn.alpinelinux.org/alpine/v3.16/main
+#https://dl-cdn.alpinelinux.org/alpine/v3.16/community
+https://artifact.vnpay.vn/nexus/repository/apk-proxy_dl-cdn.alpinelinux.org/alpine/v3.16/main
+https://artifact.vnpay.vn/nexus/repository/apk-proxy_dl-cdn.alpinelinux.org/alpine/v3.16/community
