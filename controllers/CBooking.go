@@ -2078,26 +2078,26 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 		isCanCheckOut = true
 
 		//Check sub bag
-		if bag.SubBags != nil && len(bag.SubBags) > 0 {
-			for _, v := range bag.SubBags {
-				subBag := model_booking.Booking{
-					BookingDate: body.BookingDate,
-					Bag:         v.GolfBag,
-					PartnerUid:  body.PartnerUid,
-					CourseUid:   body.CourseUid,
-				}
-				errF := subBag.FindFirst(db)
+		// if bag.SubBags != nil && len(bag.SubBags) > 0 {
+		// 	for _, v := range bag.SubBags {
+		// 		subBag := model_booking.Booking{
+		// 			BookingDate: body.BookingDate,
+		// 			Bag:         v.GolfBag,
+		// 			PartnerUid:  body.PartnerUid,
+		// 			CourseUid:   body.CourseUid,
+		// 		}
+		// 		errF := subBag.FindFirst(db)
 
-				if errF == nil {
-					if subBag.BagStatus == constants.BAG_STATUS_CHECK_OUT || subBag.BagStatus == constants.BAG_STATUS_CANCEL {
-					} else {
-						errMessage = "Sub-bag chưa check checkout"
-						isCanCheckOut = false
-						break
-					}
-				}
-			}
-		}
+		// 		if errF == nil {
+		// 			if subBag.BagStatus == constants.BAG_STATUS_CHECK_OUT || subBag.BagStatus == constants.BAG_STATUS_CANCEL {
+		// 			} else {
+		// 				errMessage = "Sub-bag chưa check checkout"
+		// 				isCanCheckOut = false
+		// 				break
+		// 			}
+		// 		}
+		// 	}
+		// }
 
 		// Check service items
 		// Find bag detail
