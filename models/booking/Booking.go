@@ -699,6 +699,7 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 	mainPaidProshop := false
 	mainPaidRestaurant := false
 	mainPaidOtherFee := false
+	mainCheckOutTime := int64(0)
 
 	// Tính giá của khi có main bag
 	if len(item.MainBags) > 0 {
@@ -712,6 +713,7 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 		if errFMB != nil {
 			log.Println("UpdateMushPay-"+item.Bag+"-Find Main Bag", errFMB.Error())
 		}
+		mainCheckOutTime = mainBook.CheckOutTime
 		mainPaidRound1 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND) > -1
 		mainPaidRound2 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS) > -1
 		mainPaidRental = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_RENTAL) > -1
@@ -727,12 +729,22 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 				if !mainPaidRound1 {
 					// Nếu main bag ko trả round 1 thì add
 					listRoundGolfFee = append(listRoundGolfFee, round)
+				} else {
+					// Nếu Main Bag trả cho round 1 nhưng main bag đã check out đi về thì vẫn tính tiền
+					if mainCheckOutTime > 0 && round.CreatedAt > mainCheckOutTime {
+						listRoundGolfFee = append(listRoundGolfFee, round)
+					}
 				}
 			}
 		} else if round.Index == 2 {
 			if !mainPaidRound2 {
 				// Nếu main bag ko trả round 2 thì add
 				listRoundGolfFee = append(listRoundGolfFee, round)
+			} else {
+				// Nếu Main Bag trả cho nhưng main bag đã check out đi về thì vẫn tính tiền
+				if mainCheckOutTime > 0 && round.CreatedAt > mainCheckOutTime {
+					listRoundGolfFee = append(listRoundGolfFee, round)
+				}
 			}
 		} else {
 			listRoundGolfFee = append(listRoundGolfFee, round)
@@ -785,16 +797,21 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 		isNeedPay := false
 		if len(item.MainBags) > 0 {
 			// Nếu có main bag
-			if v.PaidBy == constants.PAID_BY_AGENCY {
-				isNeedPay = false
-			} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL || v.Type == constants.DRIVING_SETTING) && !mainPaidRental {
+			if mainCheckOutTime > 0 && v.CreatedAt > mainCheckOutTime {
+				// main bag đã check out đi về thì phải trả v
 				isNeedPay = true
-			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP && !mainPaidProshop {
-				isNeedPay = true
-			} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT || v.Type == constants.MINI_B_SETTING || v.Type == constants.MINI_R_SETTING) && !mainPaidRestaurant {
-				isNeedPay = true
-			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE && !mainPaidOtherFee {
-				isNeedPay = true
+			} else {
+				if v.PaidBy == constants.PAID_BY_AGENCY {
+					isNeedPay = false
+				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL || v.Type == constants.DRIVING_SETTING) && !mainPaidRental {
+					isNeedPay = true
+				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP && !mainPaidProshop {
+					isNeedPay = true
+				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT || v.Type == constants.MINI_B_SETTING || v.Type == constants.MINI_R_SETTING) && !mainPaidRestaurant {
+					isNeedPay = true
+				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE && !mainPaidOtherFee {
+					isNeedPay = true
+				}
 			}
 		} else {
 			if v.PaidBy == constants.PAID_BY_AGENCY {
