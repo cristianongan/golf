@@ -23,6 +23,7 @@ import (
 	model_report "start/models/report"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -248,7 +249,7 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 				log.Println("UpdateMainBagForSubBag errUdp", errUdp.Error())
 			} else {
 				// Udp lai info payment
-				handlePayment(db, booking)
+				go handlePayment(db, booking)
 			}
 		} else {
 			err = errFind
@@ -259,7 +260,9 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 	// Tính lại giá của main
 	mainBooking.UpdatePriceDetailCurrentBag(db)
 	mainBooking.UpdateMushPay(db)
-	mainBooking.Update(db)
+	if errUdpM := mainBooking.Update(db); errUdpM != nil {
+		go handlePayment(db, mainBooking)
+	}
 
 	return err
 }
@@ -580,12 +583,14 @@ Out caddie
 */
 func udpOutCaddieBooking(db *gorm.DB, booking *model_booking.Booking) error {
 
-	errCd := udpCaddieOut(db, booking.CaddieId)
-	if errCd != nil {
-		return errCd
+	if booking.CaddieId > 0 {
+		errCd := udpCaddieOut(db, booking.CaddieId)
+		if errCd != nil {
+			return errCd
+		}
+		// Udp booking
+		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_OUT
 	}
-	// Udp booking
-	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_OUT
 
 	return nil
 }
@@ -595,27 +600,28 @@ Out Buggy
 */
 func udpOutBuggy(db *gorm.DB, booking *model_booking.Booking, isOutAll bool) error {
 	// Get Caddie
+	if booking.BuggyId > 0 {
+		bookingR := model_booking.BookingList{
+			BookingDate: booking.BookingDate,
+			BuggyId:     booking.BuggyId,
+			BagStatus:   constants.BAG_STATUS_IN_COURSE,
+		}
 
-	bookingR := model_booking.BookingList{
-		BookingDate: booking.BookingDate,
-		BuggyId:     booking.BuggyId,
-		BagStatus:   constants.BAG_STATUS_IN_COURSE,
-	}
+		_, total, _ := bookingR.FindAllBookingList(db)
 
-	_, total, _ := bookingR.FindAllBookingList(db)
+		if total > 1 && !isOutAll {
+			return errors.New("Buggy còn đang ghép với player khác")
+		}
 
-	if total > 1 && !isOutAll {
-		return errors.New("Buggy còn đang ghép với player khác")
-	}
-
-	buggy := models.Buggy{}
-	buggy.Id = booking.BuggyId
-	err := buggy.FindFirst(db)
-	if err == nil {
-		buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_FINISH
-		if errUdp := buggy.Update(db); errUdp != nil {
-			log.Println("udpBuggyOut err", err.Error())
-			return errUdp
+		buggy := models.Buggy{}
+		buggy.Id = booking.BuggyId
+		err := buggy.FindFirst(db)
+		if err == nil {
+			buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_FINISH
+			if errUdp := buggy.Update(db); errUdp != nil {
+				log.Println("udpBuggyOut err", err.Error())
+				return errUdp
+			}
 		}
 	}
 
@@ -630,18 +636,25 @@ func udpCaddieOut(db *gorm.DB, caddieId int64) error {
 	caddie := models.Caddie{}
 	caddie.Id = caddieId
 	err := caddie.FindFirst(db)
-	if caddie.CurrentRound == 0 {
-		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
-	} else {
-		if caddie.CurrentRound > 1 {
-			caddie.CurrentStatus = fmt.Sprintln(constants.CADDIE_CURRENT_STATUS_FINISH, "R", caddie.CurrentRound)
+	if !(utils.ContainString(constants.LIST_CADDIE_READY_JOIN, caddie.CurrentStatus) > -1) {
+		if caddie.CurrentRound == 0 {
+			caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
 		} else {
-			caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
+			if caddie.CurrentRound > 1 {
+				caddie.CurrentStatus = fmt.Sprint(constants.CADDIE_CURRENT_STATUS_FINISH, " ", "R", caddie.CurrentRound)
+			} else {
+				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
+			}
 		}
-	}
-	err = caddie.Update(db)
-	if err != nil {
-		log.Println("udpCaddieOut err", err.Error())
+		errUpd := caddie.Update(db)
+		if errUpd != nil {
+			log.Println("udpCaddieOut err", err.Error())
+		}
+		go func() {
+			cNotification := CNotification{}
+			title := fmt.Sprint("Caddie", " ", caddie.Code, " ", caddie.CurrentStatus)
+			cNotification.CreateCaddieWorkingStatusNotification(title)
+		}()
 	}
 	return err
 }
@@ -999,7 +1012,9 @@ Check Caddie có đang sẵn sàng để ghép không
 */
 func checkCaddieReady(booking model_booking.Booking, caddie models.Caddie) error {
 	if !(caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
-		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH) {
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH ||
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH_R2 ||
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH_R3) {
 		return errors.New("Caddie " + caddie.Code + " chưa sẵn sàng để ghép ")
 	}
 	return nil
@@ -1124,9 +1139,10 @@ func updateReportTotalPaidForCustomerUser(db *gorm.DB, userUid string, partnerUi
 /*
 Udp report số lần chơi của user
 */
-func updateReportTotalPlayCountForCustomerUser(userUid string, partnerUid, courseUid string) {
+func updateReportTotalPlayCountForCustomerUser(userUid string, cardId string, partnerUid, courseUid string) {
 	reportCustomer := model_report.ReportCustomerPlay{
 		CustomerUid: userUid,
+		CardId:      cardId,
 	}
 
 	errF := reportCustomer.FindFirst()
@@ -1278,6 +1294,10 @@ func setBoolForCursor(b bool) *bool {
 	return &boolVar
 }
 
+func getIntPointer(value int) *int {
+	return &value
+}
+
 /*
 Get Tee Time Lock Redis
 */
@@ -1329,4 +1349,50 @@ func bookMarkRoundPaidByMainBag(mainBooking model_booking.Booking, db *gorm.DB) 
 			}
 		}
 	}
+}
+
+/*
+Tạo book reservation cho restaurant
+*/
+
+func addServiceCart(db *gorm.DB, numberGuest int, partnerUid, courseUid, playerName, phone, staffName string) {
+	// create service cart
+	kiosk := model_service.Kiosk{
+		KioskType: constants.RESTAURANT_SETTING,
+	}
+	kiosk.FindFirst(db)
+
+	serviceCart := models.ServiceCart{}
+	serviceCart.PartnerUid = partnerUid
+	serviceCart.CourseUid = courseUid
+	serviceCart.BookingDate = datatypes.Date(time.Now().Local())
+	serviceCart.ServiceId = kiosk.Id
+	serviceCart.ServiceType = kiosk.KioskType
+	serviceCart.BillCode = constants.BILL_NONE
+	serviceCart.BillStatus = constants.RES_BILL_STATUS_BOOKING
+	serviceCart.Type = constants.RES_TYPE_TABLE
+	serviceCart.NumberGuest = numberGuest
+	serviceCart.StaffOrder = staffName
+	serviceCart.PlayerName = playerName
+	serviceCart.Phone = phone
+	serviceCart.OrderTime = time.Now().Unix()
+
+	if err := serviceCart.Create(db); err != nil {
+		log.Println("add service cart error!")
+	}
+}
+
+/*
+Tạo row index cho booking
+*/
+
+func generateRowIndex(rowsCurrent []int) int {
+	if !utils.Contains(rowsCurrent, 0) {
+		return 0
+	} else if !utils.Contains(rowsCurrent, 1) {
+		return 1
+	} else if !utils.Contains(rowsCurrent, 2) {
+		return 2
+	}
+	return 3
 }

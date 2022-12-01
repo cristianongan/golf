@@ -67,6 +67,18 @@ func (item *RolePermission) FindAll() ([]RolePermission, error) {
 	return list, db.Error
 }
 
+func (item *RolePermission) FindAllPermission() ([]Permission, error) {
+	database := datasources.GetDatabaseAuth()
+	db := database.Model(RolePermission{})
+	list := []Permission{}
+	db = db.Where(item)
+	db = db.Joins("JOIN permissions ON role_permissions.permission_uid = permissions.uid")
+	db = db.Select("permissions.uid, permissions.status,permissions.category,permissions.description,permissions.resources")
+
+	db.Debug().Find(&list)
+	return list, db.Error
+}
+
 func (item *RolePermission) FindList(page models.Page) ([]RolePermission, int64, error) {
 	database := datasources.GetDatabaseAuth()
 	db := database.Model(RolePermission{})

@@ -206,8 +206,13 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		caddieTemp := response.NewCaddie
 		buggyTemp := response.NewBuggy
 
-		if bookingTemp.BagStatus != constants.BAG_STATUS_WAITING {
-			response_message.BadRequest(c, "BAG STATUS "+bookingTemp.BagStatus)
+		if errB != nil {
+			response_message.BadRequestFreeMessage(c, errB.Error())
+			return
+		}
+
+		if bookingTemp.Uid != "" && bookingTemp.BagStatus != constants.BAG_STATUS_WAITING {
+			response_message.BadRequestFreeMessage(c, fmt.Sprintln("Bag", bookingTemp.Bag, bookingTemp.BagStatus))
 			return
 		}
 
@@ -229,7 +234,13 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		if caddieTemp.Id > 0 {
 			if errB == nil {
 				// Update caddie_current_status
-				caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+				if caddieTemp.CurrentRound == 0 {
+					caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+				} else if caddieTemp.CurrentRound == 1 {
+					caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE_R2
+				} else if caddieTemp.CurrentRound == 2 {
+					caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE_R3
+				}
 				caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
 
 				caddieBuggyInNote.CaddieId = caddieTemp.Id
@@ -314,6 +325,14 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		if errUdp != nil {
 			log.Println("CreateFlight err udp caddie ", errUdp.Error())
 		}
+	}
+
+	if len(listCaddie) > 0 {
+		// Bắn socket để update xếp nốt caddie
+		go func() {
+			cNotification := CNotification{}
+			cNotification.CreateCaddieWorkingStatusNotification("")
+		}()
 	}
 
 	// Udp Caddie In Out Note
@@ -1178,7 +1197,14 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		if caddieTemp.Id > 0 {
 			if errB == nil {
 				// Update caddie_current_status
-				caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+				if caddieTemp.CurrentRound == 0 {
+					caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+				} else if caddieTemp.CurrentRound == 1 {
+					caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE_R2
+				} else if caddieTemp.CurrentRound == 2 {
+					caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE_R3
+				}
+				caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
 				caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
 
 				listCaddie = append(listCaddie, caddieTemp)
@@ -1234,6 +1260,14 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		if errUdp != nil {
 			log.Println("AddBagToFlight err udp caddie ", errUdp.Error())
 		}
+	}
+
+	if len(listCaddie) > 0 {
+		// Bắn socket để update xếp nốt caddie
+		go func() {
+			cNotification := CNotification{}
+			cNotification.CreateCaddieWorkingStatusNotification("")
+		}()
 	}
 
 	// Udp Old Caddie

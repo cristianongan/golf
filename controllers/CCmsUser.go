@@ -241,7 +241,14 @@ func (_ *CCmsUser) GetList(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
-	list, total, err := cmsUserR.FindList(page, form.Search)
+
+	subRoles, err := model_role.GetAllSubRoleUids(int(prof.RoleId))
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	list, total, err := cmsUserR.FindList(page, form.Search, subRoles)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -364,6 +371,9 @@ func (_ *CCmsUser) UpdateCmsUser(c *gin.Context, prof models.CmsUser) {
 	}
 	if body.RoleId > 0 {
 		cmsUser.RoleId = body.RoleId
+	}
+	if body.Status != "" {
+		cmsUser.Status = body.Status
 	}
 
 	errUdp := cmsUser.Update()
