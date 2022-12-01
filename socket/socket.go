@@ -49,6 +49,9 @@ func HandleMessages() {
 		// Grab the next message from the broadcast channel
 		msg := <-Broadcast
 		// Send it out to every client that is currently connected
+
+		log.Println("HandleMessages:", clients)
+
 		for client := range clients {
 			err := client.WriteJSON(msg)
 			if err != nil {

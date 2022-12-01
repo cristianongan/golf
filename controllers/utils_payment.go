@@ -205,6 +205,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
 		serviceItem.PaidBy = constants.PAID_BY_AGENCY
 		serviceItem.Hole = booking.Hole
+		serviceItem.Quality = 1
 		serviceItem.Create(datasources.GetDatabaseWithPartner(booking.PartnerUid))
 	}
 	if feeInfo.CaddieFee > 0 {
@@ -226,6 +227,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
 		serviceItem.PaidBy = constants.PAID_BY_AGENCY
 		serviceItem.Hole = booking.Hole
+		serviceItem.Quality = 1
 		serviceItem.Create(db)
 	}
 

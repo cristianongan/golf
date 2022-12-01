@@ -583,12 +583,14 @@ Out caddie
 */
 func udpOutCaddieBooking(db *gorm.DB, booking *model_booking.Booking) error {
 
-	errCd := udpCaddieOut(db, booking.CaddieId)
-	if errCd != nil {
-		return errCd
+	if booking.CaddieId > 0 {
+		errCd := udpCaddieOut(db, booking.CaddieId)
+		if errCd != nil {
+			return errCd
+		}
+		// Udp booking
+		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_OUT
 	}
-	// Udp booking
-	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_OUT
 
 	return nil
 }
@@ -598,27 +600,28 @@ Out Buggy
 */
 func udpOutBuggy(db *gorm.DB, booking *model_booking.Booking, isOutAll bool) error {
 	// Get Caddie
+	if booking.BuggyId > 0 {
+		bookingR := model_booking.BookingList{
+			BookingDate: booking.BookingDate,
+			BuggyId:     booking.BuggyId,
+			BagStatus:   constants.BAG_STATUS_IN_COURSE,
+		}
 
-	bookingR := model_booking.BookingList{
-		BookingDate: booking.BookingDate,
-		BuggyId:     booking.BuggyId,
-		BagStatus:   constants.BAG_STATUS_IN_COURSE,
-	}
+		_, total, _ := bookingR.FindAllBookingList(db)
 
-	_, total, _ := bookingR.FindAllBookingList(db)
+		if total > 1 && !isOutAll {
+			return errors.New("Buggy còn đang ghép với player khác")
+		}
 
-	if total > 1 && !isOutAll {
-		return errors.New("Buggy còn đang ghép với player khác")
-	}
-
-	buggy := models.Buggy{}
-	buggy.Id = booking.BuggyId
-	err := buggy.FindFirst(db)
-	if err == nil {
-		buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_FINISH
-		if errUdp := buggy.Update(db); errUdp != nil {
-			log.Println("udpBuggyOut err", err.Error())
-			return errUdp
+		buggy := models.Buggy{}
+		buggy.Id = booking.BuggyId
+		err := buggy.FindFirst(db)
+		if err == nil {
+			buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_FINISH
+			if errUdp := buggy.Update(db); errUdp != nil {
+				log.Println("udpBuggyOut err", err.Error())
+				return errUdp
+			}
 		}
 	}
 
@@ -1291,6 +1294,10 @@ func setBoolForCursor(b bool) *bool {
 	return &boolVar
 }
 
+func getIntPointer(value int) *int {
+	return &value
+}
+
 /*
 Get Tee Time Lock Redis
 */
@@ -1373,4 +1380,19 @@ func addServiceCart(db *gorm.DB, numberGuest int, partnerUid, courseUid, playerN
 	if err := serviceCart.Create(db); err != nil {
 		log.Println("add service cart error!")
 	}
+}
+
+/*
+Tạo row index cho booking
+*/
+
+func generateRowIndex(rowsCurrent []int) int {
+	if !utils.Contains(rowsCurrent, 0) {
+		return 0
+	} else if !utils.Contains(rowsCurrent, 1) {
+		return 1
+	} else if !utils.Contains(rowsCurrent, 2) {
+		return 2
+	}
+	return 3
 }
