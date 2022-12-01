@@ -27,9 +27,9 @@ func (_ CRound) validateBooking(db *gorm.DB, bookindUid string) (model_booking.B
 		return booking, err
 	}
 
-	// if booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
-	// 	return booking, errors.New("Lỗi Add Round")
-	// }
+	if booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
+		return booking, errors.New("Lỗi Add Round")
+	}
 
 	return booking, nil
 }
