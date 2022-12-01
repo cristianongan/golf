@@ -12,7 +12,6 @@ var Broadcast = make(chan any)               // broadcast channel
 
 // Configure the upgrader
 var upgrader = websocket.Upgrader{
-	HandshakeTimeout: 180,
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
