@@ -44,6 +44,7 @@ type GetListBookingWithSelectForm struct {
 	PartnerUid      string  `form:"partner_uid"`
 	CourseUid       string  `form:"course_uid"`
 	BookingDate     string  `form:"booking_date"`
+	TeeTime         string  `form:"tee_time"`
 	BookingCode     string  `form:"booking_code"`
 	InitType        string  `form:"init_type"`
 	AgencyId        int64   `form:"agency_id"`
@@ -58,6 +59,7 @@ type GetListBookingWithSelectForm struct {
 	BagStatus       string  `form:"bag_status"`
 	HaveBag         *string `form:"have_bag"`
 	CaddieCode      string  `form:"caddie_code"`
+	CaddieName      string  `form:"caddie_name"`
 	HasBookCaddie   string  `form:"has_book_caddie"`
 	PlayerName      string  `form:"player_name"`
 	HasFlightInfo   string  `form:"has_flight_info"`
@@ -155,6 +157,7 @@ type CreateBookingBody struct {
 	FeeInfo            AgencyFeeInfo           `json:"fee_info"`
 	BookMark           bool
 	BookFromOTA        bool
+	BookingTeeTime     bool
 }
 
 type GolfFeeGuestyleParam struct {

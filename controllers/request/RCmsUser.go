@@ -16,6 +16,7 @@ type UdpCmsUserBody struct {
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
 	RoleId   int64  `json:"role_id"`
+	Status   string `json:"status"`
 }
 
 type LoginBody struct {

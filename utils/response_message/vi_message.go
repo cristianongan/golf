@@ -45,4 +45,5 @@ var ViLanguage = map[string]string{
 	"DUPLICATE_BAG":                 "Bag này đã được sử dụng",
 	"OUT_CADDIE_ERROR":              "Booking chưa ghép caddie",
 	"INVENTORY_NOT_FOUND":           "Không tìm thấy kho",
+	"TEE_TIME_SLOT_FULL":            "Tee Time đã đủ 4 slot",
 }
