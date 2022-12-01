@@ -10,7 +10,7 @@ FROM golang:${GO_VERSION}-alpine AS builder
 RUN mkdir /user && \
     echo 'nobody:x:65534:65534:nobody:/:' > /user/passwd && \
     echo 'nobody:x:65534:' > /user/group
-
+RUN export GOPROXY=https://artifact.vnpay.vn/nexus/repository/go-proxy
 RUN apk add --no-cache ca-certificates git
 
 # Set the working directory outside $GOPATH to enable the support for modules.
