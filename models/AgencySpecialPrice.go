@@ -177,8 +177,7 @@ func (item *AgencySpecialPrice) FindList(database *gorm.DB, page Page, agencyIdS
 	agencies.agency_id as agency_id_str,
 	agencies.name as agency_name,
 	agencies.short_name as short_name,
-	agencies.guest_style as guest_style,
-	agencies.category as category`)
+	agencies.guest_style as guest_style`)
 
 	db = db.Joins("LEFT JOIN agencies on agency_special_prices.agency_id = agencies.id")
 
