@@ -5,45 +5,64 @@ package socket
 var HubBroadcastSocket *Hub
 
 type Hub struct {
-	// Registered clients.
-	clients map[*Client]bool
+	// Registered Clients.
+	Clients []*Client
 
 	// Inbound messages from the clients.
 	Broadcast chan []byte
 
 	// Register requests from the clients.
-	register chan *Client
+	Register chan *Client
 
 	// Unregister requests from clients.
-	unregister chan *Client
+	Unregister chan *Client
 }
 
 func NewHub() *Hub {
 	return &Hub{
 		Broadcast:  make(chan []byte),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
-		clients:    make(map[*Client]bool),
+		Register:   make(chan *Client),
+		Unregister: make(chan *Client),
+		Clients:    []*Client{},
 	}
 }
 
 func (h *Hub) Run() {
 	for {
 		select {
-		case client := <-h.register:
-			h.clients[client] = true
-		case client := <-h.unregister:
-			if _, ok := h.clients[client]; ok {
-				delete(h.clients, client)
-				close(client.send)
+		case client := <-h.Register:
+			// h.Clients[client] = true
+			h.Clients = append(h.Clients, client)
+		case client := <-h.Unregister:
+			// if _, ok := h.Clients[client]; ok {
+			// 	delete(h.Clients, client)
+			// 	close(client.send)
+			// }
+
+			j := 0
+			for _, c := range h.Clients {
+				if c != client {
+					// c.Clients[j] = c
+					h.Clients[j] = c
+					j++
+				}
 			}
+			h.Clients = h.Clients[:j]
 		case message := <-h.Broadcast:
-			for client := range h.clients {
+			for _, client := range h.Clients {
 				select {
 				case client.send <- message:
 				default:
 					close(client.send)
-					delete(h.clients, client)
+					j := 0
+					for _, c := range h.Clients {
+						if c != client {
+							// c.Clients[j] = c
+							h.Clients[j] = c
+							j++
+						}
+					}
+					h.Clients = h.Clients[:j]
 				}
 			}
 		}
