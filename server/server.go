@@ -19,25 +19,34 @@ func Init() {
 	config := config.GetConfig()
 
 	// --- Socket ---
-	// go socket.RunSocket(config.GetString("socket_port"))
-	// fs := http.FileServer(http.Dir("../public"))
-	// http.Handle("/", fs)
+	// if config.GetBool("is_open_socket") {
+	// 	// Configure websocket route
+	// 	http.HandleFunc("/ws", socket.HandleConnections)
 
-	if config.GetBool("is_open_socket") {
-		// Configure websocket route
-		http.HandleFunc("/ws", socket.HandleConnections)
+	// 	// Start listening for incoming chat messages
+	// 	go socket.HandleMessages()
 
-		// Start listening for incoming chat messages
-		go socket.HandleMessages()
+	// 	// Start the server on localhost port 8000 and log any errors
+	// 	log.Println("socket http server started on :8000")
+	// a := func() {
+	// 	err := http.ListenAndServe(":8000", nil)
+	// 	log.Println("ListenAndServe", err)
+	// }
+	// go a()
+	// }
 
-		// Start the server on localhost port 8000 and log any errors
-		log.Println("socket http server started on :8000")
-		a := func() {
-			err := http.ListenAndServe(":8000", nil)
-			log.Println("ListenAndServe", err)
-		}
-		go a()
+	socket.HubBroadcastSocket = socket.NewHub()
+	go socket.HubBroadcastSocket.Run()
+
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		socket.ServeWs(socket.HubBroadcastSocket, w, r)
+	})
+
+	listener := func() {
+		err := http.ListenAndServe(":8000", nil)
+		log.Println("ListenAndServe", err)
 	}
+	go listener()
 
 	// --- Cron ---
 	ccron.CronStart()
