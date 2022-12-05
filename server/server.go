@@ -2,8 +2,10 @@ package server
 
 import (
 	"log"
+	"net/http"
 	"start/config"
 	"start/datasources"
+	socket "start/socket"
 
 	ccron "start/cron"
 	// "start/datasources/aws"
@@ -15,6 +17,21 @@ func Init() {
 	log.Println("server init")
 
 	config := config.GetConfig()
+
+	// --- Socket ---
+
+	socket.HubBroadcastSocket = socket.NewHub()
+	go socket.HubBroadcastSocket.Run()
+
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		socket.ServeWs(socket.HubBroadcastSocket, w, r)
+	})
+
+	listener := func() {
+		err := http.ListenAndServe(":8000", nil)
+		log.Println("ListenAndServe", err)
+	}
+	go listener()
 
 	// --- Cron ---
 	ccron.CronStart()

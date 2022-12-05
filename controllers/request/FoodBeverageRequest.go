@@ -4,8 +4,9 @@ type CreateFoodBeverageBody struct {
 	PartnerUid    string  `json:"partner_uid" binding:"required"`
 	CourseUid     string  `json:"course_uid" binding:"required"`
 	GroupCode     string  `json:"group_code" binding:"required"`
+	Type          string  `json:"type" binding:"required"`
 	GroupName     string  `json:"group_name"`
-	FBCode        string  `json:"fb_code" binding:"required"`
+	FBCode        string  `json:"fb_code"`
 	AccountCode   string  `json:"account_code"`
 	EnglishName   string  `json:"english_name"`
 	VieName       string  `json:"vietnamese_name"`
@@ -24,7 +25,6 @@ type CreateFoodBeverageBody struct {
 	InternalPrice float64 `json:"internal_price"`
 	IsKitchen     bool    `json:"is_kitchen"`
 	Status        string  `json:"status"`
-	Type          string  `json:"type"`
 	HotKitchen    *bool   `json:"hot_kitchen"`
 	ColdKitchen   *bool   `json:"cold_kitchen"`
 }
