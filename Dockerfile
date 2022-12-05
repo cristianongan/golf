@@ -12,7 +12,8 @@ COPY apk-repositories /etc/apk/repositories
 RUN mkdir /user && \
     echo 'nobody:x:65534:65534:nobody:/:' > /user/passwd && \
     echo 'nobody:x:65534:' > /user/group
-RUN export GOPROXY=https://artifact.vnpay.vn/nexus/repository/go-proxy/
+#RUN export GOPROXY=https://artifact.vnpay.vn/nexus/repository/go-proxy/
+RUN go env -w GOPROXY=https://artifact.vnpay.vn/nexus/repository/go-proxy,direct
 RUN apk add --no-cache ca-certificates git
 
 # Set the working directory outside $GOPATH to enable the support for modules.
@@ -31,7 +32,7 @@ RUN CGO_ENABLED=0 go build \
     -installsuffix 'static' \
     -o ./executable .
 #---------------- Final stage: the running container.
-FROM alpine:latest AS final
+FROM alpine:3.16 AS final
 
 # Mofify URL default Alpine to Nexus Alpine Repo
 COPY apk-repositories /etc/apk/repositories
@@ -46,7 +47,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # Import the compiled executable from the first stage.
 COPY --from=builder /src/executable /src/executable
 COPY --from=builder /src/config/development.json /src/config/development.json
-EXPOSE 4002
+EXPOSE 4000
 WORKDIR /src
 RUN chmod +x ./executable
 USER nobody:nobody
