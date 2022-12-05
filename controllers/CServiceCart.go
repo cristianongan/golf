@@ -150,6 +150,8 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCart.BillCode = constants.BILL_NONE
 		serviceCart.StaffOrder = prof.UserName
 		serviceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
+		serviceCart.ServiceType = kiosk.KioskType
+		serviceCart.PlayerName = booking.CustomerName
 	}
 
 	err := serviceCart.FindFirst(db)
@@ -293,6 +295,9 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 		serviceCart.RentalStatus = constants.POS_RETAL_STATUS_RENT
 		serviceCart.Amount = body.Quantity * serviceCartItem.UnitPrice
 		serviceCart.CaddieCode = body.CaddieCode
+		serviceCart.ServiceType = kiosk.KioskType
+		serviceCart.PlayerName = booking.CustomerName
+
 		if err := serviceCart.Create(db); err != nil {
 			response_message.InternalServerError(c, "Create cart "+err.Error())
 			return
