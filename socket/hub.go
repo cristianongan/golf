@@ -6,7 +6,7 @@ var HubBroadcastSocket *Hub
 
 type Hub struct {
 	// Registered Clients.
-	Clients []*Client
+	Clients map[*Client]bool
 
 	// Inbound messages from the clients.
 	Broadcast chan []byte
@@ -23,7 +23,7 @@ func NewHub() *Hub {
 		Broadcast:  make(chan []byte),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
-		Clients:    []*Client{},
+		Clients:    make(map[*Client]bool),
 	}
 }
 
@@ -31,38 +31,19 @@ func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.Register:
-			// h.Clients[client] = true
-			h.Clients = append(h.Clients, client)
+			h.Clients[client] = true
 		case client := <-h.Unregister:
-			// if _, ok := h.Clients[client]; ok {
-			// 	delete(h.Clients, client)
-			// 	close(client.send)
-			// }
-
-			j := 0
-			for _, c := range h.Clients {
-				if c != client {
-					// c.Clients[j] = c
-					h.Clients[j] = c
-					j++
-				}
+			if _, ok := h.Clients[client]; ok {
+				delete(h.Clients, client)
+				close(client.send)
 			}
-			h.Clients = h.Clients[:j]
 		case message := <-h.Broadcast:
-			for _, client := range h.Clients {
+			for client := range h.Clients {
 				select {
 				case client.send <- message:
 				default:
 					close(client.send)
-					j := 0
-					for _, c := range h.Clients {
-						if c != client {
-							// c.Clients[j] = c
-							h.Clients[j] = c
-							j++
-						}
-					}
-					h.Clients = h.Clients[:j]
+					delete(h.Clients, client)
 				}
 			}
 		}

@@ -1,10 +1,12 @@
 package server
 
 import (
+	"log"
 	"net/http"
 	"start/config"
 	"start/controllers"
 	"start/middlewares"
+	"start/socket"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -30,6 +32,18 @@ func NewRouter() *gin.Engine {
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
 		http.ListenAndServe(":9900", nil)
+	}()
+
+	socket.HubBroadcastSocket = socket.NewHub()
+	go socket.HubBroadcastSocket.Run()
+
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		socket.ServeWs(socket.HubBroadcastSocket, w, r)
+	})
+
+	go func() {
+		err := http.ListenAndServe(":8000", nil)
+		log.Println("ListenAndServe", err)
 	}()
 
 	moduleName := strings.Replace(config.GetModuleName(), "_", "-", -1)
