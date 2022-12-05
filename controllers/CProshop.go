@@ -101,6 +101,7 @@ func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
 		Name:          name,
 		ProPrice:      body.ProPrice,
 		PeopleDeposit: body.PeopleDeposit,
+		Type:          body.Type,
 	}
 
 	err := service.Create(db)

@@ -98,6 +98,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 		Name:        name,
 		IsDriving:   body.IsDriving,
 		Rate:        body.Rate,
+		Type:        body.Type,
 	}
 	rental.Status = body.Status
 
