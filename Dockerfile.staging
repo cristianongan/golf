@@ -47,7 +47,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # Import the compiled executable from the first stage.
 COPY --from=builder /src/executable /src/executable
 COPY --from=builder /src/config/staging.json /src/config/staging.json
-EXPOSE 4002
+EXPOSE 4000
 WORKDIR /src
 RUN chmod +x ./executable
 USER nobody:nobody
