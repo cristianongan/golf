@@ -50,12 +50,12 @@
         "password": "9INFec20LYOINV0e9L8NToOeAYinUk8oxTpeWgaWlpY0"
     },
     "minio":{
-        "endpoint": "minio.vntaxi.net",
+        "endpoint": "10.22.7.35:9000",
         "bucket": "golf-staging",
-        "access_key": "H69hpW0j0wanZrmtBCJwUh7jurTTuKQgINziWHH9Kxk0",
-        "secret_key": "1eWZBv0VqTmSgFfW2KNJ18vXhJdNJP5tsaCokq1AZjs0",
+        "access_key": "vnpay",
+        "secret_key": "vnpay@123",
         "ssl": true,
-        "get_data_host": "https://minio.vntaxi.net/"
+        "get_data_host": "10.22.7.35:9000"
     },
     "golf_partner": {
         "url": "https://golf-staging-api.vngolf.net/golf-partner/"
