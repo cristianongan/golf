@@ -140,6 +140,8 @@ func (item *CaddieFee) FindAllGroupBy(database *gorm.DB, page Page, month string
 		db = db.Where("DATE_FORMAT(STR_TO_DATE(booking_date, '%d/%m/%Y'), '%Y-%m') = ?", month)
 	}
 
+	db.Distinct("caddie_id", "booking_date", "hole", "round", "amount", "note", "is_day_off")
+
 	db.Group("caddie_id")
 
 	db.Count(&total)
