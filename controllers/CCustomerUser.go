@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"start/callservices"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -97,6 +98,23 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		response_message.InternalServerError(c, errC.Error())
 		return
 	}
+
+	go func() {
+		body := request.CustomerBody{
+			MaKh:      "",
+			TenKh:     customerUser.Name,
+			MaSoThue:  customerUser.Mst,
+			DiaChi:    customerUser.Address1,
+			Tk:        "",
+			DienThoai: customerUser.Phone,
+			Fax:       customerUser.Fax,
+			EMail:     customerUser.Email,
+			DoiTac:    "",
+			NganHang:  "",
+			TkNh:      "",
+		}
+		callservices.CreateCustomer(body)
+	}()
 
 	okResponse(c, customerUser)
 }

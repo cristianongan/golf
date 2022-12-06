@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"start/constants"
 	"start/controllers/request"
@@ -157,8 +158,8 @@ func (_ *CNotification) ApproveCaddieCalendarNotification(c *gin.Context, prof m
 		return
 	}
 
-	socket.Broadcast <- newNotification
-
+	newFsConfigBytes, _ := json.Marshal(newNotification)
+	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
 	okRes(c)
 }
 
@@ -189,7 +190,9 @@ func (_ *CNotification) CreateCaddieVacationNotification(db *gorm.DB, body reque
 	}
 
 	notiData.Create(db)
-	socket.Broadcast <- notiData
+
+	newFsConfigBytes, _ := json.Marshal(notiData)
+	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
 }
 
 func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
@@ -198,5 +201,6 @@ func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
 		"title": title,
 	}
 
-	socket.Broadcast <- notiData
+	newFsConfigBytes, _ := json.Marshal(notiData)
+	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
 }

@@ -27,9 +27,9 @@ func (_ CRound) validateBooking(db *gorm.DB, bookindUid string) (model_booking.B
 		return booking, err
 	}
 
-	// if booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
-	// 	return booking, errors.New("Lỗi Add Round")
-	// }
+	if booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
+		return booking, errors.New("Lỗi Add Round")
+	}
 
 	return booking, nil
 }
@@ -314,7 +314,7 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	caddieFee, buggyFee, greenFee, _ := cRound.GetFeeOfRound(c, db, &booking, listRound[0].GuestStyle, totalHoles)
 
 	newRound := models.Round{}
-	newRound.Index = 0
+	newRound.Index = 1
 	newRound.BillCode = booking.BillCode
 	newRound.Bag = booking.Bag
 	newRound.PartnerUid = booking.PartnerUid
