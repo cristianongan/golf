@@ -314,7 +314,7 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	caddieFee, buggyFee, greenFee, _ := cRound.GetFeeOfRound(c, db, &booking, listRound[0].GuestStyle, totalHoles)
 
 	newRound := models.Round{}
-	newRound.Index = 0
+	newRound.Index = 1
 	newRound.BillCode = booking.BillCode
 	newRound.Bag = booking.Bag
 	newRound.PartnerUid = booking.PartnerUid
