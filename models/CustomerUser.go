@@ -60,7 +60,7 @@ func (item *CustomerUser) IsDuplicated(db *gorm.DB) bool {
 func (item *CustomerUser) Create(db *gorm.DB) error {
 	uid := uuid.New()
 	now := time.Now()
-	item.Model.Uid = item.CourseUid + "-" + utils.HashCodeUuid(uid.String())
+	item.Model.Uid = utils.HashCodeUuid(uid.String())
 	item.Model.CreatedAt = now.Unix()
 	item.Model.UpdatedAt = now.Unix()
 	if item.Model.Status == "" {
