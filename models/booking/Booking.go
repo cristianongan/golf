@@ -730,7 +730,7 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 					// Nếu main bag ko trả round 1 thì add
 					listRoundGolfFee = append(listRoundGolfFee, round)
 				} else {
-					// Nếu Main Bag trả cho round 1 nhưng main bag đã check out đi về thì vẫn tính tiền
+					// main bag đã check out đi về, sub bag chơi tiếp thì vẫn tính tiền
 					if mainCheckOutTime > 0 && round.CreatedAt > mainCheckOutTime {
 						listRoundGolfFee = append(listRoundGolfFee, round)
 					}
@@ -741,7 +741,7 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 				// Nếu main bag ko trả round 2 thì add
 				listRoundGolfFee = append(listRoundGolfFee, round)
 			} else {
-				// Nếu Main Bag trả cho nhưng main bag đã check out đi về thì vẫn tính tiền
+				// main bag đã check out đi về, sub bag chơi tiếp thì vẫn tính tiền
 				if mainCheckOutTime > 0 && round.CreatedAt > mainCheckOutTime {
 					listRoundGolfFee = append(listRoundGolfFee, round)
 				}
@@ -798,7 +798,7 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 		if len(item.MainBags) > 0 {
 			// Nếu có main bag
 			if mainCheckOutTime > 0 && v.CreatedAt > mainCheckOutTime {
-				// main bag đã check out đi về thì phải trả v
+				// main bag đã check out đi về, sub bag dùng tiếp service thì phải trả v
 				isNeedPay = true
 			} else {
 				if v.PaidBy == constants.PAID_BY_AGENCY {
@@ -1401,8 +1401,9 @@ func (item *Booking) FindListForReportForMainBagSubBag(database *gorm.DB) ([]Boo
 	}
 	db = db.Where("booking_date = ?", item.BookingDate)
 
-	db.Where("bag <> ''")
-	db.Where("moved_flight = 0 AND added_round = 0")
+	// db.Where("bag <> ''")
+	// db.Where("moved_flight = 0 AND added_round = 0")
+	db.Group("bag")
 	db.Order("created_at desc")
 
 	db.Find(&list)

@@ -3,8 +3,9 @@ package request
 type CreateRentalBody struct {
 	RentalId    string  `json:"rental_id" binding:"required"`
 	PartnerUid  string  `json:"partner_uid" binding:"required"`
-	GroupCode   string  `json:"group_code" binding:"required"`
 	CourseUid   string  `json:"course_uid" binding:"required"`
+	Type        string  `json:"type" binding:"required"`
+	GroupCode   string  `json:"group_code"`
 	EnglishName string  `json:"english_name"`
 	VieName     string  `json:"vietnamese_name"`
 	RenPos      string  `json:"ren_pos"`
