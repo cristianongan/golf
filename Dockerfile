@@ -37,7 +37,7 @@ FROM alpine:3.16 AS final
 # Mofify URL default Alpine to Nexus Alpine Repo
 COPY apk-repositories /etc/apk/repositories
 
-RUN apk --no-cache add tzdata
+RUN apk --no-cache add tzdata && apk --update --no-cache add busybox-extras && apk add curl
 # Import the user and group files from the first stage.
 COPY --from=builder /user/group /user/passwd /etc/
 
