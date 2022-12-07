@@ -285,7 +285,7 @@ func unlockTee(body request.CreateBookingOTABody) {
 		lockTeeTime.TeeType = "1B"
 	}
 
-	listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, body.DateStr)
+	listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, bookDate)
 	hasTeeTimeLock1AOnRedis := false
 	for _, teeTimeLockRedis := range listTeeTimeLockRedis {
 		if teeTimeLockRedis.TeeTime == body.TeeOffStr && teeTimeLockRedis.DateTime == bookDate &&

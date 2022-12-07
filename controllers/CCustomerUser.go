@@ -101,7 +101,7 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 
 	go func() {
 		body := request.CustomerBody{
-			MaKh:      "",
+			MaKh:      customerUser.Uid,
 			TenKh:     customerUser.Name,
 			MaSoThue:  customerUser.Mst,
 			DiaChi:    customerUser.Address1,

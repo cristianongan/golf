@@ -152,7 +152,10 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		bodyRequest.BookingList[index].BookingTeeTime = true
 	}
 
-	listBooking := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	listBooking, err := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	if err != nil {
+		return
+	}
 
 	// khi book restaurant enable thì auto tạo 1 book reservation trong restaurant
 	if len(bodyRequest.BookingList) > 0 {
@@ -189,7 +192,7 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 			}
 		}
 	}
-	listBooking := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	listBooking, _ := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
 	okResponse(c, listBooking)
 }
 
@@ -237,13 +240,17 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
-func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser) []model_booking.Booking {
+func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser) ([]model_booking.Booking, error) {
 	list := []model_booking.Booking{}
 	for _, body := range bookingList {
-		booking, _ := cBooking.CreateBookingCommon(body, c, prof)
+		booking, errCreate := cBooking.CreateBookingCommon(body, c, prof)
+		if errCreate != nil {
+			return list, errCreate
+		}
+
 		if booking != nil {
 			list = append(list, *booking)
 		}
 	}
-	return list
+	return list, nil
 }
