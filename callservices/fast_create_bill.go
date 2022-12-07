@@ -5,7 +5,12 @@ import (
 	"log"
 	"net/http"
 	"start/config"
+	"start/constants"
 	"start/controllers/response"
+	"start/utils"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 func CreateFastBankCredit(body response.FastBillBody) (bool, response.FastBillRes) {
@@ -48,4 +53,33 @@ func CreateFastCashVoucher(body response.FastBillBody) (bool, response.FastBillR
 	}
 
 	return ok, customers
+}
+
+func TransferFast(paymentType string, price int64, note, customerUid, customerName string) {
+	idOnes := "CL" + utils.HashCodeUuid(uuid.New().String())
+	body := response.FastBillBody{
+		IdOnes:       idOnes,
+		MaDVCS:       "CTY",
+		SoCT:         "",
+		NgayCt:       time.Now().Format("2006-01-02T15:04:05.000Z"),
+		MaNT:         "VND",
+		TyGia:        1,
+		MaKH:         customerUid,
+		NguoiNopTien: customerName,
+		DienGiai:     note,
+		MaGD:         "2",
+		TK:           "131111",
+		Detail: []response.FastBillBodyItem{
+			{
+				TkCo: "131111",
+				Tien: price,
+			},
+		},
+	}
+
+	if paymentType == constants.PAYMENT_TYPE_CASH {
+		CreateFastCashVoucher(body)
+	} else {
+		CreateFastBankCredit(body)
+	}
 }
