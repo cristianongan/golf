@@ -4,7 +4,7 @@
     "backend_port": ":4000",
     "socket_port": ":8000",
     "url_root": "http://golf-cms:4000",
-    "kibana_log": true,
+    "kibana_log": false,
     "system_log_response": false,
     "cron_is_running": false,
     "cron_backup_order_is_running": false,
