@@ -1522,4 +1522,6 @@ func (cBooking *CBooking) FinishBill(c *gin.Context, prof models.CmsUser) {
 	if otherTotal != 0 {
 		// callservices.TransferFast(constants.PAYMENT_TYPE_CASH, otherTotal, "", booking.CustomerUid, booking.CustomerName)
 	}
+
+	okRes(c)
 }
