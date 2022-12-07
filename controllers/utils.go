@@ -1245,6 +1245,11 @@ func validateItemCodeInService(db *gorm.DB, serviceType string, itemCode string)
 Get Item Info
 */
 func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (kiosk_inventory.ItemInfo, error) {
+
+	if itemCode == "" {
+		return kiosk_inventory.ItemInfo{}, errors.New("Item Code Empty!")
+	}
+
 	proshop := model_service.Proshop{
 		PartnerUid: partnerUid,
 		CourseUid:  courseUid,
