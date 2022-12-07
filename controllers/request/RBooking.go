@@ -107,6 +107,12 @@ type CancelAllBookingBody struct {
 	Reason      string `form:"reason" json:"reason"`
 }
 
+type FinishBookingBody struct {
+	PartnerUid string `json:"partner_uid" binding:"required"` // Hang Golf
+	CourseUid  string `json:"course_uid" binding:"required"`  // San Golf
+	Bag        string `json:"bag" binding:"required"`
+}
+
 // Tạo Tee booking
 // Guest Booking
 // Member Booking

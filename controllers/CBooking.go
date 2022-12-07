@@ -6,11 +6,13 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"start/callservices"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	model_payment "start/models/payment"
 	model_report "start/models/report"
 	"start/utils"
 	"start/utils/response_message"
@@ -19,6 +21,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"github.com/twharmon/slices"
 	"gorm.io/gorm"
 )
 
@@ -1463,4 +1466,62 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 func (cBooking *CBooking) Test(c *gin.Context, prof models.CmsUser) {
 	cNoti := CNotification{}
 	cNoti.CreateCaddieWorkingStatusNotification("hello word")
+}
+
+func (cBooking *CBooking) FinishBill(c *gin.Context, prof models.CmsUser) {
+	body := request.FinishBookingBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	today, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
+	booking := model_booking.Booking{
+		Bag:         body.Bag,
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: today,
+	}
+
+	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
+	booking.FindFirst(db)
+
+	RSinglePaymentItem := model_payment.SinglePaymentItem{
+		Bag:         body.Bag,
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: today,
+	}
+
+	list, _ := RSinglePaymentItem.FindAll(db)
+
+	cashList := []model_payment.SinglePaymentItem{}
+	otherList := []model_payment.SinglePaymentItem{}
+
+	for _, item := range list {
+		if item.PaymentType == constants.PAYMENT_TYPE_CASH {
+			cashList = append(cashList, item)
+		} else {
+			otherList = append(cashList, item)
+		}
+	}
+
+	cashTotal := slices.Reduce(cashList, func(prev int64, item model_payment.SinglePaymentItem) int64 {
+		return prev + item.Paid
+	})
+
+	otherTotal := slices.Reduce(otherList, func(prev int64, item model_payment.SinglePaymentItem) int64 {
+		return prev + item.Paid
+	})
+
+	if cashTotal != 0 && booking.CustomerUid != "" {
+		callservices.TransferFast(constants.PAYMENT_TYPE_CASH, cashTotal, "", booking.CustomerUid, booking.CustomerName)
+	}
+
+	if otherTotal != 0 {
+		// callservices.TransferFast(constants.PAYMENT_TYPE_CASH, otherTotal, "", booking.CustomerUid, booking.CustomerName)
+	}
+
+	okRes(c)
 }

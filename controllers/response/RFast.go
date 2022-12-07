@@ -2,7 +2,6 @@ package response
 
 import (
 	"start/controllers/request"
-	"time"
 )
 
 type CustomerRes struct {
@@ -21,7 +20,7 @@ type FastBillBody struct {
 	IdOnes       string             `json:"id_ones" binding:"required"` // ID của ONE-S khi tạo phiếu
 	MaDVCS       string             `json:"ma_dvcs" binding:"required"` // Mã đơn vị cơ sở của Fast
 	SoCT         string             `json:"so_ct" binding:"required"`   // Số phiếu báo có
-	NgayCt       time.Time          `json:"ngay_ct" binding:"required"` // Ngày chứng từ
+	NgayCt       string             `json:"ngay_ct" binding:"required"` // Ngày chứng từ
 	MaNT         string             `json:"ma_nt" binding:"required"`   // Mã đồng tiền hạch toán (VND, USD…)
 	TyGia        int                `json:"ty_gia" binding:"required"`  // Tỷ giá theo mã đồng tiền hạch toán
 	MaKH         string             `json:"ma_kh" binding:"required"`   // Mã khách hàng nộp tiền
