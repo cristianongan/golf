@@ -698,6 +698,10 @@ func NewRouter() *gin.Engine {
 			cBookingAgencyPayment := new(controllers.CBookingAgencyPayment)
 			cmsApiAuthorized.GET("/booking-agency-payment/detail", middlewares.AuthorizedCmsUserHandler(cBookingAgencyPayment.GetDetailBookingAgencyPayment))
 			cmsApiAuthorized.GET("/test", middlewares.AuthorizedCmsUserHandler(cBooking.Test))
+
+			/// =================== Revenue Report ===================
+			cRevenueReport := new(controllers.CRevenueReport)
+			cmsApiAuthorized.GET("/revenue-report/report-food-beverage", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportRevenueFoodBeverage))
 		}
 
 		// ----------------------------------------------------------

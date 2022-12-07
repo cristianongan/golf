@@ -139,50 +139,121 @@ func (item *ServiceCart) FindReport(database *gorm.DB, page Page, fromDate, toDa
 
 	db := database.Table("service_carts")
 
+	db = db.Select("service_carts.booking_date", "tb1.total_res", "tb2.total_kiosk", "tb3.total_mini_bar")
+
+	if fromDate != "" {
+		db = db.Where("service_carts.booking_date >= STR_TO_DATE(?, '%Y-%m-%d')", fromDate)
+	}
+
+	if toDate != "" {
+		db = db.Where("service_carts.booking_date <= STR_TO_DATE(?, '%Y-%m-%d')", toDate)
+	}
+
+	db = db.Group("service_carts.booking_date")
+
 	// sum revenue kiosk
-	if typeService == "All" || typeService == "Kiosk" {
-		db = db.Select("tb1.total_res")
+	if typeService == "All" || typeService == "Res" {
+		if typeService == "Res" {
+			db = db.Select("service_carts.booking_date", "tb1.total_res")
+		}
 
-		subQuery1 := database.Table("service_carts").Select("service_carts.booking_date, SUM(service_carts.amount) as total_res")
+		subQuery := database.Table("service_carts").Select("service_carts.booking_date, SUM(service_carts.amount) as total_res")
 
-		subQuery1 = subQuery1.Where("service_carts.bill_status = ?", constants.POS_BILL_STATUS_ACTIVE)
+		if item.PartnerUid != "" {
+			subQuery = subQuery.Where("partner_uid = ?", item.PartnerUid)
+		}
 
-		subQuery1 = subQuery1.Where("service_carts.service_type = ?", constants.KIOSK_SETTING)
+		if item.CourseUid != "" {
+			subQuery = subQuery.Where("course_uid = ?", item.CourseUid)
+		}
 
-		subQuery1 = subQuery1.Group("service_carts.booking_date")
+		subQuery = subQuery.Where("bill_status = ?", constants.RES_BILL_STATUS_FINISH)
+
+		subQuery = subQuery.Where("service_type = ?", constants.RESTAURANT_SETTING)
 
 		if fromDate != "" {
-			subQuery1 = subQuery1.Where("STR_TO_DATE(service_carts.booking_date, '%d/%m/%Y') >= ?", fromDate)
+			subQuery = subQuery.Where("booking_date >= STR_TO_DATE(?, '%Y-%m-%d')", fromDate)
 		}
 
 		if toDate != "" {
-			subQuery1 = subQuery1.Where("STR_TO_DATE(service_carts.booking_date, '%d/%m/%Y') <= ?", toDate)
+			subQuery = subQuery.Where("booking_date <= STR_TO_DATE(?, '%Y-%m-%d')", toDate)
 		}
 
-		db = db.Joins(`LEFT JOIN (?) as tb1 on service_carts.booking_date = tb1.booking_date`, subQuery1)
+		subQuery = subQuery.Group("booking_date")
+
+		db = db.Joins(`LEFT JOIN (?) as tb1 on service_carts.booking_date = tb1.booking_date`, subQuery)
 	}
 
 	// sum revenue kiosk
 	if typeService == "All" || typeService == "Kiosk" {
-		db = db.Select("tb2.total_kiosk")
+		if typeService == "Kiosk" {
+			db = db.Select("service_carts.booking_date", "tb2.total_kiosk")
+		}
 
-		subQuery1 := database.Table("service_carts").Select("service_carts.booking_date, SUM(service_carts.amount) as total_kiosk")
+		subQuery := database.Table("service_carts").Select("service_carts.booking_date, SUM(service_carts.amount) as total_kiosk")
 
-		subQuery1 = subQuery1.Where("service_carts.bill_status = ?", constants.POS_BILL_STATUS_ACTIVE)
+		if item.PartnerUid != "" {
+			subQuery = subQuery.Where("service_carts.partner_uid = ?", item.PartnerUid)
+		}
 
-		subQuery1 = subQuery1.Where("service_carts.service_type = ?", constants.KIOSK_SETTING)
+		if item.CourseUid != "" {
+			subQuery = subQuery.Where("service_carts.course_uid = ?", item.CourseUid)
+		}
 
-		subQuery1 = subQuery1.Group("service_carts.booking_date")
+		subQuery = subQuery.Where("service_carts.bill_status = ?", constants.POS_BILL_STATUS_ACTIVE)
+
+		subQuery = subQuery.Where("service_carts.service_type = ?", constants.KIOSK_SETTING)
 
 		if fromDate != "" {
-			subQuery1 = subQuery1.Where("STR_TO_DATE(service_carts.booking_date, '%d/%m/%Y') >= ?", fromDate)
+			subQuery = subQuery.Where("service_carts.booking_date >= STR_TO_DATE(?, '%Y-%m-%d')", fromDate)
 		}
 
 		if toDate != "" {
-			subQuery1 = subQuery1.Where("STR_TO_DATE(service_carts.booking_date, '%d/%m/%Y') <= ?", toDate)
+			subQuery = subQuery.Where("service_carts.booking_date <= STR_TO_DATE(?, '%Y-%m-%d')", toDate)
 		}
 
-		db = db.Joins(`LEFT JOIN (?) as tb2 on service_carts.booking_date = tb2.booking_date`, subQuery1)
+		subQuery = subQuery.Group("service_carts.booking_date")
+
+		db = db.Joins(`LEFT JOIN (?) as tb2 on service_carts.booking_date = tb2.booking_date`, subQuery)
+	}
+
+	// sum revenue mini bar
+	if typeService == "All" || typeService == "Mini_B" {
+		if typeService == "Mini_B" {
+			db = db.Select("service_carts.booking_date", "tb3.total_mini_bar")
+		}
+
+		subQuery := database.Table("service_carts").Select("service_carts.booking_date, SUM(service_carts.amount) as total_mini_bar")
+
+		if item.PartnerUid != "" {
+			subQuery = subQuery.Where("service_carts.partner_uid = ?", item.PartnerUid)
+		}
+
+		if item.CourseUid != "" {
+			subQuery = subQuery.Where("service_carts.course_uid = ?", item.CourseUid)
+		}
+
+		subQuery = subQuery.Where("service_carts.bill_status = ?", constants.POS_BILL_STATUS_ACTIVE)
+
+		subQuery = subQuery.Where("service_carts.service_type = ?", constants.MINI_B_SETTING)
+
+		if fromDate != "" {
+			subQuery = subQuery.Where("service_carts.booking_date >= STR_TO_DATE(?, '%Y-%m-%d')", fromDate)
+		}
+
+		if toDate != "" {
+			subQuery = subQuery.Where("service_carts.booking_date <= STR_TO_DATE(?, '%Y-%m-%d')", toDate)
+		}
+
+		subQuery = subQuery.Group("service_carts.booking_date")
+
+		db = db.Joins(`LEFT JOIN (?) as tb3 on service_carts.booking_date = tb3.booking_date`, subQuery)
+	}
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
 	}
 
 	return list, total, db.Error
