@@ -708,11 +708,22 @@ func (_ CRestaurantOrder) GetListItemOrder(c *gin.Context, prof models.CmsUser) 
 	serviceCartItem := model_booking.BookingServiceItem{}
 	serviceCartItem.ServiceBill = query.BillId
 
-	list, total, err := serviceCartItem.FindList(db, page)
+	list, total, err := serviceCartItem.FindListWithStatus(db, page)
 
 	if err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
+	}
+
+	for _, item := range list {
+		// Kiểm tra trạng thái các món
+		if item["order_counts"].(int64) > 0 {
+			item["item_status"] = constants.RES_STATUS_ORDER
+		} else if item["process_counts"].(int64) > 0 {
+			item["item_status"] = constants.RES_STATUS_PROCESS
+		} else {
+			item["item_status"] = constants.RES_STATUS_DONE
+		}
 	}
 
 	res := response.PageResponse{
