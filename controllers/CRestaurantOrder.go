@@ -209,6 +209,9 @@ func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsU
 		}
 	}
 
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
+
 	okRes(c)
 }
 
