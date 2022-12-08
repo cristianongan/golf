@@ -567,37 +567,7 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 
 		// update res item
 		for _, v := range list {
-			if body.Quantity > serviceCartItem.Quality && v.ItemStatus == constants.RES_STATUS_DONE {
-				//Create res item
-				restaurantItem := models.RestaurantItem{}
-
-				restaurantItem.Type = v.Type
-				restaurantItem.ItemName = v.ItemName
-				restaurantItem.ItemComboName = v.ItemComboName
-				restaurantItem.ItemComboCode = v.ItemComboCode
-				restaurantItem.ItemCode = v.ItemCode
-				restaurantItem.ItemUnit = v.ItemUnit
-				restaurantItem.PartnerUid = body.PartnerUid
-				restaurantItem.CourseUid = body.CourseUid
-				restaurantItem.ServiceId = serviceCart.ServiceId
-				restaurantItem.OrderDate = time.Now().Format(constants.DATE_FORMAT_1)
-				restaurantItem.BillId = serviceCart.Id
-				restaurantItem.ItemId = serviceCartItem.Id
-				restaurantItem.ItemStatus = constants.RES_STATUS_ORDER
-
-				if v.ItemComboCode != "" {
-					v.Quantity = (v.Quantity / serviceCartItem.Quality) * (body.Quantity - serviceCartItem.Quality)
-					v.QuantityProgress = (v.Quantity / serviceCartItem.Quality) * (body.Quantity - serviceCartItem.Quality)
-				} else {
-					v.Quantity = body.Quantity - serviceCartItem.Quality
-					v.QuantityProgress = body.Quantity - serviceCartItem.Quality
-				}
-
-				if err := restaurantItem.Create(db); err != nil {
-					response_message.BadRequest(c, err.Error())
-					return
-				}
-			} else {
+			if body.Quantity > 0 {
 				if v.ItemComboCode != "" {
 					v.Quantity = (v.Quantity / serviceCartItem.Quality) * body.Quantity
 					v.QuantityProgress = (v.Quantity / serviceCartItem.Quality) * body.Quantity
@@ -605,15 +575,15 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 					v.Quantity = body.Quantity
 					v.QuantityProgress = body.Quantity
 				}
+			}
 
-				if body.Note != "" {
-					v.ItemNote = body.Note
-				}
+			if body.Note != "" {
+				v.ItemNote = body.Note
+			}
 
-				if err := v.Update(db); err != nil {
-					response_message.BadRequest(c, err.Error())
-					return
-				}
+			if err := v.Update(db); err != nil {
+				response_message.BadRequest(c, err.Error())
+				return
 			}
 		}
 
