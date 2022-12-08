@@ -1487,6 +1487,11 @@ func (cBooking *CBooking) FinishBill(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 	booking.FindFirst(db)
 
+	if booking.BagStatus != constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequestFreeMessage(c, "Bag chưa check out!")
+		return
+	}
+
 	RSinglePaymentItem := model_payment.SinglePaymentItem{
 		Bag:         body.Bag,
 		PartnerUid:  body.PartnerUid,
@@ -1523,5 +1528,6 @@ func (cBooking *CBooking) FinishBill(c *gin.Context, prof models.CmsUser) {
 		// callservices.TransferFast(constants.PAYMENT_TYPE_CASH, otherTotal, "", booking.CustomerUid, booking.CustomerName)
 	}
 
+	go updatePriceForRevenue(db, booking, body.BillNo)
 	okRes(c)
 }
