@@ -567,7 +567,7 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 
 		// update res item
 		for _, v := range list {
-			if body.Quantity > serviceCartItem.Quality && v.ItemStatus == constants.RES_STATUS_PROCESS {
+			if body.Quantity > serviceCartItem.Quality && v.ItemStatus == constants.RES_STATUS_DONE {
 				//Create res item
 				restaurantItem := models.RestaurantItem{}
 
