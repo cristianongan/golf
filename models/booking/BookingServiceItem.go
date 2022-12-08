@@ -117,9 +117,9 @@ func (item *BookingServiceItem) FindAll(database *gorm.DB) ([]BookingServiceItem
 	return list, db.Error
 }
 
-func (item *BookingServiceItem) FindList(database *gorm.DB, page models.Page) ([]BookingServiceItem, int64, error) {
+func (item *BookingServiceItem) FindList(database *gorm.DB, page models.Page) ([]map[string]interface{}, int64, error) {
 	db := database.Model(BookingServiceItem{})
-	list := []BookingServiceItem{}
+	var list []map[string]interface{}
 	total := int64(0)
 
 	if item.GroupCode != "" {
@@ -137,6 +137,56 @@ func (item *BookingServiceItem) FindList(database *gorm.DB, page models.Page) ([
 	if item.ServiceBill > 0 {
 		db = db.Where("service_bill = ?", item.ServiceBill)
 	}
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+	return list, total, db.Error
+}
+
+func (item *BookingServiceItem) FindListWithStatus(database *gorm.DB, page models.Page) ([]map[string]interface{}, int64, error) {
+	db := database.Model(BookingServiceItem{})
+	var list []map[string]interface{}
+	total := int64(0)
+
+	db = db.Select("booking_service_items.*", "COUNT(tb1.item_id) as order_counts", "COUNT(tb2.item_id) as process_counts")
+
+	if item.GroupCode != "" {
+		db = db.Where("booking_service_items.group_code = ?", item.GroupCode)
+	}
+	if item.ServiceId != "" {
+		db = db.Where("booking_service_items.service_id = ?", item.ServiceId)
+	}
+	if item.Type != "" {
+		db = db.Where("booking_service_items.type = ?", item.Type)
+	}
+	if item.ItemCode != "" {
+		db = db.Where("booking_service_items.item_code = ?", item.ItemCode)
+	}
+	if item.ServiceBill > 0 {
+		db = db.Where("booking_service_items.service_bill = ?", item.ServiceBill)
+	}
+
+	// sub query
+	subQuery1 := database.Table("restaurant_items")
+
+	subQuery1 = subQuery1.Where("bill_id = ?", item.ServiceBill)
+
+	subQuery1 = subQuery1.Where("item_status = ?", constants.RES_STATUS_ORDER)
+
+	subQuery2 := database.Table("restaurant_items")
+
+	subQuery2 = subQuery2.Where("bill_id = ?", item.ServiceBill)
+
+	subQuery2 = subQuery2.Where("item_status = ?", constants.RES_STATUS_PROCESS)
+
+	db = db.Joins("LEFT JOIN (?) as tb1 on tb1.item_id = booking_service_items.id", subQuery1)
+
+	db = db.Joins("LEFT JOIN (?) as tb2 on tb2.item_id = booking_service_items.id", subQuery2)
+
+	db.Group("booking_service_items.item_id")
 
 	db.Count(&total)
 

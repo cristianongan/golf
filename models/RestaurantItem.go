@@ -30,6 +30,7 @@ type RestaurantItem struct {
 	Quantity         int    `json:"quantity"`                                   // Số lượng order
 	QuantityProgress int    `json:"quantity_progress"`                          // Số lương đang tiến hành
 	TotalProcess     int    `json:"total_process"`                              // Tổng số lượng đang làm
+	MoveKitchenTimes int    `json:"move_kitchen_times"`                         // Số lần move kitchen của bill
 }
 
 func (item *RestaurantItem) Create(db *gorm.DB) error {

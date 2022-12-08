@@ -13,34 +13,35 @@ Giỏ Hàng
 */
 type ServiceCart struct {
 	ModelId
-	PartnerUid      string         `json:"partner_uid" gorm:"type:varchar(100);index"`  // Hãng golf
-	CourseUid       string         `json:"course_uid" gorm:"type:varchar(150);index"`   // Sân golf
-	ServiceId       int64          `json:"service_id" gorm:"index"`                     // Mã của service
-	ServiceType     string         `json:"service_type" gorm:"type:varchar(100);index"` // Loại của service
-	FromService     int64          `json:"from_service" gorm:"index"`                   // Mã của from service
-	FromServiceName string         `json:"from_service_name" gorm:"type:varchar(150)"`  // Tên của from service
-	OrderTime       int64          `json:"order_time" gorm:"index"`                     // Thời gian order
-	TimeProcess     int64          `json:"time_process"`                                // Thời gian bắt đầu chế biến
-	GolfBag         string         `json:"golf_bag" gorm:"type:varchar(100);index"`     // Số bag order
-	BookingDate     datatypes.Date `json:"booking_date" gorm:"index"`                   // Ngày order
-	BookingUid      string         `json:"booking_uid" gorm:"type:varchar(100)"`        // Booking uid
-	BillCode        string         `json:"bill_code" gorm:"default:NONE;index"`         // Mã hóa đơn
-	BillStatus      string         `json:"bill_status" gorm:"type:varchar(50);index"`   // trạng thái đơn
-	TypeCode        string         `json:"type_code" gorm:"type:varchar(100);index"`    // Mã dịch vụ của hóa đơn
-	Type            string         `json:"type" gorm:"type:varchar(100)"`               // Dịch vụ hóa đơn: BRING, SHIP, TABLE
-	StaffOrder      string         `json:"staff_order" gorm:"type:varchar(150)"`        // Người tạo đơn
-	PlayerName      string         `json:"player_name" gorm:"type:varchar(150)"`        // Người mua
-	Note            string         `json:"note" gorm:"type:varchar(250)"`               // Note của người mua
-	Phone           string         `json:"phone" gorm:"type:varchar(100)"`              // Số điện thoại
-	NumberGuest     int            `json:"number_guest"`                                // số lượng người đi cùng
-	Amount          int64          `json:"amount"`                                      // tổng tiền
-	DiscountType    string         `json:"discount_type" gorm:"type:varchar(50)"`       // Loại giảm giá
-	DiscountValue   int64          `json:"discount_value"`                              // Giá tiền được giảm
-	DiscountReason  string         `json:"discount_reason" gorm:"type:varchar(50)"`     // Lý do giảm giá
-	CostPrice       bool           `json:"cost_price"`                                  // Có giá VAT hay ko
-	ResFloor        int            `json:"res_floor"`                                   // Số tầng bàn được đặt\
-	RentalStatus    string         `json:"rental_status" gorm:"type:varchar(100)"`      // Trạng thái thuê đồ
-	CaddieCode      string         `json:"caddie_code" gorm:"type:varchar(100)"`        // Caddie đi cùng bag
+	PartnerUid       string         `json:"partner_uid" gorm:"type:varchar(100);index"`  // Hãng golf
+	CourseUid        string         `json:"course_uid" gorm:"type:varchar(150);index"`   // Sân golf
+	ServiceId        int64          `json:"service_id" gorm:"index"`                     // Mã của service
+	ServiceType      string         `json:"service_type" gorm:"type:varchar(100);index"` // Loại của service
+	FromService      int64          `json:"from_service" gorm:"index"`                   // Mã của from service
+	FromServiceName  string         `json:"from_service_name" gorm:"type:varchar(150)"`  // Tên của from service
+	OrderTime        int64          `json:"order_time" gorm:"index"`                     // Thời gian order
+	TimeProcess      int64          `json:"time_process"`                                // Thời gian bắt đầu chế biến
+	GolfBag          string         `json:"golf_bag" gorm:"type:varchar(100);index"`     // Số bag order
+	BookingDate      datatypes.Date `json:"booking_date" gorm:"index"`                   // Ngày order
+	BookingUid       string         `json:"booking_uid" gorm:"type:varchar(100)"`        // Booking uid
+	BillCode         string         `json:"bill_code" gorm:"default:NONE;index"`         // Mã hóa đơn
+	BillStatus       string         `json:"bill_status" gorm:"type:varchar(50);index"`   // trạng thái đơn
+	TypeCode         string         `json:"type_code" gorm:"type:varchar(100);index"`    // Mã dịch vụ của hóa đơn
+	Type             string         `json:"type" gorm:"type:varchar(100)"`               // Dịch vụ hóa đơn: BRING, SHIP, TABLE
+	StaffOrder       string         `json:"staff_order" gorm:"type:varchar(150)"`        // Người tạo đơn
+	PlayerName       string         `json:"player_name" gorm:"type:varchar(150)"`        // Người mua
+	Note             string         `json:"note" gorm:"type:varchar(250)"`               // Note của người mua
+	Phone            string         `json:"phone" gorm:"type:varchar(100)"`              // Số điện thoại
+	NumberGuest      int            `json:"number_guest"`                                // số lượng người đi cùng
+	Amount           int64          `json:"amount"`                                      // tổng tiền
+	DiscountType     string         `json:"discount_type" gorm:"type:varchar(50)"`       // Loại giảm giá
+	DiscountValue    int64          `json:"discount_value"`                              // Giá tiền được giảm
+	DiscountReason   string         `json:"discount_reason" gorm:"type:varchar(50)"`     // Lý do giảm giá
+	CostPrice        bool           `json:"cost_price"`                                  // Có giá VAT hay ko
+	ResFloor         int            `json:"res_floor"`                                   // Số tầng bàn được đặt\
+	RentalStatus     string         `json:"rental_status" gorm:"type:varchar(100)"`      // Trạng thái thuê đồ
+	CaddieCode       string         `json:"caddie_code" gorm:"type:varchar(100)"`        // Caddie đi cùng bag
+	TotalMoveKitchen int            `json:"total_move_kitchen"`                          // Tổng số lần move kitchen của bill
 }
 
 func (item *ServiceCart) Create(db *gorm.DB) error {

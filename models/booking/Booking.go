@@ -575,6 +575,8 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 				}
 
 				if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
+					serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS ||
+					serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH ||
 					serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
 					listServiceItems = append(listServiceItems, v)
 				}
@@ -623,7 +625,10 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
 								isCanAdd = true
 							} else {
-								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT || serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
+								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+									serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
+									serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS ||
+									serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH {
 									isCanAdd = true
 								}
 							}

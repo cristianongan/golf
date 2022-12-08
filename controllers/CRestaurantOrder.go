@@ -119,10 +119,20 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// validate golf bag
+	booking := model_booking.Booking{}
+	booking.Uid = serviceCart.BookingUid
+
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
 	if serviceCart.BillCode == constants.BILL_NONE {
 		serviceCart.BillCode = "OD-" + strconv.Itoa(int(body.BillId))
 		serviceCart.TimeProcess = time.Now().Unix()
 		serviceCart.BillStatus = constants.RES_STATUS_PROCESS
+		// serviceCart.TotalMoveKitchen += 1
 
 		if err := serviceCart.Update(db); err != nil {
 			response_message.BadRequest(c, err.Error())
@@ -142,8 +152,23 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if len(list) > 0 {
+		if serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH {
+			serviceCart.TimeProcess = time.Now().Unix()
+			serviceCart.BillStatus = constants.RES_STATUS_PROCESS
+		}
+		// Update số lần move kitchen
+		serviceCart.TotalMoveKitchen += 1
+
+		if err := serviceCart.Update(db); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+	}
+
 	for _, item := range list {
 		item.ItemStatus = constants.RES_STATUS_PROCESS
+		item.MoveKitchenTimes = serviceCart.TotalMoveKitchen
 
 		if err := item.Update(db); err != nil {
 			response_message.BadRequest(c, err.Error())
@@ -151,6 +176,8 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
 	// createExportBillInventory(c, prof, serviceCart, serviceCart.BillCode)
 
 	c.JSON(200, serviceCart)
@@ -540,12 +567,14 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 
 		// update res item
 		for _, v := range list {
-			if v.ItemComboCode != "" {
-				v.Quantity = (v.Quantity / serviceCartItem.Quality) * body.Quantity
-				v.QuantityProgress = (v.Quantity / serviceCartItem.Quality) * body.Quantity
-			} else {
-				v.Quantity = body.Quantity
-				v.QuantityProgress = body.Quantity
+			if body.Quantity > 0 {
+				if v.ItemComboCode != "" {
+					v.Quantity = (v.Quantity / serviceCartItem.Quality) * body.Quantity
+					v.QuantityProgress = (v.Quantity / serviceCartItem.Quality) * body.Quantity
+				} else {
+					v.Quantity = body.Quantity
+					v.QuantityProgress = body.Quantity
+				}
 			}
 
 			if body.Note != "" {
@@ -679,11 +708,22 @@ func (_ CRestaurantOrder) GetListItemOrder(c *gin.Context, prof models.CmsUser) 
 	serviceCartItem := model_booking.BookingServiceItem{}
 	serviceCartItem.ServiceBill = query.BillId
 
-	list, total, err := serviceCartItem.FindList(db, page)
+	list, total, err := serviceCartItem.FindListWithStatus(db, page)
 
 	if err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
+	}
+
+	for _, item := range list {
+		// Kiểm tra trạng thái các món
+		if item["order_counts"].(int64) > 0 {
+			item["item_status"] = constants.RES_STATUS_ORDER
+		} else if item["process_counts"].(int64) > 0 {
+			item["item_status"] = constants.RES_STATUS_PROCESS
+		} else {
+			item["item_status"] = constants.RES_STATUS_DONE
+		}
 	}
 
 	res := response.PageResponse{
