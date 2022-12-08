@@ -132,7 +132,7 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 		serviceCart.BillCode = "OD-" + strconv.Itoa(int(body.BillId))
 		serviceCart.TimeProcess = time.Now().Unix()
 		serviceCart.BillStatus = constants.RES_STATUS_PROCESS
-		serviceCart.TotalMoveKitchen += 1
+		// serviceCart.TotalMoveKitchen += 1
 
 		if err := serviceCart.Update(db); err != nil {
 			response_message.BadRequest(c, err.Error())
@@ -152,7 +152,7 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if len(list) > 0 && serviceCart.TotalMoveKitchen > 1 {
+	if len(list) > 0 {
 		if serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH {
 			serviceCart.TimeProcess = time.Now().Unix()
 			serviceCart.BillStatus = constants.RES_STATUS_PROCESS
