@@ -111,6 +111,7 @@ type FinishBookingBody struct {
 	PartnerUid string `json:"partner_uid" binding:"required"` // Hang Golf
 	CourseUid  string `json:"course_uid" binding:"required"`  // San Golf
 	Bag        string `json:"bag" binding:"required"`
+	BillNo     string `json:"bill_no" binding:"required"`
 }
 
 // Tạo Tee booking
