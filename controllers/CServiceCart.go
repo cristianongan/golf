@@ -7,7 +7,6 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
-	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
 	"start/utils"
 	"start/utils/response_message"
@@ -65,29 +64,29 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	}
 
 	// validate quantity
-	inventory := kiosk_inventory.InventoryItem{}
-	inventory.PartnerUid = body.PartnerUid
-	inventory.CourseUid = body.CourseUid
-	inventory.ServiceId = body.ServiceId
-	inventory.Code = body.ItemCode
+	// inventory := kiosk_inventory.InventoryItem{}
+	// inventory.PartnerUid = body.PartnerUid
+	// inventory.CourseUid = body.CourseUid
+	// inventory.ServiceId = body.ServiceId
+	// inventory.Code = body.ItemCode
 
-	if err := inventory.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Inventory "+err.Error())
-		return
-	}
+	// if err := inventory.FindFirst(db); err != nil {
+	// 	response_message.BadRequest(c, "Inventory "+err.Error())
+	// 	return
+	// }
 
-	// Kiểm tra số lượng hàng tồn trong kho
-	if body.Quantity > inventory.Quantity {
-		response_message.BadRequest(c, "The quantity of goods in stock is not enough")
-		return
-	}
+	// // Kiểm tra số lượng hàng tồn trong kho
+	// if body.Quantity > inventory.Quantity {
+	// 	response_message.BadRequest(c, "The quantity of goods in stock is not enough")
+	// 	return
+	// }
 
-	// Update số lượng hàng tồn trong kho
-	inventory.Quantity -= body.Quantity
-	if err := inventory.Update(db); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
+	// // Update số lượng hàng tồn trong kho
+	// inventory.Quantity -= body.Quantity
+	// if err := inventory.Update(db); err != nil {
+	// 	response_message.BadRequest(c, err.Error())
+	// 	return
+	// }
 
 	// create cart item
 	serviceCartItem := model_booking.BookingServiceItem{}
@@ -650,33 +649,33 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	// }
 
 	if body.Quantity > 0 {
-		if serviceCartItem.Type != constants.RENTAL_SETTING &&
-			serviceCartItem.Type != constants.DRIVING_SETTING {
-			// validate quantity
-			inventory := kiosk_inventory.InventoryItem{}
-			inventory.PartnerUid = body.PartnerUid
-			inventory.CourseUid = body.CourseUid
-			inventory.ServiceId = serviceCart.ServiceId
-			inventory.Code = serviceCartItem.ItemCode
+		// if serviceCartItem.Type != constants.RENTAL_SETTING &&
+		// 	serviceCartItem.Type != constants.DRIVING_SETTING {
+		// 	// validate quantity
+		// 	inventory := kiosk_inventory.InventoryItem{}
+		// 	inventory.PartnerUid = body.PartnerUid
+		// 	inventory.CourseUid = body.CourseUid
+		// 	inventory.ServiceId = serviceCart.ServiceId
+		// 	inventory.Code = serviceCartItem.ItemCode
 
-			if err := inventory.FindFirst(db); err != nil {
-				response_message.BadRequest(c, err.Error())
-				return
-			}
+		// 	if err := inventory.FindFirst(db); err != nil {
+		// 		response_message.BadRequest(c, err.Error())
+		// 		return
+		// 	}
 
-			// Kiểm tra số lượng hàng tồn trong kho
-			if body.Quantity > inventory.Quantity+int64(serviceCartItem.Quality) {
-				response_message.BadRequest(c, "The quantity of goods in stock is not enough")
-				return
-			}
+		// 	// Kiểm tra số lượng hàng tồn trong kho
+		// 	if body.Quantity > inventory.Quantity+int64(serviceCartItem.Quality) {
+		// 		response_message.BadRequest(c, "The quantity of goods in stock is not enough")
+		// 		return
+		// 	}
 
-			// Update số lượng hàng tồn trong kho
-			inventory.Quantity = inventory.Quantity + int64(serviceCartItem.Quality) - body.Quantity
-			if err := inventory.Update(db); err != nil {
-				response_message.BadRequest(c, err.Error())
-				return
-			}
-		}
+		// 	// Update số lượng hàng tồn trong kho
+		// 	inventory.Quantity = inventory.Quantity + int64(serviceCartItem.Quality) - body.Quantity
+		// 	if err := inventory.Update(db); err != nil {
+		// 		response_message.BadRequest(c, err.Error())
+		// 		return
+		// 	}
+		// }
 
 		// update service cart
 		serviceCart.Amount += (body.Quantity * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
@@ -742,27 +741,27 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if serviceCartItem.Type != constants.RENTAL_SETTING &&
-		serviceCartItem.Type != constants.DRIVING_SETTING {
-		// validate quantity
-		inventory := kiosk_inventory.InventoryItem{}
-		inventory.PartnerUid = serviceCartItem.PartnerUid
-		inventory.CourseUid = serviceCartItem.CourseUid
-		inventory.ServiceId = serviceCart.ServiceId
-		inventory.Code = serviceCartItem.ItemCode
+	// if serviceCartItem.Type != constants.RENTAL_SETTING &&
+	// 	serviceCartItem.Type != constants.DRIVING_SETTING {
+	// 	// validate quantity
+	// 	inventory := kiosk_inventory.InventoryItem{}
+	// 	inventory.PartnerUid = serviceCartItem.PartnerUid
+	// 	inventory.CourseUid = serviceCartItem.CourseUid
+	// 	inventory.ServiceId = serviceCart.ServiceId
+	// 	inventory.Code = serviceCartItem.ItemCode
 
-		if err := inventory.FindFirst(db); err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
-		}
+	// 	if err := inventory.FindFirst(db); err != nil {
+	// 		response_message.BadRequest(c, err.Error())
+	// 		return
+	// 	}
 
-		// Update số lượng hàng tồn trong kho
-		inventory.Quantity += int64(serviceCartItem.Quality)
-		if err := inventory.Update(db); err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
-		}
-	}
+	// 	// Update số lượng hàng tồn trong kho
+	// 	inventory.Quantity += int64(serviceCartItem.Quality)
+	// 	if err := inventory.Update(db); err != nil {
+	// 		response_message.BadRequest(c, err.Error())
+	// 		return
+	// 	}
+	// }
 
 	// update service cart
 	serviceCart.Amount -= serviceCartItem.Amount
@@ -780,7 +779,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
-func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
+func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateBillCodeBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
