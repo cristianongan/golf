@@ -47,16 +47,7 @@ func GetGolfFeeInfoOfBag(c *gin.Context, mainBooking model_booking.Booking) mode
 				}
 			}
 
-			isAgencyPaid := false
-			for _, v := range subBooking.AgencyPaid {
-				if v.Type == constants.BOOKING_AGENCY_GOLF_FEE && v.Fee > 0 {
-					isAgencyPaid = true
-				}
-			}
-
-			if !isAgencyPaid {
-				roundOfBag.Rounds = append(roundOfBag.Rounds, round1)
-			}
+			roundOfBag.Rounds = append(roundOfBag.Rounds, round1)
 		}
 
 		if checkIsNextRound > -1 && len(listRound) > 1 {
