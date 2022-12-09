@@ -267,7 +267,6 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 			listError = append(listError, errB.Error())
 		}
 
-		bookingTemp.CourseType = body.CourseType
 		listCaddieInOut = append(listCaddieInOut, caddieBuggyInNote)
 		listBooking = append(listBooking, bookingTemp)
 	}
@@ -287,6 +286,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		CourseUid:  body.CourseUid,
 		Tee:        body.Tee,
 		TeeOff:     body.TeeOff,
+		CourseType: body.CourseType,
 	}
 
 	hourStr, _ := utils.GetDateFromTimestampWithFormat(time.Now().Unix(), constants.HOUR_FORMAT)
