@@ -24,6 +24,7 @@ type CreateProshopBody struct {
 	UserUpdate    string  `json:"user_update"`
 	IsDeposit     bool    `json:"is_deposit"`
 	PeopleDeposit string  `json:"people_deposit"`
+	TaxCode       string  `json:"tax_code"`
 }
 
 type GetListProshopForm struct {
@@ -59,4 +60,5 @@ type UpdateProshopBody struct {
 	Type          string   `json:"type"`
 	GroupCode     string   `json:"group_code"`
 	GroupName     string   `json:"group_name"`
+	TaxCode       string   `json:"tax_code"`
 }
