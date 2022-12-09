@@ -723,6 +723,7 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 	if oldCaddie.Id > 0 {
 		if err := udpCaddieOut(db, oldCaddie.Id); err != nil {
 			response_message.InternalServerError(c, err.Error())
+			log.Println("NeedMoreCaddie ", err.Error())
 			return
 		}
 
@@ -1254,7 +1255,6 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 				} else if caddieTemp.CurrentRound == 2 {
 					caddieTemp.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE_R3
 				}
-				caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
 				caddieTemp.CurrentRound = caddieTemp.CurrentRound + 1
 
 				listCaddie = append(listCaddie, caddieTemp)
