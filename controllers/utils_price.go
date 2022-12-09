@@ -448,12 +448,14 @@ func updatePriceForRevenue(db *gorm.DB, item model_booking.Booking, billNo strin
 	item.FindServiceItems(db)
 	for _, v := range item.ListServiceItems {
 		if v.BillCode == item.BillCode {
-			if v.ItemCode == "R1_3" {
-				practiceBallFee += v.Amount
-			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT || v.Type == constants.MINI_B_SETTING || v.Type == constants.MINI_R_SETTING {
+			if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT || v.Type == constants.MINI_B_SETTING || v.Type == constants.MINI_R_SETTING {
 				fbFee += v.Amount
 			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL || v.Type == constants.DRIVING_SETTING {
-				rentalFee += v.Amount
+				if v.ItemCode == "R1_3" {
+					practiceBallFee += v.Amount
+				} else {
+					rentalFee += v.Amount
+				}
 			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP {
 				proshopFee += v.Amount
 			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE {
@@ -500,11 +502,15 @@ func updatePriceForRevenue(db *gorm.DB, item model_booking.Booking, billNo strin
 	})
 
 	m := model_report.ReportRevenueDetail{
+		PartnerUid:     item.PartnerUid,
+		CourseUid:      item.CourseUid,
 		BillNo:         billNo,
+		GuestStyle:     item.GuestStyle,
+		GuestStyleName: item.GuestStyleName,
 		BookingDate:    item.BookingDate,
 		CustomerId:     item.CustomerUid,
 		MembershipNo:   item.CardId,
-		CustomerType:   item.GuestStyleName,
+		CustomerType:   item.CustomerType,
 		Hole:           hole,
 		GreenFee:       bookingGreenFee,
 		CaddieFee:      bookingCaddieFee,

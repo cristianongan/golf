@@ -158,6 +158,4 @@ func (_ *CRevenueReport) GetBookingReportRevenueDetail(c *gin.Context, prof mode
 	}
 
 	okResponse(c, res)
-
-	okResponse(c, res)
 }

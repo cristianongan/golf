@@ -16,11 +16,11 @@ type ReportRevenueDetailList struct {
 
 func addFilter(db *gorm.DB, item *ReportRevenueDetailList) *gorm.DB {
 	if item.PartnerUid != "" {
-		db = db.Where("bookings.partner_uid = ?", item.PartnerUid)
+		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
 
 	if item.CourseUid != "" {
-		db = db.Where("bookings.course_uid = ?", item.CourseUid)
+		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 
 	if item.FromDate != "" {
