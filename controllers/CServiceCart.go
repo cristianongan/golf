@@ -163,11 +163,11 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 			return
 		}
 	} else {
-		// Kiểm tra trạng thái bill
-		// if serviceCart.BillStatus != constants.POS_BILL_STATUS_PENDING {
-		// 	response_message.BadRequest(c, "Bill status invalid")
-		// 	return
-		// }
+		//Kiểm tra trạng thái bill
+		if serviceCart.BillStatus != constants.POS_BILL_STATUS_OUT {
+			response_message.BadRequest(c, "Bill status invalid")
+			return
+		}
 		// update tổng giá bill
 		serviceCart.Amount += body.Quantity * serviceCartItem.UnitPrice
 		if err := serviceCart.Update(db); err != nil {
@@ -302,11 +302,11 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 	} else {
-		// Kiểm tra trạng thái bill
-		// if serviceCart.BillStatus != constants.POS_BILL_STATUS_PENDING {
-		// 	response_message.BadRequest(c, "Bill status invalid")
-		// 	return
-		// }
+		//Kiểm tra trạng thái bill
+		if serviceCart.BillStatus != constants.POS_BILL_STATUS_OUT {
+			response_message.BadRequest(c, "Bill status invalid")
+			return
+		}
 		// update tổng giá bill
 		serviceCart.Amount += body.Quantity * serviceCartItem.UnitPrice
 		if err := serviceCart.Update(db); err != nil {
@@ -817,6 +817,12 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 
 	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	//Kiểm tra trạng thái bill
+	if serviceCart.BillStatus != constants.POS_BILL_STATUS_OUT {
+		response_message.BadRequest(c, "Bill status invalid")
 		return
 	}
 
