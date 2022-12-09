@@ -835,7 +835,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// udp ok -> Tính lại giá
-	updatePriceWithServiceItem(booking, prof)
+	if !reflect.DeepEqual(booking.MainBagPay, body.MainBagPay) {
+		updatePriceWithServiceItem(booking, prof)
+	}
 
 	// Get lai booking mới nhất trong DB
 	bookLast := model_booking.Booking{}

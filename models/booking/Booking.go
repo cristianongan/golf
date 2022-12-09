@@ -870,6 +870,10 @@ func (item *Booking) UpdatePriceDetailCurrentBag(db *gorm.DB) {
 		return prev + item.GreenFee
 	})
 
+	if len(item.ListGolfFee) == 0 {
+		return
+	}
+
 	bookingGolfFee := item.ListGolfFee[0]
 	bookingGolfFee.BookingUid = item.Uid
 	bookingGolfFee.CaddieFee = bookingCaddieFee
