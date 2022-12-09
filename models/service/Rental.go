@@ -32,6 +32,7 @@ type Rental struct {
 	GroupName   string  `json:"group_name" gorm:"type:varchar(100)"`
 	IsDriving   *bool   `json:"is_driving" gorm:"default:0"`
 	Rate        string  `json:"rate" gorm:"type:varchar(100)"`
+	AccountCode string  `json:"account_code" gorm:"type:varchar(100)"` // Mã liên kết với Account kế toán
 }
 
 type RentalRequest struct {
