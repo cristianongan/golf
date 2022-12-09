@@ -823,7 +823,11 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 				}
 			}
 		} else {
-			isNeedPay = true
+			if mainCheckOutTime > 0 && v.CreatedAt > mainCheckOutTime {
+				isNeedPay = false
+			} else {
+				isNeedPay = true
+			}
 		}
 
 		if isNeedPay {
