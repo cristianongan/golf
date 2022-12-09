@@ -202,15 +202,15 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 	if booking.BillCode != "" {
 		round := models.Round{BillCode: booking.BillCode}
 		listRound, _ := round.FindAll(db)
-
-		if len(listRound) > 0 {
-			listRoundOfMain = []models.Round{}
-			for _, round := range listRound {
-				if !(round.Index == 1 && booking.CheckAgencyPaidRound1()) {
-					listRoundOfMain = append(listRoundOfMain, round)
-				}
-			}
-		}
+		listRoundOfMain = listRound
+		// if len(listRound) > 0 {
+		// 	listRoundOfMain = []models.Round{}
+		// 	for _, round := range listRound {
+		// 		if !(round.Index == 1 && booking.CheckAgencyPaidRound1()) {
+		// 			listRoundOfMain = append(listRoundOfMain, round)
+		// 		}
+		// 	}
+		// }
 	}
 
 	// Get List Service Item

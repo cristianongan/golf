@@ -706,7 +706,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/revenue/report-food-beverage", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportRevenueFoodBeverage))
 			cmsApiAuthorized.GET("/report/revenue/report-detail-fb-bag", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportRevenueDetailFBBag))
 			cmsApiAuthorized.GET("/report/revenue/report-detail-fb", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportRevenueDetailFB))
-			cmsApiAuthorized.GET("/revenue-report/booking-detail", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetBookingReportRevenueDetail))
+			cmsApiAuthorized.GET("/report/revenue/report-booking-detail", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetBookingReportRevenueDetail))
 		}
 
 		// ----------------------------------------------------------
