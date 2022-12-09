@@ -164,7 +164,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		}
 	} else {
 		//Kiểm tra trạng thái bill
-		if serviceCart.BillStatus != constants.POS_BILL_STATUS_OUT {
+		if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
 			response_message.BadRequest(c, "Bill status invalid")
 			return
 		}
@@ -303,7 +303,7 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 		}
 	} else {
 		//Kiểm tra trạng thái bill
-		if serviceCart.BillStatus != constants.POS_BILL_STATUS_OUT {
+		if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
 			response_message.BadRequest(c, "Bill status invalid")
 			return
 		}
@@ -821,7 +821,7 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Kiểm tra trạng thái bill
-	if serviceCart.BillStatus != constants.POS_BILL_STATUS_OUT {
+	if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
 		response_message.BadRequest(c, "Bill status invalid")
 		return
 	}
