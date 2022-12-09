@@ -153,8 +153,8 @@ func (item *ServiceCart) FindReportDetailFBBag(database *gorm.DB, page Page, fro
 	db = db.Group("service_carts.booking_uid")
 
 	// sum revenue kiosk
-	if typeService == "All" || typeService == "RES" {
-		if typeService == "Res" {
+	if typeService == "ALL" || typeService == "RES" {
+		if typeService == "RES" {
 			db = db.Select("service_carts.booking_date", "service_carts.golf_bag", "service_carts.player_name", "tb1.total_res")
 		}
 
@@ -186,8 +186,8 @@ func (item *ServiceCart) FindReportDetailFBBag(database *gorm.DB, page Page, fro
 	}
 
 	// sum revenue kiosk
-	if typeService == "All" || typeService == "KIOSK" {
-		if typeService == "Kiosk" {
+	if typeService == "ALL" || typeService == "KIOSK" {
+		if typeService == "KIOSK" {
 			db = db.Select("service_carts.booking_date", "service_carts.golf_bag", "service_carts.player_name", "tb2.total_kiosk")
 		}
 
@@ -219,8 +219,8 @@ func (item *ServiceCart) FindReportDetailFBBag(database *gorm.DB, page Page, fro
 	}
 
 	// sum revenue mini bar
-	if typeService == "All" || typeService == "Mini_B" {
-		if typeService == "Mini_B" {
+	if typeService == "ALL" || typeService == "MINI_B" {
+		if typeService == "MINI_B" {
 			db = db.Select("service_carts.booking_date", "service_carts.golf_bag", "service_carts.player_name", "tb3.total_mini_bar")
 		}
 
@@ -287,8 +287,8 @@ func (item *ServiceCart) FindReport(database *gorm.DB, page Page, fromDate, toDa
 	db = db.Group("service_carts.booking_date")
 
 	// sum revenue kiosk
-	if typeService == "All" || typeService == "Res" {
-		if typeService == "Res" {
+	if typeService == "ALL" || typeService == "RES" {
+		if typeService == "RES" {
 			db = db.Select("service_carts.booking_date", "tb1.total_res")
 		}
 
@@ -320,8 +320,8 @@ func (item *ServiceCart) FindReport(database *gorm.DB, page Page, fromDate, toDa
 	}
 
 	// sum revenue kiosk
-	if typeService == "All" || typeService == "Kiosk" {
-		if typeService == "Kiosk" {
+	if typeService == "ALL" || typeService == "KIOSK" {
+		if typeService == "KIOSK" {
 			db = db.Select("service_carts.booking_date", "tb2.total_kiosk")
 		}
 
@@ -353,8 +353,8 @@ func (item *ServiceCart) FindReport(database *gorm.DB, page Page, fromDate, toDa
 	}
 
 	// sum revenue mini bar
-	if typeService == "All" || typeService == "Mini_B" {
-		if typeService == "Mini_B" {
+	if typeService == "ALL" || typeService == "MINI_B" {
+		if typeService == "MINI_B" {
 			db = db.Select("service_carts.booking_date", "tb3.total_mini_bar")
 		}
 
