@@ -823,11 +823,7 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 				}
 			}
 		} else {
-			if v.PaidBy == constants.PAID_BY_AGENCY {
-				isNeedPay = false
-			} else {
-				isNeedPay = true
-			}
+			isNeedPay = true
 		}
 
 		if isNeedPay {
@@ -835,6 +831,7 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 		}
 	}
 
+	mushPay.TotalServiceItem -= item.GetAgencyService()
 	total := mushPay.TotalGolfFee + mushPay.TotalServiceItem
 
 	if total < 0 {

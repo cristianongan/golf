@@ -18,6 +18,7 @@ type CreateRentalBody struct {
 	Status      string  `json:"status"`
 	IsDriving   *bool   `json:"is_driving"`
 	Rate        string  `json:"rate"`
+	AccountCode string  `json:"account_code"`
 }
 
 type GetListRentalForm struct {

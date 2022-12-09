@@ -641,7 +641,7 @@ func udpCaddieOut(db *gorm.DB, caddieId int64) error {
 			caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
 		} else {
 			if caddie.CurrentRound > 1 {
-				caddie.CurrentStatus = fmt.Sprint(constants.CADDIE_CURRENT_STATUS_FINISH, " ", "R", caddie.CurrentRound)
+				caddie.CurrentStatus = fmt.Sprint(constants.CADDIE_CURRENT_STATUS_FINISH, " ", "R", "_", caddie.CurrentRound)
 			} else {
 				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
 			}
