@@ -808,11 +808,15 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 			} else {
 				if v.PaidBy == constants.PAID_BY_AGENCY {
 					isNeedPay = false
-				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL || v.Type == constants.DRIVING_SETTING) && !mainPaidRental {
+				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL ||
+					v.Type == constants.DRIVING_SETTING ||
+					v.Type == constants.BUGGY_SETTING) && !mainPaidRental {
 					isNeedPay = true
 				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP && !mainPaidProshop {
 					isNeedPay = true
-				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT || v.Type == constants.MINI_B_SETTING || v.Type == constants.MINI_R_SETTING) && !mainPaidRestaurant {
+				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT ||
+					v.Type == constants.MINI_B_SETTING ||
+					v.Type == constants.MINI_R_SETTING) && !mainPaidRestaurant {
 					isNeedPay = true
 				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE && !mainPaidOtherFee {
 					isNeedPay = true
