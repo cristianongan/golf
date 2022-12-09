@@ -303,13 +303,14 @@ const (
 Các trạng thái đơn của nhà hàng
 */
 const (
-	RES_BILL_STATUS_ACTIVE  = "ACTIVE"  // Trạng thái bao gồm các đơn PROCESS, FINISH
-	RES_BILL_STATUS_BOOKING = "BOOKING" // Trạng thái là người booking bàn nhưng chưa vào nhà hàng dùng món
-	RES_BILL_STATUS_ORDER   = "ORDER"   // Trạng thái là người đã đặt món và đang chờ đồ ăn
-	RES_BILL_STATUS_PROCESS = "PROCESS" // Trạng thái món ăn đang được chế biến chưa được phục vụ
-	RES_BILL_STATUS_FINISH  = "FINISH"  // Trạng thái món đã được phục vụ
-	RES_BILL_STATUS_CANCEL  = "CANCEL"  // Trạng thái món đã bị hủy
-	RES_BILL_STATUS_OUT     = "OUT"     //Trạng thái khách đã dùng xong món ăn và out khỏi nhà hàng. (ở lễ tân lấy để tính tiền)
+	RES_BILL_STATUS_ACTIVE   = "ACTIVE"   // Trạng thái bao gồm các đơn PROCESS, FINISH
+	RES_BILL_STATUS_BOOKING  = "BOOKING"  // Trạng thái là người booking bàn nhưng chưa vào nhà hàng dùng món
+	RES_BILL_STATUS_ORDER    = "ORDER"    // Trạng thái là người đã đặt món và đang chờ đồ ăn
+	RES_BILL_STATUS_PROCESS  = "PROCESS"  // Trạng thái món ăn đang được chế biến chưa được phục vụ
+	RES_BILL_STATUS_FINISH   = "FINISH"   // Trạng thái món đã được phục vụ
+	RES_BILL_STATUS_CANCEL   = "CANCEL"   // Trạng thái món đã bị hủy
+	RES_BILL_STATUS_OUT      = "OUT"      //Trạng thái khách đã dùng xong món ăn và out khỏi nhà hàng. (ở lễ tân lấy để tính tiền)
+	RES_BILL_STATUS_TRANSFER = "TRANSFER" // Đơn hàng transfer
 )
 
 /*

@@ -148,7 +148,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
 		serviceCart.ServiceId = body.ServiceId
 		serviceCart.BillCode = constants.BILL_NONE
-		serviceCart.StaffOrder = prof.UserName
+		serviceCart.StaffOrder = prof.FullName
 		serviceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
 		serviceCart.ServiceType = kiosk.KioskType
 		serviceCart.PlayerName = booking.CustomerName
@@ -284,7 +284,7 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 		serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
 		serviceCart.ServiceId = body.ServiceId
 		serviceCart.BillCode = constants.BILL_NONE
-		serviceCart.StaffOrder = prof.UserName
+		serviceCart.StaffOrder = prof.FullName
 		serviceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
 	}
 
@@ -889,6 +889,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	targetServiceCart.GolfBag = body.GolfBag
 	targetServiceCart.BookingDate = datatypes.Date(time.Now().UTC())
 	targetServiceCart.ServiceId = sourceServiceCart.ServiceId
+	targetServiceCart.ServiceType = sourceServiceCart.ServiceType
 	targetServiceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
 
 	err := targetServiceCart.FindFirst(db)
@@ -897,7 +898,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	if err != nil {
 		// create cart
 		targetServiceCart.BookingUid = booking.Uid
-		targetServiceCart.StaffOrder = prof.UserName
+		targetServiceCart.StaffOrder = prof.FullName
 		targetServiceCart.BillCode = constants.BILL_NONE
 
 		if err := targetServiceCart.Create(db); err != nil {

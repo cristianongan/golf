@@ -113,3 +113,11 @@ type FinishAllResItemBody struct {
 type FinishRestaurantOrderBody struct {
 	BillId int64 `json:"bill_id" binding:"required"`
 }
+
+type TransferItemBody struct {
+	PartnerUid     string  `json:"partner_uid"`
+	CourseUid      string  `json:"course_uid"`
+	ServiceCartId  int64   `json:"service_cart_id"`
+	GolfBag        string  `json:"golf_bag"`
+	CartItemIdList []int64 `json:"cart_item_id_list"`
+}
