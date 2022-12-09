@@ -618,7 +618,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 						if serviceTypV1 == constants.MINI_B_SETTING || serviceTypV1 == constants.MINI_R_SETTING {
 							serviceTypV1 = constants.GOLF_SERVICE_RESTAURANT
 						}
-						if serviceTypV1 == constants.DRIVING_SETTING {
+						if serviceTypV1 == constants.DRIVING_SETTING || serviceTypV1 == constants.BUGGY_SETTING {
 							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
 						}
 						if v2 == serviceTypV1 && v1.PaidBy != constants.PAID_BY_AGENCY {
@@ -889,7 +889,8 @@ func (item *Booking) UpdatePriceDetailCurrentBag(db *gorm.DB) {
 		if serviceItem.BillCode == item.BillCode {
 			// Udp service detail cho booking uid
 			if serviceItem.Type == constants.GOLF_SERVICE_RENTAL ||
-				serviceItem.Type == constants.DRIVING_SETTING {
+				serviceItem.Type == constants.DRIVING_SETTING ||
+				serviceItem.Type == constants.BUGGY_SETTING {
 				priceDetail.Rental += serviceItem.Amount
 			}
 			if serviceItem.Type == constants.GOLF_SERVICE_PROSHOP {
