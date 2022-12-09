@@ -193,22 +193,6 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 			Type: constants.BOOKING_AGENCY_BUGGY_FEE,
 			Hole: booking.Hole,
 		})
-		serviceItem := model_booking.BookingServiceItem{
-			BillCode:   booking.BillCode,
-			PlayerName: booking.CustomerName,
-			BookingUid: booking.Uid,
-			PartnerUid: booking.PartnerUid,
-			CourseUid:  booking.CourseUid,
-		}
-		serviceItem.Name = name
-		serviceItem.UnitPrice = feeInfo.BuggyFee
-		serviceItem.Amount = feeInfo.BuggyFee
-		serviceItem.Type = constants.GOLF_SERVICE_RENTAL
-		serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
-		serviceItem.PaidBy = constants.PAID_BY_AGENCY
-		serviceItem.Hole = booking.Hole
-		serviceItem.Quality = 1
-		serviceItem.Create(datasources.GetDatabaseWithPartner(booking.PartnerUid))
 	}
 	if feeInfo.CaddieFee > 0 {
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
@@ -217,22 +201,6 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 			Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
 			Hole: booking.Hole,
 		})
-		serviceItem := model_booking.BookingServiceItem{
-			BillCode:   booking.BillCode,
-			PlayerName: booking.CustomerName,
-			BookingUid: booking.Uid,
-			PartnerUid: booking.PartnerUid,
-			CourseUid:  booking.CourseUid,
-		}
-		serviceItem.Name = "Booking Caddie"
-		serviceItem.UnitPrice = feeInfo.CaddieFee
-		serviceItem.Amount = feeInfo.CaddieFee
-		serviceItem.Type = constants.GOLF_SERVICE_RENTAL
-		serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
-		serviceItem.PaidBy = constants.PAID_BY_AGENCY
-		serviceItem.Hole = booking.Hole
-		serviceItem.Quality = 1
-		serviceItem.Create(db)
 	}
 
 	if feeInfo.BuggyFee > 0 || feeInfo.CaddieFee > 0 || feeInfo.GolfFee > 0 {

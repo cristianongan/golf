@@ -18,3 +18,12 @@ type RevenueReportDetailFBForm struct {
 	Service    string `form:"service"`
 	Name       string `form:"name"`
 }
+
+type RevenueBookingReportDetail struct {
+	PageRequest
+	PartnerUid string `form:"partner_uid"`
+	CourseUid  string `form:"course_uid"`
+	FromDate   string `form:"from_date"`
+	ToDate     string `form:"to_date"`
+	GuestStyle string `form:"guest_style"`
+}

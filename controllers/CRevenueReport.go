@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"start/controllers/request"
+	"start/controllers/response"
 	"start/datasources"
 	"start/models"
+	mdoel_report "start/models/report"
 	"start/utils/response_message"
 
 	"github.com/gin-gonic/gin"
@@ -110,6 +112,49 @@ func (_ *CRevenueReport) GetReportRevenueDetailFB(c *gin.Context, prof models.Cm
 	res := map[string]interface{}{
 		"total": total,
 		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
+func (_ *CRevenueReport) GetBookingReportRevenueDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.RevenueBookingReportDetail{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	reportRevenue := mdoel_report.ReportRevenueDetailList{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		GuestStyle: form.GuestStyle,
+		FromDate:   form.FromDate,
+		ToDate:     form.ToDate,
+	}
+
+	db, total, err := reportRevenue.FindBookingRevenueList(db, page)
+
+	res := response.PageResponse{}
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []mdoel_report.ReportRevenueDetail
+	db.Find(&list)
+
+	res = response.PageResponse{
+		Total: total,
+		Data:  list,
 	}
 
 	okResponse(c, res)

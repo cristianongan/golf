@@ -134,3 +134,7 @@ func (item *Round) Delete(db *gorm.DB) error {
 	}
 	return db.Delete(item).Error
 }
+
+func (item *Round) GetAmountGolfFee() int64 {
+	return item.CaddieFee + item.GreenFee + item.BuggyFee
+}
