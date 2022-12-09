@@ -630,6 +630,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/restaurant/add-booking", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateRestaurantBooking))
 			cmsApiAuthorized.POST("/restaurant/create-bill-code", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateBill))
 			cmsApiAuthorized.POST("/restaurant/finish-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.FinishAllResItem))
+			cmsApiAuthorized.POST("/restaurant/transfer-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.TransferItem))
 			cmsApiAuthorized.PUT("/restaurant/item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.UpdateItemOrder))
 			cmsApiAuthorized.PUT("/restaurant/res-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.UpdateResItem))
 			cmsApiAuthorized.PUT("/restaurant/finish-res-order", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.FinishRestaurantOrder))

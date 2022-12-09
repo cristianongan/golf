@@ -53,6 +53,20 @@ func (item *RestaurantItem) Update(db *gorm.DB) error {
 	return db.Save(item).Error
 }
 
+func (item *RestaurantItem) UpdateBatchBillId(db *gorm.DB) error {
+	db = db.Model(RestaurantItem{})
+
+	if item.ItemId != 0 {
+		db = db.Where("item_id = ?", item.ItemId)
+	}
+
+	if item.BillId != 0 {
+		db = db.Update("bill_id", item.BillId)
+	}
+
+	return db.Error
+}
+
 func (item *RestaurantItem) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
