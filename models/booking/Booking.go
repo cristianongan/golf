@@ -824,6 +824,7 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 			}
 		} else {
 			if mainCheckOutTime > 0 && v.CreatedAt > mainCheckOutTime {
+				// main bag đã check out đi về, sub bag dùng tiếp service sẽ ko cộng thêm vào main bag
 				isNeedPay = false
 			} else {
 				isNeedPay = true
