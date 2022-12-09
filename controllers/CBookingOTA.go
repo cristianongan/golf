@@ -265,6 +265,13 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	dataRes.BookOtaID = bookingOta.BookingCode
 
 	go unlockTee(body)
+
+	// Bắn socket để client update ui
+	go func() {
+		cNotification := CNotification{}
+		cNotification.CreateCaddieWorkingStatusNotification("")
+	}()
+
 	okResponse(c, dataRes)
 }
 

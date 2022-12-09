@@ -210,3 +210,13 @@ func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
 	newFsConfigBytes, _ := json.Marshal(notiData)
 	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
 }
+
+func (_ *CNotification) PushNotificationCreateBookingOTA(title string) {
+	notiData := map[string]interface{}{
+		"type":  constants.NOTIFICATION_BOOKING_OTA_FINISH,
+		"title": title,
+	}
+
+	newFsConfigBytes, _ := json.Marshal(notiData)
+	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+}
