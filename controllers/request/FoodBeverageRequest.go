@@ -27,6 +27,7 @@ type CreateFoodBeverageBody struct {
 	Status        string  `json:"status"`
 	HotKitchen    *bool   `json:"hot_kitchen"`
 	ColdKitchen   *bool   `json:"cold_kitchen"`
+	TaxCode       string  `json:"tax_code"`
 }
 
 type GetListFoodBeverageForm struct {
@@ -68,4 +69,5 @@ type UpdateFoodBeverageBody struct {
 	Type          string  `json:"type"`
 	GroupCode     string  `json:"group_code"`
 	GroupName     string  `json:"group_name"`
+	TaxCode       string  `json:"tax_code"`
 }
