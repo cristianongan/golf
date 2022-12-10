@@ -186,7 +186,7 @@ func (item *BookingServiceItem) FindListWithStatus(database *gorm.DB, page model
 
 	db = db.Joins("LEFT JOIN (?) as tb2 on tb2.item_id = booking_service_items.id", subQuery2)
 
-	db.Group("booking_service_items.item_id")
+	db.Group("booking_service_items.id")
 
 	db.Count(&total)
 
