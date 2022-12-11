@@ -14,6 +14,17 @@ type ReportRevenueDetailList struct {
 	GuestStyle string
 }
 
+type ResReportCashierAudit struct {
+	PartnerUid string `json:"partner_uid"`
+	CourseUid  string `json:"course_uid"`
+	TransTime  int64  `json:"trans_time"`
+	Bag        string `json:"bag"`
+	Cash       int64  `json:"cash"`    // Số tiền mặt
+	Card       int64  `json:"card"`    // Số tiền cà thẻ
+	Voucher    int64  `json:"voucher"` // Số tiền Voucher
+	Debit      int64  `json:"debit"`   // Số tiền nợ
+}
+
 func addFilter(db *gorm.DB, item *ReportRevenueDetailList) *gorm.DB {
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
@@ -38,8 +49,9 @@ func addFilter(db *gorm.DB, item *ReportRevenueDetailList) *gorm.DB {
 	return db
 }
 
-func (item *ReportRevenueDetailList) FindBookingRevenueList(database *gorm.DB, page models.Page) (*gorm.DB, int64, error) {
+func (item *ReportRevenueDetailList) FindBookingRevenueList(database *gorm.DB, page models.Page) ([]ReportRevenueDetail, int64, error) {
 	total := int64(0)
+	var list []ReportRevenueDetail
 
 	db := database.Model(ReportRevenueDetail{})
 
@@ -48,8 +60,8 @@ func (item *ReportRevenueDetailList) FindBookingRevenueList(database *gorm.DB, p
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db)
+		db = page.Setup(db).Find(&list)
 	}
 
-	return db, total, db.Error
+	return list, total, db.Error
 }

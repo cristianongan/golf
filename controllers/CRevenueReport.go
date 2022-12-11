@@ -5,7 +5,8 @@ import (
 	"start/controllers/response"
 	"start/datasources"
 	"start/models"
-	mdoel_report "start/models/report"
+	model_booking "start/models/booking"
+	model_report "start/models/report"
 	"start/utils/response_message"
 
 	"github.com/gin-gonic/gin"
@@ -132,7 +133,7 @@ func (_ *CRevenueReport) GetBookingReportRevenueDetail(c *gin.Context, prof mode
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	reportRevenue := mdoel_report.ReportRevenueDetailList{
+	reportRevenue := model_report.ReportRevenueDetailList{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 		GuestStyle: form.GuestStyle,
@@ -140,19 +141,91 @@ func (_ *CRevenueReport) GetBookingReportRevenueDetail(c *gin.Context, prof mode
 		ToDate:     form.ToDate,
 	}
 
-	db, total, err := reportRevenue.FindBookingRevenueList(db, page)
+	list, total, _ := reportRevenue.FindBookingRevenueList(db, page)
 
-	res := response.PageResponse{}
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
 
-	if err != nil {
-		response_message.InternalServerError(c, err.Error())
+	okResponse(c, res)
+}
+
+func (_ *CRevenueReport) GetReportCashierAudit(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.RevenueBookingReportDetail{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
-	var list []mdoel_report.ReportRevenueDetail
-	db.Find(&list)
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
 
-	res = response.PageResponse{
+	reportRevenue := model_report.ReportRevenueDetailList{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		GuestStyle: form.GuestStyle,
+		FromDate:   form.FromDate,
+		ToDate:     form.ToDate,
+	}
+
+	list, total, _ := reportRevenue.FindBookingRevenueList(db, page)
+
+	newList := []model_report.ResReportCashierAudit{}
+
+	for _, item := range list {
+		newList = append(newList, model_report.ResReportCashierAudit{
+			PartnerUid: item.PartnerUid,
+			CourseUid:  item.CourseUid,
+			Bag:        item.Bag,
+			TransTime:  item.CreatedAt,
+			Cash:       item.Cash,
+			Card:       item.Card,
+			Voucher:    item.Voucher,
+			Debit:      item.Debit,
+		})
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  newList,
+	}
+
+	okResponse(c, res)
+}
+
+func (_ *CRevenueReport) GetReportBuggy(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	bookingList := model_booking.BookingList{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		FromDate:    form.FromDate,
+		ToDate:      form.ToDate,
+		BuggyCode:   form.BuggyCode,
+		BookingDate: form.BookingDate,
+	}
+
+	list, total, _ := bookingList.FindListBookingWithBuggy(db, page)
+
+	res := response.PageResponse{
 		Total: total,
 		Data:  list,
 	}
