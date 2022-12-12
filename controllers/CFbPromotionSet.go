@@ -89,6 +89,7 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 		Code:        body.Code,
 		InputUser:   body.InputUser,
 		Price:       body.Price,
+		AccountCode: body.AccountCode,
 	}
 
 	promotionSet.Status = body.Status
@@ -176,6 +177,9 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 		promotionSetR.Status = *body.Status
 	}
 	if body.Price > 0 {
+		promotionSetR.Price = body.Price
+	}
+	if body.AccountCode != "" {
 		promotionSetR.Price = body.Price
 	}
 

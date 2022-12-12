@@ -17,6 +17,7 @@ type ReportRevenueDetail struct {
 	CourseUid      string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	BillNo         string `json:"bill_no" gorm:"type:varchar(50);index"`      // Mã bill
 	BookingDate    string `json:"booking_date" gorm:"type:varchar(50);index"` // Ngày chơi
+	Bag            string `json:"bag" gorm:"type:varchar(50);index"`          // Mã KH
 	CustomerId     string `json:"customer_id" gorm:"type:varchar(50);index"`  // Mã KH
 	CustomerName   string `json:"customer_name"`                              // Tên KH
 	MembershipNo   string `json:"member_ship_no" gorm:"type:varchar(50)"`     // Mã thẻ thành viên
@@ -37,8 +38,8 @@ type ReportRevenueDetail struct {
 	Card           int64  `json:"card"`                                       // Số tiền cà thẻ
 	Voucher        int64  `json:"voucher"`                                    // Số tiền Voucher
 	Debit          int64  `json:"debit"`                                      // Số tiền nợ
-	Amout          int64  `json:"amount"`                                     // Tổng tiền
 	MushPay        int64  `json:"mush_pay"`                                   // Tổng tiền phải trả
+	Transfer       int64  `json:"transfer"`                                   // Số tiền chuyển khoản
 }
 
 // ======= CRUD ===========

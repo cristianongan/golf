@@ -25,6 +25,7 @@ type FbPromotionSet struct {
 	Price       float64 `json:"price"`                                    // Giá Set
 	EnglishName string  `json:"english_name" gorm:"type:varchar(256)"`    // Tên Tiếng Anh
 	VieName     string  `json:"vietnamese_name" gorm:"type:varchar(256)"` // Tên Tiếng Viet
+	AccountCode string  `json:"account_code" gorm:"type:varchar(100)"`    // Mã liên kết với Account kế toán
 }
 
 type FBItem struct {

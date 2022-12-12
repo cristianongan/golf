@@ -478,6 +478,7 @@ func updatePriceForRevenue(db *gorm.DB, item model_booking.Booking, billNo strin
 		PartnerUid:     item.PartnerUid,
 		CourseUid:      item.CourseUid,
 		BillNo:         billNo,
+		Bag:            item.Bag,
 		GuestStyle:     item.GuestStyle,
 		GuestStyleName: item.GuestStyleName,
 		BookingDate:    item.BookingDate,
