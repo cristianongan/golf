@@ -39,6 +39,7 @@ type ReportRevenueDetail struct {
 	Voucher        int64  `json:"voucher"`                                    // Số tiền Voucher
 	Debit          int64  `json:"debit"`                                      // Số tiền nợ
 	MushPay        int64  `json:"mush_pay"`                                   // Tổng tiền phải trả
+	Transfer       int64  `json:"transfer"`                                   // Số tiền chuyển khoản
 }
 
 // ======= CRUD ===========

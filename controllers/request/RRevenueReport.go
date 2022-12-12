@@ -26,4 +26,6 @@ type RevenueBookingReportDetail struct {
 	FromDate   string `form:"from_date"`
 	ToDate     string `form:"to_date"`
 	GuestStyle string `form:"guest_style"`
+	Month      int    `form:"month"`
+	Year       int    `form:"year"`
 }

@@ -232,3 +232,23 @@ func (_ *CRevenueReport) GetReportBuggy(c *gin.Context, prof models.CmsUser) {
 
 	okResponse(c, res)
 }
+
+func (_ *CRevenueReport) GetReportGolfFeeService(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.RevenueBookingReportDetail{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	reportRevenue := model_report.ReportRevenueDetailList{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		Year:       form.Year,
+		Month:      form.Month,
+	}
+
+	res := reportRevenue.FindGolfFeeRevenue(db)
+
+	okResponse(c, res)
+}
