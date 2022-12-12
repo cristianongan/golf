@@ -81,6 +81,16 @@ func handleSinglePayment(db *gorm.DB, booking model_booking.Booking, agencyPaid 
 		singlePayment.BookingCode = booking.BookingCode
 		singlePayment.PaymentDate = booking.BookingDate
 		singlePayment.BagInfo = bagInfo
+
+		if booking.AgencyId > 0 && booking.MemberCardUid == "" {
+			// Agency
+			singlePayment.Type = constants.PAYMENT_CATE_TYPE_AGENCY
+			singlePayment.AgencyPaid = agencyPaid
+		} else {
+			// Single
+			singlePayment.Type = constants.PAYMENT_CATE_TYPE_SINGLE
+		}
+
 		singlePayment.UpdatePaymentStatus(booking.BagStatus, db)
 		errUdp := singlePayment.Update(db)
 		if errUdp != nil {
@@ -168,7 +178,6 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		BookingCode: booking.BookingCode,
 		AgencyId:    booking.AgencyId,
 		BookingUid:  booking.Uid,
-		CaddieId:    fmt.Sprint(booking.CaddieId),
 	}
 
 	// feeInfo := bodyRequest.BookingList[index].FeeInfo
@@ -205,7 +214,13 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 
 	if feeInfo.BuggyFee > 0 || feeInfo.CaddieFee > 0 || feeInfo.GolfFee > 0 {
 		// Ghi nhận số tiền agency thanh toán của agency
-		bookingAgencyPayment.Create(db)
+		if errFind := bookingAgencyPayment.FindFirst(db); errFind != nil {
+			bookingAgencyPayment.CaddieId = fmt.Sprint(booking.CaddieId)
+			bookingAgencyPayment.Create(db)
+		} else {
+			bookingAgencyPayment.CaddieId = fmt.Sprint(booking.CaddieId)
+			bookingAgencyPayment.Update(db)
+		}
 
 		go func() {
 			// create bag payment
