@@ -710,6 +710,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/revenue/report-buggy", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBuggy))
 			cmsApiAuthorized.GET("/report/revenue/report-cashier-audit", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportCashierAudit))
 			cmsApiAuthorized.GET("/report/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportGolfFeeService))
+
+			/// =================== Test ===================
+			cTest := new(controllers.CTest)
+			cmsApiAuthorized.POST("/test/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cTest.CreateRevenueDetail))
 		}
 
 		// ----------------------------------------------------------
