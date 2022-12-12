@@ -52,6 +52,7 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 
 	booking.BagStatus = constants.BAG_STATUS_CANCEL
 	booking.CancelNote = body.Note
+	booking.CancelBookingTime = time.Now().Unix()
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
 	errUdp := booking.Update(db)
@@ -229,6 +230,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 
 		booking.BagStatus = constants.BAG_STATUS_CANCEL
 		booking.CancelNote = form.Reason
+		booking.CancelBookingTime = time.Now().Unix()
 		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
 		errUdp := booking.Update(db1)
