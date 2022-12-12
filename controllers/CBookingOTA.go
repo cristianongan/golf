@@ -95,6 +95,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	}
 
 	dateTeeStrConv := date.Format(constants.HOUR_FORMAT)
+	body.TeeOffStr = dateTeeStrConv
 
 	// Check tee time status
 	// Check TeeTime Index
@@ -307,8 +308,8 @@ func unlockTee(body request.CreateBookingOTABody) {
 				teeTimeRedisKey += body.TeeOffStr + "_" + "1B"
 			}
 
-			key := datasources.GetRedisKeyTeeTimeLock(teeTimeRedisKey)
-			datasources.DelCacheByKey(key)
+			err := datasources.DelCacheByKey(teeTimeRedisKey)
+			log.Print(err)
 			break
 		}
 	}
