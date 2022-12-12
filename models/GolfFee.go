@@ -37,6 +37,7 @@ type GolfFee struct {
 	GroupName        string                `json:"group_name" gorm:"index;type:varchar(200)"`       // Tên nhóm Fee
 	GroupId          int64                 `json:"group_id" gorm:"index"`                           // Id nhóm Fee
 	ApplyTime        string                `json:"apply_time" gorm:"type:varchar(100)"`             // Time áp dụng
+	TaxCode          string                `json:"tax_code" gorm:"type:varchar(20)"`                // VAT
 }
 
 type GuestStyle struct {
