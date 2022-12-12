@@ -546,6 +546,10 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 		booking.CaddieId = caddie.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddie)
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+
+		if response.OldCaddie.Id == caddie.Id {
+			response.OldCaddie = models.Caddie{}
+		}
 	}
 
 	//Check buggy
@@ -569,6 +573,10 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 		booking.BuggyId = buggy.Id
 		booking.IsPrivateBuggy = setBoolForCursor(isPrivateBuggy)
 		booking.BuggyInfo = cloneToBuggyBooking(buggy)
+
+		if response.OldBuggy.Id == buggy.Id {
+			response.OldBuggy = models.Buggy{}
+		}
 	}
 
 	booking.ShowCaddieBuggy = setBoolForCursor(true)
