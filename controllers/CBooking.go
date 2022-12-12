@@ -1329,15 +1329,6 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// udp trạng thái caddie
-	if booking.CaddieId > 0 {
-		errCd := udpCaddieOut(db, booking.CaddieId)
-		if errCd != nil {
-			response_message.InternalServerError(c, errCd.Error())
-			return
-		}
-	}
-
 	// delete tee time locked theo booking date
 	if booking.TeeTime != "" {
 		go unlockTurnTime(db, booking)

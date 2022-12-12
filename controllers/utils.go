@@ -579,23 +579,6 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 }
 
 /*
-Out caddie
-*/
-func udpOutCaddieBooking(db *gorm.DB, booking *model_booking.Booking) error {
-
-	if booking.CaddieId > 0 {
-		errCd := udpCaddieOut(db, booking.CaddieId)
-		if errCd != nil {
-			return errCd
-		}
-		// Udp booking
-		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_OUT
-	}
-
-	return nil
-}
-
-/*
 Out Buggy
 */
 func udpOutBuggy(db *gorm.DB, booking *model_booking.Booking, isOutAll bool) error {
@@ -631,32 +614,33 @@ func udpOutBuggy(db *gorm.DB, booking *model_booking.Booking, isOutAll bool) err
 /*
 Update caddie is in course is false
 */
-func udpCaddieOut(db *gorm.DB, caddieId int64) error {
+func udpCaddieOut(db *gorm.DB, caddieId int64) {
 	// Get Caddie
-	caddie := models.Caddie{}
-	caddie.Id = caddieId
-	err := caddie.FindFirst(db)
-	if !(utils.ContainString(constants.LIST_CADDIE_READY_JOIN, caddie.CurrentStatus) > -1) {
-		if caddie.CurrentRound == 0 {
-			caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
-		} else {
-			if caddie.CurrentRound > 1 {
-				caddie.CurrentStatus = fmt.Sprint(constants.CADDIE_CURRENT_STATUS_FINISH, " ", "R", "_", caddie.CurrentRound)
-			} else {
+	if caddieId > 0 {
+		caddie := models.Caddie{}
+		caddie.Id = caddieId
+		err := caddie.FindFirst(db)
+		if !(utils.ContainString(constants.LIST_CADDIE_READY_JOIN, caddie.CurrentStatus) > -1) {
+			if caddie.CurrentRound == 0 {
+				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
+			} else if caddie.CurrentRound == 1 {
 				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
+			} else if caddie.CurrentRound == 2 {
+				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH_R2
+			} else if caddie.CurrentRound == 3 {
+				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH_R3
 			}
+			errUpd := caddie.Update(db)
+			if errUpd != nil {
+				log.Println("udpCaddieOut err", err.Error())
+			}
+			go func() {
+				cNotification := CNotification{}
+				title := fmt.Sprint("Caddie", " ", caddie.Code, " ", caddie.CurrentStatus)
+				cNotification.CreateCaddieWorkingStatusNotification(title)
+			}()
 		}
-		errUpd := caddie.Update(db)
-		if errUpd != nil {
-			log.Println("udpCaddieOut err", err.Error())
-		}
-		go func() {
-			cNotification := CNotification{}
-			title := fmt.Sprint("Caddie", " ", caddie.Code, " ", caddie.CurrentStatus)
-			cNotification.CreateCaddieWorkingStatusNotification(title)
-		}()
 	}
-	return err
 }
 
 /*
