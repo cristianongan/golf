@@ -1,4 +1,4 @@
-rootUrl: golf-staging-api.vngolf.net
+rootUrl: vngolf-partner.vnpaytest.vn
 
 replicaCount: 3
 
