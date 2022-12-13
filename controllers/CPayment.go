@@ -3,11 +3,9 @@ package controllers
 import (
 	"encoding/json"
 	"log"
-	"start/callservices"
 	"start/config"
 	"start/constants"
 	"start/controllers/request"
-	"start/controllers/response"
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
@@ -19,7 +17,6 @@ import (
 	model_payment "start/models/payment"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type CPayment struct{}
@@ -178,35 +175,6 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 	// go updateFastBill(body.PaymentType, body.Amount, body.Note, booking)
 
 	okRes(c)
-}
-
-func updateFastBill(paymentType string, price int64, note string, booking model_booking.Booking) {
-	idOnes := "CL" + utils.HashCodeUuid(uuid.New().String())
-	body := response.FastBillBody{
-		IdOnes:       idOnes,
-		MaDVCS:       "CTY",
-		SoCT:         "",
-		NgayCt:       time.Now(),
-		MaNT:         "",
-		TyGia:        1,
-		MaKH:         booking.CustomerUid,
-		NguoiNopTien: booking.CustomerName,
-		DienGiai:     note,
-		MaGD:         "1",
-		TK:           "13111",
-		Detail: []response.FastBillBodyItem{
-			{
-				TkCo: "13111",
-				Tien: price,
-			},
-		},
-	}
-
-	if paymentType == constants.PAYMENT_TYPE_CASH {
-		callservices.CreateFastCashVoucher(body)
-	} else {
-		callservices.CreateFastBankCredit(body)
-	}
 }
 
 /*

@@ -17,6 +17,7 @@ type FbPromotionSetBody struct {
 	Status      string         `json:"status"`
 	InputUser   string         `json:"input_user"`
 	Price       float64        `json:"price"`
+	AccountCode string         `json:"account_code"`
 }
 
 type FbItem struct {
@@ -51,6 +52,7 @@ type UpdateFbPromotionSet struct {
 	Discount    *int64         `json:"discount"`
 	Note        *string        `json:"note"`
 	FBList      FBPromotionSet `json:"fb_list"`
-	Status      *string        `form:"status" json:"status"`
+	Status      *string        `json:"status"`
 	Price       float64        `json:"price"`
+	AccountCode string         `json:"account_code"`
 }

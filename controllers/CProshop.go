@@ -102,6 +102,7 @@ func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
 		ProPrice:      body.ProPrice,
 		PeopleDeposit: body.PeopleDeposit,
 		Type:          body.Type,
+		TaxCode:       body.TaxCode,
 	}
 
 	err := service.Create(db)
@@ -230,6 +231,9 @@ func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
 	}
 	if body.GroupCode != "" {
 		proshop.GroupCode = body.GroupCode
+	}
+	if body.TaxCode != "" {
+		proshop.TaxCode = body.TaxCode
 	}
 
 	errUdp := proshop.Update(db)

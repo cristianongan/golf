@@ -30,6 +30,7 @@ type RestaurantItem struct {
 	Quantity         int    `json:"quantity"`                                   // Số lượng order
 	QuantityProgress int    `json:"quantity_progress"`                          // Số lương đang tiến hành
 	TotalProcess     int    `json:"total_process"`                              // Tổng số lượng đang làm
+	MoveKitchenTimes int    `json:"move_kitchen_times"`                         // Số lần move kitchen của bill
 }
 
 func (item *RestaurantItem) Create(db *gorm.DB) error {
@@ -50,6 +51,20 @@ func (item *RestaurantItem) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = time.Now().Unix()
 
 	return db.Save(item).Error
+}
+
+func (item *RestaurantItem) UpdateBatchBillId(db *gorm.DB) error {
+	db = db.Model(RestaurantItem{})
+
+	if item.ItemId != 0 {
+		db = db.Where("item_id = ?", item.ItemId)
+	}
+
+	if item.BillId != 0 {
+		db = db.Update("bill_id", item.BillId)
+	}
+
+	return db.Error
 }
 
 func (item *RestaurantItem) Delete(db *gorm.DB) error {

@@ -248,6 +248,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/booking/bag-not-check-out", middlewares.AuthorizedCmsUserHandler(cBooking.GetBagNotCheckOut))
 			cmsApiAuthorized.POST("/booking/change-to-main-bag", middlewares.AuthorizedCmsUserHandler(cBooking.ChangeToMainBag))         // Change To Main Bag
 			cmsApiAuthorized.GET("/booking/tee-time-slot-remain", middlewares.AuthorizedCmsUserHandler(cBooking.GetSlotRemainInTeeTime)) // Change To Main Bag
+			cmsApiAuthorized.POST("/booking/finish-bill", middlewares.AuthorizedCmsUserHandler(cBooking.FinishBill))                     // Ghi nhận bước thanh toán cuối cùng
 			// cmsApiAuthorized.GET("/booking/golf-fee", middlewares.AuthorizedCmsUserHandler(cBooking.GetGolfFeeInfoOfBag))
 
 			/// =================== Caddie Buggy In Out Bag ===================
@@ -608,7 +609,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddItemServiceToCart))
 			cmsApiAuthorized.POST("/service-cart/rental", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddItemRentalToCart))
 			cmsApiAuthorized.POST("/service-cart/add-discount", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddDiscountToItem))
-			cmsApiAuthorized.POST("/service-cart/create-billing", middlewares.AuthorizedCmsUserHandler(cServiceCart.CreateBilling))
+			cmsApiAuthorized.POST("/service-cart/create-billing", middlewares.AuthorizedCmsUserHandler(cServiceCart.CreateBill))
 			cmsApiAuthorized.POST("/service-cart/move-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.MoveItemToOtherCart))
 			cmsApiAuthorized.POST("/service-cart/create-new-guest", middlewares.AuthorizedCmsUserHandler(cServiceCart.CreateNewGuest))
 			cmsApiAuthorized.PUT("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.UpdateItemCart))
@@ -629,6 +630,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/restaurant/add-booking", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateRestaurantBooking))
 			cmsApiAuthorized.POST("/restaurant/create-bill-code", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateBill))
 			cmsApiAuthorized.POST("/restaurant/finish-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.FinishAllResItem))
+			cmsApiAuthorized.POST("/restaurant/transfer-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.TransferItem))
 			cmsApiAuthorized.PUT("/restaurant/item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.UpdateItemOrder))
 			cmsApiAuthorized.PUT("/restaurant/res-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.UpdateResItem))
 			cmsApiAuthorized.PUT("/restaurant/finish-res-order", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.FinishRestaurantOrder))
@@ -701,7 +703,17 @@ func NewRouter() *gin.Engine {
 
 			/// =================== Revenue Report ===================
 			cRevenueReport := new(controllers.CRevenueReport)
-			cmsApiAuthorized.GET("/revenue-report/report-food-beverage", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportRevenueFoodBeverage))
+			cmsApiAuthorized.GET("/report/revenue/report-food-beverage", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportRevenueFoodBeverage))
+			cmsApiAuthorized.GET("/report/revenue/report-detail-fb-bag", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportRevenueDetailFBBag))
+			cmsApiAuthorized.GET("/report/revenue/report-detail-fb", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportRevenueDetailFB))
+			cmsApiAuthorized.GET("/report/revenue/report-booking-detail", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetBookingReportRevenueDetail))
+			cmsApiAuthorized.GET("/report/revenue/report-buggy", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBuggy))
+			cmsApiAuthorized.GET("/report/revenue/report-cashier-audit", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportCashierAudit))
+			cmsApiAuthorized.GET("/report/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportGolfFeeService))
+
+			/// =================== Test ===================
+			cTest := new(controllers.CTest)
+			cmsApiAuthorized.POST("/test/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cTest.CreateRevenueDetail))
 		}
 
 		// ----------------------------------------------------------

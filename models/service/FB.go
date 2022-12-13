@@ -40,6 +40,7 @@ type FoodBeverage struct {
 	Type          string  `json:"type" gorm:"type:varchar(256)"`        // sub type của F&B
 	HotKitchen    *bool   `json:"hot_kitchen"`                          // Món ăn chế biến trong bếp nóng
 	ColdKitchen   *bool   `json:"cold_kitchen"`                         // Món ăn chế biến trong bếp lạnh như salad, gỏi
+	TaxCode       string  `json:"tax_code" gorm:"type:varchar(50)"`     // VAT
 
 }
 type FoodBeverageResponse struct {

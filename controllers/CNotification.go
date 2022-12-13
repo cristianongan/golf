@@ -143,11 +143,6 @@ func (_ *CNotification) ApproveCaddieCalendarNotification(c *gin.Context, prof m
 	}
 
 	newNotification := models.Notification{}
-	if form.IsApprove {
-		newNotification.NotificationStatus = constants.NOTIFICATION_APPROVED
-	} else {
-		newNotification.NotificationStatus = constants.NOTIFICATION_REJECTED
-	}
 	newNotification.Title = strings.Replace(notification.Title, extraTitle, approvedTitle, 1)
 	newNotification.UserCreate = prof.UserName
 	newNotification.Note = form.Note
@@ -155,6 +150,17 @@ func (_ *CNotification) ApproveCaddieCalendarNotification(c *gin.Context, prof m
 
 	if errNotification := newNotification.Create(db); errNotification != nil {
 		response_message.InternalServerError(c, errNotification.Error())
+		return
+	}
+
+	if form.IsApprove {
+		notification.NotificationStatus = constants.NOTIFICATION_APPROVED
+	} else {
+		notification.NotificationStatus = constants.NOTIFICATION_REJECTED
+	}
+
+	if errUpdNotification := notification.Update(db); errUpdNotification != nil {
+		response_message.InternalServerError(c, errUpdNotification.Error())
 		return
 	}
 
@@ -198,6 +204,16 @@ func (_ *CNotification) CreateCaddieVacationNotification(db *gorm.DB, body reque
 func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
 	notiData := map[string]interface{}{
 		"type":  constants.NOTIFICATION_CADDIE_WORKING_STATUS_UPDATE,
+		"title": title,
+	}
+
+	newFsConfigBytes, _ := json.Marshal(notiData)
+	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+}
+
+func (_ *CNotification) PushNotificationCreateBookingOTA(title string) {
+	notiData := map[string]interface{}{
+		"type":  constants.NOTIFICATION_BOOKING_OTA_FINISH,
 		"title": title,
 	}
 

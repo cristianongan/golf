@@ -107,6 +107,13 @@ type CancelAllBookingBody struct {
 	Reason      string `form:"reason" json:"reason"`
 }
 
+type FinishBookingBody struct {
+	PartnerUid string `json:"partner_uid" binding:"required"` // Hang Golf
+	CourseUid  string `json:"course_uid" binding:"required"`  // San Golf
+	Bag        string `json:"bag" binding:"required"`
+	BillNo     string `json:"bill_no" binding:"required"`
+}
+
 // Tạo Tee booking
 // Guest Booking
 // Member Booking
@@ -243,9 +250,10 @@ type CheckInBody struct {
 	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
 	CustomerName   string `json:"customer_name"`    // Player Name
 
-	MemberCardUid    string `json:"member_card_uid"`     // Member Card
-	AgencyId         int64  `json:"agency_id"`           // Agency id
-	MemberUidOfGuest string `json:"member_uid_of_guest"` // Member của Guest đến chơi cùng
+	MemberCardUid    string        `json:"member_card_uid"`     // Member Card
+	AgencyId         int64         `json:"agency_id"`           // Agency id
+	MemberUidOfGuest string        `json:"member_uid_of_guest"` // Member của Guest đến chơi cùng
+	FeeInfo          AgencyFeeInfo `json:"fee_info"`            // Golf Fee cho case agency
 }
 
 //type AddRoundBody struct {
@@ -276,7 +284,8 @@ type MovingBookingBody struct {
 
 type UpdateBooking struct {
 	model_booking.Booking
-	CaddieCode string `json:"caddie_code"`
+	CaddieCode string        `json:"caddie_code"`
+	FeeInfo    AgencyFeeInfo `json:"fee_info"`
 }
 
 type ChangeBookingHole struct {
