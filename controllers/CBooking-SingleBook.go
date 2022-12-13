@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"net/http"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -86,6 +87,8 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	listBookingReadyMoved := []model_booking.Booking{}
+
 	for _, BookingUid := range body.BookUidList {
 		if BookingUid == "" {
 			response_message.BadRequest(c, "Booking Uid not empty")
@@ -131,6 +134,15 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			booking.Hole = body.Hole
 		}
 
+		if checkTeeTimeAvailable(booking) {
+			response_message.ErrorResponse(c, http.StatusBadRequest, "TEE_TIME_SLOT_FULL", "", http.StatusBadRequest)
+			return
+		}
+
+		listBookingReadyMoved = append(listBookingReadyMoved, booking)
+	}
+
+	for _, booking := range listBookingReadyMoved {
 		errUdp := booking.Update(db)
 		if errUdp != nil {
 			response_message.InternalServerError(c, errUdp.Error())

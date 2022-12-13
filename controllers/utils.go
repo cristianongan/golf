@@ -1382,7 +1382,6 @@ func addServiceCart(db *gorm.DB, numberGuest int, partnerUid, courseUid, playerN
 /*
 Tạo row index cho booking
 */
-
 func generateRowIndex(rowsCurrent []int) int {
 	if !utils.Contains(rowsCurrent, 0) {
 		return 0
@@ -1392,4 +1391,22 @@ func generateRowIndex(rowsCurrent []int) int {
 		return 2
 	}
 	return 3
+}
+
+/*
+Check Tee Time chỗ để booking không
+*/
+func checkTeeTimeAvailable(booking model_booking.Booking) bool {
+	bookings := model_booking.BookingList{}
+	bookings.PartnerUid = booking.PartnerUid
+	bookings.CourseUid = booking.CourseUid
+	bookings.BookingDate = booking.BookingDate
+	bookings.TeeTime = booking.TeeTime
+	bookings.TeeType = booking.TeeType
+	bookings.CourseType = booking.CourseType
+
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	_, total, _ := bookings.FindAllBookingList(db)
+
+	return !(total == constants.SLOT_TEE_TIME)
 }
