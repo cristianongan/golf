@@ -1660,6 +1660,7 @@ func (item *Booking) ReportBookingRevenue(database *gorm.DB, bookingType, date s
 			constants.BOOKING_CUSTOMER_TYPE_TRADITIONAL,
 			constants.BOOKING_CUSTOMER_TYPE_MEMBER,
 			constants.BOOKING_CUSTOMER_TYPE_GUEST,
+			constants.BOOKING_CUSTOMER_TYPE_VISITOR,
 		}
 
 		db = db.Where("customer_type NOT IN (?) ", customerTypes)
