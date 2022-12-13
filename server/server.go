@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"start/config"
 	"start/datasources"
+	"start/logger"
 	socket "start/socket"
 
 	ccron "start/cron"
@@ -17,6 +18,9 @@ func Init() {
 	log.Println("server init")
 
 	config := config.GetConfig()
+
+	// Init Logger
+	logger.InitLogger()
 
 	// --- Socket ---
 

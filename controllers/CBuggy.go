@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -321,11 +322,11 @@ func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// updateLogData.New = buggyRequest
+	updateLogData.New = buggyRequest
 
-	// updateLogDataJson, _ := json.Marshal(updateLogData)
+	updateLogDataJson, _ := json.Marshal(updateLogData)
 
-	// logger.Log(logger.EVENT_ACTION_UPDATE, logger.EVENT_CATEOGRY_BUGGY, buggyRequest.Code, string(updateLogDataJson), prof)
+	logger.Log(db, logger.EVENT_ACTION_UPDATE, logger.EVENT_CATEOGRY_BUGGY, buggyRequest.Code, string(updateLogDataJson), prof)
 
 	okRes(c)
 }

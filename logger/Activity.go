@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"encoding/json"
 	"fmt"
 	"start/constants"
 	"start/datasources"
@@ -93,22 +92,29 @@ func ActivityMysql(cnf golog.Conf) *ActivityMysqlAppender {
 	}
 }
 
-func Log(action string, category string, label string, value string, prof models.CmsUser) {
-	activityLogData := map[string]string{
-		"partner_uid": prof.PartnerUid,
-		"course_uid":  prof.CourseUid,
-		"user_uid":    prof.Uid,
-		"user_name":   prof.FullName,
-		"action":      action,
-		"category":    category,
-		"label":       label,
-		"value":       value,
+func Log(db *gorm.DB, action, category, label, value string, prof models.CmsUser) {
+	now := time.Now()
+
+	activityLog := ActivityLog{
+		ModelId: models.ModelId{
+			CreatedAt: now.Unix(),
+			UpdatedAt: now.Unix(),
+			Status:    constants.STATUS_ENABLE,
+		},
+		PartnerUid: prof.PartnerUid,
+		CourseUid:  prof.CourseUid,
+		UserUid:    prof.Uid,
+		UserName:   prof.UserName,
+		Action:     action,
+		Category:   category,
+		Label:      label,
+		Value:      value,
 	}
 
-	activityLogDataJson, _ := json.Marshal(activityLogData)
+	if err := activityMysqlAppender.db.Create(&activityLog).Error; err != nil {
+		panic(err.Error())
+	}
 
-	activityLogger := GetActivityMysqlLogger()
-	activityLogger.Info(fmt.Sprintln("["+prof.CourseUid+"] ["+category+"] ["+action+"]", string(activityLogDataJson)), activityLogData)
 }
 
 func (item *ActivityLog) FindList(page models.Page) ([]ActivityLog, int64, error) {
