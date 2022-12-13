@@ -603,7 +603,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 
 			for _, v1 := range listGolfServiceTemp {
 				isCanAdd := false
-				if item.MainBagPay != nil && len(item.MainBagPay) > 0 {
+				if item.MainBagPay != nil && len(item.MainBagPay) > 0 && v1.CreatedAt < item.CheckOutTime {
 					for _, v2 := range item.MainBagPay {
 						// Check trạng thái bill
 						serviceCart := models.ServiceCart{}
@@ -825,12 +825,7 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 				}
 			}
 		} else {
-			if mainCheckOutTime > 0 && v.CreatedAt > mainCheckOutTime {
-				// main bag đã check out đi về, sub bag dùng tiếp service sẽ ko cộng thêm vào main bag
-				isNeedPay = false
-			} else {
-				isNeedPay = true
-			}
+			isNeedPay = true
 		}
 
 		if isNeedPay {
