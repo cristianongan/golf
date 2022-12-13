@@ -58,6 +58,21 @@ type BookingList struct {
 	NotNoneGolfAndWalking bool
 }
 
+type ResBookingWithBuggyFeeInfo struct {
+	BookingDate string `json:"booking_date"`
+	BuggyCode   string `json:"buggy_code"`
+	BuggyType   string `json:"buggy_type"`
+	Bag         string `json:"bag"`
+	TeeOff      string `json:"tee_off"`
+	GuestName   string `json:"guest_name"`
+	GuestStyle  string `json:"guest_style"`
+	CardId      string `json:"card_id"`
+	AgencyName  string `json:"agency_name"`
+	Hole        string `json:"hole"`
+	CaddieId    int64  `json:"caddie_id"`
+	Fee         int64  `json:"fee"`
+}
+
 func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	if item.PartnerUid != "" {
 		db = db.Where("bookings.partner_uid = ?", item.PartnerUid)
@@ -343,4 +358,50 @@ func (item *BookingList) FindFirst(database *gorm.DB) (Booking, error) {
 
 	err := db.Where(item).First(&result).Error
 	return result, err
+}
+
+/*
+For report booking with buggy fee
+*/
+func (item *BookingList) FindListBookingWithBuggy(database *gorm.DB, page models.Page) ([]ResBookingWithBuggyFeeInfo, int64, error) {
+	db := database.Table("bookings")
+	list := []ResBookingWithBuggyFeeInfo{}
+	total := int64(0)
+
+	if item.PartnerUid != "" {
+		db = db.Where("bookings.partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("bookings.course_uid = ?", item.CourseUid)
+	}
+
+	if item.BuggyCode != "" {
+		db = db.Where("bookings.buggy_info->'$.code' COLLATE utf8mb4_general_ci LIKE ?", "%"+item.BuggyCode+"%")
+	}
+
+	if item.BookingDate != "" {
+		db = db.Where("bookings.booking_date = ?", item.BookingDate)
+	}
+
+	if item.FromDate != "" {
+		db = db.Where("STR_TO_DATE(bookings.booking_date, '%d/%m/%Y') >= ?", item.FromDate)
+	}
+
+	if item.ToDate != "" {
+		db = db.Where("STR_TO_DATE(bookings.booking_date, '%d/%m/%Y') <= ?", item.ToDate)
+	}
+
+	db = db.Where("bookings.buggy_info->'$.code' <> ''")
+	db = db.Where("booking_service_items.type = ?", constants.BUGGY_SETTING)
+	db = db.Joins("JOIN booking_service_items ON booking_service_items.bill_code = bookings.bill_code")
+	db = db.Select("bookings.booking_date, JSON_VALUE(bookings.buggy_info,'$.code') as buggy_code, booking_service_items.name as buggy_type, bookings.bag, bookings.tee_off_time as tee_off, bookings.guest_style_name, bookings.guest_style, bookings.card_id, JSON_VALUE(bookings.agency_info,'$.name') as agency_name, bookings.hole, bookings.caddie_id, booking_service_items.amount as fee")
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, total, db.Error
 }

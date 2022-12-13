@@ -7,7 +7,6 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
-	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
 	"start/utils"
 	"start/utils/response_message"
@@ -65,29 +64,29 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	}
 
 	// validate quantity
-	inventory := kiosk_inventory.InventoryItem{}
-	inventory.PartnerUid = body.PartnerUid
-	inventory.CourseUid = body.CourseUid
-	inventory.ServiceId = body.ServiceId
-	inventory.Code = body.ItemCode
+	// inventory := kiosk_inventory.InventoryItem{}
+	// inventory.PartnerUid = body.PartnerUid
+	// inventory.CourseUid = body.CourseUid
+	// inventory.ServiceId = body.ServiceId
+	// inventory.Code = body.ItemCode
 
-	if err := inventory.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Inventory "+err.Error())
-		return
-	}
+	// if err := inventory.FindFirst(db); err != nil {
+	// 	response_message.BadRequest(c, "Inventory "+err.Error())
+	// 	return
+	// }
 
-	// Kiểm tra số lượng hàng tồn trong kho
-	if body.Quantity > inventory.Quantity {
-		response_message.BadRequest(c, "The quantity of goods in stock is not enough")
-		return
-	}
+	// // Kiểm tra số lượng hàng tồn trong kho
+	// if body.Quantity > inventory.Quantity {
+	// 	response_message.BadRequest(c, "The quantity of goods in stock is not enough")
+	// 	return
+	// }
 
-	// Update số lượng hàng tồn trong kho
-	inventory.Quantity -= body.Quantity
-	if err := inventory.Update(db); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
+	// // Update số lượng hàng tồn trong kho
+	// inventory.Quantity -= body.Quantity
+	// if err := inventory.Update(db); err != nil {
+	// 	response_message.BadRequest(c, err.Error())
+	// 	return
+	// }
 
 	// create cart item
 	serviceCartItem := model_booking.BookingServiceItem{}
@@ -148,7 +147,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
 		serviceCart.ServiceId = body.ServiceId
 		serviceCart.BillCode = constants.BILL_NONE
-		serviceCart.StaffOrder = prof.UserName
+		serviceCart.StaffOrder = prof.FullName
 		serviceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
 		serviceCart.ServiceType = kiosk.KioskType
 		serviceCart.PlayerName = booking.CustomerName
@@ -164,11 +163,11 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 			return
 		}
 	} else {
-		// Kiểm tra trạng thái bill
-		// if serviceCart.BillStatus != constants.POS_BILL_STATUS_PENDING {
-		// 	response_message.BadRequest(c, "Bill status invalid")
-		// 	return
-		// }
+		//Kiểm tra trạng thái bill
+		if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
+			response_message.BadRequest(c, "Bill status invalid")
+			return
+		}
 		// update tổng giá bill
 		serviceCart.Amount += body.Quantity * serviceCartItem.UnitPrice
 		if err := serviceCart.Update(db); err != nil {
@@ -284,7 +283,7 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 		serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
 		serviceCart.ServiceId = body.ServiceId
 		serviceCart.BillCode = constants.BILL_NONE
-		serviceCart.StaffOrder = prof.UserName
+		serviceCart.StaffOrder = prof.FullName
 		serviceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
 	}
 
@@ -303,11 +302,11 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 	} else {
-		// Kiểm tra trạng thái bill
-		// if serviceCart.BillStatus != constants.POS_BILL_STATUS_PENDING {
-		// 	response_message.BadRequest(c, "Bill status invalid")
-		// 	return
-		// }
+		//Kiểm tra trạng thái bill
+		if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
+			response_message.BadRequest(c, "Bill status invalid")
+			return
+		}
 		// update tổng giá bill
 		serviceCart.Amount += body.Quantity * serviceCartItem.UnitPrice
 		if err := serviceCart.Update(db); err != nil {
@@ -650,33 +649,33 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	// }
 
 	if body.Quantity > 0 {
-		if serviceCartItem.Type != constants.RENTAL_SETTING &&
-			serviceCartItem.Type != constants.DRIVING_SETTING {
-			// validate quantity
-			inventory := kiosk_inventory.InventoryItem{}
-			inventory.PartnerUid = body.PartnerUid
-			inventory.CourseUid = body.CourseUid
-			inventory.ServiceId = serviceCart.ServiceId
-			inventory.Code = serviceCartItem.ItemCode
+		// if serviceCartItem.Type != constants.RENTAL_SETTING &&
+		// 	serviceCartItem.Type != constants.DRIVING_SETTING {
+		// 	// validate quantity
+		// 	inventory := kiosk_inventory.InventoryItem{}
+		// 	inventory.PartnerUid = body.PartnerUid
+		// 	inventory.CourseUid = body.CourseUid
+		// 	inventory.ServiceId = serviceCart.ServiceId
+		// 	inventory.Code = serviceCartItem.ItemCode
 
-			if err := inventory.FindFirst(db); err != nil {
-				response_message.BadRequest(c, err.Error())
-				return
-			}
+		// 	if err := inventory.FindFirst(db); err != nil {
+		// 		response_message.BadRequest(c, err.Error())
+		// 		return
+		// 	}
 
-			// Kiểm tra số lượng hàng tồn trong kho
-			if body.Quantity > inventory.Quantity+int64(serviceCartItem.Quality) {
-				response_message.BadRequest(c, "The quantity of goods in stock is not enough")
-				return
-			}
+		// 	// Kiểm tra số lượng hàng tồn trong kho
+		// 	if body.Quantity > inventory.Quantity+int64(serviceCartItem.Quality) {
+		// 		response_message.BadRequest(c, "The quantity of goods in stock is not enough")
+		// 		return
+		// 	}
 
-			// Update số lượng hàng tồn trong kho
-			inventory.Quantity = inventory.Quantity + int64(serviceCartItem.Quality) - body.Quantity
-			if err := inventory.Update(db); err != nil {
-				response_message.BadRequest(c, err.Error())
-				return
-			}
-		}
+		// 	// Update số lượng hàng tồn trong kho
+		// 	inventory.Quantity = inventory.Quantity + int64(serviceCartItem.Quality) - body.Quantity
+		// 	if err := inventory.Update(db); err != nil {
+		// 		response_message.BadRequest(c, err.Error())
+		// 		return
+		// 	}
+		// }
 
 		// update service cart
 		serviceCart.Amount += (body.Quantity * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
@@ -742,27 +741,27 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if serviceCartItem.Type != constants.RENTAL_SETTING &&
-		serviceCartItem.Type != constants.DRIVING_SETTING {
-		// validate quantity
-		inventory := kiosk_inventory.InventoryItem{}
-		inventory.PartnerUid = serviceCartItem.PartnerUid
-		inventory.CourseUid = serviceCartItem.CourseUid
-		inventory.ServiceId = serviceCart.ServiceId
-		inventory.Code = serviceCartItem.ItemCode
+	// if serviceCartItem.Type != constants.RENTAL_SETTING &&
+	// 	serviceCartItem.Type != constants.DRIVING_SETTING {
+	// 	// validate quantity
+	// 	inventory := kiosk_inventory.InventoryItem{}
+	// 	inventory.PartnerUid = serviceCartItem.PartnerUid
+	// 	inventory.CourseUid = serviceCartItem.CourseUid
+	// 	inventory.ServiceId = serviceCart.ServiceId
+	// 	inventory.Code = serviceCartItem.ItemCode
 
-		if err := inventory.FindFirst(db); err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
-		}
+	// 	if err := inventory.FindFirst(db); err != nil {
+	// 		response_message.BadRequest(c, err.Error())
+	// 		return
+	// 	}
 
-		// Update số lượng hàng tồn trong kho
-		inventory.Quantity += int64(serviceCartItem.Quality)
-		if err := inventory.Update(db); err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
-		}
-	}
+	// 	// Update số lượng hàng tồn trong kho
+	// 	inventory.Quantity += int64(serviceCartItem.Quality)
+	// 	if err := inventory.Update(db); err != nil {
+	// 		response_message.BadRequest(c, err.Error())
+	// 		return
+	// 	}
+	// }
 
 	// update service cart
 	serviceCart.Amount -= serviceCartItem.Amount
@@ -780,7 +779,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
-func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
+func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateBillCodeBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -818,6 +817,12 @@ func (_ CServiceCart) CreateBilling(c *gin.Context, prof models.CmsUser) {
 
 	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	//Kiểm tra trạng thái bill
+	if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
+		response_message.BadRequest(c, "Bill status invalid")
 		return
 	}
 
@@ -889,6 +894,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	targetServiceCart.GolfBag = body.GolfBag
 	targetServiceCart.BookingDate = datatypes.Date(time.Now().UTC())
 	targetServiceCart.ServiceId = sourceServiceCart.ServiceId
+	targetServiceCart.ServiceType = sourceServiceCart.ServiceType
 	targetServiceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
 
 	err := targetServiceCart.FindFirst(db)
@@ -897,7 +903,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	if err != nil {
 		// create cart
 		targetServiceCart.BookingUid = booking.Uid
-		targetServiceCart.StaffOrder = prof.UserName
+		targetServiceCart.StaffOrder = prof.FullName
 		targetServiceCart.BillCode = constants.BILL_NONE
 
 		if err := targetServiceCart.Create(db); err != nil {
@@ -1018,6 +1024,9 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
+
 	okRes(c)
 }
 
@@ -1062,7 +1071,7 @@ func createExportBillInventory(c *gin.Context, prof models.CmsUser, serviceCart 
 		bodyOutputBill.ListItem = lisItem
 
 		cKioskOutputInventory := CKioskOutputInventory{}
-		cKioskOutputInventory.MethodOutputBill(c, prof, bodyOutputBill, constants.KIOSK_BILL_INVENTORY_SELL, code)
+		cKioskOutputInventory.MethodOutputBill(c, prof, bodyOutputBill, constants.KIOSK_BILL_INVENTORY_SELL, code, constants.KIOSK_BILL_INVENTORY_APPROVED)
 	}
 }
 
@@ -1118,18 +1127,33 @@ func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
 	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
 	billCode := utils.HashCodeUuid(bookingUid.String())
 
-	// Create booking
-	booking := model_booking.Booking{
+	// Check group Fee
+	golfFeeR := models.GolfFee{
 		PartnerUid:   body.PartnerUid,
 		CourseUid:    body.CourseUid,
-		Bag:          bagClone,
-		BillCode:     billCode,
-		BookingDate:  time.Now().Format("02/01/2006"),
-		BagStatus:    constants.BAG_STATUS_WAITING,
-		InitType:     constants.BOOKING_INIT_TYPE_CHECKIN,
-		CheckInTime:  time.Now().Unix(),
-		CustomerName: body.GuestName,
 		CustomerType: constants.CUSTOMER_TYPE_NONE_GOLF,
+	}
+
+	err := golfFeeR.FindFirstWithCusType(db)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	// Create booking
+	booking := model_booking.Booking{
+		PartnerUid:     body.PartnerUid,
+		CourseUid:      body.CourseUid,
+		Bag:            bagClone,
+		BillCode:       billCode,
+		BookingDate:    time.Now().Format("02/01/2006"),
+		BagStatus:      constants.BAG_STATUS_WAITING,
+		InitType:       constants.BOOKING_INIT_TYPE_CHECKIN,
+		CheckInTime:    time.Now().Unix(),
+		CustomerName:   body.GuestName,
+		CustomerType:   constants.CUSTOMER_TYPE_NONE_GOLF,
+		GuestStyle:     golfFeeR.GuestStyle,
+		GuestStyleName: golfFeeR.GuestStyleName,
 	}
 
 	errC := booking.Create(db, bUid)
@@ -1164,6 +1188,12 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 	serviceCart.Id = body.BillId
 	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find service Cart "+err.Error())
+		return
+	}
+
+	//Kiểm tra trạng thái bill
+	if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
+		response_message.BadRequest(c, "Bill status invalid")
 		return
 	}
 

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -26,9 +27,9 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 		return
 	}
 
-	billcode := time.Now().Format("20060102150405")
+	billCode := time.Now().Format("20060102150405")
 	if errOutputBill := item.MethodOutputBill(c, prof, body,
-		constants.KIOSK_BILL_INVENTORY_TRANSFER, billcode); errOutputBill != nil {
+		constants.KIOSK_BILL_INVENTORY_TRANSFER, billCode, constants.KIOSK_BILL_INVENTORY_PENDING); errOutputBill != nil {
 		response_message.BadRequest(c, errOutputBill.Error())
 		return
 	}
@@ -48,7 +49,7 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 	}
 
 	if errInputBill := MethodInputBill(c, &prof,
-		bodyInputBill, constants.KIOSK_BILL_INVENTORY_PENDING, billcode); errInputBill != nil {
+		bodyInputBill, constants.KIOSK_BILL_INVENTORY_PENDING, billCode); errInputBill != nil {
 		response_message.BadRequest(c, errInputBill.Error())
 		return
 	}
@@ -56,14 +57,15 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 	okRes(c)
 }
 
-func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.CmsUser, body request.CreateOutputBillBody, billtype string, billcode string) error {
+func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.CmsUser, body request.CreateOutputBillBody, billType, billCode, billStatus string) error {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	inventoryStatus := kiosk_inventory.OutputInventoryBill{}
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
 	inventoryStatus.ServiceId = body.ServiceId
-	inventoryStatus.BillStatus = billtype
-	inventoryStatus.Code = billcode
+	inventoryStatus.BillStatus = billStatus
+	inventoryStatus.BillType = billType
+	inventoryStatus.Code = billCode
 	inventoryStatus.UserUpdate = body.UserExport
 	inventoryStatus.ServiceName = body.ServiceName
 	inventoryStatus.ServiceImportId = body.SourceId
@@ -132,7 +134,7 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 		}
 
 		outputItem := kiosk_inventory.InventoryOutputItem{}
-		outputItem.Code = billcode
+		outputItem.Code = billCode
 		outputItem.PartnerUid = body.PartnerUid
 		outputItem.CourseUid = body.CourseUid
 		outputItem.Quantity = data.Quantity
@@ -200,7 +202,7 @@ func (_ CKioskOutputInventory) removeItemFromInventory(db *gorm.DB, serviceId in
 
 func (_ CKioskOutputInventory) returnItemToInventory(db *gorm.DB, serviceId int64, code string, courseUid string, partnerUid string) error {
 	// Get danh sách item của bill
-	item := kiosk_inventory.InventoryInputItem{}
+	item := kiosk_inventory.InventoryOutputItem{}
 	item.Code = code
 	list, _, _ := item.FindAllList(db)
 
@@ -337,4 +339,19 @@ func (_ CKioskOutputInventory) GetOutputItemsForStatistic(c *gin.Context, prof m
 	}
 
 	okResponse(c, res)
+}
+
+func (_ CKioskOutputInventory) UpdateBillStatus(partnerUid, courseUid, code, billStatus string, serviceId int64) {
+	inventoryStatus := kiosk_inventory.OutputInventoryBill{}
+	inventoryStatus.Code = code
+	inventoryStatus.ServiceId = serviceId
+	inventoryStatus.PartnerUid = partnerUid
+	inventoryStatus.CourseUid = courseUid
+
+	db := datasources.GetDatabaseWithPartner(partnerUid)
+	if errInventoryStatus := inventoryStatus.FindFirst(db); errInventoryStatus != nil {
+		log.Println("UpdateBillStatus ", errInventoryStatus.Error())
+	}
+
+	inventoryStatus.BillStatus = billStatus
 }
