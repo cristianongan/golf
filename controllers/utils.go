@@ -546,6 +546,10 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 		booking.CaddieId = caddie.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddie)
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+
+		if response.OldCaddie.Id == caddie.Id {
+			response.OldCaddie = models.Caddie{}
+		}
 	}
 
 	//Check buggy
@@ -569,6 +573,10 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 		booking.BuggyId = buggy.Id
 		booking.IsPrivateBuggy = setBoolForCursor(isPrivateBuggy)
 		booking.BuggyInfo = cloneToBuggyBooking(buggy)
+
+		if response.OldBuggy.Id == buggy.Id {
+			response.OldBuggy = models.Buggy{}
+		}
 	}
 
 	booking.ShowCaddieBuggy = setBoolForCursor(true)
@@ -576,23 +584,6 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 	response.NewBuggy = buggy
 	response.Booking = booking
 	return nil, response
-}
-
-/*
-Out caddie
-*/
-func udpOutCaddieBooking(db *gorm.DB, booking *model_booking.Booking) error {
-
-	if booking.CaddieId > 0 {
-		errCd := udpCaddieOut(db, booking.CaddieId)
-		if errCd != nil {
-			return errCd
-		}
-		// Udp booking
-		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_OUT
-	}
-
-	return nil
 }
 
 /*
@@ -631,32 +622,33 @@ func udpOutBuggy(db *gorm.DB, booking *model_booking.Booking, isOutAll bool) err
 /*
 Update caddie is in course is false
 */
-func udpCaddieOut(db *gorm.DB, caddieId int64) error {
+func udpCaddieOut(db *gorm.DB, caddieId int64) {
 	// Get Caddie
-	caddie := models.Caddie{}
-	caddie.Id = caddieId
-	err := caddie.FindFirst(db)
-	if !(utils.ContainString(constants.LIST_CADDIE_READY_JOIN, caddie.CurrentStatus) > -1) {
-		if caddie.CurrentRound == 0 {
-			caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
-		} else {
-			if caddie.CurrentRound > 1 {
-				caddie.CurrentStatus = fmt.Sprint(constants.CADDIE_CURRENT_STATUS_FINISH, " ", "R", "_", caddie.CurrentRound)
-			} else {
+	if caddieId > 0 {
+		caddie := models.Caddie{}
+		caddie.Id = caddieId
+		err := caddie.FindFirst(db)
+		if !(utils.ContainString(constants.LIST_CADDIE_READY_JOIN, caddie.CurrentStatus) > -1) {
+			if caddie.CurrentRound == 0 {
+				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
+			} else if caddie.CurrentRound == 1 {
 				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
+			} else if caddie.CurrentRound == 2 {
+				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH_R2
+			} else if caddie.CurrentRound == 3 {
+				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH_R3
 			}
+			errUpd := caddie.Update(db)
+			if errUpd != nil {
+				log.Println("udpCaddieOut err", err.Error())
+			}
+			go func() {
+				cNotification := CNotification{}
+				title := fmt.Sprint("Caddie", " ", caddie.Code, " ", caddie.CurrentStatus)
+				cNotification.CreateCaddieWorkingStatusNotification(title)
+			}()
 		}
-		errUpd := caddie.Update(db)
-		if errUpd != nil {
-			log.Println("udpCaddieOut err", err.Error())
-		}
-		go func() {
-			cNotification := CNotification{}
-			title := fmt.Sprint("Caddie", " ", caddie.Code, " ", caddie.CurrentStatus)
-			cNotification.CreateCaddieWorkingStatusNotification(title)
-		}()
 	}
-	return err
 }
 
 /*
@@ -1390,7 +1382,6 @@ func addServiceCart(db *gorm.DB, numberGuest int, partnerUid, courseUid, playerN
 /*
 Tạo row index cho booking
 */
-
 func generateRowIndex(rowsCurrent []int) int {
 	if !utils.Contains(rowsCurrent, 0) {
 		return 0
@@ -1400,4 +1391,22 @@ func generateRowIndex(rowsCurrent []int) int {
 		return 2
 	}
 	return 3
+}
+
+/*
+Check Tee Time chỗ để booking không
+*/
+func checkTeeTimeAvailable(booking model_booking.Booking) bool {
+	bookings := model_booking.BookingList{}
+	bookings.PartnerUid = booking.PartnerUid
+	bookings.CourseUid = booking.CourseUid
+	bookings.BookingDate = booking.BookingDate
+	bookings.TeeTime = booking.TeeTime
+	bookings.TeeType = booking.TeeType
+	bookings.CourseType = booking.CourseType
+
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	_, total, _ := bookings.FindAllBookingList(db)
+
+	return !(total == constants.SLOT_TEE_TIME)
 }

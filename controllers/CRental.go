@@ -100,6 +100,7 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 		Rate:        body.Rate,
 		Type:        body.Type,
 		AccountCode: body.AccountCode,
+		TaxCode:     body.TaxCode,
 	}
 	rental.Status = body.Status
 
@@ -222,6 +223,9 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 	}
 	if body.Rate != "" {
 		rental.Rate = body.Rate
+	}
+	if body.TaxCode != "" {
+		rental.TaxCode = body.TaxCode
 	}
 	errUdp := rental.Update(db)
 	if errUdp != nil {

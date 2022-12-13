@@ -46,15 +46,16 @@ type Booking struct {
 	CustomerType         string       `json:"customer_type" gorm:"type:varchar(256)"`          // Loai khach hang: Member, Guest, Visitor...
 	CustomerInfo         CustomerInfo `json:"customer_info,omitempty" gorm:"type:json"`        // Customer Info
 
-	BagStatus    string `json:"bag_status" gorm:"type:varchar(50);index"` // Bag status
-	CheckInTime  int64  `json:"check_in_time"`                            // Time Check In
-	CheckOutTime int64  `json:"check_out_time"`                           // Time Check Out
-	TeeType      string `json:"tee_type" gorm:"type:varchar(50);index"`   // 1, 1A, 1B, 1C, 10, 10A, 10B
-	TeePath      string `json:"tee_path" gorm:"type:varchar(50);index"`   // MORNING, NOON, NIGHT
-	TurnTime     string `json:"turn_time" gorm:"type:varchar(30)"`        // Ex: 16:26
-	TeeTime      string `json:"tee_time" gorm:"type:varchar(30)"`         // Ex: 16:26 Tee time là thời gian tee off dự kiến
-	TeeOffTime   string `json:"tee_off_time" gorm:"type:varchar(30)"`     // Ex: 16:26 Là thời gian thực tế phát bóng
-	RowIndex     *int   `json:"row_index"`                                // index trong Flight
+	BagStatus         string `json:"bag_status" gorm:"type:varchar(50);index"` // Bag status
+	CheckInTime       int64  `json:"check_in_time"`                            // Time Check In
+	CheckOutTime      int64  `json:"check_out_time"`                           // Time Check Out
+	CancelBookingTime int64  `json:"cancel_booking_time"`                      // Time cancel booking
+	TeeType           string `json:"tee_type" gorm:"type:varchar(50);index"`   // 1, 1A, 1B, 1C, 10, 10A, 10B
+	TeePath           string `json:"tee_path" gorm:"type:varchar(50);index"`   // MORNING, NOON, NIGHT
+	TurnTime          string `json:"turn_time" gorm:"type:varchar(30)"`        // Ex: 16:26
+	TeeTime           string `json:"tee_time" gorm:"type:varchar(30)"`         // Ex: 16:26 Tee time là thời gian tee off dự kiến
+	TeeOffTime        string `json:"tee_off_time" gorm:"type:varchar(30)"`     // Ex: 16:26 Là thời gian thực tế phát bóng
+	RowIndex          *int   `json:"row_index"`                                // index trong Flight
 
 	CurrentBagPrice BookingCurrentBagPriceDetail `json:"current_bag_price,omitempty" gorm:"type:json"` // Thông tin phí++: Tính toán lại phí Service items, Tiền cho Subbag
 	ListGolfFee     ListBookingGolfFee           `json:"list_golf_fee,omitempty" gorm:"type:json"`     // Thông tin List Golf Fee, Main Bag, Sub Bag
@@ -545,6 +546,7 @@ type AgencyCancelBookingList struct {
 	NoteOfBag            string        `json:"note_of_bag"`
 	NoteOfBooking        string        `json:"note_of_booking"`
 	NumberPeople         int           `json:"number_people"`
+	CancelBookingTime    int64         `json:"cancel_booking_time"` // Time cancel booking
 }
 
 // -------- Booking Logic --------
@@ -823,7 +825,12 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 				}
 			}
 		} else {
-			isNeedPay = true
+			if mainCheckOutTime > 0 && v.CreatedAt > mainCheckOutTime {
+				// main bag đã check out đi về, sub bag dùng tiếp service sẽ ko cộng thêm vào main bag
+				isNeedPay = false
+			} else {
+				isNeedPay = true
+			}
 		}
 
 		if isNeedPay {
@@ -831,7 +838,7 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 		}
 	}
 
-	mushPay.TotalServiceItem -= item.GetAgencyService()
+	// mushPay.TotalServiceItem -= item.GetAgencyService()
 	total := mushPay.TotalGolfFee + mushPay.TotalServiceItem
 
 	if total < 0 {
@@ -869,6 +876,10 @@ func (item *Booking) UpdatePriceDetailCurrentBag(db *gorm.DB) {
 	bookingGreenFee := slices.Reduce(listRound, func(prev int64, item models.Round) int64 {
 		return prev + item.GreenFee
 	})
+
+	if len(item.ListGolfFee) == 0 {
+		return
+	}
 
 	bookingGolfFee := item.ListGolfFee[0]
 	bookingGolfFee.BookingUid = item.Uid

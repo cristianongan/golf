@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"net/http"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -52,6 +53,7 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 
 	booking.BagStatus = constants.BAG_STATUS_CANCEL
 	booking.CancelNote = body.Note
+	booking.CancelBookingTime = time.Now().Unix()
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
 	errUdp := booking.Update(db)
@@ -84,6 +86,8 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequest(c, "The number of Bookings cannot exceed 4")
 		return
 	}
+
+	listBookingReadyMoved := []model_booking.Booking{}
 
 	for _, BookingUid := range body.BookUidList {
 		if BookingUid == "" {
@@ -130,6 +134,15 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			booking.Hole = body.Hole
 		}
 
+		if checkTeeTimeAvailable(booking) {
+			response_message.ErrorResponse(c, http.StatusBadRequest, "TEE_TIME_SLOT_FULL", "", http.StatusBadRequest)
+			return
+		}
+
+		listBookingReadyMoved = append(listBookingReadyMoved, booking)
+	}
+
+	for _, booking := range listBookingReadyMoved {
 		errUdp := booking.Update(db)
 		if errUdp != nil {
 			response_message.InternalServerError(c, errUdp.Error())
@@ -229,6 +242,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 
 		booking.BagStatus = constants.BAG_STATUS_CANCEL
 		booking.CancelNote = form.Reason
+		booking.CancelBookingTime = time.Now().Unix()
 		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
 		errUdp := booking.Update(db1)

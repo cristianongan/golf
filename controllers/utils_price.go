@@ -59,17 +59,6 @@ func getInitListGolfFeeForBooking(param request.GolfFeeGuestyleParam, golfFee mo
 	return listBookingGolfFee, bookingGolfFee
 }
 
-func getInitListGolfFeeForAddRound(booking *model_booking.Booking, golfFee models.GolfFee, hole int) {
-	bookingGolfFee := booking.ListGolfFee[0]
-
-	bookingGolfFee.BookingUid = booking.Uid
-	bookingGolfFee.CaddieFee += utils.GetFeeFromListFee(golfFee.CaddieFee, hole)
-	bookingGolfFee.BuggyFee += utils.GetFeeFromListFee(golfFee.BuggyFee, hole)
-	bookingGolfFee.GreenFee += utils.GetFeeFromListFee(golfFee.GreenFee, hole)
-
-	booking.ListGolfFee[0] = bookingGolfFee
-}
-
 /*
 Tính golf fee cho đơn thqay đổi hố
 */
@@ -119,17 +108,6 @@ func getInitListGolfFeeWithOutGuestStyleForBooking(param request.GolfFeeGuestyle
 
 	listBookingGolfFee = append(listBookingGolfFee, bookingGolfFee)
 	return listBookingGolfFee, bookingGolfFee
-}
-
-func getInitListGolfFeeWithOutGuestStyleForAddRound(booking *model_booking.Booking, rate string, caddieFee, buggyFee, greenFee int64, hole int) {
-	bookingGolfFee := booking.ListGolfFee[0]
-
-	bookingGolfFee.BookingUid = booking.Uid
-	bookingGolfFee.CaddieFee += utils.CalculateFeeByHole(hole, caddieFee, rate)
-	bookingGolfFee.BuggyFee += utils.CalculateFeeByHole(hole, buggyFee, rate)
-	bookingGolfFee.GreenFee += utils.CalculateFeeByHole(hole, greenFee, rate)
-
-	booking.ListGolfFee[0] = bookingGolfFee
 }
 
 /*
@@ -378,12 +356,7 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 			booking.UpdatePriceDetailCurrentBag(db)
 			booking.UpdateMushPay(db)
 			errFMB := booking.Update(db)
-			// Co sub bag thì main bag dc udp ở trên rồi
-			// find main bag udp lại payment
-			// mainBookUdp := model_booking.Booking{}
-			// mainBookUdp.Uid = booking.Uid
-			// mainBookUdp.PartnerUid = booking.PartnerUid
-			// errFMB := mainBookUdp.FindFirst(db)
+
 			if errFMB == nil {
 				go handlePayment(db, booking)
 			}
@@ -505,6 +478,7 @@ func updatePriceForRevenue(db *gorm.DB, item model_booking.Booking, billNo strin
 		PartnerUid:     item.PartnerUid,
 		CourseUid:      item.CourseUid,
 		BillNo:         billNo,
+		Bag:            item.Bag,
 		GuestStyle:     item.GuestStyle,
 		GuestStyleName: item.GuestStyleName,
 		BookingDate:    item.BookingDate,

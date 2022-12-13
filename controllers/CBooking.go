@@ -827,6 +827,13 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		cBooking.UpdateBookingCaddieCommon(db, body.PartnerUid, body.CourseUid, &booking, caddie)
 	}
 
+	// Create booking payment
+	if booking.AgencyId > 0 {
+		if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
+			go handleAgencyPaid(booking, body.FeeInfo)
+		}
+	}
+
 	// Update các thông tin khác trước
 	errUdpBook := booking.Update(db)
 	if errUdpBook != nil {
@@ -835,7 +842,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// udp ok -> Tính lại giá
-	updatePriceWithServiceItem(booking, prof)
+	if !reflect.DeepEqual(booking.MainBagPay, body.MainBagPay) {
+		updatePriceWithServiceItem(booking, prof)
+	}
 
 	// Get lai booking mới nhất trong DB
 	bookLast := model_booking.Booking{}
@@ -1148,6 +1157,13 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	booking.BagStatus = constants.BAG_STATUS_WAITING
 	booking.CourseType = body.CourseType
 
+	// Create booking payment
+	if booking.AgencyId > 0 {
+		if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
+			go handleAgencyPaid(booking, body.FeeInfo)
+		}
+	}
+
 	errUdp := booking.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
@@ -1172,6 +1188,19 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	res := getBagDetailFromBooking(db, booking)
 
 	okResponse(c, res)
+}
+
+func validateAgencyFeeBeforUpdate(booking model_booking.Booking, feeInfo request.AgencyFeeInfo) bool {
+	if len(booking.AgencyPaid) > 0 && feeInfo.GolfFee > 0 && booking.AgencyPaid[0].Fee != feeInfo.GolfFee {
+		return true
+	}
+	if len(booking.AgencyPaid) > 1 && feeInfo.BuggyFee > 0 && booking.AgencyPaid[1].Fee != feeInfo.BuggyFee {
+		return true
+	}
+	if len(booking.AgencyPaid) > 2 && feeInfo.CaddieFee > 0 && booking.AgencyPaid[2].Fee != feeInfo.CaddieFee {
+		return true
+	}
+	return false
 }
 
 /*
@@ -1300,15 +1329,6 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// udp trạng thái caddie
-	if booking.CaddieId > 0 {
-		errCd := udpCaddieOut(db, booking.CaddieId)
-		if errCd != nil {
-			response_message.InternalServerError(c, errCd.Error())
-			return
-		}
-	}
-
 	// delete tee time locked theo booking date
 	if booking.TeeTime != "" {
 		go unlockTurnTime(db, booking)
@@ -1435,7 +1455,7 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 					if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
 						// ok
 					} else {
-						if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT || serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
+						if serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH || serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
 							// ok
 						} else {
 							if v1.BillCode != bag.BillCode {
