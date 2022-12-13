@@ -171,6 +171,7 @@ func MigrateDbCms(db *gorm.DB) {
 
 	// ------- Report -------
 	db.AutoMigrate(&model_report.ReportCustomerPlay{})
+	db.AutoMigrate(&model_report.ReportRevenueDetail{})
 
 	// Restaurant Setup
 	db.AutoMigrate(&model_service_restaurant_setup.RestaurantTableSetup{})

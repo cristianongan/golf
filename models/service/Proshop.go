@@ -36,6 +36,7 @@ type Proshop struct {
 	Type          string  `json:"type" gorm:"type:varchar(50)"`         // sub type của Rental
 	GroupCode     string  `json:"group_code" gorm:"type:varchar(100);index"`
 	GroupName     string  `json:"group_name" gorm:"type:varchar(100)"`
+	TaxCode       string  `json:"tax_code" gorm:"type:varchar(50)"` // VAT
 }
 
 type ProshopRequest struct {

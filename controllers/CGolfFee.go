@@ -76,6 +76,7 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.GroupId = groupFee.Id
 	golfFee.UpdateUserName = prof.UserName
 	golfFee.ApplyTime = strings.TrimSpace(body.ApplyTime)
+	golfFee.TaxCode = body.TaxCode
 
 	errC := golfFee.Create(db)
 
@@ -205,6 +206,7 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.AccDebit = body.AccDebit
 	golfFee.ApplyTime = strings.TrimSpace(body.ApplyTime)
 	golfFee.UpdateUserName = prof.UserName
+	golfFee.TaxCode = body.TaxCode
 
 	errUdp := golfFee.Update(db)
 	if errUdp != nil {

@@ -95,6 +95,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	}
 
 	dateTeeStrConv := date.Format(constants.HOUR_FORMAT)
+	body.TeeOffStr = dateTeeStrConv
 
 	// Check tee time status
 	// Check TeeTime Index
@@ -265,6 +266,13 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	dataRes.BookOtaID = bookingOta.BookingCode
 
 	go unlockTee(body)
+
+	// Bắn socket để client update ui
+	go func() {
+		cNotification := CNotification{}
+		cNotification.CreateCaddieWorkingStatusNotification("")
+	}()
+
 	okResponse(c, dataRes)
 }
 
@@ -300,8 +308,8 @@ func unlockTee(body request.CreateBookingOTABody) {
 				teeTimeRedisKey += body.TeeOffStr + "_" + "1B"
 			}
 
-			key := datasources.GetRedisKeyTeeTimeLock(teeTimeRedisKey)
-			datasources.DelCacheByKey(key)
+			err := datasources.DelCacheByKey(teeTimeRedisKey)
+			log.Print(err)
 			break
 		}
 	}

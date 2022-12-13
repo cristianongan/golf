@@ -6,7 +6,7 @@
     "url_root": "http://golf-cms:4000",
     "kibana_log": false,
     "system_log_response": true,
-    "cron_is_running": false,
+    "cron_is_running": true,
     "cron_backup_order_is_running": false,
     "cronjob_secret_key": "rdhrXPLttwCCrVubT76wdaMSCIu78xL1",
     "cronjob_page_limit": 20,
@@ -16,7 +16,7 @@
         "password": "8h^#,IT/vg#!",
         "host": "10.22.19.83",
         "port": "3306",
-        "is_migrated": false,
+        "is_migrated": true,
         "debug": true
     },
     "mysql_auth": {

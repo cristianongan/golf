@@ -107,6 +107,7 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		Type:          body.Type,
 		HotKitchen:    body.HotKitchen,
 		ColdKitchen:   body.ColdKitchen,
+		TaxCode:       body.TaxCode,
 	}
 	service.Status = body.Status
 
@@ -251,6 +252,9 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 	}
 	if body.GroupName != "" {
 		foodBeverage.GroupName = body.GroupName
+	}
+	if body.TaxCode != "" {
+		foodBeverage.TaxCode = body.TaxCode
 	}
 
 	errUdp := foodBeverage.Update(db)

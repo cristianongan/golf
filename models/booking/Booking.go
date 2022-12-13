@@ -46,15 +46,16 @@ type Booking struct {
 	CustomerType         string       `json:"customer_type" gorm:"type:varchar(256)"`          // Loai khach hang: Member, Guest, Visitor...
 	CustomerInfo         CustomerInfo `json:"customer_info,omitempty" gorm:"type:json"`        // Customer Info
 
-	BagStatus    string `json:"bag_status" gorm:"type:varchar(50);index"` // Bag status
-	CheckInTime  int64  `json:"check_in_time"`                            // Time Check In
-	CheckOutTime int64  `json:"check_out_time"`                           // Time Check Out
-	TeeType      string `json:"tee_type" gorm:"type:varchar(50);index"`   // 1, 1A, 1B, 1C, 10, 10A, 10B
-	TeePath      string `json:"tee_path" gorm:"type:varchar(50);index"`   // MORNING, NOON, NIGHT
-	TurnTime     string `json:"turn_time" gorm:"type:varchar(30)"`        // Ex: 16:26
-	TeeTime      string `json:"tee_time" gorm:"type:varchar(30)"`         // Ex: 16:26 Tee time là thời gian tee off dự kiến
-	TeeOffTime   string `json:"tee_off_time" gorm:"type:varchar(30)"`     // Ex: 16:26 Là thời gian thực tế phát bóng
-	RowIndex     *int   `json:"row_index"`                                // index trong Flight
+	BagStatus         string `json:"bag_status" gorm:"type:varchar(50);index"` // Bag status
+	CheckInTime       int64  `json:"check_in_time"`                            // Time Check In
+	CheckOutTime      int64  `json:"check_out_time"`                           // Time Check Out
+	CancelBookingTime int64  `json:"cancel_booking_time"`                      // Time cancel booking
+	TeeType           string `json:"tee_type" gorm:"type:varchar(50);index"`   // 1, 1A, 1B, 1C, 10, 10A, 10B
+	TeePath           string `json:"tee_path" gorm:"type:varchar(50);index"`   // MORNING, NOON, NIGHT
+	TurnTime          string `json:"turn_time" gorm:"type:varchar(30)"`        // Ex: 16:26
+	TeeTime           string `json:"tee_time" gorm:"type:varchar(30)"`         // Ex: 16:26 Tee time là thời gian tee off dự kiến
+	TeeOffTime        string `json:"tee_off_time" gorm:"type:varchar(30)"`     // Ex: 16:26 Là thời gian thực tế phát bóng
+	RowIndex          *int   `json:"row_index"`                                // index trong Flight
 
 	CurrentBagPrice BookingCurrentBagPriceDetail `json:"current_bag_price,omitempty" gorm:"type:json"` // Thông tin phí++: Tính toán lại phí Service items, Tiền cho Subbag
 	ListGolfFee     ListBookingGolfFee           `json:"list_golf_fee,omitempty" gorm:"type:json"`     // Thông tin List Golf Fee, Main Bag, Sub Bag
@@ -545,6 +546,7 @@ type AgencyCancelBookingList struct {
 	NoteOfBag            string        `json:"note_of_bag"`
 	NoteOfBooking        string        `json:"note_of_booking"`
 	NumberPeople         int           `json:"number_people"`
+	CancelBookingTime    int64         `json:"cancel_booking_time"` // Time cancel booking
 }
 
 // -------- Booking Logic --------
@@ -575,6 +577,8 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 				}
 
 				if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
+					serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS ||
+					serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH ||
 					serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
 					listServiceItems = append(listServiceItems, v)
 				}
@@ -616,14 +620,17 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 						if serviceTypV1 == constants.MINI_B_SETTING || serviceTypV1 == constants.MINI_R_SETTING {
 							serviceTypV1 = constants.GOLF_SERVICE_RESTAURANT
 						}
-						if serviceTypV1 == constants.DRIVING_SETTING {
+						if serviceTypV1 == constants.DRIVING_SETTING || serviceTypV1 == constants.BUGGY_SETTING {
 							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
 						}
 						if v2 == serviceTypV1 && v1.PaidBy != constants.PAID_BY_AGENCY {
 							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
 								isCanAdd = true
 							} else {
-								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT || serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
+								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+									serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
+									serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS ||
+									serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH {
 									isCanAdd = true
 								}
 							}
@@ -803,18 +810,23 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 			} else {
 				if v.PaidBy == constants.PAID_BY_AGENCY {
 					isNeedPay = false
-				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL || v.Type == constants.DRIVING_SETTING) && !mainPaidRental {
+				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL ||
+					v.Type == constants.DRIVING_SETTING ||
+					v.Type == constants.BUGGY_SETTING) && !mainPaidRental {
 					isNeedPay = true
 				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP && !mainPaidProshop {
 					isNeedPay = true
-				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT || v.Type == constants.MINI_B_SETTING || v.Type == constants.MINI_R_SETTING) && !mainPaidRestaurant {
+				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT ||
+					v.Type == constants.MINI_B_SETTING ||
+					v.Type == constants.MINI_R_SETTING) && !mainPaidRestaurant {
 					isNeedPay = true
 				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE && !mainPaidOtherFee {
 					isNeedPay = true
 				}
 			}
 		} else {
-			if v.PaidBy == constants.PAID_BY_AGENCY {
+			if mainCheckOutTime > 0 && v.CreatedAt > mainCheckOutTime {
+				// main bag đã check out đi về, sub bag dùng tiếp service sẽ ko cộng thêm vào main bag
 				isNeedPay = false
 			} else {
 				isNeedPay = true
@@ -826,6 +838,7 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 		}
 	}
 
+	// mushPay.TotalServiceItem -= item.GetAgencyService()
 	total := mushPay.TotalGolfFee + mushPay.TotalServiceItem
 
 	if total < 0 {
@@ -864,6 +877,10 @@ func (item *Booking) UpdatePriceDetailCurrentBag(db *gorm.DB) {
 		return prev + item.GreenFee
 	})
 
+	if len(item.ListGolfFee) == 0 {
+		return
+	}
+
 	bookingGolfFee := item.ListGolfFee[0]
 	bookingGolfFee.BookingUid = item.Uid
 	bookingGolfFee.CaddieFee = bookingCaddieFee
@@ -880,7 +897,8 @@ func (item *Booking) UpdatePriceDetailCurrentBag(db *gorm.DB) {
 		if serviceItem.BillCode == item.BillCode {
 			// Udp service detail cho booking uid
 			if serviceItem.Type == constants.GOLF_SERVICE_RENTAL ||
-				serviceItem.Type == constants.DRIVING_SETTING {
+				serviceItem.Type == constants.DRIVING_SETTING ||
+				serviceItem.Type == constants.BUGGY_SETTING {
 				priceDetail.Rental += serviceItem.Amount
 			}
 			if serviceItem.Type == constants.GOLF_SERVICE_PROSHOP {

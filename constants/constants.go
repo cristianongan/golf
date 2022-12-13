@@ -265,6 +265,7 @@ const (
 	RENTAL_SETTING     = "RENTAL"
 	PROSHOP_SETTING    = "PROSHOP"
 	RESTAURANT_SETTING = "RESTAURANT"
+	BUGGY_SETTING      = "BUGGY"
 )
 
 /*
@@ -302,13 +303,14 @@ const (
 Các trạng thái đơn của nhà hàng
 */
 const (
-	RES_BILL_STATUS_ACTIVE  = "ACTIVE"  // Trạng thái bao gồm các đơn PROCESS, FINISH
-	RES_BILL_STATUS_BOOKING = "BOOKING" // Trạng thái là người booking bàn nhưng chưa vào nhà hàng dùng món
-	RES_BILL_STATUS_ORDER   = "ORDER"   // Trạng thái là người đã đặt món và đang chờ đồ ăn
-	RES_BILL_STATUS_PROCESS = "PROCESS" // Trạng thái món ăn đang được chế biến chưa được phục vụ
-	RES_BILL_STATUS_FINISH  = "FINISH"  // Trạng thái món đã được phục vụ
-	RES_BILL_STATUS_CANCEL  = "CANCEL"  // Trạng thái món đã bị hủy
-	RES_BILL_STATUS_OUT     = "OUT"     //Trạng thái khách đã dùng xong món ăn và out khỏi nhà hàng. (ở lễ tân lấy để tính tiền)
+	RES_BILL_STATUS_ACTIVE   = "ACTIVE"   // Trạng thái bao gồm các đơn PROCESS, FINISH
+	RES_BILL_STATUS_BOOKING  = "BOOKING"  // Trạng thái là người booking bàn nhưng chưa vào nhà hàng dùng món
+	RES_BILL_STATUS_ORDER    = "ORDER"    // Trạng thái là người đã đặt món và đang chờ đồ ăn
+	RES_BILL_STATUS_PROCESS  = "PROCESS"  // Trạng thái món ăn đang được chế biến chưa được phục vụ
+	RES_BILL_STATUS_FINISH   = "FINISH"   // Trạng thái món đã được phục vụ
+	RES_BILL_STATUS_CANCEL   = "CANCEL"   // Trạng thái món đã bị hủy
+	RES_BILL_STATUS_OUT      = "OUT"      //Trạng thái khách đã dùng xong món ăn và out khỏi nhà hàng. (ở lễ tân lấy để tính tiền)
+	RES_BILL_STATUS_TRANSFER = "TRANSFER" // Đơn hàng transfer
 )
 
 /*
@@ -428,6 +430,7 @@ const TOP_MEMBER_DATE_TYPE_MONTH = "MONTH"
 const NOTIFICATION_CADDIE_VACATION_SICK_OFF = "NOTIFICATION_CADDIE_VACATION_SICK"
 const NOTIFICATION_CADDIE_VACATION_UNPAID = "NOTIFICATION_CADDIE_VACATION_UNPAID"
 const NOTIFICATION_CADDIE_WORKING_STATUS_UPDATE = "NOTIFICATION_CADDIE_WORKING_STATUS_UPDATE"
+const NOTIFICATION_BOOKING_OTA_FINISH = "NOTIFICATION_BOOKING_OTA_FINISH"
 const NOTIFICATION_PENDIND = "NOTIFICATION_PENDIND"
 const NOTIFICATION_APPROVED = "NOTIFICATION_APPROVED"
 const NOTIFICATION_REJECTED = "NOTIFICATION_REJECTED"

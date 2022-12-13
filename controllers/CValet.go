@@ -69,10 +69,7 @@ func (_ *CValet) AddBagCaddieBuggyToBooking(c *gin.Context, prof models.CmsUser)
 
 		//Update trạng thái của các old caddie
 		if response.OldCaddie.Id > 0 {
-			if err := udpCaddieOut(db, response.OldCaddie.Id); err != nil {
-				response_message.InternalServerError(c, err.Error())
-				return
-			}
+			udpCaddieOut(db, response.OldCaddie.Id)
 		}
 
 		//Update trạng thái của các old buggy

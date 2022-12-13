@@ -26,6 +26,7 @@ type OutputInventoryBill struct {
 	Bag               string                `json:"bag" gorm:"type:varchar(100);index"`           // Golf Bag
 	CustomerName      string                `json:"customer_name" gorm:"type:varchar(256)"`       // Tên khách hàng chơi golf
 	BillStatus        string                `json:"bill_status" gorm:"type:varchar(100)"`         // Trạng thái đơn hàng (SELL, TRANSFER)
+	BillType          string                `json:"bill_type" gorm:"type:varchar(50)"`            // Trạng thái đơn hàng (SELL, TRANSFER)
 	Quantity          int64                 `json:"quantity"`                                     // Tổng số lượng sell or transfer
 	ListItem          []InventoryOutputItem `json:"list_item,omitempty" gorm:"foreignKey:Code;references:Code"`
 }
