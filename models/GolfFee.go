@@ -391,3 +391,33 @@ func (item *GolfFee) GetGuestStyleGolfFeeByGuestStyle(database *gorm.DB) []GolfF
 
 	return list
 }
+
+func (item *GolfFee) FindFirstWithCusType(database *gorm.DB) error {
+	db := database.Model(GolfFee{})
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.CustomerType != "" {
+		db = db.Where("customer_type = ?", item.CustomerType)
+	}
+
+	// Lấy table Price hiện tại
+	db1 := datasources.GetDatabaseWithPartner(item.PartnerUid)
+	tablePriceR := TablePrice{
+		PartnerUid: item.PartnerUid,
+		CourseUid:  item.CourseUid,
+	}
+	currentTablePrice, errTB := tablePriceR.FindCurrentUse(db1)
+	if errTB == nil {
+		if currentTablePrice.Id > 0 {
+			db = db.Where("table_price_id = ?", currentTablePrice.Id)
+		}
+	}
+	db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+
+	return db.First(item).Error
+}

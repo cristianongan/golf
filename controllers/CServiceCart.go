@@ -1127,18 +1127,33 @@ func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
 	bUid := body.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
 	billCode := utils.HashCodeUuid(bookingUid.String())
 
-	// Create booking
-	booking := model_booking.Booking{
+	// Check group Fee
+	golfFeeR := models.GolfFee{
 		PartnerUid:   body.PartnerUid,
 		CourseUid:    body.CourseUid,
-		Bag:          bagClone,
-		BillCode:     billCode,
-		BookingDate:  time.Now().Format("02/01/2006"),
-		BagStatus:    constants.BAG_STATUS_WAITING,
-		InitType:     constants.BOOKING_INIT_TYPE_CHECKIN,
-		CheckInTime:  time.Now().Unix(),
-		CustomerName: body.GuestName,
 		CustomerType: constants.CUSTOMER_TYPE_NONE_GOLF,
+	}
+
+	err := golfFeeR.FindFirstWithCusType(db)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	// Create booking
+	booking := model_booking.Booking{
+		PartnerUid:     body.PartnerUid,
+		CourseUid:      body.CourseUid,
+		Bag:            bagClone,
+		BillCode:       billCode,
+		BookingDate:    time.Now().Format("02/01/2006"),
+		BagStatus:      constants.BAG_STATUS_WAITING,
+		InitType:       constants.BOOKING_INIT_TYPE_CHECKIN,
+		CheckInTime:    time.Now().Unix(),
+		CustomerName:   body.GuestName,
+		CustomerType:   constants.CUSTOMER_TYPE_NONE_GOLF,
+		GuestStyle:     golfFeeR.GuestStyle,
+		GuestStyleName: golfFeeR.GuestStyleName,
 	}
 
 	errC := booking.Create(db, bUid)
