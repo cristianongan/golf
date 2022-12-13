@@ -1071,7 +1071,7 @@ func createExportBillInventory(c *gin.Context, prof models.CmsUser, serviceCart 
 		bodyOutputBill.ListItem = lisItem
 
 		cKioskOutputInventory := CKioskOutputInventory{}
-		cKioskOutputInventory.MethodOutputBill(c, prof, bodyOutputBill, constants.KIOSK_BILL_INVENTORY_SELL, code)
+		cKioskOutputInventory.MethodOutputBill(c, prof, bodyOutputBill, constants.KIOSK_BILL_INVENTORY_SELL, code, constants.KIOSK_BILL_INVENTORY_APPROVED)
 	}
 }
 
