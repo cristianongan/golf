@@ -248,3 +248,7 @@ func GetPassSecretKey() string {
 func GetIsOpenSocket() bool {
 	return config.GetBool("is_open_socket")
 }
+
+func GetCcuServer() int {
+	return config.GetInt("ccu_server")
+}
