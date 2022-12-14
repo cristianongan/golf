@@ -603,7 +603,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 
 			for _, v1 := range listGolfServiceTemp {
 				isCanAdd := false
-				if item.MainBagPay != nil && len(item.MainBagPay) > 0 && v1.CreatedAt < item.CheckOutTime {
+				if item.MainBagPay != nil && len(item.MainBagPay) > 0 {
 					for _, v2 := range item.MainBagPay {
 						// Check trạng thái bill
 						serviceCart := models.ServiceCart{}
@@ -638,9 +638,14 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 					}
 				}
 
+				if item.CheckOutTime > 0 && v1.CreatedAt < item.CheckOutTime {
+					isCanAdd = false
+				}
+
 				if isCanAdd {
 					listTemp = append(listTemp, v1)
 				}
+
 			}
 		}
 	}
