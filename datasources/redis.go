@@ -94,10 +94,10 @@ func GetRedisKeyUserLogin(userName string) string {
 	return config.GetEnvironmentName() + "_" + "redis_user_login" + "_" + userName
 }
 
-//	func GetRedis() *redis.Client {
-//		return redisdb
-//	}
-//
+func GetRedis() *redis.Client {
+	return redisdb
+}
+
 // ttl : second
 func SetCache(key string, value interface{}, ttl int64) error {
 	if redisdb == nil {
