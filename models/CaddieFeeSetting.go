@@ -105,6 +105,8 @@ func (item *CaddieFeeSetting) FindAll(database *gorm.DB) ([]CaddieFeeSetting, er
 		db = db.Where("group_id = ?", item.GroupId)
 	}
 
+	db.Order("hole asc")
+
 	db.Find(&list)
 	return list, db.Error
 }

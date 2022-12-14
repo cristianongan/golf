@@ -19,3 +19,7 @@ type CaddieWorkingSync struct {
 	TotalTime  int    `json:"total_time"`  // Thời gian làm việc
 	Date       string `json:"date"`        // Ngày làm việc
 }
+
+type CreateCaddieWorkingRes struct {
+	Message string `json:"message"`
+}
