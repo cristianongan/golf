@@ -1,7 +1,6 @@
 package cron
 
 import (
-	"log"
 	"start/constants"
 	"start/datasources"
 	"start/models"
@@ -34,14 +33,14 @@ func runBookingLogout() {
 	list := []model_booking.Booking{}
 	dbBooking1.Find(&list)
 
-	dbBooking2 := datasources.GetDatabase()
-	for _, booking := range list {
-		booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
-		booking.CheckOutTime = time.Now().Unix()
-		if err := booking.Update(dbBooking2); err != nil {
-			log.Print(err.Error())
-		}
-	}
+	// dbBooking2 := datasources.GetDatabase()
+	// for _, booking := range list {
+	// 	booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
+	// 	booking.CheckOutTime = time.Now().Unix()
+	// 	if err := booking.Update(dbBooking2); err != nil {
+	// 		log.Print(err.Error())
+	// 	}
+	// }
 
 	caddie := models.Caddie{}
 	dbCaddie := datasources.GetDatabase()

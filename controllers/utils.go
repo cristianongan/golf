@@ -1352,7 +1352,7 @@ func bookMarkRoundPaidByMainBag(mainBooking model_booking.Booking, db *gorm.DB) 
 Tạo book reservation cho restaurant
 */
 
-func addServiceCart(db *gorm.DB, numberGuest int, partnerUid, courseUid, playerName, phone, staffName string) {
+func addServiceCart(db *gorm.DB, numberGuest int, partnerUid, courseUid, playerName, phone, bookingDate, staffName string) {
 	// create service cart
 	kiosk := model_service.Kiosk{
 		KioskType: constants.RESTAURANT_SETTING,
@@ -1362,7 +1362,10 @@ func addServiceCart(db *gorm.DB, numberGuest int, partnerUid, courseUid, playerN
 	serviceCart := models.ServiceCart{}
 	serviceCart.PartnerUid = partnerUid
 	serviceCart.CourseUid = courseUid
-	serviceCart.BookingDate = datatypes.Date(time.Now().Local())
+
+	date, _ := time.Parse(constants.DATE_FORMAT_1, bookingDate)
+	serviceCart.BookingDate = datatypes.Date(date)
+
 	serviceCart.ServiceId = kiosk.Id
 	serviceCart.ServiceType = kiosk.KioskType
 	serviceCart.BillCode = constants.BILL_NONE
