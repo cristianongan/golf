@@ -1436,10 +1436,10 @@ func (item *Booking) FindListServiceItems(database *gorm.DB, param GetListBookin
 	total := int64(0)
 
 	if item.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", item.PartnerUid)
+		db = db.Where("bookings.partner_uid = ?", item.PartnerUid)
 	}
 	if item.CourseUid != "" {
-		db = db.Where("course_uid = ?", item.CourseUid)
+		db = db.Where("bookings.course_uid = ?", item.CourseUid)
 	}
 
 	if param.GolfBag != "" {
@@ -1453,8 +1453,9 @@ func (item *Booking) FindListServiceItems(database *gorm.DB, param GetListBookin
 	if param.ServiceType != "" {
 		db = db.Where("booking_service_items.type = ?", param.ServiceType)
 	}
-	db = db.Joins("INNER JOIN booking_service_items ON booking_service_items.booking_uid = bookings.uid").Group("bookings.bag")
-
+	db = db.Joins("RIGHT JOIN booking_service_items ON booking_service_items.booking_uid = bookings.uid")
+	db = db.Order("booking_service_items.created_at desc")
+	db = db.Group("booking_service_items.bill_code")
 	db.Count(&total)
 	db = db.Preload("ListServiceItems")
 
