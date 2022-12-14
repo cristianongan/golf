@@ -373,6 +373,7 @@ func NewRouter() *gin.Engine {
 			cCaddieWorkingTime := new(controllers.CCaddieWorkingTime)
 			cmsApiAuthorized.POST("/caddie-working-time/checkin", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.CaddieCheckInWorkingTime))
 			cmsApiAuthorized.POST("/caddie-working-time/checkout", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.CaddieCheckOutWorkingTime))
+			cmsApiAuthorized.POST("/caddie-working-time/import", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.ImportCaddieWorkingCalendar))
 			cmsApiAuthorized.GET("/caddie-working-time/list", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.GetListCaddieWorkingTime))
 			cmsApiAuthorized.PUT("/caddie-working-time/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.UpdateCaddieWorkingTime))
 			cmsApiAuthorized.DELETE("/caddie-working-time/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingTime.DeleteCaddieWorkingTime))

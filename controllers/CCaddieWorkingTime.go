@@ -258,3 +258,20 @@ func (_ *CCaddieWorkingTime) GetListCaddieWorkingTime(c *gin.Context, prof model
 
 	okResponse(c, res)
 }
+
+func (_ *CCaddieWorkingTime) ImportCaddieWorkingCalendar(c *gin.Context, prof models.CmsUser) {
+	body := request.CreateCaddieWorkingReq{}
+	if err := c.Bind(&body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	err, _ := callservices.ImportCaddieWorking(body)
+
+	if !err {
+		response_message.InternalServerError(c, "Import caddie working calendar fail.")
+		return
+	}
+
+	okRes(c)
+}
