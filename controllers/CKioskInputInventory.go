@@ -122,7 +122,7 @@ func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.Cms
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
 	if errInventoryStatus := inventoryStatus.FindFirst(db); errInventoryStatus != nil {
-		response_message.BadRequest(c, "")
+		response_message.BadRequest(c, "Bill or Service Id not found")
 		return
 	}
 

@@ -81,7 +81,7 @@ func (_ *CKiosk) CreateKiosk(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.PartnerUid == "" || body.CourseUid == "" {
-		response_message.BadRequest(c, "data not valid")
+		response_message.BadRequest(c, "PartnerUid or CourseUid empty!")
 		return
 	}
 

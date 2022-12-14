@@ -19,3 +19,15 @@ type LockMemberCardBody struct {
 	Status         string `json:"status" binding:"required"`
 	ReasonUnactive string `json:"reason_unactive"` // Ghi chu khi Unactive
 }
+
+type MarkContactCustomerBody struct {
+	PartnerUid    string `json:"partner_uid" binding:"required"`
+	CourseUid     string `json:"course_uid" binding:"required"`
+	MemberCardUid string `json:"member_card_uid" binding:"required"`
+	IsContacted   bool   `json:"is_contacted" binding:"required"`
+}
+
+type UnMarkContactCustomerBody struct {
+	PartnerUid string `json:"partner_uid" binding:"required"`
+	CourseUid  string `json:"course_uid" binding:"required"`
+}

@@ -49,8 +49,9 @@ type MemberCard struct {
 	StartPrecial int64 `json:"start_precial"` // Khoảng TG được dùng giá riêng
 	EndPrecial   int64 `json:"end_precial"`   // Khoảng TG được dùng giá riêng
 
-	TotalGuestOfDay int `json:"total_guest_of_day"` // Số khách đi cùng trong ngày
-	TotalPlayOfYear int `json:"total_play_of_year"` // Số lần đã chơi trong năm
+	TotalGuestOfDay int   `json:"total_guest_of_day"`            // Số khách đi cùng trong ngày
+	TotalPlayOfYear int   `json:"total_play_of_year"`            // Số lần đã chơi trong năm
+	IsContacted     *bool `json:"is_contacted" gorm:"default:0"` // Đánh dấu đã liên hệ KH
 }
 
 type MemberCardDetailRes struct {
@@ -394,6 +395,30 @@ func (item *MemberCard) FindList(database *gorm.DB, page Page, playerName string
 	}
 
 	return list, total, db.Error
+}
+
+func (item *MemberCard) FindAllMemberCardContacted(database *gorm.DB) ([]MemberCard, int64, error) {
+	db := database.Table("member_cards")
+	list := []MemberCard{}
+	total := int64(0)
+
+	db = db.Where("is_contacted = 1")
+	db.Count(&total)
+	db.Find(&list)
+
+	return list, total, db.Error
+}
+
+// ------ Batch Update ------
+func (item *MemberCard) BatchUpdate(database *gorm.DB, list []MemberCard) error {
+	db := database.Table("member_cards")
+	var err error
+	err = db.Save(&list).Error
+
+	if err != nil {
+		log.Println("member_cards batch update err: ", err.Error())
+	}
+	return err
 }
 
 func (item *MemberCard) Delete(db *gorm.DB) error {
