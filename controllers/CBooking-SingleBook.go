@@ -175,7 +175,7 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		item := bodyRequest.BookingList[0]
 		if item.BookingRestaurant.Enable {
 			db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-			go addServiceCart(db, len(bodyRequest.BookingList), item.PartnerUid, item.CourseUid, item.CustomerBookingName, item.CustomerBookingPhone, prof.FullName)
+			go addServiceCart(db, len(bodyRequest.BookingList), item.PartnerUid, item.CourseUid, item.CustomerBookingName, item.CustomerBookingPhone, item.BookingDate, prof.FullName)
 		}
 	}
 

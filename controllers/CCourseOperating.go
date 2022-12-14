@@ -347,9 +347,9 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Udp Old Caddie
-	for _, caddie := range listOldCaddie {
-		udpCaddieOut(db, caddie.Id)
-	}
+	// for _, caddie := range listOldCaddie {
+	// 	udpCaddieOut(db, caddie.Id)
+	// }
 
 	//Update trạng thái của các old buggy
 	for _, buggy := range listOldBuggy {
