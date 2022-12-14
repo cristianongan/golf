@@ -87,7 +87,7 @@ func (item *CaddieFeeSettingGroup) FindFirstByDate(database *gorm.DB, date int64
 	db = db.Where("from_date < " + strconv.FormatInt(date, 10) + " ")
 	db = db.Where("to_date > " + strconv.FormatInt(date, 10) + " ")
 
-	return db.Find(item).Error
+	return db.First(item).Error
 }
 
 func (item *CaddieFeeSettingGroup) Count(database *gorm.DB) (int64, error) {

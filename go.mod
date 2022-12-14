@@ -3,7 +3,6 @@ module start
 go 1.18
 
 require (
-	github.com/benbjohnson/clock v1.3.0
 	github.com/bsm/redislock v0.8.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.8.1
@@ -19,7 +18,6 @@ require (
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/rs/cors/wrapper/gin v0.0.0-20220223021805-a4a5ce87d5a2
 	github.com/spf13/viper v1.6.3
-	github.com/stretchr/testify v1.8.0
 	github.com/ttacon/libphonenumber v1.2.1
 	github.com/twharmon/slices v0.0.4
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa

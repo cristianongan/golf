@@ -6,3 +6,20 @@ type GetDetalCaddieWorkingSyncBody struct {
 	Week       int    `json:"week" binding:"required"`
 	EmployeeId string `json:"employee_id" binding:"required"`
 }
+
+type CreateCaddieWorkingReq struct {
+	PartnerUid        string               `json:"partner_uid"`
+	CourseUid         string               `json:"course_uid"`
+	CaddieWorkingList []CaddieCalendarList `json:"caddie_calendar_list" binding:"required"`
+}
+
+type CaddieWorkingList struct {
+	EmployeeID string `json:"employee_id"`
+	TimeStart  string `json:"time_start"`
+	TimeEnd    string `json:"time_end"`
+}
+
+type CaddieCalendarList struct {
+	ApplyDate  string              `json:"apply_date"`
+	CaddieList []CaddieWorkingList `json:"caddie_list"`
+}
