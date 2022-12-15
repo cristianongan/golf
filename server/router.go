@@ -154,6 +154,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.DELETE("/member-card/:uid", middlewares.AuthorizedCmsUserHandler(cMemberCard.DeleteMemberCard))
 			cmsApiAuthorized.POST("/member-card/mark-contact", middlewares.AuthorizedCmsUserHandler(cMemberCard.MarkContactCustomer))
 			cmsApiAuthorized.POST("/member-card/unmark-contact", middlewares.AuthorizedCmsUserHandler(cMemberCard.UnMarkContactCustomer))
+			cmsApiAuthorized.POST("/member-card/mark-all-contact", middlewares.AuthorizedCmsUserHandler(cMemberCard.MarkAllContactCustomer))
 
 			/// =================== Member Card Type =====================
 			cMemberCardType := new(controllers.CMemberCardType)
@@ -721,7 +722,6 @@ func NewRouter() *gin.Engine {
 			/// =================== Booking Agency Payment ===================
 			cBookingAgencyPayment := new(controllers.CBookingAgencyPayment)
 			cmsApiAuthorized.GET("/booking-agency-payment/detail", middlewares.AuthorizedCmsUserHandler(cBookingAgencyPayment.GetDetailBookingAgencyPayment))
-			cmsApiAuthorized.GET("/test", middlewares.AuthorizedCmsUserHandler(cBooking.Test))
 
 			/// =================== Revenue Report ===================
 			cRevenueReport := new(controllers.CRevenueReport)
@@ -736,6 +736,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Test ===================
 			cTest := new(controllers.CTest)
 			cmsApiAuthorized.POST("/test/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cTest.CreateRevenueDetail))
+			cmsApiAuthorized.GET("/test", middlewares.AuthorizedCmsUserHandler(cTest.Test))
 		}
 
 		// ----------------------------------------------------------

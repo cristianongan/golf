@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -8,6 +9,7 @@ import (
 	model_booking "start/models/booking"
 	model_payment "start/models/payment"
 	model_report "start/models/report"
+	"start/socket"
 	"start/utils/response_message"
 
 	"github.com/gin-gonic/gin"
@@ -164,4 +166,52 @@ func (_ *CTest) CreateRevenueDetail(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okRes(c)
+}
+
+func (cBooking *CTest) Test(c *gin.Context, prof models.CmsUser) {
+	// db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	// form := request.GetListBookingForm{}
+	// if bindErr := c.ShouldBind(&form); bindErr != nil {
+	// 	response_message.BadRequest(c, bindErr.Error())
+	// 	return
+	// }
+
+	// if form.Bag == "" {
+	// 	response_message.BadRequest(c, errors.New("Bag invalid").Error())
+	// 	return
+	// }
+
+	// booking := model_booking.Booking{}
+	// booking.PartnerUid = form.PartnerUid
+	// booking.CourseUid = form.CourseUid
+	// booking.Bag = form.Bag
+
+	// if form.BookingDate != "" {
+	// 	booking.BookingDate = form.BookingDate
+	// } else {
+	// 	toDayDate, errD := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	// 	if errD != nil {
+	// 		response_message.InternalServerError(c, errD.Error())
+	// 		return
+	// 	}
+	// 	booking.BookingDate = toDayDate
+	// }
+
+	// errF := booking.FindFirst(db)
+	// if errF != nil {
+	// 	response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
+	// 	return
+	// }
+
+	// booking.UpdateMushPay(db)
+	// booking.Update(db)
+
+	notiData := map[string]interface{}{
+		"type":  constants.NOTIFICATION_CADDIE_WORKING_STATUS_UPDATE,
+		"title": "",
+	}
+
+	newFsConfigBytes, _ := json.Marshal(notiData)
+	socket.HubBroadcastSocket = socket.NewHub()
+	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
 }

@@ -402,7 +402,7 @@ func (item *MemberCard) FindAllMemberCardContacted(database *gorm.DB) ([]MemberC
 	list := []MemberCard{}
 	total := int64(0)
 
-	db = db.Where("is_contacted = 1")
+	db = db.Where("is_contacted = ?", item.IsContacted)
 	db.Count(&total)
 	db.Find(&list)
 

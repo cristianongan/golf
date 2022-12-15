@@ -339,7 +339,7 @@ func (_ *CMemberCard) MarkContactCustomer(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	memberCard.IsContacted = setBoolForCursor(body.IsContacted)
+	memberCard.IsContacted = setBoolForCursor(*body.IsContacted)
 
 	errUdp := memberCard.Update(db)
 	if errUdp != nil {
@@ -359,14 +359,39 @@ func (_ *CMemberCard) UnMarkContactCustomer(c *gin.Context, prof models.CmsUser)
 	}
 
 	rMemberCard := models.MemberCard{
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		IsContacted: setBoolForCursor(true),
 	}
 
 	list, _, _ := rMemberCard.FindAllMemberCardContacted(db)
 
 	for index, _ := range list {
 		list[index].IsContacted = setBoolForCursor(false)
+	}
+
+	rMemberCard.BatchUpdate(db, list)
+	okRes(c)
+}
+
+func (_ *CMemberCard) MarkAllContactCustomer(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.UnMarkContactCustomerBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	rMemberCard := models.MemberCard{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		IsContacted: setBoolForCursor(false),
+	}
+
+	list, _, _ := rMemberCard.FindAllMemberCardContacted(db)
+
+	for index, _ := range list {
+		list[index].IsContacted = setBoolForCursor(true)
 	}
 
 	rMemberCard.BatchUpdate(db, list)
