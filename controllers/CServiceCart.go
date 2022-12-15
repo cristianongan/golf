@@ -297,6 +297,10 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 		serviceCart.ServiceType = kiosk.KioskType
 		serviceCart.PlayerName = booking.CustomerName
 
+		if body.ServiceType != "" {
+			serviceCart.ServiceType = body.ServiceType
+		}
+
 		if err := serviceCart.Create(db); err != nil {
 			response_message.InternalServerError(c, "Create cart "+err.Error())
 			return
