@@ -16,6 +16,8 @@ import (
 	// ginSwagger "github.com/swaggo/gin-swagger"
 	// "github.com/swaggo/gin-swagger/swaggerFiles"
 
+	socket "start/socket"
+
 	limiter "github.com/ulule/limiter/v3"
 	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
 	"github.com/ulule/limiter/v3/drivers/store/memory"
@@ -33,6 +35,11 @@ func NewRouter() *gin.Engine {
 	router := gin.New()
 
 	router.GET("/healthz", healthcheck)
+
+	router.GET("/ws", func(c *gin.Context) {
+		socket.ServeWs(socket.HubBroadcastSocket, c.Writer, c.Request)
+	})
+
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
 		http.ListenAndServe(":9900", nil)
