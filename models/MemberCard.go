@@ -49,9 +49,9 @@ type MemberCard struct {
 	StartPrecial int64 `json:"start_precial"` // Khoảng TG được dùng giá riêng
 	EndPrecial   int64 `json:"end_precial"`   // Khoảng TG được dùng giá riêng
 
-	TotalGuestOfDay int   `json:"total_guest_of_day"`            // Số khách đi cùng trong ngày
-	TotalPlayOfYear int   `json:"total_play_of_year"`            // Số lần đã chơi trong năm
-	IsContacted     *bool `json:"is_contacted" gorm:"default:0"` // Đánh dấu đã liên hệ KH
+	TotalGuestOfDay int `json:"total_guest_of_day"`            // Số khách đi cùng trong ngày
+	TotalPlayOfYear int `json:"total_play_of_year"`            // Số lần đã chơi trong năm
+	IsContacted     int `json:"is_contacted" gorm:"default:0"` // Đánh dấu đã liên hệ KH
 }
 
 type MemberCardDetailRes struct {

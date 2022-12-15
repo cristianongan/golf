@@ -212,6 +212,6 @@ func (cBooking *CTest) Test(c *gin.Context, prof models.CmsUser) {
 	}
 
 	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket.HubBroadcastSocket = socket.NewHub()
+	// socket.HubBroadcastSocket = socket.NewHub()
 	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
 }

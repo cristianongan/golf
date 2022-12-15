@@ -77,7 +77,6 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 	memberCard.AdjustPlayCount = body.AdjustPlayCount
 	memberCard.AnnualType = body.AnnualType
 	memberCard.Float = mcType.Float
-	memberCard.IsContacted = body.IsContacted
 
 	if mcType.Subject == constants.MEMBER_CARD_BASE_SUBJECT_COMPANY {
 		// Check Company Exit
@@ -339,7 +338,7 @@ func (_ *CMemberCard) MarkContactCustomer(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	memberCard.IsContacted = setBoolForCursor(*body.IsContacted)
+	memberCard.IsContacted = body.IsContacted
 
 	errUdp := memberCard.Update(db)
 	if errUdp != nil {
@@ -361,13 +360,13 @@ func (_ *CMemberCard) UnMarkContactCustomer(c *gin.Context, prof models.CmsUser)
 	rMemberCard := models.MemberCard{
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,
-		IsContacted: setBoolForCursor(true),
+		IsContacted: 1,
 	}
 
 	list, _, _ := rMemberCard.FindAllMemberCardContacted(db)
 
 	for index, _ := range list {
-		list[index].IsContacted = setBoolForCursor(false)
+		list[index].IsContacted = 0
 	}
 
 	rMemberCard.BatchUpdate(db, list)
@@ -385,13 +384,13 @@ func (_ *CMemberCard) MarkAllContactCustomer(c *gin.Context, prof models.CmsUser
 	rMemberCard := models.MemberCard{
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,
-		IsContacted: setBoolForCursor(false),
+		IsContacted: 0,
 	}
 
 	list, _, _ := rMemberCard.FindAllMemberCardContacted(db)
 
 	for index, _ := range list {
-		list[index].IsContacted = setBoolForCursor(true)
+		list[index].IsContacted = 1
 	}
 
 	rMemberCard.BatchUpdate(db, list)
