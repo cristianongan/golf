@@ -318,7 +318,6 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 	// add infor cart item
 	serviceCartItem.PartnerUid = body.PartnerUid
 	serviceCartItem.CourseUid = body.CourseUid
-	serviceCartItem.ServiceType = kiosk.ServiceType
 	serviceCartItem.Bag = booking.Bag
 	serviceCartItem.BillCode = booking.BillCode
 	serviceCartItem.BookingUid = booking.Uid
@@ -332,6 +331,8 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 
 	if body.ServiceType != "" {
 		serviceCartItem.ServiceType = body.ServiceType
+	} else {
+		serviceCartItem.ServiceType = kiosk.ServiceType
 	}
 
 	if err := serviceCartItem.Create(db); err != nil {
