@@ -223,6 +223,8 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 		BookingDate: form.BookingDate,
 		TeeTime:     form.TeeTime,
 		BookingCode: form.BookingCode,
+		CourseType:  form.CourseType,
+		TeeType:     form.TeeType,
 	}
 
 	db, _, err := bookingR.FindAllBookingList(db1)

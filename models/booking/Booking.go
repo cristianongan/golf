@@ -1338,6 +1338,7 @@ func (item *Booking) FindForCaddieOnCourse(database *gorm.DB, InFlight string) [
 	}
 
 	db = db.Where("customer_type NOT IN (?)", customerType)
+	db = db.Order("created_at desc")
 
 	if InFlight != "" {
 		if InFlight == "0" {
