@@ -36,10 +36,6 @@ func NewRouter() *gin.Engine {
 
 	router.GET("/healthz", healthcheck)
 
-	router.GET("/ws", func(c *gin.Context) {
-		socket.ServeWs(socket.HubBroadcastSocket, c.Writer, c.Request)
-	})
-
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
 		http.ListenAndServe(":9900", nil)
@@ -48,6 +44,9 @@ func NewRouter() *gin.Engine {
 	moduleName := strings.Replace(config.GetModuleName(), "_", "-", -1)
 	router.Group(moduleName).GET("/", healthcheck)
 	router.Group(moduleName).GET("/healthz", healthcheck)
+	router.Group(moduleName).GET("/ws", func(c *gin.Context) {
+		socket.ServeWs(socket.HubBroadcastSocket, c.Writer, c.Request)
+	})
 
 	if config.GetKibanaLog() {
 		router.Use(middlewares.GinBodyLogMiddleware)
