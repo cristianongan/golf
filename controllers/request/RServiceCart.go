@@ -64,6 +64,7 @@ type GetServiceCartBody struct {
 	CourseUid   string `form:"course_uid"`
 	BookingDate string `form:"booking_date" binding:"required"`
 	ServiceId   int64  `form:"service_id"`
+	GolfBag     string `form:"golf_bag"`
 }
 
 type GetServiceCartRentalBody struct {
@@ -73,6 +74,7 @@ type GetServiceCartRentalBody struct {
 	BookingDate  string `form:"booking_date" binding:"required"`
 	ServiceId    int64  `form:"service_id"`
 	RentalStatus string `form:"rental_status"`
+	GolfBag      string `form:"golf_bag"`
 }
 
 type UpdateServiceCartBody struct {

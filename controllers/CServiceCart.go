@@ -540,6 +540,7 @@ func (_ CServiceCart) GetListCart(c *gin.Context, prof models.CmsUser) {
 	serviceCart.CourseUid = query.CourseUid
 	serviceCart.ServiceId = query.ServiceId
 	serviceCart.BookingDate = datatypes.Date(bookingDate)
+	serviceCart.GolfBag = query.GolfBag
 
 	list, total, err := serviceCart.FindList(db, page)
 
@@ -579,6 +580,7 @@ func (_ CServiceCart) GetListRentalCart(c *gin.Context, prof models.CmsUser) {
 	serviceCart.ServiceId = query.ServiceId
 	serviceCart.BookingDate = datatypes.Date(bookingDate)
 	serviceCart.RentalStatus = query.RentalStatus
+	serviceCart.GolfBag = query.GolfBag
 
 	list, total, err := serviceCart.FindList(db, page)
 
