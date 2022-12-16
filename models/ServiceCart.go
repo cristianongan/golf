@@ -112,7 +112,7 @@ func (item *ServiceCart) FindList(database *gorm.DB, page Page) ([]ServiceCart, 
 	}
 
 	if item.GolfBag != "" {
-		db = db.Where("golf_bag LIKE ?", "%"+item.GolfBag+"%")
+		db = db.Where("golf_bag LIKE ? OR bill_code LIKE ?", "%"+item.GolfBag+"%", "%"+item.GolfBag+"%")
 	}
 
 	if item.FromService != 0 {
