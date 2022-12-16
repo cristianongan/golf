@@ -24,7 +24,7 @@ type MarkContactCustomerBody struct {
 	PartnerUid    string `json:"partner_uid" binding:"required"`
 	CourseUid     string `json:"course_uid" binding:"required"`
 	MemberCardUid string `json:"member_card_uid" binding:"required"`
-	IsContacted   bool   `json:"is_contacted" binding:"required"`
+	IsContacted   int    `json:"is_contacted" binding:"required"`
 }
 
 type UnMarkContactCustomerBody struct {
