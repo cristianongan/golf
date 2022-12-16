@@ -101,9 +101,11 @@ type GetListBookingTeeTimeForm struct {
 type CancelAllBookingBody struct {
 	PartnerUid  string `form:"partner_uid" json:"partner_uid" binding:"required"`
 	CourseUid   string `form:"course_uid" json:"course_uid" binding:"required"`
-	BookingDate string `form:"booking_date" json:"booking_date"`
+	BookingDate string `form:"booking_date" json:"booking_date" binding:"required"`
 	BookingCode string `form:"booking_code" json:"booking_code"`
 	TeeTime     string `form:"tee_time" json:"tee_time"`
+	TeeType     string `form:"tee_type" json:"tee_type"`
+	CourseType  string `form:"course_type" json:"course_type"`
 	Reason      string `form:"reason" json:"reason"`
 }
 

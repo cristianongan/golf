@@ -338,7 +338,7 @@ func (_ *CMemberCard) MarkContactCustomer(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	memberCard.IsContacted = body.IsContacted
+	memberCard.IsContacted = *body.IsContacted
 
 	errUdp := memberCard.Update(db)
 	if errUdp != nil {
