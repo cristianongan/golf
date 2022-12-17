@@ -30,7 +30,7 @@ type Round struct {
 	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"`
 	MainBagPaid   *bool  `json:"main_bag_paid" gorm:"default:0"`
 	PaidBy        string `json:"paid_by" gorm:"type:varchar(50)"` // Paid by: cho cây đại lý thanh toán
-	IsPaid        bool   `json:"is_paid" gorm:"-:migration"`      // Đánh dấu đã được trả bởi main bag or agency (Không migrate db)
+	// IsPaid        bool   `json:"is_paid" gorm:"-:migration"`      // Đánh dấu đã được trả bởi main bag or agency (Không migrate db)
 }
 
 type FeeOfRound struct {
@@ -119,7 +119,7 @@ func (item *Round) FindAll(database *gorm.DB) ([]Round, error) {
 	if item.BillCode != "" {
 		db = db.Where("bill_code = ?", item.BillCode)
 	}
-	db = db.Find(&list)
+	db = db.Debug().Find(&list)
 
 	return list, db.Error
 }
