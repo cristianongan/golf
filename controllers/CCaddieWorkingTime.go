@@ -269,7 +269,7 @@ func (_ *CCaddieWorkingTime) ImportCaddieWorkingCalendar(c *gin.Context, prof mo
 	err, _ := callservices.ImportCaddieWorking(body)
 
 	if err != nil {
-		response_message.InternalServerError(c, "Import caddie working calendar fail.")
+		response_message.InternalServerError(c, "Import caddie working calendar fail, "+err.Error())
 		return
 	}
 
