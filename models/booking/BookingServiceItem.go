@@ -43,6 +43,7 @@ type BookingServiceItem struct {
 	Location       string `json:"location" gorm:"type:varchar(100);index"` // Dc add từ đâu
 	PaidBy         string `json:"paid_by" gorm:"type:varchar(50)"`         // Paid by: cho case đại lý thanh toán
 	Hole           int    `json:"hole"`                                    // Số hố check in
+	IsPaid         bool   `json:"is_paid" gorm:"-:migration"`              // Đánh dấu đã được trả bởi main bag or agency (Không migrate db)
 }
 
 // Response cho FE
