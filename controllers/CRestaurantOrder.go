@@ -570,7 +570,7 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 			if body.Quantity > 0 {
 				if v.ItemComboCode != "" {
 					v.Quantity = (v.Quantity / serviceCartItem.Quality) * body.Quantity
-					v.QuantityProgress = (v.Quantity / serviceCartItem.Quality) * body.Quantity
+					v.QuantityProgress = (v.QuantityProgress / serviceCartItem.Quality) * body.Quantity
 				} else {
 					v.Quantity = body.Quantity
 					v.QuantityProgress = body.Quantity
