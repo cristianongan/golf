@@ -608,9 +608,11 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Upd Main Pay for Sub
+	isMainBagPayChanged := false
 	if body.MainBagPay != nil {
 		if !reflect.DeepEqual(booking.MainBagPay, body.MainBagPay) {
 			booking.MainBagPay = body.MainBagPay
+			isMainBagPayChanged = true
 			go bookMarkRoundPaidByMainBag(booking, db)
 		}
 	}
@@ -842,7 +844,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// udp ok -> Tính lại giá
-	if !reflect.DeepEqual(booking.MainBagPay, body.MainBagPay) {
+	if isMainBagPayChanged {
 		updatePriceWithServiceItem(booking, prof)
 	}
 

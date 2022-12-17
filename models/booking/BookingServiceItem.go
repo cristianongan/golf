@@ -48,7 +48,8 @@ type BookingServiceItem struct {
 // Response cho FE
 type BookingServiceItemResponse struct {
 	BookingServiceItem
-	CheckInTime int64 `json:"check_in_time"` // Time Check In
+	CheckInTime int64 `json:"check_in_time"`
+	IsPaid      bool  `json:"is_paid"`
 }
 
 // ------- List Booking service ---------
@@ -99,9 +100,9 @@ func (item *BookingServiceItem) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *BookingServiceItem) FindAll(database *gorm.DB) ([]BookingServiceItem, error) {
+func (item *BookingServiceItem) FindAll(database *gorm.DB) (ListBookingServiceItems, error) {
 	db := database.Model(BookingServiceItem{})
-	list := []BookingServiceItem{}
+	list := ListBookingServiceItems{}
 	item.Status = ""
 
 	if item.BillCode != "" {
@@ -114,6 +115,12 @@ func (item *BookingServiceItem) FindAll(database *gorm.DB) ([]BookingServiceItem
 
 	db = db.Find(&list)
 
+	// res := []BookingServiceItemResponse{}
+	// for _, item := range list {
+	// 	res = append(res, BookingServiceItemResponse{
+	// 		BookingServiceItem: item,
+	// 	})
+	// }
 	return list, db.Error
 }
 
