@@ -789,13 +789,13 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 
 			for _, round := range listSubRound {
 
-				// if len(sub.AgencyPaid) > 1 && sub.AgencyPaid[1].Fee > 0 {
-				// 	buggyCaddieAgencyPaid += sub.AgencyPaid[1].Fee
-				// }
+				if len(sub.AgencyPaid) > 1 && sub.AgencyPaid[1].Fee > 0 {
+					buggyCaddieAgencyPaid += sub.AgencyPaid[1].Fee
+				}
 
-				// if len(sub.AgencyPaid) > 2 && sub.AgencyPaid[2].Fee > 0 {
-				// 	buggyCaddieAgencyPaid += sub.AgencyPaid[2].Fee
-				// }
+				if len(sub.AgencyPaid) > 2 && sub.AgencyPaid[2].Fee > 0 {
+					buggyCaddieAgencyPaid += sub.AgencyPaid[2].Fee
+				}
 
 				if round.Index == 1 {
 					if !(len(sub.AgencyPaid) > 0 && sub.AgencyPaid[0].Fee > 0) && checkIsFirstRound > -1 {
@@ -866,22 +866,23 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 					isNeedPay = true
 				}
 			}
+
+			if !isNeedPay {
+				mainBagPaid += v.Amount
+			}
+
 		} else {
 			// case thuê buggy, caddy
 			if v.ServiceType == constants.BUGGY_SETTING || v.ServiceType == constants.CADDIE_SETTING {
 				buggyCaddieRentalFee += v.Amount
-				isNeedPay = true
-			} else {
 				isNeedPay = false
+			} else {
+				isNeedPay = true
 			}
 		}
 
 		if isNeedPay && !isBuggyCaddieRental {
 			mushPay.TotalServiceItem += v.Amount
-		}
-
-		if !isNeedPay {
-			mainBagPaid += v.Amount
 		}
 	}
 
