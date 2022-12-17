@@ -29,12 +29,12 @@ func GetDetailCaddieWorking(body request.GetDetalCaddieWorkingSyncBody) (bool, r
 	return ok, caddieWorking
 }
 
-func ImportCaddieWorking(body request.CreateCaddieWorkingReq) map[string]interface{} {
+func ImportCaddieWorking(body request.CreateCaddieWorkingReq) (map[string]interface{}, string) {
 	data, err := json.Marshal(body)
 	urlResult := config.GetGolfPartnerURL() + "caddie-working/import"
 	if err != nil {
 		log.Println("CaddieWorkingSync err: ", err)
-		return map[string]interface{}{}
+		return map[string]interface{}{}, ""
 	}
 	serverHeader := make(http.Header)
 	serverHeader.Add("Content-Type", "application/json")
@@ -43,8 +43,8 @@ func ImportCaddieWorking(body request.CreateCaddieWorkingReq) map[string]interfa
 	caddieWorking := map[string]interface{}{}
 	err1 := json.Unmarshal(resp, &caddieWorking)
 	if err1 != nil {
-		return caddieWorking
+		return caddieWorking, string(resp)
 	}
 
-	return caddieWorking
+	return caddieWorking, string(resp)
 }
