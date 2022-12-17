@@ -566,7 +566,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 	mainPaidRestaurant := false
 	mainPaidKiosk := false
 	mainPaidOtherFee := false
-	// mainCheckOutTime := int64(0)
+	mainCheckOutTime := int64(0)
 
 	// Tính giá của khi có main bag
 	if len(item.MainBags) > 0 {
@@ -580,7 +580,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 		if errFMB != nil {
 			log.Println("UpdateMushPay-"+item.Bag+"-Find Main Bag", errFMB.Error())
 		}
-		// mainCheckOutTime = mainBook.CheckOutTime
+		mainCheckOutTime = mainBook.CheckOutTime
 		mainPaidRental = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_RENTAL) > -1
 		mainPaidProshop = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP) > -1
 		mainPaidRestaurant = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT) > -1
@@ -592,32 +592,32 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 	if len(listGolfService) > 0 {
 		for index, v := range listGolfService {
 			// Check trạng thái bill
-			// if mainCheckOutTime > 0 {
-			if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL ||
-				v.Type == constants.DRIVING_SETTING {
-				if mainPaidRental {
+			if mainCheckOutTime > 0 {
+				if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL ||
+					v.Type == constants.DRIVING_SETTING {
+					if mainPaidRental {
+						v.IsPaid = true
+					}
+					if v.ServiceType == constants.BUGGY_SETTING || v.ServiceType == constants.CADDIE_SETTING {
+						if item.GetAgencyPaidBuggy() > 0 {
+							v.IsPaid = true
+						}
+						if item.GetAgencyPaidBookingCaddie() > 0 {
+							v.IsPaid = true
+						}
+					}
+				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP && mainPaidProshop {
+					v.IsPaid = true
+				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT ||
+					v.Type == constants.MINI_B_SETTING ||
+					v.Type == constants.MINI_R_SETTING) && mainPaidRestaurant {
+					v.IsPaid = true
+				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE && mainPaidOtherFee {
+					v.IsPaid = true
+				} else if (v.Type == constants.GOLF_SERVICE_KIOSK) && mainPaidKiosk {
 					v.IsPaid = true
 				}
-				if v.ServiceType == constants.BUGGY_SETTING || v.ServiceType == constants.CADDIE_SETTING {
-					if item.GetAgencyPaidBuggy() > 0 {
-						v.IsPaid = true
-					}
-					if item.GetAgencyPaidBookingCaddie() > 0 {
-						v.IsPaid = true
-					}
-				}
-			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP && mainPaidProshop {
-				v.IsPaid = true
-			} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT ||
-				v.Type == constants.MINI_B_SETTING ||
-				v.Type == constants.MINI_R_SETTING) && mainPaidRestaurant {
-				v.IsPaid = true
-			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE && mainPaidOtherFee {
-				v.IsPaid = true
-			} else if (v.Type == constants.GOLF_SERVICE_KIOSK) && mainPaidKiosk {
-				v.IsPaid = true
 			}
-			// }
 
 			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
 				// Add từ lễ tân thì k cần check
