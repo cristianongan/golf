@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"log"
 	"start/callservices"
 	"start/constants"
@@ -266,10 +267,11 @@ func (_ *CCaddieWorkingTime) ImportCaddieWorkingCalendar(c *gin.Context, prof mo
 		return
 	}
 
-	err, _ := callservices.ImportCaddieWorking(body)
+	err := callservices.ImportCaddieWorking(body)
 
 	if err != nil {
-		response_message.InternalServerError(c, "Import caddie working calendar fail, "+err.Error())
+		b, _ := json.Marshal(err)
+		response_message.InternalServerError(c, "Import caddie working calendar fail, "+string(b))
 		return
 	}
 
