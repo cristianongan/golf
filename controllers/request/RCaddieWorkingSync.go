@@ -17,9 +17,10 @@ type CaddieWorkingList struct {
 	EmployeeID string `json:"employee_id"`
 	TimeStart  string `json:"time_start"`
 	TimeEnd    string `json:"time_end"`
+	ApplyDate  string `json:"apply_date"`
 }
 
 type CaddieCalendarList struct {
-	ApplyDate  string              `json:"apply_date"`
+	ApplyMonth string              `json:"apply_month"`
 	CaddieList []CaddieWorkingList `json:"caddie_list"`
 }
