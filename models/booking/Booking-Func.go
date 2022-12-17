@@ -155,29 +155,34 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 	if len(listGolfService) > 0 {
 		for index, v := range listGolfService {
 			if mainCheckOutTime > 0 {
-				if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL ||
-					v.Type == constants.DRIVING_SETTING {
-					if mainPaidRental {
+
+				if v.CreatedAt > mainCheckOutTime {
+					v.IsPaid = false
+				} else {
+					if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL ||
+						v.Type == constants.DRIVING_SETTING {
+						if mainPaidRental {
+							v.IsPaid = true
+						}
+						if v.ServiceType == constants.BUGGY_SETTING || v.ServiceType == constants.CADDIE_SETTING {
+							if item.GetAgencyPaidBuggy() > 0 {
+								v.IsPaid = true
+							}
+							if item.GetAgencyPaidBookingCaddie() > 0 {
+								v.IsPaid = true
+							}
+						}
+					} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP && mainPaidProshop {
+						v.IsPaid = true
+					} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT ||
+						v.Type == constants.MINI_B_SETTING ||
+						v.Type == constants.MINI_R_SETTING) && mainPaidRestaurant {
+						v.IsPaid = true
+					} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE && mainPaidOtherFee {
+						v.IsPaid = true
+					} else if (v.Type == constants.GOLF_SERVICE_KIOSK) && mainPaidKiosk {
 						v.IsPaid = true
 					}
-					if v.ServiceType == constants.BUGGY_SETTING || v.ServiceType == constants.CADDIE_SETTING {
-						if item.GetAgencyPaidBuggy() > 0 {
-							v.IsPaid = true
-						}
-						if item.GetAgencyPaidBookingCaddie() > 0 {
-							v.IsPaid = true
-						}
-					}
-				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP && mainPaidProshop {
-					v.IsPaid = true
-				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT ||
-					v.Type == constants.MINI_B_SETTING ||
-					v.Type == constants.MINI_R_SETTING) && mainPaidRestaurant {
-					v.IsPaid = true
-				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE && mainPaidOtherFee {
-					v.IsPaid = true
-				} else if (v.Type == constants.GOLF_SERVICE_KIOSK) && mainPaidKiosk {
-					v.IsPaid = true
 				}
 			}
 
@@ -455,6 +460,7 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 
 		if v.ServiceType == constants.BUGGY_SETTING || v.ServiceType == constants.CADDIE_SETTING {
 			isBuggyCaddieRental = true
+			buggyCaddieRentalFee += v.Amount
 		}
 
 		if len(item.MainBags) > 0 {
@@ -462,16 +468,10 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 			if mainCheckOutTime > 0 && v.CreatedAt > mainCheckOutTime {
 				// main bag đã check out đi về, sub bag dùng tiếp service thì phải trả v
 				isNeedPay = true
-				buggyCaddieRentalFee += v.Amount
 			} else {
 				if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL ||
 					v.Type == constants.DRIVING_SETTING) && !mainPaidRental {
 					isNeedPay = true
-
-					if isBuggyCaddieRental && !mainPaidRental {
-						buggyCaddieRentalFee += v.Amount
-					}
-
 				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP && !mainPaidProshop {
 					isNeedPay = true
 				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT ||
@@ -490,13 +490,7 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 			}
 
 		} else {
-			// case thuê buggy, caddy
-			if v.ServiceType == constants.BUGGY_SETTING || v.ServiceType == constants.CADDIE_SETTING {
-				buggyCaddieRentalFee += v.Amount
-				isNeedPay = false
-			} else {
-				isNeedPay = true
-			}
+			isNeedPay = true
 		}
 
 		if isNeedPay && !isBuggyCaddieRental {
