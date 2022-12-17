@@ -119,7 +119,7 @@ type Booking struct {
 	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"` // hỗ trợ query tính giá
 	SeparatePrice bool   `json:"separate_price" gorm:"default:0"`          // Giá riêng
 
-	ListServiceItems []BookingServiceItem                 `json:"list_service_items,omitempty" gorm:"-:migration"` // List service item: rental, proshop, restaurant, kiosk
+	ListServiceItems []BookingServiceItemResponse         `json:"list_service_items,omitempty" gorm:"-:migration"` // List service item: rental, proshop, restaurant, kiosk
 	ShowCaddieBuggy  *bool                                `json:"show_caddie_buggy" gorm:"default:1"`              // Sau add round thì không hiển thị caddie buggy
 	IsPrivateBuggy   *bool                                `json:"is_private_buggy" gorm:"default:0"`               // Bag có dùng buggy riêng không
 	MovedFlight      *bool                                `json:"moved_flight" gorm:"default:0"`                   // Đánh dấu booking đã move flight chưa
@@ -159,13 +159,13 @@ type RoundOfBag struct {
 }
 
 type BookingForListServiceIems struct {
-	PartnerUid       string               `json:"partner_uid"`                                                              // Hang Golf
-	CourseUid        string               `json:"course_uid"`                                                               // San Golf
-	BookingDate      string               `json:"booking_date"`                                                             // Ex: 06/11/2022
-	Bag              string               `json:"bag"`                                                                      // Golf Bag
-	ListServiceItems []BookingServiceItem `json:"list_service_items,omitempty" gorm:"foreignKey:BookingUid;references:Uid"` // List service item: rental, proshop, restaurant, kiosk
-	CheckInTime      int64                `json:"check_in_time"`
-	CustomerName     string               `json:"customer_name"`
+	PartnerUid       string                       `json:"partner_uid"`                                                              // Hang Golf
+	CourseUid        string                       `json:"course_uid"`                                                               // San Golf
+	BookingDate      string                       `json:"booking_date"`                                                             // Ex: 06/11/2022
+	Bag              string                       `json:"bag"`                                                                      // Golf Bag
+	ListServiceItems []BookingServiceItemResponse `json:"list_service_items,omitempty" gorm:"foreignKey:BookingUid;references:Uid"` // List service item: rental, proshop, restaurant, kiosk
+	CheckInTime      int64                        `json:"check_in_time"`
+	CustomerName     string                       `json:"customer_name"`
 }
 type GetListBookingWithListServiceItems struct {
 	PartnerUid  string
@@ -530,7 +530,7 @@ type BookingFeeOfBag struct {
 	AgencyPaid        utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty"`
 	SubBags           utils.ListSubBag                     `json:"sub_bags,omitempty"`
 	MushPayInfo       BookingMushPay                       `json:"mush_pay_info,omitempty"`
-	ListServiceItems  []BookingServiceItem                 `json:"list_service_items"`
+	ListServiceItems  []BookingServiceItemResponse         `json:"list_service_items"`
 	ListRoundOfSubBag []RoundOfBag                         `json:"list_round_of_sub_bag"`
 	Rounds            models.ListRound                     `json:"rounds"`
 }
@@ -556,7 +556,7 @@ type AgencyCancelBookingList struct {
 */
 func (item *Booking) FindServiceItems(db *gorm.DB) {
 	//MainBag
-	listServiceItems := ListBookingServiceItems{}
+	listServiceItems := []BookingServiceItemResponse{}
 	serviceGolfs := BookingServiceItem{
 		BillCode: item.BillCode,
 	}
@@ -649,7 +649,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 	}
 
 	//Check Subbag
-	listTemp := ListBookingServiceItems{}
+	listTemp := []BookingServiceItemResponse{}
 	if item.SubBags != nil && len(item.SubBags) > 0 {
 		for _, v := range item.SubBags {
 			serviceGolfsTemp := BookingServiceItem{
