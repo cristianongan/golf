@@ -266,10 +266,10 @@ func (_ *CCaddieWorkingTime) ImportCaddieWorkingCalendar(c *gin.Context, prof mo
 		return
 	}
 
-	_, log := callservices.ImportCaddieWorking(body)
+	err, _ := callservices.ImportCaddieWorking(body)
 
-	if log != "" {
-		response_message.InternalServerError(c, "Import caddie working calendar fail, "+log)
+	if !err {
+		response_message.InternalServerError(c, "Import caddie working calendar fail.")
 		return
 	}
 
