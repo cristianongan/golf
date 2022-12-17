@@ -219,10 +219,10 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 		mainPaidRound1 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND) > -1
 		mainPaidRound2 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS) > -1
 	}
-	listRoundOfMain := []models.Round{}
+	listRoundOfMain := []models.RoundPaidByMainBag{}
 	if booking.BillCode != "" {
 		round := models.Round{BillCode: booking.BillCode}
-		listRound, _ := round.FindAll(db)
+		listRound, _ := round.FindAllRoundPaidByMain(db)
 		listRoundOfMain = listRound
 
 		if mainCheckOutTime > 0 {
@@ -238,7 +238,7 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Get List Service Item
-	booking.FindServiceItems(db)
+	listServices := booking.FindServiceItemsWithPaidInfo(db)
 
 	// Get List Round Of Sub Bag
 	listRoundOfSub := []model_booking.RoundOfBag{}
@@ -251,7 +251,7 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 		AgencyPaid:        booking.AgencyPaid,
 		SubBags:           booking.SubBags,
 		MushPayInfo:       booking.MushPayInfo,
-		ListServiceItems:  booking.ListServiceItems,
+		ListServiceItems:  listServices,
 		ListRoundOfSubBag: listRoundOfSub,
 		Rounds:            listRoundOfMain,
 	}

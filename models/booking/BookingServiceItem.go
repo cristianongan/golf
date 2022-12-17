@@ -43,13 +43,17 @@ type BookingServiceItem struct {
 	Location       string `json:"location" gorm:"type:varchar(100);index"` // Dc add từ đâu
 	PaidBy         string `json:"paid_by" gorm:"type:varchar(50)"`         // Paid by: cho case đại lý thanh toán
 	Hole           int    `json:"hole"`                                    // Số hố check in
-	IsPaid         bool   `json:"is_paid" gorm:"-:migration"`              // Đánh dấu đã được trả bởi main bag or agency (Không migrate db)
 }
 
 // Response cho FE
 type BookingServiceItemResponse struct {
 	BookingServiceItem
-	CheckInTime int64 `json:"check_in_time"` // Time Check In
+	CheckInTime int64 `json:"check_in_time"`
+}
+
+type BookingServiceItemWithPaidInfo struct {
+	BookingServiceItem
+	IsPaid bool `json:"is_paid"`
 }
 
 // ------- List Booking service ---------
@@ -100,7 +104,24 @@ func (item *BookingServiceItem) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *BookingServiceItem) FindAll(database *gorm.DB) ([]BookingServiceItem, error) {
+func (item *BookingServiceItem) FindAll(database *gorm.DB) (ListBookingServiceItems, error) {
+	db := database.Model(BookingServiceItem{})
+	list := ListBookingServiceItems{}
+	item.Status = ""
+
+	if item.BillCode != "" {
+		db = db.Where("bill_code = ?", item.BillCode)
+	}
+
+	if item.ServiceBill > 0 {
+		db = db.Where("service_bill = ?", item.ServiceBill)
+	}
+
+	db = db.Find(&list)
+	return list, db.Error
+}
+
+func (item *BookingServiceItem) FindAllWithPaidInfo(database *gorm.DB) ([]BookingServiceItemWithPaidInfo, error) {
 	db := database.Model(BookingServiceItem{})
 	list := []BookingServiceItem{}
 	item.Status = ""
@@ -115,7 +136,13 @@ func (item *BookingServiceItem) FindAll(database *gorm.DB) ([]BookingServiceItem
 
 	db = db.Find(&list)
 
-	return list, db.Error
+	res := []BookingServiceItemWithPaidInfo{}
+	for _, item := range list {
+		res = append(res, BookingServiceItemWithPaidInfo{
+			BookingServiceItem: item,
+		})
+	}
+	return res, db.Error
 }
 
 func (item *BookingServiceItem) FindList(database *gorm.DB, page models.Page) ([]map[string]interface{}, int64, error) {

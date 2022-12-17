@@ -91,7 +91,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	if errFSP == nil && agencySpecialPrice.Id > 0 {
 		GreenFee = agencySpecialPrice.GreenFee
 		CaddieFee = agencySpecialPrice.CaddieFee
-		BuggyFee = agencySpecialPrice.BuggyFee
+		// BuggyFee = agencySpecialPrice.BuggyFee
 	} else {
 		golfFee := models.GolfFee{
 			GuestStyle: agency.GuestStyle,
@@ -103,8 +103,10 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 		// Lấy giá hole
 		GreenFee = utils.GetFeeFromListFee(fee.GreenFee, body.Hole)
 		CaddieFee = utils.GetFeeFromListFee(fee.CaddieFee, body.Hole)
-		BuggyFee = utils.GetFeeFromListFee(fee.BuggyFee, body.Hole)
+		// BuggyFee = utils.GetFeeFromListFee(fee.BuggyFee, body.Hole)
 	}
+
+	BuggyFee = utils.GetFeeFromListFee(getBuggyFee(agency.GuestStyle), 18)
 
 	cBookingSetting := CBookingSetting{}
 	form := request.GetListBookingSettingForm{
