@@ -1413,3 +1413,42 @@ func checkTeeTimeAvailable(booking model_booking.Booking) bool {
 
 	return !(total == constants.SLOT_TEE_TIME)
 }
+
+func getBuggyFee(gs string) utils.ListGolfHoleFee {
+
+	partnerUid := "CHI-LINH"
+	courseUid := "CHI-LINH-01"
+
+	db := datasources.GetDatabaseWithPartner(partnerUid)
+	buggyFeeSettingR := models.BuggyFeeSetting{
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+	}
+
+	listBuggySetting, _, _ := buggyFeeSettingR.FindAll(db)
+	buggyFeeSetting := models.BuggyFeeSetting{}
+	for _, item := range listBuggySetting {
+		if item.Status == constants.STATUS_ENABLE {
+			buggyFeeSetting = item
+			break
+		}
+	}
+
+	buggyFeeItemSettingR := models.BuggyFeeItemSetting{
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+		GuestStyle: gs,
+		SettingId:  buggyFeeSetting.Id,
+	}
+
+	listSetting, _, _ := buggyFeeItemSettingR.FindAll(db)
+	buggyFeeItemSetting := models.BuggyFeeItemSetting{}
+	for _, item := range listSetting {
+		if item.Status == constants.STATUS_ENABLE {
+			buggyFeeItemSetting = item
+			break
+		}
+	}
+
+	return buggyFeeItemSetting.RentalFee
+}
