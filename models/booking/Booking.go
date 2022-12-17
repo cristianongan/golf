@@ -887,6 +887,11 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 	}
 
 	buggyCaddieRentalMushPay := buggyCaddieRentalFee - buggyCaddieAgencyPaid
+
+	if buggyCaddieRentalMushPay < 0 {
+		buggyCaddieRentalMushPay = 0
+	}
+
 	total := mushPay.TotalGolfFee + mushPay.TotalServiceItem + buggyCaddieRentalMushPay
 
 	if total < 0 {
