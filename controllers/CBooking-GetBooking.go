@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -198,46 +199,46 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Get List Round Of Main Bag
-	// mainPaidRound1 := false
-	// mainPaidRound2 := false
-	// mainCheckOutTime := int64(0)
+	mainPaidRound1 := false
+	mainPaidRound2 := false
+	mainCheckOutTime := int64(0)
 
 	// Tính giá của khi có main bag
-	// if len(booking.MainBags) > 0 {
-	// 	mainBook := model_booking.Booking{
-	// 		CourseUid:   booking.CourseUid,
-	// 		PartnerUid:  booking.PartnerUid,
-	// 		Bag:         booking.MainBags[0].GolfBag,
-	// 		BookingDate: booking.BookingDate,
-	// 	}
-	// 	errFMB := mainBook.FindFirst(db)
-	// 	if errFMB != nil {
-	// 		log.Println("UpdateMushPay-"+booking.Bag+"-Find Main Bag", errFMB.Error())
-	// 	}
-	// 	mainCheckOutTime = mainBook.CheckOutTime
-	// 	mainPaidRound1 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND) > -1
-	// 	mainPaidRound2 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS) > -1
-	// }
-	listRoundOfMain := []models.Round{}
+	if len(booking.MainBags) > 0 {
+		mainBook := model_booking.Booking{
+			CourseUid:   booking.CourseUid,
+			PartnerUid:  booking.PartnerUid,
+			Bag:         booking.MainBags[0].GolfBag,
+			BookingDate: booking.BookingDate,
+		}
+		errFMB := mainBook.FindFirst(db)
+		if errFMB != nil {
+			log.Println("UpdateMushPay-"+booking.Bag+"-Find Main Bag", errFMB.Error())
+		}
+		mainCheckOutTime = mainBook.CheckOutTime
+		mainPaidRound1 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND) > -1
+		mainPaidRound2 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS) > -1
+	}
+	listRoundOfMain := []models.RoundPaidByMainBag{}
 	if booking.BillCode != "" {
 		round := models.Round{BillCode: booking.BillCode}
-		listRound, _ := round.FindAll(db)
+		listRound, _ := round.FindAllRoundPaidByMain(db)
 		listRoundOfMain = listRound
 
-		// if mainCheckOutTime > 0 {
-		// 	for index, round := range listRoundOfMain {
-		// 		if round.Index == 1 && mainPaidRound1 {
-		// 			listRoundOfMain[index].IsPaid = true
-		// 		}
-		// 		if round.Index == 2 && mainPaidRound2 {
-		// 			listRoundOfMain[index].IsPaid = true
-		// 		}
-		// 	}
-		// }
+		if mainCheckOutTime > 0 {
+			for index, round := range listRoundOfMain {
+				if round.Index == 1 && mainPaidRound1 {
+					listRoundOfMain[index].IsPaid = true
+				}
+				if round.Index == 2 && mainPaidRound2 {
+					listRoundOfMain[index].IsPaid = true
+				}
+			}
+		}
 	}
 
 	// Get List Service Item
-	booking.FindServiceItems(db)
+	listServices := booking.FindServiceItemsWithPaidInfo(db)
 
 	// Get List Round Of Sub Bag
 	listRoundOfSub := []model_booking.RoundOfBag{}
@@ -250,7 +251,7 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 		AgencyPaid:        booking.AgencyPaid,
 		SubBags:           booking.SubBags,
 		MushPayInfo:       booking.MushPayInfo,
-		ListServiceItems:  booking.ListServiceItems,
+		ListServiceItems:  listServices,
 		ListRoundOfSubBag: listRoundOfSub,
 		Rounds:            listRoundOfMain,
 	}

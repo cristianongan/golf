@@ -30,13 +30,17 @@ type Round struct {
 	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"`
 	MainBagPaid   *bool  `json:"main_bag_paid" gorm:"default:0"`
 	PaidBy        string `json:"paid_by" gorm:"type:varchar(50)"` // Paid by: cho cây đại lý thanh toán
-	// IsPaid        bool   `json:"is_paid" gorm:"-:migration"`      // Đánh dấu đã được trả bởi main bag or agency (Không migrate db)
 }
 
 type FeeOfRound struct {
 	CaddieFee int64 `json:"caddie_fee"`
 	BuggyFee  int64 `json:"buggy_fee"`
 	GreenFee  int64 `json:"green_fee"`
+}
+
+type RoundPaidByMainBag struct {
+	Round
+	IsPaid bool `json:"is_paid"`
 }
 
 type ListRound []Round
@@ -119,9 +123,30 @@ func (item *Round) FindAll(database *gorm.DB) ([]Round, error) {
 	if item.BillCode != "" {
 		db = db.Where("bill_code = ?", item.BillCode)
 	}
-	db = db.Debug().Find(&list)
+	db = db.Find(&list)
 
 	return list, db.Error
+}
+
+func (item *Round) FindAllRoundPaidByMain(database *gorm.DB) ([]RoundPaidByMainBag, error) {
+	db := database.Model(Round{})
+	list := []Round{}
+
+	if item.BillCode != "" {
+		db = db.Where("bill_code = ?", item.BillCode)
+	}
+
+	db = db.Find(&list)
+
+	listRoundPaidByMainBag := []RoundPaidByMainBag{}
+
+	for _, round := range list {
+		listRoundPaidByMainBag = append(listRoundPaidByMainBag, RoundPaidByMainBag{
+			Round: round,
+		})
+	}
+
+	return listRoundPaidByMainBag, db.Error
 }
 
 func (item *Round) LastRound(database *gorm.DB) error {

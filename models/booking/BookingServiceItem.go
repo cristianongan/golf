@@ -49,7 +49,11 @@ type BookingServiceItem struct {
 type BookingServiceItemResponse struct {
 	BookingServiceItem
 	CheckInTime int64 `json:"check_in_time"`
-	IsPaid      bool  `json:"is_paid"`
+}
+
+type BookingServiceItemWithPaidInfo struct {
+	BookingServiceItem
+	IsPaid bool `json:"is_paid"`
 }
 
 // ------- List Booking service ---------
@@ -114,14 +118,31 @@ func (item *BookingServiceItem) FindAll(database *gorm.DB) (ListBookingServiceIt
 	}
 
 	db = db.Find(&list)
-
-	// res := []BookingServiceItemResponse{}
-	// for _, item := range list {
-	// 	res = append(res, BookingServiceItemResponse{
-	// 		BookingServiceItem: item,
-	// 	})
-	// }
 	return list, db.Error
+}
+
+func (item *BookingServiceItem) FindAllWithPaidInfo(database *gorm.DB) ([]BookingServiceItemWithPaidInfo, error) {
+	db := database.Model(BookingServiceItem{})
+	list := []BookingServiceItem{}
+	item.Status = ""
+
+	if item.BillCode != "" {
+		db = db.Where("bill_code = ?", item.BillCode)
+	}
+
+	if item.ServiceBill > 0 {
+		db = db.Where("service_bill = ?", item.ServiceBill)
+	}
+
+	db = db.Find(&list)
+
+	res := []BookingServiceItemWithPaidInfo{}
+	for _, item := range list {
+		res = append(res, BookingServiceItemWithPaidInfo{
+			BookingServiceItem: item,
+		})
+	}
+	return res, db.Error
 }
 
 func (item *BookingServiceItem) FindList(database *gorm.DB, page models.Page) ([]map[string]interface{}, int64, error) {
