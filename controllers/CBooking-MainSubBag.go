@@ -197,7 +197,7 @@ func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 			}
 			booking.ListGolfFee = listGolfFees
 			// remove list service items
-			listServiceItems := []model_booking.BookingServiceItemResponse{}
+			listServiceItems := model_booking.ListBookingServiceItems{}
 			for _, v1 := range booking.ListServiceItems {
 				if v1.BookingUid != v.BookingUid {
 					listServiceItems = append(listServiceItems, v1)

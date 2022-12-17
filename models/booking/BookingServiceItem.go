@@ -100,9 +100,9 @@ func (item *BookingServiceItem) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *BookingServiceItem) FindAll(database *gorm.DB) ([]BookingServiceItemResponse, error) {
+func (item *BookingServiceItem) FindAll(database *gorm.DB) (ListBookingServiceItems, error) {
 	db := database.Model(BookingServiceItem{})
-	list := []BookingServiceItem{}
+	list := ListBookingServiceItems{}
 	item.Status = ""
 
 	if item.BillCode != "" {
@@ -115,13 +115,13 @@ func (item *BookingServiceItem) FindAll(database *gorm.DB) ([]BookingServiceItem
 
 	db = db.Find(&list)
 
-	res := []BookingServiceItemResponse{}
-	for _, item := range list {
-		res = append(res, BookingServiceItemResponse{
-			BookingServiceItem: item,
-		})
-	}
-	return res, db.Error
+	// res := []BookingServiceItemResponse{}
+	// for _, item := range list {
+	// 	res = append(res, BookingServiceItemResponse{
+	// 		BookingServiceItem: item,
+	// 	})
+	// }
+	return list, db.Error
 }
 
 func (item *BookingServiceItem) FindList(database *gorm.DB, page models.Page) ([]map[string]interface{}, int64, error) {
