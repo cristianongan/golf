@@ -753,7 +753,8 @@ func (_ CRestaurantOrder) UpdateResItem(c *gin.Context, prof models.CmsUser) {
 
 	// validate restaurant item
 	resItem := models.RestaurantItem{}
-	resItem.Id = body.ItemId
+	resItem.ItemCode = body.ItemCode
+	resItem.BillId = body.BillId
 	resItem.ItemStatus = constants.RES_STATUS_PROCESS
 
 	if err := resItem.FindFirst(db); err != nil {

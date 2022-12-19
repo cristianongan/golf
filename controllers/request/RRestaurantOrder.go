@@ -90,7 +90,8 @@ type GetListBillBody struct {
 }
 
 type UpdateResItemBody struct {
-	ItemId int64 `json:"item_id" binding:"required"`
+	ItemCode string `json:"item_code" binding:"required"`
+	BillId   int64  `json:"bill_id" binding:"required"`
 }
 
 type GetFoodProcessBody struct {
