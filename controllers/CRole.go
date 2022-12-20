@@ -129,8 +129,11 @@ func (_ *CRole) UpdateRole(c *gin.Context, prof models.CmsUser) {
 
 	role := model_role.Role{}
 	role.Id = roleId
-	role.PartnerUid = prof.PartnerUid
-	role.CourseUid = prof.CourseUid
+	if prof.PartnerUid != constants.ROOT_PARTNER_UID {
+		role.PartnerUid = prof.PartnerUid
+		role.CourseUid = prof.CourseUid
+	}
+
 	errF := role.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -199,8 +202,10 @@ func (_ *CRole) DeleteRole(c *gin.Context, prof models.CmsUser) {
 
 	role := model_role.Role{}
 	role.Id = roleId
-	role.PartnerUid = prof.PartnerUid
-	role.CourseUid = prof.CourseUid
+	if prof.PartnerUid != constants.ROOT_PARTNER_UID {
+		role.PartnerUid = prof.PartnerUid
+		role.CourseUid = prof.CourseUid
+	}
 	errF := role.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
