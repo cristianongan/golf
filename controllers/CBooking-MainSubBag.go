@@ -312,6 +312,11 @@ func (_ *CBooking) GetSubBagDetail(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if booking.PartnerUid != prof.PartnerUid || booking.CourseUid != prof.CourseUid {
+		response_message.Forbidden(c, "forbidden")
+		return
+	}
+
 	list := []model_booking.Booking{}
 
 	if booking.SubBags == nil || len(booking.SubBags) == 0 {

@@ -81,6 +81,11 @@ func (_ *CBooking) GetBookingDetail(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if booking.PartnerUid != prof.PartnerUid || booking.CourseUid != prof.CourseUid {
+		response_message.Forbidden(c, "forbidden")
+		return
+	}
+
 	bagDetail := getBagDetailFromBooking(db, booking)
 	okResponse(c, bagDetail)
 }
@@ -104,7 +109,13 @@ func (_ *CBooking) GetBookingPaymentDetail(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	if booking.PartnerUid != prof.PartnerUid || booking.CourseUid != prof.CourseUid {
+		response_message.Forbidden(c, "forbidden")
+		return
+	}
+
 	bagDetail := getBagDetailFromBooking(db, booking)
+
 	// Get List Round Of Sub Bag
 	listRoundOfSub := []model_booking.RoundOfBag{}
 	if len(booking.SubBags) > 0 {

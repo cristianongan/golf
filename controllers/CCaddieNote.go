@@ -96,6 +96,8 @@ func (_ *CCaddieNote) DeleteCaddieNote(c *gin.Context, prof models.CmsUser) {
 
 	caddieNoteRequest := models.CaddieNote{}
 	caddieNoteRequest.Id = caddieNoteId
+	caddieNoteRequest.PartnerUid = prof.PartnerUid
+	caddieNoteRequest.CourseUid = prof.CourseUid
 	errF := caddieNoteRequest.FindFirst(db)
 
 	if errF != nil {
@@ -129,6 +131,8 @@ func (_ *CCaddieNote) UpdateCaddieNote(c *gin.Context, prof models.CmsUser) {
 
 	caddieNoteRequest := models.CaddieNote{}
 	caddieNoteRequest.Id = caddieNoteId
+	caddieNoteRequest.PartnerUid = prof.PartnerUid
+	caddieNoteRequest.CourseUid = prof.CourseUid
 
 	errF := caddieNoteRequest.FindFirst(db)
 	if errF != nil {

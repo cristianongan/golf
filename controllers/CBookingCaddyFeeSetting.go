@@ -87,6 +87,8 @@ func (_ *CBookingCaddyFeeSetting) DeleteBookingCaddyFeeSetting(c *gin.Context, p
 
 	BookingCaddyFeeSetting := models.BookingCaddyFeeSetting{}
 	BookingCaddyFeeSetting.Id = Id
+	BookingCaddyFeeSetting.PartnerUid = prof.PartnerUid
+	BookingCaddyFeeSetting.CourseUid = prof.CourseUid
 	errF := BookingCaddyFeeSetting.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -118,6 +120,8 @@ func (_ *CBookingCaddyFeeSetting) UpdateBookingCaddyFeeSetting(c *gin.Context, p
 
 	bookingCaddyFeeSetting := models.BookingCaddyFeeSetting{}
 	bookingCaddyFeeSetting.Id = Id
+	bookingCaddyFeeSetting.PartnerUid = prof.PartnerUid
+	bookingCaddyFeeSetting.CourseUid = prof.CourseUid
 	errF := bookingCaddyFeeSetting.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

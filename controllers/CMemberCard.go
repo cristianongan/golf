@@ -167,6 +167,8 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 
 	memberCard := models.MemberCard{}
 	memberCard.Uid = memberCardUidStr
+	memberCard.PartnerUid = prof.PartnerUid
+	memberCard.CourseUid = prof.CourseUid
 	errF := memberCard.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -255,6 +257,8 @@ func (_ *CMemberCard) DeleteMemberCard(c *gin.Context, prof models.CmsUser) {
 
 	member := models.MemberCard{}
 	member.Uid = memberCardUidStr
+	member.PartnerUid = prof.PartnerUid
+	member.CourseUid = prof.CourseUid
 	errF := member.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -289,6 +293,11 @@ func (_ *CMemberCard) GetDetail(c *gin.Context, prof models.CmsUser) {
 	memberDetailRes, errFind := memberCard.FindDetail(db)
 	if errFind != nil {
 		response_message.BadRequest(c, errFind.Error())
+		return
+	}
+
+	if memberDetailRes.PartnerUid != prof.PartnerUid || memberDetailRes.CourseUid != prof.CourseUid {
+		response_message.Forbidden(c, "forbidden")
 		return
 	}
 

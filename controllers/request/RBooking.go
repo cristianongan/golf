@@ -9,22 +9,22 @@ import (
 
 type GetListBookingSettingGroupForm struct {
 	PageRequest
-	PartnerUid string `form:"partner_uid"`
-	CourseUid  string `form:"course_uid"`
+	PartnerUid string `form:"partner_uid" binding:"required"`
+	CourseUid  string `form:"course_uid" binding:"required"`
 }
 
 type GetListBookingSettingForm struct {
 	PageRequest
-	PartnerUid string `form:"partner_uid"`
-	CourseUid  string `form:"course_uid"`
+	PartnerUid string `form:"partner_uid" binding:"required"`
+	CourseUid  string `form:"course_uid" binding:"required"`
 	GroupId    int64  `form:"group_id"`
 	OnDate     string `form:"on_date"`
 }
 
 type GetListBookingForm struct {
 	PageRequest
-	PartnerUid       string `form:"partner_uid"`
-	CourseUid        string `form:"course_uid"`
+	PartnerUid       string `form:"partner_uid" binding:"required"`
+	CourseUid        string `form:"course_uid" binding:"required"`
 	Bag              string `form:"bag"`
 	From             int64  `form:"from"`
 	To               int64  `form:"to"`
@@ -41,8 +41,8 @@ type GetListBookingForm struct {
 
 type GetListBookingWithSelectForm struct {
 	PageRequest
-	PartnerUid      string  `form:"partner_uid"`
-	CourseUid       string  `form:"course_uid"`
+	PartnerUid      string  `form:"partner_uid" binding:"required"`
+	CourseUid       string  `form:"course_uid" binding:"required"`
 	BookingDate     string  `form:"booking_date"`
 	TeeTime         string  `form:"tee_time"`
 	BookingCode     string  `form:"booking_code"`
@@ -81,8 +81,8 @@ type GetListBookingWithSelectForm struct {
 
 type GetListBookingWithListServiceItems struct {
 	PageRequest
-	PartnerUid string `form:"partner_uid"`
-	CourseUid  string `form:"course_uid"`
+	PartnerUid string `form:"partner_uid" binding:"required"`
+	CourseUid  string `form:"course_uid" binding:"required"`
 	Type       string `form:"type"`
 	FromDate   string `form:"from_date"`
 	ToDate     string `form:"to_date"`
@@ -92,8 +92,8 @@ type GetListBookingWithListServiceItems struct {
 
 type GetListBookingTeeTimeForm struct {
 	PageRequest
-	PartnerUid  string `form:"partner_uid"`
-	CourseUid   string `form:"course_uid"`
+	PartnerUid  string `form:"partner_uid" binding:"required"`
+	CourseUid   string `form:"course_uid" binding:"required"`
 	BookingDate string `form:"booking_date"`
 	TeeTime     string `form:"tee_time"`
 }

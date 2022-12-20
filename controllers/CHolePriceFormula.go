@@ -90,6 +90,8 @@ func (_ *CHolePriceFormula) UpdateHolePriceFormula(c *gin.Context, prof models.C
 
 	holePriceFormula := models.HolePriceFormula{}
 	holePriceFormula.Id = holePriceFormulaId
+	holePriceFormula.PartnerUid = prof.PartnerUid
+	holePriceFormula.CourseUid = prof.CourseUid
 	errF := holePriceFormula.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -138,6 +140,8 @@ func (_ *CHolePriceFormula) DeleteHolePriceFormula(c *gin.Context, prof models.C
 
 	holePriceFormula := models.HolePriceFormula{}
 	holePriceFormula.Id = holePriceFormulaId
+	holePriceFormula.PartnerUid = prof.PartnerUid
+	holePriceFormula.CourseUid = prof.CourseUid
 	errF := holePriceFormula.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

@@ -70,19 +70,19 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	// check trạng thái Tee Time
-	if body.TeeTime != "" && !body.BookFromOTA {
-		teeTime := models.LockTeeTime{}
-		teeTime.TeeTime = body.TeeTime
-		teeTime.TeeType = body.TeeType + body.CourseType
-		teeTime.CourseUid = body.CourseUid
-		// teeTime.PartnerUid = body.PartnerUid
-		teeTime.DateTime = body.BookingDate
-		errFind := teeTime.FindFirst(db)
-		if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_LOCKED) {
-			response_message.BadRequest(c, "Tee Time đã bị khóa")
-			return nil, errFind
-		}
-	}
+	// if body.TeeTime != "" && !body.BookFromOTA {
+	// 	teeTime := models.LockTeeTime{}
+	// 	teeTime.TeeTime = body.TeeTime
+	// 	teeTime.TeeType = body.TeeType + body.CourseType
+	// 	teeTime.CourseUid = body.CourseUid
+	// 	// teeTime.PartnerUid = body.PartnerUid
+	// 	teeTime.DateTime = body.BookingDate
+	// 	errFind := teeTime.FindFirst(db)
+	// 	if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_LOCKED) {
+	// 		response_message.BadRequest(c, "Tee Time đã bị khóa")
+	// 		return nil, errFind
+	// 	}
+	// }
 
 	//check Booking Source with date time rule
 	if body.BookingSourceId != "" {
@@ -571,6 +571,8 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	bookingR := model_booking.Booking{}
 	bookingR.Uid = bookingIdStr
+	bookingR.PartnerUid = prof.PartnerUid
+	bookingR.CourseUid = prof.CourseUid
 	booking, errF := bookingR.FindFirstByUId(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

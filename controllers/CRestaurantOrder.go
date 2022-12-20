@@ -196,6 +196,8 @@ func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsU
 	// validate cart
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = id
+	serviceCart.PartnerUid = prof.PartnerUid
+	serviceCart.CourseUid = prof.CourseUid
 
 	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -511,6 +513,8 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 	// validate cart item
 	serviceCartItem := model_booking.BookingServiceItem{}
 	serviceCartItem.Id = body.ItemId
+	serviceCartItem.PartnerUid = prof.PartnerUid
+	serviceCartItem.CourseUid = prof.CourseUid
 
 	if err := serviceCartItem.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find item"+err.Error())
@@ -617,6 +621,8 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 	// validate cart item
 	serviceCartItem := model_booking.BookingServiceItem{}
 	serviceCartItem.Id = id
+	serviceCartItem.PartnerUid = prof.PartnerUid
+	serviceCartItem.CourseUid = prof.CourseUid
 
 	if err := serviceCartItem.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find item"+err.Error())
@@ -756,6 +762,8 @@ func (_ CRestaurantOrder) UpdateResItem(c *gin.Context, prof models.CmsUser) {
 	resItem.ItemCode = body.ItemCode
 	resItem.BillId = body.BillId
 	resItem.ItemStatus = constants.RES_STATUS_PROCESS
+	resItem.PartnerUid = prof.PartnerUid
+	resItem.CourseUid = prof.CourseUid
 
 	if err := resItem.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -1184,6 +1192,9 @@ func (_ CRestaurantOrder) FinishRestaurantOrder(c *gin.Context, prof models.CmsU
 	// validate restaurant order
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = body.BillId
+	serviceCart.PartnerUid = prof.PartnerUid
+	serviceCart.CourseUid = prof.CourseUid
+
 	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find service Cart "+err.Error())
 		return
@@ -1231,6 +1242,8 @@ func (_ CRestaurantOrder) UpdateRestaurantBooking(c *gin.Context, prof models.Cm
 
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = billId
+	serviceCart.PartnerUid = prof.PartnerUid
+	serviceCart.CourseUid = prof.CourseUid
 	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find bill "+err.Error())
 		return
@@ -1455,6 +1468,8 @@ func (_ CRestaurantOrder) ConfrimRestaurantBooking(c *gin.Context, prof models.C
 
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = billId
+	serviceCart.PartnerUid = prof.PartnerUid
+	serviceCart.CourseUid = prof.CourseUid
 	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find bill "+err.Error())
 		return

@@ -313,6 +313,11 @@ func (_ *CCaddie) GetCaddieDetail(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if caddieRequest.PartnerUid != prof.PartnerUid || caddieRequest.CourseUid != prof.CourseUid {
+		response_message.Forbidden(c, "forbidden")
+		return
+	}
+
 	okResponse(c, caddieDetail)
 }
 
@@ -329,6 +334,8 @@ func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
 
 	caddieRequest := models.Caddie{}
 	caddieRequest.Id, _ = strconv.ParseInt(caddieIdStr, 10, 64)
+	caddieRequest.PartnerUid = prof.PartnerUid
+	caddieRequest.CourseUid = prof.CourseUid
 	errF := caddieRequest.FindFirst(db)
 
 	if errF != nil {
@@ -364,6 +371,8 @@ func (_ *CCaddie) UpdateCaddie(c *gin.Context, prof models.CmsUser) {
 
 	caddieRequest := models.Caddie{}
 	caddieRequest.Id, _ = strconv.ParseInt(caddieIdStr, 10, 64)
+	caddieRequest.PartnerUid = prof.PartnerUid
+	caddieRequest.CourseUid = prof.CourseUid
 
 	errF := caddieRequest.FindFirst(db)
 	if errF != nil {

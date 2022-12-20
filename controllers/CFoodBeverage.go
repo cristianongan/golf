@@ -175,6 +175,8 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 
 	foodBeverage := model_service.FoodBeverage{}
 	foodBeverage.Id = rentalId
+	foodBeverage.PartnerUid = prof.PartnerUid
+	foodBeverage.CourseUid = prof.CourseUid
 	errF := foodBeverage.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -277,6 +279,8 @@ func (_ *CFoodBeverage) DeleteFoodBeverage(c *gin.Context, prof models.CmsUser) 
 
 	fbModel := model_service.FoodBeverage{}
 	fbModel.Id = fbId
+	fbModel.PartnerUid = prof.PartnerUid
+	fbModel.CourseUid = prof.CourseUid
 	errF := fbModel.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
