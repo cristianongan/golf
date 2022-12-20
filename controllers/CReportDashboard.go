@@ -8,7 +8,6 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -223,23 +222,16 @@ func (_ *CReportDashboard) GetReportRevenueFromBooking(c *gin.Context, prof mode
 	listData := make([]map[string]interface{}, 12)
 
 	for month := 0; month < 12; month++ {
+		date := time.Now().AddDate(0, -month, 0).Format(constants.MONTH_FORMAT)
+
 		// Add infor to response
 		listData[month] = map[string]interface{}{
-			"month":        month + 1,
+			"month":        date,
 			"agency":       0,
 			"member":       0,
 			"guest_member": 0,
 			"visitor":      0,
 			"other":        0,
-		}
-
-		var date string
-		year := body.Year
-
-		if month < 9 {
-			date = year + "-0" + strconv.Itoa(month+1)
-		} else {
-			date = year + "-" + strconv.Itoa(month+1)
 		}
 
 		booking := model_booking.Booking{}

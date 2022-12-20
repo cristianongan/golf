@@ -70,19 +70,19 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	// check trạng thái Tee Time
-	if body.TeeTime != "" && !body.BookFromOTA {
-		teeTime := models.LockTeeTime{}
-		teeTime.TeeTime = body.TeeTime
-		teeTime.TeeType = body.TeeType + body.CourseType
-		teeTime.CourseUid = body.CourseUid
-		// teeTime.PartnerUid = body.PartnerUid
-		teeTime.DateTime = body.BookingDate
-		errFind := teeTime.FindFirst(db)
-		if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_LOCKED) {
-			response_message.BadRequest(c, "Tee Time đã bị khóa")
-			return nil, errFind
-		}
-	}
+	// if body.TeeTime != "" && !body.BookFromOTA {
+	// 	teeTime := models.LockTeeTime{}
+	// 	teeTime.TeeTime = body.TeeTime
+	// 	teeTime.TeeType = body.TeeType + body.CourseType
+	// 	teeTime.CourseUid = body.CourseUid
+	// 	// teeTime.PartnerUid = body.PartnerUid
+	// 	teeTime.DateTime = body.BookingDate
+	// 	errFind := teeTime.FindFirst(db)
+	// 	if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_LOCKED) {
+	// 		response_message.BadRequest(c, "Tee Time đã bị khóa")
+	// 		return nil, errFind
+	// 	}
+	// }
 
 	//check Booking Source with date time rule
 	if body.BookingSourceId != "" {
