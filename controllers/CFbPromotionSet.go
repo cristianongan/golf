@@ -155,6 +155,8 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 
 	promotionSetR := model_service.FbPromotionSet{}
 	promotionSetR.Id = Id
+	promotionSetR.PartnerUid = prof.PartnerUid
+	promotionSetR.CourseUid = prof.CourseUid
 
 	errF := promotionSetR.FindFirst(db)
 	if errF != nil {
@@ -240,6 +242,8 @@ func (_ *CFbPromotionSet) DeleteFoodBeveragePromotionSet(c *gin.Context, prof mo
 
 	fbModel := model_service.FbPromotionSet{}
 	fbModel.Id = fbId
+	fbModel.PartnerUid = prof.PartnerUid
+	fbModel.CourseUid = prof.CourseUid
 	errF := fbModel.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

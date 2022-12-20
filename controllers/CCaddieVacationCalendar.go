@@ -162,6 +162,8 @@ func (_ *CCaddieVacationCalendar) UpdateCaddieVacationCalendar(c *gin.Context, p
 
 	caddieVC := models.CaddieVacationCalendar{}
 	caddieVC.Id = caddieVCId
+	caddieVC.PartnerUid = prof.PartnerUid
+	caddieVC.CourseUid = prof.CourseUid
 
 	if err := caddieVC.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -196,6 +198,8 @@ func (_ *CCaddieVacationCalendar) DeleteCaddieVacationCalendar(c *gin.Context, p
 
 	caddieVC := models.CaddieVacationCalendar{}
 	caddieVC.Id = caddieVCId
+	caddieVC.PartnerUid = prof.PartnerUid
+	caddieVC.CourseUid = prof.CourseUid
 
 	if err := caddieVC.Delete(db); err != nil {
 		response_message.InternalServerError(c, err.Error())

@@ -99,6 +99,8 @@ func (_ *CBookingSetting) UpdateBookingSettingGroup(c *gin.Context, prof models.
 
 	bookingSettingGroup := model_booking.BookingSettingGroup{}
 	bookingSettingGroup.Id = bookingSettingGroupId
+	bookingSettingGroup.PartnerUid = prof.PartnerUid
+	bookingSettingGroup.CourseUid = prof.CourseUid
 	errF := bookingSettingGroup.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -147,6 +149,8 @@ func (_ *CBookingSetting) DeleteBookingSettingGroup(c *gin.Context, prof models.
 
 	bookingSettingGroup := model_booking.BookingSettingGroup{}
 	bookingSettingGroup.Id = bookingSettingGroupId
+	bookingSettingGroup.PartnerUid = prof.PartnerUid
+	bookingSettingGroup.CourseUid = prof.CourseUid
 	errF := bookingSettingGroup.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -270,6 +274,8 @@ func (_ *CBookingSetting) UpdateBookingSetting(c *gin.Context, prof models.CmsUs
 
 	bookingSetting := model_booking.BookingSetting{}
 	bookingSetting.Id = bookingSettingId
+	bookingSetting.PartnerUid = prof.PartnerUid
+	bookingSetting.CourseUid = prof.CourseUid
 	errF := bookingSetting.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -335,6 +341,8 @@ func (_ *CBookingSetting) DeleteBookingSetting(c *gin.Context, prof models.CmsUs
 
 	bookingSetting := model_booking.BookingSetting{}
 	bookingSetting.Id = bookingSettingId
+	bookingSetting.PartnerUid = prof.PartnerUid
+	bookingSetting.CourseUid = prof.CourseUid
 	errF := bookingSetting.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

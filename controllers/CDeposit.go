@@ -145,6 +145,8 @@ func (_ *CDeposit) UpdateDeposit(c *gin.Context, prof models.CmsUser) {
 	deposit := models.Deposit{}
 	deposit.CustomerUid = body.CustomerUid
 	deposit.Id, _ = strconv.ParseInt(c.Param("id"), 10, 64)
+	deposit.PartnerUid = prof.PartnerUid
+	deposit.CourseUid = prof.CourseUid
 
 	if err := deposit.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())

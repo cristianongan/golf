@@ -571,6 +571,8 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	bookingR := model_booking.Booking{}
 	bookingR.Uid = bookingIdStr
+	bookingR.PartnerUid = prof.PartnerUid
+	bookingR.CourseUid = prof.CourseUid
 	booking, errF := bookingR.FindFirstByUId(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

@@ -612,9 +612,20 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if body.PartnerUid != "" && body.PartnerUid != prof.PartnerUid {
+		response_message.BadRequest(c, "invalid params")
+		return
+	}
+	if body.CourseUid != "" && body.CourseUid != prof.CourseUid {
+		response_message.BadRequest(c, "invalid params")
+		return
+	}
+
 	// validate cart item
 	serviceCartItem := model_booking.BookingServiceItem{}
 	serviceCartItem.Id = body.CartItemId
+	serviceCartItem.PartnerUid = prof.PartnerUid
+	serviceCartItem.CourseUid = prof.CourseUid
 
 	if err := serviceCartItem.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -720,6 +731,8 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	// validate cart item
 	serviceCartItem := model_booking.BookingServiceItem{}
 	serviceCartItem.Id = id
+	serviceCartItem.PartnerUid = prof.PartnerUid
+	serviceCartItem.CourseUid = prof.CourseUid
 
 	if err := serviceCartItem.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -1005,6 +1018,8 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 	// validate cart
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = id
+	serviceCart.PartnerUid = prof.PartnerUid
+	serviceCart.CourseUid = prof.CourseUid
 
 	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -1193,6 +1208,8 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 	// validate bill
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = body.BillId
+	serviceCart.PartnerUid = prof.PartnerUid
+	serviceCart.CourseUid = prof.CourseUid
 	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find service Cart "+err.Error())
 		return
@@ -1247,6 +1264,8 @@ func (_ CServiceCart) UndoStatus(c *gin.Context, prof models.CmsUser) {
 	// validate bill
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = body.BillId
+	serviceCart.PartnerUid = prof.PartnerUid
+	serviceCart.CourseUid = prof.CourseUid
 	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find service Cart "+err.Error())
 		return
@@ -1295,6 +1314,8 @@ func (_ CServiceCart) ChangeRentalStatus(c *gin.Context, prof models.CmsUser) {
 	// validate bill
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = body.BillId
+	serviceCart.PartnerUid = prof.PartnerUid
+	serviceCart.CourseUid = prof.CourseUid
 	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find service Cart "+err.Error())
 		return

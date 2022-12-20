@@ -143,6 +143,8 @@ func (_ *CSystem) UpdateJob(c *gin.Context, prof models.CmsUser) {
 
 	job := models.SystemConfigJob{}
 	job.Id = jobId
+	job.PartnerUid = prof.PartnerUid
+	job.CourseUid = prof.CourseUid
 	errF := job.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -182,6 +184,8 @@ func (_ *CSystem) DeleteJob(c *gin.Context, prof models.CmsUser) {
 
 	job := models.SystemConfigJob{}
 	job.Id = jobId
+	job.PartnerUid = prof.PartnerUid
+	job.CourseUid = prof.CourseUid
 	errF := job.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -273,6 +277,8 @@ func (_ *CSystem) UpdatePosition(c *gin.Context, prof models.CmsUser) {
 
 	position := models.SystemConfigPosition{}
 	position.Id = positionId
+	position.PartnerUid = prof.PartnerUid
+	position.CourseUid = prof.CourseUid
 	errF := position.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -312,6 +318,8 @@ func (_ *CSystem) DeletePosition(c *gin.Context, prof models.CmsUser) {
 
 	position := models.SystemConfigPosition{}
 	position.Id = positionId
+	position.PartnerUid = prof.PartnerUid
+	position.CourseUid = prof.CourseUid
 	errF := position.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -403,6 +411,8 @@ func (_ *CSystem) UpdateCompanyType(c *gin.Context, prof models.CmsUser) {
 
 	companyType := models.CompanyType{}
 	companyType.Id = companyTypeId
+	companyType.PartnerUid = prof.PartnerUid
+	companyType.CourseUid = prof.CourseUid
 	errF := companyType.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -442,6 +452,8 @@ func (_ *CSystem) DeleteCompanyType(c *gin.Context, prof models.CmsUser) {
 
 	companyType := models.CompanyType{}
 	companyType.Id = companyTypeId
+	companyType.PartnerUid = prof.PartnerUid
+	companyType.CourseUid = prof.CourseUid
 	errF := companyType.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

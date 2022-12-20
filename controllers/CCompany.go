@@ -114,6 +114,8 @@ func (_ *CCompany) UpdateCompany(c *gin.Context, prof models.CmsUser) {
 
 	company := models.Company{}
 	company.Id = companyId
+	company.PartnerUid = prof.PartnerUid
+	company.CourseUid = prof.CourseUid
 	errF := company.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -173,6 +175,8 @@ func (_ *CCompany) DeleteCompany(c *gin.Context, prof models.CmsUser) {
 
 	company := models.Company{}
 	company.Id = companyId
+	company.PartnerUid = prof.PartnerUid
+	company.CourseUid = prof.CourseUid
 	errF := company.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

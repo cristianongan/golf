@@ -104,6 +104,8 @@ func (_ *CMemberCardType) UpdateMemberCardType(c *gin.Context, prof models.CmsUs
 
 	memberCardType := models.MemberCardType{}
 	memberCardType.Id = memberCardTypeId
+	memberCardType.PartnerUid = prof.PartnerUid
+	memberCardType.CourseUid = prof.CourseUid
 	errF := memberCardType.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -150,6 +152,8 @@ func (_ *CMemberCardType) DeleteMemberCardType(c *gin.Context, prof models.CmsUs
 
 	memberCardType := models.MemberCardType{}
 	memberCardType.Id = memberCardTypeId
+	memberCardType.PartnerUid = prof.PartnerUid
+	memberCardType.CourseUid = prof.CourseUid
 	errF := memberCardType.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

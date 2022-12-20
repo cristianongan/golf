@@ -348,6 +348,8 @@ func (_ *CCmsUser) UpdateCmsUser(c *gin.Context, prof models.CmsUser) {
 
 	cmsUser := models.CmsUser{}
 	cmsUser.Uid = userUidStr
+	cmsUser.PartnerUid = prof.PartnerUid
+	cmsUser.CourseUid = prof.CourseUid
 	errF := cmsUser.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -397,6 +399,8 @@ func (_ *CCmsUser) DeleteCmsUser(c *gin.Context, prof models.CmsUser) {
 
 	cmsUser := models.CmsUser{}
 	cmsUser.Uid = userUidStr
+	cmsUser.PartnerUid = prof.PartnerUid
+	cmsUser.CourseUid = prof.CourseUid
 	errF := cmsUser.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -421,5 +425,15 @@ func (_ *CCmsUser) EnableCmsUser(c *gin.Context) {
 		v.Status = constants.STATUS_ENABLE
 		v.Update()
 	}
+	okRes(c)
+}
+
+/*
+Log out
+*/
+func (_ *CCmsUser) LogOut(c *gin.Context, prof models.CmsUser) {
+
+	datasources.DelCacheJwt(prof.Uid)
+
 	okRes(c)
 }

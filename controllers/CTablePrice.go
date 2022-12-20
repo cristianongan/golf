@@ -115,6 +115,8 @@ func (_ *CTablePrice) UpdateTablePrice(c *gin.Context, prof models.CmsUser) {
 
 	tablePrice := models.TablePrice{}
 	tablePrice.Id = tablePriceId
+	tablePrice.PartnerUid = prof.PartnerUid
+	tablePrice.CourseUid = prof.CourseUid
 	errF := tablePrice.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -164,6 +166,8 @@ func (_ *CTablePrice) DeleteTablePrice(c *gin.Context, prof models.CmsUser) {
 
 	tablePrice := models.TablePrice{}
 	tablePrice.Id = tablePriceId
+	tablePrice.PartnerUid = prof.PartnerUid
+	tablePrice.CourseUid = prof.CourseUid
 	errF := tablePrice.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
