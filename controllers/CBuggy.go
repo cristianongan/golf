@@ -229,6 +229,8 @@ func (_ *CBuggy) DeleteBuggy(c *gin.Context, prof models.CmsUser) {
 
 	buggyRequest := models.Buggy{}
 	buggyRequest.Id = buggyId
+	buggyRequest.PartnerUid = prof.PartnerUid
+	buggyRequest.CourseUid = prof.CourseUid
 	errF := buggyRequest.FindFirst(db)
 
 	if errF != nil {
@@ -262,6 +264,8 @@ func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
 
 	buggyRequest := models.Buggy{}
 	buggyRequest.Id = buggyId
+	buggyRequest.PartnerUid = prof.PartnerUid
+	buggyRequest.CourseUid = prof.CourseUid
 
 	errF := buggyRequest.FindFirst(db)
 	if errF != nil {

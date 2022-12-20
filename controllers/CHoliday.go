@@ -79,6 +79,8 @@ func (_ *CHoliday) UpdateHoliday(c *gin.Context, prof models.CmsUser) {
 
 	holiday := models.Holiday{}
 	holiday.Id = holidayId
+	holiday.PartnerUid = prof.PartnerUid
+	holiday.CourseUid = prof.CourseUid
 	errF := holiday.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -127,6 +129,8 @@ func (_ *CHoliday) DeleteHoliday(c *gin.Context, prof models.CmsUser) {
 
 	holiday := models.Holiday{}
 	holiday.Id = holidayId
+	holiday.PartnerUid = prof.PartnerUid
+	holiday.CourseUid = prof.CourseUid
 	errF := holiday.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

@@ -95,6 +95,8 @@ func (_ *CCaddieFeeSetting) UpdateCaddieFeeSettingGroup(c *gin.Context, prof mod
 
 	CaddieFeeSettingGroup := models.CaddieFeeSettingGroup{}
 	CaddieFeeSettingGroup.Id = CaddieFeeSettingGroupId
+	CaddieFeeSettingGroup.PartnerUid = prof.PartnerUid
+	CaddieFeeSettingGroup.CourseUid = prof.CourseUid
 	errF := CaddieFeeSettingGroup.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -147,6 +149,8 @@ func (_ *CCaddieFeeSetting) DeleteCaddieFeeSettingGroup(c *gin.Context, prof mod
 
 	CaddieFeeSettingGroup := models.CaddieFeeSettingGroup{}
 	CaddieFeeSettingGroup.Id = CaddieFeeSettingGroupId
+	CaddieFeeSettingGroup.PartnerUid = prof.PartnerUid
+	CaddieFeeSettingGroup.CourseUid = prof.CourseUid
 	errF := CaddieFeeSettingGroup.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -257,6 +261,8 @@ func (_ *CCaddieFeeSetting) UpdateCaddieFeeSetting(c *gin.Context, prof models.C
 
 	CaddieFeeSetting := models.CaddieFeeSetting{}
 	CaddieFeeSetting.Id = CaddieFeeSettingId
+	CaddieFeeSetting.PartnerUid = prof.PartnerUid
+	CaddieFeeSetting.CourseUid = prof.CourseUid
 	errF := CaddieFeeSetting.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -297,6 +303,8 @@ func (_ *CCaddieFeeSetting) DeleteCaddieFeeSetting(c *gin.Context, prof models.C
 
 	CaddieFeeSetting := models.CaddieFeeSetting{}
 	CaddieFeeSetting.Id = CaddieFeeSettingId
+	CaddieFeeSetting.PartnerUid = prof.PartnerUid
+	CaddieFeeSetting.CourseUid = prof.CourseUid
 	errF := CaddieFeeSetting.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

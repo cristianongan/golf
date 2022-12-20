@@ -103,6 +103,8 @@ func (_ *CTeeTypeClose) DeleteTeeTypeClose(c *gin.Context, prof models.CmsUser) 
 
 	teeTypeClose := models.TeeTypeClose{}
 	teeTypeClose.Id = teeTypeCloseId
+	teeTypeClose.PartnerUid = prof.PartnerUid
+	teeTypeClose.CourseUid = prof.CourseUid
 	errF := teeTypeClose.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

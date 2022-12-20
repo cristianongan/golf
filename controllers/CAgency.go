@@ -94,6 +94,8 @@ func (_ *CAgency) UpdateAgency(c *gin.Context, prof models.CmsUser) {
 
 	agency := models.Agency{}
 	agency.Id = agencyId
+	agency.PartnerUid = prof.PartnerUid
+	agency.CourseUid = prof.CourseUid
 	errF := agency.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -155,6 +157,8 @@ func (_ *CAgency) DeleteAgency(c *gin.Context, prof models.CmsUser) {
 
 	agency := models.Agency{}
 	agency.Id = agencyId
+	agency.PartnerUid = prof.PartnerUid
+	agency.CourseUid = prof.CourseUid
 	errF := agency.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -203,7 +207,7 @@ func (_ *CAgency) GetAgencyDetail(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
-	Get base other price
+Get base other price
 */
 func (_ *CAgency) GetOtherBasePrice(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)

@@ -166,6 +166,7 @@ func (_ *CMaintainSchedule) UpdateMaintainSchedule(c *gin.Context, prof models.C
 			CourseName: body.CourseName,
 			WeekId:     body.WeekId,
 			ApplyDate:  &applyDate2,
+			PartnerUid: prof.PartnerUid,
 		}
 
 		if err := maintainSchedule.FindFirst(db); err != nil {

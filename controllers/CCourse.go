@@ -121,6 +121,7 @@ func (_ *CCourse) UpdateCourse(c *gin.Context, prof models.CmsUser) {
 	//Check tồn tại
 	course := models.Course{}
 	course.Uid = courseUidStr
+	course.PartnerUid = prof.PartnerUid
 	errF := course.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -182,6 +183,7 @@ func (_ *CCourse) DeleteCourse(c *gin.Context, prof models.CmsUser) {
 
 	course := models.Course{}
 	course.Uid = courseUidStr
+	course.PartnerUid = prof.PartnerUid
 	errF := course.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

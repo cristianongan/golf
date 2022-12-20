@@ -163,6 +163,8 @@ func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
 
 	proshop := model_service.Proshop{}
 	proshop.Id = ProshopId
+	proshop.PartnerUid = prof.PartnerUid
+	proshop.CourseUid = prof.CourseUid
 	errF := proshop.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -256,6 +258,8 @@ func (_ *CProshop) DeleteProshop(c *gin.Context, prof models.CmsUser) {
 
 	fbModel := model_service.Proshop{}
 	fbModel.Id = fbId
+	fbModel.PartnerUid = prof.PartnerUid
+	fbModel.CourseUid = prof.CourseUid
 	errF := fbModel.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

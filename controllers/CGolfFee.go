@@ -137,6 +137,8 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 
 	golfFee := models.GolfFee{}
 	golfFee.Id = golfFeeId
+	golfFee.PartnerUid = prof.PartnerUid
+	golfFee.CourseUid = prof.CourseUid
 	errF := golfFee.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -228,6 +230,8 @@ func (_ *CGolfFee) DeleteGolfFee(c *gin.Context, prof models.CmsUser) {
 
 	golfFee := models.GolfFee{}
 	golfFee.Id = golfFeeId
+	golfFee.PartnerUid = prof.PartnerUid
+	golfFee.CourseUid = prof.CourseUid
 	errF := golfFee.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

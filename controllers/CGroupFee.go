@@ -97,6 +97,8 @@ func (_ *CGroupFee) UpdateGroupFee(c *gin.Context, prof models.CmsUser) {
 
 	groupFee := models.GroupFee{}
 	groupFee.Id = groupFeeId
+	groupFee.PartnerUid = prof.PartnerUid
+	groupFee.CourseUid = prof.CourseUid
 	errF := groupFee.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -139,6 +141,8 @@ func (_ *CGroupFee) DeleteGroupFee(c *gin.Context, prof models.CmsUser) {
 
 	groupFee := models.GroupFee{}
 	groupFee.Id = groupFeeId
+	groupFee.PartnerUid = prof.PartnerUid
+	groupFee.CourseUid = prof.CourseUid
 	errF := groupFee.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

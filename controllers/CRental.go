@@ -164,6 +164,8 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 
 	rental := model_service.Rental{}
 	rental.Id = rentalId
+	rental.PartnerUid = prof.PartnerUid
+	rental.CourseUid = prof.CourseUid
 	errF := rental.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -247,6 +249,8 @@ func (_ *CRental) DeleteRental(c *gin.Context, prof models.CmsUser) {
 
 	rental := model_service.Rental{}
 	rental.Id = rentalId
+	rental.PartnerUid = prof.PartnerUid
+	rental.CourseUid = prof.CourseUid
 	errF := rental.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

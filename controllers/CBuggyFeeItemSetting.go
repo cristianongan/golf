@@ -121,6 +121,8 @@ func (_ *CBuggyFeeItemSetting) UpdateBuggyFeeItemSetting(c *gin.Context, prof mo
 
 	buggyFeeItemSetting := models.BuggyFeeItemSetting{}
 	buggyFeeItemSetting.Id = Id
+	buggyFeeItemSetting.PartnerUid = prof.PartnerUid
+	buggyFeeItemSetting.CourseUid = prof.CourseUid
 	errF := buggyFeeItemSetting.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -168,6 +170,8 @@ func (_ *CBuggyFeeItemSetting) DeleteBuggyFeeSetting(c *gin.Context, prof models
 
 	buggyFeeSetting := models.BuggyFeeItemSetting{}
 	buggyFeeSetting.Id = Id
+	buggyFeeSetting.PartnerUid = prof.PartnerUid
+	buggyFeeSetting.CourseUid = prof.CourseUid
 	errF := buggyFeeSetting.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
