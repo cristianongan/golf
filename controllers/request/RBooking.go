@@ -23,8 +23,8 @@ type GetListBookingSettingForm struct {
 
 type GetListBookingForm struct {
 	PageRequest
-	PartnerUid       string `form:"partner_uid"`
-	CourseUid        string `form:"course_uid"`
+	PartnerUid       string `form:"partner_uid" binding:"required"`
+	CourseUid        string `form:"course_uid" binding:"required"`
 	Bag              string `form:"bag"`
 	From             int64  `form:"from"`
 	To               int64  `form:"to"`
@@ -41,8 +41,8 @@ type GetListBookingForm struct {
 
 type GetListBookingWithSelectForm struct {
 	PageRequest
-	PartnerUid      string  `form:"partner_uid"`
-	CourseUid       string  `form:"course_uid"`
+	PartnerUid      string  `form:"partner_uid" binding:"required"`
+	CourseUid       string  `form:"course_uid" binding:"required"`
 	BookingDate     string  `form:"booking_date"`
 	TeeTime         string  `form:"tee_time"`
 	BookingCode     string  `form:"booking_code"`
