@@ -423,3 +423,13 @@ func (_ *CCmsUser) EnableCmsUser(c *gin.Context) {
 	}
 	okRes(c)
 }
+
+/*
+Log out
+*/
+func (_ *CCmsUser) LogOut(c *gin.Context, prof models.CmsUser) {
+
+	datasources.DelCacheJwt(prof.Uid)
+
+	okRes(c)
+}
