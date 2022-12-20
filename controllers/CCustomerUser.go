@@ -346,6 +346,11 @@ func (_ *CCustomerUser) GetCustomerUserDetail(c *gin.Context, prof models.CmsUse
 		return
 	}
 
+	if customerUser.PartnerUid != prof.PartnerUid || customerUser.CourseUid != prof.CourseUid {
+		response_message.Forbidden(c, "forbidden")
+		return
+	}
+
 	// Get report play count
 	reportCus := model_report.ReportCustomerPlay{
 		CustomerUid: customerUserUidStr,

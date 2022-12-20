@@ -292,6 +292,11 @@ func (_ *CMemberCard) GetDetail(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if memberDetailRes.PartnerUid != prof.PartnerUid || memberDetailRes.CourseUid != prof.CourseUid {
+		response_message.Forbidden(c, "forbidden")
+		return
+	}
+
 	okResponse(c, memberDetailRes)
 }
 

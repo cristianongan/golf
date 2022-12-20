@@ -187,6 +187,11 @@ func (_ *CAgency) GetAgencyDetail(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if agency.PartnerUid != prof.PartnerUid || agency.CourseUid != prof.CourseUid {
+		response_message.Forbidden(c, "forbidden")
+		return
+	}
+
 	agencyDetail := models.AgencyDetailRes{
 		Agency: agency,
 	}

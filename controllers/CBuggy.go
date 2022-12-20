@@ -138,6 +138,11 @@ func (_ *CBuggy) GetBuggyDetail(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if buggyRequest.PartnerUid != prof.PartnerUid || buggyRequest.CourseUid != prof.CourseUid {
+		response_message.Forbidden(c, "forbidden")
+		return
+	}
+
 	okResponse(c, buggyRequest)
 }
 

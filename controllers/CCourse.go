@@ -212,5 +212,10 @@ func (_ *CCourse) GetCourseDetail(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if course.PartnerUid != prof.PartnerUid || course.Uid != prof.CourseUid {
+		response_message.Forbidden(c, "forbidden")
+		return
+	}
+
 	okResponse(c, course)
 }
