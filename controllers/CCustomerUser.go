@@ -165,6 +165,8 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 
 	customerUser := models.CustomerUser{}
 	customerUser.Uid = customerUserUidStr
+	customerUser.PartnerUid = prof.PartnerUid
+	customerUser.CourseUid = prof.CourseUid
 	errF := customerUser.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -314,6 +316,8 @@ func (_ *CCustomerUser) DeleteCustomerUser(c *gin.Context, prof models.CmsUser) 
 
 	customerUser := models.CustomerUser{}
 	customerUser.Uid = customerUserUidStr
+	customerUser.PartnerUid = prof.PartnerUid
+	customerUser.CourseUid = prof.CourseUid
 	errF := customerUser.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

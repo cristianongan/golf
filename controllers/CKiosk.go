@@ -114,6 +114,8 @@ func (_ *CKiosk) UpdateKiosk(c *gin.Context, prof models.CmsUser) {
 
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = kioskId
+	kiosk.PartnerUid = prof.PartnerUid
+	kiosk.CourseUid = prof.CourseUid
 	errF := kiosk.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -159,6 +161,8 @@ func (_ *CKiosk) DeleteKiosk(c *gin.Context, prof models.CmsUser) {
 
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = kioskId
+	kiosk.PartnerUid = prof.PartnerUid
+	kiosk.CourseUid = prof.CourseUid
 	errF := kiosk.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

@@ -124,6 +124,8 @@ func (_ *CCaddieEvaluation) UpdateCaddieEvaluation(c *gin.Context, prof models.C
 	caddieEvaluation.CaddieUid = body.CaddieUid
 	caddieEvaluation.CaddieCode = body.CaddieCode
 	caddieEvaluation.Id, _ = strconv.ParseInt(c.Param("id"), 10, 64)
+	caddieEvaluation.PartnerUid = prof.PartnerUid
+	caddieEvaluation.CourseUid = prof.CourseUid
 
 	if err := caddieEvaluation.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())

@@ -115,6 +115,8 @@ func (_ *CBookingSource) DeleteBookingSource(c *gin.Context, prof models.CmsUser
 
 	bookingSourceRequest := model_booking.BookingSource{}
 	bookingSourceRequest.Id = bookingId
+	bookingSourceRequest.PartnerUid = prof.PartnerUid
+	bookingSourceRequest.CourseUid = prof.CourseUid
 	errF := bookingSourceRequest.FindFirst(db)
 
 	if errF != nil {
@@ -148,6 +150,8 @@ func (_ *CBookingSource) UpdateBookingSource(c *gin.Context, prof models.CmsUser
 
 	bookingSourceRequest := model_booking.BookingSource{}
 	bookingSourceRequest.Id = bookingSourceId
+	bookingSourceRequest.PartnerUid = prof.PartnerUid
+	bookingSourceRequest.CourseUid = prof.CourseUid
 
 	errF := bookingSourceRequest.FindFirst(db)
 	if errF != nil {
