@@ -178,7 +178,7 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 
 	//Update lại giá trong booking
 	updatePriceWithServiceItem(booking, prof)
-	// createExportBillInventory(c, prof, serviceCart, serviceCart.BillCode)
+	createExportBillInventory(c, prof, serviceCart, serviceCart.BillCode)
 
 	c.JSON(200, serviceCart)
 }
