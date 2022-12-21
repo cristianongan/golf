@@ -168,7 +168,7 @@ func (item *ServiceCart) FindReportDetailFBBag(database *gorm.DB, page Page, fro
 			subQuery = subQuery.Where("course_uid = ?", item.CourseUid)
 		}
 
-		subQuery = subQuery.Where("bill_status = ?", constants.RES_BILL_STATUS_FINISH)
+		subQuery = subQuery.Where("bill_status IN ?", []string{constants.RES_BILL_STATUS_FINISH, constants.RES_BILL_STATUS_OUT})
 
 		subQuery = subQuery.Where("service_type = ?", constants.RESTAURANT_SETTING)
 
@@ -302,7 +302,7 @@ func (item *ServiceCart) FindReport(database *gorm.DB, page Page, fromDate, toDa
 			subQuery = subQuery.Where("course_uid = ?", item.CourseUid)
 		}
 
-		subQuery = subQuery.Where("bill_status = ?", constants.RES_BILL_STATUS_FINISH)
+		subQuery = subQuery.Where("bill_status IN ?", []string{constants.RES_BILL_STATUS_FINISH, constants.RES_BILL_STATUS_OUT})
 
 		subQuery = subQuery.Where("service_type = ?", constants.RESTAURANT_SETTING)
 
@@ -422,7 +422,7 @@ func (item *ServiceCart) FindReportDetailFB(database *gorm.DB, page Page, fromDa
 		db = db.Where("service_carts.service_type IN ?", []string{constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.RESTAURANT_SETTING})
 	}
 
-	db = db.Where("service_carts.bill_status IN ?", []string{constants.RES_BILL_STATUS_FINISH, constants.POS_BILL_STATUS_ACTIVE})
+	db = db.Where("service_carts.bill_status IN ?", []string{constants.RES_BILL_STATUS_FINISH, constants.RES_BILL_STATUS_OUT, constants.POS_BILL_STATUS_ACTIVE})
 
 	// sub query
 	subQuery := database.Table("booking_service_items")
