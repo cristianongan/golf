@@ -140,7 +140,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			booking.Hole = body.Hole
 		}
 
-		if checkTeeTimeAvailable(booking) {
+		if !checkTeeTimeAvailable(booking) {
 			response_message.ErrorResponse(c, http.StatusBadRequest, "TEE_TIME_SLOT_FULL", "", http.StatusBadRequest)
 			return
 		}

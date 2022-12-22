@@ -3,7 +3,7 @@ package constants
 /*
 	Max Slot TeeTime
 */
-const SLOT_TEE_TIME = 4
+const SLOT_TEE_TIME = 5
 
 /*
 	Paid By Agency

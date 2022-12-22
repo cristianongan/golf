@@ -1411,7 +1411,7 @@ func checkTeeTimeAvailable(booking model_booking.Booking) bool {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	_, total, _ := bookings.FindAllBookingList(db)
 
-	return !(total == constants.SLOT_TEE_TIME)
+	return total < constants.SLOT_TEE_TIME
 }
 
 func getBuggyFee(gs string) utils.ListGolfHoleFee {
