@@ -160,6 +160,8 @@ func (_ *CAnnualFee) UpdateAnnualFee(c *gin.Context, prof models.CmsUser) {
 
 	annualFee := models.AnnualFee{}
 	annualFee.Id = annualFeeId
+	annualFee.PartnerUid = prof.PartnerUid
+	annualFee.CourseUid = prof.CourseUid
 	errF := annualFee.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -210,6 +212,8 @@ func (_ *CAnnualFee) DeleteAnnualFee(c *gin.Context, prof models.CmsUser) {
 
 	annualFee := models.AnnualFee{}
 	annualFee.Id = annualFeeId
+	annualFee.PartnerUid = prof.PartnerUid
+	annualFee.CourseUid = prof.CourseUid
 	errF := annualFee.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

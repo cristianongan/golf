@@ -148,6 +148,8 @@ func (_ *CCaddieWorkingSchedule) UpdateCaddieWorkingSchedule(c *gin.Context, pro
 	// validate caddie_group
 	caddieGroup := models.CaddieGroup{}
 	caddieGroup.Code = body.CaddieGroupCode
+	caddieGroup.PartnerUid = prof.PartnerUid
+	caddieGroup.CourseUid = prof.CourseUid
 	if err := caddieGroup.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return

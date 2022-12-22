@@ -190,6 +190,8 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieWorkingCalendar(c *gin.Context, pro
 
 	caddiWC := models.CaddieWorkingCalendar{}
 	caddiWC.Id = caddeWCId
+	caddiWC.PartnerUid = prof.PartnerUid
+	caddiWC.CourseUid = prof.CourseUid
 
 	if err := caddiWC.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -218,6 +220,8 @@ func (_ *CCaddieWorkingCalendar) DeleteCaddieWorkingCalendar(c *gin.Context, pro
 
 	caddiWC := models.CaddieWorkingCalendar{}
 	caddiWC.Id = caddeWCId
+	caddiWC.PartnerUid = prof.PartnerUid
+	caddiWC.CourseUid = prof.CourseUid
 
 	if err := caddiWC.Delete(db); err != nil {
 		response_message.BadRequest(c, err.Error())

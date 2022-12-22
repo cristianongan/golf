@@ -28,8 +28,8 @@ type CreateCaddieBody struct {
 
 type GetListCaddieForm struct {
 	PageRequest
-	CourseId          string `form:"course_uid" json:"course_uid"`
-	PartnerUid        string `form:"partner_uid" json:"partner_uid"`
+	CourseId          string `form:"course_uid" json:"course_uid" binding:"required"`
+	PartnerUid        string `form:"partner_uid" json:"partner_uid" binding:"required"`
 	WorkingStatus     string `form:"working_status" json:"working_status"`
 	Level             string `form:"level" json:"level"`
 	Name              string `form:"name" json:"name"`

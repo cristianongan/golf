@@ -104,6 +104,8 @@ func (_ *CBookingWaiting) DeleteBookingWaiting(c *gin.Context, prof models.CmsUs
 
 	bookingWaitingRequest := model_booking.BookingWaiting{}
 	bookingWaitingRequest.Id = bookingId
+	bookingWaitingRequest.PartnerUid = prof.PartnerUid
+	bookingWaitingRequest.CourseUid = prof.CourseUid
 	errF := bookingWaitingRequest.FindFirst(db)
 
 	if errF != nil {
@@ -137,6 +139,8 @@ func (_ *CBookingWaiting) UpdateBookingWaiting(c *gin.Context, prof models.CmsUs
 
 	bookingWaitingRequest := model_booking.BookingWaiting{}
 	bookingWaitingRequest.Id = caddieId
+	bookingWaitingRequest.PartnerUid = prof.PartnerUid
+	bookingWaitingRequest.CourseUid = prof.CourseUid
 
 	errF := bookingWaitingRequest.FindFirst(db)
 	if errF != nil {

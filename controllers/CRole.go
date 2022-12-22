@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"log"
+	"start/constants"
 	"start/controllers/request"
 	"start/models"
 	model_role "start/models/role"
@@ -128,6 +129,11 @@ func (_ *CRole) UpdateRole(c *gin.Context, prof models.CmsUser) {
 
 	role := model_role.Role{}
 	role.Id = roleId
+	if prof.PartnerUid != constants.ROOT_PARTNER_UID {
+		role.PartnerUid = prof.PartnerUid
+		role.CourseUid = prof.CourseUid
+	}
+
 	errF := role.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -196,6 +202,10 @@ func (_ *CRole) DeleteRole(c *gin.Context, prof models.CmsUser) {
 
 	role := model_role.Role{}
 	role.Id = roleId
+	if prof.PartnerUid != constants.ROOT_PARTNER_UID {
+		role.PartnerUid = prof.PartnerUid
+		role.CourseUid = prof.CourseUid
+	}
 	errF := role.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -249,6 +259,11 @@ func (_ *CRole) GetRoleDetail(c *gin.Context, prof models.CmsUser) {
 	errF := role.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	if prof.PartnerUid != constants.ROOT_PARTNER_UID && (role.PartnerUid != prof.PartnerUid || role.CourseUid != prof.CourseUid) {
+		response_message.Forbidden(c, "forbidden")
 		return
 	}
 

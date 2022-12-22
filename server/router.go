@@ -115,6 +115,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/user/add", middlewares.AuthorizedCmsUserHandler(cCmsUser.CreateCmsUser))
 			cmsApiAuthorized.PUT("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.UpdateCmsUser))
 			cmsApiAuthorized.DELETE("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.DeleteCmsUser))
+			cmsApiAuthorized.POST("/user/logout", middlewares.AuthorizedCmsUserHandler(cCmsUser.LogOut))
 
 			/// =================== Config ====================
 			cConfig := new(controllers.CConfig)

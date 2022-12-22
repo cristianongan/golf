@@ -244,3 +244,8 @@ func GetCacheJwt(userUid string) (string, error) {
 	key := getKeyJwt(userUid)
 	return GetCache(key)
 }
+
+func DelCacheJwt(userUid string) {
+	key := getKeyJwt(userUid)
+	DelCacheByKey(key)
+}

@@ -162,6 +162,8 @@ func (_ *CCaddieCalendar) UpdateCaddieCalendar(c *gin.Context, prof models.CmsUs
 	caddieCalendar.CaddieUid = body.CaddieUid
 	caddieCalendar.ApplyDate = datatypes.Date(applyDate)
 	caddieCalendar.Id, _ = strconv.ParseInt(c.Param("id"), 10, 64)
+	caddieCalendar.PartnerUid = prof.PartnerUid
+	caddieCalendar.CourseUid = prof.CourseUid
 
 	if err := caddieCalendar.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
