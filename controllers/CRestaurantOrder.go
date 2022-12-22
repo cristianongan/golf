@@ -910,6 +910,7 @@ func (_ CRestaurantOrder) FinishAllResItem(c *gin.Context, prof models.CmsUser) 
 	resItem.ServiceId = body.ServiceId
 	resItem.BillId = body.BillId
 	resItem.ItemCode = body.ItemCode
+	resItem.ItemStatus = constants.RES_STATUS_PROCESS
 
 	list, err := resItem.FindAll(db)
 
