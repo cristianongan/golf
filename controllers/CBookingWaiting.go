@@ -19,9 +19,16 @@ func (_ *CBookingWaiting) CreateBookingWaiting(c *gin.Context, prof models.CmsUs
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CreateBookingWaiting
 	if bindErr := c.BindJSON(&body); bindErr != nil {
-		response_message.BadRequest(c, "")
+		response_message.BadRequest(c, "Data format invalid!")
 		return
 	}
+
+	_, errDate := time.Parse("2006-01-02", body.BookingTime)
+	if errDate != nil {
+		response_message.BadRequest(c, "Booking Date format invalid!")
+		return
+	}
+
 	bookingCode := strconv.FormatInt(time.Now().Unix(), 10)
 
 	bookingWaiting := model_booking.BookingWaiting{

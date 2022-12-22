@@ -124,6 +124,7 @@ type Booking struct {
 	MovedFlight      *bool                                `json:"moved_flight" gorm:"default:0"`                   // Đánh dấu booking đã move flight chưa
 	AddedRound       *bool                                `json:"added_flight" gorm:"default:0"`                   // Đánh dấu booking đã add chưa
 	AgencyPaid       utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty" gorm:"type:json"`
+	LockBill         *bool                                `json:"lock_bill" gorm:"default:0"` // lễ tân lock bill cho kh để restaurant ko thao tác đc nữa
 }
 
 type FlyInfoResponse struct {

@@ -11,6 +11,7 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils/response_message"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -32,6 +33,13 @@ func (_ *CValet) AddBagCaddieBuggyToBooking(c *gin.Context, prof models.CmsUser)
 
 	for _, body := range dataBody.Data {
 		// Check can add
+
+		_, errDate := time.Parse(constants.DATE_FORMAT_1, body.BookingDate)
+		if errDate != nil {
+			response_message.BadRequest(c, "Booking Date format invalid!")
+			return
+		}
+
 		errB, response := AddCaddieBuggyToBooking(db, body.PartnerUid, body.CourseUid, body.BookingUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode, body.IsPrivateBuggy)
 
 		if errB != nil {

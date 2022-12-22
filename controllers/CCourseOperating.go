@@ -65,6 +65,12 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 		return
 	}
 
+	_, errDate := time.Parse(constants.DATE_FORMAT_1, body.BookingDate)
+	if errDate != nil {
+		response_message.BadRequest(c, "Booking Date format invalid!")
+		return
+	}
+
 	if body.PartnerUid == "" || body.CourseUid == "" || body.BookingDate == "" || body.Bag == "" {
 		response_message.BadRequest(c, constants.API_ERR_INVALID_BODY_DATA)
 		return

@@ -49,6 +49,13 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *gin.Context, prof models.CmsUser) (*model_booking.Booking, error) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	// validate caddie_code
+
+	_, errDate := time.Parse(constants.DATE_FORMAT_1, body.BookingDate)
+	if errDate != nil {
+		response_message.BadRequest(c, constants.BOOKING_DATE_NOT_VALID)
+		return nil, errDate
+	}
+
 	var caddie models.Caddie
 	var err error
 	if body.CaddieCode != "" {
@@ -1546,5 +1553,35 @@ func (cBooking *CBooking) FinishBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	go updatePriceForRevenue(db, booking, body.BillNo)
+	okRes(c)
+}
+
+func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
+	body := request.LockBill{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	today, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
+	booking := model_booking.Booking{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		Bag:         body.Bag,
+		BookingDate: today,
+	}
+
+	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
+	booking.FindFirstByUId(db)
+
+	if !*booking.LockBill {
+		booking.LockBill = setBoolForCursor(body.LockBill)
+		if err := booking.Update(db); err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
+	}
+
 	okRes(c)
 }

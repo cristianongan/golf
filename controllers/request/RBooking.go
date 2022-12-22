@@ -305,3 +305,10 @@ type UpdateAgencyFeeBookingCommon struct {
 	CustomerName string
 	Hole         int
 }
+
+type LockBill struct {
+	PartnerUid string `json:"partner_uid" binding:"required"` // Hang Golf
+	CourseUid  string `json:"course_uid" binding:"required"`  // San Golf
+	Bag        string `json:"bag" binding:"required"`
+	LockBill   bool   `json:"lock_bill" binding:"required"`
+}

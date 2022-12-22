@@ -3,6 +3,7 @@ package model_booking
 import (
 	"log"
 	"start/constants"
+	"start/datasources"
 	"start/models"
 	"start/utils"
 
@@ -678,4 +679,12 @@ func (item *Booking) GetAgencyPaidBookingCaddie() int64 {
 		}
 	}
 	return totalAgencyPaid
+}
+
+func (item *Booking) NumberOfRound() int {
+	db := datasources.GetDatabaseWithPartner(item.PartnerUid)
+	roundToFindList := models.Round{BillCode: item.BillCode}
+	listRound, _ := roundToFindList.FindAll(db)
+
+	return len(listRound)
 }

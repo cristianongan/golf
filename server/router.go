@@ -277,6 +277,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/booking/change-to-main-bag", middlewares.AuthorizedCmsUserHandler(cBooking.ChangeToMainBag))         // Change To Main Bag
 			cmsApiAuthorized.GET("/booking/tee-time-slot-remain", middlewares.AuthorizedCmsUserHandler(cBooking.GetSlotRemainInTeeTime)) // Change To Main Bag
 			cmsApiAuthorized.POST("/booking/finish-bill", middlewares.AuthorizedCmsUserHandler(cBooking.FinishBill))                     // Ghi nhận bước thanh toán cuối cùng
+			cmsApiAuthorized.POST("/booking/lock-bill", middlewares.AuthorizedCmsUserHandler(cBooking.LockBill))                         // Lễ tân lock bill chờ thanh toán
 			// cmsApiAuthorized.GET("/booking/golf-fee", middlewares.AuthorizedCmsUserHandler(cBooking.GetGolfFeeInfoOfBag))
 
 			/// =================== Caddie Buggy In Out Bag ===================

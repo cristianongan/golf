@@ -77,6 +77,12 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	_, errDate := time.Parse(constants.DATE_FORMAT_1, body.BookingDate)
+	if errDate != nil {
+		response_message.BadRequest(c, "Booking Date format invalid!")
+		return
+	}
+
 	if len(body.BookUidList) == 0 {
 		response_message.BadRequest(c, "Booking invalid empty")
 		return
