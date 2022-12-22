@@ -1540,7 +1540,7 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 
 	today, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
-	booking := model_booking.Booking{
+	Rbooking := model_booking.Booking{
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,
 		Bag:         body.Bag,
@@ -1548,14 +1548,17 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
-	booking.FindFirstByUId(db)
+	booking, err := Rbooking.FindFirstByUId(db)
 
-	if !*booking.LockBill {
-		booking.LockBill = setBoolForCursor(body.LockBill)
-		if err := booking.Update(db); err != nil {
-			response_message.InternalServerError(c, err.Error())
-			return
-		}
+	if err != nil {
+		response_message.BadRequestDynamicKey(c, "BAG_NOT_FOUND", "")
+		return
+	}
+
+	booking.LockBill = setBoolForCursor(*body.LockBill)
+	if err := booking.Update(db); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
 	}
 
 	okRes(c)
