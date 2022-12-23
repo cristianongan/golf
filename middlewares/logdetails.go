@@ -2,15 +2,13 @@ package middlewares
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net"
 	"os"
+	"regexp"
 	"start/config"
-	"start/datasources"
 	"start/utils"
 	"time"
 
@@ -90,16 +88,24 @@ func GinBodyLogMiddleware(c *gin.Context) {
 		}
 	}
 
-	tempStr, _ := json.Marshal(newlogmessage)
-	if tempStr != nil {
-		// log.Println(string(tempStr))
+	newlog := "[REQ_LOG] " + utils.NumberToString(newlogmessage.TimeStamp) +
+		" |status:" + utils.NumberToString(newlogmessage.Status) +
+		" |duration:" + utils.NumberToString(newlogmessage.Duration) +
+		" |client_ip:" + newlogmessage.ClientIP +
+		" |method:" + newlogmessage.Method +
+		" |path:" + newlogmessage.Path +
+		" |request:" + newlogmessage.Request +
+		" |response:" + newlogmessage.Response
+
+	notShowrequests := []string{
+		"/golf-cms/metrics",
 	}
-	go func(tempStr []byte) {
-		err2 := datasources.FluentdSendRequestLog(tempStr)
-		if err2 != nil {
-			log.Println("GinBodyLogMiddleware:", err2)
+	for _, item := range notShowrequests {
+		matched, _ := regexp.MatchString(item, c.Request.URL.Path)
+		if !matched {
+			fmt.Println(newlog)
 		}
-	}(tempStr)
+	}
 
 }
 
