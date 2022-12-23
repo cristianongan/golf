@@ -29,6 +29,7 @@ type GetCaddieVacationNotification struct {
 	UserName     string
 	PartnerUid   string
 	CourseUid    string
+	Id           int64
 }
 
 type UpdateNotificationBody struct {

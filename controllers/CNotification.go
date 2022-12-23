@@ -164,6 +164,9 @@ func (_ *CNotification) ApproveCaddieCalendarNotification(c *gin.Context, prof m
 		return
 	}
 
+	cCaddieVacation := CCaddieVacationCalendar{}
+	go cCaddieVacation.UpdateCaddieVacationStatus(notification.ExtraInfo.Id, form.IsApprove, notification.PartnerUid, prof)
+
 	newFsConfigBytes, _ := json.Marshal(newNotification)
 	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
 	okRes(c)
@@ -172,10 +175,10 @@ func (_ *CNotification) ApproveCaddieCalendarNotification(c *gin.Context, prof m
 func (_ *CNotification) CreateCaddieVacationNotification(db *gorm.DB, body request.GetCaddieVacationNotification) {
 	notiType := ""
 	extraTitle := ""
-	if body.Title == "SICK" {
+	if body.Title == constants.CADDIE_VACATION_SICK {
 		notiType = constants.NOTIFICATION_CADDIE_VACATION_SICK_OFF
 		extraTitle = "xin nghỉ phép ốm"
-	} else if body.Title == "UNPAID" {
+	} else if body.Title == constants.CADDIE_VACATION_UNPAID {
 		notiType = constants.NOTIFICATION_CADDIE_VACATION_UNPAID
 		extraTitle = "xin nghỉ phép không lương"
 	}
@@ -184,6 +187,9 @@ func (_ *CNotification) CreateCaddieVacationNotification(db *gorm.DB, body reque
 	toDay, _ := utils.GetDateFromTimestampWithFormat(body.DateTo, constants.DATE_FORMAT_1)
 	hourStr, _ := utils.GetDateFromTimestampWithFormat(body.CreateAt, constants.HOUR_FORMAT)
 	title := fmt.Sprintln("Caddie", body.Caddie.Code, extraTitle, body.NumberDayOff, "ngày", "từ", fromDay, "đến", toDay, ",", hourStr)
+	extraInfo := models.ExtraInfo{
+		Id: body.Id,
+	}
 
 	notiData := models.Notification{
 		PartnerUid:         body.PartnerUid,
@@ -192,7 +198,7 @@ func (_ *CNotification) CreateCaddieVacationNotification(db *gorm.DB, body reque
 		Title:              title,
 		NotificationStatus: constants.NOTIFICATION_PENDIND,
 		UserCreate:         body.UserName,
-		ExtraInfo:          body.Caddie.Code,
+		ExtraInfo:          extraInfo,
 	}
 
 	notiData.Create(db)
