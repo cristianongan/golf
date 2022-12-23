@@ -91,6 +91,7 @@ func MigrateDbCms(db *gorm.DB) {
 	db.AutoMigrate(&models.CaddieNote{})
 	db.AutoMigrate(&models.CaddieWorkingTime{})
 	db.AutoMigrate(&models.CaddieVacationCalendar{})
+	db.AutoMigrate(&models.CaddieWorkingSlot{})
 
 	// ---- Bag Note ----
 	db.AutoMigrate(&models.BagsNote{})

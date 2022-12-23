@@ -78,3 +78,33 @@ func (item *CaddieVacationCalendar) FindAll(database *gorm.DB) ([]CaddieVacation
 
 	return list, db.Error
 }
+
+func (item *CaddieVacationCalendar) FindAllWithDate(database *gorm.DB, typeWork string) ([]CaddieVacationCalendar, error) {
+	var list []CaddieVacationCalendar
+
+	db := database.Model(CaddieVacationCalendar{})
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if typeWork == "LEAVE" {
+		db = db.Where("date_from <= ?", time.Now().Unix())
+		db = db.Where("date_to >= ?", time.Now().Unix())
+	}
+
+	if typeWork == "WORK" {
+		db = db.Where("date_to <= ?", time.Now().Unix())
+		db = db.Where("date_to >= ?", time.Now().AddDate(0, 0, -1).Unix())
+	}
+
+	db.Group("caddie_code")
+
+	db = db.Find(&list)
+
+	return list, db.Error
+}

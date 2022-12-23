@@ -31,11 +31,11 @@ type Caddie struct {
 	Note           string           `json:"note" gorm:"type:varchar(200)"`
 	CurrentStatus  string           `json:"current_status" gorm:"type:varchar(128)"`
 	CurrentRound   int              `json:"current_round" gorm:"size:2"`
-	ContractStatus string           `json:"contract_status" gorm:"type:varchar(128)"`
+	ContractStatus string           `json:"contract_status" gorm:"type:varchar(128);index"`
 	RdStatus       string           `json:"rd_status" gorm:"type:varchar(128)"`
 	DutyStatus     string           `json:"duty_status" gorm:"type:varchar(128)"`
 	CaddieCalendar []CaddieCalendar `json:"caddie_calendar" gorm:"foreignKey:caddie_uid"`
-	GroupId        int64            `json:"group_id" gorm:"default:0"`
+	GroupId        int64            `json:"group_id" gorm:"default:0;index"`
 	GroupIndex     uint64           `json:"group_index" gorm:"default:0"`
 	GroupInfo      CaddieGroup      `json:"group_info" gorm:"foreignKey:GroupId"`
 }
@@ -178,6 +178,18 @@ func (item *Caddie) FindAllCaddieContract(database *gorm.DB) ([]Caddie, error) {
 	db := database.Model(Caddie{})
 
 	db = db.Where("contract_status IN (?, ?)", constants.CADDIE_CONTRACT_STATUS_PARTTIME, constants.CADDIE_CONTRACT_STATUS_FULLTIME)
+	db = db.Find(&list)
+
+	return list, db.Error
+}
+
+func (item *Caddie) FindAllCaddieGroup(database *gorm.DB, listStatus []string, listGroup []int64) ([]Caddie, error) {
+	var list []Caddie
+
+	db := database.Model(Caddie{})
+
+	db = db.Where("contract_status IN ?", listStatus)
+	db = db.Where("group_id IN ?", listGroup)
 	db = db.Find(&list)
 
 	return list, db.Error

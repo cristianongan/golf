@@ -87,21 +87,54 @@ func (item *CaddieWorkingSchedule) FindListWithoutPage(database *gorm.DB) ([]Cad
 		db1 = db1.Where("apply_date = ?", time.Time(*item.ApplyDate).Format("2006-01-02"))
 	}
 
+	query := db1.Select("MAX(id) as id_latest").Group("caddie_group_code, apply_date")
+
+	db2 = db2.Joins("JOIN (?) q ON caddie_working_schedules.id = q.id_latest", query)
+
 	if item.IsDayOff != nil {
 		if *item.IsDayOff == true {
-			db1 = db1.Where("is_day_off = ?", 1)
+			db2 = db2.Where("caddie_working_schedules.is_day_off = ?", 1)
 		}
 		if *item.IsDayOff == false {
-			db1 = db1.Where("is_day_off = ?", 0)
+			db2 = db2.Where("caddie_working_schedules.is_day_off = ?", 0)
 		}
 	}
 
-	query := db1.Select("MAX(id) as id_latest").Group("caddie_group_code, apply_date")
-
-	err := db2.Joins("JOIN (?) q ON caddie_working_schedules.id = q.id_latest", query).Find(&list).Error
+	err := db2.Find(&list).Error
 
 	return list, err
 }
+
+// func (item *CaddieWorkingSchedule) FindListGroupaddie(database *gorm.DB) ([]CaddieWorkingSchedule, error) {
+// 	var list []CaddieWorkingSchedule
+
+// 	db := database.Model(CaddieWorkingSchedule{})
+
+// 	if item.CourseUid != "" {
+// 		db = db.Where("course_uid = ?", item.CourseUid)
+// 	}
+
+// 	if item.PartnerUid != "" {
+// 		db = db.Where("partner_uid = ?", item.PartnerUid)
+// 	}
+
+// 	if item.ApplyDate != nil {
+// 		db = db.Where("apply_date = ?", time.Time(*item.ApplyDate).Format("2006-01-02"))
+// 	}
+
+// 	if item.IsDayOff != nil {
+// 		if *item.IsDayOff == true {
+// 			db = db.Where("is_day_off = ?", 1)
+// 		}
+// 		if *item.IsDayOff == false {
+// 			db = db.Where("is_day_off = ?", 0)
+// 		}
+// 	}
+
+// 	db = db.Find(&list)
+
+// 	return list, db.Error
+// }
 
 func (item *CaddieWorkingSchedule) CheckCaddieWorkOnDay(database *gorm.DB) bool {
 	var list []CaddieWorkingSchedule
