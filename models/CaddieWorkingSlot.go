@@ -2,6 +2,7 @@ package models
 
 import (
 	"start/constants"
+	"start/utils"
 	"time"
 
 	"github.com/pkg/errors"
@@ -10,10 +11,10 @@ import (
 
 type CaddieWorkingSlot struct {
 	ModelId
-	PartnerUid string   `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string   `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	ApplyDate  string   `json:"apply_date"  gorm:"type:varchar(100);index"` // ngày áp dụng
-	CaddieSlot []string `json:"caddie_slot" gorm:"type:text[]"`             // Danh sách xếp nốt của caddie
+	PartnerUid string           `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid  string           `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	ApplyDate  string           `json:"apply_date"  gorm:"type:varchar(100);index"` // ngày áp dụng
+	CaddieSlot utils.ListString `json:"caddie_slot,omitempty" gorm:"type:json"`     // Danh sách xếp nốt của caddie
 }
 
 func (item *CaddieWorkingSlot) Create(db *gorm.DB) error {
