@@ -84,6 +84,34 @@ func (item *ReportCustomerPlay) FindList(page models.Page) ([]ReportCustomerPlay
 	return list, total, db.Error
 }
 
+func (item *ReportCustomerPlay) FindAllList() ([]ReportCustomerPlay, int64, error) {
+	db := datasources.GetDatabase().Model(ReportCustomerPlay{})
+	list := []ReportCustomerPlay{}
+	total := int64(0)
+	status := item.Status
+	item.Status = ""
+
+	if status != "" {
+		db = db.Where("status in (?)", strings.Split(status, ","))
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.CardId != "" {
+		db = db.Where("card_id = ?", item.CardId)
+	}
+	if item.CustomerUid != "" {
+		db = db.Where("customer_uid = ?", item.CustomerUid)
+	}
+
+	db.Count(&total)
+	db.Find(&list)
+	return list, total, db.Error
+}
+
 func (item *ReportCustomerPlay) Delete() error {
 	if item.Id < 0 {
 		return errors.New("Primary key is undefined!")
