@@ -1,6 +1,8 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"start/constants"
 	"strings"
 	"time"
@@ -11,16 +13,28 @@ import (
 // Hãng Golf
 type Notification struct {
 	ModelId
-	PartnerUid         string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid          string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Type               string `json:"type" gorm:"type:varchar(100)"`              // Loại noti
-	Title              string `json:"title" gorm:"type:varchar(256)"`
-	NotificationStatus string `json:"noti_status" gorm:"type:varchar(50)"`  // Trạng thái của noti
-	UserCreate         string `json:"user_create" gorm:"type:varchar(100)"` // Người tạo noti
-	UserApprove        string `json:"user_update" gorm:"type:varchar(100)"` // Người duyệt noti
-	IsRead             *bool  `json:"is_read" gorm:"default:0"`             // Trạng thái đã xem của noti
-	Note               string `json:"note" gorm:"type:varchar(500)"`
-	ExtraInfo          string `json:"extra_info" gorm:"type:varchar(500)"`
+	PartnerUid         string    `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid          string    `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Type               string    `json:"type" gorm:"type:varchar(100)"`              // Loại noti
+	Title              string    `json:"title" gorm:"type:varchar(256)"`
+	NotificationStatus string    `json:"noti_status" gorm:"type:varchar(50)"`  // Trạng thái của noti
+	UserCreate         string    `json:"user_create" gorm:"type:varchar(100)"` // Người tạo noti
+	UserApprove        string    `json:"user_update" gorm:"type:varchar(100)"` // Người duyệt noti
+	IsRead             *bool     `json:"is_read" gorm:"default:0"`             // Trạng thái đã xem của noti
+	Note               string    `json:"note" gorm:"type:varchar(500)"`
+	ExtraInfo          ExtraInfo `json:"extra_info" gorm:"type:json"`
+}
+
+type ExtraInfo struct {
+	Id int64 `json:"id"` // id của object tạo noti
+}
+
+func (item *ExtraInfo) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ExtraInfo) Value() (driver.Value, error) {
+	return json.Marshal(&item)
 }
 
 // ======= CRUD ===========
