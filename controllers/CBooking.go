@@ -1230,6 +1230,7 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 		if errF != nil {
 			//Chưa có thì tạo mới
 			serviceItem.Amount = v.Amount
+			serviceItem.UnitPrice = v.Amount
 			serviceItem.PlayerName = booking.CustomerName
 			serviceItem.Bag = booking.Bag
 			serviceItem.BookingUid = booking.Uid
@@ -1242,6 +1243,7 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 			// Check đã có thì udp
 			if serviceItem.Amount != v.Amount {
 				serviceItem.Amount = v.Amount
+				serviceItem.UnitPrice = v.Amount
 				errUdp := serviceItem.Update(db)
 				if errUdp != nil {
 					log.Println("AddOtherPaid errUdp", errUdp.Error())

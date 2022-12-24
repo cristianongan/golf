@@ -399,7 +399,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		// add infor cart item
 		serviceCartItem.ItemId = fbSet.Id
 		serviceCartItem.ServiceType = kiosk.ServiceType
-		serviceCartItem.Type = constants.RESTAURANT_SETTING
+		serviceCartItem.Type = kiosk.KioskType
 		serviceCartItem.Location = kiosk.KioskName
 		serviceCartItem.ItemType = constants.SERVICE_ITEM_RES_COMBO
 		serviceCartItem.Name = fbSet.VieName
@@ -438,7 +438,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		// add infor cart item
 		serviceCartItem.ItemId = fb.Id
 		serviceCartItem.ServiceType = kiosk.ServiceType
-		serviceCartItem.Type = constants.RESTAURANT_SETTING
+		serviceCartItem.Type = kiosk.KioskType
 		serviceCartItem.Location = kiosk.KioskName
 		serviceCartItem.GroupCode = fb.GroupCode
 		serviceCartItem.ItemType = constants.SERVICE_ITEM_RES_NORMAL

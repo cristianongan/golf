@@ -1098,6 +1098,9 @@ func (item *Booking) FindTeeTimeIndexAvaible(database *gorm.DB) utils.ListInt {
 	if item.TeeType != "" {
 		db = db.Where("tee_type = ?", item.TeeType)
 	}
+	if item.CourseType != "" {
+		db = db.Where("course_type = ?", item.CourseType)
+	}
 
 	db.Find(&list)
 

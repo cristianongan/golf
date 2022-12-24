@@ -9,19 +9,22 @@ import (
 
 type CaddieVacationCalendar struct {
 	ModelId
-	PartnerUid   string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid    string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	CaddieId     int64  `json:"caddie_id" gorm:"index"`
-	CaddieCode   string `json:"caddie_code" gorm:"type:varchar(100);index"`
-	CaddieName   string `json:"caddie_name" gorm:"type:varchar(256)"`
-	Title        string `json:"title" gorm:"type:varchar(100)"`
-	Color        string `json:"color" gorm:"type:varchar(100)"`
-	DateFrom     int64  `json:"date_from"`
-	DateTo       int64  `json:"date_to"`
-	MonthFrom    int    `json:"month_from"`
-	MonthTo      int    `json:"month_to"`
-	NumberDayOff int    `json:"number_day_off"`
-	Note         string `json:"note" gorm:"type:varchar(256)"`
+	PartnerUid    string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid     string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	CaddieId      int64  `json:"caddie_id" gorm:"index"`
+	CaddieCode    string `json:"caddie_code" gorm:"type:varchar(100);index"`
+	CaddieName    string `json:"caddie_name" gorm:"type:varchar(256)"`
+	Title         string `json:"title" gorm:"type:varchar(100)"`
+	Color         string `json:"color" gorm:"type:varchar(100)"`
+	DateFrom      int64  `json:"date_from"`
+	DateTo        int64  `json:"date_to"`
+	MonthFrom     int    `json:"month_from"`
+	MonthTo       int    `json:"month_to"`
+	NumberDayOff  int    `json:"number_day_off"`
+	Note          string `json:"note" gorm:"type:varchar(256)"`
+	ApproveStatus string `json:"approve_status"`
+	ApproveTime   int64  `json:"approve_time"`
+	UserApprove   string `json:"user_approve"`
 }
 
 func (item *CaddieVacationCalendar) Create(db *gorm.DB) error {

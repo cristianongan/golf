@@ -99,10 +99,10 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 			return errors.New(message)
 		}
 
-		if data.Quantity > itemInInventory.Quantity {
-			message := data.ItemCode + " vượt quá số lượng trong kho "
-			return errors.New(message)
-		}
+		// if data.Quantity > itemInInventory.Quantity {
+		// 	message := data.ItemCode + " vượt quá số lượng trong kho "
+		// 	return errors.New(message)
+		// }
 
 		goodsService := model_service.GroupServices{
 			GroupCode: data.GroupCode,
