@@ -1464,3 +1464,41 @@ func getBuggyFee(gs string) utils.ListGolfHoleFee {
 
 	return buggyFeeItemSetting.RentalFee
 }
+
+// Update slot caddie
+
+func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
+	var caddieSlotNew []string
+	// Format date
+	dateNow, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
+	caddieWS := models.CaddieWorkingSlot{}
+	caddieWS.PartnerUid = partnerUid
+	caddieWS.CourseUid = courseUid
+	caddieWS.ApplyDate = dateNow
+
+	db := datasources.GetDatabaseWithPartner(partnerUid)
+
+	err := caddieWS.FindFirst(db)
+	if err != nil {
+		return err
+	}
+
+	if len(caddieWS.CaddieSlot) > 0 {
+		caddieSlotNew = append(caddieSlotNew, caddieWS.CaddieSlot...)
+		for _, item := range caddies {
+			index := utils.StringInList(item, caddieSlotNew)
+			if index != -1 {
+				caddieSlotNew = utils.Remove(caddieSlotNew, index)
+			}
+		}
+	}
+
+	caddieWS.CaddieSlot = append(caddieSlotNew, caddies...)
+	err = caddieWS.Update(db)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
