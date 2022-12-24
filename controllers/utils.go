@@ -1426,6 +1426,34 @@ func checkTeeTimeAvailable(booking model_booking.Booking) bool {
 	return total < constants.SLOT_TEE_TIME
 }
 
+func updateSlotTeeTime(booking model_booking.Booking) {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	teeTime := models.TeeTimeList{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		TeeTime:     booking.TeeTime,
+		TeeType:     booking.TeeType,
+		CourseType:  booking.CourseType,
+		BookingDate: booking.BookingDate,
+	}
+
+	if err := teeTime.FindFirst(db); err == nil {
+		bookings := model_booking.BookingList{}
+		bookings.PartnerUid = booking.PartnerUid
+		bookings.CourseUid = booking.CourseUid
+		bookings.BookingDate = booking.BookingDate
+		bookings.TeeTime = booking.TeeTime
+		bookings.TeeType = booking.TeeType
+		bookings.CourseType = booking.CourseType
+
+		db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+		_, total, _ := bookings.FindAllBookingList(db)
+
+		teeTime.SlotEmpty = int(constants.SLOT_TEE_TIME - total)
+		teeTime.Update(db)
+	}
+}
+
 func getBuggyFee(gs string) utils.ListGolfHoleFee {
 
 	partnerUid := "CHI-LINH"

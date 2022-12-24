@@ -108,151 +108,69 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 
 	BuggyFee = utils.GetFeeFromListFee(getBuggyFee(agency.GuestStyle), 18)
 
-	cBookingSetting := CBookingSetting{}
-	form := request.GetListBookingSettingForm{
-		CourseUid: body.CourseCode,
+	courseType := ""
+	if body.IsMainCourse {
+		courseType = "A"
+	} else {
+		courseType = "B"
 	}
-	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
-	weekday := strconv.Itoa(int(timeDate.Weekday()) + 1)
-	bookSetting := model_booking.BookingSetting{}
-
-	teeTimeList := []response.TeeTimeOTA{}
-	for _, data := range listSettingDetail {
-		if strings.ContainsAny(data.Dow, weekday) {
-			bookSetting = data
-			break
-		}
+	RTeeTimeList := models.TeeTimeList{
+		CourseUid:   body.CourseCode,
+		BookingDate: dateFormat,
+		CourseType:  courseType,
 	}
 
-	timeParts := []response.TeeTimePartOTA{
-		{
-			IsHideTeePart: bookSetting.IsHideTeePart1,
-			StartPart:     bookSetting.StartPart1,
-			EndPart:       bookSetting.EndPart1,
-		},
-		{
-			IsHideTeePart: bookSetting.IsHideTeePart2,
-			StartPart:     bookSetting.StartPart2,
-			EndPart:       bookSetting.EndPart2,
-		},
-		{
-			IsHideTeePart: bookSetting.IsHideTeePart3,
-			StartPart:     bookSetting.StartPart3,
-			EndPart:       bookSetting.EndPart3,
-		},
-	}
+	teeTimeList, _, _ := RTeeTimeList.FindAllList(db)
+	teeTimeListOTA := []response.TeeTimeOTA{}
 
 	// get các teetime đang bị khóa ở redis
 	listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, dateFormat)
 
-	index := 0
-	for partIndex, part := range timeParts {
-		if !part.IsHideTeePart {
-			endTime, _ := utils.ConvertHourToTime(part.EndPart)
-			teeTimeInit, _ := utils.ConvertHourToTime(part.StartPart)
-			for {
-				index += 1
+	for _, teeTime := range teeTimeList {
 
-				hour := teeTimeInit.Hour()
-				minute := teeTimeInit.Minute()
+		teeOff, _ := time.Parse(constants.DATE_FORMAT_3, body.Date+" "+teeTime.TeeTime)
+		teeOffStr := teeOff.Format("2006-01-02T15:04:05")
+		teeType := teeTime.TeeType + teeTime.CourseType
 
-				hourStr_ := strconv.Itoa(hour)
-				if hour < 10 {
-					hourStr_ = "0" + hourStr_
+		teeTime1 := models.LockTeeTime{
+			TeeTime:   teeTime.TeeTime,
+			CourseUid: body.CourseCode,
+			TeeType:   teeType,
+		}
+
+		hasTeeTimeLock1AOnRedis := false
+		for _, teeTimeLockRedis := range listTeeTimeLockRedis {
+			if teeTimeLockRedis.TeeTime == teeTime1.TeeTime && teeTimeLockRedis.DateTime == teeTime1.DateTime &&
+				teeTimeLockRedis.CourseUid == teeTime1.CourseUid && teeTimeLockRedis.TeeType == teeTime1.TeeType {
+				hasTeeTimeLock1AOnRedis = true
+			}
+		}
+
+		if !hasTeeTimeLock1AOnRedis {
+			if errFind1 := teeTime1.FindFirst(db); errFind1 != nil {
+				tee, _ := strconv.Atoi(teeTime.TeeType)
+				teeTime1A := response.TeeTimeOTA{
+					TeeOffStr:    teeTime.TeeTime,
+					DateStr:      body.Date,
+					TeeOff:       teeOffStr,
+					Tee:          int64(tee),
+					SlotEmpty:    int64(teeTime.SlotEmpty),
+					NumBook:      int64(constants.SLOT_TEE_TIME - teeTime.SlotEmpty),
+					IsMainCourse: body.IsMainCourse,
+					GreenFee:     GreenFee,
+					CaddieFee:    CaddieFee,
+					BuggyFee:     BuggyFee,
+					Holes:        int64(body.Hole),
 				}
-				minuteStr := strconv.Itoa(minute)
-				if minute < 10 {
-					minuteStr = "0" + minuteStr
-				}
-
-				hourStr := hourStr_ + ":" + minuteStr
-
-				teeOff, _ := time.Parse(constants.DATE_FORMAT_3, body.Date+" "+hourStr)
-				teeOffStr := teeOff.Format("2006-01-02T15:04:05")
-
-				teeTime1 := models.LockTeeTime{
-					TeeTime:   hourStr,
-					DateTime:  dateFormat,
-					CourseUid: body.CourseCode,
-					TeeType:   "1A",
-				}
-
-				hasTeeTimeLock1AOnRedis := false
-				for _, teeTimeLockRedis := range listTeeTimeLockRedis {
-					if teeTimeLockRedis.TeeTime == teeTime1.TeeTime && teeTimeLockRedis.DateTime == teeTime1.DateTime &&
-						teeTimeLockRedis.CourseUid == teeTime1.CourseUid && teeTimeLockRedis.TeeType == teeTime1.TeeType {
-						hasTeeTimeLock1AOnRedis = true
-					}
-				}
-
-				if !hasTeeTimeLock1AOnRedis {
-					if errFind1 := teeTime1.FindFirst(db); errFind1 != nil {
-						teeTime1A := response.TeeTimeOTA{
-							TeeOffStr:    hourStr,
-							DateStr:      body.Date,
-							TeeOff:       teeOffStr,
-							Tee:          1,
-							Part:         int64(partIndex),
-							TimeIndex:    int64(index),
-							NumBook:      0,
-							IsMainCourse: body.IsMainCourse,
-							GreenFee:     GreenFee,
-							CaddieFee:    CaddieFee,
-							BuggyFee:     BuggyFee,
-							Holes:        int64(body.Hole),
-						}
-						teeTimeList = append(teeTimeList, teeTime1A)
-					}
-				}
-
-				teeTime10 := models.LockTeeTime{
-					TeeTime:   hourStr,
-					DateTime:  dateFormat,
-					CourseUid: body.CourseCode,
-					TeeType:   "1B",
-				}
-
-				hasTeeTimeLock1BOnRedis := false
-				for _, teeTimeLockRedis := range listTeeTimeLockRedis {
-					if teeTimeLockRedis.TeeTime == teeTime10.TeeTime && teeTimeLockRedis.DateTime == teeTime10.DateTime &&
-						teeTimeLockRedis.CourseUid == teeTime10.CourseUid && teeTimeLockRedis.TeeType == teeTime10.TeeType {
-						hasTeeTimeLock1BOnRedis = true
-					}
-				}
-
-				if !hasTeeTimeLock1BOnRedis {
-					if errFind10 := teeTime10.FindFirst(db); errFind10 != nil {
-						teeTime10A := response.TeeTimeOTA{
-							TeeOffStr:    hourStr,
-							DateStr:      body.Date,
-							TeeOff:       teeOffStr,
-							Tee:          10,
-							Part:         int64(partIndex),
-							TimeIndex:    int64(index),
-							NumBook:      0,
-							IsMainCourse: body.IsMainCourse,
-							GreenFee:     GreenFee,
-							CaddieFee:    CaddieFee,
-							BuggyFee:     BuggyFee,
-							Holes:        int64(body.Hole),
-						}
-						teeTimeList = append(teeTimeList, teeTime10A)
-					}
-				}
-
-				teeTimeInit = teeTimeInit.Add(time.Minute * time.Duration(bookSetting.TeeMinutes))
-
-				if teeTimeInit.Unix() > endTime.Unix() {
-					break
-				}
+				teeTimeListOTA = append(teeTimeListOTA, teeTime1A)
 			}
 		}
 	}
 
-	responseOTA.Data = teeTimeList
-	responseOTA.NumTeeTime = int64(len(teeTimeList))
+	responseOTA.Data = teeTimeListOTA
+	responseOTA.NumTeeTime = int64(len(teeTimeListOTA))
 	responseOTA.Result.Status = 200
-	responseOTA.Result.Infor = "Get data OK" + "(" + strconv.Itoa(len(teeTimeList)) + " tee time)" + "-at " + body.Date
+	responseOTA.Result.Infor = "Get data OK" + "(" + strconv.Itoa(len(teeTimeListOTA)) + " tee time)" + "-at " + body.Date
 	okResponse(c, responseOTA)
 }
 

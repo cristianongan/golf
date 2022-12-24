@@ -183,6 +183,9 @@ func MigrateDbCms(db *gorm.DB) {
 
 	// Notification
 	db.AutoMigrate(&models.Notification{})
+
+	// TeeTime
+	db.AutoMigrate(&models.TeeTimeList{})
 }
 
 func MigrateDbAuth() {
