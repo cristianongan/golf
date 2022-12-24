@@ -337,6 +337,18 @@ func (item *BookingList) FindAllBookingList(database *gorm.DB) (*gorm.DB, int64,
 	return db, total, db.Error
 }
 
+func (item *BookingList) FindAllBookingNotCancelList(database *gorm.DB) (*gorm.DB, int64, error) {
+	total := int64(0)
+	db := database.Model(Booking{})
+
+	db = addFilter(db, item, false)
+	db = db.Where("bag_status <> ?", constants.BAG_STATUS_CANCEL)
+
+	db.Count(&total)
+
+	return db, total, db.Error
+}
+
 func (item *BookingList) FindFirst(database *gorm.DB) (Booking, error) {
 	var result Booking
 	db := database.Model(Booking{})

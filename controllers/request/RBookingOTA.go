@@ -59,6 +59,7 @@ type RTeeTimeOTA struct {
 	TeeOffStr    string `json:"TeeOffStr"`
 	Guest_Code   string `json:"Guest_Code"`
 	Locktime     int    `json:"Locktime"`
+	SlotLock     int    `json:"Slot_Lock"`
 }
 
 type CancelBookOTABody struct {

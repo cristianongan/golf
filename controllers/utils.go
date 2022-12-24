@@ -1421,7 +1421,7 @@ func checkTeeTimeAvailable(booking model_booking.Booking) bool {
 	bookings.CourseType = booking.CourseType
 
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
-	_, total, _ := bookings.FindAllBookingList(db)
+	_, total, _ := bookings.FindAllBookingNotCancelList(db)
 
 	return total < constants.SLOT_TEE_TIME
 }
