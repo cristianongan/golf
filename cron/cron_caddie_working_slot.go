@@ -33,7 +33,7 @@ func runCreateCaddieWorkingSlot() {
 	statusAll := []string{constants.CADDIE_CONTRACT_STATUS_FULLTIME, constants.CADDIE_CONTRACT_STATUS_PARTTIME}
 
 	// Format date
-	dateNow, _ := utils.GetBookingDateFromTimestamp(1671904800)
+	dateNow, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 	dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, dateNow)
 	dayNow := int(dateConvert.Weekday())
 
