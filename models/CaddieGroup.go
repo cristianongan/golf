@@ -72,3 +72,21 @@ func (item *CaddieGroup) FindList(database *gorm.DB, page Page) ([]CaddieGroup, 
 	}
 	return list, total, db.Error
 }
+
+func (item *CaddieGroup) FindListWithoutPage(database *gorm.DB) ([]CaddieGroup, error) {
+	var list []CaddieGroup
+
+	db := database.Model(CaddieGroup{})
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	db = db.Preload("Caddies", "status NOT IN (?)", constants.STATUS_DELETED).Find(&list)
+
+	return list, db.Error
+}

@@ -33,7 +33,7 @@ func runCreateCaddieWorkingSlot() {
 	statusAll := []string{constants.CADDIE_CONTRACT_STATUS_FULLTIME, constants.CADDIE_CONTRACT_STATUS_PARTTIME}
 
 	// Format date
-	dateNow, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateNow, _ := utils.GetBookingDateFromTimestamp(1671904800)
 	dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, dateNow)
 	dayNow := int(dateConvert.Weekday())
 
@@ -61,9 +61,9 @@ func runCreateCaddieWorkingSlot() {
 		var dateYesterday string
 
 		if dayNow == 1 {
-			dateYesterday, _ = utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -3).Unix())
+			dateYesterday, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -3).Unix())
 		} else {
-			dateYesterday, _ = utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
+			dateYesterday, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -1).Unix())
 		}
 
 		dateConvert2, _ := time.Parse(constants.DATE_FORMAT_1, dateYesterday)
@@ -84,40 +84,49 @@ func runCreateCaddieWorkingSlot() {
 		}
 	}
 
+	//get all group
+	caddieGroup := models.CaddieGroup{
+		PartnerUid: "CHI-LINH",
+		CourseUid:  "CHI-LINH-01",
+	}
+
+	listCaddieGroup, err := caddieGroup.FindListWithoutPage(db)
+	if err != nil {
+		log.Println("Find frist caddie working schedule", err.Error())
+	}
+
 	//add group caddie
 	for _, item := range listCWSNow {
-		caddieGroup := models.CaddieGroup{}
+		id := getIdGroup(listCaddieGroup, item.CaddieGroupCode)
 
-		caddieGroup.Code = item.CaddieGroupCode
-		if err := caddieGroup.FindFirst(db); err != nil {
-			log.Println("Find frist caddie group", err.Error())
-		}
+		if id > 0 {
+			// Check group prioritize
+			check := ContainsCaddie(listCWSYes, item.CaddieGroupCode)
 
-		// Check group prioritize
-		check := ContainsCaddie(listCWSYes, item.CaddieGroupCode)
-
-		if check {
-			slotPrioritize = append(slotPrioritize, caddieGroup.Id)
-		} else if caddieGroup.Id != 0 {
-			dataGroupWorking = append(dataGroupWorking, caddieGroup.Id)
+			if check {
+				slotPrioritize = append(slotPrioritize, id)
+			} else {
+				dataGroupWorking = append(dataGroupWorking, id)
+			}
 		}
 	}
 
 	//Check caddie vacation today
 	caddieVC := models.CaddieVacationCalendar{
-		PartnerUid: "CHI-LINH",
-		CourseUid:  "CHI-LINH-01",
+		PartnerUid:    "CHI-LINH",
+		CourseUid:     "CHI-LINH-01",
+		ApproveStatus: constants.CADDIE_VACATION_APPROVED,
 	}
 
 	// Caddie nghỉ hôm nay
-	listCVCLeave, err := caddieVC.FindAllWithDate(db, "LEAVE")
+	listCVCLeave, err := caddieVC.FindAllWithDate(db, "LEAVE", dateConvert)
 
 	if err != nil {
 		log.Println("Find caddie vacation calendar err", err.Error())
 	}
 
 	// Caddie nghỉ hôm qua và đi làm hôm nay
-	listCVCWork, err := caddieVC.FindAllWithDate(db, "WORK")
+	listCVCWork, err := caddieVC.FindAllWithDate(db, "WORK", dateConvert)
 
 	if err != nil {
 		log.Println("Find caddie vacation calendar err", err.Error())
@@ -147,9 +156,9 @@ func runCreateCaddieWorkingSlot() {
 		var applyDate string
 
 		if dayNow == 1 || dayNow == 2 {
-			applyDate, _ = utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -3).Unix())
+			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -4).Unix())
 		} else {
-			applyDate, _ = utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -2).Unix())
+			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -2).Unix())
 		}
 
 		caddieSlot := models.CaddieWorkingSlot{
@@ -182,9 +191,9 @@ func runCreateCaddieWorkingSlot() {
 		var applyDate string
 
 		if dayNow == 1 {
-			applyDate, _ = utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -3).Unix())
+			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -3).Unix())
 		} else {
-			applyDate, _ = utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
+			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -1).Unix())
 		}
 
 		caddieSlot := models.CaddieWorkingSlot{
@@ -217,9 +226,9 @@ func runCreateCaddieWorkingSlot() {
 		var applyDate string
 
 		if dayNow == 6 {
-			applyDate, _ = utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -6).Unix())
+			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -6).Unix())
 		} else {
-			applyDate, _ = utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
+			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -1).Unix())
 		}
 
 		caddieSlot := models.CaddieWorkingSlot{
@@ -254,7 +263,6 @@ func runCreateCaddieWorkingSlot() {
 			log.Println("Create report caddie err", err.Error())
 		}
 	}
-	log.Println("Create report caddie err")
 
 }
 
@@ -265,6 +273,15 @@ func ContainsCaddie(s []models.CaddieWorkingSchedule, e string) bool {
 		}
 	}
 	return false
+}
+
+func getIdGroup(s []models.CaddieGroup, e string) int64 {
+	for _, v := range s {
+		if v.Code == e {
+			return v.Id
+		}
+	}
+	return 0
 }
 
 func GetCaddieCodeFromVacation(s []models.CaddieVacationCalendar) []string {
