@@ -747,7 +747,7 @@ unlock turn time
 */
 func unlockTurnTime(db *gorm.DB, booking model_booking.Booking) {
 	cLockTeeTim := CLockTeeTime{}
-	cLockTeeTim.DeleteLockTurn(db, booking.TeeTime, booking.BookingDate)
+	cLockTeeTim.DeleteLockTurn(db, booking.TeeTime, booking.BookingDate, booking.PartnerUid)
 }
 
 /*
@@ -1428,29 +1428,19 @@ func checkTeeTimeAvailable(booking model_booking.Booking) bool {
 
 func updateSlotTeeTime(booking model_booking.Booking) {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
-	teeTime := models.TeeTimeList{
-		PartnerUid:  booking.PartnerUid,
-		CourseUid:   booking.CourseUid,
-		TeeTime:     booking.TeeTime,
-		TeeType:     booking.TeeType,
-		CourseType:  booking.CourseType,
-		BookingDate: booking.BookingDate,
-	}
+	bookings := model_booking.BookingList{}
+	bookings.PartnerUid = booking.PartnerUid
+	bookings.CourseUid = booking.CourseUid
+	bookings.BookingDate = booking.BookingDate
+	bookings.TeeTime = booking.TeeTime
+	bookings.TeeType = booking.TeeType
+	bookings.CourseType = booking.CourseType
 
-	if err := teeTime.FindFirst(db); err == nil {
-		bookings := model_booking.BookingList{}
-		bookings.PartnerUid = booking.PartnerUid
-		bookings.CourseUid = booking.CourseUid
-		bookings.BookingDate = booking.BookingDate
-		bookings.TeeTime = booking.TeeTime
-		bookings.TeeType = booking.TeeType
-		bookings.CourseType = booking.CourseType
+	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + booking.CourseUid + "_" + booking.BookingDate + "_" + booking.CourseType + "_" + booking.TeeType + "_" + booking.TeeTime
+	_, total, _ := bookings.FindAllBookingNotCancelList(db)
 
-		db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
-		_, total, _ := bookings.FindAllBookingList(db)
-
-		teeTime.SlotEmpty = int(constants.SLOT_TEE_TIME - total)
-		teeTime.Update(db)
+	if err := datasources.SetCache(teeTimeRedisKey, total, 0); err != nil {
+		log.Print("updateSlotTeeTime", err)
 	}
 }
 
@@ -1529,4 +1519,36 @@ func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 	}
 
 	return nil
+}
+
+func lockTeeTimeToRedis(body models.LockTeeTime) {
+	teeTimeSetting := models.LockTeeTime{
+		PartnerUid:     body.PartnerUid,
+		CourseUid:      body.CourseUid,
+		DateTime:       body.DateTime,
+		TeeTime:        body.TeeTime,
+		CurrentTeeTime: body.CurrentTeeTime,
+		TeeType:        body.TeeType,
+	}
+
+	teeTimeRedisKey := config.GetEnvironmentName() + ":" + body.CourseUid + "_" + body.DateTime + "_" + body.TeeTime + "_" + body.TeeType
+
+	key := datasources.GetRedisKeyTeeTimeLock(teeTimeRedisKey)
+	_, errRedis := datasources.GetCache(key)
+
+	teeTimeRedis := models.LockTeeTimeObj{
+		DateTime:       teeTimeSetting.DateTime,
+		CourseUid:      teeTimeSetting.CourseUid,
+		TeeTime:        teeTimeSetting.TeeTime,
+		CurrentTeeTime: teeTimeSetting.CurrentTeeTime,
+		TeeType:        teeTimeSetting.TeeType,
+		TeeTimeStatus:  constants.TEE_TIME_LOCKED,
+	}
+
+	if errRedis != nil {
+		valueParse, _ := teeTimeRedis.Value()
+		if err := datasources.SetCache(teeTimeRedisKey, valueParse, 0); err != nil {
+			log.Println("lockTeeTime", err)
+		}
+	}
 }

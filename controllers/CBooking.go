@@ -519,7 +519,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 	}
 
-	// socket.Broadcast <- booking
+	go updateSlotTeeTime(booking)
 
 	return &booking, nil
 }
