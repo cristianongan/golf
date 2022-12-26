@@ -10,7 +10,7 @@ import (
 func CronStart() {
 	c := cron.New()
 
-	// c.AddFunc("@every 1m", runCreateCaddieWorkingSlotJob)
+	c.AddFunc("@every 5s", runCheckLockTeeTime)
 	c.AddFunc("CRON_TZ=Asia/Ho_Chi_Minh 05 23 * * *", runReportCaddieFeeToDay)            // Chạy lúc 23h00 hàng ngày
 	c.AddFunc("CRON_TZ=Asia/Ho_Chi_Minh 00 01 * * *", runCreateCaddieWorkingSlotJob)      // Chạy lúc 01h00 hàng ngày
 	c.AddFunc("CRON_TZ=Asia/Ho_Chi_Minh 10 00 * * *", runResetDataMemberCardJob)          // Chạy lúc 00h10 sáng hàng ngày để reset data trong ngày của member card

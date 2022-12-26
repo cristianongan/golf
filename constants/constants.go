@@ -11,6 +11,12 @@ const SLOT_TEE_TIME = 4
 const PAID_BY_AGENCY = "AGENCY"
 
 /*
+	Paid By Agency
+*/
+const BOOKING_OTA = "BOOKING_OTA"
+const BOOKING_CMS = "BOOKING_CMS"
+
+/*
 Get base price cho type agency họăc member card
 */
 const (

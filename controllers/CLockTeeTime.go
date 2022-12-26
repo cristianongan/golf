@@ -37,19 +37,20 @@ func (_ *CLockTeeTime) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser
 		TeeType:        body.TeeType,
 	}
 
-	teeTimeRedisKey := config.GetEnvironmentName() + ":" + body.CourseUid + "_" + body.DateTime + "_"
+	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:" + body.DateTime + "_" + body.CourseUid + "_"
 	teeTimeRedisKey += body.TeeTime + "_" + body.TeeType
 
 	key := datasources.GetRedisKeyTeeTimeLock(teeTimeRedisKey)
 	_, errRedis := datasources.GetCache(key)
 
-	teeTimeRedis := models.LockTeeTimeObj{
+	teeTimeRedis := models.LockTeeTimeWithSlot{
 		DateTime:       teeTimeSetting.DateTime,
 		CourseUid:      teeTimeSetting.CourseUid,
 		TeeTime:        teeTimeSetting.TeeTime,
 		CurrentTeeTime: teeTimeSetting.TeeTime,
 		TeeType:        teeTimeSetting.TeeType,
 		TeeTimeStatus:  constants.TEE_TIME_LOCKED,
+		Type:           constants.BOOKING_CMS,
 	}
 
 	if errRedis != nil {
@@ -72,7 +73,7 @@ func (_ *CLockTeeTime) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
 	teeTimeSetting.TeeTime = query.TeeTime
 	teeTimeSetting.TeeTimeStatus = query.TeeTimeStatus
 	teeTimeSetting.DateTime = query.DateTime
-	list := []models.LockTeeTime{}
+	list := []models.LockTeeTimeWithSlot{}
 
 	// get các teetime đang bị khóa ở redis
 	listTeeTimeLockRedis := getTeeTimeLockRedis(query.CourseUid, query.DateTime)
@@ -226,7 +227,7 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	list := []models.LockTeeTime{}
+	list := []models.LockTeeTimeWithSlot{}
 
 	// get các teetime đang bị khóa ở redis
 	listTeeTimeLockRedis := getTeeTimeLockRedis(query.CourseUid, query.BookingDate)

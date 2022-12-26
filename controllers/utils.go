@@ -1310,16 +1310,16 @@ func getIntPointer(value int) *int {
 /*
 Get Tee Time Lock Redis
 */
-func getTeeTimeLockRedis(courseUid string, date string) []models.LockTeeTime {
-	prefixRedisKey := config.GetEnvironmentName() + ":" + courseUid + "_" + date
+func getTeeTimeLockRedis(courseUid string, date string) []models.LockTeeTimeWithSlot {
+	prefixRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:" + date + "_" + courseUid
 	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
-	listTeeTimeLockRedis := []models.LockTeeTime{}
+	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
 	if errRedis == nil && len(listKey) > 0 {
 		strData, _ := datasources.GetCaches(listKey...)
 		for _, data := range strData {
 
 			byteData := []byte(data.(string))
-			teeTime := models.LockTeeTime{}
+			teeTime := models.LockTeeTimeWithSlot{}
 			err2 := json.Unmarshal(byteData, &teeTime)
 			if err2 == nil {
 				listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
@@ -1436,9 +1436,50 @@ func updateSlotTeeTime(booking model_booking.Booking) {
 	bookings.TeeType = booking.TeeType
 	bookings.CourseType = booking.CourseType
 
-	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + booking.CourseUid + "_" + booking.BookingDate + "_" + booking.CourseType + "_" + booking.TeeType + "_" + booking.TeeTime
+	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + booking.CourseUid + "_" + booking.BookingDate + "_" + booking.TeeType + booking.CourseType + "_" + booking.TeeTime
 	_, total, _ := bookings.FindAllBookingNotCancelList(db)
 
+	if err := datasources.SetCache(teeTimeRedisKey, total, 0); err != nil {
+		log.Print("updateSlotTeeTime", err)
+	}
+}
+
+func updateSlotTeeTimeWithLock(booking model_booking.Booking) {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	bookings := model_booking.BookingList{}
+	bookings.PartnerUid = booking.PartnerUid
+	bookings.CourseUid = booking.CourseUid
+	bookings.BookingDate = booking.BookingDate
+	bookings.TeeTime = booking.TeeTime
+	bookings.TeeType = booking.TeeType
+	bookings.CourseType = booking.CourseType
+
+	_, total, _ := bookings.FindAllBookingNotCancelList(db)
+
+	prefixRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:" + booking.BookingDate + "_" + booking.CourseUid + "_"
+	prefixRedisKey += booking.TeeTime + "_" + booking.TeeType + booking.CourseType
+
+	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
+	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
+	if errRedis == nil && len(listKey) > 0 {
+		strData, _ := datasources.GetCaches(listKey...)
+		for _, data := range strData {
+
+			byteData := []byte(data.(string))
+			teeTime := models.LockTeeTimeWithSlot{}
+			err2 := json.Unmarshal(byteData, &teeTime)
+			if err2 == nil {
+				listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+			}
+		}
+	}
+
+	for _, item := range listTeeTimeLockRedis {
+		total += int64(item.Slot)
+	}
+
+	// "staging:tee_time_slot_empty_CHI-LINH-01_26/12/2022_1A_15:36"
+	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + booking.CourseUid + "_" + booking.BookingDate + "_" + booking.TeeType + booking.CourseType + "_" + booking.TeeTime
 	if err := datasources.SetCache(teeTimeRedisKey, total, 0); err != nil {
 		log.Print("updateSlotTeeTime", err)
 	}
@@ -1536,7 +1577,7 @@ func lockTeeTimeToRedis(body models.LockTeeTime) {
 	key := datasources.GetRedisKeyTeeTimeLock(teeTimeRedisKey)
 	_, errRedis := datasources.GetCache(key)
 
-	teeTimeRedis := models.LockTeeTimeObj{
+	teeTimeRedis := models.LockTeeTimeWithSlot{
 		DateTime:       teeTimeSetting.DateTime,
 		CourseUid:      teeTimeSetting.CourseUid,
 		TeeTime:        teeTimeSetting.TeeTime,

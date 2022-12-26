@@ -300,7 +300,7 @@ func unlockTee(body request.CreateBookingOTABody) {
 			teeTimeLockRedis.CourseUid == body.CourseCode && teeTimeLockRedis.TeeType == lockTeeTime.TeeType {
 			hasTeeTimeLock1AOnRedis = true
 
-			teeTimeRedisKey := config.GetEnvironmentName() + ":" + body.CourseCode + "_" + bookDate + "_"
+			teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:" + bookDate + "_" + body.CourseCode + "_"
 			if body.Tee == "1" {
 				teeTimeRedisKey += body.TeeOffStr + "_" + "1A"
 			}
