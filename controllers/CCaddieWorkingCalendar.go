@@ -119,13 +119,13 @@ func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, pr
 		return
 	}
 
-	//get caddie
-	caddieWorkingCalendar := models.CaddieWorkingCalendar{}
+	//get caddie working slot today
+	caddieWorkingCalendar := models.CaddieWorkingSlot{}
 	caddieWorkingCalendar.CourseUid = body.CourseUid
 	caddieWorkingCalendar.PartnerUid = body.PartnerUid
 	caddieWorkingCalendar.ApplyDate = body.ApplyDate
 
-	list, _, err := caddieWorkingCalendar.FindAllByDate(db)
+	err := caddieWorkingCalendar.FindFirst(db)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -146,23 +146,23 @@ func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, pr
 		return
 	}
 
-	//get note
-	caddieWCNote := models.CaddieWorkingCalendarNote{
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
-		ApplyDate:  body.ApplyDate,
-	}
+	// //get note
+	// caddieWCNote := models.CaddieWorkingCalendarNote{
+	// 	PartnerUid: body.PartnerUid,
+	// 	CourseUid:  body.CourseUid,
+	// 	ApplyDate:  body.ApplyDate,
+	// }
 
-	listNote, err := caddieWCNote.Find(db)
-	if err != nil {
-		response_message.BadRequest(c, "Find first caddie working calendar note "+err.Error())
-		return
-	}
+	// listNote, err := caddieWCNote.Find(db)
+	// if err != nil {
+	// 	response_message.BadRequest(c, "Find first caddie working calendar note "+err.Error())
+	// 	return
+	// }
 
 	listRes := map[string]interface{}{
-		"data_caddie":          list,
+		"data_caddie":          caddieWorkingCalendar,
 		"data_caddie_increase": listIncrease,
-		"note":                 listNote,
+		// "note":                 listNote,
 	}
 
 	res := map[string]interface{}{
