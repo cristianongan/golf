@@ -198,8 +198,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 						Tee:          1,
 						Part:         int64(partIndex),
 						TimeIndex:    int64(index),
-						NumBook:      0,
-						SlotEmpty:    int64(constants.SLOT_TEE_TIME - slotEmpty),
+						NumBook:      int64(constants.SLOT_TEE_TIME - slotEmpty),
 						IsMainCourse: body.IsMainCourse,
 						GreenFee:     GreenFee,
 						CaddieFee:    CaddieFee,
@@ -236,8 +235,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 						Tee:          10,
 						Part:         int64(partIndex),
 						TimeIndex:    int64(index),
-						NumBook:      0,
-						SlotEmpty:    int64(constants.SLOT_TEE_TIME - slotEmpty),
+						NumBook:      int64(constants.SLOT_TEE_TIME - slotEmpty),
 						IsMainCourse: body.IsMainCourse,
 						GreenFee:     GreenFee,
 						CaddieFee:    CaddieFee,
@@ -321,10 +319,10 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 	_, total, _ := bookings.FindAllBookingNotCancelList(db)
 	slotEmpty := int(constants.SLOT_TEE_TIME - total)
 
-	if body.SlotLock > slotEmpty {
+	if body.NumBook > slotEmpty {
 		responseOTA.Result.Status = http.StatusInternalServerError
 		responseOTA.Result.Infor = "Slot lock invalid!"
-		responseOTA.Result.SlotEmpty = int(constants.SLOT_TEE_TIME - total)
+		responseOTA.Result.NumBook = int(constants.SLOT_TEE_TIME - total)
 		okResponse(c, responseOTA)
 		return
 	}

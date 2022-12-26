@@ -45,9 +45,9 @@ type ResultOTA struct {
 }
 
 type ResultLockTeeTimeOTA struct {
-	Status    int64  `json:"status"`
-	Infor     string `json:"infor"`
-	SlotEmpty int    `json:"SlotEmpty"`
+	Status  int64  `json:"status"`
+	Infor   string `json:"infor"`
+	NumBook int    `json:"NumBook"`
 }
 
 func UnmarshalWelcome(data []byte) (TeeTimeOTA, error) {
@@ -81,7 +81,6 @@ type TeeTimeOTA struct {
 	TimeIndex    int64       `json:"TimeIndex"`
 	Tee          int64       `json:"Tee"`
 	NumBook      int64       `json:"NumBook"`
-	SlotEmpty    int64       `json:"SlotEmpty"`
 	IsMainCourse bool        `json:"isMainCourse"`
 	Play1        interface{} `json:"Play1"`
 	Play2        interface{} `json:"Play2"`
