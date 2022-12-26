@@ -188,6 +188,7 @@ func (item *Caddie) FindAllCaddieGroup(database *gorm.DB, listStatus []string, l
 
 	db := database.Model(Caddie{})
 
+	db.Not("status = ?", constants.STATUS_DELETED)
 	db = db.Where("current_status = ?", constants.CADDIE_CURRENT_STATUS_READY)
 	db = db.Where("contract_status IN ?", listStatus)
 	db = db.Where("group_id IN ?", listGroup)
