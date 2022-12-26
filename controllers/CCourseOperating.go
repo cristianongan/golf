@@ -881,6 +881,27 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 	// validate caddie_code
 	oldCaddie := booking.CaddieInfo
 
+	if oldCaddie.Id > 0 {
+		udpCaddieOut(db, oldCaddie.Id)
+
+		// Udp Note
+		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
+			PartnerUid: prof.PartnerUid,
+			CourseUid:  prof.CourseUid,
+			BookingUid: booking.Uid,
+			CaddieId:   oldCaddie.Id,
+			CaddieCode: oldCaddie.Code,
+			Hole:       body.CaddieHoles,
+			CaddieType: constants.STATUS_OUT,
+			Note:       "",
+		}
+
+		caddieList := []string{oldCaddie.Code}
+		go updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
+
+		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
+	}
+
 	if body.CaddieCode != "" {
 		caddieNew, err := cCourseOperating.validateCaddie(db, prof.CourseUid, body.CaddieCode)
 
@@ -933,30 +954,9 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 			CaddieId:   caddieNew.Id,
 			CaddieCode: caddieNew.Code,
 			CaddieType: constants.STATUS_IN,
-			Hole:       booking.Hole - body.CaddieHoles,
+			Hole:       0,
 			Note:       "",
 		}
-
-		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
-	}
-
-	if oldCaddie.Id > 0 {
-		udpCaddieOut(db, oldCaddie.Id)
-
-		// Udp Note
-		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
-			PartnerUid: prof.PartnerUid,
-			CourseUid:  prof.CourseUid,
-			BookingUid: booking.Uid,
-			CaddieId:   oldCaddie.Id,
-			CaddieCode: oldCaddie.Code,
-			Hole:       body.CaddieHoles,
-			CaddieType: constants.STATUS_OUT,
-			Note:       "",
-		}
-
-		caddieList := []string{oldCaddie.Code}
-		go updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
 
 		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
 	}
