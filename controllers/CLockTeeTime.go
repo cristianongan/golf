@@ -239,7 +239,8 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 	}
 
 	for _, teeTime := range list {
-		teeTimeRedisKey := config.GetEnvironmentName() + ":" + query.CourseUid + "_" + query.BookingDate + "_" + teeTime.TeeTime + "_" + teeTime.TeeType
+		teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:" + query.BookingDate + "_" + query.CourseUid + "_"
+		teeTimeRedisKey += teeTime.TeeTime + "_" + teeTime.TeeType
 		err := datasources.DelCacheByKey(teeTimeRedisKey)
 		log.Print(err)
 	}
