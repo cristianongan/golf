@@ -483,7 +483,14 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 
 	//Udp các booking
 	timeOutFlight := time.Now().Unix()
+	caddieList := []string{}
+	partnerUid := ""
+	courseUid := ""
+
 	for _, booking := range bookings {
+		partnerUid = booking.PartnerUid
+		courseUid = booking.CourseUid
+
 		if booking.BagStatus != constants.BAG_STATUS_TIMEOUT &&
 			booking.BagStatus != constants.BAG_STATUS_CHECK_OUT {
 			udpCaddieOut(db, booking.CaddieId)
@@ -522,6 +529,7 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 				caddieOutNote.CaddieCode = booking.CaddieInfo.Code
 				caddieOutNote.CaddieType = constants.STATUS_OUT
 				caddieOutNote.Hole = body.CaddieHoles
+				caddieList = append(caddieList, booking.CaddieInfo.Code)
 			}
 
 			if booking.BuggyId > 0 {
@@ -532,6 +540,10 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 
 			go addBuggyCaddieInOutNote(db, caddieOutNote)
 		}
+	}
+
+	if len(caddieList) > 0 {
+		go updateCaddieOutSlot(partnerUid, courseUid, caddieList)
 	}
 
 	okRes(c)
@@ -620,6 +632,11 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 
 	if booking.TeeTime != "" {
 		go unlockTurnTime(db, booking)
+	}
+
+	if booking.CaddieId > 0 {
+		caddieList := []string{booking.BuggyInfo.Code}
+		go updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
 	}
 
 	okRes(c)
@@ -937,6 +954,9 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 			CaddieType: constants.STATUS_OUT,
 			Note:       "",
 		}
+
+		caddieList := []string{oldCaddie.Code}
+		go updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
 
 		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
 	}
