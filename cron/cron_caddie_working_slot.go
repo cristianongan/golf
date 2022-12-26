@@ -29,8 +29,8 @@ func runCreateCaddieWorkingSlot() {
 	var dataGroupWorking []int64
 	var slotPrioritize []int64
 
-	statusFull := []string{constants.CADDIE_CONTRACT_STATUS_FULLTIME}
-	statusAll := []string{constants.CADDIE_CONTRACT_STATUS_FULLTIME, constants.CADDIE_CONTRACT_STATUS_PARTTIME}
+	// statusFull := []string{constants.CADDIE_CONTRACT_STATUS_FULLTIME}
+	// statusAll := []string{constants.CADDIE_CONTRACT_STATUS_FULLTIME, constants.CADDIE_CONTRACT_STATUS_PARTTIME}
 
 	// Format date
 	dateNow, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
@@ -144,7 +144,7 @@ func runCreateCaddieWorkingSlot() {
 	}
 
 	if len(slotPrioritize) > 0 {
-		listCaddies, err := caddies.FindAllCaddieGroup(db, statusFull, slotPrioritize)
+		listCaddies, err := caddies.FindAllCaddieGroup(db, constants.CADDIE_CONTRACT_STATUS_FULLTIME, slotPrioritize)
 
 		if err != nil {
 			log.Println("Find all caddie group err", err.Error())
@@ -179,7 +179,7 @@ func runCreateCaddieWorkingSlot() {
 	}
 
 	if len(dataGroupWorking) > 0 && dayNow != 6 && dayNow != 0 {
-		listCaddies, err := caddies.FindAllCaddieGroup(db, statusFull, dataGroupWorking)
+		listCaddies, err := caddies.FindAllCaddieGroup(db, constants.CADDIE_CONTRACT_STATUS_FULLTIME, dataGroupWorking)
 
 		if err != nil {
 			log.Println("Find all caddie group err", err.Error())
@@ -214,13 +214,21 @@ func runCreateCaddieWorkingSlot() {
 	}
 
 	if len(dataGroupWorking) > 0 && (dayNow == 6 || dayNow == 0) {
-		listCaddies, err := caddies.FindAllCaddieGroup(db, statusAll, dataGroupWorking)
+		listCaddiesFull, err := caddies.FindAllCaddieGroup(db, constants.CADDIE_CONTRACT_STATUS_FULLTIME, dataGroupWorking)
 
 		if err != nil {
 			log.Println("Find all caddie group err", err.Error())
 		}
 
-		caddieCodes := GetCaddieCode(listCaddies)
+		listCaddiesPart, err := caddies.FindAllCaddieGroup(db, constants.CADDIE_CONTRACT_STATUS_PARTTIME, dataGroupWorking)
+
+		if err != nil {
+			log.Println("Find all caddie group err", err.Error())
+		}
+
+		caddieCodes := append(listCaddiesFull, listCaddiesPart...)
+
+		caddieSortSlots := GetCaddieCode(caddieCodes)
 
 		// Lấy data xếp nốt
 		var applyDate string
@@ -240,9 +248,9 @@ func runCreateCaddieWorkingSlot() {
 		err = caddieSlot.FindFirst(db)
 
 		if err != nil {
-			caddieWorking = append(caddieWorking, caddieCodes...)
+			caddieWorking = append(caddieWorking, caddieSortSlots...)
 		} else {
-			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieCodes, caddieLeave)
+			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieSortSlots, caddieLeave)
 
 			caddieWorking = append(caddieWorking, caddieMerge...)
 		}

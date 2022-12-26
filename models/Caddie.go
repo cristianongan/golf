@@ -183,15 +183,18 @@ func (item *Caddie) FindAllCaddieContract(database *gorm.DB) ([]Caddie, error) {
 	return list, db.Error
 }
 
-func (item *Caddie) FindAllCaddieGroup(database *gorm.DB, listStatus []string, listGroup []int64) ([]Caddie, error) {
+func (item *Caddie) FindAllCaddieGroup(database *gorm.DB, status string, listGroup []int64) ([]Caddie, error) {
 	var list []Caddie
 
 	db := database.Model(Caddie{})
 
-	db.Not("status = ?", constants.STATUS_DELETED)
 	db = db.Where("current_status = ?", constants.CADDIE_CURRENT_STATUS_READY)
-	db = db.Where("contract_status IN ?", listStatus)
+	db = db.Where("contract_status = ?", status)
 	db = db.Where("group_id IN ?", listGroup)
+
+	db = db.Not("status = ?", constants.STATUS_DELETED)
+	db = db.Order("group_id")
+
 	db = db.Find(&list)
 
 	return list, db.Error
