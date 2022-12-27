@@ -1310,8 +1310,11 @@ func getIntPointer(value int) *int {
 /*
 Get Tee Time Lock Redis
 */
-func getTeeTimeLockRedis(courseUid string, date string) []models.LockTeeTimeWithSlot {
+func getTeeTimeLockRedis(courseUid string, date string, teeType string) []models.LockTeeTimeWithSlot {
 	prefixRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:" + date + "_" + courseUid
+	if teeType != "" {
+		prefixRedisKey += "_" + teeType
+	}
 	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
 	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
 	if errRedis == nil && len(listKey) > 0 {
@@ -1456,9 +1459,7 @@ func updateSlotTeeTimeWithLock(booking model_booking.Booking) {
 
 	_, total, _ := bookings.FindAllBookingNotCancelList(db)
 
-	prefixRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:" + booking.BookingDate + "_" + booking.CourseUid + "_"
-	prefixRedisKey += booking.TeeTime + "_" + booking.TeeType + booking.CourseType
-
+	prefixRedisKey := getKeyTeeTimeLockRedis(booking.BookingDate, booking.CourseUid, booking.TeeTime, booking.TeeType+booking.CourseType)
 	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
 	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
 	if errRedis == nil && len(listKey) > 0 {
@@ -1592,4 +1593,11 @@ func lockTeeTimeToRedis(body models.LockTeeTime) {
 			log.Println("lockTeeTime", err)
 		}
 	}
+}
+
+func getKeyTeeTimeLockRedis(bookingDate, courseUid, teeTime, teeType string) string {
+	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:" + bookingDate + "_" + courseUid + "_"
+	teeTimeRedisKey += teeType + "_" + teeTime
+
+	return teeTimeRedisKey
 }

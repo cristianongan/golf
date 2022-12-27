@@ -30,13 +30,12 @@ func runCheckLockTeeTime() {
 		}
 	}
 
-	constantTime := 5 * 60
+	constantTime := 2 * 60
 	for _, teeTime := range listTeeTimeLockRedis {
 		diff := time.Now().Unix() - teeTime.CreatedAt
 		if diff >= int64(constantTime) && teeTime.Type == constants.BOOKING_OTA {
-			teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:"
-			teeTimeRedisKey += teeTime.DateTime + "_" + teeTime.CourseUid + "_" + teeTime.TeeTime + "_" + teeTime.TeeType
 
+			teeTimeRedisKey := getKeyTeeTimeLockRedis(teeTime.DateTime, teeTime.CourseUid, teeTime.TeeTime, "1A")
 			teeType := teeTime.TeeType[0:1]
 			courseType := teeTime.TeeType[len(teeTime.TeeType)-1:]
 
@@ -51,10 +50,7 @@ func runCheckLockTeeTime() {
 
 			_, total, _ := bookings.FindAllBookingNotCancelList(db)
 
-			prefixRedisKey := config.GetEnvironmentName() + "tee_time_lock:" + teeTime.DateTime + "_" + teeTime.CourseUid + "_"
-			prefixRedisKey += teeTime.TeeTime + "_" + teeType + courseType
-
-			listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
+			listKey, errRedis := datasources.GetAllKeysWith(teeTimeRedisKey)
 			listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
 			if errRedis == nil && len(listKey) > 0 {
 				strData, _ := datasources.GetCaches(listKey...)
@@ -87,4 +83,11 @@ func runCheckLockTeeTime() {
 			}
 		}
 	}
+}
+
+func getKeyTeeTimeLockRedis(bookingDate, courseUid, teeTime, teeType string) string {
+	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:" + bookingDate + "_" + courseUid + "_"
+	teeTimeRedisKey += teeType + "_" + teeTime
+
+	return teeTimeRedisKey
 }

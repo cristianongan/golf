@@ -28,29 +28,22 @@ func (_ *CLockTeeTime) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser
 		return
 	}
 
-	teeTimeSetting := models.LockTeeTime{
-		PartnerUid:     body.PartnerUid,
-		CourseUid:      body.CourseUid,
-		DateTime:       body.DateTime,
-		TeeTime:        body.TeeTime,
-		CurrentTeeTime: body.TeeTime,
-		TeeType:        body.TeeType,
-	}
-
-	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:" + body.DateTime + "_" + body.CourseUid + "_"
-	teeTimeRedisKey += body.TeeTime + "_" + body.TeeType
+	teeTimeRedisKey := getKeyTeeTimeLockRedis(body.DateTime, body.CourseUid, body.TeeTime, body.TeeType)
 
 	key := datasources.GetRedisKeyTeeTimeLock(teeTimeRedisKey)
 	_, errRedis := datasources.GetCache(key)
 
 	teeTimeRedis := models.LockTeeTimeWithSlot{
-		DateTime:       teeTimeSetting.DateTime,
-		CourseUid:      teeTimeSetting.CourseUid,
-		TeeTime:        teeTimeSetting.TeeTime,
-		CurrentTeeTime: teeTimeSetting.TeeTime,
-		TeeType:        teeTimeSetting.TeeType,
+		DateTime:       body.DateTime,
+		PartnerUid:     body.PartnerUid,
+		CourseUid:      body.CourseUid,
+		TeeTime:        body.TeeTime,
+		CurrentTeeTime: body.TeeTime,
+		TeeType:        body.TeeType,
 		TeeTimeStatus:  constants.TEE_TIME_LOCKED,
 		Type:           constants.BOOKING_CMS,
+		Slot:           4,
+		Note:           body.Note,
 	}
 
 	if errRedis != nil {
@@ -60,7 +53,7 @@ func (_ *CLockTeeTime) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser
 		}
 	}
 
-	okResponse(c, teeTimeSetting)
+	okResponse(c, teeTimeRedis)
 }
 func (_ *CLockTeeTime) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
 	query := request.GetListTeeTimeSettings{}
@@ -76,7 +69,7 @@ func (_ *CLockTeeTime) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
 	list := []models.LockTeeTimeWithSlot{}
 
 	// get các teetime đang bị khóa ở redis
-	listTeeTimeLockRedis := getTeeTimeLockRedis(query.CourseUid, query.DateTime)
+	listTeeTimeLockRedis := getTeeTimeLockRedis(query.CourseUid, query.DateTime, "")
 
 	if query.RequestType == "TURN_TIME" {
 		for _, teeTime := range listTeeTimeLockRedis {
@@ -206,7 +199,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 	return nil
 }
 func (_ *CLockTeeTime) DeleteLockTurn(db *gorm.DB, teeTime string, bookingDate string, courseUid string) error {
-	listTeeTimeLockRedis := getTeeTimeLockRedis(courseUid, bookingDate)
+	listTeeTimeLockRedis := getTeeTimeLockRedis(courseUid, bookingDate, "")
 
 	for _, teeTimeR := range listTeeTimeLockRedis {
 		if teeTimeR.CurrentTeeTime == teeTime {
@@ -230,7 +223,12 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 	list := []models.LockTeeTimeWithSlot{}
 
 	// get các teetime đang bị khóa ở redis
-	listTeeTimeLockRedis := getTeeTimeLockRedis(query.CourseUid, query.BookingDate)
+	listTeeTimeLockRedis := getTeeTimeLockRedis(query.CourseUid, query.BookingDate, query.TeeType)
+
+	if len(listTeeTimeLockRedis) == 0 {
+		response_message.BadRequestFreeMessage(c, "Not Found Tee Time")
+		return
+	}
 
 	for _, teeTime := range listTeeTimeLockRedis {
 		if teeTime.CurrentTeeTime == query.TeeTime {
@@ -239,8 +237,7 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 	}
 
 	for _, teeTime := range list {
-		teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:" + query.BookingDate + "_" + query.CourseUid + "_"
-		teeTimeRedisKey += teeTime.TeeTime + "_" + teeTime.TeeType
+		teeTimeRedisKey := getKeyTeeTimeLockRedis(query.BookingDate, query.CourseUid, teeTime.TeeTime, teeTime.TeeType)
 		err := datasources.DelCacheByKey(teeTimeRedisKey)
 		log.Print(err)
 	}
