@@ -184,11 +184,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 				slotStr, _ := datasources.GetCache(teeTimeSlotEmptyRedisKey)
 				slotEmpty, _ := strconv.Atoi(slotStr)
 
-				if slotEmpty == constants.SLOT_TEE_TIME {
-					hasTeeTimeLock1AOnRedis = true
-				}
-
-				if !hasTeeTimeLock1AOnRedis {
+				if slotEmpty == 0 {
 					// Check tiếp nếu tee time đó đã bị khóa ở CMS
 					for _, teeTimeLockRedis := range listTeeTimeLockRedis {
 						if teeTimeLockRedis.TeeTime == teeTime1.TeeTime && teeTimeLockRedis.DateTime == teeTime1.DateTime &&
@@ -196,6 +192,10 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 							hasTeeTimeLock1AOnRedis = true
 							break
 						}
+					}
+				} else {
+					if slotEmpty == constants.SLOT_TEE_TIME {
+						hasTeeTimeLock1AOnRedis = true
 					}
 				}
 
