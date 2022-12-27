@@ -30,7 +30,7 @@ func runCheckLockTeeTime() {
 		}
 	}
 
-	constantTime := 2 * 60
+	constantTime := 5 * 60
 	for _, teeTime := range listTeeTimeLockRedis {
 		diff := time.Now().Unix() - teeTime.CreatedAt
 		if diff >= int64(constantTime) && teeTime.Type == constants.BOOKING_OTA {
