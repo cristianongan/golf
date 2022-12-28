@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
@@ -23,7 +24,7 @@ func (_ *CBookingWaiting) CreateBookingWaiting(c *gin.Context, prof models.CmsUs
 		return
 	}
 
-	_, errDate := time.Parse("2006-01-02", body.BookingTime)
+	_, errDate := time.Parse(constants.DATE_FORMAT_1, body.BookingTime)
 	if errDate != nil {
 		response_message.BadRequest(c, "Booking Date format invalid!")
 		return
