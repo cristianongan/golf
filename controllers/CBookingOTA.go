@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"start/config"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -293,19 +292,20 @@ func unlockTee(body request.CreateBookingOTABody) {
 		lockTeeTime.TeeType = "1B"
 	}
 
-	listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, bookDate)
+	listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, bookDate, lockTeeTime.TeeType)
 	hasTeeTimeLock1AOnRedis := false
 	for _, teeTimeLockRedis := range listTeeTimeLockRedis {
 		if teeTimeLockRedis.TeeTime == body.TeeOffStr && teeTimeLockRedis.DateTime == bookDate &&
 			teeTimeLockRedis.CourseUid == body.CourseCode && teeTimeLockRedis.TeeType == lockTeeTime.TeeType {
 			hasTeeTimeLock1AOnRedis = true
 
-			teeTimeRedisKey := config.GetEnvironmentName() + ":" + body.CourseCode + "_" + bookDate + "_"
+			teeTimeRedisKey := ""
 			if body.Tee == "1" {
-				teeTimeRedisKey += body.TeeOffStr + "_" + "1A"
+				teeTimeRedisKey = getKeyTeeTimeLockRedis(bookDate, body.CourseCode, body.TeeOffStr, "1A")
 			}
+
 			if body.Tee == "10" {
-				teeTimeRedisKey += body.TeeOffStr + "_" + "1B"
+				teeTimeRedisKey = getKeyTeeTimeLockRedis(bookDate, body.CourseCode, body.TeeOffStr, "1B")
 			}
 
 			err := datasources.DelCacheByKey(teeTimeRedisKey)

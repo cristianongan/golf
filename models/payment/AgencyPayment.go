@@ -111,8 +111,6 @@ func (item *AgencyPayment) UpdateTotalAmount(db *gorm.DB, isUdp bool) {
 		log.Println("AgencyPayment UpdateTotalAmount errF", errF.Error())
 	}
 
-	item.TotalAmount = totalAmount
-
 	// Get agency paid
 	agencyPaid := BookingAgencyPayment{
 		PartnerUid:  item.PartnerUid,
@@ -121,20 +119,22 @@ func (item *AgencyPayment) UpdateTotalAmount(db *gorm.DB, isUdp bool) {
 	}
 
 	listAgencyPaid, errAP := agencyPaid.FindAll(db)
+	agencyPaidFee := int64(0)
 	if errAP == nil {
-		agencyPaid := int64(0)
 		for _, v := range listAgencyPaid {
-			agencyPaid += v.GetTotalFee()
+			agencyPaidFee += v.GetTotalFee()
 		}
-		item.AgencyPaid = agencyPaid
+		item.AgencyPaid = agencyPaidFee
 	}
 
+	item.TotalAmount = totalAmount + agencyPaidFee
 	if isUdp {
 		errUdp := item.Update(db)
 		if errUdp != nil {
 			log.Println("AgencyPayment UpdateTotalAmount errUdp", errUdp.Error())
 		}
 	}
+
 }
 
 // Update Total Paid

@@ -519,7 +519,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 	}
 
-	go updateSlotTeeTime(booking)
+	go updateSlotTeeTimeWithLock(booking)
 
 	return &booking, nil
 }

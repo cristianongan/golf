@@ -23,13 +23,25 @@ type LockTeeTime struct {
 	Note           string `json:"note"`
 }
 
-type LockTeeTimeObj LockTeeTime
+type LockTeeTimeWithSlot struct {
+	ModelId
+	PartnerUid     string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng Golf
+	CourseUid      string `json:"course_uid" gorm:"type:varchar(256);index"`  // Sân Golf
+	TeeTime        string `json:"tee_time" gorm:"type:varchar(100)"`
+	CurrentTeeTime string `json:"current_tee_time" gorm:"type:varchar(100);index"`
+	TeeTimeStatus  string `json:"tee_time_status" gorm:"type:varchar(100)"` // Trạng thái Tee Time: LOCKED, UNLOCK, DELETED
+	DateTime       string `json:"date_time" gorm:"type:varchar(100)"`       // Ngày mà user update Tee Time
+	TeeType        string `json:"tee_type" gorm:"type:varchar(100)"`        // TeeType: 1,10,1A ...
+	Note           string `json:"note"`
+	Slot           int    `json:"slot"`
+	Type           string `json:"type"`
+}
 
-func (item *LockTeeTimeObj) Scan(v interface{}) error {
+func (item *LockTeeTimeWithSlot) Scan(v interface{}) error {
 	return json.Unmarshal(v.([]byte), item)
 }
 
-func (item LockTeeTimeObj) Value() (driver.Value, error) {
+func (item LockTeeTimeWithSlot) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 

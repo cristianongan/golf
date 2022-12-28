@@ -62,7 +62,7 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	go updateSlotTeeTime(booking)
+	go updateSlotTeeTimeWithLock(booking)
 	okResponse(c, booking)
 }
 

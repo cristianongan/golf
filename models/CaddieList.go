@@ -135,11 +135,7 @@ func (item *CaddieList) FindList(database *gorm.DB, page Page) ([]Caddie, int64,
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
-		if item.Month != "" {
-			db = page.Setup(db).Preload("CaddieCalendar", "DATE_FORMAT(apply_date, '%Y-%m') = ?", item.Month).Find(&list)
-		} else {
-			db = page.Setup(db).Preload("CaddieCalendar", "DATE_FORMAT(apply_date, '%Y-%m') = ?", time.Now().Format("2006-01")).Preload("GroupInfo").Find(&list)
-		}
+		db = page.Setup(db).Preload("GroupInfo").Preload("CaddieVacationCalendar", "number_day_off > 1 OR title = ?", "MATERNITY_LEAD").Find(&list)
 	}
 
 	return list, total, db.Error
