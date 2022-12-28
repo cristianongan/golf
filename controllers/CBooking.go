@@ -76,6 +76,21 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 	}
 
+	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, body.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
+	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+
+	if len(rowIndexsRedis) < constants.SLOT_TEE_TIME {
+		if body.RowIndex == nil {
+			rowIndex := generateRowIndex(rowIndexsRedis)
+			body.RowIndex = &rowIndex
+		}
+		rowIndexsRedis = append(rowIndexsRedis, *body.RowIndex)
+		rowIndexsRaw, _ := rowIndexsRedis.Value()
+		errRedis := datasources.SetCache(teeTimeRowIndexRedis, rowIndexsRaw, 0)
+		log.Println(errRedis)
+	}
+
 	// check trạng thái Tee Time
 	// if body.TeeTime != "" && !body.BookFromOTA {
 	// 	teeTime := models.LockTeeTime{}

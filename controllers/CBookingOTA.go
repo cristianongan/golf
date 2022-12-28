@@ -98,17 +98,11 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 
 	// Check tee time status
 	// Check TeeTime Index
-	bookTeaTimeIndex := model_booking.Booking{
-		PartnerUid:  prof.PartnerUid,
-		CourseUid:   prof.CourseUid,
-		BookingDate: bookDate,
-		TeeTime:     dateTeeStrConv,
-		TeeType:     body.Tee,
-	}
+	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(bookDate, body.CourseCode, dateTeeStrConv, "1A")
+	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
 
-	listIndex := bookTeaTimeIndex.FindTeeTimeIndexAvaible(db)
-
-	if len(listIndex) == 0 {
+	if len(rowIndexsRedis) == constants.SLOT_TEE_TIME {
 		//
 		dataRes.Result.Status = http.StatusInternalServerError
 		dataRes.Result.Infor = "Tee is full"
@@ -116,7 +110,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		return
 	}
 
-	if len(listIndex) > 0 && len(listIndex) < body.NumBook {
+	if len(rowIndexsRedis) > 0 && len(rowIndexsRedis) < body.NumBook {
 		//
 		dataRes.Result.Status = http.StatusInternalServerError
 		dataRes.Result.Infor = "Tee khong du"
@@ -203,13 +197,13 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			TeeTime:              dateTeeStrConv,
 			GuestStyle:           body.GuestStyle,
 			BookingOtaId:         bookingOta.Id,
-			RowIndex:             &listIndex[i],
-			AgencyId:             agency.Id,
-			TeePath:              "MORNING",
-			BookingCodePartner:   body.BookingCode,
-			BookingCode:          bookingOta.BookingCode,
-			BookingSourceId:      bookSourceId,
-			BookFromOTA:          true,
+			// RowIndex:             &listIndex[i],
+			AgencyId:           agency.Id,
+			TeePath:            "MORNING",
+			BookingCodePartner: body.BookingCode,
+			BookingCode:        bookingOta.BookingCode,
+			BookingSourceId:    bookSourceId,
+			BookFromOTA:        true,
 		}
 
 		if body.Tee == "1" {

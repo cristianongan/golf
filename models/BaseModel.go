@@ -34,6 +34,16 @@ func (item ListInt64) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
+type ListInt []int
+
+func (item *ListInt) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item *ListInt) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
 // ==================================================
 type ListString []string
 
