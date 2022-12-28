@@ -219,7 +219,7 @@ func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
 
 func (_ *CNotification) PushNotificationCreateBookingOTA(title string) {
 	notiData := map[string]interface{}{
-		"type":  constants.NOTIFICATION_BOOKING_OTA_FINISH,
+		"type":  constants.NOTIFICATION_BOOKING_OTA,
 		"title": title,
 	}
 

@@ -281,6 +281,7 @@ type MovingBookingBody struct {
 	CourseType  string   `json:"course_type"`
 	TeeTime     string   `json:"tee_time" validate:"required"`
 	TeePath     string   `json:"tee_path" validate:"required"`
+	TurnTime    string   `json:"turn_time" validate:"required"`
 	Hole        int      `json:"hole"`
 }
 
