@@ -56,7 +56,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 		return
 	}
 
-	if booking.LockBill == setBoolForCursor(true) {
+	if *booking.LockBill {
 		response_message.BadRequest(c, "Bag lock")
 		return
 	}
