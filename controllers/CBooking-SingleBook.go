@@ -126,6 +126,9 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		if body.CourseType != "" {
 			booking.CourseType = body.CourseType
 		}
+		if body.TurnTime != "" {
+			booking.TurnTime = body.TurnTime
+		}
 
 		//Check duplicated
 		isDuplicated, errDupli := booking.IsDuplicated(db, true, false)
