@@ -8,6 +8,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	"start/socket"
 	"start/utils"
 	"time"
 )
@@ -72,6 +73,11 @@ func runCheckLockTeeTime() {
 			err := datasources.DelCacheByKey(teeTimeRedisKey)
 			log.Print("runCheckLockTeeTime", err)
 
+			// Bắn socket để client update ui
+			go func() {
+				pushNotificationCreateBookingOTA(constants.NOTIFICATION_BOOKING_OTA)
+			}()
+
 			slotTeeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + teeTime.CourseUid + "_" + teeTime.DateTime + "_" + teeTime.TeeType + "_" + teeTime.TeeTime
 			if total > 0 {
 				if err := datasources.SetCache(slotTeeTimeRedisKey, total, 0); err != nil {
@@ -90,4 +96,14 @@ func getKeyTeeTimeLockRedis(bookingDate, courseUid, teeTime, teeType string) str
 	teeTimeRedisKey += teeType + "_" + teeTime
 
 	return teeTimeRedisKey
+}
+
+func pushNotificationCreateBookingOTA(title string) {
+	notiData := map[string]interface{}{
+		"type":  constants.NOTIFICATION_BOOKING_OTA,
+		"title": title,
+	}
+
+	newFsConfigBytes, _ := json.Marshal(notiData)
+	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
 }
