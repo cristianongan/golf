@@ -46,14 +46,14 @@ func (_ *CCaddieWorkingSchedule) CreateCaddieWorkingSchedule(c *gin.Context, pro
 		totalWeekInYear := int64(g.WeekYear())
 
 		weekId := strings.Split(item.WeekId, "-")
-		weekIdYear, _ := strconv.ParseInt(weekId[0], 10, 64)
+		// weekIdYear, _ := strconv.ParseInt(weekId[0], 10, 64)
 		weekIdWeek, _ := strconv.ParseInt(weekId[1], 10, 64)
 
-		if int64(g.Year()) != weekIdYear {
-			response_message.BadRequest(c, "week_id_year is invalid")
-			hasError = true
-			break
-		}
+		// if int64(g.Year()) != weekIdYear {
+		// 	response_message.BadRequest(c, "week_id_year is invalid")
+		// 	hasError = true
+		// 	break
+		// }
 
 		if weekIdWeek > totalWeekInYear {
 			response_message.BadRequest(c, "week_id_week is invalid")

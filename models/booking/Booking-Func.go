@@ -64,6 +64,14 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 			}
 			listGolfServiceTemp, _ := serviceGolfsTemp.FindAll(db)
 
+			RsubDetail := Booking{
+				Bag: v.GolfBag,
+			}
+
+			subDetail, _ := RsubDetail.FindFirstByUId(db)
+			isAgencyPaidBookingCaddie := subDetail.GetAgencyPaidBookingCaddie() > 0
+			isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
+
 			for _, v1 := range listGolfServiceTemp {
 				isCanAdd := false
 				if item.MainBagPay != nil && len(item.MainBagPay) > 0 {
@@ -97,6 +105,12 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 									isCanAdd = true
 								}
 							}
+						}
+						if v1.ServiceType == constants.BUGGY_SETTING && isAgencyPaidBuggy {
+							isCanAdd = false
+						}
+						if v1.ServiceType == constants.CADDIE_SETTING && isAgencyPaidBookingCaddie {
+							isCanAdd = false
 						}
 					}
 				}
@@ -339,6 +353,11 @@ func (item *Booking) UpdateBagGolfFee() {
 // Udp MushPay
 func (item *Booking) UpdateMushPay(db *gorm.DB) {
 	mushPay := BookingMushPay{}
+
+	if item.AgencyPaidAll != nil && *item.AgencyPaidAll {
+		item.MushPayInfo = mushPay
+		return
+	}
 
 	if item.CustomerType == constants.BOOKING_CUSTOMER_TYPE_FOC {
 		item.MushPayInfo = mushPay

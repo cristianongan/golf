@@ -76,6 +76,25 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 	}
 
+	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, body.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
+	log.Println("CreateBookingCommon teeTimeRowIndexRedis", teeTimeRowIndexRedis)
+	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+	log.Println("CreateBookingCommon rowIndexsRedisStr", rowIndexsRedisStr)
+	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+	log.Println("CreateBookingCommon rowIndexsRedis", rowIndexsRedis)
+
+	if len(rowIndexsRedis) < constants.SLOT_TEE_TIME {
+		if body.RowIndex == nil {
+			rowIndex := generateRowIndex(rowIndexsRedis)
+			body.RowIndex = &rowIndex
+		}
+		rowIndexsRedis = append(rowIndexsRedis, *body.RowIndex)
+		rowIndexsRaw, _ := rowIndexsRedis.Value()
+		errRedis := datasources.SetCache(teeTimeRowIndexRedis, rowIndexsRaw, 0)
+		if errRedis != nil {
+			log.Println("CreateBookingCommon errRedis", errRedis)
+		}
+	}
 	// check trạng thái Tee Time
 	// if body.TeeTime != "" && !body.BookFromOTA {
 	// 	teeTime := models.LockTeeTime{}
@@ -519,7 +538,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 	}
 
-	go updateSlotTeeTime(booking)
+	go updateSlotTeeTimeWithLock(booking)
 
 	return &booking, nil
 }

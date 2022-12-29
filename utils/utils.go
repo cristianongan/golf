@@ -621,3 +621,18 @@ func VerifyPassword(s string) (bool, bool, bool, bool) {
 	// eightOrMore = letters >= 8
 	return eightOrMore, number, upper, special
 }
+
+func ConvertStringToIntArray(data string) ListInt {
+	if data == "" {
+		return ListInt{}
+	}
+	trimmed := strings.Trim(data, "[]")
+	strings := strings.Split(trimmed, ",")
+	ints := make([]int, len(strings))
+
+	for i, s := range strings {
+		ints[i], _ = strconv.Atoi(s)
+	}
+
+	return ints
+}

@@ -9,37 +9,36 @@ import (
 
 type Caddie struct {
 	ModelId
-	PartnerUid     string           `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid      string           `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Code           string           `json:"code" gorm:"type:varchar(256);index"`        // Id Caddie vận hành
-	Name           string           `json:"name" gorm:"type:varchar(120)"`
-	Sex            bool             `json:"sex"`
-	Avatar         string           `json:"avatar" gorm:"type:varchar(256);index"` // San Golf
-	BirthDay       int64            `json:"birth_day"`
-	WorkingStatus  string           `json:"working_status" gorm:"type:varchar(128)"` // Active | Inactive
-	Group          string           `json:"group" gorm:"-"`                          // Caddie thuộc nhóm nào
-	StartedDate    int64            `json:"started_date"`                            // Ngày bắt đầu làm việc của Caddie
-	IdHr           string           `json:"id_hr" gorm:"type:varchar(100)"`
-	Phone          string           `json:"phone" gorm:"type:varchar(20)"`
-	Email          string           `json:"email" gorm:"type:varchar(100)"`
-	IdentityCard   string           `json:"identity_card" gorm:"type:varchar(20)"`    // Số CMT/CCCD của caddie
-	IssuedBy       string           `json:"issued_by" gorm:"type:varchar(200)"`       // Nơi cấp CMT/CCCD
-	ExpiredDate    int64            `json:"expired_date"`                             // Ngày hết hạn của CMT/CCCD
-	PlaceOfOrigin  string           `json:"place_of_origin" gorm:"type:varchar(200)"` //Quê quán
-	Address        string           `json:"address" gorm:"type:varchar(200)"`         // Địa chỉ của Caddie
-	Level          string           `json:"level" gorm:"type:varchar(40)"`            // Hạng của Caddie.(A,B,C,D)
-	Note           string           `json:"note" gorm:"type:varchar(200)"`
-	CurrentStatus  string           `json:"current_status" gorm:"type:varchar(128)"`
-	CurrentRound   int              `json:"current_round" gorm:"size:2"`
-	ContractStatus string           `json:"contract_status" gorm:"type:varchar(128);index"`
-	RdStatus       string           `json:"rd_status" gorm:"type:varchar(128)"`
-	DutyStatus     string           `json:"duty_status" gorm:"type:varchar(128)"`
-	CaddieCalendar []CaddieCalendar `json:"caddie_calendar" gorm:"foreignKey:caddie_uid"`
-	GroupId        int64            `json:"group_id" gorm:"default:0;index"`
-	GroupIndex     uint64           `json:"group_index" gorm:"default:0"`
-	GroupInfo      CaddieGroup      `json:"group_info" gorm:"foreignKey:GroupId"`
+	PartnerUid             string                   `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid              string                   `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Code                   string                   `json:"code" gorm:"type:varchar(256);index"`        // Id Caddie vận hành
+	Name                   string                   `json:"name" gorm:"type:varchar(120)"`
+	Sex                    bool                     `json:"sex"`
+	Avatar                 string                   `json:"avatar" gorm:"type:varchar(256);index"` // San Golf
+	BirthDay               int64                    `json:"birth_day"`
+	WorkingStatus          string                   `json:"working_status" gorm:"type:varchar(128)"` // Active | Inactive
+	Group                  string                   `json:"group" gorm:"-"`                          // Caddie thuộc nhóm nào
+	StartedDate            int64                    `json:"started_date"`                            // Ngày bắt đầu làm việc của Caddie
+	IdHr                   string                   `json:"id_hr" gorm:"type:varchar(100)"`
+	Phone                  string                   `json:"phone" gorm:"type:varchar(20)"`
+	Email                  string                   `json:"email" gorm:"type:varchar(100)"`
+	IdentityCard           string                   `json:"identity_card" gorm:"type:varchar(20)"`    // Số CMT/CCCD của caddie
+	IssuedBy               string                   `json:"issued_by" gorm:"type:varchar(200)"`       // Nơi cấp CMT/CCCD
+	ExpiredDate            int64                    `json:"expired_date"`                             // Ngày hết hạn của CMT/CCCD
+	PlaceOfOrigin          string                   `json:"place_of_origin" gorm:"type:varchar(200)"` //Quê quán
+	Address                string                   `json:"address" gorm:"type:varchar(200)"`         // Địa chỉ của Caddie
+	Level                  string                   `json:"level" gorm:"type:varchar(40)"`            // Hạng của Caddie.(A,B,C,D)
+	Note                   string                   `json:"note" gorm:"type:varchar(200)"`
+	CurrentStatus          string                   `json:"current_status" gorm:"type:varchar(128)"`
+	CurrentRound           int                      `json:"current_round" gorm:"size:2"`
+	ContractStatus         string                   `json:"contract_status" gorm:"type:varchar(128);index"`
+	RdStatus               string                   `json:"rd_status" gorm:"type:varchar(128)"`
+	DutyStatus             string                   `json:"duty_status" gorm:"type:varchar(128)"`
+	CaddieVacationCalendar []CaddieVacationCalendar `json:"caddie_vacation_calendar" gorm:"foreignKey:caddie_id"`
+	GroupId                int64                    `json:"group_id" gorm:"default:0;index"`
+	GroupIndex             uint64                   `json:"group_index" gorm:"default:0"`
+	GroupInfo              CaddieGroup              `json:"group_info" gorm:"foreignKey:GroupId"`
 }
-
 type CaddieResponse struct {
 	Caddie
 	Booking int64 `json:"booking"`
@@ -183,15 +182,18 @@ func (item *Caddie) FindAllCaddieContract(database *gorm.DB) ([]Caddie, error) {
 	return list, db.Error
 }
 
-func (item *Caddie) FindAllCaddieGroup(database *gorm.DB, listStatus []string, listGroup []int64) ([]Caddie, error) {
+func (item *Caddie) FindAllCaddieGroup(database *gorm.DB, status string, listGroup []int64) ([]Caddie, error) {
 	var list []Caddie
 
 	db := database.Model(Caddie{})
 
-	db.Not("status = ?", constants.STATUS_DELETED)
 	db = db.Where("current_status = ?", constants.CADDIE_CURRENT_STATUS_READY)
-	db = db.Where("contract_status IN ?", listStatus)
+	db = db.Where("contract_status = ?", status)
 	db = db.Where("group_id IN ?", listGroup)
+
+	db = db.Not("status = ?", constants.STATUS_DELETED)
+	db = db.Order("group_id")
+
 	db = db.Find(&list)
 
 	return list, db.Error

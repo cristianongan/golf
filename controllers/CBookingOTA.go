@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"start/config"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -99,17 +98,14 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 
 	// Check tee time status
 	// Check TeeTime Index
-	bookTeaTimeIndex := model_booking.Booking{
-		PartnerUid:  prof.PartnerUid,
-		CourseUid:   prof.CourseUid,
-		BookingDate: bookDate,
-		TeeTime:     dateTeeStrConv,
-		TeeType:     body.Tee,
-	}
+	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(bookDate, body.CourseCode, dateTeeStrConv, "1A")
+	log.Println("CreateBookingOTA teeTimeRowIndexRedis", teeTimeRowIndexRedis)
+	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+	log.Println("CreateBookingOTA rowIndexsRedisStr", rowIndexsRedisStr)
+	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+	log.Println("CreateBookingOTA rowIndexsRedis", rowIndexsRedis)
 
-	listIndex := bookTeaTimeIndex.FindTeeTimeIndexAvaible(db)
-
-	if len(listIndex) == 0 {
+	if len(rowIndexsRedis) == constants.SLOT_TEE_TIME {
 		//
 		dataRes.Result.Status = http.StatusInternalServerError
 		dataRes.Result.Infor = "Tee is full"
@@ -117,7 +113,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		return
 	}
 
-	if len(listIndex) > 0 && len(listIndex) < body.NumBook {
+	if len(rowIndexsRedis) > 0 && len(rowIndexsRedis) < body.NumBook {
 		//
 		dataRes.Result.Status = http.StatusInternalServerError
 		dataRes.Result.Infor = "Tee khong du"
@@ -204,13 +200,13 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			TeeTime:              dateTeeStrConv,
 			GuestStyle:           body.GuestStyle,
 			BookingOtaId:         bookingOta.Id,
-			RowIndex:             &listIndex[i],
-			AgencyId:             agency.Id,
-			TeePath:              "MORNING",
-			BookingCodePartner:   body.BookingCode,
-			BookingCode:          bookingOta.BookingCode,
-			BookingSourceId:      bookSourceId,
-			BookFromOTA:          true,
+			// RowIndex:             &listIndex[i],
+			AgencyId:           agency.Id,
+			TeePath:            "MORNING",
+			BookingCodePartner: body.BookingCode,
+			BookingCode:        bookingOta.BookingCode,
+			BookingSourceId:    bookSourceId,
+			BookFromOTA:        true,
 		}
 
 		if body.Tee == "1" {
@@ -270,7 +266,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	// Bắn socket để client update ui
 	go func() {
 		cNotification := CNotification{}
-		cNotification.CreateCaddieWorkingStatusNotification("")
+		cNotification.PushNotificationCreateBookingOTA("")
 	}()
 
 	okResponse(c, dataRes)
@@ -293,19 +289,20 @@ func unlockTee(body request.CreateBookingOTABody) {
 		lockTeeTime.TeeType = "1B"
 	}
 
-	listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, bookDate)
+	listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, bookDate, lockTeeTime.TeeType)
 	hasTeeTimeLock1AOnRedis := false
 	for _, teeTimeLockRedis := range listTeeTimeLockRedis {
 		if teeTimeLockRedis.TeeTime == body.TeeOffStr && teeTimeLockRedis.DateTime == bookDate &&
 			teeTimeLockRedis.CourseUid == body.CourseCode && teeTimeLockRedis.TeeType == lockTeeTime.TeeType {
 			hasTeeTimeLock1AOnRedis = true
 
-			teeTimeRedisKey := config.GetEnvironmentName() + ":" + body.CourseCode + "_" + bookDate + "_"
+			teeTimeRedisKey := ""
 			if body.Tee == "1" {
-				teeTimeRedisKey += body.TeeOffStr + "_" + "1A"
+				teeTimeRedisKey = getKeyTeeTimeLockRedis(bookDate, body.CourseCode, body.TeeOffStr, "1A")
 			}
+
 			if body.Tee == "10" {
-				teeTimeRedisKey += body.TeeOffStr + "_" + "1B"
+				teeTimeRedisKey = getKeyTeeTimeLockRedis(bookDate, body.CourseCode, body.TeeOffStr, "1B")
 			}
 
 			err := datasources.DelCacheByKey(teeTimeRedisKey)
