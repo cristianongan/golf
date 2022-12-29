@@ -122,7 +122,7 @@ func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.Cms
 	inventoryStatus.PartnerUid = body.PartnerUid
 	inventoryStatus.CourseUid = body.CourseUid
 	if errInventoryStatus := inventoryStatus.FindFirst(db); errInventoryStatus != nil {
-		response_message.BadRequest(c, "")
+		response_message.BadRequest(c, "Bill or Service Id not found")
 		return
 	}
 
@@ -141,6 +141,10 @@ func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.Cms
 		return
 	}
 
+	if inventoryStatus.ServiceExportId > 0 {
+		cKioskOutputInventory := CKioskOutputInventory{}
+		go cKioskOutputInventory.UpdateBillStatus(body.PartnerUid, body.CourseUid, body.Code, constants.KIOSK_BILL_INVENTORY_APPROVED, inventoryStatus.ServiceExportId)
+	}
 	okResponse(c, inventoryStatus)
 }
 
@@ -208,6 +212,10 @@ func (_ CKioskInputInventory) ReturnInputItem(c *gin.Context, prof models.CmsUse
 	// Trả lại hàng cho Inventory
 	cKioskOutputInventory := CKioskOutputInventory{}
 	cKioskOutputInventory.returnItemToInventory(db, inventoryStatus.ServiceExportId, body.Code, body.CourseUid, body.PartnerUid)
+	if inventoryStatus.ServiceExportId > 0 {
+		cKioskOutputInventory := CKioskOutputInventory{}
+		go cKioskOutputInventory.UpdateBillStatus(body.PartnerUid, body.CourseUid, body.Code, constants.KIOSK_BILL_INVENTORY_RETURN, inventoryStatus.ServiceExportId)
+	}
 	okResponse(c, inventoryStatus)
 }
 

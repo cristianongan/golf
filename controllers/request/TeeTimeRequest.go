@@ -16,15 +16,14 @@ type GetListTeeTimeSettings struct {
 	TeeTime       string `form:"tee_time"`
 	TeeTimeStatus string `form:"tee_time_status"`
 	DateTime      string `form:"date_time"`
-	RequestType   string `form:"request_type"`
+	RequestType   string `form:"request_type" binding:"required"`
 }
 
 type DeleteLockRequest struct {
-	PartnerUid  string `form:"partner_uid"`
-	CourseUid   string `form:"course_uid"`
+	PartnerUid  string `json:"partner_uid"`
+	CourseUid   string `json:"course_uid"`
 	TeeTime     string `json:"tee_time"`
 	BookingDate string `json:"booking_date"`
 	RequestType string `json:"request_type"`
 	TeeType     string `json:"tee_type"`
-	CourseType  string `json:"course_type"`
 }

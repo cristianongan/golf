@@ -4,7 +4,8 @@ type CreateProshopBody struct {
 	ProshopId     string  `json:"proshop_id" binding:"required"`
 	PartnerUid    string  `json:"partner_uid" binding:"required"`
 	CourseUid     string  `json:"course_uid" binding:"required"`
-	GroupCode     string  `json:"group_code" binding:"required"`
+	Type          string  `json:"type" binding:"required"`
+	GroupCode     string  `json:"group_code"`
 	AccountCode   string  `json:"account_code"`
 	Brand         string  `json:"brand"`
 	EnglishName   string  `json:"english_name"`
@@ -18,12 +19,12 @@ type CreateProshopBody struct {
 	ForKiosk      bool    `json:"for_kiosk"`
 	ProPrice      float64 `json:"pro_price"`
 	IsInventory   bool    `json:"is_inventory"`
-	Type          string  `json:"type"`
 	Code          string  `json:"code"`
 	Name          string  `json:"name"`
 	UserUpdate    string  `json:"user_update"`
 	IsDeposit     bool    `json:"is_deposit"`
 	PeopleDeposit string  `json:"people_deposit"`
+	TaxCode       string  `json:"tax_code"`
 }
 
 type GetListProshopForm struct {
@@ -59,4 +60,5 @@ type UpdateProshopBody struct {
 	Type          string   `json:"type"`
 	GroupCode     string   `json:"group_code"`
 	GroupName     string   `json:"group_name"`
+	TaxCode       string   `json:"tax_code"`
 }

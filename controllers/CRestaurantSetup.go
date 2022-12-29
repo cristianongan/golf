@@ -86,6 +86,8 @@ func (_ *CRestaurantSetup) UpdateRestaurantTableSetup(c *gin.Context, prof model
 
 	tableSetupkiosk := model_service.RestaurantTableSetup{}
 	tableSetupkiosk.Id = kioskId
+	tableSetupkiosk.PartnerUid = prof.PartnerUid
+	tableSetupkiosk.CourseUid = prof.CourseUid
 	errF := tableSetupkiosk.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -131,6 +133,8 @@ func (_ *CRestaurantSetup) DeleteRestaurantTableSetup(c *gin.Context, prof model
 
 	tableSetupkiosk := model_service.RestaurantTableSetup{}
 	tableSetupkiosk.Id = kioskId
+	tableSetupkiosk.PartnerUid = prof.PartnerUid
+	tableSetupkiosk.CourseUid = prof.CourseUid
 	errF := tableSetupkiosk.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -188,6 +192,8 @@ func (_ *CRestaurantSetup) UpdateRestaurantTimeSetup(c *gin.Context, prof models
 
 	timeSetupkiosk := model_service.RestaurantTimeSetup{}
 	timeSetupkiosk.Id = Id
+	timeSetupkiosk.PartnerUid = prof.PartnerUid
+	timeSetupkiosk.CourseUid = prof.CourseUid
 	errF := timeSetupkiosk.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -230,6 +236,8 @@ func (_ *CRestaurantSetup) DeleteRestaurantTimeSetup(c *gin.Context, prof models
 
 	timeSetupkiosk := model_service.RestaurantTimeSetup{}
 	timeSetupkiosk.Id = kioskId
+	timeSetupkiosk.PartnerUid = prof.PartnerUid
+	timeSetupkiosk.CourseUid = prof.CourseUid
 	errF := timeSetupkiosk.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -137,6 +138,11 @@ func (_ *CBuggy) GetBuggyDetail(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if buggyRequest.PartnerUid != prof.PartnerUid || buggyRequest.CourseUid != prof.CourseUid {
+		response_message.Forbidden(c, "forbidden")
+		return
+	}
+
 	okResponse(c, buggyRequest)
 }
 
@@ -223,6 +229,8 @@ func (_ *CBuggy) DeleteBuggy(c *gin.Context, prof models.CmsUser) {
 
 	buggyRequest := models.Buggy{}
 	buggyRequest.Id = buggyId
+	buggyRequest.PartnerUid = prof.PartnerUid
+	buggyRequest.CourseUid = prof.CourseUid
 	errF := buggyRequest.FindFirst(db)
 
 	if errF != nil {
@@ -256,6 +264,8 @@ func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
 
 	buggyRequest := models.Buggy{}
 	buggyRequest.Id = buggyId
+	buggyRequest.PartnerUid = prof.PartnerUid
+	buggyRequest.CourseUid = prof.CourseUid
 
 	errF := buggyRequest.FindFirst(db)
 	if errF != nil {
@@ -321,11 +331,11 @@ func (_ *CBuggy) UpdateBuggy(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// updateLogData.New = buggyRequest
+	updateLogData.New = buggyRequest
 
-	// updateLogDataJson, _ := json.Marshal(updateLogData)
+	updateLogDataJson, _ := json.Marshal(updateLogData)
 
-	// logger.Log(logger.EVENT_ACTION_UPDATE, logger.EVENT_CATEOGRY_BUGGY, buggyRequest.Code, string(updateLogDataJson), prof)
+	logger.Log(db, logger.EVENT_ACTION_UPDATE, logger.EVENT_CATEOGRY_BUGGY, buggyRequest.Code, string(updateLogDataJson), prof)
 
 	okRes(c)
 }

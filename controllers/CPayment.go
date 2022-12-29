@@ -171,6 +171,9 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	// call api sang FAST
+	// go updateFastBill(body.PaymentType, body.Amount, body.Note, booking)
+
 	okRes(c)
 }
 

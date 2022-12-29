@@ -2,9 +2,9 @@ package server
 
 import (
 	"log"
-	"net/http"
 	"start/config"
 	"start/datasources"
+	"start/logger"
 	socket "start/socket"
 
 	ccron "start/cron"
@@ -18,26 +18,23 @@ func Init() {
 
 	config := config.GetConfig()
 
+	// Init Logger
+	logger.InitLogger()
+
 	// --- Socket ---
-	// go socket.RunSocket(config.GetString("socket_port"))
-	// fs := http.FileServer(http.Dir("../public"))
-	// http.Handle("/", fs)
 
-	if config.GetBool("is_open_socket") {
-		// Configure websocket route
-		http.HandleFunc("/ws", socket.HandleConnections)
+	socket.HubBroadcastSocket = socket.NewHub()
+	go socket.HubBroadcastSocket.Run()
 
-		// Start listening for incoming chat messages
-		go socket.HandleMessages()
+	// http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+	// 	socket.ServeWs(socket.HubBroadcastSocket, w, r)
+	// })
 
-		// Start the server on localhost port 8000 and log any errors
-		log.Println("socket http server started on :8000")
-		a := func() {
-			err := http.ListenAndServe(":8000", nil)
-			log.Println("ListenAndServe", err)
-		}
-		go a()
-	}
+	// listener := func() {
+	// 	err := http.ListenAndServe(":8000", nil)
+	// 	log.Println("ListenAndServe", err)
+	// }
+	// go listener()
 
 	// --- Cron ---
 	ccron.CronStart()

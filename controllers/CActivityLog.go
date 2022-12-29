@@ -37,7 +37,7 @@ func (_ CActivityLog) GetLog(c *gin.Context, prof models.CmsUser) {
 		activityLog := logger.UpdateActivityLogData{}
 		activityLog.Category = strings.ToUpper(query.Category) + "_ACTIVITY_LOG"
 		activityLog.Label = query.Code
-		activityLog.Action = query.Action
+		activityLog.Action = strings.ToUpper(query.Action)
 
 		list, total, err = activityLog.FindList(db, page)
 	}

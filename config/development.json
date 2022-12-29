@@ -5,33 +5,33 @@
     "socket_port": ":8000",
     "url_root": "http://golf-cms:4000",
     "kibana_log": true,
-    "system_log_response": false,
-    "cron_is_running": false,
+    "system_log_response": true,
+    "cron_is_running": true,
     "cron_backup_order_is_running": false,
     "cronjob_secret_key": "rdhrXPLttwCCrVubT76wdaMSCIu78xL1",
     "cronjob_page_limit": 20,
     "mysql": {
-        "db_name": "golf_cms_dev",
-        "user": "root",
-        "password": "4vB!qVugg!vmSY8pGP$vQQXA5r#@2MW=",
-        "host": "103.176.145.22",
+        "db_name": "golf_cms",
+        "user": "caro",
+        "password": "8h^#,IT/vg#!",
+        "host": "10.22.19.83",
         "port": "3306",
-        "is_migrated": false,
+        "is_migrated": true,
         "debug": true
     },
     "mysql_auth": {
-        "db_name": "golf_auth_dev",
-        "user": "root",
-        "password": "4vB!qVugg!vmSY8pGP$vQQXA5r#@2MW=",
-        "host": "103.176.145.22",
+        "db_name": "golf_auth",
+        "user": "caro",
+        "password": "8h^#,IT/vg#!",
+        "host": "10.22.19.83",
         "port": "3306",
-        "is_migrated": false,
+        "is_migrated": true,
         "debug": false
     },
     "redis": {
-        "host": "103.161.39.231",
+        "host": "10.22.18.250",
         "port": "6379",
-        "password": "crC6jdtzv8XuFWEMzYhVgH9GubyUu7Tt",
+        "password": "redis@123",
         "insecure_skip_verify": false
     },
     "jwt_secret": "5ab3c73ca35c05221c47ac3f047b6b40",
@@ -41,18 +41,18 @@
         "password": "9INFec20LYOINV0e9L8NToOeAYinUk8oxTpeWgaWlpY0"
     },
     "minio":{
-        "endpoint": "minio.vntaxi.net",
+        "endpoint": "10.22.7.35:9000",
         "bucket": "golf-staging",
-        "access_key": "H69hpW0j0wanZrmtBCJwUh7jurTTuKQgINziWHH9Kxk0",
-        "secret_key": "1eWZBv0VqTmSgFfW2KNJ18vXhJdNJP5tsaCokq1AZjs0",
+        "access_key": "vnpay",
+        "secret_key": "vnpay@123",
         "ssl": true,
-        "get_data_host": "https://minio.vntaxi.net/"
+        "get_data_host": "10.22.7.35:9000"
     },
     "golf_partner": {
-        "url": "https://golf-staging-api.vngolf.net/golf-partner/"
+        "url": "https://vngolf-partner.vnpaytest.vn/golf-partner/"
     },
     "payment_secret_key": "KedL44Y6EX7rELdDfQUcim6uM6Ni5xNnCUqZ6IG4cXTgm7FIAH",
     "aes_pass_secret_key": "KujEOYTVLtdfNopHmVnuTjEiZyqAmZpV",
-    "is_open_socket": true
-
+    "is_open_socket": true,
+    "ccu_server": 50
 }

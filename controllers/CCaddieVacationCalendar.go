@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"log"
+	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
@@ -49,19 +50,20 @@ func (_ *CCaddieVacationCalendar) CreateCaddieVacationCalendar(c *gin.Context, p
 	}
 
 	caddieVC := models.CaddieVacationCalendar{
-		PartnerUid:   body.PartnerUid,
-		CourseUid:    body.CourseUid,
-		CaddieId:     body.CaddieId,
-		CaddieCode:   caddie.Code,
-		CaddieName:   caddie.Name,
-		Title:        body.Title,
-		Color:        body.Color,
-		DateFrom:     body.DateFrom,
-		DateTo:       body.DateTo,
-		MonthFrom:    int(time.Unix(body.DateFrom, 0).Local().Month()),
-		MonthTo:      int(time.Unix(body.DateTo, 0).Local().Month()),
-		NumberDayOff: body.NumberDayOff,
-		Note:         body.Note,
+		PartnerUid:    body.PartnerUid,
+		CourseUid:     body.CourseUid,
+		CaddieId:      body.CaddieId,
+		CaddieCode:    caddie.Code,
+		CaddieName:    caddie.Name,
+		Title:         body.Title,
+		Color:         body.Color,
+		DateFrom:      body.DateFrom,
+		DateTo:        body.DateTo,
+		MonthFrom:     int(time.Unix(body.DateFrom, 0).Local().Month()),
+		MonthTo:       int(time.Unix(body.DateTo, 0).Local().Month()),
+		NumberDayOff:  body.NumberDayOff,
+		Note:          body.Note,
+		ApproveStatus: constants.CADDIE_VACATION_PENDING,
 	}
 
 	if err := caddieVC.Create(db); err != nil {
@@ -70,16 +72,20 @@ func (_ *CCaddieVacationCalendar) CreateCaddieVacationCalendar(c *gin.Context, p
 		return
 	}
 
-	cNotification := CNotification{}
-	go cNotification.CreateCaddieVacationNotification(db, request.GetCaddieVacationNotification{
-		Caddie:       caddie,
-		DateFrom:     body.DateFrom,
-		DateTo:       body.DateTo,
-		NumberDayOff: body.NumberDayOff,
-		Title:        body.Title,
-		CreateAt:     caddieVC.CreatedAt,
-		UserName:     prof.UserName,
-	})
+	if body.Title == constants.CADDIE_VACATION_SICK || body.Title == constants.CADDIE_VACATION_UNPAID {
+		cNotification := CNotification{}
+		go cNotification.CreateCaddieVacationNotification(db, request.GetCaddieVacationNotification{
+			Caddie:       caddie,
+			DateFrom:     body.DateFrom,
+			DateTo:       body.DateTo,
+			NumberDayOff: body.NumberDayOff,
+			Title:        body.Title,
+			CreateAt:     caddieVC.CreatedAt,
+			UserName:     prof.UserName,
+			Id:           caddieVC.Id,
+		})
+	}
+
 	c.JSON(200, caddieVC)
 }
 
@@ -162,6 +168,8 @@ func (_ *CCaddieVacationCalendar) UpdateCaddieVacationCalendar(c *gin.Context, p
 
 	caddieVC := models.CaddieVacationCalendar{}
 	caddieVC.Id = caddieVCId
+	caddieVC.PartnerUid = prof.PartnerUid
+	caddieVC.CourseUid = prof.CourseUid
 
 	if err := caddieVC.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -196,10 +204,32 @@ func (_ *CCaddieVacationCalendar) DeleteCaddieVacationCalendar(c *gin.Context, p
 
 	caddieVC := models.CaddieVacationCalendar{}
 	caddieVC.Id = caddieVCId
+	caddieVC.PartnerUid = prof.PartnerUid
+	caddieVC.CourseUid = prof.CourseUid
 
 	if err := caddieVC.Delete(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 	okRes(c)
+}
+
+func (_ *CCaddieVacationCalendar) UpdateCaddieVacationStatus(id int64, isApprove bool, partnerUid string, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(partnerUid)
+	RCaddieVacation := models.CaddieVacationCalendar{
+		ModelId: models.ModelId{
+			Id: id,
+		},
+	}
+
+	if err := RCaddieVacation.FindFirst(db); err == nil {
+		if isApprove {
+			RCaddieVacation.ApproveStatus = constants.CADDIE_VACATION_APPROVED
+		} else {
+			RCaddieVacation.ApproveStatus = constants.CADDIE_VACATION_REJECTED
+		}
+		RCaddieVacation.ApproveTime = time.Now().Unix()
+		RCaddieVacation.UserApprove = prof.UserName
+		RCaddieVacation.Update(db)
+	}
 }

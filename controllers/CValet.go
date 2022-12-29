@@ -11,6 +11,7 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils/response_message"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -32,6 +33,13 @@ func (_ *CValet) AddBagCaddieBuggyToBooking(c *gin.Context, prof models.CmsUser)
 
 	for _, body := range dataBody.Data {
 		// Check can add
+
+		_, errDate := time.Parse(constants.DATE_FORMAT_1, body.BookingDate)
+		if errDate != nil {
+			response_message.BadRequest(c, "Booking Date format invalid!")
+			return
+		}
+
 		errB, response := AddCaddieBuggyToBooking(db, body.PartnerUid, body.CourseUid, body.BookingUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode, body.IsPrivateBuggy)
 
 		if errB != nil {
@@ -69,10 +77,7 @@ func (_ *CValet) AddBagCaddieBuggyToBooking(c *gin.Context, prof models.CmsUser)
 
 		//Update trạng thái của các old caddie
 		if response.OldCaddie.Id > 0 {
-			if err := udpCaddieOut(db, response.OldCaddie.Id); err != nil {
-				response_message.InternalServerError(c, err.Error())
-				return
-			}
+			udpCaddieOut(db, response.OldCaddie.Id)
 		}
 
 		//Update trạng thái của các old buggy
@@ -118,6 +123,7 @@ func AddCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingUid, boo
 	}
 
 	response := response.AddCaddieBuggyToBookingRes{}
+
 	//get old caddie
 	if booking.CaddieId > 0 {
 		oldCaddie := models.Caddie{}
@@ -167,6 +173,10 @@ func AddCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingUid, boo
 		booking.CaddieId = caddie.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddie)
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+
+		if response.OldCaddie.Id == caddie.Id {
+			response.OldCaddie = models.Caddie{}
+		}
 	}
 
 	//Check buggy
@@ -190,15 +200,14 @@ func AddCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingUid, boo
 		booking.BuggyId = buggy.Id
 		booking.IsPrivateBuggy = setBoolForCursor(isPrivateBuggy)
 		booking.BuggyInfo = cloneToBuggyBooking(buggy)
+
+		if response.OldBuggy.Id == buggy.Id {
+			response.OldBuggy = models.Buggy{}
+		}
 	}
 
 	booking.ShowCaddieBuggy = setBoolForCursor(true)
-	if caddie.Id != response.OldCaddie.Id {
-		response.NewCaddie = caddie
-	}
-	if buggy.Id != response.OldBuggy.Id {
-		response.NewBuggy = buggy
-	}
+	response.NewCaddie = caddie
 	response.NewBuggy = buggy
 	response.Booking = booking
 	return nil, response

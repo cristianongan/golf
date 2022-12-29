@@ -27,9 +27,9 @@ func (_ CRound) validateBooking(db *gorm.DB, bookindUid string) (model_booking.B
 		return booking, err
 	}
 
-	// if booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
-	// 	return booking, errors.New("Lỗi Add Round")
-	// }
+	if booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
+		return booking, errors.New("Lỗi Add Round")
+	}
 
 	return booking, nil
 }
@@ -204,7 +204,7 @@ func (cRound CRound) UpdateListFeePriceInRound(c *gin.Context, db *gorm.DB, book
 	}
 
 	if booking != nil {
-		updateGolfFeeInBooking(booking, db)
+		cRound.UpdateGolfFeeInBooking(booking, db)
 	}
 }
 
@@ -267,7 +267,7 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	updateGolfFeeInBooking(&booking, db)
+	cRound.UpdateGolfFeeInBooking(&booking, db)
 	// Update lại giá cho main bag
 
 	res := getBagDetailFromBooking(db, booking)
@@ -314,7 +314,7 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	caddieFee, buggyFee, greenFee, _ := cRound.GetFeeOfRound(c, db, &booking, listRound[0].GuestStyle, totalHoles)
 
 	newRound := models.Round{}
-	newRound.Index = 0
+	newRound.Index = 1
 	newRound.BillCode = booking.BillCode
 	newRound.Bag = booking.Bag
 	newRound.PartnerUid = booking.PartnerUid
@@ -342,7 +342,7 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// update fee booking
-	updateGolfFeeInBooking(&booking, db)
+	cRound.UpdateGolfFeeInBooking(&booking, db)
 	res := getBagDetailFromBooking(db, booking)
 	okResponse(c, res)
 }
@@ -431,7 +431,35 @@ func (cRound CRound) ResetRoundPaidByMain(billCode string, db *gorm.DB) {
 func (cRound CRound) UpdateBag(booking model_booking.Booking, db *gorm.DB) {
 	round1 := models.Round{BillCode: booking.BillCode, Index: 1}
 	if errRound1 := round1.FindFirst(db); errRound1 == nil {
-		round1.Bag = booking.Bag
-		round1.Update(db)
+		if round1.Bag == "" {
+			round1.Bag = booking.Bag
+			round1.Update(db)
+		}
+	}
+}
+
+// Update lại giá sau khi add, merge, split round
+func (cRound CRound) UpdateGolfFeeInBooking(booking *model_booking.Booking, db *gorm.DB) {
+	booking.UpdatePriceDetailCurrentBag(db)
+	booking.UpdateMushPay(db)
+	booking.Update(db)
+	go handlePayment(db, *booking)
+
+	if len(booking.MainBags) > 0 {
+		// Get data main bag
+		bookingMain := model_booking.Booking{
+			CourseUid:   booking.CourseUid,
+			PartnerUid:  booking.PartnerUid,
+			Bag:         booking.MainBags[0].GolfBag,
+			BookingDate: booking.BookingDate,
+		}
+		if err := bookingMain.FindFirst(db); err != nil {
+			return
+		}
+
+		bookingMain.UpdatePriceDetailCurrentBag(db)
+		bookingMain.UpdateMushPay(db)
+		bookingMain.Update(db)
+		go handlePayment(db, bookingMain)
 	}
 }

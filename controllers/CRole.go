@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"log"
+	"start/constants"
 	"start/controllers/request"
 	"start/models"
 	model_role "start/models/role"
@@ -33,6 +34,16 @@ func (_ *CRole) CreateRole(c *gin.Context, prof models.CmsUser) {
 	errC := role.Create()
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
+		return
+	}
+
+	//create role hierarchies
+	roleHierarchy := model_role.RoleHierarchy{}
+	roleHierarchy.ParentRoleUid = prof.RoleId
+	roleHierarchy.RoleUid = role.Id
+	errCreateHierarchy := roleHierarchy.Create()
+	if errCreateHierarchy != nil {
+		response_message.InternalServerError(c, errCreateHierarchy.Error())
 		return
 	}
 
@@ -84,7 +95,14 @@ func (_ *CRole) GetListRole(c *gin.Context, prof models.CmsUser) {
 		CourseUid:  form.CourseUid,
 		Name:       form.Search,
 	}
-	list, total, err := roleR.FindList(page)
+
+	subRoles, err := model_role.GetAllSubRoleUids(int(prof.RoleId))
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	list, total, err := roleR.FindList(page, subRoles)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -111,6 +129,11 @@ func (_ *CRole) UpdateRole(c *gin.Context, prof models.CmsUser) {
 
 	role := model_role.Role{}
 	role.Id = roleId
+	if prof.PartnerUid != constants.ROOT_PARTNER_UID {
+		role.PartnerUid = prof.PartnerUid
+		role.CourseUid = prof.CourseUid
+	}
+
 	errF := role.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -167,7 +190,7 @@ func (_ *CRole) UpdateRole(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
- Delete Role
+Delete Role
 */
 func (_ *CRole) DeleteRole(c *gin.Context, prof models.CmsUser) {
 	roleIdStr := c.Param("id")
@@ -179,6 +202,10 @@ func (_ *CRole) DeleteRole(c *gin.Context, prof models.CmsUser) {
 
 	role := model_role.Role{}
 	role.Id = roleId
+	if prof.PartnerUid != constants.ROOT_PARTNER_UID {
+		role.PartnerUid = prof.PartnerUid
+		role.CourseUid = prof.CourseUid
+	}
 	errF := role.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -193,6 +220,18 @@ func (_ *CRole) DeleteRole(c *gin.Context, prof models.CmsUser) {
 	if err1 == nil {
 		roleDel := model_role.RolePermission{}
 		roleDel.DeleteList(listRolePers)
+	}
+
+	//delete role hierarchies
+	roleHierarchy := model_role.RoleHierarchy{}
+	roleHierarchy.ParentRoleUid = prof.RoleId
+	roleHierarchy.RoleUid = role.Id
+	errDeleteHierarchy := roleHierarchy.FindFirst()
+	if errDeleteHierarchy != nil {
+		// response_message.InternalServerError(c, errDeleteHierarchy.Error())
+		// return
+	} else {
+		roleHierarchy.Delete()
 	}
 
 	errDel := role.Delete()
@@ -220,6 +259,11 @@ func (_ *CRole) GetRoleDetail(c *gin.Context, prof models.CmsUser) {
 	errF := role.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	if prof.PartnerUid != constants.ROOT_PARTNER_UID && (role.PartnerUid != prof.PartnerUid || role.CourseUid != prof.CourseUid) {
+		response_message.Forbidden(c, "forbidden")
 		return
 	}
 

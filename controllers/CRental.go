@@ -98,6 +98,9 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 		Name:        name,
 		IsDriving:   body.IsDriving,
 		Rate:        body.Rate,
+		Type:        body.Type,
+		AccountCode: body.AccountCode,
+		TaxCode:     body.TaxCode,
 	}
 	rental.Status = body.Status
 
@@ -161,6 +164,8 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 
 	rental := model_service.Rental{}
 	rental.Id = rentalId
+	rental.PartnerUid = prof.PartnerUid
+	rental.CourseUid = prof.CourseUid
 	errF := rental.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -221,6 +226,9 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 	if body.Rate != "" {
 		rental.Rate = body.Rate
 	}
+	if body.TaxCode != "" {
+		rental.TaxCode = body.TaxCode
+	}
 	errUdp := rental.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
@@ -241,6 +249,8 @@ func (_ *CRental) DeleteRental(c *gin.Context, prof models.CmsUser) {
 
 	rental := model_service.Rental{}
 	rental.Id = rentalId
+	rental.PartnerUid = prof.PartnerUid
+	rental.CourseUid = prof.CourseUid
 	errF := rental.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

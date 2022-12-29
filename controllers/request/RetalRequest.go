@@ -3,8 +3,9 @@ package request
 type CreateRentalBody struct {
 	RentalId    string  `json:"rental_id" binding:"required"`
 	PartnerUid  string  `json:"partner_uid" binding:"required"`
-	GroupCode   string  `json:"group_code" binding:"required"`
 	CourseUid   string  `json:"course_uid" binding:"required"`
+	Type        string  `json:"type" binding:"required"`
+	GroupCode   string  `json:"group_code"`
 	EnglishName string  `json:"english_name"`
 	VieName     string  `json:"vietnamese_name"`
 	RenPos      string  `json:"ren_pos"`
@@ -17,6 +18,8 @@ type CreateRentalBody struct {
 	Status      string  `json:"status"`
 	IsDriving   *bool   `json:"is_driving"`
 	Rate        string  `json:"rate"`
+	AccountCode string  `json:"account_code"`
+	TaxCode     string  `json:"tax_code"`
 }
 
 type GetListRentalForm struct {
@@ -50,4 +53,5 @@ type UpdateRentalBody struct {
 	GroupName   string   `json:"group_name"`
 	IsDriving   *bool    `json:"is_driving"`
 	Rate        string   `json:"rate"`
+	TaxCode     string   `json:"tax_code"`
 }

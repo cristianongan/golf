@@ -44,6 +44,12 @@ type ResultOTA struct {
 	Infor  string `json:"infor"`
 }
 
+type ResultLockTeeTimeOTA struct {
+	Status  int64  `json:"status"`
+	Infor   string `json:"infor"`
+	NumBook int    `json:"NumBook"`
+}
+
 func UnmarshalWelcome(data []byte) (TeeTimeOTA, error) {
 	var r TeeTimeOTA
 	err := json.Unmarshal(data, &r)
@@ -114,5 +120,17 @@ type TeeTimeStatus struct {
 	CourseCode   string      `json:"CourseCode"`
 	Locktime     int64       `json:"Locktime"`
 	DateStr      string      `json:"DateStr"`
+	TeeTimeOTA
+}
+
+type LockTeeTimeRes struct {
+	Result       ResultLockTeeTimeOTA `json:"result"`
+	Token        interface{}          `json:"Token"`
+	IsMainCourse bool                 `json:"isMainCourse"`
+	Edit         bool                 `json:"Edit"`
+	CreateUser   interface{}          `json:"CreateUser"`
+	CourseCode   string               `json:"CourseCode"`
+	Locktime     int64                `json:"Locktime"`
+	DateStr      string               `json:"DateStr"`
 	TeeTimeOTA
 }

@@ -1,11 +1,16 @@
 package controllers
 
 import (
+	"errors"
 	"start/constants"
+	"start/controllers/request"
+	"start/controllers/response"
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils"
+	"start/utils/response_message"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,16 +47,7 @@ func GetGolfFeeInfoOfBag(c *gin.Context, mainBooking model_booking.Booking) mode
 				}
 			}
 
-			isAgencyPaid := false
-			for _, v := range subBooking.AgencyPaid {
-				if v.Type == constants.BOOKING_AGENCY_GOLF_FEE && v.Fee > 0 {
-					isAgencyPaid = true
-				}
-			}
-
-			if !isAgencyPaid {
-				roundOfBag.Rounds = append(roundOfBag.Rounds, round1)
-			}
+			roundOfBag.Rounds = append(roundOfBag.Rounds, round1)
 		}
 
 		if checkIsNextRound > -1 && len(listRound) > 1 {
@@ -70,4 +66,57 @@ func GetGolfFeeInfoOfBag(c *gin.Context, mainBooking model_booking.Booking) mode
 	}
 
 	return golfFeeOfBag
+}
+
+/*
+Get Round Bag trong ngày
+*/
+func (_ *CBooking) GetRoundOfBag(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.GolfBag == "" {
+		response_message.BadRequest(c, errors.New("Bag invalid").Error())
+		return
+	}
+
+	booking := model_booking.BookingList{}
+	booking.PartnerUid = form.PartnerUid
+	booking.CourseUid = form.CourseUid
+	booking.GolfBag = form.GolfBag
+	booking.BookingDate = form.BookingDate
+
+	if form.BookingDate != "" {
+		booking.BookingDate = form.BookingDate
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+		booking.BookingDate = toDayDate
+	}
+
+	db, total, err := booking.FindAllBookingList(db)
+
+	db = db.Order("created_at asc")
+	db = db.Preload("CaddieBuggyInOut")
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+	okResponse(c, res)
 }

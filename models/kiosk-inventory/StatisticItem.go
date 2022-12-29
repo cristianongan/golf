@@ -76,3 +76,32 @@ func (item *StatisticItem) FindList(page models.Page, fromDate int64, toDate int
 
 	return list, total, db.Error
 }
+
+func (item *StatisticItem) FindAll() ([]StatisticItem, int64, error) {
+	db := datasources.GetDatabase().Model(StatisticItem{})
+	list := []StatisticItem{}
+	total := int64(0)
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.ItemCode != "" {
+		db = db.Where("item_code = ?", item.ItemCode)
+	}
+
+	if item.ServiceId > 0 {
+		db = db.Where("service_id = ?", item.ServiceId)
+	}
+
+	db = db.Order("created_at desc")
+	db.Count(&total)
+
+	db = db.Find(&list)
+
+	return list, total, db.Error
+}

@@ -91,6 +91,7 @@ func MigrateDbCms(db *gorm.DB) {
 	db.AutoMigrate(&models.CaddieNote{})
 	db.AutoMigrate(&models.CaddieWorkingTime{})
 	db.AutoMigrate(&models.CaddieVacationCalendar{})
+	db.AutoMigrate(&models.CaddieWorkingSlot{})
 
 	// ---- Bag Note ----
 	db.AutoMigrate(&models.BagsNote{})
@@ -171,6 +172,7 @@ func MigrateDbCms(db *gorm.DB) {
 
 	// ------- Report -------
 	db.AutoMigrate(&model_report.ReportCustomerPlay{})
+	db.AutoMigrate(&model_report.ReportRevenueDetail{})
 
 	// Restaurant Setup
 	db.AutoMigrate(&model_service_restaurant_setup.RestaurantTableSetup{})
@@ -181,6 +183,9 @@ func MigrateDbCms(db *gorm.DB) {
 
 	// Notification
 	db.AutoMigrate(&models.Notification{})
+
+	// TeeTime
+	db.AutoMigrate(&models.TeeTimeList{})
 }
 
 func MigrateDbAuth() {
@@ -191,6 +196,7 @@ func MigrateDbAuth() {
 		db.AutoMigrate(&model_role.Role{})
 		db.AutoMigrate(&model_role.Permission{})
 		db.AutoMigrate(&model_role.RolePermission{})
+		db.AutoMigrate(&model_role.RoleHierarchy{})
 		db.AutoMigrate(&model_role.UserRole{})
 		db.AutoMigrate(&models.CurrencyPaid{})
 		db.AutoMigrate(&models.CmsUser{})

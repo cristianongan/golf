@@ -74,9 +74,12 @@ func MySqlConnect() {
 	if config.GetDbDebug() {
 		db.Debug()
 	}
-	db.Use(dbresolver.Register(dbresolver.Config{
-		Sources: []gorm.Dialector{mysql.Open(args2)},
-	}, config.GetDbName2()))
+	if config.GetDbName2() != "" {
+		db.Use(dbresolver.Register(dbresolver.Config{
+			Sources: []gorm.Dialector{mysql.Open(args2)},
+		}, config.GetDbName2()))
+		log.Println("db registered db2")
+	}
 
 	/// Database Role
 	argsDBRole := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s",
@@ -126,7 +129,7 @@ func GetDatabaseAuth() *gorm.DB {
 }
 
 func GetDatabaseWithPartner(partnerUid string) *gorm.DB {
-	if partnerUid == "FLC" {
+	if partnerUid == "FLC" && config.GetDbName2() != "" {
 		return db.Clauses(dbresolver.Use(config.GetDbName2()))
 	}
 	return db

@@ -104,13 +104,16 @@ func (item *CmsUser) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *CmsUser) FindList(page Page, search string) ([]CmsUser, int64, error) {
+func (item *CmsUser) FindList(page Page, search string, subRoles []int) ([]CmsUser, int64, error) {
 	db := datasources.GetDatabaseAuth().Model(CmsUser{})
 	list := []CmsUser{}
 	total := int64(0)
 	status := item.Model.Status
 	item.Model.Status = ""
 	db = db.Where(item)
+	if len(subRoles) > 0 {
+		db = db.Where("role_id IN (?)", subRoles)
+	}
 	if status != "" {
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
@@ -150,4 +153,13 @@ func (item *CmsUser) FindUserLocked() ([]CmsUser, int64, error) {
 
 	db = db.Find(&list)
 	return list, total, db.Error
+}
+
+func (item *CmsUser) GetKeyRedisPermission() string {
+	return datasources.GetPrefixRedisKeyUserRolePermission() + item.PartnerUid + "_" + item.CourseUid + "_" + item.Uid
+}
+
+func (item *CmsUser) SaveKeyRedisPermission(lisPermission []string) {
+	json, _ := json.Marshal(lisPermission)
+	datasources.SetCache(item.GetKeyRedisPermission(), string(json), constants.TIME_REDIS_PERMISION)
 }

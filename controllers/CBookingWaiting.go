@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
@@ -19,9 +20,16 @@ func (_ *CBookingWaiting) CreateBookingWaiting(c *gin.Context, prof models.CmsUs
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	var body request.CreateBookingWaiting
 	if bindErr := c.BindJSON(&body); bindErr != nil {
-		response_message.BadRequest(c, "")
+		response_message.BadRequest(c, "Data format invalid!")
 		return
 	}
+
+	_, errDate := time.Parse(constants.DATE_FORMAT_1, body.BookingTime)
+	if errDate != nil {
+		response_message.BadRequest(c, "Booking Date format invalid!")
+		return
+	}
+
 	bookingCode := strconv.FormatInt(time.Now().Unix(), 10)
 
 	bookingWaiting := model_booking.BookingWaiting{
@@ -97,6 +105,8 @@ func (_ *CBookingWaiting) DeleteBookingWaiting(c *gin.Context, prof models.CmsUs
 
 	bookingWaitingRequest := model_booking.BookingWaiting{}
 	bookingWaitingRequest.Id = bookingId
+	bookingWaitingRequest.PartnerUid = prof.PartnerUid
+	bookingWaitingRequest.CourseUid = prof.CourseUid
 	errF := bookingWaitingRequest.FindFirst(db)
 
 	if errF != nil {
@@ -130,6 +140,8 @@ func (_ *CBookingWaiting) UpdateBookingWaiting(c *gin.Context, prof models.CmsUs
 
 	bookingWaitingRequest := model_booking.BookingWaiting{}
 	bookingWaitingRequest.Id = caddieId
+	bookingWaitingRequest.PartnerUid = prof.PartnerUid
+	bookingWaitingRequest.CourseUid = prof.CourseUid
 
 	errF := bookingWaitingRequest.FindFirst(db)
 	if errF != nil {

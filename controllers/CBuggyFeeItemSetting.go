@@ -33,17 +33,31 @@ func (_ *CBuggyFeeItemSetting) CreateBuggyFeeItemSetting(c *gin.Context, prof mo
 		return
 	}
 
-	buggyFeeItemSetting := models.BuggyFeeItemSetting{
-		PartnerUid:    body.PartnerUid,
-		CourseUid:     body.CourseUid,
-		GuestStyle:    body.GuestStyle,
-		Dow:           body.Dow,
-		RentalFee:     body.RentalFee,
-		PrivateCarFee: body.PrivateCarFee,
-		OddCarFee:     body.OddCarFee,
-		SettingId:     body.SettingId,
-		RateGolfFee:   body.RateGolfFee,
+	if len(body.RentalFee) == 0 || len(body.PrivateCarFee) == 0 || len(body.OddCarFee) == 0 {
+		response_message.BadRequestFreeMessage(c, "Fee empty!")
+		return
 	}
+
+	//Validate input
+
+	buggyFeeItemSetting := models.BuggyFeeItemSetting{
+		PartnerUid:     body.PartnerUid,
+		CourseUid:      body.CourseUid,
+		GuestStyle:     body.GuestStyle,
+		GuestStyleName: body.GuestStyleName,
+		Dow:            body.Dow,
+		RentalFee:      body.RentalFee,
+		PrivateCarFee:  body.PrivateCarFee,
+		OddCarFee:      body.OddCarFee,
+		SettingId:      body.SettingId,
+		RateGolfFee:    body.RateGolfFee,
+	}
+
+	if errVal := buggyFeeItemSetting.ValidateCreate(db); errVal != nil {
+		response_message.BadRequestFreeMessage(c, "Data duplicated!")
+		return
+	}
+
 	buggyFeeItemSetting.Status = body.Status
 	errC := buggyFeeItemSetting.Create(db)
 
@@ -107,6 +121,8 @@ func (_ *CBuggyFeeItemSetting) UpdateBuggyFeeItemSetting(c *gin.Context, prof mo
 
 	buggyFeeItemSetting := models.BuggyFeeItemSetting{}
 	buggyFeeItemSetting.Id = Id
+	buggyFeeItemSetting.PartnerUid = prof.PartnerUid
+	buggyFeeItemSetting.CourseUid = prof.CourseUid
 	errF := buggyFeeItemSetting.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -154,6 +170,8 @@ func (_ *CBuggyFeeItemSetting) DeleteBuggyFeeSetting(c *gin.Context, prof models
 
 	buggyFeeSetting := models.BuggyFeeItemSetting{}
 	buggyFeeSetting.Id = Id
+	buggyFeeSetting.PartnerUid = prof.PartnerUid
+	buggyFeeSetting.CourseUid = prof.CourseUid
 	errF := buggyFeeSetting.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

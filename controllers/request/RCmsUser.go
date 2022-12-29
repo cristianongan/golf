@@ -16,6 +16,7 @@ type UdpCmsUserBody struct {
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
 	RoleId   int64  `json:"role_id"`
+	Status   string `json:"status"`
 }
 
 type LoginBody struct {
@@ -27,6 +28,6 @@ type LoginBody struct {
 type GetListCmsUserForm struct {
 	PageRequest
 	CourseUid  string `form:"course_uid"`
-	PartnerUid string `form:"partner_uid"`
+	PartnerUid string `form:"partner_uid" binding:"required"`
 	Search     string `form:"search"`
 }

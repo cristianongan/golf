@@ -22,13 +22,11 @@ func (_ CStatisticItem) AddItemToStatistic(db *gorm.DB) {
 
 	outputInventory := kiosk_inventory.InventoryOutputItem{
 		OutputDate: now,
-		ServiceId:  1,
 	}
 	outputList, _ := outputInventory.FindStatistic(db)
 
 	inputInventory := kiosk_inventory.InventoryInputItem{
 		InputDate: now,
-		ServiceId: 1,
 	}
 	inputList, _ := inputInventory.FindStatistic(db)
 
@@ -98,18 +96,18 @@ func (_ CStatisticItem) AddItemToStatistic(db *gorm.DB) {
 
 func (_ CStatisticItem) TestAddItemToStatistic(c *gin.Context, prof models.CmsUser) {
 	// now := time.Now().Format(constants.DATE_FORMAT_1)
-	now := "22/10/2022"
-	yesterday := time.Now().AddDate(0, 0, -1).Format(constants.DATE_FORMAT_1)
+	now := "20/12/2022"
+	yesterday := "19/12/2022"
 
 	outputInventory := kiosk_inventory.InventoryOutputItem{
 		OutputDate: now,
-		ServiceId:  1,
+		ServiceId:  20,
 	}
 	outputList, _ := outputInventory.FindStatistic(datasources.GetDatabase())
 
 	inputInventory := kiosk_inventory.InventoryInputItem{
 		InputDate: now,
-		ServiceId: 1,
+		ServiceId: 20,
 	}
 	inputList, _ := inputInventory.FindStatistic(datasources.GetDatabase())
 
@@ -181,16 +179,17 @@ func (_ CStatisticItem) TestAddItemToStatistic(c *gin.Context, prof models.CmsUs
 func InitStatisticItem(item kiosk_inventory.OutputStatisticItem, yesterday string, outputTotal int64, inputTotal int64, now string) kiosk_inventory.StatisticItem {
 	var endingInventory int64 = 0
 
-	yesterdayItem := kiosk_inventory.StatisticItem{
+	rStatisticItem := kiosk_inventory.StatisticItem{
 		PartnerUid: item.PartnerUid,
 		CourseUid:  item.CourseUid,
 		ItemCode:   item.ItemCode,
 		ServiceId:  item.ServiceId,
-		Time:       yesterday,
 	}
 
-	if errFind := yesterdayItem.FindFirst(); errFind == nil {
-		endingInventory = yesterdayItem.Total
+	list, total, errFind := rStatisticItem.FindAll()
+
+	if errFind == nil && total > 0 {
+		endingInventory = list[0].Total
 	}
 
 	totalNow := endingInventory + inputTotal - outputTotal
@@ -202,7 +201,7 @@ func InitStatisticItem(item kiosk_inventory.OutputStatisticItem, yesterday strin
 		ServiceId:       item.ServiceId,
 		Import:          inputTotal,
 		Export:          outputTotal,
-		EndingInventory: yesterdayItem.Total,
+		EndingInventory: endingInventory,
 		Total:           totalNow,
 		Time:            now,
 	}

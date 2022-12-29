@@ -12,26 +12,26 @@
     "cronjob_page_limit": 20,
     "mysql": {
         "db_name": "golf_cms",
-        "user": "root",
-        "password": "4vB!qVugg!vmSY8pGP$vQQXA5r#@2MW=",
-        "host": "103.176.145.22",
+        "user": "caro",
+        "password": "(zTUd^6N48f#pd^S",
+        "host": "10.10.102.17",
         "port": "3306",
-        "is_migrated": true,
+        "is_migrated": false,
         "debug": true
     },
     "mysql_auth": {
-        "db_name": "golf_auth_dev",
-        "user": "root",
-        "password": "4vB!qVugg!vmSY8pGP$vQQXA5r#@2MW=",
-        "host": "103.176.145.22",
+        "db_name": "golf_auth",
+        "user": "caro",
+        "password": "(zTUd^6N48f#pd^S",
+        "host": "10.10.102.17",
         "port": "3306",
-        "is_migrated": false,
+        "is_migrated": true,
         "debug": false
     },
     "redis": {
-        "host": "103.161.39.231",
+        "host": "10.10.101.23",
         "port": "6379",
-        "password": "crC6jdtzv8XuFWEMzYhVgH9GubyUu7Tt",
+        "password": "vnpayredis@123",
         "insecure_skip_verify": false
     },
     "jwt_secret": "5ab3c73ca35c05221c47ac3f047b6b40",
@@ -41,17 +41,18 @@
         "password": "9INFec20LYOINV0e9L8NToOeAYinUk8oxTpeWgaWlpY0"
     },
     "minio":{
-        "endpoint": "minio.vntaxi.net",
-        "bucket": "golf-staging",
-        "access_key": "H69hpW0j0wanZrmtBCJwUh7jurTTuKQgINziWHH9Kxk0",
-        "secret_key": "1eWZBv0VqTmSgFfW2KNJ18vXhJdNJP5tsaCokq1AZjs0",
+        "endpoint": "10.10.101.22:9000",
+        "bucket": "golf-prod",
+        "access_key": "vnpay",
+        "secret_key": "Vnpay@123",
         "ssl": true,
-        "get_data_host": "https://minio.vntaxi.net/"
+        "get_data_host": "10.10.101.22:9000"
     },
     "golf_partner": {
         "url": "http://golf-partner:4000/golf-partner/"
     },
     "payment_secret_key": "KedL44Y6EX7rELdDfQUcim6uM6Ni5xNnCUqZ6IG4cXTgm7FIAH",
     "aes_pass_secret_key": "KujEOYTVLtdfNopHmVnuTjEiZyqAmZpV",
-    "is_open_socket": true
+    "is_open_socket": true,
+    "ccu_server": 50
 }

@@ -49,8 +49,9 @@ type MemberCard struct {
 	StartPrecial int64 `json:"start_precial"` // Khoảng TG được dùng giá riêng
 	EndPrecial   int64 `json:"end_precial"`   // Khoảng TG được dùng giá riêng
 
-	TotalGuestOfDay int `json:"total_guest_of_day"` // Số khách đi cùng trong ngày
-	TotalPlayOfYear int `json:"total_play_of_year"` // Số lần đã chơi trong năm
+	TotalGuestOfDay int `json:"total_guest_of_day"`            // Số khách đi cùng trong ngày
+	TotalPlayOfYear int `json:"total_play_of_year"`            // Số lần đã chơi trong năm
+	IsContacted     int `json:"is_contacted" gorm:"default:0"` // Đánh dấu đã liên hệ KH
 }
 
 type MemberCardDetailRes struct {
@@ -264,7 +265,7 @@ func (item *MemberCard) FindList(database *gorm.DB, page Page, playerName string
 
 	db = db.Joins("LEFT JOIN customer_users as member_connect on member_cards.member_connect = member_connect.uid")
 
-	db = db.Joins("LEFT JOIN report_customer_plays on member_cards.owner_uid = report_customer_plays.customer_uid")
+	db = db.Joins("LEFT JOIN report_customer_plays on member_cards.card_id = report_customer_plays.card_id")
 
 	db = db.Joins("LEFT JOIN (select * from annual_fees where partner_uid = ? and course_uid = ? and annual_fees.year = ?) af on member_cards.uid = af.member_card_uid", item.PartnerUid, item.CourseUid, currentYear)
 
@@ -394,6 +395,30 @@ func (item *MemberCard) FindList(database *gorm.DB, page Page, playerName string
 	}
 
 	return list, total, db.Error
+}
+
+func (item *MemberCard) FindAllMemberCardContacted(database *gorm.DB) ([]MemberCard, int64, error) {
+	db := database.Table("member_cards")
+	list := []MemberCard{}
+	total := int64(0)
+
+	db = db.Where("is_contacted = ?", item.IsContacted)
+	db.Count(&total)
+	db.Find(&list)
+
+	return list, total, db.Error
+}
+
+// ------ Batch Update ------
+func (item *MemberCard) BatchUpdate(database *gorm.DB, list []MemberCard) error {
+	db := database.Table("member_cards")
+	var err error
+	err = db.Save(&list).Error
+
+	if err != nil {
+		log.Println("member_cards batch update err: ", err.Error())
+	}
+	return err
 }
 
 func (item *MemberCard) Delete(db *gorm.DB) error {

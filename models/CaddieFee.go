@@ -117,30 +117,35 @@ func (item *CaddieFee) FindAll(database *gorm.DB, month string) ([]CaddieFee, in
 	return list, total, db.Error
 }
 
-func (item *CaddieFee) FindAllGroupBy(database *gorm.DB, page Page, month string) ([]CaddieFee, int64, error) {
-	db := database.Model(CaddieFee{})
-	list := []CaddieFee{}
+func (item *CaddieFee) FindAllGroupBy(database *gorm.DB, page Page, month string) ([]map[string]interface{}, int64, error) {
+	var list []map[string]interface{}
 	total := int64(0)
 
-	db.Select("*, sum(amount) as total_amount")
+	// sub query
+	subQuery1 := database.Model(CaddieFee{})
+	// subQuery1.Select("caddie_fees.*")
 
 	if item.CourseUid != "" {
-		db = db.Where("course_uid = ?", item.CourseUid)
+		subQuery1 = subQuery1.Where("course_uid = ?", item.CourseUid)
 	}
 	if item.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", item.PartnerUid)
+		subQuery1 = subQuery1.Where("partner_uid = ?", item.PartnerUid)
 	}
 	if item.CaddieCode != "" {
-		db = db.Where("caddie_code LIKE ?", "%"+item.CaddieCode+"%")
+		subQuery1 = subQuery1.Where("caddie_code LIKE ?", "%"+item.CaddieCode+"%")
 	}
 	if item.CaddieName != "" {
-		db = db.Where("caddie_name LIKE ?", "%"+item.CaddieName+"%")
+		subQuery1 = subQuery1.Where("caddie_name LIKE ?", "%"+item.CaddieName+"%")
 	}
 	if month != "" {
-		db = db.Where("DATE_FORMAT(STR_TO_DATE(booking_date, '%d/%m/%Y'), '%Y-%m') = ?", month)
+		subQuery1 = subQuery1.Where("DATE_FORMAT(STR_TO_DATE(booking_date, '%d/%m/%Y'), '%Y-%m') = ?", month)
 	}
 
-	db.Group("caddie_id")
+	subQuery1.Distinct("created_at", "caddie_id", "caddie_name", "caddie_code", "booking_date", "hole", "round", "amount", "note", "is_day_off")
+
+	db := database.Table("(?) as tb0", subQuery1).Select("*, sum(tb0.amount) as total_amount")
+
+	db.Group("tb0.caddie_id")
 
 	db.Count(&total)
 

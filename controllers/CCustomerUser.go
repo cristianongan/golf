@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"start/callservices"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -98,6 +99,23 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	go func() {
+		body := request.CustomerBody{
+			MaKh:      customerUser.Uid,
+			TenKh:     customerUser.Name,
+			MaSoThue:  customerUser.Mst,
+			DiaChi:    customerUser.Address1,
+			Tk:        "",
+			DienThoai: customerUser.Phone,
+			Fax:       customerUser.Fax,
+			EMail:     customerUser.Email,
+			DoiTac:    "",
+			NganHang:  "",
+			TkNh:      "",
+		}
+		callservices.CreateCustomer(body)
+	}()
+
 	okResponse(c, customerUser)
 }
 
@@ -147,6 +165,8 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 
 	customerUser := models.CustomerUser{}
 	customerUser.Uid = customerUserUidStr
+	customerUser.PartnerUid = prof.PartnerUid
+	customerUser.CourseUid = prof.CourseUid
 	errF := customerUser.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -296,6 +316,8 @@ func (_ *CCustomerUser) DeleteCustomerUser(c *gin.Context, prof models.CmsUser) 
 
 	customerUser := models.CustomerUser{}
 	customerUser.Uid = customerUserUidStr
+	customerUser.PartnerUid = prof.PartnerUid
+	customerUser.CourseUid = prof.CourseUid
 	errF := customerUser.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -328,12 +350,17 @@ func (_ *CCustomerUser) GetCustomerUserDetail(c *gin.Context, prof models.CmsUse
 		return
 	}
 
+	if customerUser.PartnerUid != prof.PartnerUid || customerUser.CourseUid != prof.CourseUid {
+		response_message.Forbidden(c, "forbidden")
+		return
+	}
+
 	// Get report play count
 	reportCus := model_report.ReportCustomerPlay{
 		CustomerUid: customerUserUidStr,
 	}
 
-	errFR := reportCus.FindFirst()
+	list, _, errFR := reportCus.FindAllList()
 	if errFR != nil || reportCus.Id <= 0 {
 		reportCus.CourseUid = customerUser.CourseUid
 		reportCus.PartnerUid = customerUser.PartnerUid
@@ -343,10 +370,20 @@ func (_ *CCustomerUser) GetCustomerUserDetail(c *gin.Context, prof models.CmsUse
 		}
 	}
 
+	totalPaid := int64(0)
+	totalPlayCount := int64(0)
+	totalHourPlayCount := int64(0)
+
+	for _, item := range list {
+		totalPaid += item.TotalPaid
+		totalPlayCount += int64(item.TotalPlayCount)
+		totalHourPlayCount += int64(item.TotalHourPlayCount)
+	}
+
 	reportData := map[string]interface{}{
-		"total_paid":            reportCus.TotalPaid,
-		"total_play_count":      reportCus.TotalPlayCount,
-		"total_hour_play_count": reportCus.TotalHourPlayCount,
+		"total_paid":            totalPaid,
+		"total_play_count":      totalPlayCount,
+		"total_hour_play_count": totalHourPlayCount,
 	}
 
 	res := map[string]interface{}{

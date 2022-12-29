@@ -1,9 +1,20 @@
 package constants
 
 /*
+	Max Slot TeeTime
+*/
+const SLOT_TEE_TIME = 4
+
+/*
 	Paid By Agency
 */
 const PAID_BY_AGENCY = "AGENCY"
+
+/*
+	Paid By Agency
+*/
+const BOOKING_OTA = "BOOKING_OTA"
+const BOOKING_CMS = "BOOKING_CMS"
 
 /*
 Get base price cho type agency họăc member card
@@ -57,6 +68,17 @@ const (
 	OTHER_BASE_PRICE_AGENCY      = "AGENCY"
 	OTHER_BASE_PRICE_MEMBER_CARD = "MEMBER_CARD"
 )
+
+/*
+Trạng thái caddie trên sân
+*/
+
+var LIST_CADDIE_READY_JOIN = []string{
+	CADDIE_CURRENT_STATUS_READY,
+	CADDIE_CURRENT_STATUS_FINISH,
+	CADDIE_CURRENT_STATUS_FINISH_R2,
+	CADDIE_CURRENT_STATUS_FINISH_R3,
+}
 
 const (
 	CADDIE_CURRENT_STATUS_WORKING_ONLY = "WORKING_ONLY"
@@ -249,6 +271,8 @@ const (
 	RENTAL_SETTING     = "RENTAL"
 	PROSHOP_SETTING    = "PROSHOP"
 	RESTAURANT_SETTING = "RESTAURANT"
+	BUGGY_SETTING      = "BUGGY"
+	CADDIE_SETTING     = "CADDIE"
 )
 
 /*
@@ -286,13 +310,14 @@ const (
 Các trạng thái đơn của nhà hàng
 */
 const (
-	RES_BILL_STATUS_ACTIVE  = "ACTIVE"  // Trạng thái bao gồm các đơn PROCESS, FINISH
-	RES_BILL_STATUS_BOOKING = "BOOKING" // Trạng thái là người booking bàn nhưng chưa vào nhà hàng dùng món
-	RES_BILL_STATUS_ORDER   = "ORDER"   // Trạng thái là người đã đặt món và đang chờ đồ ăn
-	RES_BILL_STATUS_PROCESS = "PROCESS" // Trạng thái món ăn đang được chế biến chưa được phục vụ
-	RES_BILL_STATUS_FINISH  = "FINISH"  // Trạng thái món đã được phục vụ
-	RES_BILL_STATUS_CANCEL  = "CANCEL"  // Trạng thái món đã bị hủy
-	RES_BILL_STATUS_OUT     = "OUT"     //Trạng thái khách đã dùng xong món ăn và out khỏi nhà hàng. (ở lễ tân lấy để tính tiền)
+	RES_BILL_STATUS_ACTIVE   = "ACTIVE"   // Trạng thái bao gồm các đơn PROCESS, FINISH
+	RES_BILL_STATUS_BOOKING  = "BOOKING"  // Trạng thái là người booking bàn nhưng chưa vào nhà hàng dùng món
+	RES_BILL_STATUS_ORDER    = "ORDER"    // Trạng thái là người đã đặt món và đang chờ đồ ăn
+	RES_BILL_STATUS_PROCESS  = "PROCESS"  // Trạng thái món ăn đang được chế biến chưa được phục vụ
+	RES_BILL_STATUS_FINISH   = "FINISH"   // Trạng thái món đã được phục vụ
+	RES_BILL_STATUS_CANCEL   = "CANCEL"   // Trạng thái món đã bị hủy
+	RES_BILL_STATUS_OUT      = "OUT"      //Trạng thái khách đã dùng xong món ăn và out khỏi nhà hàng. (ở lễ tân lấy để tính tiền)
+	RES_BILL_STATUS_TRANSFER = "TRANSFER" // Đơn hàng transfer
 )
 
 /*
@@ -330,6 +355,16 @@ const (
 	DAY_OFF_TYPE_AFTERNOON = "H_AFTERNOON"
 	DAY_OFF_TYPE_MORNING   = "H_MORNING"
 	DAY_OFF_TYPE_SICK      = "SICK"
+)
+
+const (
+	CADDIE_VACATION_SICK   = "SICK"
+	CADDIE_VACATION_UNPAID = "UNPAID"
+	CADDIE_VACATION_JOB    = "JOB"
+
+	CADDIE_VACATION_PENDING  = "PENDING"
+	CADDIE_VACATION_APPROVED = "APPROVED"
+	CADDIE_VACATION_REJECTED = "REJECTED"
 )
 
 const BILL_NONE = "NONE"
@@ -411,6 +446,9 @@ const TOP_MEMBER_DATE_TYPE_MONTH = "MONTH"
 // NOTIFICATION
 const NOTIFICATION_CADDIE_VACATION_SICK_OFF = "NOTIFICATION_CADDIE_VACATION_SICK"
 const NOTIFICATION_CADDIE_VACATION_UNPAID = "NOTIFICATION_CADDIE_VACATION_UNPAID"
+const NOTIFICATION_CADDIE_WORKING_STATUS_UPDATE = "NOTIFICATION_CADDIE_WORKING_STATUS_UPDATE"
+const NOTIFICATION_BOOKING_OTA = "NOTIFICATION_BOOKING_OTA"
+const NOTIFICATION_OTA_LOCK_TEE = "NOTIFICATION_OTA_LOCK_TEE"
 const NOTIFICATION_PENDIND = "NOTIFICATION_PENDIND"
 const NOTIFICATION_APPROVED = "NOTIFICATION_APPROVED"
 const NOTIFICATION_REJECTED = "NOTIFICATION_REJECTED"
@@ -422,8 +460,11 @@ const BOOKING_CUSTOMER_TYPE_TRADITIONAL = "TRADITIONAL"
 const BOOKING_CUSTOMER_TYPE_MEMBER = "MEMBER"
 const BOOKING_CUSTOMER_TYPE_GUEST = "GUEST"
 const BOOKING_CUSTOMER_TYPE_VISITOR = "VISITOR"
+const BOOKING_CUSTOMER_TYPE_FOC = "FOC"
 
 // Agency Fee
 const BOOKING_AGENCY_GOLF_FEE = "GOLF_FEE"
 const BOOKING_AGENCY_BUGGY_FEE = "BUGGY_FEE"
 const BOOKING_AGENCY_BOOKING_CADDIE_FEE = "BOOKING_CADDIE_FEE"
+
+const TIME_REDIS_PERMISION = 24 * 60 * 60 * 30

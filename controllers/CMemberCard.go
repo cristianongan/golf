@@ -167,6 +167,8 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 
 	memberCard := models.MemberCard{}
 	memberCard.Uid = memberCardUidStr
+	memberCard.PartnerUid = prof.PartnerUid
+	memberCard.CourseUid = prof.CourseUid
 	errF := memberCard.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -255,6 +257,8 @@ func (_ *CMemberCard) DeleteMemberCard(c *gin.Context, prof models.CmsUser) {
 
 	member := models.MemberCard{}
 	member.Uid = memberCardUidStr
+	member.PartnerUid = prof.PartnerUid
+	member.CourseUid = prof.CourseUid
 	errF := member.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -292,6 +296,11 @@ func (_ *CMemberCard) GetDetail(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if memberDetailRes.PartnerUid != prof.PartnerUid || memberDetailRes.CourseUid != prof.CourseUid {
+		response_message.Forbidden(c, "forbidden")
+		return
+	}
+
 	okResponse(c, memberDetailRes)
 }
 
@@ -321,4 +330,78 @@ func (_ *CMemberCard) UnactiveMemberCard(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, memberCard)
+}
+func (_ *CMemberCard) MarkContactCustomer(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.MarkContactCustomerBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	memberCard := models.MemberCard{}
+	memberCard.Uid = body.MemberCardUid
+	errF := memberCard.FindFirst(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	memberCard.IsContacted = *body.IsContacted
+
+	errUdp := memberCard.Update(db)
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, memberCard)
+}
+
+func (_ *CMemberCard) UnMarkContactCustomer(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.UnMarkContactCustomerBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	rMemberCard := models.MemberCard{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		IsContacted: 1,
+	}
+
+	list, _, _ := rMemberCard.FindAllMemberCardContacted(db)
+
+	for index, _ := range list {
+		list[index].IsContacted = 0
+	}
+
+	rMemberCard.BatchUpdate(db, list)
+	okRes(c)
+}
+
+func (_ *CMemberCard) MarkAllContactCustomer(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.UnMarkContactCustomerBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	rMemberCard := models.MemberCard{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		IsContacted: 0,
+	}
+
+	list, _, _ := rMemberCard.FindAllMemberCardContacted(db)
+
+	for index, _ := range list {
+		list[index].IsContacted = 1
+	}
+
+	rMemberCard.BatchUpdate(db, list)
+	okRes(c)
 }

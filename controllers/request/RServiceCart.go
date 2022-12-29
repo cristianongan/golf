@@ -11,17 +11,18 @@ type AddItemServiceCartBody struct {
 }
 
 type AddItemRentalCartBody struct {
-	PartnerUid string `json:"partner_uid"`
-	CourseUid  string `json:"course_uid"`
-	GolfBag    string `json:"golf_bag" binding:"required"`
-	ItemCode   string `json:"item_code"`
-	Quantity   int64  `json:"quantity"`
-	ServiceId  int64  `json:"service_id"`
-	BillId     int64  `json:"bill_id"`
-	Name       string `json:"name"`
-	Price      int64  `json:"price"`
-	Hole       int    `json:"hole"`
-	CaddieCode string `json:"caddie_code"`
+	PartnerUid  string `json:"partner_uid"`
+	CourseUid   string `json:"course_uid"`
+	GolfBag     string `json:"golf_bag" binding:"required"`
+	ItemCode    string `json:"item_code"`
+	Quantity    int64  `json:"quantity"`
+	ServiceId   int64  `json:"service_id"`
+	BillId      int64  `json:"bill_id"`
+	Name        string `json:"name"`
+	Price       int64  `json:"price"`
+	Hole        int    `json:"hole"`
+	CaddieCode  string `json:"caddie_code"`
+	ServiceType string `json:"service_type"`
 }
 
 type AddDiscountServiceItemBody struct {
@@ -63,6 +64,7 @@ type GetServiceCartBody struct {
 	CourseUid   string `form:"course_uid"`
 	BookingDate string `form:"booking_date" binding:"required"`
 	ServiceId   int64  `form:"service_id"`
+	GolfBag     string `form:"golf_bag"`
 }
 
 type GetServiceCartRentalBody struct {
@@ -72,6 +74,7 @@ type GetServiceCartRentalBody struct {
 	BookingDate  string `form:"booking_date" binding:"required"`
 	ServiceId    int64  `form:"service_id"`
 	RentalStatus string `form:"rental_status"`
+	GolfBag      string `form:"golf_bag"`
 }
 
 type UpdateServiceCartBody struct {

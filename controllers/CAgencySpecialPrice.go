@@ -104,6 +104,8 @@ func (_ *CAgencySpecialPrice) UpdateAgencySpecialPrice(c *gin.Context, prof mode
 
 	agency := models.AgencySpecialPrice{}
 	agency.Id = agencyId
+	agency.PartnerUid = prof.PartnerUid
+	agency.CourseUid = prof.CourseUid
 	errF := agency.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -167,6 +169,8 @@ func (_ *CAgencySpecialPrice) DeleteAgencySpecialPrice(c *gin.Context, prof mode
 
 	agency := models.AgencySpecialPrice{}
 	agency.Id = agencyId
+	agency.PartnerUid = prof.PartnerUid
+	agency.CourseUid = prof.CourseUid
 	errF := agency.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

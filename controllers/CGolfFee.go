@@ -76,6 +76,7 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.GroupId = groupFee.Id
 	golfFee.UpdateUserName = prof.UserName
 	golfFee.ApplyTime = strings.TrimSpace(body.ApplyTime)
+	golfFee.TaxCode = body.TaxCode
 
 	errC := golfFee.Create(db)
 
@@ -136,6 +137,8 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 
 	golfFee := models.GolfFee{}
 	golfFee.Id = golfFeeId
+	golfFee.PartnerUid = prof.PartnerUid
+	golfFee.CourseUid = prof.CourseUid
 	errF := golfFee.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -205,6 +208,7 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 	golfFee.AccDebit = body.AccDebit
 	golfFee.ApplyTime = strings.TrimSpace(body.ApplyTime)
 	golfFee.UpdateUserName = prof.UserName
+	golfFee.TaxCode = body.TaxCode
 
 	errUdp := golfFee.Update(db)
 	if errUdp != nil {
@@ -226,6 +230,8 @@ func (_ *CGolfFee) DeleteGolfFee(c *gin.Context, prof models.CmsUser) {
 
 	golfFee := models.GolfFee{}
 	golfFee.Id = golfFeeId
+	golfFee.PartnerUid = prof.PartnerUid
+	golfFee.CourseUid = prof.CourseUid
 	errF := golfFee.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

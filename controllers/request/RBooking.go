@@ -9,22 +9,22 @@ import (
 
 type GetListBookingSettingGroupForm struct {
 	PageRequest
-	PartnerUid string `form:"partner_uid"`
-	CourseUid  string `form:"course_uid"`
+	PartnerUid string `form:"partner_uid" binding:"required"`
+	CourseUid  string `form:"course_uid" binding:"required"`
 }
 
 type GetListBookingSettingForm struct {
 	PageRequest
-	PartnerUid string `form:"partner_uid"`
-	CourseUid  string `form:"course_uid"`
+	PartnerUid string `form:"partner_uid" binding:"required"`
+	CourseUid  string `form:"course_uid" binding:"required"`
 	GroupId    int64  `form:"group_id"`
 	OnDate     string `form:"on_date"`
 }
 
 type GetListBookingForm struct {
 	PageRequest
-	PartnerUid       string `form:"partner_uid"`
-	CourseUid        string `form:"course_uid"`
+	PartnerUid       string `form:"partner_uid" binding:"required"`
+	CourseUid        string `form:"course_uid" binding:"required"`
 	Bag              string `form:"bag"`
 	From             int64  `form:"from"`
 	To               int64  `form:"to"`
@@ -41,9 +41,10 @@ type GetListBookingForm struct {
 
 type GetListBookingWithSelectForm struct {
 	PageRequest
-	PartnerUid      string  `form:"partner_uid"`
-	CourseUid       string  `form:"course_uid"`
+	PartnerUid      string  `form:"partner_uid" binding:"required"`
+	CourseUid       string  `form:"course_uid" binding:"required"`
 	BookingDate     string  `form:"booking_date"`
+	TeeTime         string  `form:"tee_time"`
 	BookingCode     string  `form:"booking_code"`
 	InitType        string  `form:"init_type"`
 	AgencyId        int64   `form:"agency_id"`
@@ -58,6 +59,7 @@ type GetListBookingWithSelectForm struct {
 	BagStatus       string  `form:"bag_status"`
 	HaveBag         *string `form:"have_bag"`
 	CaddieCode      string  `form:"caddie_code"`
+	CaddieName      string  `form:"caddie_name"`
 	HasBookCaddie   string  `form:"has_book_caddie"`
 	PlayerName      string  `form:"player_name"`
 	HasFlightInfo   string  `form:"has_flight_info"`
@@ -79,8 +81,8 @@ type GetListBookingWithSelectForm struct {
 
 type GetListBookingWithListServiceItems struct {
 	PageRequest
-	PartnerUid string `form:"partner_uid"`
-	CourseUid  string `form:"course_uid"`
+	PartnerUid string `form:"partner_uid" binding:"required"`
+	CourseUid  string `form:"course_uid" binding:"required"`
 	Type       string `form:"type"`
 	FromDate   string `form:"from_date"`
 	ToDate     string `form:"to_date"`
@@ -90,8 +92,8 @@ type GetListBookingWithListServiceItems struct {
 
 type GetListBookingTeeTimeForm struct {
 	PageRequest
-	PartnerUid  string `form:"partner_uid"`
-	CourseUid   string `form:"course_uid"`
+	PartnerUid  string `form:"partner_uid" binding:"required"`
+	CourseUid   string `form:"course_uid" binding:"required"`
 	BookingDate string `form:"booking_date"`
 	TeeTime     string `form:"tee_time"`
 }
@@ -99,10 +101,19 @@ type GetListBookingTeeTimeForm struct {
 type CancelAllBookingBody struct {
 	PartnerUid  string `form:"partner_uid" json:"partner_uid" binding:"required"`
 	CourseUid   string `form:"course_uid" json:"course_uid" binding:"required"`
-	BookingDate string `form:"booking_date" json:"booking_date"`
+	BookingDate string `form:"booking_date" json:"booking_date" binding:"required"`
 	BookingCode string `form:"booking_code" json:"booking_code"`
 	TeeTime     string `form:"tee_time" json:"tee_time"`
+	TeeType     string `form:"tee_type" json:"tee_type"`
+	CourseType  string `form:"course_type" json:"course_type"`
 	Reason      string `form:"reason" json:"reason"`
+}
+
+type FinishBookingBody struct {
+	PartnerUid string `json:"partner_uid" binding:"required"` // Hang Golf
+	CourseUid  string `json:"course_uid" binding:"required"`  // San Golf
+	Bag        string `json:"bag" binding:"required"`
+	BillNo     string `json:"bill_no" binding:"required"`
 }
 
 // Tạo Tee booking
@@ -155,6 +166,7 @@ type CreateBookingBody struct {
 	FeeInfo            AgencyFeeInfo           `json:"fee_info"`
 	BookMark           bool
 	BookFromOTA        bool
+	BookingTeeTime     bool
 }
 
 type GolfFeeGuestyleParam struct {
@@ -240,9 +252,10 @@ type CheckInBody struct {
 	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
 	CustomerName   string `json:"customer_name"`    // Player Name
 
-	MemberCardUid    string `json:"member_card_uid"`     // Member Card
-	AgencyId         int64  `json:"agency_id"`           // Agency id
-	MemberUidOfGuest string `json:"member_uid_of_guest"` // Member của Guest đến chơi cùng
+	MemberCardUid    string        `json:"member_card_uid"`     // Member Card
+	AgencyId         int64         `json:"agency_id"`           // Agency id
+	MemberUidOfGuest string        `json:"member_uid_of_guest"` // Member của Guest đến chơi cùng
+	FeeInfo          AgencyFeeInfo `json:"fee_info"`            // Golf Fee cho case agency
 }
 
 //type AddRoundBody struct {
@@ -268,12 +281,14 @@ type MovingBookingBody struct {
 	CourseType  string   `json:"course_type"`
 	TeeTime     string   `json:"tee_time" validate:"required"`
 	TeePath     string   `json:"tee_path" validate:"required"`
+	TurnTime    string   `json:"turn_time" validate:"required"`
 	Hole        int      `json:"hole"`
 }
 
 type UpdateBooking struct {
 	model_booking.Booking
-	CaddieCode string `json:"caddie_code"`
+	CaddieCode string        `json:"caddie_code"`
+	FeeInfo    AgencyFeeInfo `json:"fee_info"`
 }
 
 type ChangeBookingHole struct {
@@ -290,4 +305,11 @@ type UpdateAgencyFeeBookingCommon struct {
 	CheckInTime  int64
 	CustomerName string
 	Hole         int
+}
+
+type LockBill struct {
+	PartnerUid string `json:"partner_uid" binding:"required"` // Hang Golf
+	CourseUid  string `json:"course_uid" binding:"required"`  // San Golf
+	Bag        string `json:"bag" binding:"required"`
+	LockBill   *bool  `json:"lock_bill" binding:"required"`
 }

@@ -81,6 +81,16 @@ func handleSinglePayment(db *gorm.DB, booking model_booking.Booking, agencyPaid 
 		singlePayment.BookingCode = booking.BookingCode
 		singlePayment.PaymentDate = booking.BookingDate
 		singlePayment.BagInfo = bagInfo
+
+		if booking.AgencyId > 0 && booking.MemberCardUid == "" {
+			// Agency
+			singlePayment.Type = constants.PAYMENT_CATE_TYPE_AGENCY
+			singlePayment.AgencyPaid = agencyPaid
+		} else {
+			// Single
+			singlePayment.Type = constants.PAYMENT_CATE_TYPE_SINGLE
+		}
+
 		singlePayment.UpdatePaymentStatus(booking.BagStatus, db)
 		errUdp := singlePayment.Update(db)
 		if errUdp != nil {
@@ -168,7 +178,6 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		BookingCode: booking.BookingCode,
 		AgencyId:    booking.AgencyId,
 		BookingUid:  booking.Uid,
-		CaddieId:    fmt.Sprint(booking.CaddieId),
 	}
 
 	// feeInfo := bodyRequest.BookingList[index].FeeInfo
@@ -193,19 +202,6 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 			Type: constants.BOOKING_AGENCY_BUGGY_FEE,
 			Hole: booking.Hole,
 		})
-		serviceItem := model_booking.BookingServiceItem{
-			BillCode:   booking.BillCode,
-			PlayerName: booking.CustomerName,
-			BookingUid: booking.Uid,
-		}
-		serviceItem.Name = name
-		serviceItem.UnitPrice = feeInfo.BuggyFee
-		serviceItem.Amount = feeInfo.BuggyFee
-		serviceItem.Type = constants.GOLF_SERVICE_RENTAL
-		serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
-		serviceItem.PaidBy = constants.PAID_BY_AGENCY
-		serviceItem.Hole = booking.Hole
-		serviceItem.Create(datasources.GetDatabaseWithPartner(booking.PartnerUid))
 	}
 	if feeInfo.CaddieFee > 0 {
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
@@ -214,24 +210,17 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 			Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
 			Hole: booking.Hole,
 		})
-		serviceItem := model_booking.BookingServiceItem{
-			BillCode:   booking.BillCode,
-			PlayerName: booking.CustomerName,
-			BookingUid: booking.Uid,
-		}
-		serviceItem.Name = "Booking Caddie"
-		serviceItem.UnitPrice = feeInfo.CaddieFee
-		serviceItem.Amount = feeInfo.CaddieFee
-		serviceItem.Type = constants.GOLF_SERVICE_RENTAL
-		serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
-		serviceItem.PaidBy = constants.PAID_BY_AGENCY
-		serviceItem.Hole = booking.Hole
-		serviceItem.Create(db)
 	}
 
 	if feeInfo.BuggyFee > 0 || feeInfo.CaddieFee > 0 || feeInfo.GolfFee > 0 {
 		// Ghi nhận số tiền agency thanh toán của agency
-		bookingAgencyPayment.Create(db)
+		if errFind := bookingAgencyPayment.FindFirst(db); errFind != nil {
+			bookingAgencyPayment.CaddieId = fmt.Sprint(booking.CaddieId)
+			bookingAgencyPayment.Create(db)
+		} else {
+			bookingAgencyPayment.CaddieId = fmt.Sprint(booking.CaddieId)
+			bookingAgencyPayment.Update(db)
+		}
 
 		go func() {
 			// create bag payment

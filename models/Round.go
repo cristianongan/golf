@@ -38,6 +38,11 @@ type FeeOfRound struct {
 	GreenFee  int64 `json:"green_fee"`
 }
 
+type RoundPaidByMainBag struct {
+	Round
+	IsPaid bool `json:"is_paid"`
+}
+
 type ListRound []Round
 
 func (item *ListRound) Scan(v interface{}) error {
@@ -123,6 +128,27 @@ func (item *Round) FindAll(database *gorm.DB) ([]Round, error) {
 	return list, db.Error
 }
 
+func (item *Round) FindAllRoundPaidByMain(database *gorm.DB) ([]RoundPaidByMainBag, error) {
+	db := database.Model(Round{})
+	list := []Round{}
+
+	if item.BillCode != "" {
+		db = db.Where("bill_code = ?", item.BillCode)
+	}
+
+	db = db.Find(&list)
+
+	listRoundPaidByMainBag := []RoundPaidByMainBag{}
+
+	for _, round := range list {
+		listRoundPaidByMainBag = append(listRoundPaidByMainBag, RoundPaidByMainBag{
+			Round: round,
+		})
+	}
+
+	return listRoundPaidByMainBag, db.Error
+}
+
 func (item *Round) LastRound(database *gorm.DB) error {
 	db := database.Order("created_at desc")
 	return db.Where(item).First(item).Error
@@ -133,4 +159,8 @@ func (item *Round) Delete(db *gorm.DB) error {
 		return errors.New("Primary key is undefined!")
 	}
 	return db.Delete(item).Error
+}
+
+func (item *Round) GetAmountGolfFee() int64 {
+	return item.CaddieFee + item.GreenFee + item.BuggyFee
 }

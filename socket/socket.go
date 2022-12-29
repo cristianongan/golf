@@ -9,6 +9,7 @@ import (
 
 var clients = make(map[*websocket.Conn]bool) // connected clients
 var Broadcast = make(chan any)               // broadcast channel
+var Broadcast1 = make(chan string)           // broadcast channel
 
 // Configure the upgrader
 var upgrader = websocket.Upgrader{
@@ -30,16 +31,17 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	clients[ws] = true
 
 	for {
-		var msg any
+		var msg string
 		// Read in a new message as JSON and map it to a Message object
+
 		err := ws.ReadJSON(&msg)
+
 		if err != nil {
 			log.Printf("error: %v", err)
-			delete(clients, ws)
 			break
 		}
 		// Send the newly received message to the broadcast channel
-		Broadcast <- msg
+		Broadcast1 <- msg
 	}
 }
 
@@ -48,6 +50,9 @@ func HandleMessages() {
 		// Grab the next message from the broadcast channel
 		msg := <-Broadcast
 		// Send it out to every client that is currently connected
+
+		log.Println("HandleMessages:", clients)
+
 		for client := range clients {
 			err := client.WriteJSON(msg)
 			if err != nil {

@@ -23,6 +23,7 @@ import (
 	model_report "start/models/report"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -248,7 +249,7 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 				log.Println("UpdateMainBagForSubBag errUdp", errUdp.Error())
 			} else {
 				// Udp lai info payment
-				handlePayment(db, booking)
+				go handlePayment(db, booking)
 			}
 		} else {
 			err = errFind
@@ -259,7 +260,9 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 	// Tính lại giá của main
 	mainBooking.UpdatePriceDetailCurrentBag(db)
 	mainBooking.UpdateMushPay(db)
-	mainBooking.Update(db)
+	if errUdpM := mainBooking.Update(db); errUdpM != nil {
+		go handlePayment(db, mainBooking)
+	}
 
 	return err
 }
@@ -543,6 +546,10 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 		booking.CaddieId = caddie.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddie)
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
+
+		if response.OldCaddie.Id == caddie.Id {
+			response.OldCaddie = models.Caddie{}
+		}
 	}
 
 	//Check buggy
@@ -566,6 +573,10 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 		booking.BuggyId = buggy.Id
 		booking.IsPrivateBuggy = setBoolForCursor(isPrivateBuggy)
 		booking.BuggyInfo = cloneToBuggyBooking(buggy)
+
+		if response.OldBuggy.Id == buggy.Id {
+			response.OldBuggy = models.Buggy{}
+		}
 	}
 
 	booking.ShowCaddieBuggy = setBoolForCursor(true)
@@ -576,46 +587,32 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 }
 
 /*
-Out caddie
-*/
-func udpOutCaddieBooking(db *gorm.DB, booking *model_booking.Booking) error {
-
-	errCd := udpCaddieOut(db, booking.CaddieId)
-	if errCd != nil {
-		return errCd
-	}
-	// Udp booking
-	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_OUT
-
-	return nil
-}
-
-/*
 Out Buggy
 */
 func udpOutBuggy(db *gorm.DB, booking *model_booking.Booking, isOutAll bool) error {
 	// Get Caddie
+	if booking.BuggyId > 0 {
+		bookingR := model_booking.BookingList{
+			BookingDate: booking.BookingDate,
+			BuggyId:     booking.BuggyId,
+			BagStatus:   constants.BAG_STATUS_IN_COURSE,
+		}
 
-	bookingR := model_booking.BookingList{
-		BookingDate: booking.BookingDate,
-		BuggyId:     booking.BuggyId,
-		BagStatus:   constants.BAG_STATUS_IN_COURSE,
-	}
+		_, total, _ := bookingR.FindAllBookingList(db)
 
-	_, total, _ := bookingR.FindAllBookingList(db)
+		if total > 1 && !isOutAll {
+			return errors.New("Buggy còn đang ghép với player khác")
+		}
 
-	if total > 1 && !isOutAll {
-		return errors.New("Buggy còn đang ghép với player khác")
-	}
-
-	buggy := models.Buggy{}
-	buggy.Id = booking.BuggyId
-	err := buggy.FindFirst(db)
-	if err == nil {
-		buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_FINISH
-		if errUdp := buggy.Update(db); errUdp != nil {
-			log.Println("udpBuggyOut err", err.Error())
-			return errUdp
+		buggy := models.Buggy{}
+		buggy.Id = booking.BuggyId
+		err := buggy.FindFirst(db)
+		if err == nil {
+			buggy.BuggyStatus = constants.BUGGY_CURRENT_STATUS_FINISH
+			if errUdp := buggy.Update(db); errUdp != nil {
+				log.Println("udpBuggyOut err", err.Error())
+				return errUdp
+			}
 		}
 	}
 
@@ -625,42 +622,50 @@ func udpOutBuggy(db *gorm.DB, booking *model_booking.Booking, isOutAll bool) err
 /*
 Update caddie is in course is false
 */
-func udpCaddieOut(db *gorm.DB, caddieId int64) error {
+func udpCaddieOut(db *gorm.DB, caddieId int64) {
 	// Get Caddie
-	caddie := models.Caddie{}
-	caddie.Id = caddieId
-	err := caddie.FindFirst(db)
-	if caddie.CurrentRound == 0 {
-		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
-	} else {
-		if caddie.CurrentRound > 1 {
-			caddie.CurrentStatus = fmt.Sprintln(constants.CADDIE_CURRENT_STATUS_FINISH, "R", caddie.CurrentRound)
-		} else {
-			caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
+	if caddieId > 0 {
+		caddie := models.Caddie{}
+		caddie.Id = caddieId
+		err := caddie.FindFirst(db)
+		if !(utils.ContainString(constants.LIST_CADDIE_READY_JOIN, caddie.CurrentStatus) > -1) {
+			if caddie.CurrentRound == 0 {
+				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
+			} else if caddie.CurrentRound == 1 {
+				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
+			} else if caddie.CurrentRound == 2 {
+				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH_R2
+			} else if caddie.CurrentRound == 3 {
+				caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH_R3
+			}
+			errUpd := caddie.Update(db)
+			if errUpd != nil {
+				log.Println("udpCaddieOut err", err.Error())
+			}
+			go func() {
+				cNotification := CNotification{}
+				title := fmt.Sprint("Caddie", " ", caddie.Code, " ", caddie.CurrentStatus)
+				cNotification.CreateCaddieWorkingStatusNotification(title)
+			}()
 		}
 	}
-	err = caddie.Update(db)
-	if err != nil {
-		log.Println("udpCaddieOut err", err.Error())
-	}
-	return err
 }
 
 /*
 add Caddie In Out Note
 */
-func addBuggyCaddieInOutNote(db *gorm.DB, caddieInOut model_gostarter.CaddieBuggyInOut) {
+func addBuggyCaddieInOutNote(db *gorm.DB, caddieBuggyInOut model_gostarter.CaddieBuggyInOut) {
 	newCaddieInOut := model_gostarter.CaddieBuggyInOut{
-		PartnerUid: caddieInOut.PartnerUid,
-		CourseUid:  caddieInOut.CourseUid,
-		BookingUid: caddieInOut.BookingUid,
+		PartnerUid: caddieBuggyInOut.PartnerUid,
+		CourseUid:  caddieBuggyInOut.CourseUid,
+		BookingUid: caddieBuggyInOut.BookingUid,
 	}
 
 	list, total, _ := newCaddieInOut.FindOrderByDateList(db)
 	if total > 0 {
 		lastItem := list[0]
-		if caddieInOut.BuggyId > 0 && caddieInOut.CaddieId > 0 {
-			err := caddieInOut.Create(db)
+		if caddieBuggyInOut.BuggyId > 0 && caddieBuggyInOut.CaddieId > 0 {
+			err := caddieBuggyInOut.Create(db)
 			if err != nil {
 				log.Println("Create addBuggyCaddieInOutNote", err.Error())
 			}
@@ -668,35 +673,47 @@ func addBuggyCaddieInOutNote(db *gorm.DB, caddieInOut model_gostarter.CaddieBugg
 			if (lastItem.BuggyId > 0 && lastItem.CaddieId > 0) ||
 				lastItem.CaddieType == constants.STATUS_OUT ||
 				lastItem.BuggyType == constants.STATUS_OUT ||
-				caddieInOut.BuggyType == constants.STATUS_OUT ||
-				caddieInOut.CaddieType == constants.STATUS_OUT {
+				caddieBuggyInOut.BuggyType == constants.STATUS_OUT ||
+				caddieBuggyInOut.CaddieType == constants.STATUS_OUT {
 
-				if caddieInOut.BuggyId > 0 && caddieInOut.CaddieId == 0 &&
-					lastItem.CaddieType == constants.STATUS_IN {
-					caddieInOut.CaddieId = lastItem.CaddieId
-					caddieInOut.CaddieCode = lastItem.CaddieCode
-					caddieInOut.CaddieType = lastItem.CaddieType
-				} else if caddieInOut.CaddieId > 0 && caddieInOut.BuggyId == 0 &&
-					lastItem.BuggyType == constants.STATUS_IN {
-					caddieInOut.BuggyId = lastItem.BuggyId
-					caddieInOut.BuggyCode = lastItem.BuggyCode
-					caddieInOut.BuggyType = lastItem.BuggyType
+				if caddieBuggyInOut.BagShareBuggy == "" {
+					caddieBuggyInOut.BagShareBuggy = lastItem.BagShareBuggy
 				}
 
-				err := caddieInOut.Create(db)
+				if caddieBuggyInOut.Hole == 0 {
+					caddieBuggyInOut.Hole = lastItem.Hole
+				}
+
+				if caddieBuggyInOut.IsPrivateBuggy == nil {
+					caddieBuggyInOut.IsPrivateBuggy = lastItem.IsPrivateBuggy
+				}
+
+				if caddieBuggyInOut.BuggyId > 0 && caddieBuggyInOut.CaddieId == 0 &&
+					lastItem.CaddieType == constants.STATUS_IN {
+					caddieBuggyInOut.CaddieId = lastItem.CaddieId
+					caddieBuggyInOut.CaddieCode = lastItem.CaddieCode
+					caddieBuggyInOut.CaddieType = lastItem.CaddieType
+				} else if caddieBuggyInOut.CaddieId > 0 && caddieBuggyInOut.BuggyId == 0 &&
+					lastItem.BuggyType == constants.STATUS_IN {
+					caddieBuggyInOut.BuggyId = lastItem.BuggyId
+					caddieBuggyInOut.BuggyCode = lastItem.BuggyCode
+					caddieBuggyInOut.BuggyType = lastItem.BuggyType
+				}
+
+				err := caddieBuggyInOut.Create(db)
 				if err != nil {
 					log.Println("Create addBuggyCaddieInOutNote", err.Error())
 				}
 			} else {
-				if caddieInOut.CaddieId > 0 {
-					lastItem.CaddieId = caddieInOut.CaddieId
-					lastItem.CaddieCode = caddieInOut.CaddieCode
-					lastItem.CaddieType = caddieInOut.CaddieType
+				if caddieBuggyInOut.CaddieId > 0 {
+					lastItem.CaddieId = caddieBuggyInOut.CaddieId
+					lastItem.CaddieCode = caddieBuggyInOut.CaddieCode
+					lastItem.CaddieType = caddieBuggyInOut.CaddieType
 				}
-				if caddieInOut.BuggyId > 0 {
-					lastItem.BuggyId = caddieInOut.BuggyId
-					lastItem.BuggyCode = caddieInOut.BuggyCode
-					lastItem.BuggyType = caddieInOut.BuggyType
+				if caddieBuggyInOut.BuggyId > 0 {
+					lastItem.BuggyId = caddieBuggyInOut.BuggyId
+					lastItem.BuggyCode = caddieBuggyInOut.BuggyCode
+					lastItem.BuggyType = caddieBuggyInOut.BuggyType
 				}
 				err := lastItem.Update(db)
 				if err != nil {
@@ -705,7 +722,7 @@ func addBuggyCaddieInOutNote(db *gorm.DB, caddieInOut model_gostarter.CaddieBugg
 			}
 		}
 	} else {
-		err := caddieInOut.Create(db)
+		err := caddieBuggyInOut.Create(db)
 		if err != nil {
 			log.Println("err addBuggyCaddieInOutNote", err.Error())
 		}
@@ -730,7 +747,7 @@ unlock turn time
 */
 func unlockTurnTime(db *gorm.DB, booking model_booking.Booking) {
 	cLockTeeTim := CLockTeeTime{}
-	cLockTeeTim.DeleteLockTurn(db, booking.TeeTime, booking.BookingDate)
+	cLockTeeTim.DeleteLockTurn(db, booking.TeeTime, booking.BookingDate, booking.PartnerUid)
 }
 
 /*
@@ -999,7 +1016,9 @@ Check Caddie có đang sẵn sàng để ghép không
 */
 func checkCaddieReady(booking model_booking.Booking, caddie models.Caddie) error {
 	if !(caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
-		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH) {
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH ||
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH_R2 ||
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH_R3) {
 		return errors.New("Caddie " + caddie.Code + " chưa sẵn sàng để ghép ")
 	}
 	return nil
@@ -1124,9 +1143,10 @@ func updateReportTotalPaidForCustomerUser(db *gorm.DB, userUid string, partnerUi
 /*
 Udp report số lần chơi của user
 */
-func updateReportTotalPlayCountForCustomerUser(userUid string, partnerUid, courseUid string) {
+func updateReportTotalPlayCountForCustomerUser(userUid string, cardId string, partnerUid, courseUid string) {
 	reportCustomer := model_report.ReportCustomerPlay{
 		CustomerUid: userUid,
+		CardId:      cardId,
 	}
 
 	errF := reportCustomer.FindFirst()
@@ -1229,6 +1249,11 @@ func validateItemCodeInService(db *gorm.DB, serviceType string, itemCode string)
 Get Item Info
 */
 func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (kiosk_inventory.ItemInfo, error) {
+
+	if itemCode == "" {
+		return kiosk_inventory.ItemInfo{}, errors.New("Item Code Empty!")
+	}
+
 	proshop := model_service.Proshop{
 		PartnerUid: partnerUid,
 		CourseUid:  courseUid,
@@ -1278,19 +1303,26 @@ func setBoolForCursor(b bool) *bool {
 	return &boolVar
 }
 
+func getIntPointer(value int) *int {
+	return &value
+}
+
 /*
 Get Tee Time Lock Redis
 */
-func getTeeTimeLockRedis(courseUid string, date string) []models.LockTeeTime {
-	prefixRedisKey := config.GetEnvironmentName() + ":" + courseUid + "_" + date
+func getTeeTimeLockRedis(courseUid string, date string, teeType string) []models.LockTeeTimeWithSlot {
+	prefixRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:" + date + "_" + courseUid
+	if teeType != "" {
+		prefixRedisKey += "_" + teeType
+	}
 	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
-	listTeeTimeLockRedis := []models.LockTeeTime{}
+	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
 	if errRedis == nil && len(listKey) > 0 {
 		strData, _ := datasources.GetCaches(listKey...)
 		for _, data := range strData {
 
 			byteData := []byte(data.(string))
-			teeTime := models.LockTeeTime{}
+			teeTime := models.LockTeeTimeWithSlot{}
 			err2 := json.Unmarshal(byteData, &teeTime)
 			if err2 == nil {
 				listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
@@ -1329,4 +1361,250 @@ func bookMarkRoundPaidByMainBag(mainBooking model_booking.Booking, db *gorm.DB) 
 			}
 		}
 	}
+}
+
+/*
+Tạo book reservation cho restaurant
+*/
+
+func addServiceCart(db *gorm.DB, numberGuest int, partnerUid, courseUid, playerName, phone, bookingDate, staffName string) {
+	// create service cart
+	kiosk := model_service.Kiosk{
+		KioskType: constants.RESTAURANT_SETTING,
+	}
+	kiosk.FindFirst(db)
+
+	serviceCart := models.ServiceCart{}
+	serviceCart.PartnerUid = partnerUid
+	serviceCart.CourseUid = courseUid
+
+	date, _ := time.Parse(constants.DATE_FORMAT_1, bookingDate)
+	serviceCart.BookingDate = datatypes.Date(date)
+
+	serviceCart.ServiceId = kiosk.Id
+	serviceCart.ServiceType = kiosk.KioskType
+	serviceCart.BillCode = constants.BILL_NONE
+	serviceCart.BillStatus = constants.RES_BILL_STATUS_BOOKING
+	serviceCart.Type = constants.RES_TYPE_TABLE
+	serviceCart.NumberGuest = numberGuest
+	serviceCart.StaffOrder = staffName
+	serviceCart.PlayerName = playerName
+	serviceCart.Phone = phone
+	serviceCart.OrderTime = time.Now().Unix()
+
+	if err := serviceCart.Create(db); err != nil {
+		log.Println("add service cart error!")
+	}
+}
+
+/*
+Tạo row index cho booking
+*/
+func generateRowIndex(rowsCurrent []int) int {
+	if !utils.Contains(rowsCurrent, 0) {
+		return 0
+	} else if !utils.Contains(rowsCurrent, 1) {
+		return 1
+	} else if !utils.Contains(rowsCurrent, 2) {
+		return 2
+	}
+	return 3
+}
+
+/*
+Check Tee Time chỗ để booking không
+*/
+func checkTeeTimeAvailable(booking model_booking.Booking) bool {
+	bookings := model_booking.BookingList{}
+	bookings.PartnerUid = booking.PartnerUid
+	bookings.CourseUid = booking.CourseUid
+	bookings.BookingDate = booking.BookingDate
+	bookings.TeeTime = booking.TeeTime
+	bookings.TeeType = booking.TeeType
+	bookings.CourseType = booking.CourseType
+
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	_, total, _ := bookings.FindAllBookingNotCancelList(db)
+
+	return total < constants.SLOT_TEE_TIME
+}
+
+func updateSlotTeeTime(booking model_booking.Booking) {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	bookings := model_booking.BookingList{}
+	bookings.PartnerUid = booking.PartnerUid
+	bookings.CourseUid = booking.CourseUid
+	bookings.BookingDate = booking.BookingDate
+	bookings.TeeTime = booking.TeeTime
+	bookings.TeeType = booking.TeeType
+	bookings.CourseType = booking.CourseType
+
+	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + booking.CourseUid + "_" + booking.BookingDate + "_" + booking.TeeType + booking.CourseType + "_" + booking.TeeTime
+	_, total, _ := bookings.FindAllBookingNotCancelList(db)
+
+	if err := datasources.SetCache(teeTimeRedisKey, total, 0); err != nil {
+		log.Print("updateSlotTeeTime", err)
+	}
+}
+
+func updateSlotTeeTimeWithLock(booking model_booking.Booking) {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	bookings := model_booking.BookingList{}
+	bookings.PartnerUid = booking.PartnerUid
+	bookings.CourseUid = booking.CourseUid
+	bookings.BookingDate = booking.BookingDate
+	bookings.TeeTime = booking.TeeTime
+	bookings.TeeType = booking.TeeType
+	bookings.CourseType = booking.CourseType
+
+	_, total, _ := bookings.FindAllBookingNotCancelList(db)
+
+	prefixRedisKey := getKeyTeeTimeLockRedis(booking.BookingDate, booking.CourseUid, booking.TeeTime, booking.TeeType+booking.CourseType)
+	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
+	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
+	if errRedis == nil && len(listKey) > 0 {
+		strData, _ := datasources.GetCaches(listKey...)
+		for _, data := range strData {
+
+			byteData := []byte(data.(string))
+			teeTime := models.LockTeeTimeWithSlot{}
+			err2 := json.Unmarshal(byteData, &teeTime)
+			if err2 == nil {
+				listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+			}
+		}
+	}
+
+	for _, item := range listTeeTimeLockRedis {
+		total += int64(item.Slot)
+	}
+
+	// "staging:tee_time_slot_empty_CHI-LINH-01_26/12/2022_1A_15:36"
+	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + booking.CourseUid + "_" + booking.BookingDate + "_" + booking.TeeType + booking.CourseType + "_" + booking.TeeTime
+	if err := datasources.SetCache(teeTimeRedisKey, total, 0); err != nil {
+		log.Print("updateSlotTeeTime", err)
+	}
+}
+
+func getBuggyFee(gs string) utils.ListGolfHoleFee {
+
+	partnerUid := "CHI-LINH"
+	courseUid := "CHI-LINH-01"
+
+	db := datasources.GetDatabaseWithPartner(partnerUid)
+	buggyFeeSettingR := models.BuggyFeeSetting{
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+	}
+
+	listBuggySetting, _, _ := buggyFeeSettingR.FindAll(db)
+	buggyFeeSetting := models.BuggyFeeSetting{}
+	for _, item := range listBuggySetting {
+		if item.Status == constants.STATUS_ENABLE {
+			buggyFeeSetting = item
+			break
+		}
+	}
+
+	buggyFeeItemSettingR := models.BuggyFeeItemSetting{
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+		GuestStyle: gs,
+		SettingId:  buggyFeeSetting.Id,
+	}
+
+	listSetting, _, _ := buggyFeeItemSettingR.FindAll(db)
+	buggyFeeItemSetting := models.BuggyFeeItemSetting{}
+	for _, item := range listSetting {
+		if item.Status == constants.STATUS_ENABLE {
+			buggyFeeItemSetting = item
+			break
+		}
+	}
+
+	return buggyFeeItemSetting.RentalFee
+}
+
+// Update slot caddie
+
+func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
+	var caddieSlotNew []string
+	// Format date
+	dateNow, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
+	caddieWS := models.CaddieWorkingSlot{}
+	caddieWS.PartnerUid = partnerUid
+	caddieWS.CourseUid = courseUid
+	caddieWS.ApplyDate = dateNow
+
+	db := datasources.GetDatabaseWithPartner(partnerUid)
+
+	err := caddieWS.FindFirst(db)
+	if err != nil {
+		return err
+	}
+
+	if len(caddieWS.CaddieSlot) > 0 {
+		caddieSlotNew = append(caddieSlotNew, caddieWS.CaddieSlot...)
+		for _, item := range caddies {
+			index := utils.StringInList(item, caddieSlotNew)
+			if index != -1 {
+				caddieSlotNew = utils.Remove(caddieSlotNew, index)
+			}
+		}
+	}
+
+	caddieWS.CaddieSlot = append(caddieSlotNew, caddies...)
+	err = caddieWS.Update(db)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func lockTeeTimeToRedis(body models.LockTeeTime) {
+	teeTimeSetting := models.LockTeeTime{
+		PartnerUid:     body.PartnerUid,
+		CourseUid:      body.CourseUid,
+		DateTime:       body.DateTime,
+		TeeTime:        body.TeeTime,
+		CurrentTeeTime: body.CurrentTeeTime,
+		TeeType:        body.TeeType,
+	}
+
+	teeTimeRedisKey := config.GetEnvironmentName() + ":" + body.CourseUid + "_" + body.DateTime + "_" + body.TeeTime + "_" + body.TeeType
+
+	key := datasources.GetRedisKeyTeeTimeLock(teeTimeRedisKey)
+	_, errRedis := datasources.GetCache(key)
+
+	teeTimeRedis := models.LockTeeTimeWithSlot{
+		DateTime:       teeTimeSetting.DateTime,
+		CourseUid:      teeTimeSetting.CourseUid,
+		TeeTime:        teeTimeSetting.TeeTime,
+		CurrentTeeTime: teeTimeSetting.CurrentTeeTime,
+		TeeType:        teeTimeSetting.TeeType,
+		TeeTimeStatus:  constants.TEE_TIME_LOCKED,
+	}
+
+	if errRedis != nil {
+		valueParse, _ := teeTimeRedis.Value()
+		if err := datasources.SetCache(teeTimeRedisKey, valueParse, 0); err != nil {
+			log.Println("lockTeeTime", err)
+		}
+	}
+}
+
+func getKeyTeeTimeLockRedis(bookingDate, courseUid, teeTime, teeType string) string {
+	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:" + bookingDate + "_" + courseUid + "_"
+	teeTimeRedisKey += teeType + "_" + teeTime
+
+	return teeTimeRedisKey
+}
+
+func getKeyTeeTimeRowIndex(bookingDate, courseUid, teeTime, teeType string) string {
+	teeRowIndexTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_row_index:" + bookingDate + "_" + courseUid + "_"
+	teeRowIndexTimeRedisKey += teeType + "_" + teeTime
+
+	return teeRowIndexTimeRedisKey
 }

@@ -74,6 +74,10 @@ func GetRedisKeyLockerReportCaddieFeeToDay() string {
 	return config.GetEnvironmentName() + "_" + "anhnq_redis_locker_report_caddie_fee_today"
 }
 
+func GetRedisKeyLockerCreateCaddieWorkingSlot() string {
+	return config.GetEnvironmentName() + "_" + "anhnq_redis_locker_create_caddie_working_slot"
+}
+
 func GetRedisKeyLockerReportInventoryStatisticItem() string {
 	return config.GetEnvironmentName() + "_" + "tuandd_redis_locker_report_inventory_statistic_item"
 }
@@ -94,10 +98,14 @@ func GetRedisKeyUserLogin(userName string) string {
 	return config.GetEnvironmentName() + "_" + "redis_user_login" + "_" + userName
 }
 
-//	func GetRedis() *redis.Client {
-//		return redisdb
-//	}
-//
+func GetPrefixRedisKeyUserRolePermission() string {
+	return config.GetEnvironmentName() + "_" + "redis_user_login" + "_"
+}
+
+func GetRedis() *redis.Client {
+	return redisdb
+}
+
 // ttl : second
 func SetCache(key string, value interface{}, ttl int64) error {
 	if redisdb == nil {
@@ -243,4 +251,9 @@ func SetCacheJwt(userUid, jwtToken string, ttl int64) {
 func GetCacheJwt(userUid string) (string, error) {
 	key := getKeyJwt(userUid)
 	return GetCache(key)
+}
+
+func DelCacheJwt(userUid string) {
+	key := getKeyJwt(userUid)
+	DelCacheByKey(key)
 }

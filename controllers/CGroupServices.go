@@ -201,6 +201,8 @@ func (_ *CGroupServices) DeleteServices(c *gin.Context, prof models.CmsUser) {
 
 	groupServices := model_service.GroupServices{}
 	groupServices.Id = serviceId
+	groupServices.PartnerUid = prof.PartnerUid
+	groupServices.CourseUid = prof.CourseUid
 	errF := groupServices.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
@@ -227,6 +229,8 @@ func (_ *CGroupServices) UpdateServices(c *gin.Context, prof models.CmsUser) {
 
 	groupServices := model_service.GroupServices{}
 	groupServices.Id = serviceId
+	groupServices.PartnerUid = prof.PartnerUid
+	groupServices.CourseUid = prof.CourseUid
 	errF := groupServices.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())

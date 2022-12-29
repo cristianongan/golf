@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"errors"
+	"log"
+	"start/config"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -20,50 +22,40 @@ import (
 type CLockTeeTime struct{}
 
 func (_ *CLockTeeTime) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
-	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateTeeTimeSettings{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
 	}
 
-	teeTimeStatusList := []string{constants.TEE_TIME_LOCKED, constants.STATUS_DELETE, constants.TEE_TIME_UNLOCK}
+	teeTimeRedisKey := getKeyTeeTimeLockRedis(body.DateTime, body.CourseUid, body.TeeTime, body.TeeType)
 
-	if !checkStringInArray(teeTimeStatusList, body.TeeTimeStatus) {
-		response_message.BadRequest(c, "Tee Time Status incorrect")
-		return
-	}
+	key := datasources.GetRedisKeyTeeTimeLock(teeTimeRedisKey)
+	_, errRedis := datasources.GetCache(key)
 
-	teeTimeSetting := models.LockTeeTime{
-		TeeTime:        body.TeeTime,
+	teeTimeRedis := models.LockTeeTimeWithSlot{
 		DateTime:       body.DateTime,
-		CourseUid:      body.CourseUid,
 		PartnerUid:     body.PartnerUid,
+		CourseUid:      body.CourseUid,
+		TeeTime:        body.TeeTime,
 		CurrentTeeTime: body.TeeTime,
 		TeeType:        body.TeeType,
+		TeeTimeStatus:  constants.TEE_TIME_LOCKED,
+		Type:           constants.BOOKING_CMS,
+		Slot:           4,
+		Note:           body.Note,
 	}
 
-	errFind := teeTimeSetting.FindFirst(db)
-	teeTimeSetting.TeeTimeStatus = body.TeeTimeStatus
-	teeTimeSetting.Note = body.Note
+	if errRedis != nil {
+		valueParse, _ := teeTimeRedis.Value()
+		if err := datasources.SetCache(teeTimeRedisKey, valueParse, 0); err != nil {
 
-	if errFind == nil {
-		errC := teeTimeSetting.Update(db)
-		if errC != nil {
-			response_message.InternalServerError(c, errC.Error())
-			return
-		}
-	} else {
-		errC := teeTimeSetting.Create(db)
-		if errC != nil {
-			response_message.InternalServerError(c, errC.Error())
-			return
 		}
 	}
-	okResponse(c, teeTimeSetting)
+
+	okResponse(c, teeTimeRedis)
 }
 func (_ *CLockTeeTime) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
-	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetListTeeTimeSettings{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -74,17 +66,25 @@ func (_ *CLockTeeTime) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
 	teeTimeSetting.TeeTime = query.TeeTime
 	teeTimeSetting.TeeTimeStatus = query.TeeTimeStatus
 	teeTimeSetting.DateTime = query.DateTime
-	list, _, err := teeTimeSetting.FindList(db, query.RequestType)
+	list := []models.LockTeeTimeWithSlot{}
 
 	// get các teetime đang bị khóa ở redis
-	listTeeTimeLockRedis := getTeeTimeLockRedis(query.CourseUid, query.DateTime)
-	for _, teeTime := range listTeeTimeLockRedis {
-		list = append(list, teeTime)
+	listTeeTimeLockRedis := getTeeTimeLockRedis(query.CourseUid, query.DateTime, "")
+
+	if query.RequestType == "TURN_TIME" {
+		for _, teeTime := range listTeeTimeLockRedis {
+			if teeTime.CurrentTeeTime != teeTime.TeeTime {
+				list = append(list, teeTime)
+			}
+		}
 	}
 
-	if err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
+	if query.RequestType == "TEE_TIME" {
+		for _, teeTime := range listTeeTimeLockRedis {
+			if teeTime.CurrentTeeTime == teeTime.TeeTime || teeTime.TeeTime == "" {
+				list = append(list, teeTime)
+			}
+		}
 	}
 
 	res := response.PageResponse{
@@ -192,62 +192,54 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 			CurrentTeeTime: body.TeeTime,
 			TeeType:        data,
 		}
-		errC := lockTeeTime.Create(db)
-		if errC != nil {
-			return errC
-		}
+
+		lockTeeTimeToRedis(lockTeeTime)
 	}
 
 	return nil
 }
-func (_ *CLockTeeTime) DeleteLockTurn(db *gorm.DB, teeTime string, bookingDate string) error {
-	lockTeeTime := models.LockTeeTime{
-		CurrentTeeTime: teeTime,
-		DateTime:       bookingDate,
-	}
-	list, _, _ := lockTeeTime.FindList(db, "TURN_TIME")
+func (_ *CLockTeeTime) DeleteLockTurn(db *gorm.DB, teeTime string, bookingDate string, courseUid string) error {
+	listTeeTimeLockRedis := getTeeTimeLockRedis(courseUid, bookingDate, "")
 
-	for _, data := range list {
-		err := data.Delete(db)
-		if err != nil {
-			return err
+	for _, teeTimeR := range listTeeTimeLockRedis {
+		if teeTimeR.CurrentTeeTime == teeTime {
+			teeTimeRedisKey := config.GetEnvironmentName() + ":" + courseUid + "_" + bookingDate + "_" + teeTime + "_" + "1A"
+
+			if err := datasources.DelCacheByKey(teeTimeRedisKey); err != nil {
+				log.Println("DeleteLockTurn", err)
+			}
 		}
 	}
 	return nil
 }
 
 func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
-	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.DeleteLockRequest{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
 
-	newTeeType := query.TeeType + query.CourseType
+	list := []models.LockTeeTimeWithSlot{}
 
-	lockTeeTime := models.LockTeeTime{
-		PartnerUid: query.PartnerUid,
-		CourseUid:  query.CourseUid,
-		TeeTime:    query.TeeTime,
-		DateTime:   query.BookingDate,
-		TeeType:    newTeeType,
-	}
+	// get các teetime đang bị khóa ở redis
+	listTeeTimeLockRedis := getTeeTimeLockRedis(query.CourseUid, query.BookingDate, query.TeeType)
 
-	list, _, _ := lockTeeTime.FindList(db, query.RequestType)
-
-	if len(list) == 0 {
-		response_message.BadRequest(c, "TeeTime not found")
+	if len(listTeeTimeLockRedis) == 0 {
+		response_message.BadRequestFreeMessage(c, "Not Found Tee Time")
 		return
 	}
 
-	for _, data := range list {
-		err := data.Delete(db)
-		if err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
+	for _, teeTime := range listTeeTimeLockRedis {
+		if teeTime.CurrentTeeTime == query.TeeTime {
+			list = append(list, teeTime)
 		}
 	}
 
+	for _, teeTime := range list {
+		teeTimeRedisKey := getKeyTeeTimeLockRedis(query.BookingDate, query.CourseUid, teeTime.TeeTime, teeTime.TeeType)
+		err := datasources.DelCacheByKey(teeTimeRedisKey)
+		log.Print(err)
+	}
 	okRes(c)
 }

@@ -466,6 +466,10 @@ func Contains[T comparable](s []T, e T) bool {
 	return false
 }
 
+func Remove[T comparable](slice []T, s int) []T {
+	return append(slice[:s], slice[s+1:]...)
+}
+
 func removeDuplicateStr(str []string) []string {
 	keys := make(map[string]bool)
 	list := []string{}
@@ -529,23 +533,24 @@ func CalculateFeeByHole(hole int, fee int64, rateRaw string) int64 {
 	return int64(float64(fee) * parseRate)
 }
 
-/* trong Go thì Sunday = 0
-		// A Weekday specifies a day of the week (Sunday = 0, ...).
-	type Weekday int
+/*
+	 trong Go thì Sunday = 0
+			// A Weekday specifies a day of the week (Sunday = 0, ...).
+		type Weekday int
 
-	const (
-		Sunday Weekday = iota
-		Monday
-		Tuesday
-		Wednesday
-		Thursday
-		Friday
-		Saturday
-	)
-	Theo mockup dự án
-	Note
+		const (
+			Sunday Weekday = iota
+			Monday
+			Tuesday
+			Wednesday
+			Thursday
+			Friday
+			Saturday
+		)
+		Theo mockup dự án
+		Note
 
-D.O.W được quy định như sau
+# D.O.W được quy định như sau
 
 là cấu hình bảng giá theo thứ
 
@@ -615,4 +620,19 @@ func VerifyPassword(s string) (bool, bool, bool, bool) {
 	}
 	// eightOrMore = letters >= 8
 	return eightOrMore, number, upper, special
+}
+
+func ConvertStringToIntArray(data string) ListInt {
+	if data == "" {
+		return ListInt{}
+	}
+	trimmed := strings.Trim(data, "[]")
+	strings := strings.Split(trimmed, ",")
+	ints := make([]int, len(strings))
+
+	for i, s := range strings {
+		ints[i], _ = strconv.Atoi(s)
+	}
+
+	return ints
 }

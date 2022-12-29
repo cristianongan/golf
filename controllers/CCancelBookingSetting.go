@@ -69,6 +69,8 @@ func (_ *CCancelBookingSetting) DeleteCancelBookingSetting(c *gin.Context, prof 
 
 	cancelBookingSetting := model_booking.CancelBookingSetting{}
 	cancelBookingSetting.Type = cancelBookingSettingIdIncrement
+	cancelBookingSetting.PartnerUid = prof.PartnerUid
+	cancelBookingSetting.CourseUid = prof.CourseUid
 	list, _, errF := cancelBookingSetting.FindList(db)
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())
@@ -123,6 +125,8 @@ func (_ *CCancelBookingSetting) UpdateCancelBookingSetting(c *gin.Context, prof 
 	for _, body := range bodyCollection {
 		cancelBooking := model_booking.CancelBookingSetting{}
 		cancelBooking.Id = body.Id
+		cancelBooking.PartnerUid = prof.PartnerUid
+		cancelBooking.CourseUid = prof.CourseUid
 		errF := cancelBooking.FindFirst(db)
 		if errF != nil {
 			response_message.BadRequest(c, errF.Error())
