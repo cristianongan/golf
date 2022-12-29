@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"start/constants"
 	"start/controllers/request"
@@ -110,6 +111,8 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
+		removeRowIndexRedis(booking)
+
 		if booking.BagStatus != constants.BAG_STATUS_BOOKING {
 			response_message.InternalServerError(c, booking.Uid+" did check in")
 			return
@@ -128,6 +131,21 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		}
 		if body.TurnTime != "" {
 			booking.TurnTime = body.TurnTime
+		}
+
+		teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, booking.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
+		rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+		rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+
+		if len(rowIndexsRedis) < constants.SLOT_TEE_TIME {
+			rowIndex := generateRowIndex(rowIndexsRedis)
+			booking.RowIndex = &rowIndex
+			rowIndexsRedis = append(rowIndexsRedis, rowIndex)
+			rowIndexsRaw, _ := rowIndexsRedis.Value()
+			errRedis := datasources.SetCache(teeTimeRowIndexRedis, rowIndexsRaw, 0)
+			if errRedis != nil {
+				log.Println("CreateBookingCommon errRedis", errRedis)
+			}
 		}
 
 		//Check duplicated
