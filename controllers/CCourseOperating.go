@@ -1415,6 +1415,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
 	booking.TimeOutFlight = time.Now().Unix()
 	booking.HoleTimeOut = int(body.HolePlayed)
+	booking.HoleMoveFlight = body.HoleMoveFlight
 	booking.MovedFlight = setBoolForCursor(true)
 	errBookingUpd := booking.Update(db)
 	if errBookingUpd != nil {
@@ -1427,7 +1428,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	newBooking := cloneToBooking(booking)
 	newBooking.MovedFlight = setBoolForCursor(false)
 	newBooking.HoleTimeOut = 0
-	newBooking.HoleMoveFlight = body.HoleMoveFlight
+	newBooking.HoleMoveFlight = 0
 	newBooking.BagStatus = constants.BAG_STATUS_IN_COURSE
 	newBooking.FlightId = body.FlightId
 	newBooking.TimeOutFlight = 0

@@ -95,7 +95,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			log.Println("CreateBookingCommon errRedis", errRedis)
 		}
 	}
-
 	// check trạng thái Tee Time
 	// if body.TeeTime != "" && !body.BookFromOTA {
 	// 	teeTime := models.LockTeeTime{}
