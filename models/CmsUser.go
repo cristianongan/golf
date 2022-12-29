@@ -154,3 +154,12 @@ func (item *CmsUser) FindUserLocked() ([]CmsUser, int64, error) {
 	db = db.Find(&list)
 	return list, total, db.Error
 }
+
+func (item *CmsUser) GetKeyRedisPermission() string {
+	return datasources.GetPrefixRedisKeyUserRolePermission() + item.PartnerUid + "_" + item.CourseUid + "_" + item.Uid
+}
+
+func (item *CmsUser) SaveKeyRedisPermission(lisPermission []string) {
+	json, _ := json.Marshal(lisPermission)
+	datasources.SetCache(item.GetKeyRedisPermission(), string(json), constants.TIME_REDIS_PERMISION)
+}
