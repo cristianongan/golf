@@ -79,9 +79,9 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, body.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
 	log.Println("CreateBookingCommon teeTimeRowIndexRedis", teeTimeRowIndexRedis)
 	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
-	log.Println("CreateBookingCommon rowIndexsRedisStr", teeTimeRowIndexRedis)
+	log.Println("CreateBookingCommon rowIndexsRedisStr", rowIndexsRedisStr)
 	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
-	log.Println("CreateBookingCommon rowIndexsRedis", teeTimeRowIndexRedis)
+	log.Println("CreateBookingCommon rowIndexsRedis", rowIndexsRedis)
 
 	if len(rowIndexsRedis) < constants.SLOT_TEE_TIME {
 		if body.RowIndex == nil {
