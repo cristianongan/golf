@@ -1412,6 +1412,28 @@ func generateRowIndex(rowsCurrent []int) int {
 }
 
 /*
+Tạo row index cho booking
+*/
+func removeRowIndexRedis(booking model_booking.Booking) {
+	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(booking.BookingDate, booking.CourseUid, booking.TeeTime, booking.TeeType+booking.CourseType)
+	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+	newRowIndexsRedis := utils.ListInt{}
+
+	for _, item := range rowIndexsRedis {
+		if item != *booking.RowIndex {
+			newRowIndexsRedis = append(newRowIndexsRedis, item)
+		}
+	}
+
+	rowIndexsRaw, _ := rowIndexsRedis.Value()
+	errRedis := datasources.SetCache(teeTimeRowIndexRedis, rowIndexsRaw, 0)
+	if errRedis != nil {
+		log.Println("CreateBookingCommon errRedis", errRedis)
+	}
+}
+
+/*
 Check Tee Time chỗ để booking không
 */
 func checkTeeTimeAvailable(booking model_booking.Booking) bool {
