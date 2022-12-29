@@ -1540,8 +1540,30 @@ func (cBooking *CBooking) FinishBill(c *gin.Context, prof models.CmsUser) {
 		return prev + item.Paid
 	})
 
-	if cashTotal != 0 && booking.CustomerUid != "" {
-		callservices.TransferFast(constants.PAYMENT_TYPE_CASH, cashTotal, "", booking.CustomerUid, booking.CustomerName)
+	if cashTotal != 0 {
+		if booking.CustomerUid == "" {
+			uid := utils.HashCodeUuid(uuid.New().String())
+			customerBody := request.CustomerBody{
+				MaKh:      uid,
+				TenKh:     booking.CustomerName,
+				MaSoThue:  booking.CustomerInfo.Mst,
+				DiaChi:    "ddddddd",
+				Tk:        "",
+				DienThoai: booking.CustomerInfo.Phone,
+				Fax:       booking.CustomerInfo.Fax,
+				EMail:     booking.CustomerInfo.Email,
+				DoiTac:    "",
+				NganHang:  "",
+				TkNh:      "",
+			}
+
+			check, _ := callservices.CreateCustomer(customerBody)
+			if check {
+				callservices.TransferFast(constants.PAYMENT_TYPE_CASH, cashTotal, "", uid, booking.CustomerName, body.BillNo)
+			}
+		} else {
+			callservices.TransferFast(constants.PAYMENT_TYPE_CASH, cashTotal, "", booking.CustomerUid, booking.CustomerName, body.BillNo)
+		}
 	}
 
 	if otherTotal != 0 {
