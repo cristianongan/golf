@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 	"start/auth"
@@ -180,18 +181,28 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 	role := model_role.Role{}
 	if user.RoleId > 0 {
 		role.Id = user.RoleId
-		errFR := role.FindFirst()
-		if errFR == nil {
-			rolePR := model_role.RolePermission{
-				RoleId: role.Id,
-			}
-			listPermission, errRolePR := rolePR.FindAll()
-			if errRolePR == nil {
-				for _, v := range listPermission {
-					listPerMis = append(listPerMis, v.PermissionUid)
+
+		key := user.GetKeyRedisPermission()
+		listPer, _ := datasources.GetCache(key)
+
+		if len(listPer) > 0 {
+			_ = json.Unmarshal([]byte(listPer), &listPerMis)
+		} else {
+			errFR := role.FindFirst()
+			if errFR == nil {
+				rolePR := model_role.RolePermission{
+					RoleId: role.Id,
+				}
+				listPermission, errRolePR := rolePR.FindAll()
+				if errRolePR == nil {
+					for _, v := range listPermission {
+						listPerMis = append(listPerMis, v.PermissionUid)
+					}
 				}
 			}
+			user.SaveKeyRedisPermission(listPerMis)
 		}
+
 	} else {
 		if user.RoleId == -1 {
 			// Root Account
@@ -379,9 +390,29 @@ func (_ *CCmsUser) UpdateCmsUser(c *gin.Context, prof models.CmsUser) {
 	}
 
 	errUdp := cmsUser.Update()
+
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
+	}
+
+	if body.RoleId > 0 {
+		role := model_role.Role{}
+		role.Id = cmsUser.RoleId
+		errFR := role.FindFirst()
+		listPerMis := utils.ListString{}
+		if errFR == nil {
+			rolePR := model_role.RolePermission{
+				RoleId: role.Id,
+			}
+			listPermission, errRolePR := rolePR.FindAll()
+			if errRolePR == nil {
+				for _, v := range listPermission {
+					listPerMis = append(listPerMis, v.PermissionUid)
+				}
+			}
+		}
+		cmsUser.SaveKeyRedisPermission(listPerMis)
 	}
 
 	okResponse(c, cmsUser)
