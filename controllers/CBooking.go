@@ -77,8 +77,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, body.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
+	log.Println("CreateBookingCommon teeTimeRowIndexRedis", teeTimeRowIndexRedis)
 	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+	log.Println("CreateBookingCommon rowIndexsRedisStr", teeTimeRowIndexRedis)
 	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+	log.Println("CreateBookingCommon rowIndexsRedis", teeTimeRowIndexRedis)
 
 	if len(rowIndexsRedis) < constants.SLOT_TEE_TIME {
 		if body.RowIndex == nil {
@@ -88,7 +91,9 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		rowIndexsRedis = append(rowIndexsRedis, *body.RowIndex)
 		rowIndexsRaw, _ := rowIndexsRedis.Value()
 		errRedis := datasources.SetCache(teeTimeRowIndexRedis, rowIndexsRaw, 0)
-		log.Println(errRedis)
+		if errRedis != nil {
+			log.Println("CreateBookingCommon errRedis", errRedis)
+		}
 	}
 
 	// check trạng thái Tee Time
