@@ -744,7 +744,8 @@ func NewRouter() *gin.Engine {
 			/// =================== Test ===================
 			cTest := new(controllers.CTest)
 			cmsApiAuthorized.POST("/test/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cTest.CreateRevenueDetail))
-			cmsApiAuthorized.GET("/test", middlewares.AuthorizedCmsUserHandler(cTest.Test))
+			cmsApiAuthorized.GET("/test", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
+			cmsApiAuthorized.GET("/test-func", middlewares.AuthorizedCmsUserHandler(cTest.TestFunc))
 		}
 
 		// ----------------------------------------------------------

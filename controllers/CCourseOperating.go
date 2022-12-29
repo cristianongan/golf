@@ -543,6 +543,7 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if len(caddieList) > 0 {
+		// Update node caddie
 		go updateCaddieOutSlot(partnerUid, courseUid, caddieList)
 	}
 
@@ -635,6 +636,7 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 	}
 
 	if booking.CaddieId > 0 {
+		// Update node caddie
 		caddieList := []string{booking.BuggyInfo.Code}
 		go updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
 	}
@@ -896,6 +898,7 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 			Note:       "",
 		}
 
+		// Update node caddie
 		caddieList := []string{oldCaddie.Code}
 		go updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
 
