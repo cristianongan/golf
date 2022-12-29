@@ -354,6 +354,11 @@ func (item *Booking) UpdateBagGolfFee() {
 func (item *Booking) UpdateMushPay(db *gorm.DB) {
 	mushPay := BookingMushPay{}
 
+	if item.AgencyPaidAll != nil && *item.AgencyPaidAll {
+		item.MushPayInfo = mushPay
+		return
+	}
+
 	if item.CustomerType == constants.BOOKING_CUSTOMER_TYPE_FOC {
 		item.MushPayInfo = mushPay
 		return
