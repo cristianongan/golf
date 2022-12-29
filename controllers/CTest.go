@@ -266,7 +266,7 @@ func (cBooking *CTest) Test1(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 }
-func (cBooking *CTest) Test(c *gin.Context, prof models.CmsUser) {
+func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
@@ -313,4 +313,8 @@ func (cBooking *CTest) Test(c *gin.Context, prof models.CmsUser) {
 	// newFsConfigBytes, _ := json.Marshal(notiData)
 	// // socket.HubBroadcastSocket = socket.NewHub()
 	// socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+}
+
+func (cBooking *CTest) TestFunc(c *gin.Context, prof models.CmsUser) {
+	go updateCaddieOutSlot("CHI-LINH", "CHI-LINH-01", []string{"01"})
 }

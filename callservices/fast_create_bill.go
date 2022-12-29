@@ -55,12 +55,12 @@ func CreateFastCashVoucher(body response.FastBillBody) (bool, response.FastBillR
 	return ok, customers
 }
 
-func TransferFast(paymentType string, price int64, note, customerUid, customerName string) {
+func TransferFast(paymentType string, price int64, note, customerUid, customerName, billNo string) (bool, response.FastBillRes) {
 	idOnes := "CL" + utils.HashCodeUuid(uuid.New().String())
 	body := response.FastBillBody{
 		IdOnes:       idOnes,
 		MaDVCS:       "CTY",
-		SoCT:         "",
+		SoCT:         billNo,
 		NgayCt:       time.Now().Format("2006-01-02T15:04:05.000Z"),
 		MaNT:         "VND",
 		TyGia:        1,
@@ -77,9 +77,12 @@ func TransferFast(paymentType string, price int64, note, customerUid, customerNa
 		},
 	}
 
+	check := false
+	res := response.FastBillRes{}
 	if paymentType == constants.PAYMENT_TYPE_CASH {
-		CreateFastCashVoucher(body)
+		check, res = CreateFastCashVoucher(body)
 	} else {
-		CreateFastBankCredit(body)
+		check, res = CreateFastBankCredit(body)
 	}
+	return check, res
 }
