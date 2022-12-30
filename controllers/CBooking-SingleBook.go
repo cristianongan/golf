@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"net/http"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -95,6 +95,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	listBookingReadyMoved := []model_booking.Booking{}
+	cloneListBooking := []model_booking.Booking{}
 
 	for _, BookingUid := range body.BookUidList {
 		if BookingUid == "" {
@@ -110,10 +111,36 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
+		if booking.TeeTime == body.TeeTime {
+			response_message.InternalServerError(c, body.TeeTime+" moved")
+			return
+		}
+
 		if booking.BagStatus != constants.BAG_STATUS_BOOKING {
 			response_message.InternalServerError(c, booking.Uid+" did check in")
 			return
 		}
+
+		teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, booking.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
+		rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+		rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+
+		if len(rowIndexsRedis) < constants.SLOT_TEE_TIME {
+			rowIndex := generateRowIndex(rowIndexsRedis)
+			booking.RowIndex = &rowIndex
+			rowIndexsRedis = append(rowIndexsRedis, rowIndex)
+			rowIndexsRaw, _ := rowIndexsRedis.Value()
+			errRedis := datasources.SetCache(teeTimeRowIndexRedis, rowIndexsRaw, 0)
+			if errRedis != nil {
+				log.Println("CreateBookingCommon errRedis", errRedis)
+			}
+		} else {
+			response_message.BadRequest(c, body.TeeTime+" "+" is Full")
+			return
+		}
+
+		cloneListBooking = append(cloneListBooking, booking)
+
 		if body.TeeTime != "" {
 			booking.TeeTime = body.TeeTime
 		}
@@ -128,6 +155,9 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		}
 		if body.TurnTime != "" {
 			booking.TurnTime = body.TurnTime
+		}
+		if body.TeePath != "" {
+			booking.TeePath = body.TeePath
 		}
 
 		//Check duplicated
@@ -144,11 +174,6 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			booking.Hole = body.Hole
 		}
 
-		if !checkTeeTimeAvailable(booking) {
-			response_message.ErrorResponse(c, http.StatusBadRequest, "TEE_TIME_SLOT_FULL", "", http.StatusBadRequest)
-			return
-		}
-
 		listBookingReadyMoved = append(listBookingReadyMoved, booking)
 	}
 
@@ -158,8 +183,15 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.InternalServerError(c, errUdp.Error())
 			return
 		}
+		go updateSlotTeeTimeWithLock(booking)
 	}
 
+	go func() {
+		for _, booking := range cloneListBooking {
+			removeRowIndexRedis(booking)
+			updateSlotTeeTimeWithLock(booking)
+		}
+	}()
 	okRes(c)
 }
 func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) {

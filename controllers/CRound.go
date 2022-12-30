@@ -387,6 +387,16 @@ func (cRound CRound) ChangeGuestyleOfRound(c *gin.Context, prof models.CmsUser) 
 	}
 	round.GuestStyle = body.GuestStyle
 
+	// Update lại GS booking
+	go func() {
+		Rround := models.Round{}
+		Rround.BillCode = booking.BillCode
+		list, _ := Rround.FindAll(db)
+
+		if round.Index == len(list)-1 {
+			booking.GuestStyle = body.GuestStyle
+		}
+	}()
 	// Update giá
 	cRound.UpdateListFeePriceInRound(c, db, &booking, body.GuestStyle, &round, round.Hole)
 
