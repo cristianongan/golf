@@ -747,6 +747,8 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/test/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cTest.CreateRevenueDetail))
 			cmsApiAuthorized.GET("/test", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
 			cmsApiAuthorized.GET("/test-func", middlewares.AuthorizedCmsUserHandler(cTest.TestFunc))
+			cmsApiAuthorized.GET("/test-fast-customer", middlewares.AuthorizedCmsUserHandler(cTest.TestFastCustomer))
+			cmsApiAuthorized.GET("/test-fast-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFastFee))
 		}
 
 		// ----------------------------------------------------------
