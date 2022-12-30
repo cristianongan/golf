@@ -1426,10 +1426,17 @@ func removeRowIndexRedis(booking model_booking.Booking) {
 		}
 	}
 
-	rowIndexsRaw, _ := rowIndexsRedis.Value()
-	errRedis := datasources.SetCache(teeTimeRowIndexRedis, rowIndexsRaw, 0)
-	if errRedis != nil {
-		log.Println("CreateBookingCommon errRedis", errRedis)
+	if len(newRowIndexsRedis) > 0 {
+		rowIndexsRaw, _ := newRowIndexsRedis.Value()
+		errRedis := datasources.SetCache(teeTimeRowIndexRedis, rowIndexsRaw, 0)
+		if errRedis != nil {
+			log.Println("CreateBookingCommon errRedis", errRedis)
+		}
+	} else {
+		errRedis := datasources.DelCacheByKey(teeTimeRowIndexRedis)
+		if errRedis != nil {
+			log.Println("CreateBookingCommon errRedis", errRedis)
+		}
 	}
 }
 
