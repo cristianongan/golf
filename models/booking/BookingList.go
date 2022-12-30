@@ -417,3 +417,21 @@ func (item *BookingList) FindListBookingWithBuggy(database *gorm.DB, page models
 
 	return list, total, db.Error
 }
+
+func (item *BookingList) FindReportBookingList(database *gorm.DB, page models.Page) ([]Booking, int64, error) {
+	var list []Booking
+	total := int64(0)
+
+	db := database.Model(Booking{})
+
+	db = addFilter(db, item, false)
+	db = db.Order("STR_TO_DATE(tee_time, '%H:%i') asc")
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, total, db.Error
+}
