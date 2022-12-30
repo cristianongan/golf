@@ -110,7 +110,13 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 			return
 		}
 
-		hashPass, errHash := utils.GeneratePassword(body.Password)
+		passw, errDec := utils.DecryptAES([]byte(config.GetPassSecretKey()), body.Password)
+		if errDec != nil {
+			response_message.BadRequest(c, errDec.Error())
+			return
+		}
+
+		hashPass, errHash := utils.GeneratePassword(passw)
 		if errHash != nil {
 			response_message.BadRequest(c, errHash.Error())
 			return
