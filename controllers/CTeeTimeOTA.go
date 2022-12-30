@@ -335,6 +335,7 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 		TeeTimeStatus:  constants.TEE_TIME_LOCKED,
 		Slot:           body.NumBook,
 		Type:           constants.BOOKING_OTA,
+		Note:           "Khóa từ Booking OTA",
 		ModelId: models.ModelId{
 			CreatedAt: teeTimeSetting.CreatedAt,
 		},
