@@ -319,7 +319,11 @@ func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 }
 
 func (cBooking *CTest) TestFunc(c *gin.Context, prof models.CmsUser) {
-	go updateCaddieOutSlot("CHI-LINH", "CHI-LINH-01", []string{"01"})
+	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex("31/12/2022", "CHI-LINH-01", "06:34", "1A")
+	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+
+	okResponse(c, rowIndexsRedis)
 }
 
 func (cBooking *CTest) TestFastCustomer(c *gin.Context, prof models.CmsUser) {
