@@ -377,8 +377,9 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 	mainPaidOtherFee := false
 	mainCheckOutTime := int64(0)
 
-	mainBagPaid := int64(0)
+	feePaid := int64(0) // Giá đã được trả bởi agency or main bag
 	buggyCaddieAgencyPaid := item.GetAgencyService()
+	feePaid += item.GetAgencyService()
 
 	// Tính giá của khi có main bag
 	if len(item.MainBags) > 0 {
@@ -413,12 +414,14 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 					// main bag đã check out đi về, sub bag chơi tiếp thì vẫn tính tiền
 					if mainCheckOutTime > 0 && round.CreatedAt > mainCheckOutTime {
 						listRoundGolfFee = append(listRoundGolfFee, round)
+					} else {
+						// main bag trả cho round1
+						feePaid += round.GetAmountGolfFee()
 					}
 				}
-			}
-
-			if mainPaidRound1 {
-				mainBagPaid += round.GetAmountGolfFee()
+			} else {
+				// Agency trả cho round1
+				feePaid += round.GetAmountGolfFee()
 			}
 
 		} else if round.Index == 2 {
@@ -429,13 +432,11 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 				// main bag đã check out đi về, sub bag chơi tiếp thì vẫn tính tiền
 				if mainCheckOutTime > 0 && round.CreatedAt > mainCheckOutTime {
 					listRoundGolfFee = append(listRoundGolfFee, round)
+				} else {
+					// main bag trả cho round2
+					feePaid += round.GetAmountGolfFee()
 				}
 			}
-
-			if mainPaidRound2 {
-				mainBagPaid += round.GetAmountGolfFee()
-			}
-
 		} else {
 			listRoundGolfFee = append(listRoundGolfFee, round)
 		}
@@ -524,8 +525,8 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 				}
 			}
 
-			if !isNeedPay {
-				mainBagPaid += v.Amount
+			if !isNeedPay && !isBuggyCaddieRental {
+				feePaid += v.Amount
 			}
 
 		} else {
@@ -540,6 +541,7 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 	buggyCaddieRentalMushPay := buggyCaddieRentalFee - buggyCaddieAgencyPaid
 
 	if mainPaidRental {
+		feePaid += buggyCaddieRentalMushPay
 		buggyCaddieRentalMushPay = 0
 	}
 
@@ -556,7 +558,7 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 	}
 
 	item.MushPayInfo = mushPay
-	item.CurrentBagPrice.MainBagPaid = mainBagPaid
+	item.CurrentBagPrice.MainBagPaid = feePaid
 	// Update date lại giá USD
 	currencyPaidGet := models.CurrencyPaid{
 		Currency: "usd",

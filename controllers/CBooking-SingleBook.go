@@ -78,9 +78,12 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	_, errDate := time.Parse(constants.DATE_FORMAT_1, body.BookingDate)
-	if errDate != nil {
-		response_message.BadRequest(c, "Booking Date format invalid!")
+	bookingDateInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, body.BookingDate)
+	nowStr, _ := utils.GetLocalTimeFromTimeStamp("", constants.DATE_FORMAT_1, time.Now().Unix())
+	nowUnix := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, nowStr)
+
+	if bookingDateInt < nowUnix {
+		response_message.BadRequest(c, constants.BOOKING_DATE_NOT_VALID)
 		return
 	}
 
@@ -120,6 +123,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.InternalServerError(c, booking.Uid+" did check in")
 			return
 		}
+		cloneListBooking = append(cloneListBooking, booking)
 
 		teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, booking.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
 		rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
@@ -138,8 +142,6 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.BadRequest(c, body.TeeTime+" "+" is Full")
 			return
 		}
-
-		cloneListBooking = append(cloneListBooking, booking)
 
 		if body.TeeTime != "" {
 			booking.TeeTime = body.TeeTime
@@ -164,9 +166,13 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		isDuplicated, errDupli := booking.IsDuplicated(db, true, false)
 		if isDuplicated {
 			if errDupli != nil {
+				// Có lỗi update lại redis
+				removeRowIndexRedis(booking)
 				response_message.DuplicateRecord(c, errDupli.Error())
 				return
 			}
+			// Có lỗi update lại redis
+			removeRowIndexRedis(booking)
 			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 			return
 		}
