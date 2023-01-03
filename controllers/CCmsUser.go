@@ -171,6 +171,9 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 		log.Println("cmsUserToken.Create: ", errCreate)
 	}
 
+	key := datasources.GetRedisKeyUserLogin(user.UserName)
+	datasources.DelCacheByKey(key)
+
 	courseInfo := models.Course{}
 	if user.CourseUid != "" {
 		courseInfo.Uid = user.CourseUid
