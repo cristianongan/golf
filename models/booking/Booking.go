@@ -1041,6 +1041,15 @@ func (item *Booking) FindListServiceItems(database *gorm.DB, param GetListBookin
 	if param.ServiceType != "" {
 		db = db.Where("booking_service_items.type = ?", param.ServiceType)
 	}
+
+	if param.FromDate != "" {
+		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') >= ?", param.FromDate)
+	}
+
+	if param.ToDate != "" {
+		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') <= ?", param.ToDate)
+	}
+
 	db = db.Joins("RIGHT JOIN booking_service_items ON booking_service_items.booking_uid = bookings.uid")
 	db = db.Order("booking_service_items.created_at desc")
 	db = db.Group("booking_service_items.bill_code")

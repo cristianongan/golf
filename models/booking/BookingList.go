@@ -290,7 +290,6 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 		db = db.Where("customer_type NOT IN (?) ", customerType)
 	}
 
-	db = db.Not("added_round = ?", true)
 	return db
 }
 
@@ -317,6 +316,7 @@ func (item *BookingList) FindBookingListWithSelect(database *gorm.DB, page model
 	db := database.Model(Booking{})
 
 	db = addFilter(db, item, isGroupBillCode)
+	db = db.Not("added_round = ?", true)
 
 	db.Count(&total)
 
