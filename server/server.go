@@ -54,6 +54,7 @@ func Init() {
 	// importDataMemberCardType()
 	// importDataMemberCard()
 	// importDataAgencies()
+	// importDataCaddies()
 
 	r := NewRouter()
 
