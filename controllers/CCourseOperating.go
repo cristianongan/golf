@@ -985,6 +985,11 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		return
 	}
 
+	if booking.BuggyInfo.Code == body.BuggyCode {
+		response_message.BadRequestFreeMessage(c, "Bag đang dùng buggy "+body.BuggyCode)
+		return
+	}
+
 	// validate buggy_code
 	buggyNew := models.Buggy{}
 	buggyNew.CourseUid = prof.CourseUid
@@ -1005,7 +1010,7 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 			log.Println(err.Error())
 		}
 
-		go updateBagShareEmptyWhenChangeBuggy(booking, db)
+		go updateBagShareEmptyWhenChangeBuggy(booking)
 
 		// Udp Note
 		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
@@ -1039,12 +1044,12 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		return
 	}
 
-	go updateBagShareWhenChangeBuggy(booking, db, prof, body.IsPrivateBuggy)
+	go updateBagShareWhenChangeBuggy(booking, prof, body.IsPrivateBuggy)
 
 	okResponse(c, booking)
 }
 
-func updateBagShareWhenChangeBuggy(booking model_booking.Booking, db *gorm.DB, prof models.CmsUser, IsPrivateBuggy bool) {
+func updateBagShareWhenChangeBuggy(booking model_booking.Booking, prof models.CmsUser, IsPrivateBuggy bool) {
 	var bagShare = ""
 	buggyCommonCode := fmt.Sprint(time.Now().UnixNano())
 
@@ -1055,7 +1060,10 @@ func updateBagShareWhenChangeBuggy(booking model_booking.Booking, db *gorm.DB, p
 	}
 
 	// Tìm kiếm booking đang sử dụng buggy
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	db1, _, _ := bookingR.FindAllBookingList(db)
+	db1 = db1.Where("bag <> ?", booking.Bag)
+
 	bookingList := []model_booking.Booking{}
 	db1.Find(&bookingList)
 
@@ -1072,7 +1080,7 @@ func updateBagShareWhenChangeBuggy(booking model_booking.Booking, db *gorm.DB, p
 			lastItem := list[0]
 			lastItem.BagShareBuggy = booking.Bag
 			lastItem.BuggyCommonCode = buggyCommonCode
-			if err := lastItem.Update(db1); err != nil {
+			if err := lastItem.Update(db); err != nil {
 				return
 			}
 		}
@@ -1093,7 +1101,7 @@ func updateBagShareWhenChangeBuggy(booking model_booking.Booking, db *gorm.DB, p
 	addBuggyCaddieInOutNote(db, caddieBuggyInNote)
 }
 
-func updateBagShareEmptyWhenChangeBuggy(booking model_booking.Booking, db *gorm.DB) {
+func updateBagShareEmptyWhenChangeBuggy(booking model_booking.Booking) {
 	bookingR := model_booking.BookingList{
 		BookingDate: booking.BookingDate,
 		BuggyId:     booking.BuggyId,
@@ -1101,7 +1109,10 @@ func updateBagShareEmptyWhenChangeBuggy(booking model_booking.Booking, db *gorm.
 	}
 
 	// Tìm kiếm booking đang sử dụng buggy
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	db1, _, _ := bookingR.FindAllBookingList(db)
+	db1 = db1.Where("bag <> ?", booking.Bag)
+
 	bookingList := []model_booking.Booking{}
 	db1.Find(&bookingList)
 
@@ -1116,7 +1127,7 @@ func updateBagShareEmptyWhenChangeBuggy(booking model_booking.Booking, db *gorm.
 		if total > 0 {
 			lastItem := list[0]
 			lastItem.BagShareBuggy = ""
-			if err := lastItem.Update(db1); err != nil {
+			if err := lastItem.Update(db); err != nil {
 				log.Println("updateBagShareEmptyWhenChangeBuggy update error")
 			}
 		}
