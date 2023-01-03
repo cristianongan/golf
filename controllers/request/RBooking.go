@@ -15,8 +15,8 @@ type GetListBookingSettingGroupForm struct {
 
 type GetListBookingSettingForm struct {
 	PageRequest
-	PartnerUid string `form:"partner_uid" binding:"required"`
-	CourseUid  string `form:"course_uid" binding:"required"`
+	PartnerUid string `form:"partner_uid"`
+	CourseUid  string `form:"course_uid"`
 	GroupId    int64  `form:"group_id"`
 	OnDate     string `form:"on_date"`
 }

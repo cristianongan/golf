@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
+	"start/callservices"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -17,6 +19,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/twharmon/slices"
 )
 
@@ -316,5 +319,42 @@ func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 }
 
 func (cBooking *CTest) TestFunc(c *gin.Context, prof models.CmsUser) {
-	go updateCaddieOutSlot("CHI-LINH", "CHI-LINH-01", []string{"01"})
+	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex("31/12/2022", "CHI-LINH-01", "06:34", "1A")
+	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+
+	okResponse(c, rowIndexsRedis)
+}
+
+func (cBooking *CTest) TestFastCustomer(c *gin.Context, prof models.CmsUser) {
+	uid := utils.HashCodeUuid(uuid.New().String())
+	customerBody := request.CustomerBody{
+		MaKh:   uid,
+		TenKh:  "Duy Tuan",
+		DiaChi: "ddddddd",
+	}
+
+	_, res := callservices.CreateCustomer(customerBody)
+
+	okResponse(c, res)
+}
+
+func (cBooking *CTest) TestFastFee(c *gin.Context, prof models.CmsUser) {
+	uid := utils.HashCodeUuid(uuid.New().String())
+	billNo := fmt.Sprint(time.Now().UnixMilli())
+	customerBody := request.CustomerBody{
+		MaKh:   uid,
+		TenKh:  "Duy Tuan",
+		DiaChi: "ddddddd",
+	}
+
+	check, customer := callservices.CreateCustomer(customerBody)
+	if check {
+		callservices.TransferFast(constants.PAYMENT_TYPE_CASH, 100000, "", uid, customerBody.TenKh, billNo)
+	}
+
+	res := map[string]interface{}{
+		"customer": customer,
+	}
+	okResponse(c, res)
 }

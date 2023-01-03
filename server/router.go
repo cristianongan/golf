@@ -740,12 +740,15 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/revenue/report-buggy", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBuggy))
 			cmsApiAuthorized.GET("/report/revenue/report-cashier-audit", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportCashierAudit))
 			cmsApiAuthorized.GET("/report/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportGolfFeeService))
+			cmsApiAuthorized.GET("/report/booking/list", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBookingList))
 
 			/// =================== Test ===================
 			cTest := new(controllers.CTest)
 			cmsApiAuthorized.POST("/test/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cTest.CreateRevenueDetail))
 			cmsApiAuthorized.GET("/test", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
 			cmsApiAuthorized.GET("/test-func", middlewares.AuthorizedCmsUserHandler(cTest.TestFunc))
+			cmsApiAuthorized.GET("/test-fast-customer", middlewares.AuthorizedCmsUserHandler(cTest.TestFastCustomer))
+			cmsApiAuthorized.GET("/test-fast-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFastFee))
 		}
 
 		// ----------------------------------------------------------

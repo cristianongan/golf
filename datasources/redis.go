@@ -99,7 +99,7 @@ func GetRedisKeyUserLogin(userName string) string {
 }
 
 func GetPrefixRedisKeyUserRolePermission() string {
-	return config.GetEnvironmentName() + "_" + "redis_user_login" + "_"
+	return config.GetEnvironmentName() + "_" + "permission" + "_"
 }
 
 func GetRedis() *redis.Client {
