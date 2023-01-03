@@ -135,6 +135,18 @@ func (item *CmsUser) FindList(page Page, search string, subRoles []int) ([]CmsUs
 	return list, total, db.Error
 }
 
+func (item *CmsUser) FindListWithRole() ([]CmsUser, int64, error) {
+	db := datasources.GetDatabaseAuth().Model(CmsUser{})
+	list := []CmsUser{}
+	total := int64(0)
+
+	db = db.Where("role_id = ?", item.RoleId)
+	db.Count(&total)
+	db = db.Find(&list)
+
+	return list, total, db.Error
+}
+
 func (item *CmsUser) Delete() error {
 	if item.Model.Uid == "" {
 		return errors.New("Primary key is undefined!")

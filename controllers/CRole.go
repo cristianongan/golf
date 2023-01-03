@@ -5,6 +5,7 @@ import (
 	"log"
 	"start/constants"
 	"start/controllers/request"
+	"start/datasources"
 	"start/models"
 	model_role "start/models/role"
 	"start/utils"
@@ -184,6 +185,17 @@ func (_ *CRole) UpdateRole(c *gin.Context, prof models.CmsUser) {
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
+	}
+
+	user := models.CmsUser{}
+	user.RoleId = role.Id
+	list, _, err := user.FindListWithRole()
+
+	if err != nil {
+		for _, e := range list {
+			key := e.GetKeyRedisPermission()
+			datasources.DelCacheByKey(key)
+		}
 	}
 
 	okResponse(c, role)
