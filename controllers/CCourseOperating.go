@@ -352,11 +352,6 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	// Udp Old Caddie
-	// for _, caddie := range listOldCaddie {
-	// 	udpCaddieOut(db, caddie.Id)
-	// }
-
 	//Update trạng thái của các old buggy
 	for _, buggy := range listOldBuggy {
 		//Update trạng thái của các old buggy
@@ -661,6 +656,11 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 	booking, err := cCourseOperating.validateBooking(db, body.BookingUid)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	if booking.CaddieInfo.Code == body.CaddieCode {
+		response_message.BadRequestFreeMessage(c, "Bag "+"đã ghép với "+body.CaddieCode)
 		return
 	}
 

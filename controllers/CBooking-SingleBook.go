@@ -285,20 +285,17 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 	db.Find(&list)
 
 	for _, booking := range list {
-		if booking.BagStatus != constants.BAG_STATUS_BOOKING {
-			response_message.InternalServerError(c, "Booking:"+booking.BookingDate+" did check in")
-			return
-		}
+		if booking.BagStatus == constants.BAG_STATUS_BOOKING {
+			booking.BagStatus = constants.BAG_STATUS_CANCEL
+			booking.CancelNote = form.Reason
+			booking.CancelBookingTime = time.Now().Unix()
+			booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
-		booking.BagStatus = constants.BAG_STATUS_CANCEL
-		booking.CancelNote = form.Reason
-		booking.CancelBookingTime = time.Now().Unix()
-		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
-
-		errUdp := booking.Update(db1)
-		if errUdp != nil {
-			response_message.InternalServerError(c, errUdp.Error())
-			return
+			errUdp := booking.Update(db1)
+			if errUdp != nil {
+				response_message.InternalServerError(c, errUdp.Error())
+				return
+			}
 		}
 	}
 	okRes(c)
