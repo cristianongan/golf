@@ -1,0 +1,482 @@
+[
+  {
+      "type": "TRADITIONAL",
+      "short_name": "AIP",
+      "name": "CÔNG TY TNHH PHÁT TRIỂN ĐẦU TƯ VÀ THƯƠNG MẠI A.I.P",
+      "province": "Hà Nội",
+      "primary_contact_first": {
+          "name": "Ms Liên",
+          "job_title": "Sales",
+          "direct_phone": "0985659887",
+          "mail": "golf@vietnamgolf.vn"
+      },
+      "primary_contact_second": {
+          "name": "Mr. Nguyễn Văn Mạnh",
+          "job_title": "Giám Đốc",
+          "direct_phone": "0989127638",
+          "mail": "golf@vietnamgolf.vn"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "golf@vietnamgolf.vn",
+          "tax_code": "0101 641 176",
+          "contract_address": "Tầng 1, V-Tower, 649 Kim Mã, phường Ngọc Khánh, quận Ba Đình, TP Hà Nội, Việt Nam",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "Tầng 1, V-Tower, 649 Kim Mã, phường Ngọc Khánh, quận Ba Đình, TP Hà Nội, Việt Nam",
+          "rounds": "",
+          "note": ""
+      }
+  },
+  {
+      "type": "TRADITIONAL",
+      "short_name": "ST PHƯƠNG ĐÔNG",
+      "name": "CÔNG TY CỔ PHẦN THỂ THAO PHƯƠNG ĐÔNG",
+      "province": "Hà Nội",
+      "primary_contact_first": {
+          "name": "Mr Mừng",
+          "job_title": "Sales",
+          "direct_phone": "0949843454",
+          "mail": "ducmungnguyen@gmail.com"
+      },
+      "primary_contact_second": {
+          "name": "Ông Nguyễn Thanh Cương",
+          "job_title": "Giám Đốc",
+          "direct_phone": "02437857889",
+          "mail": "ducmungnguyen@gmail.com"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "ducmungnguyen@gmail.com",
+          "tax_code": "0102 294 599",
+          "contract_address": "Sân tập golf Phương Đông, phố Tân Mỹ, Phường Cầu Diễn, Quận Nam Từ Liêm, Tp Hà Nội",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "Sân tập golf Phương Đông, phố Tân Mỹ, Phường Cầu Diễn, Quận Nam Từ Liêm, Tp Hà Nội",
+          "rounds": "",
+          "note": ""
+      }
+  },
+  {
+      "type": "TRADITIONAL",
+      "short_name": "HÀ VIỆT",
+      "name": "CÔNG TY CỔ PHẦN ĐẦU TƯ VÀ PHÁT TRIỂN DU LỊCH HÀ VIỆT",
+      "province": "Hà Nội",
+      "primary_contact_first": {
+          "name": "Ms Hằng",
+          "job_title": "Sales",
+          "direct_phone": "0949811807",
+          "mail": "havietbooking2018@gmail.com,, sales4@havietgolf.vn"
+      },
+      "primary_contact_second": {
+          "name": "Bà Đỗ Thị Thu Hà",
+          "job_title": "Giám đốc điều hành",
+          "direct_phone": "02435633939",
+          "mail": "havietbooking2018@gmail.com,, sales4@havietgolf.vn"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "havietbooking2018@gmail.com,, sales4@havietgolf.vn",
+          "tax_code": "0108 569 923",
+          "contract_address": "P803, tầng 8, tòa nhà Lake View Building, D10 Giảng Võ, Phường Giảng Võ, Quận Ba Đình, Hà Nội.",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "P803, tầng 8, tòa nhà Lake View Building, D10 Giảng Võ, Phường Giảng Võ, Quận Ba Đình, Hà Nội.",
+          "rounds": "",
+          "note": ""
+      }
+  },
+  {
+      "type": "TRADITIONAL",
+      "short_name": "DL PHI",
+      "name": "CÔNG TY CỔ PHẦN TRUYỀN THÔNG & DU LỊCH PHI (Tên cũ:CÔNG TY TNHH MARKETING AND MORES (ALEGOLF))",
+      "province": "Hà Nội",
+      "primary_contact_first": {
+          "name": "Ms. Phương Anh",
+          "job_title": "Sales",
+          "direct_phone": "0942099969",
+          "mail": "anhptp@alegolf.com"
+      },
+      "primary_contact_second": {
+          "name": "Bà Nguyễn Diệu Quỳnh",
+          "job_title": "Giám đốc",
+          "direct_phone": "019002093",
+          "mail": "quynhnd@alegolf.com"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "booking@alegolf.com, booking@alegolftour.com",
+          "tax_code": "0104 838886",
+          "contract_address": "Toà nhà PHI Building số 89 ngõ 27 Đại Cồ Việt, P. Cầu Dền, Q.Hai Bà Trưng, TP Hà Nội",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "Toà nhà PHI Building số 89 ngõ 27 Đại Cồ Việt, P. Cầu Dền, Q.Hai Bà Trưng, TP Hà Nội",
+          "rounds": "",
+          "note": ""
+      }
+  },
+  {
+      "type": "TRADITIONAL",
+      "short_name": "INTERGOLF",
+      "name": "CÔNG TY CỔ PHẦN ĐẦU TƯ THƯƠNG MẠI VÀ TRUYỀN THÔNG QUỐC TẾ (INTERGOLF)",
+      "province": "Hà Nội",
+      "primary_contact_first": {
+          "name": "Ms. Vân",
+          "job_title": "Sales",
+          "direct_phone": "0983.948.467",
+          "mail": "sales@intergolf.vn"
+      },
+      "primary_contact_second": {
+          "name": "Ông Trần Anh Đức",
+          "job_title": "Giám đốc",
+          "direct_phone": "(84-4)62888333",
+          "mail": "sales@intergolf.vn"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "sales@intergolf.vn",
+          "tax_code": "0105 590162",
+          "contract_address": "Tầng 3, số 18 Nguỵ Như Kon Tum, Thanh Xuân, Hà Nội",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "Tầng 3, số 18 Nguỵ Như Kon Tum, Thanh Xuân, Hà Nội",
+          "rounds": "",
+          "note": ""
+      }
+  },
+  {
+      "type": "TRADITIONAL",
+      "short_name": "AODAI NONI",
+      "name": "CÔNG TY TNHH ÁO DÀI NONI",
+      "province": "",
+      "primary_contact_first": {
+          "name": "Mr Lee Gyung Geun",
+          "job_title": "Sales",
+          "direct_phone": "0",
+          "mail": "aodainoni1@gmail.com"
+      },
+      "primary_contact_second": {
+          "name": "Mr. Kim Wan Su",
+          "job_title": "Giám đốc",
+          "direct_phone": "0793328660",
+          "mail": "aodainoni1@gmail.com"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "aodainoni1@gmail.com",
+          "tax_code": "0108 428 062",
+          "contract_address": "Ô số 2, Lô H29 Khu Đa Giác 4 phường Hùng Thắng, TP. Hạ Long, Quảng Ninh",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "Địa chỉ vp: Phòng 1401, Toà nhà 29T1, Hoàng Đạo Thuý, Cầu Giấy, Hà Nội",
+          "rounds": "",
+          "note": ""
+      }
+  },
+  {
+      "type": "TRADITIONAL",
+      "short_name": "VGS",
+      "name": "CÔNG TY CỔ PHẦN VGS BOOKING",
+      "province": "Hà Nội",
+      "primary_contact_first": {
+          "name": "Ms Ly",
+          "job_title": "Sales",
+          "direct_phone": "0975422957",
+          "mail": "lybui@vgsbooking.vn"
+      },
+      "primary_contact_second": {
+          "name": "Ông Nguyễn Trọng Khôi",
+          "job_title": "Phó Tổng giám đốc",
+          "direct_phone": "02471001088",
+          "mail": "lybui@vgsbooking.vn"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "lybui@vgsbooking.vn",
+          "tax_code": "0109 147 466",
+          "contract_address": "Số 20 đường Võ Chí Công, phường Nghĩa Đô, quận Cầu Giấy, thành phố Hà Nội",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "Số 20 đường Võ Chí Công, phường Nghĩa Đô, quận Cầu Giấy, thành phố Hà Nội",
+          "rounds": "",
+          "note": ""
+      }
+  },
+  {
+      "type": "TRADITIONAL",
+      "short_name": "BAYGOLF",
+      "name": "CÔNG TY CỔ PHẦN BAYGOLF",
+      "province": "Hà Nội",
+      "primary_contact_first": {
+          "name": "Ms Hoa",
+          "job_title": "Sales Man",
+          "direct_phone": "0868890929",
+          "mail": "hoatt@baygolf.vn, tuantt@baygolf.vn"
+      },
+      "primary_contact_second": {
+          "name": "Ông Nguyễn Đức Thắng",
+          "job_title": "Tổng Giám Đốc",
+          "direct_phone": "0974123098",
+          "mail": "hoatt@baygolf.vn, tuantt@baygolf.vn"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "hoatt@baygolf.vn, tuantt@baygolf.vn",
+          "tax_code": "0109657273",
+          "contract_address": "Tầng 7, toàn nhà MD Complex Tower, Số 68 đường Nguyễn Cơ Thạch, Phường Cầu Diễn, Quận Nam Từ Liêm, Thành Phố Hà Nội, Việt Nam.",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "Tầng 7, toàn nhà MD Complex Tower, Số 68 đường Nguyễn Cơ Thạch, Phường Cầu Diễn, Quận Nam Từ Liêm, Thành Phố Hà Nội, Việt Nam.",
+          "rounds": "",
+          "note": ""
+      }
+  },
+  {
+      "type": "TRADITIONAL",
+      "short_name": "WINGOLF",
+      "name": "CÔNG TY CỔ PHẦN WINGOLF",
+      "province": "Hà Nội",
+      "primary_contact_first": {
+          "name": "Ms. Hiên",
+          "job_title": "Sales",
+          "direct_phone": "0865909166",
+          "mail": "sale1@wingolf.vn"
+      },
+      "primary_contact_second": {
+          "name": "Ông Lý Quốc Huy",
+          "job_title": "Chủ tịch HĐQT",
+          "direct_phone": "0985092088",
+          "mail": "sale1@wingolf.vn"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "sale1@wingolf.vn",
+          "tax_code": "0109910007",
+          "contract_address": "Số 27, lô 1B, ngõ 60 Vũ Phạm Hàm, Phường Yên Hoà, Quận Cầu Giấy, thành phố Hà Nội",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "Số 27, lô 1B, ngõ 60 Vũ Phạm Hàm, Phường Yên Hoà, Quận Cầu Giấy, thành phố Hà Nội",
+          "rounds": "",
+          "note": ""
+      }
+  },
+  {
+      "type": "TRADITIONAL",
+      "short_name": "SK GOLF TOUR",
+      "name": "CÔNG TY TNHH SK GOLF TOUR",
+      "province": "",
+      "primary_contact_first": {
+          "name": "Mr. Hùng",
+          "job_title": "GĐ",
+          "direct_phone": "0393414778",
+          "mail": "nguyenthiyen7376@gmail.com, sk.vietnamoffice.golftour@gmail.com, hyung722000@naver.com"
+      },
+      "primary_contact_second": {
+          "name": "Ông Vũ Văn Hùng",
+          "job_title": "Giám đốc",
+          "direct_phone": "0393414778",
+          "mail": "nguyenthiyen7376@gmail.com, sk.vietnamoffice.golftour@gmail.com, hyung722000@naver.com"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "nguyenthiyen7376@gmail.com, sk.vietnamoffice.golftour@gmail.com, hyung722000@naver.com",
+          "tax_code": "0801376607",
+          "contract_address": "Số 267 đường Thanh Xuân, Phường Phả Lại, Thành phố Chí Linh, tỉnh Hải Dương",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "Số 267 đường Thanh Xuân, Phường Phả Lại, Thành phố Chí Linh, tỉnh Hải Dương",
+          "rounds": "",
+          "note": ""
+      }
+  },
+  {
+      "type": "TRADITIONAL",
+      "short_name": "ATTRAVEL",
+      "name": "CÔNG TY TNHH DỊCH VỤ DU LỊCH ANH TUẤN",
+      "province": "Hà Nội",
+      "primary_contact_first": {
+          "name": "Ms. Ngọc Anh",
+          "job_title": "Sales",
+          "direct_phone": "02437665618",
+          "mail": "thuky@attravel.vn, info@attravel.vn"
+      },
+      "primary_contact_second": {
+          "name": "Ông Nguyễn Quốc Anh",
+          "job_title": "Giám đốc",
+          "direct_phone": "04376656180",
+          "mail": "thuky@attravel.vn, info@attravel.vn"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "thuky@attravel.vn, info@attravel.vn",
+          "tax_code": "0100366128",
+          "contract_address": "Số 67 ngõ 7 đường Phạm Hùng, Phường Dịch Vọng Hậu, Quận Cầu Giấy, Hà Nội",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "Số 67 ngõ 7 đường Phạm Hùng, Phường Dịch Vọng Hậu, Quận Cầu Giấy, Hà Nội",
+          "rounds": "",
+          "note": ""
+      }
+  },
+  {
+      "type": "TRADITIONAL",
+      "short_name": "HANK ",
+      "name": "HANK GOLF CO.,LTD",
+      "province": "",
+      "primary_contact_first": {
+          "name": "Mr Daniel ",
+          "job_title": "Representative",
+          "direct_phone": "0",
+          "mail": "hankgolfpapaclub@gmail.com"
+      },
+      "primary_contact_second": {
+          "name": "Ông Jeon Dae Man",
+          "job_title": "Chủ tịch",
+          "direct_phone": "+82 25213700",
+          "mail": "hankgolfpapaclub@gmail.com"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "hankgolfpapaclub@gmail.com",
+          "tax_code": "114-86-48971",
+          "contract_address": "34F, Obiz Tower, 126 Beolmalro, Dongangu, Anyang city, Kyonggi province, Korea",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "34F, Obiz Tower, 126 Beolmalro, Dongangu, Anyang city, Kyonggi province, Korea",
+          "rounds": "",
+          "note": ""
+      }
+  },
+  {
+      "type": "TRADITIONAL",
+      "short_name": "VIETNAM GOLF DESTINATION",
+      "name": "CÔNG TY TNHH ĐIỂM ĐẾN GOLF VIỆT NAM",
+      "province": "Hà Nội",
+      "primary_contact_first": {
+          "name": "Ms Phương",
+          "job_title": "Sales Man",
+          "direct_phone": "0",
+          "mail": "vn.golfdestination@gmail.com"
+      },
+      "primary_contact_second": {
+          "name": "Bà Nguyễn Thị Hà",
+          "job_title": "Giám đốc",
+          "direct_phone": "0942709955",
+          "mail": "vn.golfdestination@gmail.com"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "vn.golfdestination@gmail.com",
+          "tax_code": "0109934470",
+          "contract_address": "Tầng 2, Số 8A ngõ 172 Nguyễn Tuân, Q.Thanh Xuân, TP.Hà Nội",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "Tầng 2, Số 8A ngõ 172 Nguyễn Tuân, Q.Thanh Xuân, TP.Hà Nội",
+          "rounds": "",
+          "note": ""
+      }
+  },
+  {
+      "type": "TRADITIONAL",
+      "short_name": "TÂN PHÚ PHÁT",
+      "name": "CÔNG TY CỔ PHẦN TẬP ĐOÀN TÂN PHÚ PHÁT",
+      "province": "",
+      "primary_contact_first": {
+          "name": "Mr. Hiếu",
+          "job_title": "Sales Man",
+          "direct_phone": "0",
+          "mail": "tapdoantanphuphat2022@gmail.com"
+      },
+      "primary_contact_second": {
+          "name": "Bà Đặng Thị Thu Hà",
+          "job_title": "Giám đốc",
+          "direct_phone": "0879313688",
+          "mail": "tapdoantanphuphat2022@gmail.com"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "tapdoantanphuphat2022@gmail.com",
+          "tax_code": "2400936277",
+          "contract_address": "Lô số 03, Khu A-LK, Khu số 2, Khu đô thị phía Nam, xã Tân Tiến, TP. Bắc Giang, Tỉnh Bắc Giang, Việt Nam",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "Lô số 03, Khu A-LK, Khu số 2, Khu đô thị phía Nam, xã Tân Tiến, TP. Bắc Giang, Tỉnh Bắc Giang, Việt Nam",
+          "rounds": "",
+          "note": ""
+      }
+  },
+  {
+      "type": "TRADITIONAL",
+      "short_name": "T-GOLF",
+      "name": "CÔNG TY TNHH T-GOLF",
+      "province": "",
+      "primary_contact_first": {
+          "name": "Ms. Trang",
+          "job_title": "Sales",
+          "direct_phone": "0985813817",
+          "mail": "letrang4686@gmail.com"
+      },
+      "primary_contact_second": {
+          "name": "Ông Dương Mạnh Tiến",
+          "job_title": "Phó Giám đốc",
+          "direct_phone": "0",
+          "mail": "letrang4686@gmail.com"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "letrang4686@gmail.com",
+          "tax_code": "2400912406",
+          "contract_address": "Số 03, Ngõ 842 đường Lê Lợi, P. Dĩnh Kế, TP. Bắc Giang, Bắc Giang, Việt Nam",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "Số 03, Ngõ 842 đường Lê Lợi, P. Dĩnh Kế, TP. Bắc Giang, Bắc Giang, Việt Nam",
+          "rounds": "",
+          "note": ""
+      }
+  },
+  {
+      "type": "TRADITIONAL",
+      "short_name": "LUXURY GOLF",
+      "name": "CÔNG TY TNHH DU LỊCH GOLF SANG TRỌNG VIỆT NAM ",
+      "province": "Hà Nội",
+      "primary_contact_first": {
+          "name": "Ms. Châu",
+          "job_title": "Sales",
+          "direct_phone": "0988147895",
+          "mail": "ketoan@vietnamluxurygolftours.com"
+      },
+      "primary_contact_second": {
+          "name": "Ông Lê Văn Chung",
+          "job_title": "Tổng Giám Đốc",
+          "direct_phone": "0",
+          "mail": "ketoan@vietnamluxurygolftours.com"
+      },
+      "contract_detail": {
+          "contract_no": "",
+          "phone": "0",
+          "email": "ketoan@vietnamluxurygolftours.com",
+          "tax_code": "0106330505",
+          "contract_address": "P510 Khách sạn ATS số 33B Phạm Ngũ Lão, Hoàn Kiếm, Hà Nội",
+          "exp_date": "",
+          "contract_date": "",
+          "official_address": "P510 Khách sạn ATS số 33B Phạm Ngũ Lão, Hoàn Kiếm, Hà Nội",
+          "rounds": "",
+          "note": ""
+      }
+  }
+]
