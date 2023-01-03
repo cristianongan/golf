@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"start/constants"
-	"start/datasources"
 	"strings"
 	"time"
 
@@ -128,7 +127,7 @@ func (item *Agency) IsValidated() bool {
 	return true
 }
 
-func (item *Agency) Create() error {
+func (item *Agency) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -136,7 +135,7 @@ func (item *Agency) Create() error {
 		item.ModelId.Status = constants.STATUS_ENABLE
 	}
 
-	db := datasources.GetDatabase()
+	// db := datasources.GetDatabase()
 	return db.Create(item).Error
 }
 

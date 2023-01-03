@@ -1,0 +1,266 @@
+[
+  {
+      "subject": "PERSONAL",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên cá nhân (25 năm)",
+      "guest_style_of_guest": "I",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "PERSONAL",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên cá nhân (25 năm)",
+      "guest_style_of_guest": "I",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "PERSONAL",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên cá nhân (25 năm)",
+      "guest_style_of_guest": "I",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "COMPANY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên Doanh nghiệp (25 năm) - 1 thành viên",
+      "guest_style_of_guest": "C1",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "COMPANY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên Doanh nghiệp (25 năm) - 1 thành viên",
+      "guest_style_of_guest": "C1",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "COMPANY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên Doanh nghiệp (25 năm) - 1 thành viên",
+      "guest_style_of_guest": "C1",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "COMPANY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên Doanh nghiệp (25 năm) - 2 thành viên",
+      "guest_style_of_guest": "C2",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "COMPANY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên Doanh nghiệp (25 năm) - 2 thành viên",
+      "guest_style_of_guest": "C2",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "COMPANY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên Doanh nghiệp (25 năm) - 2 thành viên",
+      "guest_style_of_guest": "C2",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "COMPANY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên Doanh nghiệp (25 năm) -3 thành viên",
+      "guest_style_of_guest": "C3",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "COMPANY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên Doanh nghiệp (25 năm) -3 thành viên",
+      "guest_style_of_guest": "C3",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "COMPANY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên Doanh nghiệp (25 năm) -3 thành viên",
+      "guest_style_of_guest": "C3",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "COMPANY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên Doanh nghiệp (25 năm) -4 thành viên",
+      "guest_style_of_guest": "C4",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "COMPANY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên Doanh nghiệp (25 năm) -4 thành viên",
+      "guest_style_of_guest": "C4",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "COMPANY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên Doanh nghiệp (25 năm) -4 thành viên",
+      "guest_style_of_guest": "C4",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "COMPANY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên Doanh nghiệp (25 năm) -5 thành viên",
+      "guest_style_of_guest": "C5",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "COMPANY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên Doanh nghiệp (25 năm) -5 thành viên",
+      "guest_style_of_guest": "C5",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "COMPANY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Hội viên Doanh nghiệp (25 năm) -5 thành viên",
+      "guest_style_of_guest": "C5",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "FAMILY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Gia đình Hội viên cá nhân (25 năm)",
+      "guest_style_of_guest": "F",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "FAMILY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Gia đình Hội viên Doanh nghiệp (25 năm) - 1 thành viên",
+      "guest_style_of_guest": "C1F",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "FAMILY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Gia đình Hội viên Doanh nghiệp (25 năm) - 2 thành viên",
+      "guest_style_of_guest": "C2F",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "FAMILY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Gia đình Hội viên Doanh nghiệp (25 năm) - 3 thành viên",
+      "guest_style_of_guest": "C3F",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "FAMILY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Gia đình Hội viên Doanh nghiệp (25 năm) - 4 thành viên",
+      "guest_style_of_guest": "C4F",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "FAMILY",
+      "type": "LONG_TERM",
+      "name": "Thẻ Gia đình Hội viên Doanh nghiệp (25 năm) - 5 thành viên",
+      "guest_style_of_guest": "C5F",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "PERSONAL",
+      "type": "LONG_TERM",
+      "name": "Hội viên thẻ nổi (25 năm) - 2 thẻ",
+      "guest_style_of_guest": "FLA",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "PERSONAL",
+      "type": "LONG_TERM",
+      "name": "Hội viên thẻ nổi (25 năm) - 2 thẻ",
+      "guest_style_of_guest": "FLA",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "PERSONAL",
+      "type": "LONG_TERM",
+      "name": "Hội viên thẻ nổi (25 năm) - 2 thẻ",
+      "guest_style_of_guest": "FLA",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "PERSONAL",
+      "type": "LONG_TERM",
+      "name": "Hội viên thẻ nổi (25 năm) - 4 thẻ",
+      "guest_style_of_guest": "FLC",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "PERSONAL",
+      "type": "LONG_TERM",
+      "name": "Hội viên thẻ nổi (25 năm) - 4 thẻ",
+      "guest_style_of_guest": "FLC",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "PERSONAL",
+      "type": "LONG_TERM",
+      "name": "Hội viên thẻ nổi (25 năm) - 4 thẻ",
+      "guest_style_of_guest": "FLC",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "PERSONAL",
+      "type": "LONG_TERM",
+      "name": "Hội viên thẻ tặng ",
+      "guest_style_of_guest": "H",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "PERSONAL",
+      "type": "LONG_TERM",
+      "name": "4STAR- Thẻ Hội viên không ghi danh - 4 thành viên",
+      "guest_style_of_guest": "4S",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  },
+  {
+      "subject": "PERSONAL",
+      "type": "LONG_TERM",
+      "name": "TOP-STAR - 01 HV ghi danh+ 03HV không ghi danh",
+      "guest_style_of_guest": "TS",
+      "normal_day_take_guest": "3",
+      "weekend_take_guest": "3"
+  }
+]

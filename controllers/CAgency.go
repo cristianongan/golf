@@ -38,7 +38,7 @@ func (_ *CAgency) CreateAgency(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	errC := body.Create()
+	errC := body.Create(db)
 
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
