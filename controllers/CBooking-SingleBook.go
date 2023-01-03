@@ -40,29 +40,28 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if booking.BagStatus != constants.BAG_STATUS_BOOKING {
-		response_message.InternalServerError(c, "This booking did check in")
-		return
+	if booking.BagStatus == constants.BAG_STATUS_BOOKING {
+		// Kiểm tra xem đủ điều kiện cancel booking không
+		// cancelBookingSetting := model_booking.CancelBookingSetting{}
+		// if err := cancelBookingSetting.ValidateBookingCancel(db, booking); err != nil {
+		// 	response_message.InternalServerError(c, err.Error())
+		// 	return
+		// }
+
+		booking.BagStatus = constants.BAG_STATUS_CANCEL
+		booking.CancelNote = body.Note
+		booking.CancelBookingTime = time.Now().Unix()
+		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+
+		errUdp := booking.Update(db)
+		if errUdp != nil {
+			response_message.InternalServerError(c, errUdp.Error())
+			return
+		}
+
+		go updateSlotTeeTimeWithLock(booking)
 	}
-	// Kiểm tra xem đủ điều kiện cancel booking không
-	// cancelBookingSetting := model_booking.CancelBookingSetting{}
-	// if err := cancelBookingSetting.ValidateBookingCancel(db, booking); err != nil {
-	// 	response_message.InternalServerError(c, err.Error())
-	// 	return
-	// }
 
-	booking.BagStatus = constants.BAG_STATUS_CANCEL
-	booking.CancelNote = body.Note
-	booking.CancelBookingTime = time.Now().Unix()
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
-
-	errUdp := booking.Update(db)
-	if errUdp != nil {
-		response_message.InternalServerError(c, errUdp.Error())
-		return
-	}
-
-	go updateSlotTeeTimeWithLock(booking)
 	okResponse(c, booking)
 }
 

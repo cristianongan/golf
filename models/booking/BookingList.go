@@ -290,6 +290,7 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 		db = db.Where("customer_type NOT IN (?) ", customerType)
 	}
 
+	db = db.Not("added_round = ?", true)
 	return db
 }
 
