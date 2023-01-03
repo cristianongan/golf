@@ -1,6 +1,7 @@
 package response_message
 
 import (
+	"log"
 	"net/http"
 	"start/config"
 	"start/constants"
@@ -63,14 +64,14 @@ func GetMessageByLanguage(language, key string) string {
 	return languages[language][key]
 }
 
-func GetErrorResponseData(language, key, log string, statusCode int) ErrorResponseData {
+func GetErrorResponseData(language, key, logStr string, statusCode int) ErrorResponseData {
 	if language != constants.LANGUAGE_DEFAULT && language != constants.LANGUAGE_EN {
 		language = "default"
 	}
 
 	errData := ErrorResponseData{
 		Message:    languages[language][key],
-		Log:        log,
+		Log:        logStr,
 		StatusCode: statusCode,
 	}
 
@@ -80,6 +81,9 @@ func GetErrorResponseData(language, key, log string, statusCode int) ErrorRespon
 
 	config := config.GetConfig()
 	if config.GetBool("system_log_response") == false {
+		if errData.Log != "" {
+			log.Println("[ERROR_API_LOG] ", errData.Log)
+		}
 		errData.Log = ""
 	}
 	return errData
