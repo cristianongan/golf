@@ -1062,6 +1062,8 @@ func updateBagShareWhenChangeBuggy(booking model_booking.Booking, prof models.Cm
 	// Tìm kiếm booking đang sử dụng buggy
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	db1, _, _ := bookingR.FindAllBookingList(db)
+	db1 = db1.Where("bag <> ?", booking.Bag)
+
 	bookingList := []model_booking.Booking{}
 	db1.Find(&bookingList)
 
@@ -1109,6 +1111,8 @@ func updateBagShareEmptyWhenChangeBuggy(booking model_booking.Booking) {
 	// Tìm kiếm booking đang sử dụng buggy
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	db1, _, _ := bookingR.FindAllBookingList(db)
+	db1 = db1.Where("bag <> ?", booking.Bag)
+
 	bookingList := []model_booking.Booking{}
 	db1.Find(&bookingList)
 
