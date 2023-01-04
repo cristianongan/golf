@@ -113,15 +113,10 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
-		if booking.TeeTime == body.TeeTime {
-			response_message.InternalServerError(c, body.TeeTime+" moved")
-			return
-		}
-
-		if booking.BagStatus != constants.BAG_STATUS_BOOKING {
-			response_message.InternalServerError(c, booking.Uid+" did check in")
-			return
-		}
+		// if booking.BagStatus != constants.BAG_STATUS_BOOKING {
+		// 	response_message.InternalServerError(c, booking.Uid+" did check in")
+		// 	return
+		// }
 		cloneListBooking = append(cloneListBooking, booking)
 
 		teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, booking.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
