@@ -292,6 +292,16 @@ func (_ *CPayment) GetListSinglePaymentDetail(c *gin.Context, prof models.CmsUse
 		return
 	}
 
+	singlPaymentR := model_payment.SinglePayment{
+		BillCode: body.BillCode,
+		Bag:      body.Bag,
+	}
+
+	if errSinglePaymentR := singlPaymentR.FindFirst(db); errSinglePaymentR != nil {
+		response_message.InternalServerError(c, errSinglePaymentR.Error())
+		return
+	}
+
 	paymentR := model_payment.SinglePaymentItem{
 		PartnerUid: body.PartnerUid,
 		CourseUid:  body.CourseUid,
@@ -307,8 +317,9 @@ func (_ *CPayment) GetListSinglePaymentDetail(c *gin.Context, prof models.CmsUse
 	}
 
 	res := map[string]interface{}{
-		"total": len(list),
-		"data":  list,
+		"total":     len(list),
+		"data":      list,
+		"e_invoice": singlPaymentR.IsEInvoice,
 	}
 
 	okResponse(c, res)
