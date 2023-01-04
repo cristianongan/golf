@@ -89,6 +89,8 @@ func runCheckLockTeeTime() {
 			}
 		}
 	}
+
+	// Chú ý: sửa gì ở hàm này thì sửa cả func UnlockTeeTime tên CTeeTimeOTA
 }
 
 func getKeyTeeTimeLockRedis(bookingDate, courseUid, teeTime, teeType string) string {
