@@ -74,6 +74,13 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 	singlePayment.Status = constants.STATUS_ENABLE
 	isAdd := true
 	errFind := singlePayment.FindFirst(db)
+
+	if body.EInvoice != nil && *body.EInvoice {
+		singlePayment.IsEInvoice = 1
+	} else {
+		singlePayment.IsEInvoice = 0
+	}
+
 	if errFind != nil {
 		// Chưa có thì tạo
 		singlePayment.Bag = booking.Bag
@@ -125,6 +132,7 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 		PaymentUid:  singlePayment.Uid,
 		Cashiers:    prof.UserName,
 		BookingDate: booking.BookingDate,
+		BankType:    body.BankType,
 	}
 
 	errC := singlePaymentItem.Create(db)
@@ -170,9 +178,6 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 			log.Println("CreateSinglePayment errList", errList.Error())
 		}
 	}
-
-	// call api sang FAST
-	// go updateFastBill(body.PaymentType, body.Amount, body.Note, booking)
 
 	okRes(c)
 }
