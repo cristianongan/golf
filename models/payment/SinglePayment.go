@@ -37,6 +37,7 @@ type SinglePayment struct {
 	AgencyPaid int64  `json:"agency_paid"`                             // Số tiền đại lý thanh toán
 	Note       string `json:"note" gorm:"type:varchar(200)"`           // Note
 	Type       string `json:"type" gorm:"type:varchar(50);index"`      // SINGLE, AGENCY
+	IsEInvoice int    `json:"is_einvoice"`                             // Đánh dấu lấy hóa đơn điện tử
 }
 
 type PaymentBagInfo struct {

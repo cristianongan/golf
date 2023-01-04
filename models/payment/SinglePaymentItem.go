@@ -24,6 +24,7 @@ type SinglePaymentItem struct {
 	Cashiers    string `json:"cashiers" gorm:"type:varchar(100);index"`    // Thu ngân, lấy từ acc cms
 	Paid        int64  `json:"paid" gorm:"type:varchar(100)"`              // Số tiền thanh toán
 	Note        string `json:"note" gorm:"type:varchar(200)"`              // Note
+	BankType    string `json:"bank_type" gorm:"type:varchar(20)"`          // Chuyển khoản qua VCB,BIDV...
 }
 
 func (item *SinglePaymentItem) Create(db *gorm.DB) error {

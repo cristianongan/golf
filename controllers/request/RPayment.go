@@ -8,6 +8,8 @@ type CreateSinglePaymentBody struct {
 	Amount      int64  `json:"amount" binding:"required"`    // Số tiền thanh toán
 	CheckSum    string `json:"check_sum" binding:"required"` // Checksum
 	Note        string `json:"note"`                         // Note
+	BankType    string `json:"bank_type"`                    // Note
+	EInvoice    *bool  `json:"e_invoice"`
 }
 
 type GetListSinglePaymentBody struct {
