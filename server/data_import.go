@@ -316,3 +316,90 @@ func importDataAgencies() {
 	}
 
 }
+
+// ====== Caddies =========
+
+type CaddiesT struct {
+	Code           string `json:"code"`
+	Name           string `json:"name"`
+	Sex            bool   `json:"sex"`
+	BirthDay       string `json:"birth_day"`
+	ContractStatus string `json:"contract_status"`
+	GroupID        int    `json:"group_id"`
+	StartedDate    string `json:"started_date"`
+	IDHr           string `json:"id_hr"`
+	Phone          string `json:"phone"`
+	Email          string `json:"email"`
+	IdentityCard   string `json:"identity_card"`
+	IssuedBy       string `json:"issued_by"`
+	ExpiredDate    string `json:"expired_date"`
+	PlaceOfOrigin  string `json:"place_of_origin"`
+	Address        string `json:"address"`
+}
+
+type ListCaddiesT []CaddiesT
+
+func (item *ListCaddiesT) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListCaddiesT) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
+func importDataCaddies() {
+	// Get data from local
+	f, errF := os.Open("caddies.json")
+	if errF != nil {
+		log.Println("TestReadData errF", errF.Error())
+		return
+	}
+	defer f.Close()
+
+	byteAgenciesValue, errRA := ioutil.ReadAll(f)
+
+	if errRA != nil {
+		log.Println("TestReadData errRA", errRA.Error())
+		return
+	}
+
+	listData := ListCaddiesT{}
+
+	errUnM := json.Unmarshal(byteAgenciesValue, &listData)
+	if errUnM != nil {
+		log.Println("TestReadData errUnM", errUnM.Error())
+		return
+	}
+	log.Println("ok")
+	// log.Print(listData)
+	db := datasources.GetDatabase()
+
+	for _, v := range listData {
+		log.Println(v.Name)
+		birthDayInt, _ := strconv.ParseInt(v.BirthDay, 10, 64)
+		startedDateInt, _ := strconv.ParseInt(v.StartedDate, 10, 64)
+		expiredDateInt, _ := strconv.ParseInt(v.ExpiredDate, 10, 64)
+		caddy := models.Caddie{
+			PartnerUid:     "CHI-LINH",
+			CourseUid:      "CHI-LINH-01",
+			Code:           v.Code,
+			Name:           v.Name,
+			Sex:            v.Sex,
+			BirthDay:       birthDayInt,
+			GroupId:        int64(v.GroupID),
+			ContractStatus: v.ContractStatus,
+			StartedDate:    startedDateInt,
+			IdHr:           v.IDHr,
+			Phone:          v.Phone,
+			Email:          v.Email,
+			IdentityCard:   v.IdentityCard,
+			IssuedBy:       v.IssuedBy,
+			ExpiredDate:    expiredDateInt,
+			PlaceOfOrigin:  v.PlaceOfOrigin,
+			Address:        v.Address,
+		}
+
+		caddy.Create(db)
+	}
+
+}
