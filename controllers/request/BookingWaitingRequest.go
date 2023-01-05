@@ -14,10 +14,12 @@ type CreateBookingWaiting struct {
 
 type GetListBookingWaitingForm struct {
 	PageRequest
-	PartnerUid string `json:"partner_uid"`
-	CourseUid  string `json:"course_uid"`
-	Date       string `form:"date"`
-	PlayerName string `form:"player_name"`
+	PartnerUid    string `form:"partner_uid"`
+	CourseUid     string `form:"course_uid"`
+	Date          string `form:"date"`
+	PlayerName    string `form:"player_name"`
+	BookingCode   string `form:"booking_code"`
+	PlayerContact string `form:"player_contact"`
 }
 
 type UpdateBookingWaiting struct {
