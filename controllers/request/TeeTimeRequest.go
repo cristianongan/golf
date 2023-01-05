@@ -19,6 +19,13 @@ type GetListTeeTimeSettings struct {
 	RequestType   string `form:"request_type" binding:"required"`
 }
 
+type DeleteRedis struct {
+	PartnerUid string `form:"partner_uid"`
+	CourseUid  string `form:"course_uid"`
+	TeeTime    string `form:"tee_time"`
+	DateTime   string `form:"date_time"`
+}
+
 type DeleteLockRequest struct {
 	PartnerUid  string `json:"partner_uid"`
 	CourseUid   string `json:"course_uid"`

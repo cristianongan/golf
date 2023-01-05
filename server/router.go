@@ -550,6 +550,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/tee-time", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.CreateTeeTimeSettings))
 			cmsApiAuthorized.GET("/tee-time/list", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.GetTeeTimeSettings))
 			cmsApiAuthorized.POST("/tee-time/delete", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.DeleteLockTeeTime))
+			cmsApiAuthorized.POST("/tee-time/redis/reset", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.DeleteAllRedisTeeTime))
 
 			/// =================== Role ===================
 			cRole := new(controllers.CRole)
