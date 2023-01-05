@@ -40,6 +40,16 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 
 	booking, _ := cBooking.CreateBookingCommon(body, c, prof)
 	if booking == nil {
+		// Khi booking lỗi thì remove index đã lưu trước đó trong redis
+		go removeRowIndexRedis(model_booking.Booking{
+			PartnerUid:  body.PartnerUid,
+			CourseUid:   body.CourseUid,
+			BookingDate: body.BookingDate,
+			TeeType:     body.TeeType,
+			TeeTime:     body.TeeTime,
+			CourseType:  body.CourseType,
+			RowIndex:    body.RowIndex,
+		})
 		return
 	}
 

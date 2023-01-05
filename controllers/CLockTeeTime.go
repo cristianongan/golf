@@ -221,27 +221,9 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	list := []models.LockTeeTimeWithSlot{}
-
-	// get các teetime đang bị khóa ở redis
-	listTeeTimeLockRedis := getTeeTimeLockRedis(query.CourseUid, query.BookingDate, query.TeeType)
-
-	if len(listTeeTimeLockRedis) == 0 {
-		response_message.BadRequestFreeMessage(c, "Not Found Tee Time")
-		return
-	}
-
-	for _, teeTime := range listTeeTimeLockRedis {
-		if teeTime.CurrentTeeTime == query.TeeTime {
-			list = append(list, teeTime)
-		}
-	}
-
-	for _, teeTime := range list {
-		teeTimeRedisKey := getKeyTeeTimeLockRedis(query.BookingDate, query.CourseUid, teeTime.TeeTime, teeTime.TeeType)
-		err := datasources.DelCacheByKey(teeTimeRedisKey)
-		log.Print(err)
-	}
+	teeTimeRedisKey := getKeyTeeTimeLockRedis(query.BookingDate, query.CourseUid, query.TeeTime, query.TeeType+query.CourseType)
+	err := datasources.DelCacheByKey(teeTimeRedisKey)
+	log.Print(err)
 	okRes(c)
 }
 
