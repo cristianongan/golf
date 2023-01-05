@@ -106,6 +106,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 	form := request.GetListBookingSettingForm{
 		CourseUid:  body.CourseUid,
 		PartnerUid: body.PartnerUid,
+		OnDate:     body.BookingDate,
 	}
 
 	cBookingSetting := CBookingSetting{}
