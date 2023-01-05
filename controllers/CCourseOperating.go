@@ -626,9 +626,9 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 
 	go addBuggyCaddieInOutNote(db, caddieOutNote)
 
-	if booking.TeeTime != "" {
-		go unlockTurnTime(db, booking)
-	}
+	// if booking.TeeTime != "" {
+	// 	go unlockTurnTime(db, booking)
+	// }
 
 	if booking.CaddieId > 0 {
 		// Update node caddie
