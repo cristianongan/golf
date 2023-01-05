@@ -1468,7 +1468,7 @@ func updateSlotTeeTime(booking model_booking.Booking) {
 	bookings.TeeType = booking.TeeType
 	bookings.CourseType = booking.CourseType
 
-	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + booking.CourseUid + "_" + booking.BookingDate + "_" + booking.TeeType + booking.CourseType + "_" + booking.TeeTime
+	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty:" + booking.CourseUid + "_" + booking.BookingDate + "_" + booking.TeeType + booking.CourseType + "_" + booking.TeeTime
 	_, total, _ := bookings.FindAllBookingNotCancelList(db)
 
 	if err := datasources.SetCache(teeTimeRedisKey, total, 0); err != nil {
@@ -1508,8 +1508,7 @@ func updateSlotTeeTimeWithLock(booking model_booking.Booking) {
 		total += int64(item.Slot)
 	}
 
-	// "staging:tee_time_slot_empty_CHI-LINH-01_26/12/2022_1A_15:36"
-	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + booking.CourseUid + "_" + booking.BookingDate + "_" + booking.TeeType + booking.CourseType + "_" + booking.TeeTime
+	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty:" + booking.CourseUid + "_" + booking.BookingDate + "_" + booking.TeeType + booking.CourseType + "_" + booking.TeeTime
 	if err := datasources.SetCache(teeTimeRedisKey, total, 0); err != nil {
 		log.Print("updateSlotTeeTime", err)
 	}
