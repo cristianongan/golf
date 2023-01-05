@@ -9,6 +9,7 @@ import (
 	"start/controllers/response"
 	"start/datasources"
 	"start/models"
+	model_booking "start/models/booking"
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
@@ -106,26 +107,24 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 	form := request.GetListBookingSettingForm{
 		CourseUid:  body.CourseUid,
 		PartnerUid: body.PartnerUid,
+		OnDate:     body.BookingDate,
 	}
 
 	cBookingSetting := CBookingSetting{}
 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
 	weekday := strconv.Itoa(int(time.Now().Weekday() + 1))
 	turnTimeH := 2
-	endTime := ""
 	turnLength := 0
+	bookSetting := model_booking.BookingSetting{}
 
 	for _, data := range listSettingDetail {
 		if strings.ContainsAny(data.Dow, weekday) {
-			turnLength = data.TurnLength
-			endTime = data.EndPart3
+			bookSetting = data
 			break
 		}
 	}
 
 	currentTeeTimeDate, _ := utils.ConvertHourToTime(body.TeeTime)
-	endTimeDate, _ := utils.ConvertHourToTime(endTime)
-
 	teeList := []string{}
 
 	if course.Hole == 18 {
@@ -145,29 +144,67 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 			teeList = []string{"1A", "1B"}
 		}
 
-	} else {
-		if body.TeeType == "1A" {
-			teeList = []string{"10A", "1B", "10B"}
-		} else if body.TeeType == "10A" {
-			teeList = []string{"1B", "10B", "1A"}
-		} else if body.TeeType == "1B" {
-			teeList = []string{"10B", "1A", "10A"}
-		} else {
-			teeList = []string{"1A", "10A", "1B"}
-		}
 	}
 
 	if len(teeList) == 0 {
-		return errors.New("Không tìm thấy sân")
+		log.Println(errors.New("Không tìm thấy sân"))
+	}
+
+	timeParts := []response.TeeTimePartOTA{
+		{
+			IsHideTeePart: bookSetting.IsHideTeePart1,
+			StartPart:     bookSetting.StartPart1,
+			EndPart:       bookSetting.EndPart1,
+		},
+		{
+			IsHideTeePart: bookSetting.IsHideTeePart2,
+			StartPart:     bookSetting.StartPart2,
+			EndPart:       bookSetting.EndPart2,
+		},
+		{
+			IsHideTeePart: bookSetting.IsHideTeePart3,
+			StartPart:     bookSetting.StartPart3,
+			EndPart:       bookSetting.EndPart3,
+		},
+	}
+
+	index := 0
+	teeTimeListLL := []string{}
+
+	for _, part := range timeParts {
+		if !part.IsHideTeePart {
+			endTime, _ := utils.ConvertHourToTime(part.EndPart)
+			teeTimeInit, _ := utils.ConvertHourToTime(part.StartPart)
+			for {
+				index += 1
+
+				hour := teeTimeInit.Hour()
+				minute := teeTimeInit.Minute()
+
+				hourStr_ := strconv.Itoa(hour)
+				if hour < 10 {
+					hourStr_ = "0" + hourStr_
+				}
+				minuteStr := strconv.Itoa(minute)
+				if minute < 10 {
+					minuteStr = "0" + minuteStr
+				}
+
+				hourStr := hourStr_ + ":" + minuteStr
+
+				teeTimeListLL = append(teeTimeListLL, hourStr)
+				teeTimeInit = teeTimeInit.Add(time.Minute * time.Duration(bookSetting.TeeMinutes))
+
+				if teeTimeInit.Unix() > endTime.Unix() {
+					break
+				}
+			}
+		}
 	}
 
 	for index, data := range teeList {
 
 		t := currentTeeTimeDate.Add((time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(turnLength)) * time.Duration(index+1))
-
-		if t.After(endTimeDate) {
-			break
-		}
 
 		hour := t.Hour()
 		minute := t.Minute()
@@ -183,18 +220,20 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 
 		teeTime1B := hourStr_ + ":" + minuteStr
 
-		lockTeeTime := models.LockTeeTimeWithSlot{
-			PartnerUid:     body.PartnerUid,
-			CourseUid:      body.CourseUid,
-			TeeTime:        teeTime1B,
-			TeeTimeStatus:  "LOCKED",
-			DateTime:       body.BookingDate,
-			CurrentTeeTime: body.TeeTime,
-			TeeType:        data,
-			Type:           constants.BOOKING_CMS,
-		}
+		if utils.Contains(teeTimeListLL, teeTime1B) {
+			lockTeeTime := models.LockTeeTimeWithSlot{
+				PartnerUid:     body.PartnerUid,
+				CourseUid:      body.CourseUid,
+				TeeTime:        teeTime1B,
+				TeeTimeStatus:  "LOCKED",
+				DateTime:       body.BookingDate,
+				CurrentTeeTime: body.TeeTime,
+				TeeType:        data,
+				Type:           constants.BOOKING_CMS,
+			}
 
-		lockTeeTimeToRedis(lockTeeTime)
+			lockTeeTimeToRedis(lockTeeTime)
+		}
 	}
 
 	return nil
@@ -221,27 +260,9 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	list := []models.LockTeeTimeWithSlot{}
-
-	// get các teetime đang bị khóa ở redis
-	listTeeTimeLockRedis := getTeeTimeLockRedis(query.CourseUid, query.BookingDate, query.TeeType)
-
-	if len(listTeeTimeLockRedis) == 0 {
-		response_message.BadRequestFreeMessage(c, "Not Found Tee Time")
-		return
-	}
-
-	for _, teeTime := range listTeeTimeLockRedis {
-		if teeTime.CurrentTeeTime == query.TeeTime {
-			list = append(list, teeTime)
-		}
-	}
-
-	for _, teeTime := range list {
-		teeTimeRedisKey := getKeyTeeTimeLockRedis(query.BookingDate, query.CourseUid, teeTime.TeeTime, teeTime.TeeType)
-		err := datasources.DelCacheByKey(teeTimeRedisKey)
-		log.Print(err)
-	}
+	teeTimeRedisKey := getKeyTeeTimeLockRedis(query.BookingDate, query.CourseUid, query.TeeTime, query.TeeType+query.CourseType)
+	err := datasources.DelCacheByKey(teeTimeRedisKey)
+	log.Print(err)
 	okRes(c)
 }
 
