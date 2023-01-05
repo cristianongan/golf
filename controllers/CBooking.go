@@ -824,7 +824,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		cBooking.UpdateBookingCaddieCommon(db, body.PartnerUid, body.CourseUid, &booking, caddie)
 	} else {
 		if booking.CaddieId > 0 && body.CaddieCode == "" {
-			booking.CaddieId = caddie.Id
+			booking.CaddieId = 0
 			booking.CaddieInfo = model_booking.BookingCaddie{}
 			booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
 			booking.HasBookCaddie = false
