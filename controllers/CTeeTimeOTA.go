@@ -182,7 +182,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 
 				hasTeeTimeLock1AOnRedis := false
 				// Get số slot tee time còn trống
-				teeTimeSlotEmptyRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty:" + body.CourseCode + "_" + dateFormat + "_" + "1A" + "_" + hourStr
+				teeTimeSlotEmptyRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + body.CourseCode + "_" + dateFormat + "_" + "1A" + "_" + hourStr
 				slotStr, _ := datasources.GetCache(teeTimeSlotEmptyRedisKey)
 				slotEmpty, _ := strconv.Atoi(slotStr)
 
@@ -302,7 +302,7 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 		teeTimeSetting.TeeType = "1B"
 	}
 
-	teeTimeSlotEmptyRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty:" + teeTimeSetting.CourseUid + "_" + teeTimeSetting.DateTime + "_" + teeTimeSetting.TeeType + "_" + teeTimeSetting.TeeTime
+	teeTimeSlotEmptyRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + teeTimeSetting.CourseUid + "_" + teeTimeSetting.DateTime + "_" + teeTimeSetting.TeeType + "_" + teeTimeSetting.TeeTime
 	slotStr, _ := datasources.GetCache(teeTimeSlotEmptyRedisKey)
 	slotBook, _ := strconv.Atoi(slotStr)
 	slotEmpty := constants.SLOT_TEE_TIME - slotBook
@@ -520,7 +520,7 @@ func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
 		cNotification.PushNotificationCreateBookingOTA("")
 	}()
 
-	slotTeeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty:" + body.CourseCode + "_" + dateFormat + "_" + "1A" + "_" + body.TeeOffStr
+	slotTeeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + body.CourseCode + "_" + dateFormat + "_" + "1A" + "_" + body.TeeOffStr
 	if total > 0 {
 		if err := datasources.SetCache(slotTeeTimeRedisKey, total, 0); err != nil {
 			log.Print("updateSlotTeeTime", err)

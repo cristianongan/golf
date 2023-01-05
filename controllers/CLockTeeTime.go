@@ -183,7 +183,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 
 		teeTime1B := hourStr_ + ":" + minuteStr
 
-		lockTeeTime := models.LockTeeTime{
+		lockTeeTime := models.LockTeeTimeWithSlot{
 			PartnerUid:     body.PartnerUid,
 			CourseUid:      body.CourseUid,
 			TeeTime:        teeTime1B,
@@ -191,6 +191,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 			DateTime:       body.BookingDate,
 			CurrentTeeTime: body.TeeTime,
 			TeeType:        data,
+			Type:           constants.BOOKING_CMS,
 		}
 
 		lockTeeTimeToRedis(lockTeeTime)
@@ -264,7 +265,7 @@ func (_ *CLockTeeTime) DeleteAllRedisTeeTime(c *gin.Context, prof models.CmsUser
 	log.Print(errTeeTimeRowIndex)
 
 	// Xóa slot tee time
-	teeTimeSlotEmptyRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty:"
+	teeTimeSlotEmptyRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_"
 	listTeeTimeSlotKey, _ := datasources.GetAllKeysWith(teeTimeSlotEmptyRedisKey)
 	errTeeTimeSlot := datasources.DelCacheByKey(listTeeTimeSlotKey...)
 	log.Print(errTeeTimeSlot)
