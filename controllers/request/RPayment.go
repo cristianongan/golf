@@ -9,7 +9,6 @@ type CreateSinglePaymentBody struct {
 	CheckSum    string `json:"check_sum" binding:"required"` // Checksum
 	Note        string `json:"note"`                         // Note
 	BankType    string `json:"bank_type"`                    // Note
-	EInvoice    *bool  `json:"e_invoice"`
 }
 
 type GetListSinglePaymentBody struct {
@@ -38,6 +37,13 @@ type GetListSinglePaymentDetailBody struct {
 	Bag         string `json:"bag" binding:"required"`
 	PaymentDate string `json:"payment_date"`
 	CheckSum    string `json:"check_sum" binding:"required"` // Checksum
+}
+
+type GetEInvoice struct {
+	PartnerUid string `json:"partner_uid" binding:"required"`
+	CourseUid  string `json:"course_uid"`
+	BillCode   string `json:"bill_code" binding:"required"`
+	EInvoice   *bool  `json:"e_invoice" binding:"required"`
 }
 
 type DeleteSinglePaymentDetailBody struct {

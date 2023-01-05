@@ -37,6 +37,7 @@ func (_ *CBookingWaiting) CreateBookingWaiting(c *gin.Context, prof models.CmsUs
 		CourseUid:     body.CourseUid,
 		BookingCode:   bookingCode,
 		BookingTime:   body.BookingTime,
+		TeeTime:       body.TeeTime,
 		PlayerName:    body.PlayerName,
 		PlayerContact: body.PlayerContact,
 		PeopleList:    body.PeopleList,
@@ -77,6 +78,14 @@ func (_ *CBookingWaiting) GetBookingWaitingList(c *gin.Context, prof models.CmsU
 
 	if form.Date != "" {
 		bookingWaitingRequest.BookingTime = form.Date
+	}
+
+	if form.PlayerContact != "" {
+		bookingWaitingRequest.PlayerContact = form.PlayerContact
+	}
+
+	if form.BookingCode != "" {
+		bookingWaitingRequest.BookingCode = form.BookingCode
 	}
 
 	list, total, err := bookingWaitingRequest.FindList(db, page)
