@@ -64,6 +64,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			response_message.InternalServerError(c, err.Error())
 			return nil, err
 		}
+
 	}
 
 	// validate trường hợp đóng tee 1
@@ -77,11 +78,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, body.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
-	log.Println("CreateBookingCommon teeTimeRowIndexRedis", teeTimeRowIndexRedis)
 	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
-	log.Println("CreateBookingCommon rowIndexsRedisStr", rowIndexsRedisStr)
 	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
-	log.Println("CreateBookingCommon rowIndexsRedis", rowIndexsRedis)
 
 	if len(rowIndexsRedis) < constants.SLOT_TEE_TIME {
 		if body.RowIndex == nil {

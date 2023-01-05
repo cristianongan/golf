@@ -37,6 +37,7 @@ func (_ *CBookingWaiting) CreateBookingWaiting(c *gin.Context, prof models.CmsUs
 		CourseUid:     body.CourseUid,
 		BookingCode:   bookingCode,
 		BookingTime:   body.BookingTime,
+		TeeTime:       body.TeeTime,
 		PlayerName:    body.PlayerName,
 		PlayerContact: body.PlayerContact,
 		PeopleList:    body.PeopleList,

@@ -6,6 +6,7 @@ type CreateBookingWaiting struct {
 	PartnerUid    string           `json:"partner_uid"`
 	CourseUid     string           `json:"course_uid"`
 	BookingTime   string           `json:"booking_time"`
+	TeeTime       string           `json:"tee_time"`
 	PlayerName    string           `json:"player_name"`
 	PlayerContact string           `json:"player_contact"`
 	PeopleList    utils.ListString `json:"people_list"`

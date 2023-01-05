@@ -17,6 +17,7 @@ type BookingWaiting struct {
 	CourseUid     string           `json:"course_uid" gorm:"type:varchar(256);index"`   // San Golf
 	BookingCode   string           `json:"booking_code" gorm:"type:varchar(100);index"` //
 	BookingTime   string           `json:"booking_time" gorm:"type:varchar(100)"`       // Ngày tạo booking waiting
+	TeeTime       string           `json:"tee_time" gorm:"type:varchar(20)"`            // Giờ tee time muốn chơi
 	PlayerName    string           `json:"player_name" gorm:"type:varchar(256)"`        // Tên người đặt booking waiting
 	PlayerContact string           `json:"player_contact" gorm:"type:varchar(256)"`     // SĐT người đặt booking waiting
 	PeopleList    utils.ListString `json:"people_list,omitempty" gorm:"type:json"`      // Danh sách người chơi
