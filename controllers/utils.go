@@ -1508,7 +1508,6 @@ func updateSlotTeeTimeWithLock(booking model_booking.Booking) {
 		total += int64(item.Slot)
 	}
 
-	// "staging:tee_time_slot_empty_CHI-LINH-01_26/12/2022_1A_15:36"
 	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + booking.CourseUid + "_" + booking.BookingDate + "_" + booking.TeeType + booking.CourseType + "_" + booking.TeeTime
 	if err := datasources.SetCache(teeTimeRedisKey, total, 0); err != nil {
 		log.Print("updateSlotTeeTime", err)
@@ -1592,7 +1591,7 @@ func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 	return nil
 }
 
-func lockTeeTimeToRedis(body models.LockTeeTime) {
+func lockTeeTimeToRedis(body models.LockTeeTimeWithSlot) {
 	teeTimeSetting := models.LockTeeTime{
 		PartnerUid:     body.PartnerUid,
 		CourseUid:      body.CourseUid,
@@ -1602,18 +1601,21 @@ func lockTeeTimeToRedis(body models.LockTeeTime) {
 		TeeType:        body.TeeType,
 	}
 
-	teeTimeRedisKey := config.GetEnvironmentName() + ":" + body.CourseUid + "_" + body.DateTime + "_" + body.TeeTime + "_" + body.TeeType
+	teeTimeRedisKey := getKeyTeeTimeLockRedis(body.DateTime, body.CourseUid, body.TeeTime, body.TeeType)
 
 	key := datasources.GetRedisKeyTeeTimeLock(teeTimeRedisKey)
 	_, errRedis := datasources.GetCache(key)
 
 	teeTimeRedis := models.LockTeeTimeWithSlot{
 		DateTime:       teeTimeSetting.DateTime,
+		PartnerUid:     body.PartnerUid,
 		CourseUid:      teeTimeSetting.CourseUid,
 		TeeTime:        teeTimeSetting.TeeTime,
 		CurrentTeeTime: teeTimeSetting.CurrentTeeTime,
 		TeeType:        teeTimeSetting.TeeType,
 		TeeTimeStatus:  constants.TEE_TIME_LOCKED,
+		Type:           constants.BOOKING_CMS,
+		Slot:           4,
 	}
 
 	if errRedis != nil {

@@ -252,12 +252,6 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 
 	go unlockTee(body)
 
-	// Bắn socket để client update ui
-	go func() {
-		cNotification := CNotification{}
-		cNotification.PushNotificationCreateBookingOTA("")
-	}()
-
 	okResponse(c, dataRes)
 }
 
@@ -279,11 +273,9 @@ func unlockTee(body request.CreateBookingOTABody) {
 	}
 
 	listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, bookDate, lockTeeTime.TeeType)
-	hasTeeTimeLock1AOnRedis := false
 	for _, teeTimeLockRedis := range listTeeTimeLockRedis {
 		if teeTimeLockRedis.TeeTime == body.TeeOffStr && teeTimeLockRedis.DateTime == bookDate &&
 			teeTimeLockRedis.CourseUid == body.CourseCode && teeTimeLockRedis.TeeType == lockTeeTime.TeeType {
-			hasTeeTimeLock1AOnRedis = true
 
 			teeTimeRedisKey := ""
 			if body.Tee == "1" {
@@ -296,17 +288,12 @@ func unlockTee(body request.CreateBookingOTABody) {
 
 			err := datasources.DelCacheByKey(teeTimeRedisKey)
 			log.Print(err)
+
+			// Bắn socket để client update ui
+			cNotification := CNotification{}
+			cNotification.PushNotificationCreateBookingOTA("")
 			break
 		}
-	}
-
-	if !hasTeeTimeLock1AOnRedis {
-		db := datasources.GetDatabase()
-		if errFind := lockTeeTime.FindFirst(db); errFind != nil {
-			log.Println("UNLOCK Tee Time Error!")
-			return
-		}
-		lockTeeTime.Delete(db)
 	}
 }
 

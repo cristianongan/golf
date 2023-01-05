@@ -59,7 +59,10 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
-		go updateSlotTeeTimeWithLock(booking)
+		go func() {
+			removeRowIndexRedis(booking)
+			updateSlotTeeTimeWithLock(booking)
+		}()
 	}
 
 	okResponse(c, booking)
@@ -292,6 +295,13 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 			}
 		}
 	}
+
+	go func() {
+		for _, booking := range list {
+			removeRowIndexRedis(booking)
+			updateSlotTeeTimeWithLock(booking)
+		}
+	}()
 	okRes(c)
 }
 

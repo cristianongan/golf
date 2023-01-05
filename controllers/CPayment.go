@@ -75,12 +75,6 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 	isAdd := true
 	errFind := singlePayment.FindFirst(db)
 
-	if body.EInvoice != nil && *body.EInvoice {
-		singlePayment.IsEInvoice = 1
-	} else {
-		singlePayment.IsEInvoice = 0
-	}
-
 	if errFind != nil {
 		// Chưa có thì tạo
 		singlePayment.Bag = booking.Bag
@@ -624,4 +618,42 @@ func (_ *CPayment) GetListBagOfAgency(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, list)
+}
+
+/*
+Check E-Invoice
+*/
+func (_ *CPayment) GetEInvoice(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.GetEInvoice{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	singlPaymentR := model_payment.SinglePayment{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		BillCode:   body.BillCode,
+	}
+
+	if errSinglePaymentR := singlPaymentR.FindFirst(db); errSinglePaymentR != nil {
+		response_message.InternalServerError(c, errSinglePaymentR.Error())
+		return
+	}
+
+	if body.EInvoice != nil && *body.EInvoice {
+		singlPaymentR.IsEInvoice = 1
+	} else {
+		singlPaymentR.IsEInvoice = 0
+	}
+
+	errUdp := singlPaymentR.Update(db)
+
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okRes(c)
 }
