@@ -822,6 +822,13 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	// Update caddie
 	if body.CaddieCode != "" && booking.CaddieInfo.Code != body.CaddieCode {
 		cBooking.UpdateBookingCaddieCommon(db, body.PartnerUid, body.CourseUid, &booking, caddie)
+	} else {
+		if booking.CaddieId > 0 && body.CaddieCode == "" {
+			booking.CaddieId = 0
+			booking.CaddieInfo = model_booking.BookingCaddie{}
+			booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
+			booking.HasBookCaddie = false
+		}
 	}
 
 	// Create booking payment
