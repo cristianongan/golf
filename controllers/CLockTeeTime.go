@@ -114,7 +114,6 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
 	weekday := strconv.Itoa(int(time.Now().Weekday() + 1))
 	turnTimeH := 2
-	turnLength := 0
 	bookSetting := model_booking.BookingSetting{}
 
 	for _, data := range listSettingDetail {
@@ -204,7 +203,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 
 	for index, data := range teeList {
 
-		t := currentTeeTimeDate.Add((time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(turnLength)) * time.Duration(index+1))
+		t := currentTeeTimeDate.Add((time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(bookSetting.TurnLength)) * time.Duration(index+1))
 
 		hour := t.Hour()
 		minute := t.Minute()
