@@ -303,6 +303,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/payment/single-payment/item/update", middlewares.AuthorizedCmsUserHandler(cPayment.UpdateSinglePaymentItem))
 			cmsApiAuthorized.POST("/payment/single-payment/list/item", middlewares.AuthorizedCmsUserHandler(cPayment.GetListSinglePaymentDetail))
 			cmsApiAuthorized.POST("/payment/single-payment/item/delete", middlewares.AuthorizedCmsUserHandler(cPayment.DeleteSinglePaymentItem))
+			cmsApiAuthorized.POST("/payment/get-einvoice", middlewares.AuthorizedCmsUserHandler(cPayment.GetEInvoice))
 
 			cmsApiAuthorized.POST("/payment/agency-payment/list", middlewares.AuthorizedCmsUserHandler(cPayment.GetListAgencyPayment))
 			cmsApiAuthorized.POST("/payment/agency-payment/item/add", middlewares.AuthorizedCmsUserHandler(cPayment.CreateAgencyPaymentItem))
