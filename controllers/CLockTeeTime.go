@@ -128,10 +128,12 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 
 	if course.Hole == 18 {
 
-		if body.TeeType == "1" {
-			teeList = []string{"10"}
-		} else {
-			teeList = []string{"1"}
+		if body.TeeType == "1A" {
+			teeList = []string{"1B"}
+		} else if body.TeeType == "1B" {
+			teeList = []string{"1C"}
+		} else if body.TeeType == "1C" {
+			teeList = []string{"1A"}
 		}
 	} else if course.Hole == 27 {
 
