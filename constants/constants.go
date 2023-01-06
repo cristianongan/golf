@@ -13,8 +13,8 @@ const PAID_BY_AGENCY = "AGENCY"
 /*
 	Paid By Agency
 */
-const BOOKING_OTA = "BOOKING_OTA"
-const BOOKING_CMS = "BOOKING_CMS"
+const LOCK_OTA = "LOCK_OTA"
+const LOCK_CMS = "LOCK_CMS"
 
 /*
 Get base price cho type agency họăc member card
