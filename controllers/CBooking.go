@@ -88,14 +88,33 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, body.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
-	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+
+	rowIndexsRedisStr := ""
+
+	addRejectedHandler := func(_ *datasources.Locker) error {
+		rowIndexsRedisStr, _ = datasources.GetCache(teeTimeRowIndexRedis)
+		return nil
+	}
+
+	keyRedisLockTee := fmt.Sprintf("redisLock_%s", teeTimeRowIndexRedis)
+
+	errLock := datasources.Lock(datasources.LockOption{
+		Key:     keyRedisLockTee,
+		Ttl:     1 * time.Second,
+		Handler: addRejectedHandler,
+	})
 	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+
+	if errLock != nil {
+		return nil, errLock
+	}
 
 	if len(rowIndexsRedis) < constants.SLOT_TEE_TIME {
 		if body.RowIndex == nil {
 			rowIndex := generateRowIndex(rowIndexsRedis)
 			body.RowIndex = &rowIndex
 		}
+
 		rowIndexsRedis = append(rowIndexsRedis, *body.RowIndex)
 		rowIndexsRaw, _ := rowIndexsRedis.Value()
 		errRedis := datasources.SetCache(teeTimeRowIndexRedis, rowIndexsRaw, 0)

@@ -646,9 +646,9 @@ func (item *Booking) FindFirstWithJoin(database *gorm.DB) error {
 }
 
 func (item *Booking) FindFirstNotCancel(db *gorm.DB) error {
-	db = db.Where(item)
 	db = db.Not("bag_status = ?", constants.BAG_STATUS_CANCEL)
-	return db.Where(item).First(item).Error
+	log.Println("FindFirstNotCancel")
+	return db.Where(item).Debug().First(item).Error
 }
 
 func (item *Booking) Count(database *gorm.DB) (int64, error) {
