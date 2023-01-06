@@ -81,6 +81,11 @@ func runCheckLockTeeTime() {
 			err := datasources.DelCacheByKey(teeTimeRedisKey)
 			log.Print("runCheckLockTeeTime", err)
 
+			// Bắn socket để client update ui
+			go func() {
+				pushNotificationCreateBookingOTA(constants.NOTIFICATION_BOOKING_OTA)
+			}()
+
 			slotTeeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + teeTime.CourseUid + "_" + teeTime.DateTime + "_" + teeTime.TeeType + "_" + teeTime.TeeTime
 			if total > 0 {
 				if err := datasources.SetCache(slotTeeTimeRedisKey, total, 0); err != nil {
@@ -91,10 +96,6 @@ func runCheckLockTeeTime() {
 				log.Print("runCheckLockTeeTime", err)
 			}
 		}
-		// Bắn socket để client update ui
-		go func() {
-			pushNotificationCreateBookingOTA(constants.NOTIFICATION_BOOKING_OTA)
-		}()
 	}
 
 	// Chú ý: sửa gì ở hàm này thì sửa cả func UnlockTeeTime tên CTeeTimeOTA
