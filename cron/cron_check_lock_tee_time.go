@@ -39,8 +39,8 @@ func runCheckLockTeeTime() {
 
 	constantTime := 1 * 60
 	for _, teeTime := range listTeeTimeLockRedis {
-		diff := time.Now().Local().Unix() - teeTime.CreatedAt
-		log.Println("runCheckLockTeeTime local", time.Now().Local().Unix())
+		diff := time.Now().Unix() - teeTime.CreatedAt
+		log.Println("runCheckLockTeeTime local", time.Now().Unix())
 		log.Println("runCheckLockTeeTime diff", diff)
 		if diff >= int64(constantTime) && teeTime.Type == constants.LOCK_OTA {
 
