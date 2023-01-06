@@ -14,7 +14,8 @@ import (
 )
 
 func runCheckLockTeeTime() {
-	today, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	today, _ := utils.GetBookingDateFromTimestamp(time.Now().Local().Unix())
+	log.Println("runCheckLockTeeTime", today)
 	prefixRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:" + today
 	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
 	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
@@ -24,20 +25,23 @@ func runCheckLockTeeTime() {
 			log.Println("checkBookingOTA-error", errGet.Error())
 		} else {
 			for _, data := range strData {
-
-				byteData := []byte(data.(string))
-				teeTime := models.LockTeeTimeWithSlot{}
-				err2 := json.Unmarshal(byteData, &teeTime)
-				if err2 == nil {
-					listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+				if data != nil {
+					byteData := []byte(data.(string))
+					teeTime := models.LockTeeTimeWithSlot{}
+					err2 := json.Unmarshal(byteData, &teeTime)
+					if err2 == nil {
+						listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+					}
 				}
 			}
 		}
 	}
 
-	constantTime := 5 * 60
+	constantTime := 1 * 60
 	for _, teeTime := range listTeeTimeLockRedis {
 		diff := time.Now().Local().Unix() - teeTime.CreatedAt
+		log.Println("runCheckLockTeeTime local", time.Now().Local().Unix())
+		log.Println("runCheckLockTeeTime diff", diff)
 		if diff >= int64(constantTime) && teeTime.Type == constants.LOCK_OTA {
 
 			teeTimeRedisKey := getKeyTeeTimeLockRedis(teeTime.DateTime, teeTime.CourseUid, teeTime.TeeTime, "1A")
@@ -63,12 +67,13 @@ func runCheckLockTeeTime() {
 					log.Println("checkBookingOTA-error", errGet.Error())
 				} else {
 					for _, data := range strData {
-
-						byteData := []byte(data.(string))
-						teeTime := models.LockTeeTimeWithSlot{}
-						err2 := json.Unmarshal(byteData, &teeTime)
-						if err2 == nil {
-							listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+						if data != nil {
+							byteData := []byte(data.(string))
+							teeTime := models.LockTeeTimeWithSlot{}
+							err2 := json.Unmarshal(byteData, &teeTime)
+							if err2 == nil {
+								listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+							}
 						}
 					}
 				}
