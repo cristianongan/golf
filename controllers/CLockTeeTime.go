@@ -42,7 +42,7 @@ func (_ *CLockTeeTime) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser
 		CurrentTeeTime: body.TeeTime,
 		TeeType:        body.TeeType,
 		TeeTimeStatus:  constants.TEE_TIME_LOCKED,
-		Type:           constants.BOOKING_CMS,
+		Type:           constants.LOCK_CMS,
 		Slot:           4,
 		Note:           body.Note,
 	}
@@ -230,7 +230,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 				DateTime:       body.BookingDate,
 				CurrentTeeTime: body.TeeTime,
 				TeeType:        data,
-				Type:           constants.BOOKING_CMS,
+				Type:           constants.LOCK_CMS,
 			}
 
 			lockTeeTimeToRedis(lockTeeTime)
