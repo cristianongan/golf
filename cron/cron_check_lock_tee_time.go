@@ -19,21 +19,25 @@ func runCheckLockTeeTime() {
 	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
 	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
 	if errRedis == nil && len(listKey) > 0 {
-		strData, _ := datasources.GetCaches(listKey...)
-		for _, data := range strData {
+		strData, errGet := datasources.GetCaches(listKey...)
+		if errGet != nil {
+			log.Println("checkBookingOTA-error", errGet.Error())
+		} else {
+			for _, data := range strData {
 
-			byteData := []byte(data.(string))
-			teeTime := models.LockTeeTimeWithSlot{}
-			err2 := json.Unmarshal(byteData, &teeTime)
-			if err2 == nil {
-				listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+				byteData := []byte(data.(string))
+				teeTime := models.LockTeeTimeWithSlot{}
+				err2 := json.Unmarshal(byteData, &teeTime)
+				if err2 == nil {
+					listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+				}
 			}
 		}
 	}
 
 	constantTime := 5 * 60
 	for _, teeTime := range listTeeTimeLockRedis {
-		diff := time.Now().Unix() - teeTime.CreatedAt
+		diff := time.Now().Local().Unix() - teeTime.CreatedAt
 		if diff >= int64(constantTime) && teeTime.Type == constants.LOCK_OTA {
 
 			teeTimeRedisKey := getKeyTeeTimeLockRedis(teeTime.DateTime, teeTime.CourseUid, teeTime.TeeTime, "1A")
@@ -54,14 +58,18 @@ func runCheckLockTeeTime() {
 			listKey, errRedis := datasources.GetAllKeysWith(teeTimeRedisKey)
 			listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
 			if errRedis == nil && len(listKey) > 0 {
-				strData, _ := datasources.GetCaches(listKey...)
-				for _, data := range strData {
+				strData, errGet := datasources.GetCaches(listKey...)
+				if errGet != nil {
+					log.Println("checkBookingOTA-error", errGet.Error())
+				} else {
+					for _, data := range strData {
 
-					byteData := []byte(data.(string))
-					teeTime := models.LockTeeTimeWithSlot{}
-					err2 := json.Unmarshal(byteData, &teeTime)
-					if err2 == nil {
-						listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+						byteData := []byte(data.(string))
+						teeTime := models.LockTeeTimeWithSlot{}
+						err2 := json.Unmarshal(byteData, &teeTime)
+						if err2 == nil {
+							listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+						}
 					}
 				}
 			}
@@ -73,11 +81,6 @@ func runCheckLockTeeTime() {
 			err := datasources.DelCacheByKey(teeTimeRedisKey)
 			log.Print("runCheckLockTeeTime", err)
 
-			// Bắn socket để client update ui
-			go func() {
-				pushNotificationCreateBookingOTA(constants.NOTIFICATION_BOOKING_OTA)
-			}()
-
 			slotTeeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + teeTime.CourseUid + "_" + teeTime.DateTime + "_" + teeTime.TeeType + "_" + teeTime.TeeTime
 			if total > 0 {
 				if err := datasources.SetCache(slotTeeTimeRedisKey, total, 0); err != nil {
@@ -88,6 +91,10 @@ func runCheckLockTeeTime() {
 				log.Print("runCheckLockTeeTime", err)
 			}
 		}
+		// Bắn socket để client update ui
+		go func() {
+			pushNotificationCreateBookingOTA(constants.NOTIFICATION_BOOKING_OTA)
+		}()
 	}
 
 	// Chú ý: sửa gì ở hàm này thì sửa cả func UnlockTeeTime tên CTeeTimeOTA
