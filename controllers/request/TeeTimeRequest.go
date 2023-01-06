@@ -35,4 +35,5 @@ type DeleteLockRequest struct {
 	TeeType     string `json:"tee_type"`
 	CourseType  string `json:"course_type"`
 	TeePath     string `json:"tee_path"`
+	Type        string `json:"type"`
 }

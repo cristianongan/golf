@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"log"
+	"net/http"
 	"start/config"
 	"start/constants"
 	"start/controllers/request"
@@ -258,6 +259,11 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 	query := request.DeleteLockRequest{}
 	if err := c.Bind(&query); err != nil {
 		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	if query.Type == constants.LOCK_OTA {
+		response_message.ErrorResponse(c, http.StatusBadRequest, "", "Unlock Fail", constants.ERROR_DELETE_LOCK_OTA)
 		return
 	}
 
