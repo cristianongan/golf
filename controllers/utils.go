@@ -1492,14 +1492,21 @@ func updateSlotTeeTimeWithLock(booking model_booking.Booking) {
 	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
 	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
 	if errRedis == nil && len(listKey) > 0 {
-		strData, _ := datasources.GetCaches(listKey...)
-		for _, data := range strData {
+		strData, errGet := datasources.GetCaches(listKey...)
 
-			byteData := []byte(data.(string))
-			teeTime := models.LockTeeTimeWithSlot{}
-			err2 := json.Unmarshal(byteData, &teeTime)
-			if err2 == nil {
-				listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+		log.Println("updateSlotTeeTimeWithLock-listKey", listKey)
+		if errGet != nil {
+			log.Println("updateSlotTeeTimeWithLock-error", errGet.Error())
+		} else {
+			for _, data := range strData {
+				if data != nil {
+					byteData := []byte(data.(string))
+					teeTime := models.LockTeeTimeWithSlot{}
+					err2 := json.Unmarshal(byteData, &teeTime)
+					if err2 == nil {
+						listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+					}
+				}
 			}
 		}
 	}

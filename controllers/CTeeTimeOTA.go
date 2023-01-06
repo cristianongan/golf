@@ -356,16 +356,14 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 				Status: 200,
 				Infor:  body.CourseCode + "- Lock teeTime " + body.TeeOffStr + " " + dateFormat,
 			}
+			datasources.SetCache(teeTimeSlotEmptyRedisKey, slotBook+body.NumBook, 0)
+			// Bắn socket để client update ui
+			go func() {
+				cNotification := CNotification{}
+				cNotification.PushNotificationCreateBookingOTA("")
+			}()
 		}
 	}
-
-	datasources.SetCache(teeTimeSlotEmptyRedisKey, slotBook+body.NumBook, 0)
-
-	// Bắn socket để client update ui
-	go func() {
-		cNotification := CNotification{}
-		cNotification.PushNotificationCreateBookingOTA("")
-	}()
 
 	okResponse(c, responseOTA)
 }
