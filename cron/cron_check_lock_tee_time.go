@@ -34,7 +34,7 @@ func runCheckLockTeeTime() {
 	constantTime := 5 * 60
 	for _, teeTime := range listTeeTimeLockRedis {
 		diff := time.Now().Unix() - teeTime.CreatedAt
-		if diff >= int64(constantTime) && teeTime.Type == constants.BOOKING_OTA {
+		if diff >= int64(constantTime) && teeTime.Type == constants.LOCK_OTA {
 
 			teeTimeRedisKey := getKeyTeeTimeLockRedis(teeTime.DateTime, teeTime.CourseUid, teeTime.TeeTime, "1A")
 			teeType := teeTime.TeeType[0:1]

@@ -42,7 +42,7 @@ func (_ *CLockTeeTime) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser
 		CurrentTeeTime: body.TeeTime,
 		TeeType:        body.TeeType,
 		TeeTimeStatus:  constants.TEE_TIME_LOCKED,
-		Type:           constants.BOOKING_CMS,
+		Type:           constants.LOCK_CMS,
 		Slot:           4,
 		Note:           body.Note,
 	}
@@ -128,10 +128,12 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 
 	if course.Hole == 18 {
 
-		if body.TeeType == "1" {
-			teeList = []string{"10"}
-		} else {
-			teeList = []string{"1"}
+		if body.TeeType == "1A" {
+			teeList = []string{"1B"}
+		} else if body.TeeType == "1B" {
+			teeList = []string{"1C"}
+		} else if body.TeeType == "1C" {
+			teeList = []string{"1A"}
 		}
 	} else if course.Hole == 27 {
 
@@ -228,7 +230,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 				DateTime:       body.BookingDate,
 				CurrentTeeTime: body.TeeTime,
 				TeeType:        data,
-				Type:           constants.BOOKING_CMS,
+				Type:           constants.LOCK_CMS,
 			}
 
 			lockTeeTimeToRedis(lockTeeTime)

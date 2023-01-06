@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -66,6 +67,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		return nil, errDate
 	}
 
+	if checkBookingOTA(body) && !body.BookFromOTA {
+		response_message.ErrorResponse(c, http.StatusBadRequest, "", "Booking Online đang khóa tại tee time này!", constants.ERROR_BOOKING_OTA_LOCK)
+		return nil, nil
+	}
+
 	var caddie models.Caddie
 	var err error
 	if body.CaddieCode != "" {
@@ -78,24 +84,43 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	// validate trường hợp đóng tee 1
-	teeList := []string{constants.TEE_TYPE_1, constants.TEE_TYPE_1A, constants.TEE_TYPE_1B, constants.TEE_TYPE_1C}
-	if utils.Contains(teeList, body.TeeType) {
-		cBookingSetting := CBookingSetting{}
-		if errors := cBookingSetting.ValidateClose1ST(db, body.BookingDate, body.PartnerUid, body.CourseUid); errors != nil {
-			response_message.InternalServerError(c, errors.Error())
-			return nil, errors
-		}
-	}
+	// teeList := []string{constants.TEE_TYPE_1, constants.TEE_TYPE_1A, constants.TEE_TYPE_1B, constants.TEE_TYPE_1C}
+	// if utils.Contains(teeList, body.TeeType) {
+	// 	cBookingSetting := CBookingSetting{}
+	// 	if errors := cBookingSetting.ValidateClose1ST(db, body.BookingDate, body.PartnerUid, body.CourseUid); errors != nil {
+	// 		response_message.InternalServerError(c, errors.Error())
+	// 		return nil, errors
+	// 	}
+	// }
 
 	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, body.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
-	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+
+	rowIndexsRedisStr := ""
+
+	addRejectedHandler := func(_ *datasources.Locker) error {
+		rowIndexsRedisStr, _ = datasources.GetCache(teeTimeRowIndexRedis)
+		return nil
+	}
+
+	keyRedisLockTee := fmt.Sprintf("redisLock_%s", teeTimeRowIndexRedis)
+
+	errLock := datasources.Lock(datasources.LockOption{
+		Key:     keyRedisLockTee,
+		Ttl:     1 * time.Second,
+		Handler: addRejectedHandler,
+	})
 	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+
+	if errLock != nil {
+		return nil, errLock
+	}
 
 	if len(rowIndexsRedis) < constants.SLOT_TEE_TIME {
 		if body.RowIndex == nil {
 			rowIndex := generateRowIndex(rowIndexsRedis)
 			body.RowIndex = &rowIndex
 		}
+
 		rowIndexsRedis = append(rowIndexsRedis, *body.RowIndex)
 		rowIndexsRaw, _ := rowIndexsRedis.Value()
 		errRedis := datasources.SetCache(teeTimeRowIndexRedis, rowIndexsRaw, 0)
@@ -548,6 +573,33 @@ func (_ CBooking) validateCaddie(db *gorm.DB, courseUid string, caddieCode strin
 	}
 
 	return caddieNew, nil
+}
+
+func checkBookingOTA(body request.CreateBookingBody) bool {
+	prefixRedisKey := getKeyTeeTimeLockRedis(body.BookingDate, body.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
+	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
+
+	haveLockOTA := false
+	if errRedis == nil && len(listKey) > 0 {
+		strData, errGet := datasources.GetCaches(listKey...)
+		if errGet != nil {
+			log.Println("checkBookingOTA-error", errGet.Error())
+		} else {
+			for _, data := range strData {
+				if data != nil {
+					byteData := []byte(data.(string))
+					teeTime := models.LockTeeTimeWithSlot{}
+					if err2 := json.Unmarshal(byteData, &teeTime); err2 == nil {
+						if teeTime.Type == constants.LOCK_OTA {
+							haveLockOTA = true
+							break
+						}
+					}
+				}
+			}
+		}
+	}
+	return haveLockOTA
 }
 
 /*

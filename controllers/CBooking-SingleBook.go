@@ -62,6 +62,9 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 		go func() {
 			removeRowIndexRedis(booking)
 			updateSlotTeeTimeWithLock(booking)
+			if booking.TeeTime != "" {
+				unlockTurnTime(db, booking)
+			}
 		}()
 	}
 
