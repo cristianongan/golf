@@ -9,13 +9,11 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	"start/socket"
-	"start/utils"
 	"time"
 )
 
 func runCheckLockTeeTime() {
-	today, _ := utils.GetBookingDateFromTimestamp(time.Now().Local().Unix())
-	prefixRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:" + today
+	prefixRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:"
 	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
 	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
 	if errRedis == nil && len(listKey) > 0 {
@@ -39,8 +37,6 @@ func runCheckLockTeeTime() {
 	constantTime := 5 * 60
 	for _, teeTime := range listTeeTimeLockRedis {
 		diff := time.Now().Local().Unix() - teeTime.CreatedAt
-		log.Println("runCheckLockTeeTime local ", teeTime.TeeTime, " ", time.Now().Unix())
-		log.Println("runCheckLockTeeTime diff ", teeTime.TeeTime, " ", diff)
 		if diff >= int64(constantTime) && teeTime.Type == constants.LOCK_OTA {
 
 			teeTimeRedisKey := getKeyTeeTimeLockRedis(teeTime.DateTime, teeTime.CourseUid, teeTime.TeeTime, "1A")
