@@ -279,7 +279,7 @@ func (_ *CGolfFee) GetListGuestStyle(c *gin.Context, prof models.CmsUser) {
 		CustomerCategory: form.CustomerCategory,
 	}
 	golfFeeR.Status = constants.STATUS_ENABLE
-	guestStyles := golfFeeR.GetGuestStyleList(db)
+	guestStyles := golfFeeR.GetGuestStyleList(db, form.Time)
 	okResponse(c, guestStyles)
 }
 
