@@ -101,14 +101,14 @@ func GinBodyLogMiddleware(c *gin.Context) {
 	}
 
 	newlog := "[REQ_LOG] " + utils.NumberToString(newlogmessage.TimeStamp) +
+		" |user_name:" + userName +
 		" |status:" + utils.NumberToString(newlogmessage.Status) +
 		" |duration:" + utils.NumberToString(newlogmessage.Duration) +
 		" |client_ip:" + newlogmessage.ClientIP +
 		" |method:" + newlogmessage.Method +
 		" |path:" + newlogmessage.Path +
 		" |request:" + newlogmessage.Request +
-		" |response:" + newlogmessage.Response +
-		" |user_name:" + userName
+		" |response:" + newlogmessage.Response
 
 	notShowrequests := []string{
 		"/golf-cms/metrics",
