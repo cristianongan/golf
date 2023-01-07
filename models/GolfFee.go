@@ -338,7 +338,7 @@ func (item *GolfFee) Delete(db *gorm.DB) error {
 	return db.Delete(item).Error
 }
 
-func (item *GolfFee) GetGuestStyleList(database *gorm.DB) []GuestStyle {
+func (item *GolfFee) GetGuestStyleList(database *gorm.DB, time string) []GuestStyle {
 	db := database.Table("golf_fees")
 	list := []GuestStyle{}
 	status := item.ModelId.Status
@@ -363,7 +363,16 @@ func (item *GolfFee) GetGuestStyleList(database *gorm.DB) []GuestStyle {
 	}
 
 	// Filter guest style theo ngày trong tuần
-	db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+	if len(time) == 0 {
+		db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+	} else {
+		dayOfWeek := utils.GetDayOfWeek(time)
+		if dayOfWeek != "" {
+			db = db.Where("dow LIKE ?", "%"+dayOfWeek+"%")
+		} else {
+			db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+		}
+	}
 
 	db = db.Group("guest_style")
 
