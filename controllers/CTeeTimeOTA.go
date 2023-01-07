@@ -494,14 +494,18 @@ func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
 	listKey, errRedis := datasources.GetAllKeysWith(teeTimeRedisKey)
 	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
 	if errRedis == nil && len(listKey) > 0 {
-		strData, _ := datasources.GetCaches(listKey...)
-		for _, data := range strData {
+		strData, errGet := datasources.GetCaches(listKey...)
+		if errGet != nil {
+			log.Println("checkBookingOTA-error", errGet.Error())
+		} else {
+			for _, data := range strData {
 
-			byteData := []byte(data.(string))
-			teeTime := models.LockTeeTimeWithSlot{}
-			err2 := json.Unmarshal(byteData, &teeTime)
-			if err2 == nil {
-				listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+				byteData := []byte(data.(string))
+				teeTime := models.LockTeeTimeWithSlot{}
+				err2 := json.Unmarshal(byteData, &teeTime)
+				if err2 == nil {
+					listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+				}
 			}
 		}
 	}
