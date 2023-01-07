@@ -9,6 +9,8 @@ import (
 	"os"
 	"regexp"
 	"start/config"
+	"start/constants"
+	"start/models"
 	"start/utils"
 	"time"
 
@@ -88,6 +90,16 @@ func GinBodyLogMiddleware(c *gin.Context) {
 		}
 	}
 
+	// user name
+	userName := ""
+	value, exists := c.Get(constants.CMS_USER_PROFILE_KEY)
+	if exists {
+		baseInfo, isUserProfile := value.(models.CmsUserProfile)
+		if isUserProfile {
+			userName = baseInfo.UserName
+		}
+	}
+
 	newlog := "[REQ_LOG] " + utils.NumberToString(newlogmessage.TimeStamp) +
 		" |status:" + utils.NumberToString(newlogmessage.Status) +
 		" |duration:" + utils.NumberToString(newlogmessage.Duration) +
@@ -95,7 +107,8 @@ func GinBodyLogMiddleware(c *gin.Context) {
 		" |method:" + newlogmessage.Method +
 		" |path:" + newlogmessage.Path +
 		" |request:" + newlogmessage.Request +
-		" |response:" + newlogmessage.Response
+		" |response:" + newlogmessage.Response +
+		" |user_name:" + userName
 
 	notShowrequests := []string{
 		"/golf-cms/metrics",
