@@ -234,6 +234,14 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		if booking != nil && errBook == nil {
 			listBooking = append(listBooking, *booking)
 		}
+
+		if booking != nil {
+			go func() {
+				// Bắn socket để client update ui
+				cNotification := CNotification{}
+				cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_OTA, *booking)
+			}()
+		}
 	}
 
 	if errCreateBook != nil {
@@ -291,7 +299,7 @@ func unlockTee(body request.CreateBookingOTABody) {
 
 			// Bắn socket để client update ui
 			cNotification := CNotification{}
-			cNotification.PushNotificationCreateBookingOTA("")
+			cNotification.PushNotificationLockTee(constants.NOTIFICATION_UNLOCK_TEE)
 			break
 		}
 	}

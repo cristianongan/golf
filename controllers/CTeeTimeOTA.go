@@ -360,7 +360,7 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 			// Bắn socket để client update ui
 			go func() {
 				cNotification := CNotification{}
-				cNotification.PushNotificationCreateBookingOTA("")
+				cNotification.PushNotificationLockTee(constants.NOTIFICATION_LOCK_TEE)
 			}()
 		}
 	}
@@ -520,7 +520,7 @@ func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
 	// Bắn socket để client update ui
 	go func() {
 		cNotification := CNotification{}
-		cNotification.PushNotificationCreateBookingOTA("")
+		cNotification.PushNotificationLockTee(constants.NOTIFICATION_UNLOCK_TEE)
 	}()
 
 	slotTeeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + body.CourseCode + "_" + dateFormat + "_" + "1A" + "_" + body.TeeOffStr

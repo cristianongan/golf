@@ -272,31 +272,3 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 	log.Print(err)
 	okRes(c)
 }
-
-func (_ *CLockTeeTime) DeleteAllRedisTeeTime(c *gin.Context, prof models.CmsUser) {
-	query := request.DeleteRedis{}
-	if err := c.Bind(&query); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
-
-	// Xóa tee time lock
-	teeTimeLockRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:"
-	listKey, _ := datasources.GetAllKeysWith(teeTimeLockRedisKey)
-	errTeeTimeLock := datasources.DelCacheByKey(listKey...)
-	log.Print(errTeeTimeLock)
-
-	// Xóa row_index
-	teeTimeRowIndexRedisKey := config.GetEnvironmentName() + ":" + "tee_time_row_index:"
-	listRowIndexKey, _ := datasources.GetAllKeysWith(teeTimeRowIndexRedisKey)
-	errTeeTimeRowIndex := datasources.DelCacheByKey(listRowIndexKey...)
-	log.Print(errTeeTimeRowIndex)
-
-	// Xóa slot tee time
-	teeTimeSlotEmptyRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_"
-	listTeeTimeSlotKey, _ := datasources.GetAllKeysWith(teeTimeSlotEmptyRedisKey)
-	errTeeTimeSlot := datasources.DelCacheByKey(listTeeTimeSlotKey...)
-	log.Print(errTeeTimeSlot)
-
-	okRes(c)
-}
