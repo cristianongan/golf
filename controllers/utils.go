@@ -1509,7 +1509,7 @@ func updateSlotTeeTimeWithLock(booking model_booking.Booking) {
 					byteData := []byte(data.(string))
 					teeTime := models.LockTeeTimeWithSlot{}
 					err2 := json.Unmarshal(byteData, &teeTime)
-					if err2 == nil {
+					if err2 == nil && teeTime.Type == constants.LOCK_OTA {
 						listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
 					}
 				}

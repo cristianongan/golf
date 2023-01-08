@@ -258,7 +258,12 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 
 	dataRes.BookOtaID = bookingOta.BookingCode
 
-	go unlockTee(body)
+	go func() {
+		unlockTee(body)
+		for _, booking := range listBooking {
+			updateSlotTeeTimeWithLock(booking)
+		}
+	}()
 
 	okResponse(c, dataRes)
 }
