@@ -113,7 +113,10 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 
 	cBookingSetting := CBookingSetting{}
 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
-	weekday := strconv.Itoa(int(time.Now().Weekday() + 1))
+	bookingDateTime, _ := time.Parse(constants.DATE_FORMAT_1, body.BookingDate)
+	weekday := strconv.Itoa(int(bookingDateTime.Weekday()))
+
+	log.Println("LockTurn-weekday:", weekday)
 	turnTimeH := 2
 	bookSetting := model_booking.BookingSetting{}
 
@@ -245,8 +248,10 @@ func (_ *CLockTeeTime) DeleteLockTurn(db *gorm.DB, teeTime string, bookingDate s
 
 	for _, teeTimeR := range listTeeTimeLockRedis {
 		if teeTimeR.CurrentTeeTime == teeTime {
-			teeTimeRedisKey := config.GetEnvironmentName() + ":" + courseUid + "_" + bookingDate + "_" + teeTime + "_" + "1A"
+			teeTimeRedisKey := getKeyTeeTimeLockRedis(teeTimeR.DateTime, teeTimeR.CourseUid, teeTimeR.TeeTime, teeTimeR.TeeType)
+			err := datasources.DelCacheByKey(teeTimeRedisKey)
 
+			log.Print(err)
 			if err := datasources.DelCacheByKey(teeTimeRedisKey); err != nil {
 				log.Println("DeleteLockTurn", err)
 			}

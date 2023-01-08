@@ -557,7 +557,9 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 	}
 
-	go updateSlotTeeTimeWithLock(booking)
+	if !body.BookFromOTA {
+		go updateSlotTeeTimeWithLock(booking)
+	}
 
 	return &booking, nil
 }
