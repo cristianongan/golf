@@ -61,7 +61,7 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 
 		go func() {
 			removeRowIndexRedis(booking)
-			updateSlotTeeTimeWithLock(booking)
+			// updateSlotTeeTimeWithLock(booking)
 			if booking.TeeTime != "" {
 				unlockTurnTime(db, booking)
 			}
@@ -189,13 +189,13 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.InternalServerError(c, errUdp.Error())
 			return
 		}
-		go updateSlotTeeTimeWithLock(booking)
+		// go updateSlotTeeTimeWithLock(booking)
 	}
 
 	go func() {
 		for _, booking := range cloneListBooking {
 			removeRowIndexRedis(booking)
-			updateSlotTeeTimeWithLock(booking)
+			// updateSlotTeeTimeWithLock(booking)
 		}
 	}()
 	okRes(c)
@@ -302,7 +302,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 	go func() {
 		for _, booking := range list {
 			removeRowIndexRedis(booking)
-			updateSlotTeeTimeWithLock(booking)
+			// updateSlotTeeTimeWithLock(booking)
 		}
 	}()
 	okRes(c)

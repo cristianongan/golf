@@ -230,6 +230,17 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		}
 		if errBook != nil {
 			errCreateBook = errBook
+
+			// Khi booking lỗi thì remove index đã lưu trước đó trong redis
+			go removeRowIndexRedis(model_booking.Booking{
+				PartnerUid:  bodyCreate.PartnerUid,
+				CourseUid:   bodyCreate.CourseUid,
+				BookingDate: bodyCreate.BookingDate,
+				TeeType:     bodyCreate.TeeType,
+				TeeTime:     bodyCreate.TeeTime,
+				CourseType:  bodyCreate.CourseType,
+				RowIndex:    bodyCreate.RowIndex,
+			})
 		}
 		if booking != nil && errBook == nil {
 			listBooking = append(listBooking, *booking)
@@ -256,9 +267,9 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_OTA, listBooking)
 		}
 		unlockTee(body)
-		for _, booking := range listBooking {
-			updateSlotTeeTimeWithLock(booking)
-		}
+		// for _, booking := range listBooking {
+		// 	updateSlotTeeTimeWithLock(booking)
+		// }
 	}()
 
 	okResponse(c, dataRes)
