@@ -1646,6 +1646,13 @@ func getKeyTeeTimeLockRedis(bookingDate, courseUid, teeTime, teeType string) str
 	return teeTimeRedisKey
 }
 
+func getKeyTeeTimeLockTurnRedis(bookingDate, courseUid, teeTime, teeType string) string {
+	teeTimeSlotEmptyRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty:" + bookingDate + "_" + courseUid + "_"
+	teeTimeSlotEmptyRedisKey += teeType + "_" + teeTime
+
+	return teeTimeSlotEmptyRedisKey
+}
+
 func getKeyTeeTimeRowIndex(bookingDate, courseUid, teeTime, teeType string) string {
 	teeRowIndexTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_row_index:" + bookingDate + "_" + courseUid + "_"
 	teeRowIndexTimeRedisKey += teeType + "_" + teeTime
