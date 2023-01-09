@@ -561,6 +561,14 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		go updateSlotTeeTimeWithLock(booking)
 	}
 
+	go func() {
+		// Bắn socket để client update ui
+		if !body.BookFromOTA {
+			cNotification := CNotification{}
+			cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, booking)
+		}
+	}()
+
 	return &booking, nil
 }
 

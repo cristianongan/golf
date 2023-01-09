@@ -7,6 +7,7 @@ import (
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
+	model_booking "start/models/booking"
 	"start/socket"
 	"start/utils"
 	"start/utils/response_message"
@@ -217,10 +218,21 @@ func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
 	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
 }
 
-func (_ *CNotification) PushNotificationCreateBookingOTA(title string) {
+func (_ *CNotification) PushNotificationCreateBooking(bookType string, booking model_booking.Booking) {
 	notiData := map[string]interface{}{
-		"type":  constants.NOTIFICATION_BOOKING_OTA,
-		"title": title,
+		"type":    bookType,
+		"title":   "",
+		"booking": booking,
+	}
+
+	newFsConfigBytes, _ := json.Marshal(notiData)
+	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+}
+
+func (_ *CNotification) PushNotificationLockTee(lockType string) {
+	notiData := map[string]interface{}{
+		"type":  lockType,
+		"title": "",
 	}
 
 	newFsConfigBytes, _ := json.Marshal(notiData)

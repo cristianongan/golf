@@ -550,7 +550,6 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/tee-time", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.CreateTeeTimeSettings))
 			cmsApiAuthorized.GET("/tee-time/list", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.GetTeeTimeSettings))
 			cmsApiAuthorized.POST("/tee-time/delete", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.DeleteLockTeeTime))
-			cmsApiAuthorized.POST("/tee-time/redis/reset", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.DeleteAllRedisTeeTime))
 
 			/// =================== Role ===================
 			cRole := new(controllers.CRole)
@@ -743,6 +742,11 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/revenue/report-cashier-audit", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportCashierAudit))
 			cmsApiAuthorized.GET("/report/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportGolfFeeService))
 			cmsApiAuthorized.GET("/report/booking/list", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBookingList))
+
+			/// =================== Redis Settings ===================
+			cRedis := new(controllers.CRedis)
+			cmsApiAuthorized.POST("/redis/tee-time/reset-all", middlewares.AuthorizedCmsUserHandler(cRedis.DeleteAllRedisTeeTime))
+			cmsApiAuthorized.POST("/redis/tee-time/reset", middlewares.AuthorizedCmsUserHandler(cRedis.DeleteTeeTimeRedis))
 
 			/// =================== Test ===================
 			cTest := new(controllers.CTest)
