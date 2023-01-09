@@ -206,7 +206,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 		}
 	}
 
-	for index, data := range teeList {
+	for index, teeType := range teeList {
 
 		t := currentTeeTimeDate.Add((time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(bookSetting.TurnLength)) * time.Duration(index+1))
 
@@ -232,8 +232,9 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 				TeeTimeStatus:  "LOCKED",
 				DateTime:       body.BookingDate,
 				CurrentTeeTime: body.TeeTime,
-				TeeType:        data,
+				TeeType:        teeType,
 				Type:           constants.LOCK_CMS,
+				CurrentCourse:  body.TeeType,
 			}
 
 			lockTeeTimeToRedis(lockTeeTime)
