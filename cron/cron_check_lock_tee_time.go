@@ -86,7 +86,7 @@ func runCheckLockTeeTime() {
 				pushNotificationUnlockTee()
 			}()
 
-			slotTeeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + teeTime.CourseUid + "_" + teeTime.DateTime + "_" + teeTime.TeeType + "_" + teeTime.TeeTime
+			slotTeeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty:" + teeTime.DateTime + "_" + teeTime.CourseUid + "_" + teeTime.TeeType + "_" + teeTime.TeeTime
 			if total > 0 {
 				if err := datasources.SetCache(slotTeeTimeRedisKey, total, 0); err != nil {
 					log.Print("updateSlotTeeTime", err)

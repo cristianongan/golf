@@ -32,6 +32,7 @@ type LockTeeTimeWithSlot struct {
 	TeeTimeStatus  string `json:"tee_time_status" gorm:"type:varchar(100)"` // Trạng thái Tee Time: LOCKED, UNLOCK, DELETED
 	DateTime       string `json:"date_time" gorm:"type:varchar(100)"`       // Ngày mà user update Tee Time
 	TeeType        string `json:"tee_type" gorm:"type:varchar(100)"`        // TeeType: 1,10,1A ...
+	CurrentCourse  string `json:"course_current,omitempty"`
 	Note           string `json:"note"`
 	Slot           int    `json:"slot"`
 	Type           string `json:"type"`
