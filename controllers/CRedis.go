@@ -34,7 +34,7 @@ func (_ *CRedis) DeleteAllRedisTeeTime(c *gin.Context, prof models.CmsUser) {
 	log.Print(errTeeTimeRowIndex)
 
 	// Xóa slot tee time
-	teeTimeSlotEmptyRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_"
+	teeTimeSlotEmptyRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty:"
 	listTeeTimeSlotKey, _ := datasources.GetAllKeysWith(teeTimeSlotEmptyRedisKey)
 	errTeeTimeSlot := datasources.DelCacheByKey(listTeeTimeSlotKey...)
 	log.Print(errTeeTimeSlot)

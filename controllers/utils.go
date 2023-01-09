@@ -1464,24 +1464,6 @@ func checkTeeTimeAvailable(booking model_booking.Booking) bool {
 	return total < constants.SLOT_TEE_TIME
 }
 
-func updateSlotTeeTime(booking model_booking.Booking) {
-	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
-	bookings := model_booking.BookingList{}
-	bookings.PartnerUid = booking.PartnerUid
-	bookings.CourseUid = booking.CourseUid
-	bookings.BookingDate = booking.BookingDate
-	bookings.TeeTime = booking.TeeTime
-	bookings.TeeType = booking.TeeType
-	bookings.CourseType = booking.CourseType
-
-	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + booking.CourseUid + "_" + booking.BookingDate + "_" + booking.TeeType + booking.CourseType + "_" + booking.TeeTime
-	_, total, _ := bookings.FindAllBookingNotCancelList(db)
-
-	if err := datasources.SetCache(teeTimeRedisKey, total, 0); err != nil {
-		log.Print("updateSlotTeeTime", err)
-	}
-}
-
 func updateSlotTeeTimeWithLock(booking model_booking.Booking) {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	bookings := model_booking.BookingList{}
@@ -1520,9 +1502,8 @@ func updateSlotTeeTimeWithLock(booking model_booking.Booking) {
 	for _, item := range listTeeTimeLockRedis {
 		total += int64(item.Slot)
 	}
-
-	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + booking.CourseUid + "_" + booking.BookingDate + "_" + booking.TeeType + booking.CourseType + "_" + booking.TeeTime
-	if err := datasources.SetCache(teeTimeRedisKey, total, 0); err != nil {
+	teeTimeSlotEmptyRedisKey := getKeyTeeTimeSlotRedis(booking.BookingDate, booking.CourseUid, booking.TeeTime, booking.TeeType)
+	if err := datasources.SetCache(teeTimeSlotEmptyRedisKey, total, 0); err != nil {
 		log.Print("updateSlotTeeTime", err)
 	}
 }
@@ -1646,7 +1627,7 @@ func getKeyTeeTimeLockRedis(bookingDate, courseUid, teeTime, teeType string) str
 	return teeTimeRedisKey
 }
 
-func getKeyTeeTimeLockTurnRedis(bookingDate, courseUid, teeTime, teeType string) string {
+func getKeyTeeTimeSlotRedis(bookingDate, courseUid, teeTime, teeType string) string {
 	teeTimeSlotEmptyRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty:" + bookingDate + "_" + courseUid + "_"
 	teeTimeSlotEmptyRedisKey += teeType + "_" + teeTime
 
