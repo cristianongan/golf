@@ -249,7 +249,7 @@ func (cBooking *CTest) TestFunc(c *gin.Context, prof models.CmsUser) {
 	cBookingSetting := CBookingSetting{}
 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
 	bookingDateTime, _ := time.Parse(constants.DATE_FORMAT_1, query.BookingDate)
-	weekday := strconv.Itoa(int(bookingDateTime.Weekday()))
+	weekday := strconv.Itoa(int(bookingDateTime.Weekday() + 1))
 	turnTimeH := 2
 	// endTime := ""
 	bookSetting := model_booking.BookingSetting{}

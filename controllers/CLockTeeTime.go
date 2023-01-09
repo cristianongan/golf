@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"start/config"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -114,7 +113,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 	cBookingSetting := CBookingSetting{}
 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
 	bookingDateTime, _ := time.Parse(constants.DATE_FORMAT_1, body.BookingDate)
-	weekday := strconv.Itoa(int(bookingDateTime.Weekday()))
+	weekday := strconv.Itoa(int(bookingDateTime.Weekday() + 1))
 
 	log.Println("LockTurn-weekday:", weekday)
 	turnTimeH := 2

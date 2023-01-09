@@ -118,7 +118,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	}
 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
 	bookingDateTime, _ := time.Parse(constants.DATE_FORMAT_1, dateFormat)
-	weekday := strconv.Itoa(int(bookingDateTime.Weekday()))
+	weekday := strconv.Itoa(int(bookingDateTime.Weekday() + 1))
 	bookSetting := model_booking.BookingSetting{}
 
 	teeTimeList := []response.TeeTimeOTA{}
