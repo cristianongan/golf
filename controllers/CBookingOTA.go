@@ -234,14 +234,6 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		if booking != nil && errBook == nil {
 			listBooking = append(listBooking, *booking)
 		}
-
-		if booking != nil {
-			go func() {
-				// Bắn socket để client update ui
-				cNotification := CNotification{}
-				cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_OTA, *booking)
-			}()
-		}
 	}
 
 	if errCreateBook != nil {
@@ -259,6 +251,10 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	dataRes.BookOtaID = bookingOta.BookingCode
 
 	go func() {
+		if len(listBooking) > 0 {
+			cNotification := CNotification{}
+			cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_OTA, listBooking)
+		}
 		unlockTee(body)
 		for _, booking := range listBooking {
 			updateSlotTeeTimeWithLock(booking)

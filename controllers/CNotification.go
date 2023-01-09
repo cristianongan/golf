@@ -7,7 +7,6 @@ import (
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
-	model_booking "start/models/booking"
 	"start/socket"
 	"start/utils"
 	"start/utils/response_message"
@@ -218,7 +217,7 @@ func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
 	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
 }
 
-func (_ *CNotification) PushNotificationCreateBooking(bookType string, booking model_booking.Booking) {
+func (_ *CNotification) PushNotificationCreateBooking(bookType string, booking any) {
 	notiData := map[string]interface{}{
 		"type":    bookType,
 		"title":   "",
