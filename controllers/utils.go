@@ -1600,7 +1600,7 @@ func lockTeeTimeToRedis(body models.LockTeeTimeWithSlot) {
 		TeeType:        body.TeeType,
 		TeeTimeStatus:  constants.TEE_TIME_LOCKED,
 		Type:           constants.LOCK_CMS,
-		CurrentCourse:  body.TeeType,
+		CurrentCourse:  body.CurrentCourse,
 		Slot:           4,
 	}
 
