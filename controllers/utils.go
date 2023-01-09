@@ -1586,29 +1586,21 @@ func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 }
 
 func lockTeeTimeToRedis(body models.LockTeeTimeWithSlot) {
-	teeTimeSetting := models.LockTeeTime{
-		PartnerUid:     body.PartnerUid,
-		CourseUid:      body.CourseUid,
-		DateTime:       body.DateTime,
-		TeeTime:        body.TeeTime,
-		CurrentTeeTime: body.CurrentTeeTime,
-		TeeType:        body.TeeType,
-	}
-
 	teeTimeRedisKey := getKeyTeeTimeLockRedis(body.DateTime, body.CourseUid, body.TeeTime, body.TeeType)
 
 	key := datasources.GetRedisKeyTeeTimeLock(teeTimeRedisKey)
 	_, errRedis := datasources.GetCache(key)
 
 	teeTimeRedis := models.LockTeeTimeWithSlot{
-		DateTime:       teeTimeSetting.DateTime,
+		DateTime:       body.DateTime,
 		PartnerUid:     body.PartnerUid,
-		CourseUid:      teeTimeSetting.CourseUid,
-		TeeTime:        teeTimeSetting.TeeTime,
-		CurrentTeeTime: teeTimeSetting.CurrentTeeTime,
-		TeeType:        teeTimeSetting.TeeType,
+		CourseUid:      body.CourseUid,
+		TeeTime:        body.TeeTime,
+		CurrentTeeTime: body.CurrentTeeTime,
+		TeeType:        body.TeeType,
 		TeeTimeStatus:  constants.TEE_TIME_LOCKED,
 		Type:           constants.LOCK_CMS,
+		CurrentCourse:  body.TeeType,
 		Slot:           4,
 	}
 
