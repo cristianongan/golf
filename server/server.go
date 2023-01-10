@@ -49,6 +49,13 @@ func Init() {
 	// ======== Connect elasticsearch/
 	// elasticsearch.ElasticSearchInit()
 
+	// IMPORT DATA
+	// importDataCustomerUser()
+	// importDataMemberCardType()
+	// importDataMemberCard()
+	// importDataAgencies()
+	// importDataCaddies()
+
 	r := NewRouter()
 
 	log.Println("Server is running ...", "listen", config.GetString("backend_port"))

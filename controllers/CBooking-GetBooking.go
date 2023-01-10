@@ -609,3 +609,63 @@ func (cBooking *CBooking) GetBagNotCheckOut(c *gin.Context, prof models.CmsUser)
 
 	okResponse(c, res)
 }
+
+func (_ *CRevenueReport) GetReportBookingList(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	bookings := model_booking.BookingList{}
+	bookings.PartnerUid = form.PartnerUid
+	bookings.CourseUid = form.CourseUid
+	bookings.BookingDate = form.BookingDate
+	bookings.GolfBag = form.GolfBag
+	bookings.BookingCode = form.BookingCode
+	bookings.InitType = form.InitType
+	bookings.IsAgency = form.IsAgency
+	bookings.AgencyId = form.AgencyId
+	bookings.Status = form.Status
+	bookings.FromDate = form.FromDate
+	bookings.ToDate = form.ToDate
+	bookings.IsToday = form.IsToday
+	bookings.BookingUid = form.BookingUid
+	bookings.IsFlight = form.IsFlight
+	bookings.BagStatus = form.BagStatus
+	bookings.HaveBag = form.HaveBag
+	bookings.HasBuggy = form.HasBuggy
+	bookings.HasCaddie = form.HasCaddie
+	bookings.CaddieCode = form.CaddieCode
+	bookings.HasBookCaddie = form.HasBookCaddie
+	bookings.CustomerName = form.PlayerName
+	bookings.HasCaddieInOut = form.HasCaddieInOut
+	bookings.FlightId = form.FlightId
+	bookings.TeeType = form.TeeType
+	bookings.CourseType = form.CourseType
+	bookings.IsCheckIn = form.IsCheckIn
+	bookings.GuestStyleName = form.GuestStyleName
+	bookings.PlayerOrBag = form.PlayerOrBag
+	bookings.CustomerUid = form.CustomerUid
+	bookings.CustomerType = form.CustomerType
+	bookings.BuggyCode = form.BuggyCode
+	bookings.GuestStyle = form.GuestStyle
+	bookings.CaddieName = form.CaddieName
+
+	list, total, _ := bookings.FindReportBookingList(db, page)
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	okResponse(c, res)
+}

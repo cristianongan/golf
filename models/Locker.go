@@ -72,7 +72,7 @@ func (item *Locker) FindList(database *gorm.DB, page Page, from, to int64, isFul
 		db = db.Where("golf_bag = ?", item.GolfBag)
 	}
 	if item.Locker != "" {
-		db = db.Where("locker = ?", item.Locker)
+		db = db.Where("locker COLLATE utf8mb4_general_ci LIKE ?", "%"+item.Locker+"%")
 	}
 	//Search With Time
 	if from > 0 && to > 0 {

@@ -2,6 +2,9 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
+	"log"
+	"start/callservices"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -17,6 +20,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/twharmon/slices"
 )
 
@@ -172,101 +176,7 @@ func (_ *CTest) CreateRevenueDetail(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
-func (cBooking *CTest) Test1(c *gin.Context, prof models.CmsUser) {
-	db := datasources.GetDatabase()
-
-	cBookingSetting := CBookingSetting{}
-	form := request.GetListBookingSettingForm{
-		CourseUid: "CHI-LINH-01",
-	}
-	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
-	weekday := strconv.Itoa(int(time.Now().Weekday()) + 1)
-	bookSetting := model_booking.BookingSetting{}
-
-	teeTimeList := []string{}
-	for _, data := range listSettingDetail {
-		if strings.ContainsAny(data.Dow, weekday) {
-			bookSetting = data
-			break
-		}
-	}
-
-	timeParts := []response.TeeTimePartOTA{
-		{
-			IsHideTeePart: bookSetting.IsHideTeePart1,
-			StartPart:     bookSetting.StartPart1,
-			EndPart:       bookSetting.EndPart1,
-		},
-		{
-			IsHideTeePart: bookSetting.IsHideTeePart2,
-			StartPart:     bookSetting.StartPart2,
-			EndPart:       bookSetting.EndPart2,
-		},
-		{
-			IsHideTeePart: bookSetting.IsHideTeePart3,
-			StartPart:     bookSetting.StartPart3,
-			EndPart:       bookSetting.EndPart3,
-		},
-	}
-
-	for _, part := range timeParts {
-		if !part.IsHideTeePart {
-			endTime, _ := utils.ConvertHourToTime(part.EndPart)
-			teeTimeInit, _ := utils.ConvertHourToTime(part.StartPart)
-			for {
-				hour := teeTimeInit.Hour()
-				minute := teeTimeInit.Minute()
-
-				hourStr_ := strconv.Itoa(hour)
-				if hour < 10 {
-					hourStr_ = "0" + hourStr_
-				}
-				minuteStr := strconv.Itoa(minute)
-				if minute < 10 {
-					minuteStr = "0" + minuteStr
-				}
-
-				hourStr := hourStr_ + ":" + minuteStr
-
-				teeTimeList = append(teeTimeList, hourStr)
-				teeTimeInit = teeTimeInit.Add(time.Minute * time.Duration(bookSetting.TeeMinutes))
-
-				if teeTimeInit.Unix() > endTime.Unix() {
-					break
-				}
-			}
-		}
-	}
-
-	today, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-	courseTypeList := []string{"A", "B", "C"}
-	for _, courseType := range courseTypeList {
-		for _, teeTime := range teeTimeList {
-			rTeeTime1 := models.TeeTimeList{
-				PartnerUid:  "CHI-LINH",
-				CourseUid:   "CHI-LINH-01",
-				TeeTime:     teeTime,
-				TeeType:     "1",
-				CourseType:  courseType,
-				BookingDate: today,
-			}
-
-			rTeeTime1.Create(db)
-
-			rTeeTime2 := models.TeeTimeList{
-				PartnerUid:  "CHI-LINH",
-				CourseUid:   "CHI-LINH-01",
-				TeeTime:     teeTime,
-				TeeType:     "10",
-				CourseType:  courseType,
-				BookingDate: today,
-			}
-
-			rTeeTime2.Create(db)
-		}
-	}
-}
-func (cBooking *CTest) Test(c *gin.Context, prof models.CmsUser) {
+func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
@@ -313,4 +223,194 @@ func (cBooking *CTest) Test(c *gin.Context, prof models.CmsUser) {
 	// newFsConfigBytes, _ := json.Marshal(notiData)
 	// // socket.HubBroadcastSocket = socket.NewHub()
 	// socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+}
+
+func (cBooking *CTest) TestFunc(c *gin.Context, prof models.CmsUser) {
+	query := request.DeleteLockRequest{}
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	if err := c.Bind(&query); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	course := models.Course{}
+	course.Uid = query.CourseUid
+	errCourse := course.FindFirst()
+	if errCourse != nil {
+		log.Println(errCourse)
+	}
+
+	form := request.GetListBookingSettingForm{
+		CourseUid:  query.CourseUid,
+		PartnerUid: query.PartnerUid,
+		OnDate:     query.BookingDate,
+	}
+
+	cBookingSetting := CBookingSetting{}
+	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
+	bookingDateTime, _ := time.Parse(constants.DATE_FORMAT_1, query.BookingDate)
+	weekday := strconv.Itoa(int(bookingDateTime.Weekday()))
+	turnTimeH := 2
+	// endTime := ""
+	bookSetting := model_booking.BookingSetting{}
+
+	for _, data := range listSettingDetail {
+		// if strings.ContainsAny(data.Dow, weekday) {
+		// 	turnLength = data.TurnLength
+		// 	endTime = data.EndPart3
+		// 	break
+		// }
+		if strings.ContainsAny(data.Dow, weekday) {
+			bookSetting = data
+			break
+		}
+	}
+
+	currentTeeTimeDate, _ := utils.ConvertHourToTime(query.TeeTime)
+	// endTimeDate, _ := utils.ConvertHourToTime(endTime)
+
+	teeList := []string{}
+
+	if course.Hole == 18 {
+
+		if query.TeeType == "1" {
+			teeList = []string{"10"}
+		} else {
+			teeList = []string{"1"}
+		}
+	} else if course.Hole == 27 {
+
+		if query.CourseType == "A" {
+			teeList = []string{"1B", "1C"}
+		} else if query.CourseType == "B" {
+			teeList = []string{"1C", "1A"}
+		} else if query.CourseType == "C" {
+			teeList = []string{"1A", "1B"}
+		}
+
+	}
+
+	if len(teeList) == 0 {
+		log.Println(errors.New("Không tìm thấy sân"))
+	}
+
+	timeParts := []response.TeeTimePartOTA{
+		{
+			IsHideTeePart: bookSetting.IsHideTeePart1,
+			StartPart:     bookSetting.StartPart1,
+			EndPart:       bookSetting.EndPart1,
+		},
+		{
+			IsHideTeePart: bookSetting.IsHideTeePart2,
+			StartPart:     bookSetting.StartPart2,
+			EndPart:       bookSetting.EndPart2,
+		},
+		{
+			IsHideTeePart: bookSetting.IsHideTeePart3,
+			StartPart:     bookSetting.StartPart3,
+			EndPart:       bookSetting.EndPart3,
+		},
+	}
+
+	index := 0
+	teeTimeListLL := []string{}
+
+	for _, part := range timeParts {
+		if !part.IsHideTeePart {
+			endTime, _ := utils.ConvertHourToTime(part.EndPart)
+			teeTimeInit, _ := utils.ConvertHourToTime(part.StartPart)
+			for {
+				index += 1
+
+				hour := teeTimeInit.Hour()
+				minute := teeTimeInit.Minute()
+
+				hourStr_ := strconv.Itoa(hour)
+				if hour < 10 {
+					hourStr_ = "0" + hourStr_
+				}
+				minuteStr := strconv.Itoa(minute)
+				if minute < 10 {
+					minuteStr = "0" + minuteStr
+				}
+
+				hourStr := hourStr_ + ":" + minuteStr
+
+				teeTimeListLL = append(teeTimeListLL, hourStr)
+				teeTimeInit = teeTimeInit.Add(time.Minute * time.Duration(bookSetting.TeeMinutes))
+
+				if teeTimeInit.Unix() > endTime.Unix() {
+					break
+				}
+			}
+		}
+	}
+
+	for index, _ := range teeList {
+
+		t := currentTeeTimeDate.Add((time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(bookSetting.TurnLength)) * time.Duration(index+1))
+
+		hour := t.Hour()
+		minute := t.Minute()
+
+		hourStr_ := strconv.Itoa(hour)
+		if hour < 10 {
+			hourStr_ = "0" + hourStr_
+		}
+		minuteStr := strconv.Itoa(minute)
+		if minute < 10 {
+			minuteStr = "0" + minuteStr
+		}
+
+		teeTime1B := hourStr_ + ":" + minuteStr
+
+		if utils.Contains(teeTimeListLL, teeTime1B) {
+			log.Println(teeTime1B)
+		}
+		// lockTeeTime := models.LockTeeTimeWithSlot{
+		// 	PartnerUid:     query.PartnerUid,
+		// 	CourseUid:      query.CourseUid,
+		// 	TeeTime:        teeTime1B,
+		// 	TeeTimeStatus:  "LOCKED",
+		// 	DateTime:       query.BookingDate,
+		// 	CurrentTeeTime: query.TeeTime,
+		// 	TeeType:        data,
+		// 	Type:           constants.BOOKING_CMS,
+		// }
+
+		// lockTeeTimeToRedis(lockTeeTime)
+	}
+}
+
+func (cBooking *CTest) TestFastCustomer(c *gin.Context, prof models.CmsUser) {
+	uid := utils.HashCodeUuid(uuid.New().String())
+	customerBody := request.CustomerBody{
+		MaKh:   uid,
+		TenKh:  "Duy Tuan",
+		DiaChi: "ddddddd",
+	}
+
+	_, res := callservices.CreateCustomer(customerBody)
+
+	okResponse(c, res)
+}
+
+func (cBooking *CTest) TestFastFee(c *gin.Context, prof models.CmsUser) {
+	uid := utils.HashCodeUuid(uuid.New().String())
+	billNo := fmt.Sprint(time.Now().UnixMilli())
+	customerBody := request.CustomerBody{
+		MaKh:   uid,
+		TenKh:  "Duy Tuan",
+		DiaChi: "ddddddd",
+	}
+
+	check, customer := callservices.CreateCustomer(customerBody)
+	if check {
+		callservices.TransferFast(constants.PAYMENT_TYPE_CASH, 100000, "", uid, customerBody.TenKh, billNo)
+	}
+
+	res := map[string]interface{}{
+		"customer": customer,
+	}
+	okResponse(c, res)
 }

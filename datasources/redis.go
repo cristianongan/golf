@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"log"
 	"start/config"
 	"start/constants"
@@ -66,6 +67,76 @@ func GetLockerRedisObtainWith(key string, timeSecond time.Duration) bool {
 	return true
 }
 
+type Locker struct {
+	lock *redislock.Lock
+}
+
+func (locker *Locker) Extend(ttl time.Duration) error {
+	return locker.lock.Refresh(ctx, ttl, nil)
+}
+
+func (locker *Locker) TTL() (time.Duration, error) {
+	return locker.lock.TTL(ctx)
+}
+
+type LockOption struct {
+	// Lock this key
+	Key string
+	// Key will be locked upto this ttl
+	Ttl time.Duration
+	// Timeout to acquire the locking key
+	ObtainTimeout time.Duration
+	// Interval to retry obtaining the lock
+	ObtainInterval time.Duration
+	// Function to execute while the key is locked
+	Handler func(*Locker) error
+}
+
+func Lock(opt LockOption) error {
+	// Default obtain interval to 100ms
+	obtainInterval := 100 * time.Millisecond
+	if opt.ObtainInterval != 0 {
+		obtainInterval = opt.ObtainInterval
+	}
+
+	// Default obtain timeout to Ttl
+	obtainTimeout := opt.Ttl
+	if opt.ObtainTimeout != 0 {
+		obtainTimeout = opt.ObtainTimeout
+	}
+
+	// Retry obtaining lock every ObtainInterval, up to the specified ObtainTimeout
+	backoff := redislock.LinearBackoff(obtainInterval)
+	obtainDeadline, cancel := context.WithTimeout(ctx, obtainTimeout)
+	defer cancel()
+
+	lock, err := redisLocker.Obtain(obtainDeadline, opt.Key, opt.Ttl, &redislock.Options{
+		RetryStrategy: backoff,
+	})
+
+	if err != nil {
+		return fmt.Errorf("Could not obtain lock key '%s'. %v", opt.Key, err)
+	}
+
+	obtainedAt := time.Now()
+	defer func() {
+		// Try to release lock, up to the specified ttl
+		releaseDeadline, cancelFn := context.WithTimeout(ctx, opt.Ttl)
+		defer cancelFn()
+
+		err := lock.Release(releaseDeadline)
+		if err != nil {
+			log.Printf("Failed to release lock (%s) %s. %v\n", time.Since(obtainedAt), opt.Key, err)
+		}
+	}()
+
+	if opt.Handler == nil {
+		return nil
+	}
+
+	return opt.Handler(&Locker{lock})
+}
+
 func GetRedisKeyLockerResetDataMemberCard() string {
 	return config.GetEnvironmentName() + "_" + "haicv_redis_locker_reset_data_member_card"
 }
@@ -96,6 +167,10 @@ func GetRedisKeyTeeTimeLock(teeTime string) string {
 
 func GetRedisKeyUserLogin(userName string) string {
 	return config.GetEnvironmentName() + "_" + "redis_user_login" + "_" + userName
+}
+
+func GetPrefixRedisKeyUserRolePermission() string {
+	return config.GetEnvironmentName() + "_" + "permission" + "_"
 }
 
 func GetRedis() *redis.Client {

@@ -74,6 +74,7 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 	singlePayment.Status = constants.STATUS_ENABLE
 	isAdd := true
 	errFind := singlePayment.FindFirst(db)
+
 	if errFind != nil {
 		// Chưa có thì tạo
 		singlePayment.Bag = booking.Bag
@@ -125,6 +126,7 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 		PaymentUid:  singlePayment.Uid,
 		Cashiers:    prof.UserName,
 		BookingDate: booking.BookingDate,
+		BankType:    body.BankType,
 	}
 
 	errC := singlePaymentItem.Create(db)
@@ -170,9 +172,6 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 			log.Println("CreateSinglePayment errList", errList.Error())
 		}
 	}
-
-	// call api sang FAST
-	// go updateFastBill(body.PaymentType, body.Amount, body.Note, booking)
 
 	okRes(c)
 }
@@ -287,6 +286,16 @@ func (_ *CPayment) GetListSinglePaymentDetail(c *gin.Context, prof models.CmsUse
 		return
 	}
 
+	singlPaymentR := model_payment.SinglePayment{
+		BillCode: body.BillCode,
+		Bag:      body.Bag,
+	}
+
+	if errSinglePaymentR := singlPaymentR.FindFirst(db); errSinglePaymentR != nil {
+		response_message.InternalServerError(c, errSinglePaymentR.Error())
+		return
+	}
+
 	paymentR := model_payment.SinglePaymentItem{
 		PartnerUid: body.PartnerUid,
 		CourseUid:  body.CourseUid,
@@ -302,8 +311,9 @@ func (_ *CPayment) GetListSinglePaymentDetail(c *gin.Context, prof models.CmsUse
 	}
 
 	res := map[string]interface{}{
-		"total": len(list),
-		"data":  list,
+		"total":     len(list),
+		"data":      list,
+		"e_invoice": singlPaymentR.IsEInvoice,
 	}
 
 	okResponse(c, res)
@@ -608,4 +618,42 @@ func (_ *CPayment) GetListBagOfAgency(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, list)
+}
+
+/*
+Check E-Invoice
+*/
+func (_ *CPayment) GetEInvoice(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.GetEInvoice{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	singlPaymentR := model_payment.SinglePayment{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		BillCode:   body.BillCode,
+	}
+
+	if errSinglePaymentR := singlPaymentR.FindFirst(db); errSinglePaymentR != nil {
+		response_message.InternalServerError(c, errSinglePaymentR.Error())
+		return
+	}
+
+	if body.EInvoice != nil && *body.EInvoice {
+		singlPaymentR.IsEInvoice = 1
+	} else {
+		singlPaymentR.IsEInvoice = 0
+	}
+
+	errUdp := singlPaymentR.Update(db)
+
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okRes(c)
 }

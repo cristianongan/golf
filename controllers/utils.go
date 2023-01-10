@@ -1318,14 +1318,19 @@ func getTeeTimeLockRedis(courseUid string, date string, teeType string) []models
 	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
 	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
 	if errRedis == nil && len(listKey) > 0 {
-		strData, _ := datasources.GetCaches(listKey...)
-		for _, data := range strData {
-
-			byteData := []byte(data.(string))
-			teeTime := models.LockTeeTimeWithSlot{}
-			err2 := json.Unmarshal(byteData, &teeTime)
-			if err2 == nil {
-				listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+		strData, errGet := datasources.GetCaches(listKey...)
+		if errGet != nil {
+			log.Println("updateSlotTeeTimeWithLock-error", errGet.Error())
+		} else {
+			for _, data := range strData {
+				if data != nil {
+					byteData := []byte(data.(string))
+					teeTime := models.LockTeeTimeWithSlot{}
+					err2 := json.Unmarshal(byteData, &teeTime)
+					if err2 == nil {
+						listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+					}
+				}
 			}
 		}
 	}
@@ -1401,6 +1406,7 @@ func addServiceCart(db *gorm.DB, numberGuest int, partnerUid, courseUid, playerN
 Tạo row index cho booking
 */
 func generateRowIndex(rowsCurrent []int) int {
+	log.Printf("time %d: %v", time.Now().Unix(), rowsCurrent)
 	if !utils.Contains(rowsCurrent, 0) {
 		return 0
 	} else if !utils.Contains(rowsCurrent, 1) {
@@ -1409,6 +1415,35 @@ func generateRowIndex(rowsCurrent []int) int {
 		return 2
 	}
 	return 3
+}
+
+/*
+Remove row index trong redis
+*/
+func removeRowIndexRedis(booking model_booking.Booking) {
+	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(booking.BookingDate, booking.CourseUid, booking.TeeTime, booking.TeeType+booking.CourseType)
+	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+	newRowIndexsRedis := utils.ListInt{}
+
+	for _, item := range rowIndexsRedis {
+		if item != *booking.RowIndex {
+			newRowIndexsRedis = append(newRowIndexsRedis, item)
+		}
+	}
+
+	if len(newRowIndexsRedis) > 0 {
+		rowIndexsRaw, _ := newRowIndexsRedis.Value()
+		errRedis := datasources.SetCache(teeTimeRowIndexRedis, rowIndexsRaw, 0)
+		if errRedis != nil {
+			log.Println("CreateBookingCommon errRedis", errRedis)
+		}
+	} else {
+		errRedis := datasources.DelCacheByKey(teeTimeRowIndexRedis)
+		if errRedis != nil {
+			log.Println("CreateBookingCommon errRedis", errRedis)
+		}
+	}
 }
 
 /*
@@ -1463,14 +1498,21 @@ func updateSlotTeeTimeWithLock(booking model_booking.Booking) {
 	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
 	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
 	if errRedis == nil && len(listKey) > 0 {
-		strData, _ := datasources.GetCaches(listKey...)
-		for _, data := range strData {
+		strData, errGet := datasources.GetCaches(listKey...)
 
-			byteData := []byte(data.(string))
-			teeTime := models.LockTeeTimeWithSlot{}
-			err2 := json.Unmarshal(byteData, &teeTime)
-			if err2 == nil {
-				listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+		log.Println("updateSlotTeeTimeWithLock-listKey", listKey)
+		if errGet != nil {
+			log.Println("updateSlotTeeTimeWithLock-error", errGet.Error())
+		} else {
+			for _, data := range strData {
+				if data != nil {
+					byteData := []byte(data.(string))
+					teeTime := models.LockTeeTimeWithSlot{}
+					err2 := json.Unmarshal(byteData, &teeTime)
+					if err2 == nil && teeTime.Type == constants.LOCK_OTA {
+						listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+					}
+				}
 			}
 		}
 	}
@@ -1479,7 +1521,6 @@ func updateSlotTeeTimeWithLock(booking model_booking.Booking) {
 		total += int64(item.Slot)
 	}
 
-	// "staging:tee_time_slot_empty_CHI-LINH-01_26/12/2022_1A_15:36"
 	teeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + booking.CourseUid + "_" + booking.BookingDate + "_" + booking.TeeType + booking.CourseType + "_" + booking.TeeTime
 	if err := datasources.SetCache(teeTimeRedisKey, total, 0); err != nil {
 		log.Print("updateSlotTeeTime", err)
@@ -1563,7 +1604,7 @@ func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 	return nil
 }
 
-func lockTeeTimeToRedis(body models.LockTeeTime) {
+func lockTeeTimeToRedis(body models.LockTeeTimeWithSlot) {
 	teeTimeSetting := models.LockTeeTime{
 		PartnerUid:     body.PartnerUid,
 		CourseUid:      body.CourseUid,
@@ -1573,18 +1614,21 @@ func lockTeeTimeToRedis(body models.LockTeeTime) {
 		TeeType:        body.TeeType,
 	}
 
-	teeTimeRedisKey := config.GetEnvironmentName() + ":" + body.CourseUid + "_" + body.DateTime + "_" + body.TeeTime + "_" + body.TeeType
+	teeTimeRedisKey := getKeyTeeTimeLockRedis(body.DateTime, body.CourseUid, body.TeeTime, body.TeeType)
 
 	key := datasources.GetRedisKeyTeeTimeLock(teeTimeRedisKey)
 	_, errRedis := datasources.GetCache(key)
 
 	teeTimeRedis := models.LockTeeTimeWithSlot{
 		DateTime:       teeTimeSetting.DateTime,
+		PartnerUid:     body.PartnerUid,
 		CourseUid:      teeTimeSetting.CourseUid,
 		TeeTime:        teeTimeSetting.TeeTime,
 		CurrentTeeTime: teeTimeSetting.CurrentTeeTime,
 		TeeType:        teeTimeSetting.TeeType,
 		TeeTimeStatus:  constants.TEE_TIME_LOCKED,
+		Type:           constants.LOCK_CMS,
+		Slot:           4,
 	}
 
 	if errRedis != nil {

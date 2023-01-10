@@ -13,14 +13,15 @@ import (
 
 type BookingWaiting struct {
 	models.ModelId
-	PartnerUid    string           `json:"partner_uid" gorm:"type:varchar(100);index"`  // Hang Golf
-	CourseUid     string           `json:"course_uid" gorm:"type:varchar(256);index"`   // San Golf
-	BookingCode   string           `json:"booking_code" gorm:"type:varchar(100);index"` //
-	BookingTime   string           `json:"booking_time" gorm:"type:varchar(100)"`       // Ngày tạo booking waiting
-	PlayerName    string           `json:"player_name" gorm:"type:varchar(256)"`        // Tên người đặt booking waiting
-	PlayerContact string           `json:"player_contact" gorm:"type:varchar(256)"`     // SĐT người đặt booking waiting
-	PeopleList    utils.ListString `json:"people_list,omitempty" gorm:"type:json"`      // Danh sách người chơi
-	Note          string           `json:"note" gorm:"type:varchar(256)"`               // Ghi chú
+	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"`  // Hang Golf
+	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`   // San Golf
+	BookingCode string `json:"booking_code" gorm:"type:varchar(100);index"` //
+	BookingTime string `json:"booking_time" gorm:"type:varchar(100)"`       // Ngày tạo booking waiting
+	// TeeTime       string           `json:"tee_time" gorm:"type:varchar(20)"`            // Giờ tee time muốn chơi
+	PlayerName    string           `json:"player_name" gorm:"type:varchar(256)"`    // Tên người đặt booking waiting
+	PlayerContact string           `json:"player_contact" gorm:"type:varchar(256)"` // SĐT người đặt booking waiting
+	PeopleList    utils.ListString `json:"people_list,omitempty" gorm:"type:json"`  // Danh sách người chơi
+	Note          string           `json:"note" gorm:"type:varchar(256)"`           // Ghi chú
 }
 
 func (item *BookingWaiting) Create(db *gorm.DB) error {
@@ -78,8 +79,16 @@ func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]Boo
 		db = db.Where("booking_time = ?", item.BookingTime)
 	}
 
+	if item.PlayerContact != "" {
+		db = db.Where("player_contact COLLATE utf8mb4_general_ci LIKE ?", "%"+item.PlayerContact+"%")
+	}
+
+	if item.BookingCode != "" {
+		db = db.Where("booking_code COLLATE utf8mb4_general_ci LIKE ?", "%"+item.BookingCode+"%")
+	}
+
 	if item.PlayerName != "" {
-		db = db.Where("player_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.PlayerName+"%")
+		db = db.Where("player_name COLLATE utf8mb4_general_ci LIKE ? OR player_contact COLLATE utf8mb4_general_ci LIKE ? OR booking_code COLLATE utf8mb4_general_ci LIKE ?", "%"+item.PlayerName+"%", "%"+item.PlayerName+"%", "%"+item.PlayerName+"%")
 	}
 
 	db.Count(&total)

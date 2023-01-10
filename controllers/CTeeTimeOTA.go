@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"encoding/json"
+	"log"
 	"net/http"
 	"start/config"
 	"start/constants"
@@ -112,9 +114,11 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	cBookingSetting := CBookingSetting{}
 	form := request.GetListBookingSettingForm{
 		CourseUid: body.CourseCode,
+		OnDate:    dateFormat,
 	}
 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
-	weekday := strconv.Itoa(int(timeDate.Weekday()) + 1)
+	bookingDateTime, _ := time.Parse(constants.DATE_FORMAT_1, dateFormat)
+	weekday := strconv.Itoa(int(bookingDateTime.Weekday()))
 	bookSetting := model_booking.BookingSetting{}
 
 	teeTimeList := []response.TeeTimeOTA{}
@@ -334,7 +338,8 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 		TeeType:        teeTimeSetting.TeeType,
 		TeeTimeStatus:  constants.TEE_TIME_LOCKED,
 		Slot:           body.NumBook,
-		Type:           constants.BOOKING_OTA,
+		Type:           constants.LOCK_OTA,
+		Note:           "Khóa từ Booking OTA",
 		ModelId: models.ModelId{
 			CreatedAt: teeTimeSetting.CreatedAt,
 		},
@@ -352,10 +357,15 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 				Status: 200,
 				Infor:  body.CourseCode + "- Lock teeTime " + body.TeeOffStr + " " + dateFormat,
 			}
+			datasources.SetCache(teeTimeSlotEmptyRedisKey, slotBook+body.NumBook, 0)
+			// Bắn socket để client update ui
+			go func() {
+				cNotification := CNotification{}
+				cNotification.PushNotificationCreateBookingOTA("")
+			}()
 		}
 	}
 
-	datasources.SetCache(teeTimeSlotEmptyRedisKey, slotBook+body.NumBook, 0)
 	okResponse(c, responseOTA)
 }
 
@@ -470,38 +480,58 @@ func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
 
 	bookingDate, _ := time.Parse("2006-01-02", body.DateStr)
 	dateFormat := bookingDate.Format("02/01/2006")
-	lockTeeTime := models.LockTeeTime{
-		CourseUid: body.CourseCode,
-		TeeTime:   body.TeeOffStr,
-		DateTime:  dateFormat,
-	}
 
-	if body.Tee == "1" {
-		lockTeeTime.TeeType = "1A"
-	}
-
-	if body.Tee == "10" {
-		lockTeeTime.TeeType = "1B"
-	}
-
+	teeTimeRedisKey := getKeyTeeTimeLockRedis(dateFormat, body.CourseCode, body.TeeOffStr, "1A")
 	db := datasources.GetDatabase()
-	if errFind := lockTeeTime.FindFirst(db); errFind != nil {
-		responseOTA.Result = response.ResultOTA{
-			Status: http.StatusInternalServerError,
-			Infor:  errFind.Error(),
+	bookings := model_booking.BookingList{}
+	bookings.CourseUid = body.CourseCode
+	bookings.BookingDate = dateFormat
+	bookings.TeeTime = body.TeeOffStr
+	bookings.TeeType = "1"
+	bookings.CourseType = "A"
+
+	_, total, _ := bookings.FindAllBookingNotCancelList(db)
+
+	listKey, errRedis := datasources.GetAllKeysWith(teeTimeRedisKey)
+	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
+	if errRedis == nil && len(listKey) > 0 {
+		strData, errGet := datasources.GetCaches(listKey...)
+		if errGet != nil {
+			log.Println("checkBookingOTA-error", errGet.Error())
+		} else {
+			for _, data := range strData {
+
+				byteData := []byte(data.(string))
+				teeTime := models.LockTeeTimeWithSlot{}
+				err2 := json.Unmarshal(byteData, &teeTime)
+				if err2 == nil {
+					listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
+				}
+			}
+		}
+	}
+
+	for _, item := range listTeeTimeLockRedis {
+		total -= int64(item.Slot)
+	}
+
+	err := datasources.DelCacheByKey(teeTimeRedisKey)
+	log.Print("runCheckLockTeeTime", err)
+
+	// Bắn socket để client update ui
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushNotificationCreateBookingOTA("")
+	}()
+
+	slotTeeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + body.CourseCode + "_" + dateFormat + "_" + "1A" + "_" + body.TeeOffStr
+	if total > 0 {
+		if err := datasources.SetCache(slotTeeTimeRedisKey, total, 0); err != nil {
+			log.Print("updateSlotTeeTime", err)
 		}
 	} else {
-		if errFind := lockTeeTime.Delete(db); errFind != nil {
-			responseOTA.Result = response.ResultOTA{
-				Status: http.StatusInternalServerError,
-				Infor:  errFind.Error(),
-			}
-		} else {
-			responseOTA.Result = response.ResultOTA{
-				Status: 200,
-				Infor:  "Unlock teetime " + body.TeeOffStr + " OK",
-			}
-		}
+		err := datasources.DelCacheByKey(slotTeeTimeRedisKey)
+		log.Print("runCheckLockTeeTime", err)
 	}
 	okResponse(c, responseOTA)
 }

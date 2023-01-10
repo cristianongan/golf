@@ -303,6 +303,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/payment/single-payment/item/update", middlewares.AuthorizedCmsUserHandler(cPayment.UpdateSinglePaymentItem))
 			cmsApiAuthorized.POST("/payment/single-payment/list/item", middlewares.AuthorizedCmsUserHandler(cPayment.GetListSinglePaymentDetail))
 			cmsApiAuthorized.POST("/payment/single-payment/item/delete", middlewares.AuthorizedCmsUserHandler(cPayment.DeleteSinglePaymentItem))
+			cmsApiAuthorized.POST("/payment/get-einvoice", middlewares.AuthorizedCmsUserHandler(cPayment.GetEInvoice))
 
 			cmsApiAuthorized.POST("/payment/agency-payment/list", middlewares.AuthorizedCmsUserHandler(cPayment.GetListAgencyPayment))
 			cmsApiAuthorized.POST("/payment/agency-payment/item/add", middlewares.AuthorizedCmsUserHandler(cPayment.CreateAgencyPaymentItem))
@@ -548,7 +549,8 @@ func NewRouter() *gin.Engine {
 			cLockTeeTime := new(controllers.CLockTeeTime)
 			cmsApiAuthorized.POST("/tee-time", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.CreateTeeTimeSettings))
 			cmsApiAuthorized.GET("/tee-time/list", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.GetTeeTimeSettings))
-			cmsApiAuthorized.DELETE("/tee-time/delete", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.DeleteLockTeeTime))
+			cmsApiAuthorized.POST("/tee-time/delete", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.DeleteLockTeeTime))
+			cmsApiAuthorized.POST("/tee-time/redis/reset", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.DeleteAllRedisTeeTime))
 
 			/// =================== Role ===================
 			cRole := new(controllers.CRole)
@@ -740,11 +742,20 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/revenue/report-buggy", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBuggy))
 			cmsApiAuthorized.GET("/report/revenue/report-cashier-audit", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportCashierAudit))
 			cmsApiAuthorized.GET("/report/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportGolfFeeService))
+			cmsApiAuthorized.GET("/report/booking/list", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBookingList))
 
 			/// =================== Test ===================
 			cTest := new(controllers.CTest)
 			cmsApiAuthorized.POST("/test/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cTest.CreateRevenueDetail))
-			cmsApiAuthorized.GET("/test", middlewares.AuthorizedCmsUserHandler(cTest.Test))
+			cmsApiAuthorized.GET("/test", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
+			cmsApiAuthorized.POST("/test-func", middlewares.AuthorizedCmsUserHandler(cTest.TestFunc))
+			cmsApiAuthorized.GET("/test-fast-customer", middlewares.AuthorizedCmsUserHandler(cTest.TestFastCustomer))
+			cmsApiAuthorized.GET("/test-fast-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFastFee))
+
+			/// =================== Test ===================
+			cHelper := new(controllers.CHelper)
+			cmsApiAuthorized.POST("/helper/admin/add-customer-user", middlewares.AuthorizedCmsUserHandler(cHelper.CreateAddCustomer))
+			cmsApiAuthorized.POST("/helper/admin/add-member-card", middlewares.AuthorizedCmsUserHandler(cHelper.CreateMemberCard))
 		}
 
 		// ----------------------------------------------------------

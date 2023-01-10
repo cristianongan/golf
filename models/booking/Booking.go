@@ -124,7 +124,8 @@ type Booking struct {
 	MovedFlight      *bool                                `json:"moved_flight" gorm:"default:0"`                   // Đánh dấu booking đã move flight chưa
 	AddedRound       *bool                                `json:"added_flight" gorm:"default:0"`                   // Đánh dấu booking đã add chưa
 	AgencyPaid       utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty" gorm:"type:json"`
-	LockBill         *bool                                `json:"lock_bill" gorm:"default:0"` // lễ tân lock bill cho kh để restaurant ko thao tác đc nữa
+	LockBill         *bool                                `json:"lock_bill" gorm:"default:0"`       // lễ tân lock bill cho kh để restaurant ko thao tác đc nữa
+	AgencyPaidAll    *bool                                `json:"agency_paid_all" gorm:"default:0"` // Đánh dấu agency trả all fee cho kh
 }
 
 type FlyInfoResponse struct {
@@ -645,9 +646,9 @@ func (item *Booking) FindFirstWithJoin(database *gorm.DB) error {
 }
 
 func (item *Booking) FindFirstNotCancel(db *gorm.DB) error {
-	db = db.Where(item)
 	db = db.Not("bag_status = ?", constants.BAG_STATUS_CANCEL)
-	return db.Where(item).First(item).Error
+	log.Println("FindFirstNotCancel")
+	return db.Where(item).Debug().First(item).Error
 }
 
 func (item *Booking) Count(database *gorm.DB) (int64, error) {
@@ -1040,6 +1041,15 @@ func (item *Booking) FindListServiceItems(database *gorm.DB, param GetListBookin
 	if param.ServiceType != "" {
 		db = db.Where("booking_service_items.type = ?", param.ServiceType)
 	}
+
+	if param.FromDate != "" {
+		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') >= ?", param.FromDate)
+	}
+
+	if param.ToDate != "" {
+		db = db.Where("STR_TO_DATE(booking_date, '%d/%m/%Y') <= ?", param.ToDate)
+	}
+
 	db = db.Joins("RIGHT JOIN booking_service_items ON booking_service_items.booking_uid = bookings.uid")
 	db = db.Order("booking_service_items.created_at desc")
 	db = db.Group("booking_service_items.bill_code")

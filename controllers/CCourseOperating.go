@@ -352,11 +352,6 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	// Udp Old Caddie
-	// for _, caddie := range listOldCaddie {
-	// 	udpCaddieOut(db, caddie.Id)
-	// }
-
 	//Update trạng thái của các old buggy
 	for _, buggy := range listOldBuggy {
 		//Update trạng thái của các old buggy
@@ -543,6 +538,7 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if len(caddieList) > 0 {
+		// Update node caddie
 		go updateCaddieOutSlot(partnerUid, courseUid, caddieList)
 	}
 
@@ -630,11 +626,12 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 
 	go addBuggyCaddieInOutNote(db, caddieOutNote)
 
-	if booking.TeeTime != "" {
-		go unlockTurnTime(db, booking)
-	}
+	// if booking.TeeTime != "" {
+	// 	go unlockTurnTime(db, booking)
+	// }
 
 	if booking.CaddieId > 0 {
+		// Update node caddie
 		caddieList := []string{booking.BuggyInfo.Code}
 		go updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
 	}
@@ -650,8 +647,8 @@ Out caddie cũ và gán Caddie mới cho Bag
 func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.NeedMoreCaddieBody{}
-	if bindErr := c.ShouldBind(&body); bindErr != nil {
-		response_message.BadRequest(c, bindErr.Error())
+	if err := c.Bind(&body); err != nil {
+		response_message.BadRequest(c, err.Error())
 		return
 	}
 
@@ -662,8 +659,35 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 		return
 	}
 
+	if booking.CaddieInfo.Code == body.CaddieCode {
+		response_message.BadRequestFreeMessage(c, "Bag "+"đã ghép với "+body.CaddieCode)
+		return
+	}
+
 	// validate caddie_code
 	oldCaddie := booking.CaddieInfo
+
+	if oldCaddie.Id > 0 {
+		udpCaddieOut(db, oldCaddie.Id)
+
+		// Udp Note
+		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
+			PartnerUid: prof.PartnerUid,
+			CourseUid:  prof.CourseUid,
+			BookingUid: booking.Uid,
+			CaddieId:   oldCaddie.Id,
+			CaddieCode: oldCaddie.Code,
+			Hole:       body.CaddieHoles,
+			CaddieType: constants.STATUS_OUT,
+			Note:       "",
+		}
+
+		// Update node caddie
+		caddieList := []string{oldCaddie.Code}
+		go updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
+
+		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
+	}
 
 	if body.CaddieCode != "" {
 		caddieNew, err := cCourseOperating.validateCaddie(db, prof.CourseUid, body.CaddieCode)
@@ -717,25 +741,7 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 			CaddieId:   caddieNew.Id,
 			CaddieCode: caddieNew.Code,
 			CaddieType: constants.STATUS_IN,
-			Hole:       booking.Hole - body.CaddieHoles,
-			Note:       "",
-		}
-
-		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
-	}
-
-	if oldCaddie.Id > 0 {
-		udpCaddieOut(db, oldCaddie.Id)
-
-		// Udp Note
-		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
-			PartnerUid: prof.PartnerUid,
-			CourseUid:  prof.CourseUid,
-			BookingUid: booking.Uid,
-			CaddieId:   oldCaddie.Id,
-			CaddieCode: oldCaddie.Code,
-			Hole:       body.CaddieHoles,
-			CaddieType: constants.STATUS_OUT,
+			Hole:       0,
 			Note:       "",
 		}
 
@@ -896,6 +902,7 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 			Note:       "",
 		}
 
+		// Update node caddie
 		caddieList := []string{oldCaddie.Code}
 		go updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
 
@@ -978,6 +985,11 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		return
 	}
 
+	if booking.BuggyInfo.Code == body.BuggyCode {
+		response_message.BadRequestFreeMessage(c, "Bag đang dùng buggy "+body.BuggyCode)
+		return
+	}
+
 	// validate buggy_code
 	buggyNew := models.Buggy{}
 	buggyNew.CourseUid = prof.CourseUid
@@ -998,7 +1010,7 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 			log.Println(err.Error())
 		}
 
-		go updateBagShareEmptyWhenChangeBuggy(booking, db)
+		go updateBagShareEmptyWhenChangeBuggy(booking)
 
 		// Udp Note
 		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
@@ -1032,12 +1044,12 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		return
 	}
 
-	go updateBagShareWhenChangeBuggy(booking, db, prof, body.IsPrivateBuggy)
+	go updateBagShareWhenChangeBuggy(booking, prof, body.IsPrivateBuggy)
 
 	okResponse(c, booking)
 }
 
-func updateBagShareWhenChangeBuggy(booking model_booking.Booking, db *gorm.DB, prof models.CmsUser, IsPrivateBuggy bool) {
+func updateBagShareWhenChangeBuggy(booking model_booking.Booking, prof models.CmsUser, IsPrivateBuggy bool) {
 	var bagShare = ""
 	buggyCommonCode := fmt.Sprint(time.Now().UnixNano())
 
@@ -1048,7 +1060,10 @@ func updateBagShareWhenChangeBuggy(booking model_booking.Booking, db *gorm.DB, p
 	}
 
 	// Tìm kiếm booking đang sử dụng buggy
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	db1, _, _ := bookingR.FindAllBookingList(db)
+	db1 = db1.Where("bag <> ?", booking.Bag)
+
 	bookingList := []model_booking.Booking{}
 	db1.Find(&bookingList)
 
@@ -1065,7 +1080,7 @@ func updateBagShareWhenChangeBuggy(booking model_booking.Booking, db *gorm.DB, p
 			lastItem := list[0]
 			lastItem.BagShareBuggy = booking.Bag
 			lastItem.BuggyCommonCode = buggyCommonCode
-			if err := lastItem.Update(db1); err != nil {
+			if err := lastItem.Update(db); err != nil {
 				return
 			}
 		}
@@ -1086,7 +1101,7 @@ func updateBagShareWhenChangeBuggy(booking model_booking.Booking, db *gorm.DB, p
 	addBuggyCaddieInOutNote(db, caddieBuggyInNote)
 }
 
-func updateBagShareEmptyWhenChangeBuggy(booking model_booking.Booking, db *gorm.DB) {
+func updateBagShareEmptyWhenChangeBuggy(booking model_booking.Booking) {
 	bookingR := model_booking.BookingList{
 		BookingDate: booking.BookingDate,
 		BuggyId:     booking.BuggyId,
@@ -1094,7 +1109,10 @@ func updateBagShareEmptyWhenChangeBuggy(booking model_booking.Booking, db *gorm.
 	}
 
 	// Tìm kiếm booking đang sử dụng buggy
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	db1, _, _ := bookingR.FindAllBookingList(db)
+	db1 = db1.Where("bag <> ?", booking.Bag)
+
 	bookingList := []model_booking.Booking{}
 	db1.Find(&bookingList)
 
@@ -1109,7 +1127,7 @@ func updateBagShareEmptyWhenChangeBuggy(booking model_booking.Booking, db *gorm.
 		if total > 0 {
 			lastItem := list[0]
 			lastItem.BagShareBuggy = ""
-			if err := lastItem.Update(db1); err != nil {
+			if err := lastItem.Update(db); err != nil {
 				log.Println("updateBagShareEmptyWhenChangeBuggy update error")
 			}
 		}
@@ -1415,6 +1433,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
 	booking.TimeOutFlight = time.Now().Unix()
 	booking.HoleTimeOut = int(body.HolePlayed)
+	booking.HoleMoveFlight = body.HoleMoveFlight
 	booking.MovedFlight = setBoolForCursor(true)
 	errBookingUpd := booking.Update(db)
 	if errBookingUpd != nil {
@@ -1427,7 +1446,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	newBooking := cloneToBooking(booking)
 	newBooking.MovedFlight = setBoolForCursor(false)
 	newBooking.HoleTimeOut = 0
-	newBooking.HoleMoveFlight = body.HoleMoveFlight
+	newBooking.HoleMoveFlight = 0
 	newBooking.BagStatus = constants.BAG_STATUS_IN_COURSE
 	newBooking.FlightId = body.FlightId
 	newBooking.TimeOutFlight = 0

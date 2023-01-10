@@ -47,7 +47,7 @@ type ResultOTA struct {
 type ResultLockTeeTimeOTA struct {
 	Status  int64  `json:"status"`
 	Infor   string `json:"infor"`
-	NumBook int    `json:"NumBook"`
+	NumBook int    `json:"NumBook,omitempty"`
 }
 
 func UnmarshalWelcome(data []byte) (TeeTimeOTA, error) {

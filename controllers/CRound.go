@@ -387,6 +387,24 @@ func (cRound CRound) ChangeGuestyleOfRound(c *gin.Context, prof models.CmsUser) 
 	}
 	round.GuestStyle = body.GuestStyle
 
+	// Update lại GS booking
+	go func() {
+		Rround := models.Round{}
+		Rround.BillCode = booking.BillCode
+		list, _ := Rround.FindAll(db)
+
+		if round.Index == len(list)-1 {
+			booking.GuestStyle = body.GuestStyle
+			golfFee := models.GolfFee{
+				GuestStyle: body.GuestStyle,
+			}
+
+			if golfFeeFind := golfFee.FindFirst(db); golfFeeFind == nil {
+				booking.GuestStyleName = golfFee.GuestStyleName
+				booking.Update(db)
+			}
+		}
+	}()
 	// Update giá
 	cRound.UpdateListFeePriceInRound(c, db, &booking, body.GuestStyle, &round, round.Hole)
 

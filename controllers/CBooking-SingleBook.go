@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"net/http"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -40,29 +40,34 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if booking.BagStatus != constants.BAG_STATUS_BOOKING {
-		response_message.InternalServerError(c, "This booking did check in")
-		return
+	if booking.BagStatus == constants.BAG_STATUS_BOOKING {
+		// Kiểm tra xem đủ điều kiện cancel booking không
+		// cancelBookingSetting := model_booking.CancelBookingSetting{}
+		// if err := cancelBookingSetting.ValidateBookingCancel(db, booking); err != nil {
+		// 	response_message.InternalServerError(c, err.Error())
+		// 	return
+		// }
+
+		booking.BagStatus = constants.BAG_STATUS_CANCEL
+		booking.CancelNote = body.Note
+		booking.CancelBookingTime = time.Now().Unix()
+		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+
+		errUdp := booking.Update(db)
+		if errUdp != nil {
+			response_message.InternalServerError(c, errUdp.Error())
+			return
+		}
+
+		go func() {
+			removeRowIndexRedis(booking)
+			updateSlotTeeTimeWithLock(booking)
+			if booking.TeeTime != "" {
+				unlockTurnTime(db, booking)
+			}
+		}()
 	}
-	// Kiểm tra xem đủ điều kiện cancel booking không
-	// cancelBookingSetting := model_booking.CancelBookingSetting{}
-	// if err := cancelBookingSetting.ValidateBookingCancel(db, booking); err != nil {
-	// 	response_message.InternalServerError(c, err.Error())
-	// 	return
-	// }
 
-	booking.BagStatus = constants.BAG_STATUS_CANCEL
-	booking.CancelNote = body.Note
-	booking.CancelBookingTime = time.Now().Unix()
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
-
-	errUdp := booking.Update(db)
-	if errUdp != nil {
-		response_message.InternalServerError(c, errUdp.Error())
-		return
-	}
-
-	go updateSlotTeeTimeWithLock(booking)
 	okResponse(c, booking)
 }
 
@@ -78,9 +83,12 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	_, errDate := time.Parse(constants.DATE_FORMAT_1, body.BookingDate)
-	if errDate != nil {
-		response_message.BadRequest(c, "Booking Date format invalid!")
+	bookingDateInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, body.BookingDate)
+	nowStr, _ := utils.GetLocalTimeFromTimeStamp("", constants.DATE_FORMAT_1, time.Now().Unix())
+	nowUnix := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, nowStr)
+
+	if bookingDateInt < nowUnix {
+		response_message.BadRequest(c, constants.BOOKING_DATE_NOT_VALID)
 		return
 	}
 
@@ -95,6 +103,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	listBookingReadyMoved := []model_booking.Booking{}
+	cloneListBooking := []model_booking.Booking{}
 
 	for _, BookingUid := range body.BookUidList {
 		if BookingUid == "" {
@@ -110,10 +119,30 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
-		if booking.BagStatus != constants.BAG_STATUS_BOOKING {
-			response_message.InternalServerError(c, booking.Uid+" did check in")
+		// if booking.BagStatus != constants.BAG_STATUS_BOOKING {
+		// 	response_message.InternalServerError(c, booking.Uid+" did check in")
+		// 	return
+		// }
+		cloneListBooking = append(cloneListBooking, booking)
+
+		teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, booking.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
+		rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+		rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+
+		if len(rowIndexsRedis) < constants.SLOT_TEE_TIME {
+			rowIndex := generateRowIndex(rowIndexsRedis)
+			booking.RowIndex = &rowIndex
+			rowIndexsRedis = append(rowIndexsRedis, rowIndex)
+			rowIndexsRaw, _ := rowIndexsRedis.Value()
+			errRedis := datasources.SetCache(teeTimeRowIndexRedis, rowIndexsRaw, 0)
+			if errRedis != nil {
+				log.Println("CreateBookingCommon errRedis", errRedis)
+			}
+		} else {
+			response_message.BadRequest(c, body.TeeTime+" "+" is Full")
 			return
 		}
+
 		if body.TeeTime != "" {
 			booking.TeeTime = body.TeeTime
 		}
@@ -126,24 +155,29 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		if body.CourseType != "" {
 			booking.CourseType = body.CourseType
 		}
+		if body.TurnTime != "" {
+			booking.TurnTime = body.TurnTime
+		}
+		if body.TeePath != "" {
+			booking.TeePath = body.TeePath
+		}
 
 		//Check duplicated
 		isDuplicated, errDupli := booking.IsDuplicated(db, true, false)
 		if isDuplicated {
 			if errDupli != nil {
+				// Có lỗi update lại redis
+				removeRowIndexRedis(booking)
 				response_message.DuplicateRecord(c, errDupli.Error())
 				return
 			}
+			// Có lỗi update lại redis
+			removeRowIndexRedis(booking)
 			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 			return
 		}
 		if body.Hole != 0 {
 			booking.Hole = body.Hole
-		}
-
-		if !checkTeeTimeAvailable(booking) {
-			response_message.ErrorResponse(c, http.StatusBadRequest, "TEE_TIME_SLOT_FULL", "", http.StatusBadRequest)
-			return
 		}
 
 		listBookingReadyMoved = append(listBookingReadyMoved, booking)
@@ -155,8 +189,15 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.InternalServerError(c, errUdp.Error())
 			return
 		}
+		go updateSlotTeeTimeWithLock(booking)
 	}
 
+	go func() {
+		for _, booking := range cloneListBooking {
+			removeRowIndexRedis(booking)
+			updateSlotTeeTimeWithLock(booking)
+		}
+	}()
 	okRes(c)
 }
 func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) {
@@ -244,22 +285,26 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 	db.Find(&list)
 
 	for _, booking := range list {
-		if booking.BagStatus != constants.BAG_STATUS_BOOKING {
-			response_message.InternalServerError(c, "Booking:"+booking.BookingDate+" did check in")
-			return
-		}
+		if booking.BagStatus == constants.BAG_STATUS_BOOKING {
+			booking.BagStatus = constants.BAG_STATUS_CANCEL
+			booking.CancelNote = form.Reason
+			booking.CancelBookingTime = time.Now().Unix()
+			booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
-		booking.BagStatus = constants.BAG_STATUS_CANCEL
-		booking.CancelNote = form.Reason
-		booking.CancelBookingTime = time.Now().Unix()
-		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
-
-		errUdp := booking.Update(db1)
-		if errUdp != nil {
-			response_message.InternalServerError(c, errUdp.Error())
-			return
+			errUdp := booking.Update(db1)
+			if errUdp != nil {
+				response_message.InternalServerError(c, errUdp.Error())
+				return
+			}
 		}
 	}
+
+	go func() {
+		for _, booking := range list {
+			removeRowIndexRedis(booking)
+			updateSlotTeeTimeWithLock(booking)
+		}
+	}()
 	okRes(c)
 }
 

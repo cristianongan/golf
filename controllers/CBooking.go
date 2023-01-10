@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -40,6 +41,16 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 
 	booking, _ := cBooking.CreateBookingCommon(body, c, prof)
 	if booking == nil {
+		// Khi booking lỗi thì remove index đã lưu trước đó trong redis
+		go removeRowIndexRedis(model_booking.Booking{
+			PartnerUid:  body.PartnerUid,
+			CourseUid:   body.CourseUid,
+			BookingDate: body.BookingDate,
+			TeeType:     body.TeeType,
+			TeeTime:     body.TeeTime,
+			CourseType:  body.CourseType,
+			RowIndex:    body.RowIndex,
+		})
 		return
 	}
 
@@ -56,6 +67,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		return nil, errDate
 	}
 
+	if checkBookingOTA(body) && !body.BookFromOTA {
+		response_message.ErrorResponse(c, http.StatusBadRequest, "", "Booking Online đang khóa tại tee time này!", constants.ERROR_BOOKING_OTA_LOCK)
+		return nil, nil
+	}
+
 	var caddie models.Caddie
 	var err error
 	if body.CaddieCode != "" {
@@ -64,47 +80,54 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			response_message.InternalServerError(c, err.Error())
 			return nil, err
 		}
+
 	}
 
 	// validate trường hợp đóng tee 1
-	teeList := []string{constants.TEE_TYPE_1, constants.TEE_TYPE_1A, constants.TEE_TYPE_1B, constants.TEE_TYPE_1C}
-	if utils.Contains(teeList, body.TeeType) {
-		cBookingSetting := CBookingSetting{}
-		if errors := cBookingSetting.ValidateClose1ST(db, body.BookingDate, body.PartnerUid, body.CourseUid); errors != nil {
-			response_message.InternalServerError(c, errors.Error())
-			return nil, errors
-		}
-	}
+	// teeList := []string{constants.TEE_TYPE_1, constants.TEE_TYPE_1A, constants.TEE_TYPE_1B, constants.TEE_TYPE_1C}
+	// if utils.Contains(teeList, body.TeeType) {
+	// 	cBookingSetting := CBookingSetting{}
+	// 	if errors := cBookingSetting.ValidateClose1ST(db, body.BookingDate, body.PartnerUid, body.CourseUid); errors != nil {
+	// 		response_message.InternalServerError(c, errors.Error())
+	// 		return nil, errors
+	// 	}
+	// }
 
 	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, body.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
-	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+
+	rowIndexsRedisStr := ""
+
+	addRejectedHandler := func(_ *datasources.Locker) error {
+		rowIndexsRedisStr, _ = datasources.GetCache(teeTimeRowIndexRedis)
+		return nil
+	}
+
+	keyRedisLockTee := fmt.Sprintf("redisLock_%s", teeTimeRowIndexRedis)
+
+	errLock := datasources.Lock(datasources.LockOption{
+		Key:     keyRedisLockTee,
+		Ttl:     1 * time.Second,
+		Handler: addRejectedHandler,
+	})
 	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+
+	if errLock != nil {
+		return nil, errLock
+	}
 
 	if len(rowIndexsRedis) < constants.SLOT_TEE_TIME {
 		if body.RowIndex == nil {
 			rowIndex := generateRowIndex(rowIndexsRedis)
 			body.RowIndex = &rowIndex
 		}
+
 		rowIndexsRedis = append(rowIndexsRedis, *body.RowIndex)
 		rowIndexsRaw, _ := rowIndexsRedis.Value()
 		errRedis := datasources.SetCache(teeTimeRowIndexRedis, rowIndexsRaw, 0)
-		log.Println(errRedis)
+		if errRedis != nil {
+			log.Println("CreateBookingCommon errRedis", errRedis)
+		}
 	}
-
-	// check trạng thái Tee Time
-	// if body.TeeTime != "" && !body.BookFromOTA {
-	// 	teeTime := models.LockTeeTime{}
-	// 	teeTime.TeeTime = body.TeeTime
-	// 	teeTime.TeeType = body.TeeType + body.CourseType
-	// 	teeTime.CourseUid = body.CourseUid
-	// 	// teeTime.PartnerUid = body.PartnerUid
-	// 	teeTime.DateTime = body.BookingDate
-	// 	errFind := teeTime.FindFirst(db)
-	// 	if errFind == nil && (teeTime.TeeTimeStatus == constants.TEE_TIME_LOCKED) {
-	// 		response_message.BadRequest(c, "Tee Time đã bị khóa")
-	// 		return nil, errFind
-	// 	}
-	// }
 
 	//check Booking Source with date time rule
 	if body.BookingSourceId != "" {
@@ -534,7 +557,9 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 	}
 
-	go updateSlotTeeTimeWithLock(booking)
+	if !body.BookFromOTA {
+		go updateSlotTeeTimeWithLock(booking)
+	}
 
 	return &booking, nil
 }
@@ -550,6 +575,33 @@ func (_ CBooking) validateCaddie(db *gorm.DB, courseUid string, caddieCode strin
 	}
 
 	return caddieNew, nil
+}
+
+func checkBookingOTA(body request.CreateBookingBody) bool {
+	prefixRedisKey := getKeyTeeTimeLockRedis(body.BookingDate, body.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
+	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
+
+	haveLockOTA := false
+	if errRedis == nil && len(listKey) > 0 {
+		strData, errGet := datasources.GetCaches(listKey...)
+		if errGet != nil {
+			log.Println("checkBookingOTA-error", errGet.Error())
+		} else {
+			for _, data := range strData {
+				if data != nil {
+					byteData := []byte(data.(string))
+					teeTime := models.LockTeeTimeWithSlot{}
+					if err2 := json.Unmarshal(byteData, &teeTime); err2 == nil {
+						if teeTime.Type == constants.LOCK_OTA {
+							haveLockOTA = true
+							break
+						}
+					}
+				}
+			}
+		}
+	}
+	return haveLockOTA
 }
 
 /*
@@ -824,6 +876,13 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	// Update caddie
 	if body.CaddieCode != "" && booking.CaddieInfo.Code != body.CaddieCode {
 		cBooking.UpdateBookingCaddieCommon(db, body.PartnerUid, body.CourseUid, &booking, caddie)
+	} else {
+		if booking.CaddieId > 0 && body.CaddieCode == "" {
+			booking.CaddieId = 0
+			booking.CaddieInfo = model_booking.BookingCaddie{}
+			booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
+			booking.HasBookCaddie = false
+		}
 	}
 
 	// Create booking payment
@@ -1331,9 +1390,9 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// delete tee time locked theo booking date
-	if booking.TeeTime != "" {
-		go unlockTurnTime(db, booking)
-	}
+	// if booking.TeeTime != "" {
+	// 	go unlockTurnTime(db, booking)
+	// }
 
 	okResponse(c, booking)
 }
@@ -1536,8 +1595,30 @@ func (cBooking *CBooking) FinishBill(c *gin.Context, prof models.CmsUser) {
 		return prev + item.Paid
 	})
 
-	if cashTotal != 0 && booking.CustomerUid != "" {
-		callservices.TransferFast(constants.PAYMENT_TYPE_CASH, cashTotal, "", booking.CustomerUid, booking.CustomerName)
+	if cashTotal != 0 {
+		if booking.CustomerUid == "" {
+			uid := utils.HashCodeUuid(uuid.New().String())
+			customerBody := request.CustomerBody{
+				MaKh:      uid,
+				TenKh:     booking.CustomerName,
+				MaSoThue:  booking.CustomerInfo.Mst,
+				DiaChi:    "ddddddd",
+				Tk:        "",
+				DienThoai: booking.CustomerInfo.Phone,
+				Fax:       booking.CustomerInfo.Fax,
+				EMail:     booking.CustomerInfo.Email,
+				DoiTac:    "",
+				NganHang:  "",
+				TkNh:      "",
+			}
+
+			check, _ := callservices.CreateCustomer(customerBody)
+			if check {
+				callservices.TransferFast(constants.PAYMENT_TYPE_CASH, cashTotal, "", uid, booking.CustomerName, body.BillNo)
+			}
+		} else {
+			callservices.TransferFast(constants.PAYMENT_TYPE_CASH, cashTotal, "", booking.CustomerUid, booking.CustomerName, body.BillNo)
+		}
 	}
 
 	if otherTotal != 0 {
