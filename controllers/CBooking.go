@@ -595,7 +595,7 @@ func checkBookingAtOTAPosition(body request.CreateBookingBody) bool {
 	//
 
 	// Nếu row_index không trùng với vị trí row index của ota
-	if !utils.Contains(rowIndexsRedis, *body.RowIndex) {
+	if body.RowIndex != nil && !utils.Contains(rowIndexsRedis, *body.RowIndex) {
 		return false
 	}
 
