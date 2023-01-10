@@ -117,7 +117,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	if bookRes.AgencyId > 0 && bookRes.MemberCardUid == "" {
 		// go handleAgencyPayment(db, bookRes)
 	} else {
-		go handleSinglePayment(db, bookRes, 0)
+		go handleSinglePayment(db, bookRes)
 	}
 
 	//Đánh dấu các round(của sub bag) đã được trả bởi main bag

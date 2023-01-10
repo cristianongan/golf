@@ -219,9 +219,9 @@ func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
 
 func (_ *CNotification) PushNotificationCreateBooking(bookType string, booking any) {
 	notiData := map[string]interface{}{
-		"type":    bookType,
-		"title":   "",
-		"booking": booking,
+		"type":  bookType,
+		"title": "",
+		// "booking": booking,
 	}
 
 	newFsConfigBytes, _ := json.Marshal(notiData)

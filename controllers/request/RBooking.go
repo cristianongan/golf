@@ -164,6 +164,7 @@ type CreateBookingBody struct {
 	ReportNo           string                  `json:"report_no"` // Report No
 	IsPrivateBuggy     *bool                   `json:"is_private_buggy"`
 	FeeInfo            AgencyFeeInfo           `json:"fee_info"`
+	AgencyPaidAll      *bool                   `json:"agency_paid_all"`
 	BookMark           bool
 	BookFromOTA        bool
 	BookingTeeTime     bool

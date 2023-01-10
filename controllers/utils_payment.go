@@ -17,7 +17,7 @@ import (
 /*
 Create Single Payment
 */
-func handleSinglePayment(db *gorm.DB, booking model_booking.Booking, agencyPaid int64) {
+func handleSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 	bagInfo := model_payment.PaymentBagInfo{}
 	bagByte, errM := json.Marshal(booking)
 	if errM != nil {
@@ -49,7 +49,17 @@ func handleSinglePayment(db *gorm.DB, booking model_booking.Booking, agencyPaid 
 		if booking.AgencyId > 0 && booking.MemberCardUid == "" {
 			// Agency
 			singlePayment.Type = constants.PAYMENT_CATE_TYPE_AGENCY
-			singlePayment.AgencyPaid = agencyPaid
+
+			agencyPaid := model_payment.BookingAgencyPayment{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				BookingCode: booking.BookingCode,
+				AgencyId:    booking.AgencyId,
+				BookingUid:  booking.Uid,
+			}
+			if errFindAgency := agencyPaid.FindFirst(db); errFindAgency == nil {
+				singlePayment.AgencyPaid = agencyPaid.GetTotalFee()
+			}
 		} else {
 			// Single
 			singlePayment.Type = constants.PAYMENT_CATE_TYPE_SINGLE
@@ -85,7 +95,17 @@ func handleSinglePayment(db *gorm.DB, booking model_booking.Booking, agencyPaid 
 		if booking.AgencyId > 0 && booking.MemberCardUid == "" {
 			// Agency
 			singlePayment.Type = constants.PAYMENT_CATE_TYPE_AGENCY
-			singlePayment.AgencyPaid = agencyPaid
+			agencyPaid := model_payment.BookingAgencyPayment{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				BookingCode: booking.BookingCode,
+				AgencyId:    booking.AgencyId,
+				BookingUid:  booking.Uid,
+			}
+			if errFindAgency := agencyPaid.FindFirst(db); errFindAgency == nil {
+				singlePayment.AgencyPaid = agencyPaid.GetTotalFee()
+			}
+			// singlePayment.AgencyPaid = agencyPaid
 		} else {
 			// Single
 			singlePayment.Type = constants.PAYMENT_CATE_TYPE_SINGLE
@@ -163,7 +183,7 @@ func handlePayment(db *gorm.DB, booking model_booking.Booking) {
 		go handleAgencyPayment(db, booking)
 	}
 	// single payment
-	go handleSinglePayment(db, booking, 0)
+	go handleSinglePayment(db, booking)
 }
 
 /*
@@ -180,7 +200,17 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		BookingUid:  booking.Uid,
 	}
 
-	// feeInfo := bodyRequest.BookingList[index].FeeInfo
+	if booking.AgencyPaidAll != nil && *booking.AgencyPaidAll {
+		booking.UpdatePriceDetailCurrentBag(db)
+		booking.UpdateMushPay(db)
+		booking.Update(db)
+
+		updateBookingAgencyPaymentForAllFee(booking, booking.MushPayInfo.Amount-booking.MushPayInfo.MushPay)
+		handleSinglePayment(db, booking)
+		//Upd lại số tiền thanh toán của agency
+		handleAgencyPayment(db, booking)
+	}
+
 	if feeInfo.GolfFee > 0 {
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
 			Fee:  feeInfo.GolfFee,
@@ -230,9 +260,32 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 			booking.UpdateMushPay(db)
 			booking.Update(db)
 
-			handleSinglePayment(db, booking, bookingAgencyPayment.GetTotalFee())
+			handleSinglePayment(db, booking)
 			//Upd lại số tiền thanh toán của agency
 			handleAgencyPayment(db, booking)
 		}()
+	}
+}
+
+func updateBookingAgencyPaymentForAllFee(booking model_booking.Booking, fee int64) {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	bookingAgencyPayment := model_payment.BookingAgencyPayment{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		BookingCode: booking.BookingCode,
+		AgencyId:    booking.AgencyId,
+		BookingUid:  booking.Uid,
+	}
+
+	bookingAgencyPayment.FeeData = utils.ListBookingAgencyPayForBagData{}
+	bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
+		Type: constants.BOOKING_AGENCY_PAID_ALL,
+		Fee:  fee,
+	})
+
+	if errFind := bookingAgencyPayment.FindFirst(db); errFind != nil {
+		bookingAgencyPayment.Create(db)
+	} else {
+		bookingAgencyPayment.Update(db)
 	}
 }
