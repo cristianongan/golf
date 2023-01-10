@@ -262,10 +262,11 @@ func runCreateCaddieWorkingSlot() {
 		PartnerUid: "CHI-LINH",
 		CourseUid:  "CHI-LINH-01",
 		ApplyDate:  dateNow,
-		CaddieSlot: slotCaddie,
 	}
 
 	if !caddieSlot.IsDuplicated(db) {
+		caddieSlot.CaddieSlot = slotCaddie
+
 		err = caddieSlot.Create(db)
 		if err != nil {
 			log.Println("Create report caddie err", err.Error())
