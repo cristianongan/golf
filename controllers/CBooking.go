@@ -174,6 +174,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		NoteOfBooking:      body.NoteOfBooking,
 		BookingCodePartner: body.BookingCodePartner,
 		BookingSourceId:    body.BookingSourceId,
+		AgencyPaidAll:      body.AgencyPaidAll,
 	}
 
 	// Check Guest of member, check member có còn slot đi cùng không
@@ -553,7 +554,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	} else {
 		if booking.BagStatus == constants.BAG_STATUS_WAITING {
 			// checkin mới tạo payment
-			go handleSinglePayment(db, booking, 0)
+			go handleSinglePayment(db, booking)
 		}
 	}
 

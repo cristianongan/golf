@@ -335,6 +335,7 @@ type BookingMushPay struct {
 	MushPay          int64 `json:"mush_pay"`
 	TotalGolfFee     int64 `json:"total_golf_fee"`
 	TotalServiceItem int64 `json:"total_service_item"`
+	Amount           int64 `json:"amount"`
 }
 
 func (item *BookingMushPay) UpdateAmount() {
