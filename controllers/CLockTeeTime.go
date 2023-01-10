@@ -95,14 +95,8 @@ func (_ *CLockTeeTime) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
 
 	c.JSON(200, res)
 }
-func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, prof models.CmsUser) error {
+func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, hole int, c *gin.Context, prof models.CmsUser) error {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	course := models.Course{}
-	course.Uid = body.CourseUid
-	errCourse := course.FindFirst()
-	if errCourse != nil {
-		return errCourse
-	}
 
 	form := request.GetListBookingSettingForm{
 		CourseUid:  body.CourseUid,
@@ -129,7 +123,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 	currentTeeTimeDate, _ := utils.ConvertHourToTime(body.TeeTime)
 	teeList := []string{}
 
-	if course.Hole == 18 {
+	if hole == 18 {
 
 		if body.TeeType == "1A" {
 			teeList = []string{"1B"}
@@ -138,7 +132,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 		} else if body.TeeType == "1C" {
 			teeList = []string{"1A"}
 		}
-	} else if course.Hole == 27 {
+	} else if hole == 27 {
 
 		if body.TeeType == "1A" {
 			teeList = []string{"1B", "1C"}
