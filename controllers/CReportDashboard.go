@@ -137,13 +137,12 @@ func (_ *CReportDashboard) GetReportGuestOnDay(c *gin.Context, prof models.CmsUs
 	_, totalVisitor, _ := bookingVisitorList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
 
 	// Total Driving
-	// bookingVisitorList := model_booking.BookingList{
-	// 	PartnerUid:      body.PartnerUid,
-	// 	CourseUid:       body.CourseUid,
-	// 	BookingDate:     date,
-	// 	CustomerType: constants.BOOKING_CUSTOMER_TYPE_VISITOR,
-	// }
-	// _, totalVisitor, _ := bookingVisitorList.FindAllBookingList(datasources.GetDatabaseWithPartner(prof.PartnerUid))
+	bookingDrivingList := model_booking.BookingServiceItem{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		Type:       constants.DRIVING_SETTING,
+	}
+	_, totalDriving, _ := bookingDrivingList.FindListBookingOrder(datasources.GetDatabaseWithPartner(prof.PartnerUid), date)
 
 	// Member
 	bookingMemberList := model_booking.BookingList{
@@ -178,7 +177,7 @@ func (_ *CReportDashboard) GetReportGuestOnDay(c *gin.Context, prof models.CmsUs
 		"ci_from_booking": totalBookCI,
 		"non_golf":        totalNonGolf,
 		"visitor":         totalVisitor,
-		"driving":         0,
+		"driving":         totalDriving,
 		"member":          totalMember,
 		"member_guest":    totalMemberGuest,
 		"agency":          totalAgency,
