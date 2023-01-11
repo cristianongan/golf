@@ -182,7 +182,6 @@ func handlePayment(db *gorm.DB, booking model_booking.Booking) {
 		// Agency payment
 		if booking.CheckAgencyPaidAll() {
 			updateBookingAgencyPaymentForAllFee(booking)
-			handleAgencyPayment(db, booking)
 		}
 		handleAgencyPayment(db, booking)
 	}
@@ -280,16 +279,19 @@ func updateBookingAgencyPaymentForAllFee(booking model_booking.Booking) {
 		AgencyId:    booking.AgencyId,
 		BookingUid:  booking.Uid,
 	}
-
-	bookingAgencyPayment.FeeData = utils.ListBookingAgencyPayForBagData{}
-	bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
-		Type: constants.BOOKING_AGENCY_PAID_ALL,
-		Fee:  booking.GetAgencyPaid(),
-	})
-
 	if errFind := bookingAgencyPayment.FindFirst(db); errFind != nil {
+		bookingAgencyPayment.FeeData = utils.ListBookingAgencyPayForBagData{}
+		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
+			Type: constants.BOOKING_AGENCY_PAID_ALL,
+			Fee:  booking.GetAgencyPaid(),
+		})
 		bookingAgencyPayment.Create(db)
 	} else {
+		bookingAgencyPayment.FeeData = utils.ListBookingAgencyPayForBagData{}
+		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
+			Type: constants.BOOKING_AGENCY_PAID_ALL,
+			Fee:  booking.GetAgencyPaid(),
+		})
 		bookingAgencyPayment.Update(db)
 	}
 }
