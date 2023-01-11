@@ -577,13 +577,31 @@ func (_ *CPayment) GetAgencyPayForBagDetail(c *gin.Context, prof models.CmsUser)
 		BookingUid:  body.BookingUid,
 	}
 
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+
+	errF := booking.FindFirst(db)
+	if errF != nil {
+		response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
+		return
+	}
+
+	if booking.CheckAgencyPaidAll() {
+		booking.FindServiceItems(db)
+	}
+
 	err := payForBag.FindFirst(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
-	okResponse(c, payForBag)
+	res := model_payment.AgencyPaidForBagDetail{
+		BookingAgencyPayment: payForBag,
+		ListServiceItems:     booking.ListServiceItems,
+	}
+
+	okResponse(c, res)
 }
 
 /*
