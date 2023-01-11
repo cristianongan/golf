@@ -72,13 +72,17 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 			caddieFee = utils.CalculateFeeByHole(form.Hole, agencySpecialPrice.CaddieFee, course.RateGolfFee)
 			buggyFee = utils.CalculateFeeByHole(form.Hole, agencySpecialPrice.BuggyFee, course.RateGolfFee)
 			greenFee = utils.CalculateFeeByHole(form.Hole, agencySpecialPrice.GreenFee, course.RateGolfFee)
+			golfFeeTotal = caddieFee + greenFee + buggyFee
 		} else {
-			handleGolfFeeOnDay(agency.GuestStyle)
+			handleGolfFeeOnDay(form.GuestStyle)
 		}
 		guestStyle = agency.GuestStyle
 	} else {
 		handleGolfFeeOnDay(form.GuestStyle)
-		guestStyle = form.GuestStyle
+	}
+
+	if form.GuestStyle == "" {
+		form.GuestStyle = guestStyle
 	}
 
 	// Get Buggy Fee
@@ -99,7 +103,7 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 	buggyFeeItemSettingR := models.BuggyFeeItemSetting{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
-		GuestStyle: guestStyle,
+		GuestStyle: form.GuestStyle,
 		SettingId:  buggyFeeSetting.Id,
 	}
 	listSetting, _, _ := buggyFeeItemSettingR.FindAll(db)
