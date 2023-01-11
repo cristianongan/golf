@@ -48,6 +48,11 @@ type PaymentAgencyInfo struct {
 	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
 }
 
+type AgencyPaidForBagDetail struct {
+	BookingAgencyPayment
+	ListServiceItems []model_booking.BookingServiceItem `json:"list_service_items,omitempty"` // Guest Style
+}
+
 func (item *PaymentAgencyInfo) Scan(v interface{}) error {
 	return json.Unmarshal(v.([]byte), item)
 }
