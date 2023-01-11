@@ -99,9 +99,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	// Check tee time status
 	// Check TeeTime Index
 	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(bookDate, body.CourseCode, dateTeeStrConv, "1A")
-	log.Println("CreateBookingOTA teeTimeRowIndexRedis", teeTimeRowIndexRedis)
 	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
-	log.Println("CreateBookingOTA rowIndexsRedisStr", rowIndexsRedisStr)
 	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
 	log.Println("CreateBookingOTA rowIndexsRedis", rowIndexsRedis)
 
