@@ -83,10 +83,10 @@ func runCheckLockTeeTime() {
 
 			// Bắn socket để client update ui
 			go func() {
-				pushNotificationCreateBookingOTA(constants.NOTIFICATION_BOOKING_OTA)
+				pushNotificationUnlockTee()
 			}()
 
-			slotTeeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + teeTime.CourseUid + "_" + teeTime.DateTime + "_" + teeTime.TeeType + "_" + teeTime.TeeTime
+			slotTeeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty:" + teeTime.DateTime + "_" + teeTime.CourseUid + "_" + teeTime.TeeType + "_" + teeTime.TeeTime
 			if total > 0 {
 				if err := datasources.SetCache(slotTeeTimeRedisKey, total, 0); err != nil {
 					log.Print("updateSlotTeeTime", err)
@@ -108,10 +108,10 @@ func getKeyTeeTimeLockRedis(bookingDate, courseUid, teeTime, teeType string) str
 	return teeTimeRedisKey
 }
 
-func pushNotificationCreateBookingOTA(title string) {
+func pushNotificationUnlockTee() {
 	notiData := map[string]interface{}{
-		"type":  constants.NOTIFICATION_BOOKING_OTA,
-		"title": title,
+		"type":  constants.NOTIFICATION_UNLOCK_TEE,
+		"title": "",
 	}
 
 	newFsConfigBytes, _ := json.Marshal(notiData)

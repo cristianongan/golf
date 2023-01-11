@@ -217,10 +217,21 @@ func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
 	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
 }
 
-func (_ *CNotification) PushNotificationCreateBookingOTA(title string) {
+func (_ *CNotification) PushNotificationCreateBooking(bookType string, booking any) {
 	notiData := map[string]interface{}{
-		"type":  constants.NOTIFICATION_BOOKING_OTA,
-		"title": title,
+		"type":  bookType,
+		"title": "",
+		// "booking": booking,
+	}
+
+	newFsConfigBytes, _ := json.Marshal(notiData)
+	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+}
+
+func (_ *CNotification) PushNotificationLockTee(lockType string) {
+	notiData := map[string]interface{}{
+		"type":  lockType,
+		"title": "",
 	}
 
 	newFsConfigBytes, _ := json.Marshal(notiData)

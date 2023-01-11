@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"start/config"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -113,7 +112,10 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 
 	cBookingSetting := CBookingSetting{}
 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
-	weekday := strconv.Itoa(int(time.Now().Weekday() + 1))
+	bookingDateTime, _ := time.Parse(constants.DATE_FORMAT_1, body.BookingDate)
+	weekday := strconv.Itoa(int(bookingDateTime.Weekday() + 1))
+
+	log.Println("LockTurn-weekday:", weekday)
 	turnTimeH := 2
 	bookSetting := model_booking.BookingSetting{}
 
@@ -204,7 +206,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 		}
 	}
 
-	for index, data := range teeList {
+	for index, teeType := range teeList {
 
 		t := currentTeeTimeDate.Add((time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(bookSetting.TurnLength)) * time.Duration(index+1))
 
@@ -230,8 +232,9 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, c *gin.Context, pro
 				TeeTimeStatus:  "LOCKED",
 				DateTime:       body.BookingDate,
 				CurrentTeeTime: body.TeeTime,
-				TeeType:        data,
+				TeeType:        teeType,
 				Type:           constants.LOCK_CMS,
+				CurrentCourse:  body.TeeType,
 			}
 
 			lockTeeTimeToRedis(lockTeeTime)
@@ -245,8 +248,10 @@ func (_ *CLockTeeTime) DeleteLockTurn(db *gorm.DB, teeTime string, bookingDate s
 
 	for _, teeTimeR := range listTeeTimeLockRedis {
 		if teeTimeR.CurrentTeeTime == teeTime {
-			teeTimeRedisKey := config.GetEnvironmentName() + ":" + courseUid + "_" + bookingDate + "_" + teeTime + "_" + "1A"
+			teeTimeRedisKey := getKeyTeeTimeLockRedis(teeTimeR.DateTime, teeTimeR.CourseUid, teeTimeR.TeeTime, teeTimeR.TeeType)
+			err := datasources.DelCacheByKey(teeTimeRedisKey)
 
+			log.Print(err)
 			if err := datasources.DelCacheByKey(teeTimeRedisKey); err != nil {
 				log.Println("DeleteLockTurn", err)
 			}
@@ -270,33 +275,5 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 	teeTimeRedisKey := getKeyTeeTimeLockRedis(query.BookingDate, query.CourseUid, query.TeeTime, query.TeeType+query.CourseType)
 	err := datasources.DelCacheByKey(teeTimeRedisKey)
 	log.Print(err)
-	okRes(c)
-}
-
-func (_ *CLockTeeTime) DeleteAllRedisTeeTime(c *gin.Context, prof models.CmsUser) {
-	query := request.DeleteRedis{}
-	if err := c.Bind(&query); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
-
-	// Xóa tee time lock
-	teeTimeLockRedisKey := config.GetEnvironmentName() + ":" + "tee_time_lock:"
-	listKey, _ := datasources.GetAllKeysWith(teeTimeLockRedisKey)
-	errTeeTimeLock := datasources.DelCacheByKey(listKey...)
-	log.Print(errTeeTimeLock)
-
-	// Xóa row_index
-	teeTimeRowIndexRedisKey := config.GetEnvironmentName() + ":" + "tee_time_row_index:"
-	listRowIndexKey, _ := datasources.GetAllKeysWith(teeTimeRowIndexRedisKey)
-	errTeeTimeRowIndex := datasources.DelCacheByKey(listRowIndexKey...)
-	log.Print(errTeeTimeRowIndex)
-
-	// Xóa slot tee time
-	teeTimeSlotEmptyRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_"
-	listTeeTimeSlotKey, _ := datasources.GetAllKeysWith(teeTimeSlotEmptyRedisKey)
-	errTeeTimeSlot := datasources.DelCacheByKey(listTeeTimeSlotKey...)
-	log.Print(errTeeTimeSlot)
-
 	okRes(c)
 }

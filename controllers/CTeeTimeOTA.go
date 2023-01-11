@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"start/config"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -32,8 +31,8 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 		return
 	}
 
-	bookingDate, _ := time.Parse("2006-01-02", body.Date)
-	dateFormat := bookingDate.Format("02/01/2006")
+	date, _ := time.Parse("2006-01-02", body.Date)
+	bookingDateF := date.Format("02/01/2006")
 
 	responseOTA := response.GetTeeTimeOTAResponse{
 		IsMainCourse: body.IsMainCourse,
@@ -114,10 +113,11 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	cBookingSetting := CBookingSetting{}
 	form := request.GetListBookingSettingForm{
 		CourseUid: body.CourseCode,
-		OnDate:    dateFormat,
+		OnDate:    bookingDateF,
 	}
 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
-	weekday := strconv.Itoa(int(timeDate.Weekday()) + 1)
+	bookingDateTime, _ := time.Parse(constants.DATE_FORMAT_1, bookingDateF)
+	weekday := strconv.Itoa(int(bookingDateTime.Weekday() + 1))
 	bookSetting := model_booking.BookingSetting{}
 
 	teeTimeList := []response.TeeTimeOTA{}
@@ -147,7 +147,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 	}
 
 	// get các teetime đang bị khóa ở redis
-	listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, dateFormat, "1A")
+	listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, bookingDateF, "1A")
 
 	index := 0
 	for partIndex, part := range timeParts {
@@ -176,16 +176,24 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 
 				teeTime1 := models.LockTeeTime{
 					TeeTime:   hourStr,
-					DateTime:  dateFormat,
+					DateTime:  bookingDateF,
 					CourseUid: body.CourseCode,
 					TeeType:   "1A",
 				}
 
 				hasTeeTimeLock1AOnRedis := false
+
+				// Lấy số slot đã book
+				teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(bookingDateF, body.CourseCode, hourStr, "1A")
+				rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+				rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+				//
+
 				// Get số slot tee time còn trống
-				teeTimeSlotEmptyRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + body.CourseCode + "_" + dateFormat + "_" + "1A" + "_" + hourStr
+				teeTimeSlotEmptyRedisKey := getKeyTeeTimeSlotRedis(bookingDateF, body.CourseCode, hourStr, "1A")
 				slotStr, _ := datasources.GetCache(teeTimeSlotEmptyRedisKey)
-				slotEmpty, _ := strconv.Atoi(slotStr)
+				slotLock, _ := strconv.Atoi(slotStr)
+				slotEmpty := slotLock + len(rowIndexsRedis)
 
 				if slotEmpty == 0 {
 					// Check tiếp nếu tee time đó đã bị khóa ở CMS
@@ -303,9 +311,16 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 		teeTimeSetting.TeeType = "1B"
 	}
 
-	teeTimeSlotEmptyRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + teeTimeSetting.CourseUid + "_" + teeTimeSetting.DateTime + "_" + teeTimeSetting.TeeType + "_" + teeTimeSetting.TeeTime
+	// Lấy số slot đã book
+	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(teeTimeSetting.DateTime, teeTimeSetting.CourseUid, teeTimeSetting.TeeTime, teeTimeSetting.TeeType)
+	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+	//
+
+	teeTimeSlotEmptyRedisKey := getKeyTeeTimeSlotRedis(teeTimeSetting.DateTime, teeTimeSetting.CourseUid, teeTimeSetting.TeeTime, teeTimeSetting.TeeType)
 	slotStr, _ := datasources.GetCache(teeTimeSlotEmptyRedisKey)
-	slotBook, _ := strconv.Atoi(slotStr)
+	slotLockOTA, _ := strconv.Atoi(slotStr)
+	slotBook := slotLockOTA + len(rowIndexsRedis)
 	slotEmpty := constants.SLOT_TEE_TIME - slotBook
 
 	if body.NumBook > slotEmpty {
@@ -356,12 +371,15 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 				Status: 200,
 				Infor:  body.CourseCode + "- Lock teeTime " + body.TeeOffStr + " " + dateFormat,
 			}
-			datasources.SetCache(teeTimeSlotEmptyRedisKey, slotBook+body.NumBook, 0)
-			// Bắn socket để client update ui
-			go func() {
-				cNotification := CNotification{}
-				cNotification.PushNotificationCreateBookingOTA("")
-			}()
+			if errSlotEmpty := datasources.SetCache(teeTimeSlotEmptyRedisKey, body.NumBook, 0); errSlotEmpty != nil {
+				log.Println("LockTeeTimeOta ", errSlotEmpty.Error())
+			} else {
+				// Bắn socket để client update ui
+				go func() {
+					cNotification := CNotification{}
+					cNotification.PushNotificationLockTee(constants.NOTIFICATION_LOCK_TEE)
+				}()
+			}
 		}
 	}
 
@@ -455,10 +473,17 @@ func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
 		DateStr:      body.DateStr,
 	}
 
+	errorCommon := func() {
+		responseOTA.Result.Status = http.StatusInternalServerError
+		responseOTA.Result.Infor = "Có lỗi xảy ra!"
+		c.JSON(http.StatusInternalServerError, responseOTA)
+	}
+
 	// Find course
 	course := models.Course{}
 	course.Uid = body.CourseCode
 	errFCourse := course.FindFirstHaveKey()
+
 	if errFCourse != nil {
 		responseOTA.Result.Status = http.StatusInternalServerError
 		responseOTA.Result.Infor = "Not found course"
@@ -479,58 +504,48 @@ func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
 
 	bookingDate, _ := time.Parse("2006-01-02", body.DateStr)
 	dateFormat := bookingDate.Format("02/01/2006")
-
 	teeTimeRedisKey := getKeyTeeTimeLockRedis(dateFormat, body.CourseCode, body.TeeOffStr, "1A")
-	db := datasources.GetDatabase()
-	bookings := model_booking.BookingList{}
-	bookings.CourseUid = body.CourseCode
-	bookings.BookingDate = dateFormat
-	bookings.TeeTime = body.TeeOffStr
-	bookings.TeeType = "1"
-	bookings.CourseType = "A"
+	lockTeeRedisRaw, errTimelock := datasources.GetCache(teeTimeRedisKey)
+	lockTeeTime := models.LockTeeTimeWithSlot{}
 
-	_, total, _ := bookings.FindAllBookingNotCancelList(db)
-
-	listKey, errRedis := datasources.GetAllKeysWith(teeTimeRedisKey)
-	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
-	if errRedis == nil && len(listKey) > 0 {
-		strData, errGet := datasources.GetCaches(listKey...)
-		if errGet != nil {
-			log.Println("checkBookingOTA-error", errGet.Error())
-		} else {
-			for _, data := range strData {
-
-				byteData := []byte(data.(string))
-				teeTime := models.LockTeeTimeWithSlot{}
-				err2 := json.Unmarshal(byteData, &teeTime)
-				if err2 == nil {
-					listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
-				}
-			}
+	if errTimelock != nil {
+		errorCommon()
+		return
+	} else {
+		if err := json.Unmarshal([]byte(lockTeeRedisRaw), &lockTeeTime); err != nil {
+			errorCommon()
+			return
 		}
 	}
 
-	for _, item := range listTeeTimeLockRedis {
-		total -= int64(item.Slot)
-	}
+	teeTimeSlotEmptyRedisKey := getKeyTeeTimeSlotRedis(dateFormat, body.CourseCode, body.TeeOffStr, "1A")
+	slotStr, _ := datasources.GetCache(teeTimeSlotEmptyRedisKey)
+	slotLock, _ := strconv.Atoi(slotStr)
+	slotRemain := slotLock - body.NumBook
 
-	err := datasources.DelCacheByKey(teeTimeRedisKey)
-	log.Print("runCheckLockTeeTime", err)
+	if slotRemain > 0 {
+		if err := datasources.SetCache(teeTimeSlotEmptyRedisKey, slotRemain, 0); err != nil {
+			log.Print("updateSlotTeeTime", err)
+		}
 
-	// Bắn socket để client update ui
-	go func() {
-		cNotification := CNotification{}
-		cNotification.PushNotificationCreateBookingOTA("")
-	}()
+		lockTeeTime.Slot = slotRemain
+		valueParse, _ := lockTeeTime.Value()
 
-	slotTeeTimeRedisKey := config.GetEnvironmentName() + ":" + "tee_time_slot_empty" + "_" + body.CourseCode + "_" + dateFormat + "_" + "1A" + "_" + body.TeeOffStr
-	if total > 0 {
-		if err := datasources.SetCache(slotTeeTimeRedisKey, total, 0); err != nil {
+		if err := datasources.SetCache(teeTimeRedisKey, valueParse, 0); err != nil {
 			log.Print("updateSlotTeeTime", err)
 		}
 	} else {
-		err := datasources.DelCacheByKey(slotTeeTimeRedisKey)
+
+		errTeeTime := datasources.DelCacheByKey(teeTimeRedisKey)
+		log.Print("runCheckLockTeeTime", errTeeTime)
+
+		err := datasources.DelCacheByKey(teeTimeSlotEmptyRedisKey)
 		log.Print("runCheckLockTeeTime", err)
 	}
+	// Bắn socket để client update ui
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushNotificationLockTee(constants.NOTIFICATION_UNLOCK_TEE)
+	}()
 	okResponse(c, responseOTA)
 }

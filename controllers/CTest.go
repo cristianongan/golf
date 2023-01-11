@@ -176,100 +176,6 @@ func (_ *CTest) CreateRevenueDetail(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
-func (cBooking *CTest) Test1(c *gin.Context, prof models.CmsUser) {
-	db := datasources.GetDatabase()
-
-	cBookingSetting := CBookingSetting{}
-	form := request.GetListBookingSettingForm{
-		CourseUid: "CHI-LINH-01",
-	}
-	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
-	weekday := strconv.Itoa(int(time.Now().Weekday()) + 1)
-	bookSetting := model_booking.BookingSetting{}
-
-	teeTimeList := []string{}
-	for _, data := range listSettingDetail {
-		if strings.ContainsAny(data.Dow, weekday) {
-			bookSetting = data
-			break
-		}
-	}
-
-	timeParts := []response.TeeTimePartOTA{
-		{
-			IsHideTeePart: bookSetting.IsHideTeePart1,
-			StartPart:     bookSetting.StartPart1,
-			EndPart:       bookSetting.EndPart1,
-		},
-		{
-			IsHideTeePart: bookSetting.IsHideTeePart2,
-			StartPart:     bookSetting.StartPart2,
-			EndPart:       bookSetting.EndPart2,
-		},
-		{
-			IsHideTeePart: bookSetting.IsHideTeePart3,
-			StartPart:     bookSetting.StartPart3,
-			EndPart:       bookSetting.EndPart3,
-		},
-	}
-
-	for _, part := range timeParts {
-		if !part.IsHideTeePart {
-			endTime, _ := utils.ConvertHourToTime(part.EndPart)
-			teeTimeInit, _ := utils.ConvertHourToTime(part.StartPart)
-			for {
-				hour := teeTimeInit.Hour()
-				minute := teeTimeInit.Minute()
-
-				hourStr_ := strconv.Itoa(hour)
-				if hour < 10 {
-					hourStr_ = "0" + hourStr_
-				}
-				minuteStr := strconv.Itoa(minute)
-				if minute < 10 {
-					minuteStr = "0" + minuteStr
-				}
-
-				hourStr := hourStr_ + ":" + minuteStr
-
-				teeTimeList = append(teeTimeList, hourStr)
-				teeTimeInit = teeTimeInit.Add(time.Minute * time.Duration(bookSetting.TeeMinutes))
-
-				if teeTimeInit.Unix() > endTime.Unix() {
-					break
-				}
-			}
-		}
-	}
-
-	today, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-	courseTypeList := []string{"A", "B", "C"}
-	for _, courseType := range courseTypeList {
-		for _, teeTime := range teeTimeList {
-			rTeeTime1 := models.TeeTimeList{
-				PartnerUid:  "CHI-LINH",
-				CourseUid:   "CHI-LINH-01",
-				TeeTime:     teeTime,
-				TeeType:     "1",
-				CourseType:  courseType,
-				BookingDate: today,
-			}
-
-			rTeeTime1.Create(db)
-
-			rTeeTime2 := models.TeeTimeList{
-				PartnerUid:  "CHI-LINH",
-				CourseUid:   "CHI-LINH-01",
-				TeeTime:     teeTime,
-				TeeType:     "10",
-				CourseType:  courseType,
-				BookingDate: today,
-			}
-
-			rTeeTime2.Create(db)
-		}
-	}
-}
 func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.GetListBookingForm{}
@@ -308,6 +214,8 @@ func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 	booking.UpdatePriceDetailCurrentBag(db)
 	booking.UpdateMushPay(db)
 	booking.Update(db)
+	go handleSinglePayment(db, booking)
+	go handleAgencyPayment(db, booking)
 
 	// notiData := map[string]interface{}{
 	// 	"type":  constants.NOTIFICATION_CADDIE_WORKING_STATUS_UPDATE,
@@ -342,7 +250,8 @@ func (cBooking *CTest) TestFunc(c *gin.Context, prof models.CmsUser) {
 
 	cBookingSetting := CBookingSetting{}
 	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
-	weekday := strconv.Itoa(int(time.Now().Weekday() + 1))
+	bookingDateTime, _ := time.Parse(constants.DATE_FORMAT_1, query.BookingDate)
+	weekday := strconv.Itoa(int(bookingDateTime.Weekday() + 1))
 	turnTimeH := 2
 	// endTime := ""
 	bookSetting := model_booking.BookingSetting{}

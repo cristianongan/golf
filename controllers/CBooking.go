@@ -67,7 +67,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		return nil, errDate
 	}
 
-	if checkBookingOTA(body) && !body.BookFromOTA {
+	if checkBookingAtOTAPosition(body) && !body.BookFromOTA {
 		response_message.ErrorResponse(c, http.StatusBadRequest, "", "Booking Online đang khóa tại tee time này!", constants.ERROR_BOOKING_OTA_LOCK)
 		return nil, nil
 	}
@@ -174,6 +174,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		NoteOfBooking:      body.NoteOfBooking,
 		BookingCodePartner: body.BookingCodePartner,
 		BookingSourceId:    body.BookingSourceId,
+		AgencyPaidAll:      body.AgencyPaidAll,
 	}
 
 	// Check Guest of member, check member có còn slot đi cùng không
@@ -553,11 +554,21 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	} else {
 		if booking.BagStatus == constants.BAG_STATUS_WAITING {
 			// checkin mới tạo payment
-			go handleSinglePayment(db, booking, 0)
+			go handleSinglePayment(db, booking)
 		}
 	}
 
-	go updateSlotTeeTimeWithLock(booking)
+	// if !body.BookFromOTA {
+	// 	go updateSlotTeeTimeWithLock(booking)
+	// }
+
+	go func() {
+		// Bắn socket để client update ui
+		if !body.BookFromOTA {
+			cNotification := CNotification{}
+			cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, booking)
+		}
+	}()
 
 	return &booking, nil
 }
@@ -575,7 +586,19 @@ func (_ CBooking) validateCaddie(db *gorm.DB, courseUid string, caddieCode strin
 	return caddieNew, nil
 }
 
-func checkBookingOTA(body request.CreateBookingBody) bool {
+func checkBookingAtOTAPosition(body request.CreateBookingBody) bool {
+
+	// Lấy số slot đã book
+	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, body.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
+	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+	//
+
+	// Nếu row_index không trùng với vị trí row index của ota
+	if body.RowIndex != nil && !utils.Contains(rowIndexsRedis, *body.RowIndex) {
+		return false
+	}
+
 	prefixRedisKey := getKeyTeeTimeLockRedis(body.BookingDate, body.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
 	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
 

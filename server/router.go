@@ -433,6 +433,7 @@ func NewRouter() *gin.Engine {
 			cCaddieWorkingCalendar := new(controllers.CCaddieWorkingCalendar)
 			cmsApiAuthorized.POST("/caddie-working-calendar", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.CreateCaddieWorkingCalendar))
 			cmsApiAuthorized.GET("/caddie-working-calendar/list", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetCaddieWorkingCalendarList))
+			cmsApiAuthorized.GET("/caddie-working-calendar/list-normal", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetCaddieWorkingCalendarListNormal))
 			cmsApiAuthorized.PUT("/caddie-working-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.UpdateCaddieWorkingCalendar))
 			cmsApiAuthorized.DELETE("/caddie-working-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.DeleteCaddieWorkingCalendar))
 
@@ -550,7 +551,6 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/tee-time", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.CreateTeeTimeSettings))
 			cmsApiAuthorized.GET("/tee-time/list", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.GetTeeTimeSettings))
 			cmsApiAuthorized.POST("/tee-time/delete", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.DeleteLockTeeTime))
-			cmsApiAuthorized.POST("/tee-time/redis/reset", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.DeleteAllRedisTeeTime))
 
 			/// =================== Role ===================
 			cRole := new(controllers.CRole)
@@ -560,6 +560,12 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/role/:id", middlewares.AuthorizedCmsUserHandler(cRole.UpdateRole))
 			cmsApiAuthorized.DELETE("/role/:id", middlewares.AuthorizedCmsUserHandler(cRole.DeleteRole))
 			cmsApiAuthorized.GET("/role/:id", middlewares.AuthorizedCmsUserHandler(cRole.GetRoleDetail))
+
+			/// =================== Permission ===================
+			cPermission := new(controllers.CPermission)
+			cmsApiAuthorized.POST("/permission/add", middlewares.AuthorizedCmsUserHandler(cPermission.CreatePermission))
+			cmsApiAuthorized.POST("/permission/delete", middlewares.AuthorizedCmsUserHandler(cPermission.DeletePermissions))
+			cmsApiAuthorized.PUT("/permission/:id", middlewares.AuthorizedCmsUserHandler(cPermission.UpdatePermission))
 
 			/// =================== Booking Waiting =====================
 			cBookingWaiting := new(controllers.CBookingWaiting)
@@ -744,10 +750,15 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportGolfFeeService))
 			cmsApiAuthorized.GET("/report/booking/list", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBookingList))
 
+			/// =================== Redis Settings ===================
+			cRedis := new(controllers.CRedis)
+			cmsApiAuthorized.POST("/redis/tee-time/reset-all", middlewares.AuthorizedCmsUserHandler(cRedis.DeleteAllRedisTeeTime))
+			cmsApiAuthorized.POST("/redis/tee-time/reset", middlewares.AuthorizedCmsUserHandler(cRedis.DeleteTeeTimeRedis))
+
 			/// =================== Test ===================
 			cTest := new(controllers.CTest)
 			cmsApiAuthorized.POST("/test/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cTest.CreateRevenueDetail))
-			cmsApiAuthorized.GET("/test", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
+			cmsApiAuthorized.GET("/test-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
 			cmsApiAuthorized.POST("/test-func", middlewares.AuthorizedCmsUserHandler(cTest.TestFunc))
 			cmsApiAuthorized.GET("/test-fast-customer", middlewares.AuthorizedCmsUserHandler(cTest.TestFastCustomer))
 			cmsApiAuthorized.GET("/test-fast-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFastFee))

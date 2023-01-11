@@ -172,6 +172,69 @@ func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, pr
 	okResponse(c, res)
 }
 
+func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarListNormal(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	// TODO: filter by from and to
+
+	body := request.GetCaddieWorkingCalendarList{}
+	if err := c.Bind(&body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	//get caddie working slot today
+	caddieWC := models.CaddieWorkingCalendar{}
+	caddieWC.CourseUid = body.CourseUid
+	caddieWC.PartnerUid = body.PartnerUid
+	caddieWC.ApplyDate = body.ApplyDate
+
+	list, _, err := caddieWC.FindAllByDate(db)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	//get caddie increase
+	caddieWCI := models.CaddieWorkingCalendar{}
+	caddieWCI.CourseUid = body.CourseUid
+	caddieWCI.PartnerUid = body.PartnerUid
+	caddieWCI.ApplyDate = body.ApplyDate
+	caddieWCI.CaddieIncrease = true
+
+	listIncrease, _, err := caddieWCI.FindAllByDate(db)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	// //get note
+	// caddieWCNote := models.CaddieWorkingCalendarNote{
+	// 	PartnerUid: body.PartnerUid,
+	// 	CourseUid:  body.CourseUid,
+	// 	ApplyDate:  body.ApplyDate,
+	// }
+
+	// listNote, err := caddieWCNote.Find(db)
+	// if err != nil {
+	// 	response_message.BadRequest(c, "Find first caddie working calendar note "+err.Error())
+	// 	return
+	// }
+
+	listRes := map[string]interface{}{
+		"data_caddie":          list,
+		"data_caddie_increase": listIncrease,
+		// "note":                 listNote,
+	}
+
+	res := map[string]interface{}{
+		"data": listRes,
+	}
+
+	okResponse(c, res)
+}
+
 func (_ *CCaddieWorkingCalendar) UpdateCaddieWorkingCalendar(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 

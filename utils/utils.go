@@ -576,6 +576,17 @@ func GetCurrentDayStrWithMap() string {
 	return day
 }
 
+func GetDayOfWeek(strTime string) string {
+	date, err := time.Parse("02/01/2006", strTime)
+	if err != nil {
+		return ""
+	}
+
+	day := strconv.FormatInt(int64(date.Weekday())+1, 10)
+	log.Println("GetCurrentDayStrWithMap ", day)
+	return day
+}
+
 func RandomCharNumber(length int) string {
 	id, err := gonanoid.Generate("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 5)
 	if err != nil {
