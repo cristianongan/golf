@@ -174,7 +174,7 @@ func runCreateCaddieWorkingSlot() {
 		} else {
 			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieCodes, caddieLeave)
 
-			caddieWorking = append(caddieWorking, caddieMerge...)
+			caddiePrioritize = append(caddiePrioritize, caddieMerge...)
 		}
 	}
 
@@ -311,11 +311,24 @@ func GetCaddieCode(s []models.Caddie) []string {
 
 func MergeCaddieCode(x, y, z []string) []string {
 	var caddies []string
+	var caddieNew []string
+
+	// Sort caddie with old slot
 	for _, v := range x {
 		if utils.Contains(y, v) && !utils.Contains(z, v) {
 			caddies = append(caddies, v)
 		}
 	}
+
+	// Add caddie new without slot
+	for _, v := range y {
+		if !utils.Contains(x, v) && !utils.Contains(z, v) {
+			caddieNew = append(caddieNew, v)
+		}
+	}
+
+	caddies = append(caddies, caddieNew...)
+
 	return caddies
 }
 
