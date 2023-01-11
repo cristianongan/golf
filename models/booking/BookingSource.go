@@ -107,7 +107,6 @@ func (item *BookingSource) FindList(database *gorm.DB, page models.Page) ([]Book
 	total := int64(0)
 	status := item.ModelId.Status
 	db = db.Joins("JOIN agencies ON agencies.Id = booking_sources.agency_id")
-	db = db.Select("booking_sources.*,agencies.id")
 
 	if item.PartnerUid != "" {
 		db = db.Where("booking_sources.partner_uid = ?", item.PartnerUid)
