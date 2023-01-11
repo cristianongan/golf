@@ -394,7 +394,7 @@ func (cRound CRound) ChangeGuestyleOfRound(c *gin.Context, prof models.CmsUser) 
 		Rround.BillCode = booking.BillCode
 		list, _ := Rround.FindAll(db)
 
-		if round.Index == len(list)-1 {
+		if round.Index == len(list) {
 			booking.GuestStyle = body.GuestStyle
 			golfFee := models.GolfFee{
 				GuestStyle: body.GuestStyle,
