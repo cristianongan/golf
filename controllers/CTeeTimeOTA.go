@@ -371,7 +371,7 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 				Status: 200,
 				Infor:  body.CourseCode + "- Lock teeTime " + body.TeeOffStr + " " + dateFormat,
 			}
-			if errSlotEmpty := datasources.SetCache(teeTimeSlotEmptyRedisKey, body.NumBook, 0); errSlotEmpty != nil {
+			if errSlotEmpty := datasources.SetCache(teeTimeSlotEmptyRedisKey, body.NumBook+slotLockOTA, 0); errSlotEmpty != nil {
 				log.Println("LockTeeTimeOta ", errSlotEmpty.Error())
 			} else {
 				// Bắn socket để client update ui
