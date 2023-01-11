@@ -100,6 +100,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		newBooking.TimeOutFlight = 0
 		newBooking.CourseType = body.CourseType
 		newBooking.ShowCaddieBuggy = setBoolForCursor(false)
+		newBooking.AddedRound = setBoolForCursor(false)
 		errCreateBooking := newBooking.Create(db, bUid)
 
 		if errCreateBooking != nil {
