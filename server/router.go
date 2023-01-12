@@ -561,6 +561,12 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.DELETE("/role/:id", middlewares.AuthorizedCmsUserHandler(cRole.DeleteRole))
 			cmsApiAuthorized.GET("/role/:id", middlewares.AuthorizedCmsUserHandler(cRole.GetRoleDetail))
 
+			/// =================== Permission ===================
+			cPermission := new(controllers.CPermission)
+			cmsApiAuthorized.POST("/permission/add", middlewares.AuthorizedCmsUserHandler(cPermission.CreatePermission))
+			cmsApiAuthorized.POST("/permission/delete", middlewares.AuthorizedCmsUserHandler(cPermission.DeletePermissions))
+			cmsApiAuthorized.PUT("/permission/:id", middlewares.AuthorizedCmsUserHandler(cPermission.UpdatePermission))
+
 			/// =================== Booking Waiting =====================
 			cBookingWaiting := new(controllers.CBookingWaiting)
 			cmsApiAuthorized.POST("/booking-waiting", middlewares.AuthorizedCmsUserHandler(cBookingWaiting.CreateBookingWaiting))
@@ -758,9 +764,9 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/test-fast-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFastFee))
 
 			/// =================== Test ===================
-			cHelper := new(controllers.CHelper)
-			cmsApiAuthorized.POST("/helper/admin/add-customer-user", middlewares.AuthorizedCmsUserHandler(cHelper.CreateAddCustomer))
-			cmsApiAuthorized.POST("/helper/admin/add-member-card", middlewares.AuthorizedCmsUserHandler(cHelper.CreateMemberCard))
+			// cHelper := new(controllers.CHelper)
+			// cmsApiAuthorized.POST("/helper/admin/add-customer-user", middlewares.AuthorizedCmsUserHandler(cHelper.CreateAddCustomer)) // chỉ dùng cho import data
+			// cmsApiAuthorized.POST("/helper/admin/add-member-card", middlewares.AuthorizedCmsUserHandler(cHelper.CreateMemberCard)) // Chỉ dùng cho import data
 		}
 
 		// ----------------------------------------------------------
