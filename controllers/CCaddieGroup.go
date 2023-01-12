@@ -206,3 +206,35 @@ func (_ CCaddieGroup) MoveCaddieToGroup(c *gin.Context, prof models.CmsUser) {
 
 	okRes(c)
 }
+
+func (_ CCaddieGroup) UpdateGroupCaddies(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	var body []request.UpdateCaddieGroupBody
+	if err := c.BindJSON(&body); err != nil {
+		response_message.BadRequest(c, "")
+		return
+	}
+
+	var res struct {
+		IdSuccess []int64
+		IdFailse  []int64
+	}
+
+	for _, v := range body {
+		caddie := models.Caddie{}
+		caddie.Id = v.Id
+		errFind := caddie.FindFirst(db)
+		if errFind == nil {
+			errUpdate := caddie.Update(db)
+			if errUpdate != nil {
+				res.IdFailse = append(res.IdFailse, v.Id)
+			} else {
+				res.IdSuccess = append(res.IdSuccess, v.Id)
+			}
+		} else {
+			res.IdFailse = append(res.IdFailse, v.Id)
+		}
+	}
+
+	okResponse(c, res)
+}

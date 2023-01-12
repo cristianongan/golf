@@ -461,6 +461,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/caddie-groups/add-caddies", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.AddCaddieToGroup))
 			cmsApiAuthorized.DELETE("/caddie-groups/:id", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.DeleteCaddieGroup))
 			cmsApiAuthorized.POST("/caddie-groups/move-caddies", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.MoveCaddieToGroup))
+			cmsApiAuthorized.POST("/caddie-groups/update_group_caddies", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.UpdateGroupCaddies))
 
 			/// =================== Caddie Working Schedule ===================
 			cCaddieWorkingSchedule := new(controllers.CCaddieWorkingSchedule)
