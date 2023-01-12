@@ -16,7 +16,7 @@ import (
 	// ginSwagger "github.com/swaggo/gin-swagger"
 	// "github.com/swaggo/gin-swagger/swaggerFiles"
 
-	socket "start/socket"
+	socket_room "start/socket_room"
 
 	limiter "github.com/ulule/limiter/v3"
 	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
@@ -44,8 +44,13 @@ func NewRouter() *gin.Engine {
 	moduleName := strings.Replace(config.GetModuleName(), "_", "-", -1)
 	router.Group(moduleName).GET("/", healthcheck)
 	router.Group(moduleName).GET("/healthz", healthcheck)
-	router.Group(moduleName).GET("/ws", func(c *gin.Context) {
-		socket.ServeWs(c.Writer, c.Request)
+	// router.Group(moduleName).GET("/ws", func(c *gin.Context) {
+	// 	socket.ServeWs(socket.HubBroadcastSocket, c.Writer, c.Request)
+	// })
+
+	router.Group(moduleName).GET("/ws/:roomId", func(c *gin.Context) {
+		roomId := c.Param("roomId")
+		socket_room.ServeWs(c.Writer, c.Request, roomId)
 	})
 
 	if config.GetKibanaLog() {

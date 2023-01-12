@@ -14,7 +14,7 @@ import (
 	model_booking "start/models/booking"
 	model_payment "start/models/payment"
 	model_report "start/models/report"
-	"start/socket"
+	socket_room "start/socket_room"
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
@@ -224,8 +224,14 @@ func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 	}
 
 	newFsConfigBytes, _ := json.Marshal(notiData)
-	// socket.HubBroadcastSocket = socket.NewHub()
-	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+	// // socket.HubBroadcastSocket = socket.NewHub()
+	// socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+
+	m := socket_room.Message{
+		Data: newFsConfigBytes,
+		Room: "1",
+	}
+	socket_room.Hub.Broadcast <- m
 }
 
 func (cBooking *CTest) TestFunc(c *gin.Context, prof models.CmsUser) {
