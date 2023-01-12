@@ -225,6 +225,7 @@ func (_ CCaddieGroup) UpdateGroupCaddies(c *gin.Context, prof models.CmsUser) {
 		caddie.Id = v.Id
 		errFind := caddie.FindFirst(db)
 		if errFind == nil {
+			caddie.GroupId = v.GroupId
 			errUpdate := caddie.Update(db)
 			if errUpdate != nil {
 				res.IdFailse = append(res.IdFailse, v.Id)
