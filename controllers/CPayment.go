@@ -603,7 +603,7 @@ func (_ *CPayment) GetAgencyPayForBagDetail(c *gin.Context, prof models.CmsUser)
 		for _, item := range booking.ListServiceItems {
 			payForBag.FeeData = append(payForBag.FeeData, utils.BookingAgencyPayForBagData{
 				Type: item.Type,
-				Fee:  booking.CurrentBagPrice.GolfFee,
+				Fee:  item.Amount,
 				Name: item.Name,
 			})
 		}
