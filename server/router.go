@@ -45,7 +45,7 @@ func NewRouter() *gin.Engine {
 	router.Group(moduleName).GET("/", healthcheck)
 	router.Group(moduleName).GET("/healthz", healthcheck)
 	router.Group(moduleName).GET("/ws", func(c *gin.Context) {
-		socket.ServeWs(socket.HubBroadcastSocket, c.Writer, c.Request)
+		socket.ServeWs(c.Writer, c.Request)
 	})
 
 	if config.GetKibanaLog() {
