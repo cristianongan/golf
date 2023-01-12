@@ -51,9 +51,8 @@ func (item *Notification) Create(db *gorm.DB) error {
 }
 
 func (item *Notification) Update(database *gorm.DB) error {
-	db := database.Model(Notification{})
 	item.UpdatedAt = time.Now().Unix()
-	errUpdate := db.Save(item).Error
+	errUpdate := database.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}

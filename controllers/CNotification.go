@@ -131,7 +131,7 @@ func (_ *CNotification) ApproveCaddieCalendarNotification(c *gin.Context, prof m
 		if form.IsApprove {
 			approvedTitle = "được duyệt nghỉ phép ốm"
 		} else {
-			approvedTitle = "được duyệt nghỉ phép ốm"
+			approvedTitle = "không được duyệt nghỉ phép ốm"
 		}
 	} else if notification.Type == constants.NOTIFICATION_CADDIE_VACATION_UNPAID {
 		extraTitle = "xin nghỉ phép không lương"
@@ -158,7 +158,7 @@ func (_ *CNotification) ApproveCaddieCalendarNotification(c *gin.Context, prof m
 	} else {
 		notification.NotificationStatus = constants.NOTIFICATION_REJECTED
 	}
-
+	notification.UserApprove = prof.UserName
 	if errUpdNotification := notification.Update(db); errUpdNotification != nil {
 		response_message.InternalServerError(c, errUpdNotification.Error())
 		return
