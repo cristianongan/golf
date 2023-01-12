@@ -586,22 +586,30 @@ func (_ *CPayment) GetAgencyPayForBagDetail(c *gin.Context, prof models.CmsUser)
 		return
 	}
 
-	if booking.CheckAgencyPaidAll() {
-		booking.FindServiceItems(db)
-	}
-
 	err := payForBag.FindFirst(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
-	res := model_payment.AgencyPaidForBagDetail{
-		BookingAgencyPayment: payForBag,
-		ListServiceItems:     booking.ListServiceItems,
+	if booking.CheckAgencyPaidAll() {
+		booking.FindServiceItems(db)
+		payForBag.FeeData = utils.ListBookingAgencyPayForBagData{}
+		payForBag.FeeData = append(payForBag.FeeData, utils.BookingAgencyPayForBagData{
+			Type: constants.BOOKING_AGENCY_GOLF_FEE,
+			Fee:  booking.CurrentBagPrice.GolfFee,
+			Name: "Golf Fee",
+		})
+		for _, item := range booking.ListServiceItems {
+			payForBag.FeeData = append(payForBag.FeeData, utils.BookingAgencyPayForBagData{
+				Type: item.Type,
+				Fee:  booking.CurrentBagPrice.GolfFee,
+				Name: item.Name,
+			})
+		}
 	}
 
-	okResponse(c, res)
+	okResponse(c, payForBag)
 }
 
 /*
