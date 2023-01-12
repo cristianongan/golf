@@ -20,3 +20,8 @@ type MoveCaddieToGroupBody struct {
 	GroupCode  string   `json:"group_code" validate:"required"`
 	CaddieList []string `json:"caddie_list"`
 }
+
+type UpdateCaddieGroupBody struct {
+	Id      int64 `json:"id" validate:"required"`
+	GroupId int64 `json:"group_id" validate:"required"`
+}
