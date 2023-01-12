@@ -136,6 +136,42 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 	item.ListServiceItems = listServiceItems
 }
 
+func (item *Booking) FindServiceItemsByBag(db *gorm.DB) {
+	//MainBag
+	listServiceItems := ListBookingServiceItems{}
+	serviceGolfs := BookingServiceItem{
+		BillCode: item.BillCode,
+	}
+
+	listGolfService, _ := serviceGolfs.FindAll(db)
+	if len(listGolfService) > 0 {
+		for _, v := range listGolfService {
+			// Check trạng thái bill
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+				// Add từ lễ tân thì k cần check
+				listServiceItems = append(listServiceItems, v)
+			} else {
+				serviceCart := models.ServiceCart{}
+				serviceCart.Id = v.ServiceBill
+
+				errSC := serviceCart.FindFirst(db)
+				if errSC != nil {
+					log.Println("FindFristServiceCart errSC", errSC.Error())
+					return
+				}
+
+				if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
+					serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS ||
+					serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH ||
+					serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
+					listServiceItems = append(listServiceItems, v)
+				}
+			}
+		}
+	}
+	item.ListServiceItems = listServiceItems
+}
+
 func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceItemWithPaidInfo {
 	//MainBag
 	listServiceItems := []BookingServiceItemWithPaidInfo{}
