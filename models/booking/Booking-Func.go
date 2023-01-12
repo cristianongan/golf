@@ -650,11 +650,11 @@ func (item *Booking) UpdatePriceDetailCurrentBag(db *gorm.DB) {
 				priceDetail.Proshop += serviceItem.Amount
 			}
 			if serviceItem.Type == constants.GOLF_SERVICE_RESTAURANT ||
-				serviceItem.Type == constants.MINI_B_SETTING ||
 				serviceItem.Type == constants.MINI_R_SETTING {
 				priceDetail.Restaurant += serviceItem.Amount
 			}
-			if serviceItem.Type == constants.GOLF_SERVICE_KIOSK {
+			if serviceItem.Type == constants.GOLF_SERVICE_KIOSK ||
+				serviceItem.Type == constants.MINI_B_SETTING {
 				priceDetail.Kiosk += serviceItem.Amount
 			}
 		}
