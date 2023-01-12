@@ -72,6 +72,10 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 			isAgencyPaidBookingCaddie := subDetail.GetAgencyPaidBookingCaddie() > 0
 			isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
 
+			if subDetail.CheckAgencyPaidAll() {
+				break
+			}
+
 			for _, v1 := range listGolfServiceTemp {
 				isCanAdd := false
 				if item.MainBagPay != nil && len(item.MainBagPay) > 0 {
@@ -246,6 +250,11 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 			subDetail, _ := RsubDetail.FindFirstByUId(db)
 			isAgencyPaidBookingCaddie := subDetail.GetAgencyPaidBookingCaddie() > 0
 			isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
+
+			// agency paid all
+			if subDetail.CheckAgencyPaidAll() {
+				break
+			}
 
 			for _, v1 := range listGolfServiceTemp {
 				isCanAdd := false
