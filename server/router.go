@@ -438,6 +438,7 @@ func NewRouter() *gin.Engine {
 			cCaddieWorkingCalendar := new(controllers.CCaddieWorkingCalendar)
 			cmsApiAuthorized.POST("/caddie-working-calendar", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.CreateCaddieWorkingCalendar))
 			cmsApiAuthorized.GET("/caddie-working-calendar/list", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetCaddieWorkingCalendarList))
+			cmsApiAuthorized.GET("/caddie-working-calendar/list-normal", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetCaddieWorkingCalendarListNormal))
 			cmsApiAuthorized.PUT("/caddie-working-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.UpdateCaddieWorkingCalendar))
 			cmsApiAuthorized.DELETE("/caddie-working-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.DeleteCaddieWorkingCalendar))
 
@@ -465,6 +466,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/caddie-groups/add-caddies", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.AddCaddieToGroup))
 			cmsApiAuthorized.DELETE("/caddie-groups/:id", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.DeleteCaddieGroup))
 			cmsApiAuthorized.POST("/caddie-groups/move-caddies", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.MoveCaddieToGroup))
+			cmsApiAuthorized.POST("/caddie-groups/update_group_caddies", middlewares.AuthorizedCmsUserHandler(cCaddieGroup.UpdateGroupCaddies))
 
 			/// =================== Caddie Working Schedule ===================
 			cCaddieWorkingSchedule := new(controllers.CCaddieWorkingSchedule)
@@ -768,9 +770,9 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/test-fast-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFastFee))
 
 			/// =================== Test ===================
-			cHelper := new(controllers.CHelper)
-			cmsApiAuthorized.POST("/helper/admin/add-customer-user", middlewares.AuthorizedCmsUserHandler(cHelper.CreateAddCustomer))
-			cmsApiAuthorized.POST("/helper/admin/add-member-card", middlewares.AuthorizedCmsUserHandler(cHelper.CreateMemberCard))
+			// cHelper := new(controllers.CHelper)
+			// cmsApiAuthorized.POST("/helper/admin/add-customer-user", middlewares.AuthorizedCmsUserHandler(cHelper.CreateAddCustomer)) // chỉ dùng cho import data
+			// cmsApiAuthorized.POST("/helper/admin/add-member-card", middlewares.AuthorizedCmsUserHandler(cHelper.CreateMemberCard)) // Chỉ dùng cho import data
 		}
 
 		// ----------------------------------------------------------

@@ -260,6 +260,31 @@ func (item *BookingServiceItem) FindListWithBooking(database *gorm.DB, page mode
 	return list, total, db.Error
 }
 
+func (item *BookingServiceItem) FindListBookingOrder(database *gorm.DB, date string) ([]BookingServiceItemResponse, int64, error) {
+	db := database.Model(BookingServiceItem{})
+	list := []BookingServiceItemResponse{}
+	total := int64(0)
+
+	if item.CourseUid != "" {
+		db = db.Where("booking_service_items.course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("booking_service_items.partner_uid = ?", item.PartnerUid)
+	}
+	if item.Type != "" {
+		db = db.Where("booking_service_items.type = ?", item.Type)
+	}
+
+	db = db.Joins("RIGHT JOIN (select * from bookings where partner_uid = ? and course_uid = ? and booking_date = ?) b ON b.uid = booking_service_items.booking_uid", item.PartnerUid, item.CourseUid, date)
+
+	db.Group("b.uid")
+	db.Count(&total)
+
+	db = db.Find(&list)
+
+	return list, total, db.Error
+}
+
 func (item *BookingServiceItem) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")

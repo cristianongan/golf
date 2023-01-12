@@ -52,11 +52,6 @@ func Init() {
 	// elasticsearch.ElasticSearchInit()
 
 	// IMPORT DATA
-	// importDataCustomerUser()
-	// importDataMemberCardType()
-	// importDataMemberCard()
-	// importDataAgencies()
-	// importDataCaddies()
 
 	r := NewRouter()
 
