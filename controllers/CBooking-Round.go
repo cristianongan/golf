@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -29,6 +30,19 @@ func GetGolfFeeInfoOfBag(c *gin.Context, mainBooking model_booking.Booking) mode
 	checkIsNextRound := utils.ContainString(mainBooking.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
 
 	for _, subBooking := range mainBooking.SubBags {
+
+		bookingR := model_booking.Booking{
+			Model: models.Model{Uid: subBooking.BookingUid},
+		}
+
+		if eBookingR := bookingR.FindFirst(db); eBookingR != nil {
+			log.Println(eBookingR.Error())
+		}
+
+		if bookingR.CheckAgencyPaidAll() {
+			break
+		}
+
 		subRound := models.Round{BillCode: subBooking.BillCode}
 		listRound, _ := subRound.FindAll(db)
 
@@ -39,7 +53,7 @@ func GetGolfFeeInfoOfBag(c *gin.Context, mainBooking model_booking.Booking) mode
 			Rounds:      []models.Round{},
 		}
 
-		if checkIsFirstRound > -1 && len(listRound) > 0 {
+		if checkIsFirstRound > -1 && len(listRound) > 0 && !bookingR.CheckAgencyPaidRound1() {
 			round1 := models.Round{}
 			for _, item := range listRound {
 				if item.Index == 1 {

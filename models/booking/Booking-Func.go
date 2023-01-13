@@ -574,13 +574,14 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 			}
 
 		} else {
-			if item.CheckAgencyPaidAll() {
-				agencyPaidAll += v.Amount
-			}
-
 			if v.Bag != item.Bag {
 				// Tính giá service của sub
 				subBagFee += v.Amount
+			} else {
+				// Tính giá service của bag cho case agency paid all
+				if item.CheckAgencyPaidAll() {
+					agencyPaidAll += v.Amount
+				}
 			}
 			isNeedPay = true
 		}
@@ -607,11 +608,11 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 
 	if item.CheckAgencyPaidAll() {
 		mushPay.MushPay = subBagFee
-		if item.GetAgencyPaid() != agencyPaidAll-subBagFee {
+		if item.GetAgencyPaid() != agencyPaidAll {
 			item.AgencyPaid = utils.ListBookingAgencyPayForBagData{}
 			item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
 				Type: constants.BOOKING_AGENCY_PAID_ALL,
-				Fee:  agencyPaidAll - subBagFee,
+				Fee:  agencyPaidAll,
 			})
 		}
 		item.CurrentBagPrice.MainBagPaid = agencyPaidAll
