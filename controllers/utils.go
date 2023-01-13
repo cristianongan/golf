@@ -962,6 +962,29 @@ func getBagDetailFromBooking(db *gorm.DB, booking model_booking.Booking) model_b
 }
 
 /*
+find booking with round va service items data
+*/
+func getBagDetailForPayment(db *gorm.DB, booking model_booking.Booking) model_booking.BagDetail {
+	//Get service items
+	booking.FindServiceItemsInPayment(db)
+
+	bagDetail := model_booking.BagDetail{
+		Booking: booking,
+	}
+
+	// Get Rounds
+	if booking.BillCode != "" {
+		round := models.Round{BillCode: booking.BillCode}
+		listRound, _ := round.FindAll(db)
+
+		if len(listRound) > 0 {
+			bagDetail.Rounds = listRound
+		}
+	}
+	return bagDetail
+}
+
+/*
 Mỗi lần thêm đợt thanh toán, update lại totalPaid
 */
 func updateTotalPaidAnnualFeeForMemberCard(db *gorm.DB, mcUid string, year int) {
