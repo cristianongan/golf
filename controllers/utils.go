@@ -642,11 +642,6 @@ func udpCaddieOut(db *gorm.DB, caddieId int64) {
 			if errUpd != nil {
 				log.Println("udpCaddieOut err", err.Error())
 			}
-			go func() {
-				cNotification := CNotification{}
-				title := fmt.Sprint("Caddie", " ", caddie.Code, " ", caddie.CurrentStatus)
-				cNotification.CreateCaddieWorkingStatusNotification(title)
-			}()
 		}
 	}
 }

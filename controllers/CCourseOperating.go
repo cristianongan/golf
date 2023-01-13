@@ -542,6 +542,11 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 		go updateCaddieOutSlot(partnerUid, courseUid, caddieList)
 	}
 
+	go func() {
+		cNotification := CNotification{}
+		cNotification.CreateCaddieWorkingStatusNotification("")
+	}()
+
 	okRes(c)
 }
 
