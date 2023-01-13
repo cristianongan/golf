@@ -13,3 +13,7 @@ type GetListCaddieBuggyInOut struct {
 	ShareBuggy     *bool  `form:"share_buggy"`
 	BagOrBuggyCode string `form:"bag_or_buggy_code"`
 }
+
+type RCaddieSlotExample struct {
+	Caddie string `form:"caddie"`
+}

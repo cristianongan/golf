@@ -389,6 +389,19 @@ func (cBooking *CTest) TestFunc(c *gin.Context, prof models.CmsUser) {
 	}
 }
 
+func (cBooking *CTest) TestCaddieSlot(c *gin.Context, prof models.CmsUser) {
+	query := request.RCaddieSlotExample{}
+	if err := c.Bind(&query); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	caddieList := strings.Split(query.Caddie, ",")
+	go updateCaddieOutSlot("CHI-LINH", "CHI-LINH-01", caddieList)
+
+	okRes(c)
+}
+
 func (cBooking *CTest) TestFastCustomer(c *gin.Context, prof models.CmsUser) {
 	uid := utils.HashCodeUuid(uuid.New().String())
 	customerBody := request.CustomerBody{
