@@ -538,7 +538,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			TeeTime:     body.TeeTime,
 			TeeType:     teeType,
 		}
-		cLockTeeTime.LockTurn(lockTurn, body.Hole, c, prof)
+		go cLockTeeTime.LockTurn(lockTurn, body.Hole, c, prof)
 	}
 
 	if body.IsCheckIn && booking.CustomerUid != "" {
