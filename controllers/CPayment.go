@@ -593,7 +593,7 @@ func (_ *CPayment) GetAgencyPayForBagDetail(c *gin.Context, prof models.CmsUser)
 	}
 
 	if booking.CheckAgencyPaidAll() {
-		booking.FindServiceItemsByBag(db)
+		booking.FindServiceItemsOfBag(db)
 		payForBag.FeeData = utils.ListBookingAgencyPayForBagData{}
 		payForBag.FeeData = append(payForBag.FeeData, utils.BookingAgencyPayForBagData{
 			Type: constants.BOOKING_AGENCY_GOLF_FEE,
