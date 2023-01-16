@@ -138,8 +138,7 @@ type FlyInfoResponse struct {
 
 type BagDetail struct {
 	Booking
-	Rounds         models.ListRound       `json:"rounds"`
-	RoundsWithNote []models.RoundWithNote `json:"rounds,omitempty"`
+	Rounds models.ListRound `json:"rounds"`
 }
 
 type BagRoundNote struct {
