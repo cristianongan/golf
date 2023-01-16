@@ -7,6 +7,7 @@ import (
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 	"time"
@@ -264,6 +265,39 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieWorkingCalendar(c *gin.Context, pro
 	caddiWC.CaddieCode = body.CaddieCode
 
 	if err := caddiWC.Update(db); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	okRes(c)
+}
+
+func (_ *CCaddieWorkingCalendar) UpdateCaddieSlotAuto(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	// validate body
+	var body request.UpdateCaddieWorkingSlotAutoBody
+	if err := c.BindJSON(&body); err != nil {
+		log.Print("UpdateCaddieWorkingSlotAutoBody BindJSON error")
+		response_message.BadRequest(c, "")
+	}
+
+	// Find slot caddie with date
+	caddieWS := models.CaddieWorkingSlot{}
+	caddieWS.PartnerUid = body.PartnerUid
+	caddieWS.CourseUid = body.CourseUid
+	caddieWS.ApplyDate = body.ApplyDate
+
+	if err := caddieWS.FindFirst(db); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// Swap slot caddie
+	caddieWS.CaddieSlot = utils.SwapValue(caddieWS.CaddieSlot, body.CaddieCodeOld, body.CaddieCodeNew)
+
+	// Update slot caddie
+	if err := caddieWS.Update(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}

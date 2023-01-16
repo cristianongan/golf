@@ -17,6 +17,14 @@ type UpdateCaddieWorkingCalendarBody struct {
 	CaddieCode string `json:"caddie_code" validate:"required"`
 }
 
+type UpdateCaddieWorkingSlotAutoBody struct {
+	PartnerUid    string `json:"partner_uid" validate:"required"`
+	CourseUid     string `json:"course_uid" validate:"required"`
+	CaddieCodeOld string `json:"caddie_code_old" validate:"required"`
+	CaddieCodeNew string `json:"caddie_code_new" validate:"required"`
+	ApplyDate     string `json:"apply_date" validate:"required"`
+}
+
 type CaddieWorkingCalendarListRequest struct {
 	ApplyDate  string                         `json:"apply_date"`
 	Note       string                         `json:"note"`
