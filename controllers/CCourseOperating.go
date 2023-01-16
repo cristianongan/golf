@@ -637,7 +637,7 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 
 	if booking.CaddieId > 0 {
 		// Update node caddie
-		caddieList := []string{booking.BuggyInfo.Code}
+		caddieList := []string{booking.CaddieInfo.Code}
 		go updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
 	}
 
