@@ -964,6 +964,54 @@ func getBagDetailFromBooking(db *gorm.DB, booking model_booking.Booking) model_b
 /*
 find booking with round va service items data
 */
+func getBagWithRoundDetail(db *gorm.DB, booking model_booking.Booking) model_booking.BagRoundNote {
+	//Get service items
+	booking.FindServiceItems(db)
+
+	bagDetail := model_booking.BagRoundNote{
+		Booking: booking,
+	}
+
+	// Get Rounds
+	if booking.BillCode != "" {
+		round := models.Round{BillCode: booking.BillCode}
+		listRound, _ := round.FindAll(db)
+		listRoundWithNote := []models.RoundWithNote{}
+		for _, item := range listRound {
+			listRoundWithNote = append(listRoundWithNote, models.RoundWithNote{
+				Round: item,
+			})
+		}
+
+		bookingListR := model_booking.BookingList{
+			BillCode: booking.BillCode,
+		}
+
+		bookingList := []model_booking.Booking{}
+		db1 := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+		db2, _, _ := bookingListR.FindAllBookingList(db1)
+		db2 = db2.Order("created_at asc")
+		db2.Find(&bookingList)
+
+		for index, booking := range bookingList {
+			roundIndex := index + 1
+			for idx, round := range listRoundWithNote {
+				if round.Index == roundIndex {
+					listRoundWithNote[idx].Note = booking.NoteOfGo
+					break
+				}
+			}
+		}
+		if len(listRound) > 0 {
+			bagDetail.RoundsWithNote = listRoundWithNote
+		}
+	}
+	return bagDetail
+}
+
+/*
+find booking with round va service items data
+*/
 func getBagDetailForPayment(db *gorm.DB, booking model_booking.Booking) model_booking.BagDetail {
 	//Get service items
 	booking.FindServiceItemsInPayment(db)

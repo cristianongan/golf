@@ -56,6 +56,7 @@ type BookingList struct {
 	IsGroupBillCode       bool
 	IsGroupBookingCode    bool
 	NotNoneGolfAndWalking bool
+	BillCode              string
 }
 
 type ResBookingWithBuggyFeeInfo struct {
@@ -288,6 +289,10 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 			constants.CUSTOMER_TYPE_WALKING_FEE,
 		}
 		db = db.Where("customer_type NOT IN (?) ", customerType)
+	}
+
+	if item.BillCode != "" {
+		db = db.Where("bill_code = ?", item.BillCode)
 	}
 
 	return db
