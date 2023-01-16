@@ -313,7 +313,7 @@ func (_ *CCaddie) GetCaddieDetail(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if caddieRequest.PartnerUid != prof.PartnerUid || caddieRequest.CourseUid != prof.CourseUid {
+	if caddieDetail.PartnerUid != prof.PartnerUid || caddieDetail.CourseUid != prof.CourseUid {
 		response_message.Forbidden(c, "forbidden")
 		return
 	}

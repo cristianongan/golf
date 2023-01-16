@@ -54,6 +54,9 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Bắn socket để client update ui
+	cNotification := CNotification{}
+	cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, booking)
 	okResponse(c, booking)
 }
 
@@ -535,7 +538,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			TeeTime:     body.TeeTime,
 			TeeType:     teeType,
 		}
-		cLockTeeTime.LockTurn(lockTurn, c, prof)
+		cLockTeeTime.LockTurn(lockTurn, body.Hole, c, prof)
 	}
 
 	if body.IsCheckIn && booking.CustomerUid != "" {
@@ -561,14 +564,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	// if !body.BookFromOTA {
 	// 	go updateSlotTeeTimeWithLock(booking)
 	// }
-
-	go func() {
-		// Bắn socket để client update ui
-		if !body.BookFromOTA {
-			cNotification := CNotification{}
-			cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, booking)
-		}
-	}()
 
 	return &booking, nil
 }

@@ -49,7 +49,7 @@ func runBookingLogout() {
 		v.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
 		v.CurrentRound = 0
 		v.Update(dbCaddie)
-		go updateCaddieOutSlot(v.PartnerUid, v.CourseUid, []string{v.Code})
+		// go updateCaddieOutSlot(v.PartnerUid, v.CourseUid, []string{v.Code})
 	}
 
 	buggy := models.Buggy{}

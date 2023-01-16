@@ -180,10 +180,13 @@ func handleAgencyPayment(db *gorm.DB, booking model_booking.Booking) {
 func handlePayment(db *gorm.DB, booking model_booking.Booking) {
 	if booking.AgencyId > 0 && booking.MemberCardUid == "" {
 		// Agency payment
-		go handleAgencyPayment(db, booking)
+		if booking.CheckAgencyPaidAll() {
+			updateBookingAgencyPaymentForAllFee(booking)
+		}
+		handleAgencyPayment(db, booking)
 	}
 	// single payment
-	go handleSinglePayment(db, booking)
+	handleSinglePayment(db, booking)
 }
 
 /*
@@ -205,7 +208,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		booking.UpdateMushPay(db)
 		booking.Update(db)
 
-		updateBookingAgencyPaymentForAllFee(booking, booking.MushPayInfo.Amount-booking.MushPayInfo.MushPay)
+		updateBookingAgencyPaymentForAllFee(booking)
 		handleSinglePayment(db, booking)
 		//Upd lại số tiền thanh toán của agency
 		handleAgencyPayment(db, booking)
@@ -267,7 +270,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 	}
 }
 
-func updateBookingAgencyPaymentForAllFee(booking model_booking.Booking, fee int64) {
+func updateBookingAgencyPaymentForAllFee(booking model_booking.Booking) {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	bookingAgencyPayment := model_payment.BookingAgencyPayment{
 		PartnerUid:  booking.PartnerUid,
@@ -276,16 +279,19 @@ func updateBookingAgencyPaymentForAllFee(booking model_booking.Booking, fee int6
 		AgencyId:    booking.AgencyId,
 		BookingUid:  booking.Uid,
 	}
-
-	bookingAgencyPayment.FeeData = utils.ListBookingAgencyPayForBagData{}
-	bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
-		Type: constants.BOOKING_AGENCY_PAID_ALL,
-		Fee:  fee,
-	})
-
 	if errFind := bookingAgencyPayment.FindFirst(db); errFind != nil {
+		bookingAgencyPayment.FeeData = utils.ListBookingAgencyPayForBagData{}
+		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
+			Type: constants.BOOKING_AGENCY_PAID_ALL,
+			Fee:  booking.GetAgencyPaid(),
+		})
 		bookingAgencyPayment.Create(db)
 	} else {
+		bookingAgencyPayment.FeeData = utils.ListBookingAgencyPayForBagData{}
+		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
+			Type: constants.BOOKING_AGENCY_PAID_ALL,
+			Fee:  booking.GetAgencyPaid(),
+		})
 		bookingAgencyPayment.Update(db)
 	}
 }

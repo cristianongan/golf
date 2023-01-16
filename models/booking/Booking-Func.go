@@ -72,6 +72,10 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 			isAgencyPaidBookingCaddie := subDetail.GetAgencyPaidBookingCaddie() > 0
 			isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
 
+			if subDetail.CheckAgencyPaidAll() {
+				break
+			}
+
 			for _, v1 := range listGolfServiceTemp {
 				isCanAdd := false
 				if item.MainBagPay != nil && len(item.MainBagPay) > 0 {
@@ -247,6 +251,11 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 			isAgencyPaidBookingCaddie := subDetail.GetAgencyPaidBookingCaddie() > 0
 			isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
 
+			// agency paid all
+			if subDetail.CheckAgencyPaidAll() {
+				break
+			}
+
 			for _, v1 := range listGolfServiceTemp {
 				isCanAdd := false
 				if item.MainBagPay != nil && len(item.MainBagPay) > 0 {
@@ -366,8 +375,9 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 	mainPaidOtherFee := false
 	mainCheckOutTime := int64(0)
 
-	subBagFee := int64(0) // Giá của sub bag
-	feePaid := int64(0)   // Giá đã được trả bởi agency or main bag
+	subBagFee := int64(0)     // Giá của sub bag
+	feePaid := int64(0)       // Giá đã được trả bởi agency or main bag
+	agencyPaidAll := int64(0) // Agency trả all
 
 	buggyCaddieAgencyPaid := int64(0)
 	feePaid += item.GetAgencyService()
@@ -396,6 +406,10 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 	}
 
 	for _, round := range listRoundOfCurrentBag {
+		if item.CheckAgencyPaidAll() {
+			agencyPaidAll += round.GetAmountGolfFee()
+		}
+
 		if round.Index == 1 {
 			if !item.CheckAgencyPaidRound1() {
 				// Nếu agency không trả thì xet tiếp
@@ -524,6 +538,10 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 			}
 
 		} else {
+			if item.CheckAgencyPaidAll() {
+				agencyPaidAll += v.Amount
+			}
+
 			if v.Bag != item.Bag {
 				// Tính giá service của sub
 				subBagFee += v.Amount
@@ -547,34 +565,34 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 		buggyCaddieRentalMushPay = 0
 	}
 
-	total := mushPay.TotalGolfFee + mushPay.TotalServiceItem + buggyCaddieRentalMushPay
-
-	if total < 0 {
-		mushPay.MushPay = 0
-	} else {
-		mushPay.MushPay = total
-	}
-
-	if item.AgencyPaidAll != nil && *item.AgencyPaidAll {
-		mushPay.MushPay = subBagFee
-
-		// Tính tổng số tiền mà Agency trả cho bag
-		if item.GetAgencyPaid() != total-subBagFee {
-			item.AgencyPaid = utils.ListBookingAgencyPayForBagData{}
-			item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
-				Type: constants.BOOKING_AGENCY_PAID_ALL,
-				Fee:  total - subBagFee,
-			})
-		}
-	}
-
 	if item.CustomerType == constants.BOOKING_CUSTOMER_TYPE_FOC {
 		mushPay.MushPay = subBagFee
 	}
 
-	item.MushPayInfo.Amount = total
+	if item.CheckAgencyPaidAll() {
+		mushPay.MushPay = subBagFee
+		if item.GetAgencyPaid() != agencyPaidAll-subBagFee {
+			item.AgencyPaid = utils.ListBookingAgencyPayForBagData{}
+			item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
+				Type: constants.BOOKING_AGENCY_PAID_ALL,
+				Fee:  agencyPaidAll - subBagFee,
+			})
+		}
+		item.CurrentBagPrice.MainBagPaid = agencyPaidAll
+	} else {
+		total := mushPay.TotalGolfFee + mushPay.TotalServiceItem + buggyCaddieRentalMushPay
+		if total < 0 {
+			mushPay.MushPay = 0
+		} else {
+			mushPay.MushPay = total
+		}
+
+		item.MushPayInfo.Amount = total
+		item.CurrentBagPrice.MainBagPaid = feePaid
+	}
+
 	item.MushPayInfo = mushPay
-	item.CurrentBagPrice.MainBagPaid = feePaid
+
 	// Update date lại giá USD
 	currencyPaidGet := models.CurrencyPaid{
 		Currency: "usd",
@@ -730,6 +748,10 @@ func (item *Booking) GetAgencyPaidBookingCaddie() int64 {
 		}
 	}
 	return totalAgencyPaid
+}
+
+func (item *Booking) CheckAgencyPaidAll() bool {
+	return item.AgencyPaidAll != nil && *item.AgencyPaidAll
 }
 
 func (item *Booking) NumberOfRound() int {
