@@ -636,10 +636,6 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 
 	go addBuggyCaddieInOutNote(db, caddieOutNote)
 
-	// if booking.TeeTime != "" {
-	// 	go unlockTurnTime(db, booking)
-	// }
-
 	if booking.CaddieId > 0 {
 		// Update node caddie
 		caddieList := []string{booking.CaddieInfo.Code}
@@ -1321,6 +1317,12 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		errUdp := b.Update(db)
 		if errUdp != nil {
 			log.Println("AddBagToFlight err flight ", errUdp.Error())
+		}
+		// Update lại thông tin booking
+		if booking := b.GetBooking(); booking != nil && booking.Uid != b.Uid {
+			booking.CaddieId = b.CaddieId
+			booking.CaddieInfo = b.CaddieInfo
+			go booking.Update(db)
 		}
 	}
 

@@ -528,15 +528,15 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		go updateMemberCard(db, memberCard)
 	}
 
-	if body.TeeTime != "" {
+	if body.TeeTime != "" && len(rowIndexsRedis) >= 3 {
 		cLockTeeTime := CLockTeeTime{}
-		teeType := fmt.Sprint(body.TeeType, body.CourseType)
 		lockTurn := request.CreateLockTurn{
 			BookingDate: body.BookingDate,
 			CourseUid:   body.CourseUid,
 			PartnerUid:  body.PartnerUid,
 			TeeTime:     body.TeeTime,
-			TeeType:     teeType,
+			TeeType:     body.TeeType,
+			CourseType:  body.CourseType,
 		}
 		go cLockTeeTime.LockTurn(lockTurn, body.Hole, c, prof)
 	}

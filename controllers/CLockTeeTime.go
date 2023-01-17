@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"start/constants"
@@ -109,6 +109,32 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, hole int, c *gin.Co
 	bookingDateTime, _ := time.Parse(constants.DATE_FORMAT_1, body.BookingDate)
 	weekday := strconv.Itoa(int(bookingDateTime.Weekday() + 1))
 
+	bookings := model_booking.BookingList{}
+	bookings.PartnerUid = form.PartnerUid
+	bookings.CourseUid = form.CourseUid
+	bookings.BookingDate = body.BookingDate
+	bookings.TeeTime = body.TeeTime
+	bookings.TeeType = body.TeeType
+	bookings.CourseType = body.CourseType
+
+	dbB := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	dbB2, _, _ := bookings.FindAllBookingList(dbB)
+	dbB2 = dbB2.Where("bag_status <> ?", constants.BAG_STATUS_CANCEL)
+	listBooking := []model_booking.Booking{}
+	dbB2.Find(&listBooking)
+
+	countHole18 := 0
+	countHole27 := 0
+
+	for _, booking := range listBooking {
+		if booking.Hole == 18 {
+			countHole18 += 1
+		}
+		if booking.Hole == 27 {
+			countHole27 += 1
+		}
+	}
+
 	log.Println("LockTurn-weekday:", weekday)
 	turnTimeH := 2
 	bookSetting := model_booking.BookingSetting{}
@@ -122,30 +148,26 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, hole int, c *gin.Co
 
 	currentTeeTimeDate, _ := utils.ConvertHourToTime(body.TeeTime)
 	teeList := []string{}
+	teeType := fmt.Sprint(body.TeeType, body.CourseType)
 
-	if hole == 18 {
+	if countHole18 >= countHole27 {
 
-		if body.TeeType == "1A" {
+		if teeType == "1A" {
 			teeList = []string{"1B"}
-		} else if body.TeeType == "1B" {
+		} else if teeType == "1B" {
 			teeList = []string{"1C"}
-		} else if body.TeeType == "1C" {
+		} else if teeType == "1C" {
 			teeList = []string{"1A"}
 		}
-	} else if hole == 27 {
-
-		if body.TeeType == "1A" {
+	} else {
+		if teeType == "1A" {
 			teeList = []string{"1B", "1C"}
-		} else if body.TeeType == "1B" {
+		} else if teeType == "1B" {
 			teeList = []string{"1C", "1A"}
-		} else if body.TeeType == "1C" {
+		} else if teeType == "1C" {
 			teeList = []string{"1A", "1B"}
 		}
 
-	}
-
-	if len(teeList) == 0 {
-		log.Println(errors.New("Không tìm thấy sân"))
 	}
 
 	timeParts := []response.TeeTimePartOTA{
@@ -228,7 +250,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, hole int, c *gin.Co
 				CurrentTeeTime: body.TeeTime,
 				TeeType:        teeType,
 				Type:           constants.LOCK_CMS,
-				CurrentCourse:  body.TeeType,
+				CurrentCourse:  teeType,
 			}
 
 			lockTeeTimeToRedis(lockTeeTime)
