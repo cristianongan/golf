@@ -137,6 +137,7 @@ const (
 const (
 	BOOKING_INIT_TYPE_BOOKING = "BOOKING" // được tạo từ booking single book
 	BOOKING_INIT_TYPE_CHECKIN = "CHECKIN" // Tạo từ check in lễ tân
+	BOOKING_INIT_ROUND        = "ROUND"   // Tạo khi add round
 )
 
 /*

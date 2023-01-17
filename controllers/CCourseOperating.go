@@ -319,11 +319,17 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		if errUdp != nil {
 			log.Println("CreateFlight err flight ", errUdp.Error())
 		}
+
+		// Update lại thông tin booking
+		if booking := b.GetBooking(); booking != nil && booking.Uid != b.Uid {
+			booking.CaddieId = b.CaddieId
+			booking.CaddieInfo = b.CaddieInfo
+			go booking.Update(db)
+		}
 	}
 
 	// Update caddie status
 	for _, ca := range listCaddie {
-		//ca.IsInCourse = true
 		errUdp := ca.Update(db)
 		if errUdp != nil {
 			log.Println("CreateFlight err udp caddie ", errUdp.Error())
@@ -343,9 +349,8 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		go addBuggyCaddieInOutNote(db, data)
 	}
 
-	// Udp Caddie In Out Note
+	// Update buggy status
 	for _, buggy := range listBuggy {
-		//ca.IsInCourse = true
 		errUdp := buggy.Update(db)
 		if errUdp != nil {
 			log.Println("CreateFlight err udp buggy ", errUdp.Error())
@@ -946,12 +951,8 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 		}
 
 		// Update caddie_current_status
-		if booking.FlightId != 0 {
-			caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
-			caddieNew.CurrentRound = caddieNew.CurrentRound + 1
-		} else {
-			caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
-		}
+		caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
+		caddieNew.CurrentRound = caddieNew.CurrentRound + 1
 
 		if err := caddieNew.Update(db); err != nil {
 			response_message.InternalServerError(c, err.Error())

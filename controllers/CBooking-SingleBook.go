@@ -278,7 +278,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 		TeeType:     form.TeeType,
 	}
 
-	db, _, err := bookingR.FindAllBookingList(db1)
+	db, _, err := bookingR.FindAllBookingNotCancelList(db1)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

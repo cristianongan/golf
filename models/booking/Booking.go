@@ -476,21 +476,6 @@ func (item BookingAgency) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
-// type AgencyPaid struct {
-// 	CaddieFee int64 `json:"caddie_fee"`
-// 	BuggyFee  int64 `json:"buggy_fee"`
-// 	GolfFee   int64 `json:"golf_fee"`
-// 	Amount    int64 `json:"amount"`
-// }
-
-// func (item *AgencyPaid) Scan(v interface{}) error {
-// 	return json.Unmarshal(v.([]byte), item)
-// }
-
-// func (item AgencyPaid) Value() (driver.Value, error) {
-// 	return json.Marshal(&item)
-// }
-
 // Caddie Info
 type BookingCaddie struct {
 	Id       int64  `json:"id"`
@@ -566,25 +551,6 @@ type MainBagOfSubInfo struct {
 	MainPaidOtherFee   bool
 	MainCheckOutTime   int64
 	MainBagPaid        int64
-}
-
-// -------- Booking Logic --------
-
-func (item *Booking) CheckDuplicatedCaddieInTeeTime(db *gorm.DB) bool {
-	if item.TeeTime == "" {
-		return false
-	}
-
-	booking := Booking{
-		PartnerUid:  item.PartnerUid,
-		CourseUid:   item.CourseUid,
-		TeeTime:     item.TeeTime,
-		BookingDate: item.BookingDate,
-		CaddieId:    item.CaddieId,
-	}
-
-	errFind := booking.FindFirstNotCancel(db)
-	return errFind == nil
 }
 
 // ----------- CRUD ------------
