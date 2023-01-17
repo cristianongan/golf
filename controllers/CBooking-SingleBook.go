@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"log"
 	"start/constants"
 	"start/controllers/request"
@@ -63,7 +64,14 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 			removeRowIndexRedis(booking)
 			// updateSlotTeeTimeWithLock(booking)
 			if booking.TeeTime != "" {
-				unlockTurnTime(db, booking)
+				// Lấy số slot đã book
+				teeType := fmt.Sprint(booking.TeeType, booking.CourseType)
+				teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(booking.BookingDate, booking.CourseUid, booking.TeeTime, teeType)
+				rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+				rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+				if len(rowIndexsRedis) < 3 {
+					unlockTurnTime(db, booking)
+				}
 			}
 		}()
 	}
