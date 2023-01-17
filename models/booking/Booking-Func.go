@@ -12,6 +12,25 @@ import (
 	"gorm.io/gorm"
 )
 
+// -------- Booking Logic --------
+
+func (item *Booking) CheckDuplicatedCaddieInTeeTime(db *gorm.DB) bool {
+	if item.TeeTime == "" {
+		return false
+	}
+
+	booking := Booking{
+		PartnerUid:  item.PartnerUid,
+		CourseUid:   item.CourseUid,
+		TeeTime:     item.TeeTime,
+		BookingDate: item.BookingDate,
+		CaddieId:    item.CaddieId,
+	}
+
+	errFind := booking.FindFirstNotCancel(db)
+	return errFind == nil
+}
+
 /*
 	Lấy service item của main bag và sub bag nếu có
 */
@@ -938,4 +957,17 @@ func (item *Booking) NumberOfRound() int {
 	listRound, _ := roundToFindList.FindAll(db)
 
 	return len(listRound)
+}
+
+func (item *Booking) GetBooking() *Booking {
+	db := datasources.GetDatabaseWithPartner(item.PartnerUid)
+	booking := Booking{
+		BillCode: item.BillCode,
+		InitType: constants.BOOKING_INIT_TYPE_BOOKING,
+	}
+	if err := db.Where(&booking).First(&booking).Error; err != nil {
+		return nil
+	}
+
+	return &booking
 }
