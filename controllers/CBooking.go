@@ -182,6 +182,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	// Check Guest of member, check member có còn slot đi cùng không
 	var memberCard models.MemberCard
+	guestStyle := ""
+
 	if body.MemberUidOfGuest != "" && body.GuestStyle != "" {
 		var errCheckMember error
 		customerName := ""
@@ -325,10 +327,10 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			initListRound(db, booking, bookingGolfFee)
 
 			booking.SeparatePrice = true
-			body.GuestStyle = memberCard.GetGuestStyle(db)
+			guestStyle = memberCard.GetGuestStyle(db)
 		} else {
 			// Lấy theo GuestStyle
-			body.GuestStyle = memberCard.GetGuestStyle(db)
+			guestStyle = memberCard.GetGuestStyle(db)
 		}
 	} else {
 		booking.CustomerName = body.CustomerName
@@ -383,9 +385,9 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 				initListRound(db, booking, bookingGolfFee)
 
 				booking.SeparatePrice = true
-				body.GuestStyle = agency.GuestStyle
+				guestStyle = agency.GuestStyle
 			} else {
-				body.GuestStyle = agency.GuestStyle
+				guestStyle = agency.GuestStyle
 			}
 		}
 	}
@@ -412,13 +414,17 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
 
+	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
+	if body.GuestStyle != "" && guestStyle != body.GuestStyle {
+		guestStyle = body.GuestStyle
+	}
+
 	// GuestStyle
-	if body.GuestStyle != "" {
-		//Guest style
+	if guestStyle != "" {
 		golfFeeModel := models.GolfFee{
 			PartnerUid: body.PartnerUid,
 			CourseUid:  body.CourseUid,
-			GuestStyle: body.GuestStyle,
+			GuestStyle: guestStyle,
 		}
 
 		if errGS := golfFeeModel.FindFirst(db); errGS != nil {
@@ -436,7 +442,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
 			return nil, errFindGF
 		}
-		booking.GuestStyle = body.GuestStyle
+		booking.GuestStyle = guestStyle
 		booking.GuestStyleName = golfFee.GuestStyleName
 
 		if !booking.SeparatePrice {
@@ -524,7 +530,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		return nil, errC
 	}
 
-	if body.MemberUidOfGuest != "" && body.GuestStyle != "" && memberCard.Uid != "" {
+	if body.MemberUidOfGuest != "" && guestStyle != "" && memberCard.Uid != "" {
 		go updateMemberCard(db, memberCard)
 	}
 
@@ -649,6 +655,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate caddie_code
+	guestStyle := ""
 	var caddie models.Caddie
 	var err error
 	if body.CaddieCode != "" {
@@ -751,10 +758,10 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			initListRound(db, booking, bookingGolfFee)
 
 			booking.SeparatePrice = true
-			body.GuestStyle = memberCard.GetGuestStyle(db)
+			guestStyle = memberCard.GetGuestStyle(db)
 		} else {
 			// Lấy theo GuestStyle
-			body.GuestStyle = memberCard.GetGuestStyle(db)
+			guestStyle = memberCard.GetGuestStyle(db)
 		}
 	} else if body.MemberCardUid == "" {
 		// Update member card
@@ -817,14 +824,20 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 				initListRound(db, booking, bookingGolfFee)
 
 				booking.SeparatePrice = true
-				body.GuestStyle = agency.GuestStyle
+				guestStyle = agency.GuestStyle
 			} else {
-				body.GuestStyle = agency.GuestStyle
+				guestStyle = agency.GuestStyle
 			}
 		}
 	}
+
+	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
+	if body.GuestStyle != "" && guestStyle != body.GuestStyle {
+		guestStyle = body.GuestStyle
+	}
+
 	// GuestStyle
-	if body.GuestStyle != "" && booking.GuestStyle != body.GuestStyle {
+	if guestStyle != "" && booking.GuestStyle != guestStyle {
 		//Update Agency
 		if body.AgencyId == 0 {
 			booking.AgencyInfo = model_booking.BookingAgency{}
@@ -835,7 +848,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		golfFeeModel := models.GolfFee{
 			PartnerUid: body.PartnerUid,
 			CourseUid:  body.CourseUid,
-			GuestStyle: body.GuestStyle,
+			GuestStyle: guestStyle,
 		}
 
 		if errGS := golfFeeModel.FindFirst(db); errGS != nil {
@@ -851,7 +864,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
 			return
 		}
-		booking.GuestStyle = body.GuestStyle
+		booking.GuestStyle = guestStyle
 		booking.GuestStyleName = golfFee.GuestStyleName
 
 		if !booking.SeparatePrice {
@@ -969,6 +982,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	guestStyle := ""
 	booking := model_booking.Booking{}
 	booking.Uid = body.BookingUid
 	errF := booking.FindFirst(db)
@@ -1094,10 +1108,10 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
 			initListRound(db, booking, bookingGolfFee)
 			booking.SeparatePrice = true
-			body.GuestStyle = memberCard.GetGuestStyle(db)
+			guestStyle = memberCard.GetGuestStyle(db)
 		} else {
 			// Lấy theo GuestStyle
-			body.GuestStyle = memberCard.GetGuestStyle(db)
+			guestStyle = memberCard.GetGuestStyle(db)
 		}
 	} else if body.MemberCardUid == "" {
 		// Update member card
@@ -1159,14 +1173,19 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 				initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
 				initListRound(db, booking, bookingGolfFee)
 				booking.SeparatePrice = true
-				body.GuestStyle = agency.GuestStyle
+				guestStyle = agency.GuestStyle
 			} else {
-				body.GuestStyle = agency.GuestStyle
+				guestStyle = agency.GuestStyle
 			}
 		}
 	}
 
-	if body.GuestStyle != "" {
+	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
+	if body.GuestStyle != "" && guestStyle != body.GuestStyle {
+		guestStyle = body.GuestStyle
+	}
+
+	if guestStyle != "" {
 		//Update Agency
 		if body.AgencyId == 0 {
 			booking.AgencyInfo = model_booking.BookingAgency{}
@@ -1195,7 +1214,7 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			response_message.InternalServerError(c, "golf fee err "+errFind.Error())
 			return
 		}
-		booking.GuestStyle = body.GuestStyle
+		booking.GuestStyle = guestStyle
 		booking.GuestStyleName = golfFee.GuestStyleName
 
 		if !booking.SeparatePrice {
