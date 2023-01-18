@@ -1405,10 +1405,7 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// delete tee time locked theo booking date
-	// if booking.TeeTime != "" {
-	// 	go unlockTurnTime(db, booking)
-	// }
+	go updateSinglePaymentOfSubBag(booking, prof)
 
 	okResponse(c, booking)
 }
