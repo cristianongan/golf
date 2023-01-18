@@ -52,7 +52,8 @@ const (
 Trạng thái thanh toán
 */
 const (
-	PAYMENT_STATUS_PAID         = "PAID"         //  Thanh toán (Paid)
+	PAYMENT_STATUS_PAID         = "PAID" //  Thanh toán (Paid)
+	PAYMENT_STATUS_PREPAID      = "PREPAID"
 	PAYMENT_STATUS_UN_PAID      = "UN_PAID"      // Chưa thanh toán (Unpaid)
 	PAYMENT_STATUS_PARTIAL_PAID = "PARTIAL_PAID" // Thanh toán 1 phần (Partial Paid):
 	//Thanh toán 1 phần hiển thị thông tin khi khách thanh toán 1 phần tiền

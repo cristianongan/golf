@@ -653,15 +653,6 @@ func (item *Booking) UpdateMushPay(db *gorm.DB) {
 			listSubRound, _ := roundToFindList.FindAll(db)
 
 			for _, round := range listSubRound {
-
-				// if len(sub.AgencyPaid) > 1 && sub.AgencyPaid[1].Fee > 0 {
-				// 	buggyCaddieAgencyPaid += sub.AgencyPaid[1].Fee
-				// }
-
-				// if len(sub.AgencyPaid) > 2 && sub.AgencyPaid[2].Fee > 0 {
-				// 	buggyCaddieAgencyPaid += sub.AgencyPaid[2].Fee
-				// }
-
 				if round.Index == 1 {
 					if !(len(sub.AgencyPaid) > 0 && sub.AgencyPaid[0].Fee > 0) && checkIsFirstRound > -1 {
 						listRoundGolfFee = append(listRoundGolfFee, round)

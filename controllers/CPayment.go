@@ -154,11 +154,9 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 
 			//Update other info
 			singlePayment.BagInfo = bagInfo
-			singlePayment.TotalPaid = body.Amount
 			singlePayment.Note = body.Note
 			singlePayment.Cashiers = prof.UserName
 			singlePayment.PaymentDate = toDayDate
-
 			singlePayment.TotalPaid = totalPaid
 			singlePayment.UpdatePaymentStatus(booking.BagStatus, db)
 			errUdp := singlePayment.Update(db)
