@@ -82,6 +82,8 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 		}
 
 		listCreate := []models.CaddieWorkingCalendar{}
+		listCaddieCode := []string{}
+
 		for _, data := range v.CaddieList {
 			caddieWC := models.CaddieWorkingCalendar{}
 			caddieWC.CreatedAt = now.Unix()
@@ -95,6 +97,7 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 			caddieWC.NumberOrder = data.NumberOrder
 			caddieWC.CaddieIncrease = data.CaddieIncrease
 			listCreate = append(listCreate, caddieWC)
+			listCaddieCode = append(listCaddieCode, data.CaddieCode)
 		}
 
 		// create
@@ -104,6 +107,7 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 			return
 		}
 
+		go updateCaddieWorkingOnDay(listCaddieCode, body.PartnerUid, body.CourseUid)
 	}
 
 	okRes(c)
