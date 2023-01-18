@@ -1653,6 +1653,22 @@ func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 	return nil
 }
 
+func updateCaddieWorkingOnDay(caddieCodeList []string, partUid, courseUid string) {
+	db := datasources.GetDatabaseWithPartner("CHI-LINH")
+	for _, code := range caddieCodeList {
+		caddie := models.Caddie{
+			PartnerUid: partUid,
+			CourseUid:  courseUid,
+			Code:       code,
+		}
+
+		if err := caddie.FindFirst(db); err == nil {
+			caddie.IsWorking = 1
+			caddie.Update(db)
+		}
+	}
+}
+
 func lockTeeTimeToRedis(body models.LockTeeTimeWithSlot) {
 	teeTimeRedisKey := getKeyTeeTimeLockRedis(body.DateTime, body.CourseUid, body.TeeTime, body.TeeType)
 
