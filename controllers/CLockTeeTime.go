@@ -222,7 +222,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, hole int, c *gin.Co
 		}
 	}
 
-	for index, teeType := range teeList {
+	for index, teeTypeLock := range teeList {
 
 		t := currentTeeTimeDate.Add((time.Hour*time.Duration(turnTimeH) + time.Minute*time.Duration(bookSetting.TurnLength)) * time.Duration(index+1))
 
@@ -248,7 +248,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, hole int, c *gin.Co
 				TeeTimeStatus:  "LOCKED",
 				DateTime:       body.BookingDate,
 				CurrentTeeTime: body.TeeTime,
-				TeeType:        teeType,
+				TeeType:        teeTypeLock,
 				Type:           constants.LOCK_CMS,
 				CurrentCourse:  teeType,
 			}
