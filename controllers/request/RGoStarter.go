@@ -103,6 +103,7 @@ type ChangeBuggyBody struct {
 	BuggyCode      string `json:"buggy_code"`
 	Reason         string `json:"reason"`
 	Note           string `json:"note"`
+	Hole           string `json:"hole"`
 	IsPrivateBuggy bool   `json:"is_private_buggy"`
 }
 
