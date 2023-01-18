@@ -78,7 +78,7 @@ func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 
 func (cBooking *CTest) TestFunc(c *gin.Context, prof models.CmsUser) {
 	caddieList := []string{"16", "23", "30", "29", "39", "40", "51", "54", "57", "05", "02"}
-	updateCaddieWorkingOnDay(caddieList, "CHI-LINH", "CHI-LINH-01")
+	updateCaddieWorkingOnDay(caddieList, "CHI-LINH", "CHI-LINH-01", true)
 }
 
 func (cBooking *CTest) TestCaddieSlot(c *gin.Context, prof models.CmsUser) {
