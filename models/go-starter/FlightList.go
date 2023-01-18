@@ -52,7 +52,16 @@ func (item *FlightList) FindFlightList(database *gorm.DB, page models.Page) ([]F
 		db = db.Where("flights.partner_uid = ?", item.PartnerUid)
 	}
 
-	db.Count(&total)
+	if page.SortDir != "" {
+		if page.SortDir == "asc" {
+			db = db.Order("flights.created_at asc")
+		}
+		if page.SortDir == "desc" {
+			db = db.Order("flights.created_at desc")
+		}
+	}
+
+	db.Debug().Count(&total)
 	db = db.Preload("Bookings").Preload("Bookings.CaddieBuggyInOut")
 
 	if total > 0 && int64(page.Offset()) < total {
