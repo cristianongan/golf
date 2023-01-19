@@ -312,6 +312,7 @@ const (
 Các trạng thái đơn của nhà hàng
 */
 const (
+	RES_BILL_STATUS_SHOW     = "SHOW"     // Trạng thái bao gồm các đơn PROCESS, TRANSFER, ORDER
 	RES_BILL_STATUS_ACTIVE   = "ACTIVE"   // Trạng thái bao gồm các đơn PROCESS, FINISH
 	RES_BILL_STATUS_BOOKING  = "BOOKING"  // Trạng thái là người booking bàn nhưng chưa vào nhà hàng dùng món
 	RES_BILL_STATUS_ORDER    = "ORDER"    // Trạng thái là người đã đặt món và đang chờ đồ ăn
