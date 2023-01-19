@@ -38,6 +38,7 @@ type Caddie struct {
 	GroupId                int64                    `json:"group_id" gorm:"default:0;index"`
 	GroupIndex             uint64                   `json:"group_index" gorm:"default:0"`
 	GroupInfo              CaddieGroup              `json:"group_info" gorm:"foreignKey:GroupId"`
+	IsWorking              int                      `json:"is_working" gorm:"default:0"`
 }
 type CaddieResponse struct {
 	Caddie
