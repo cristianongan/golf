@@ -141,7 +141,7 @@ func (item *CaddieList) FindList(database *gorm.DB, page Page) ([]Caddie, int64,
 	return list, total, db.Error
 }
 
-func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB, date string) ([]Caddie, int64, error) {
+func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB) ([]Caddie, int64, error) {
 	var list []Caddie
 
 	db := database.Model(Caddie{})
