@@ -250,146 +250,41 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	// Check xem booking guest hay booking member
 	if body.MemberCardUid != "" {
 		// Get config course
-		course := models.Course{}
-		course.Uid = body.CourseUid
-		errCourse := course.FindFirst()
-		if errCourse != nil {
-			response_message.BadRequest(c, errCourse.Error())
-			return nil, errCourse
+		memberCardBody := request.UpdateAgencyOrMemberCardToBooking{
+			PartnerUid:    body.PartnerUid,
+			CourseUid:     body.CourseUid,
+			AgencyId:      body.AgencyId,
+			BUid:          bUid,
+			CustomerName:  body.CustomerName,
+			Hole:          body.Hole,
+			MemberCardUid: body.MemberCardUid,
 		}
 
-		// Get Member Card
 		memberCard := models.MemberCard{}
-		memberCard.Uid = body.MemberCardUid
-		errFind := memberCard.FindFirst(db)
-		if errFind != nil {
-			response_message.BadRequest(c, errFind.Error())
-			return nil, errFind
+		if errUpdate := cBooking.updateMemberCardToBooking(c, db, &booking, &memberCard, memberCardBody); errUpdate != nil {
+			return nil, errUpdate
 		}
-
-		if memberCard.Status == constants.STATUS_DISABLE {
-			response_message.BadRequestDynamicKey(c, "MEMBER_CARD_INACTIVE", "")
-			return nil, nil
-		}
-
-		if memberCard.AnnualType == constants.ANNUAL_TYPE_SLEEP {
-			response_message.BadRequestDynamicKey(c, "ANNUAL_TYPE_SLEEP_NOT_CHECKIN", "")
-			return nil, nil
-		}
-
-		// Get Owner
-		owner, errOwner := memberCard.GetOwner(db)
-		if errOwner != nil {
-			response_message.BadRequest(c, errOwner.Error())
-			return nil, errOwner
-		}
-
-		// Get Member Card Type
-		memberCardType := models.MemberCardType{}
-		memberCardType.Id = memberCard.McTypeId
-		errMCTypeFind := memberCardType.FindFirst(db)
-		if errMCTypeFind == nil && memberCardType.AnnualType == constants.ANNUAL_TYPE_LIMITED {
-			// Validate số lượt chơi còn lại của memeber
-			reportCustomer := model_report.ReportCustomerPlay{
-				CustomerUid: owner.Uid,
-			}
-
-			if errF := reportCustomer.FindFirst(); errF == nil {
-				playCountRemain := memberCard.AdjustPlayCount - reportCustomer.TotalPlayCount
-				if playCountRemain <= 0 {
-					response_message.ErrorResponse(c, http.StatusBadRequest, "PLAY_COUNT_INVALID", "", constants.ERROR_PLAY_COUNT_INVALID)
-					return nil, errF
-				}
-			}
-		}
-
-		booking.MemberCardUid = body.MemberCardUid
-		booking.CardId = memberCard.CardId
-		booking.CustomerName = owner.Name
-		booking.CustomerUid = owner.Uid
-		booking.CustomerType = owner.Type
-		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
-
-		if memberCard.PriceCode == 1 && memberCard.IsValidTimePrecial() {
-			// Check member card với giá riêng và time được áp dụng
-			param := request.GolfFeeGuestyleParam{
-				Uid:          bUid,
-				Rate:         course.RateGolfFee,
-				Bag:          body.Bag,
-				CustomerName: body.CustomerName,
-				Hole:         body.Hole,
-				CaddieFee:    memberCard.CaddieFee,
-				BuggyFee:     memberCard.BuggyFee,
-				GreenFee:     memberCard.GreenFee,
-			}
-			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
-			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
-			initListRound(db, booking, bookingGolfFee)
-
-			booking.SeparatePrice = true
-			guestStyle = memberCard.GetGuestStyle(db)
-		} else {
-			// Lấy theo GuestStyle
-			guestStyle = memberCard.GetGuestStyle(db)
-		}
+		guestStyle = memberCard.GetGuestStyle(db)
 	} else {
 		booking.CustomerName = body.CustomerName
 	}
 
 	//Agency id
 	if body.AgencyId > 0 {
-		// Get config course
-		course := models.Course{}
-		course.Uid = body.CourseUid
-		errCourse := course.FindFirst()
-		if errCourse != nil {
-			response_message.BadRequest(c, errCourse.Error())
-			return nil, errCourse
+		agencyBody := request.UpdateAgencyOrMemberCardToBooking{
+			PartnerUid:   body.PartnerUid,
+			CourseUid:    body.CourseUid,
+			AgencyId:     body.AgencyId,
+			BUid:         bUid,
+			CustomerName: body.CustomerName,
+			Hole:         body.Hole,
 		}
-
 		agency := models.Agency{}
-		agency.Id = body.AgencyId
-		errFindAgency := agency.FindFirst(db)
-		if errFindAgency != nil || agency.Id == 0 {
-			response_message.BadRequest(c, "agency"+errFindAgency.Error())
-			return nil, errFindAgency
+		if errAgency := cBooking.updateAgencyForBooking(db, &booking, &agency, agencyBody); errAgency != nil {
+			response_message.BadRequest(c, errAgency.Error())
+			return nil, errAgency
 		}
-
-		agencyBooking := cloneToAgencyBooking(agency)
-		booking.AgencyInfo = agencyBooking
-		booking.AgencyId = body.AgencyId
-		booking.CustomerType = agency.Type
-
-		if booking.MemberCardUid == "" {
-			// Nếu có cả member card thì ưu tiên giá member card
-			agencySpecialPriceR := models.AgencySpecialPrice{
-				AgencyId: agency.Id,
-			}
-			// Tính lại giá riêng nếu thoả mãn các dk time
-			agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnTime(db)
-			if errFSP == nil && agencySpecialPrice.Id > 0 {
-				// Tính lại giá riêng nếu thoả mãn các dk time,
-				// List Booking GolfFee
-				param := request.GolfFeeGuestyleParam{
-					Uid:          bUid,
-					Rate:         course.RateGolfFee,
-					Bag:          body.Bag,
-					CustomerName: body.CustomerName,
-					Hole:         body.Hole,
-					CaddieFee:    agencySpecialPrice.CaddieFee,
-					BuggyFee:     agencySpecialPrice.BuggyFee,
-					GreenFee:     agencySpecialPrice.GreenFee,
-				}
-				listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
-				initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
-				initListRound(db, booking, bookingGolfFee)
-
-				booking.SeparatePrice = true
-				guestStyle = agency.GuestStyle
-			} else {
-				guestStyle = agency.GuestStyle
-			}
-		}
+		guestStyle = agency.GuestStyle
 	}
 
 	// Có thông tin khách hàng
@@ -421,42 +316,18 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	// GuestStyle
 	if guestStyle != "" {
-		golfFeeModel := models.GolfFee{
-			PartnerUid: body.PartnerUid,
-			CourseUid:  body.CourseUid,
-			GuestStyle: guestStyle,
+
+		guestBody := request.UpdateAgencyOrMemberCardToBooking{
+			PartnerUid:   body.PartnerUid,
+			CourseUid:    body.CourseUid,
+			AgencyId:     body.AgencyId,
+			BUid:         bUid,
+			CustomerName: body.CustomerName,
+			Hole:         body.Hole,
 		}
 
-		if errGS := golfFeeModel.FindFirst(db); errGS != nil {
-			response_message.InternalServerError(c, "guest style not found ")
-			return nil, errGS
-		}
-
-		if booking.CustomerType == "" {
-			booking.CustomerType = golfFeeModel.CustomerType
-		}
-
-		// Lấy phí bởi Guest style với ngày tạo
-		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)
-		if errFindGF != nil {
-			response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
-			return nil, errFindGF
-		}
-		booking.GuestStyle = guestStyle
-		booking.GuestStyleName = golfFee.GuestStyleName
-
-		if !booking.SeparatePrice {
-			// List Booking GolfFee
-			param := request.GolfFeeGuestyleParam{
-				Uid:          bUid,
-				Bag:          body.Bag,
-				CustomerName: body.CustomerName,
-				Hole:         body.Hole,
-			}
-
-			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(param, golfFee)
-			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
-			initListRound(db, booking, bookingGolfFee)
+		if errUpdGs := cBooking.updateGuestStyleToBooking(c, guestStyle, db, &booking, guestBody); errUpdGs != nil {
+			return nil, errUpdGs
 		}
 	}
 
@@ -572,6 +443,180 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	// }
 
 	return &booking, nil
+}
+
+func (_ CBooking) updateAgencyForBooking(
+	db *gorm.DB, booking *model_booking.Booking, agency *models.Agency,
+	body request.UpdateAgencyOrMemberCardToBooking) error {
+	// Get config course
+	course := models.Course{}
+	course.Uid = body.CourseUid
+	errCourse := course.FindFirst()
+	if errCourse != nil {
+		return errCourse
+	}
+
+	agency.Id = body.AgencyId
+	errFindAgency := agency.FindFirst(db)
+	if errFindAgency != nil || agency.Id == 0 {
+		return errFindAgency
+	}
+
+	agencyBooking := cloneToAgencyBooking(*agency)
+	booking.AgencyInfo = agencyBooking
+	booking.AgencyId = body.AgencyId
+	booking.CustomerType = agency.Type
+
+	if booking.MemberCardUid == "" {
+		// Nếu có cả member card thì ưu tiên giá member card
+		agencySpecialPriceR := models.AgencySpecialPrice{
+			AgencyId: agency.Id,
+		}
+		// Tính lại giá riêng nếu thoả mãn các dk time
+		agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnTime(db)
+		if errFSP == nil && agencySpecialPrice.Id > 0 {
+			// Tính lại giá riêng nếu thoả mãn các dk time,
+			// List Booking GolfFee
+			param := request.GolfFeeGuestyleParam{
+				Uid:          body.BUid,
+				Rate:         course.RateGolfFee,
+				Bag:          body.Bag,
+				CustomerName: body.CustomerName,
+				Hole:         body.Hole,
+				CaddieFee:    agencySpecialPrice.CaddieFee,
+				BuggyFee:     agencySpecialPrice.BuggyFee,
+				GreenFee:     agencySpecialPrice.GreenFee,
+			}
+			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
+			initPriceForBooking(db, booking, listBookingGolfFee, bookingGolfFee)
+			initListRound(db, *booking, bookingGolfFee)
+
+			booking.SeparatePrice = true
+		}
+	}
+	return nil
+}
+
+func (_ CBooking) updateMemberCardToBooking(c *gin.Context,
+	db *gorm.DB, booking *model_booking.Booking, memberCard *models.MemberCard,
+	body request.UpdateAgencyOrMemberCardToBooking) error {
+	course := models.Course{}
+	course.Uid = body.CourseUid
+	errCourse := course.FindFirst()
+	if errCourse != nil {
+		response_message.BadRequest(c, errCourse.Error())
+		return errCourse
+	}
+
+	// Get Member Card
+	memberCard.Uid = body.MemberCardUid
+	errFind := memberCard.FindFirst(db)
+	if errFind != nil {
+		response_message.BadRequest(c, errFind.Error())
+		return errFind
+	}
+
+	if memberCard.Status == constants.STATUS_DISABLE {
+		response_message.BadRequestDynamicKey(c, "MEMBER_CARD_INACTIVE", "")
+		return nil
+	}
+
+	if memberCard.AnnualType == constants.ANNUAL_TYPE_SLEEP {
+		response_message.BadRequestDynamicKey(c, "ANNUAL_TYPE_SLEEP_NOT_CHECKIN", "")
+		return nil
+	}
+
+	// Get Owner
+	owner, errOwner := memberCard.GetOwner(db)
+	if errOwner != nil {
+		response_message.BadRequest(c, errOwner.Error())
+		return errOwner
+	}
+
+	// Get Member Card Type
+	memberCardType := models.MemberCardType{}
+	memberCardType.Id = memberCard.McTypeId
+	errMCTypeFind := memberCardType.FindFirst(db)
+	if errMCTypeFind == nil && memberCardType.AnnualType == constants.ANNUAL_TYPE_LIMITED {
+		// Validate số lượt chơi còn lại của memeber
+		reportCustomer := model_report.ReportCustomerPlay{
+			CustomerUid: owner.Uid,
+		}
+
+		if errF := reportCustomer.FindFirst(); errF == nil {
+			playCountRemain := memberCard.AdjustPlayCount - reportCustomer.TotalPlayCount
+			if playCountRemain <= 0 {
+				response_message.ErrorResponse(c, http.StatusBadRequest, "PLAY_COUNT_INVALID", "", constants.ERROR_PLAY_COUNT_INVALID)
+				return errF
+			}
+		}
+	}
+
+	booking.MemberCardUid = body.MemberCardUid
+	booking.CardId = memberCard.CardId
+	booking.CustomerName = owner.Name
+	booking.CustomerUid = owner.Uid
+	booking.CustomerType = owner.Type
+	booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
+
+	if memberCard.PriceCode == 1 && memberCard.IsValidTimePrecial() {
+		// Check member card với giá riêng và time được áp dụng
+		param := request.GolfFeeGuestyleParam{
+			Uid:          body.BUid,
+			Rate:         course.RateGolfFee,
+			Bag:          body.Bag,
+			CustomerName: body.CustomerName,
+			Hole:         body.Hole,
+			CaddieFee:    memberCard.CaddieFee,
+			BuggyFee:     memberCard.BuggyFee,
+			GreenFee:     memberCard.GreenFee,
+		}
+		listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
+		initPriceForBooking(db, booking, listBookingGolfFee, bookingGolfFee)
+		initListRound(db, *booking, bookingGolfFee)
+
+		booking.SeparatePrice = true
+	}
+	return nil
+}
+
+func (_ CBooking) updateGuestStyleToBooking(c *gin.Context, guestStyle string,
+	db *gorm.DB, booking *model_booking.Booking,
+	body request.UpdateAgencyOrMemberCardToBooking) error {
+	//Guest style
+	golfFeeModel := models.GolfFee{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		GuestStyle: guestStyle,
+	}
+
+	if errGS := golfFeeModel.FindFirst(db); errGS != nil {
+		response_message.InternalServerError(c, "guest style not found ")
+	}
+
+	booking.CustomerType = golfFeeModel.CustomerType
+
+	// Lấy phí bởi Guest style với ngày tạo
+	golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)
+	if errFindGF != nil {
+		response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+	}
+	booking.GuestStyle = guestStyle
+	booking.GuestStyleName = golfFee.GuestStyleName
+
+	if !booking.SeparatePrice {
+		// List Booking GolfFee
+		param := request.GolfFeeGuestyleParam{
+			Uid:          booking.Uid,
+			Bag:          body.Bag,
+			CustomerName: body.CustomerName,
+			Hole:         body.Hole,
+		}
+		listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(param, golfFee)
+		initPriceForBooking(db, booking, listBookingGolfFee, bookingGolfFee)
+		initListRound(db, *booking, bookingGolfFee)
+	}
+	return nil
 }
 
 func (_ CBooking) validateCaddie(db *gorm.DB, courseUid string, caddieCode string) (models.Caddie, error) {
@@ -713,56 +758,22 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	if body.MemberCardUid != "" && (body.MemberCardUid != booking.MemberCardUid ||
 		body.AgencyId != booking.AgencyId) {
-		// Get Member Card
+		memberCardBody := request.UpdateAgencyOrMemberCardToBooking{
+			PartnerUid:    body.PartnerUid,
+			CourseUid:     body.CourseUid,
+			AgencyId:      body.AgencyId,
+			BUid:          booking.Uid,
+			Bag:           booking.Bag,
+			CustomerName:  body.CustomerName,
+			Hole:          body.Hole,
+			MemberCardUid: body.MemberCardUid,
+		}
+
 		memberCard := models.MemberCard{}
-		memberCard.Uid = body.MemberCardUid
-		errFind := memberCard.FindFirst(db)
-		if errFind != nil {
-			response_message.BadRequest(c, errFind.Error())
+		if errUpdate := cBooking.updateMemberCardToBooking(c, db, &booking, &memberCard, memberCardBody); errUpdate != nil {
 			return
 		}
-
-		// Get Owner
-		owner, errOwner := memberCard.GetOwner(db)
-		if errOwner != nil {
-			response_message.BadRequest(c, errOwner.Error())
-			return
-		}
-
-		booking.MemberCardUid = body.MemberCardUid
-		booking.CardId = memberCard.CardId
-		booking.CustomerName = owner.Name
-		booking.CustomerUid = owner.Uid
-		booking.CustomerType = owner.Type
-		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
-		if memberCard.PriceCode == 1 && memberCard.IsValidTimePrecial() {
-			course := models.Course{}
-			course.Uid = body.CourseUid
-			errCourse := course.FindFirst()
-			if errCourse != nil {
-				response_message.BadRequest(c, errCourse.Error())
-				return
-			}
-			param := request.GolfFeeGuestyleParam{
-				Uid:          booking.Uid,
-				Rate:         course.RateGolfFee,
-				Bag:          booking.Bag,
-				CustomerName: body.CustomerName,
-				CaddieFee:    memberCard.CaddieFee,
-				BuggyFee:     memberCard.BuggyFee,
-				GreenFee:     memberCard.GreenFee,
-				Hole:         booking.Hole,
-			}
-			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
-			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
-			initListRound(db, booking, bookingGolfFee)
-
-			booking.SeparatePrice = true
-			guestStyle = memberCard.GetGuestStyle(db)
-		} else {
-			// Lấy theo GuestStyle
-			guestStyle = memberCard.GetGuestStyle(db)
-		}
+		guestStyle = memberCard.GetGuestStyle(db)
 	} else if body.MemberCardUid == "" {
 		// Update member card
 		booking.MemberCardUid = ""
@@ -778,57 +789,20 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	//Agency id
 	if body.AgencyId > 0 && body.AgencyId != booking.AgencyId {
-		// Get config course
-		course := models.Course{}
-		course.Uid = body.CourseUid
-		errCourse := course.FindFirst()
-		if errCourse != nil {
-			response_message.BadRequest(c, errCourse.Error())
-			return
+		agencyBody := request.UpdateAgencyOrMemberCardToBooking{
+			PartnerUid:   body.PartnerUid,
+			CourseUid:    body.CourseUid,
+			AgencyId:     body.AgencyId,
+			BUid:         booking.Uid,
+			Bag:          booking.Bag,
+			CustomerName: body.CustomerName,
+			Hole:         body.Hole,
 		}
-
 		agency := models.Agency{}
-		agency.Id = body.AgencyId
-		errFindAgency := agency.FindFirst(db)
-		if errFindAgency != nil || agency.Id == 0 {
-			response_message.BadRequest(c, "agency"+errFindAgency.Error())
-			return
+		if errAgency := cBooking.updateAgencyForBooking(db, &booking, &agency, agencyBody); errAgency != nil {
+			response_message.BadRequest(c, errAgency.Error())
 		}
-
-		agencyBooking := cloneToAgencyBooking(agency)
-		booking.AgencyInfo = agencyBooking
-		booking.AgencyId = body.AgencyId
-
-		if booking.MemberCardUid == "" {
-			// Nếu có cả member card thì ưu tiên giá member card
-			agencySpecialPriceR := models.AgencySpecialPrice{
-				AgencyId: agency.Id,
-			}
-			// Tính lại giá riêng nếu thoả mãn các dk time
-			agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnTime(db)
-			if errFSP == nil && agencySpecialPrice.Id > 0 {
-				// Tính lại giá
-				// List Booking GolfFee
-				param := request.GolfFeeGuestyleParam{
-					Uid:          booking.Uid,
-					Rate:         course.RateGolfFee,
-					Bag:          booking.Bag,
-					CustomerName: body.CustomerName,
-					Hole:         booking.Hole,
-					CaddieFee:    agencySpecialPrice.CaddieFee,
-					BuggyFee:     agencySpecialPrice.BuggyFee,
-					GreenFee:     agencySpecialPrice.GreenFee,
-				}
-				listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
-				initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
-				initListRound(db, booking, bookingGolfFee)
-
-				booking.SeparatePrice = true
-				guestStyle = agency.GuestStyle
-			} else {
-				guestStyle = agency.GuestStyle
-			}
-		}
+		guestStyle = agency.GuestStyle
 	}
 
 	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
@@ -845,39 +819,18 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 
 		//Guest style
-		golfFeeModel := models.GolfFee{
-			PartnerUid: body.PartnerUid,
-			CourseUid:  body.CourseUid,
-			GuestStyle: guestStyle,
+		guestBody := request.UpdateAgencyOrMemberCardToBooking{
+			PartnerUid:   body.PartnerUid,
+			CourseUid:    body.CourseUid,
+			AgencyId:     body.AgencyId,
+			BUid:         booking.Uid,
+			CustomerName: body.CustomerName,
+			Hole:         body.Hole,
+			Bag:          booking.Bag,
 		}
 
-		if errGS := golfFeeModel.FindFirst(db); errGS != nil {
-			response_message.InternalServerError(c, "guest style not found ")
+		if errUpdGs := cBooking.updateGuestStyleToBooking(c, guestStyle, db, &booking, guestBody); errUpdGs != nil {
 			return
-		}
-
-		booking.CustomerType = golfFeeModel.CustomerType
-
-		// Lấy phí bởi Guest style với ngày tạo
-		golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)
-		if errFindGF != nil {
-			response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
-			return
-		}
-		booking.GuestStyle = guestStyle
-		booking.GuestStyleName = golfFee.GuestStyleName
-
-		if !booking.SeparatePrice {
-			// List Booking GolfFee
-			param := request.GolfFeeGuestyleParam{
-				Uid:          booking.Uid,
-				Bag:          body.Bag,
-				CustomerName: body.CustomerName,
-				Hole:         body.Hole,
-			}
-			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(param, golfFee)
-			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
-			initListRound(db, booking, bookingGolfFee)
 		}
 	}
 	//Find Booking Code
@@ -973,7 +926,7 @@ func (_ *CBooking) UpdateBookingCaddieCommon(db *gorm.DB, PartnerUid string, Cou
 /*
 Check in
 */
-func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
+func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	// Body request
 	body := request.CheckInBody{}
@@ -1026,8 +979,6 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.Hole = body.Hole
 	}
 
-	checkInTime := time.Now().Unix()
-
 	if body.MemberCardUid != booking.MemberCardUid ||
 		body.AgencyId != booking.AgencyId {
 		booking.SeparatePrice = false
@@ -1036,83 +987,22 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	if body.MemberCardUid != "" && (body.MemberCardUid != booking.MemberCardUid ||
 		body.AgencyId != booking.AgencyId || body.Hole != booking.Hole) {
 		// Get Member Card
+		memberCardBody := request.UpdateAgencyOrMemberCardToBooking{
+			PartnerUid:    booking.PartnerUid,
+			CourseUid:     booking.CourseUid,
+			AgencyId:      body.AgencyId,
+			BUid:          booking.Uid,
+			Bag:           booking.Bag,
+			CustomerName:  body.CustomerName,
+			Hole:          body.Hole,
+			MemberCardUid: body.MemberCardUid,
+		}
+
 		memberCard := models.MemberCard{}
-		memberCard.Uid = body.MemberCardUid
-		errFind := memberCard.FindFirst(db)
-		if errFind != nil {
-			response_message.BadRequest(c, errFind.Error())
+		if errUpdate := cBooking.updateMemberCardToBooking(c, db, &booking, &memberCard, memberCardBody); errUpdate != nil {
 			return
 		}
-
-		if memberCard.Status == constants.STATUS_DISABLE {
-			response_message.BadRequestDynamicKey(c, "MEMBER_CARD_INACTIVE", "")
-			return
-		}
-
-		if memberCard.AnnualType == constants.ANNUAL_TYPE_SLEEP {
-			response_message.BadRequestDynamicKey(c, "ANNUAL_TYPE_SLEEP_NOT_CHECKIN", "")
-			return
-		}
-
-		// Get Owner
-		owner, errOwner := memberCard.GetOwner(db)
-		if errOwner != nil {
-			response_message.BadRequest(c, errOwner.Error())
-			return
-		}
-
-		// Get Member Card Type
-		memberCardType := models.MemberCardType{}
-		memberCardType.Id = memberCard.McTypeId
-		errMCTypeFind := memberCardType.FindFirst(db)
-		if errMCTypeFind == nil && memberCardType.AnnualType == constants.ANNUAL_TYPE_LIMITED {
-			// Validate số lượt chơi còn lại của memeber
-			reportCustomer := model_report.ReportCustomerPlay{
-				CustomerUid: owner.Uid,
-			}
-
-			if errF := reportCustomer.FindFirst(); errF == nil {
-				playCountRemain := memberCard.AdjustPlayCount - reportCustomer.TotalPlayCount
-				if playCountRemain <= 0 {
-					response_message.ErrorResponse(c, http.StatusBadRequest, "PLAY_COUNT_INVALID", "", constants.ERROR_PLAY_COUNT_INVALID)
-					return
-				}
-			}
-		}
-
-		booking.MemberCardUid = body.MemberCardUid
-		booking.CardId = memberCard.CardId
-		booking.CustomerName = owner.Name
-		booking.CustomerUid = owner.Uid
-		booking.CustomerType = owner.Type
-		booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
-		if memberCard.PriceCode == 1 && memberCard.IsValidTimePrecial() {
-			course := models.Course{}
-			course.Uid = booking.CourseUid
-			errCourse := course.FindFirst()
-			if errCourse != nil {
-				response_message.BadRequest(c, errCourse.Error())
-				return
-			}
-			param := request.GolfFeeGuestyleParam{
-				Uid:          booking.Uid,
-				Rate:         course.RateGolfFee,
-				Bag:          booking.Bag,
-				CustomerName: body.CustomerName,
-				CaddieFee:    memberCard.CaddieFee,
-				BuggyFee:     memberCard.BuggyFee,
-				GreenFee:     memberCard.GreenFee,
-				Hole:         booking.Hole,
-			}
-			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
-			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
-			initListRound(db, booking, bookingGolfFee)
-			booking.SeparatePrice = true
-			guestStyle = memberCard.GetGuestStyle(db)
-		} else {
-			// Lấy theo GuestStyle
-			guestStyle = memberCard.GetGuestStyle(db)
-		}
+		guestStyle = memberCard.GetGuestStyle(db)
 	} else if body.MemberCardUid == "" {
 		// Update member card
 		booking.MemberCardUid = ""
@@ -1128,56 +1018,20 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	//Agency id
 	if body.AgencyId > 0 && (body.AgencyId != booking.AgencyId || body.Hole != booking.Hole) {
-		// Get config course
-		course := models.Course{}
-		course.Uid = booking.CourseUid
-		errCourse := course.FindFirst()
-		if errCourse != nil {
-			response_message.BadRequest(c, errCourse.Error())
-			return
+		agencyBody := request.UpdateAgencyOrMemberCardToBooking{
+			PartnerUid:   booking.PartnerUid,
+			CourseUid:    booking.CourseUid,
+			AgencyId:     body.AgencyId,
+			BUid:         booking.Uid,
+			Bag:          booking.Bag,
+			CustomerName: body.CustomerName,
+			Hole:         body.Hole,
 		}
-
 		agency := models.Agency{}
-		agency.Id = body.AgencyId
-		errFindAgency := agency.FindFirst(db)
-		if errFindAgency != nil || agency.Id == 0 {
-			response_message.BadRequest(c, "agency"+errFindAgency.Error())
-			return
+		if errAgency := cBooking.updateAgencyForBooking(db, &booking, &agency, agencyBody); errAgency != nil {
+			response_message.BadRequest(c, errAgency.Error())
 		}
-
-		agencyBooking := cloneToAgencyBooking(agency)
-		booking.AgencyInfo = agencyBooking
-		booking.AgencyId = body.AgencyId
-
-		if booking.MemberCardUid == "" {
-			// Nếu có cả member card thì ưu tiên giá member card
-			agencySpecialPriceR := models.AgencySpecialPrice{
-				AgencyId: agency.Id,
-			}
-			// Tính lại giá riêng nếu thoả mãn các dk time
-			agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnTime(db)
-			if errFSP == nil && agencySpecialPrice.Id > 0 {
-				// Tính lại giá
-				// List Booking GolfFee
-				param := request.GolfFeeGuestyleParam{
-					Uid:          booking.Uid,
-					Rate:         course.RateGolfFee,
-					Bag:          booking.Bag,
-					CustomerName: body.CustomerName,
-					Hole:         booking.Hole,
-					CaddieFee:    agencySpecialPrice.CaddieFee,
-					BuggyFee:     agencySpecialPrice.BuggyFee,
-					GreenFee:     agencySpecialPrice.GreenFee,
-				}
-				listBookingGolfFee, bookingGolfFee := getInitListGolfFeeWithOutGuestStyleForBooking(param)
-				initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, booking.CheckInTime)
-				initListRound(db, booking, bookingGolfFee)
-				booking.SeparatePrice = true
-				guestStyle = agency.GuestStyle
-			} else {
-				guestStyle = agency.GuestStyle
-			}
-		}
+		guestStyle = agency.GuestStyle
 	}
 
 	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
@@ -1195,39 +1049,19 @@ func (_ *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		//Update giá đặc biệt nếu có
 
 		// Tính giá
-		golfFeeModel := models.GolfFee{
-			PartnerUid: booking.PartnerUid,
-			CourseUid:  booking.CourseUid,
-			GuestStyle: body.GuestStyle,
+		//Guest style
+		guestBody := request.UpdateAgencyOrMemberCardToBooking{
+			PartnerUid:   booking.PartnerUid,
+			CourseUid:    booking.CourseUid,
+			AgencyId:     body.AgencyId,
+			BUid:         booking.Uid,
+			CustomerName: body.CustomerName,
+			Hole:         body.Hole,
+			Bag:          booking.Bag,
 		}
 
-		if errGS := golfFeeModel.FindFirst(db); errGS != nil {
-			response_message.InternalServerError(c, "guest style not found ")
+		if errUpdGs := cBooking.updateGuestStyleToBooking(c, guestStyle, db, &booking, guestBody); errUpdGs != nil {
 			return
-		}
-
-		booking.CustomerType = golfFeeModel.CustomerType
-
-		// Lấy phí bởi Guest style với ngày tạo
-		golfFee, errFind := golfFeeModel.GetGuestStyleOnDay(db)
-		if errFind != nil {
-			response_message.InternalServerError(c, "golf fee err "+errFind.Error())
-			return
-		}
-		booking.GuestStyle = guestStyle
-		booking.GuestStyleName = golfFee.GuestStyleName
-
-		if !booking.SeparatePrice {
-			// List Booking GolfFee
-			param := request.GolfFeeGuestyleParam{
-				Uid:          booking.Uid,
-				Bag:          booking.Bag,
-				CustomerName: booking.CustomerName,
-				Hole:         booking.Hole,
-			}
-			listBookingGolfFee, bookingGolfFee := getInitListGolfFeeForBooking(param, golfFee)
-			initPriceForBooking(db, &booking, listBookingGolfFee, bookingGolfFee, checkInTime)
-			initListRound(db, booking, bookingGolfFee)
 		}
 	}
 
