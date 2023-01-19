@@ -108,7 +108,8 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 			return
 		}
 
-		go updateCaddieWorkingOnDay(listCaddieCode, body.PartnerUid, body.CourseUid)
+		//Update lại ds caddie trong GO
+		go updateCaddieWorkingOnDay(listCaddieCode, body.PartnerUid, body.CourseUid, true)
 	}
 
 	okRes(c)
@@ -266,6 +267,8 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieWorkingCalendar(c *gin.Context, pro
 		return
 	}
 
+	oldCaddie := caddiWC.CaddieCode
+	newCaddie := body.CaddieCode
 	caddiWC.CaddieCode = body.CaddieCode
 
 	if err := caddiWC.Update(db); err != nil {
@@ -273,6 +276,11 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieWorkingCalendar(c *gin.Context, pro
 		return
 	}
 
+	//Update lại ds caddie trong GO
+	go func() {
+		updateCaddieWorkingOnDay([]string{oldCaddie}, prof.PartnerUid, prof.CourseUid, false)
+		updateCaddieWorkingOnDay([]string{newCaddie}, prof.PartnerUid, prof.CourseUid, true)
+	}()
 	okRes(c)
 }
 
@@ -329,5 +337,7 @@ func (_ *CCaddieWorkingCalendar) DeleteCaddieWorkingCalendar(c *gin.Context, pro
 		return
 	}
 
+	//Update lại ds caddie trong GO
+	go updateCaddieWorkingOnDay([]string{caddiWC.CaddieCode}, prof.PartnerUid, prof.CourseUid, false)
 	okRes(c)
 }

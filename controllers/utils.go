@@ -1653,17 +1653,21 @@ func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 	return nil
 }
 
-func updateCaddieWorkingOnDay(caddieCodeList []string, partUid, courseUid string) {
+func updateCaddieWorkingOnDay(caddieCodeList []string, partnerUid, courseUid string, isWorking bool) {
 	db := datasources.GetDatabaseWithPartner("CHI-LINH")
 	for _, code := range caddieCodeList {
 		caddie := models.Caddie{
-			PartnerUid: partUid,
+			PartnerUid: partnerUid,
 			CourseUid:  courseUid,
 			Code:       code,
 		}
 
 		if err := caddie.FindFirst(db); err == nil {
-			caddie.IsWorking = 1
+			if isWorking {
+				caddie.IsWorking = 1
+			} else {
+				caddie.IsWorking = 0
+			}
 			caddie.Update(db)
 		}
 	}
