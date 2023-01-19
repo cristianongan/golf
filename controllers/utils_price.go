@@ -194,7 +194,7 @@ init Golf Fee
 init MushPay
 init Rounds
 */
-func initPriceForBooking(db *gorm.DB, booking *model_booking.Booking, listBookingGolfFee model_booking.ListBookingGolfFee, bookingGolfFee model_booking.BookingGolfFee, checkInTime int64) {
+func initPriceForBooking(db *gorm.DB, booking *model_booking.Booking, listBookingGolfFee model_booking.ListBookingGolfFee, bookingGolfFee model_booking.BookingGolfFee) {
 	if booking == nil {
 		log.Println("initPriceForBooking err booking nil")
 		return

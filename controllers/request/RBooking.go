@@ -170,6 +170,17 @@ type CreateBookingBody struct {
 	BookingTeeTime     bool
 }
 
+type UpdateAgencyOrMemberCardToBooking struct {
+	PartnerUid    string
+	CourseUid     string
+	AgencyId      int64
+	BUid          string
+	Bag           string
+	CustomerName  string
+	Hole          int
+	MemberCardUid string
+}
+
 type GolfFeeGuestyleParam struct {
 	Uid          string
 	Rate         string
