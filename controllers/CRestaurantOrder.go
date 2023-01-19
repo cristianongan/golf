@@ -1026,7 +1026,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 	itemQuatityFBs := []int{}
 
 	// add res item with combo
-	restaurantItems := []models.RestaurantItem{}
+	// restaurantItems := []models.RestaurantItem{}
 
 	// validate item
 	if len(body.ListOrderItem) > 0 {
@@ -1123,22 +1123,22 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 				return
 			}
 
-			// add item res
-			for _, v := range item.FBList {
-				item := models.RestaurantItem{
-					Type:             v.Type,
-					ItemId:           serviceCartItem.Id,
-					ItemName:         v.VieName,
-					ItemComboName:    item.VieName,
-					ItemComboCode:    item.Code,
-					ItemCode:         v.FBCode,
-					ItemUnit:         v.Unit,
-					Quantity:         v.Quantity * quantity,
-					QuantityProgress: v.Quantity * quantity,
-				}
+			// // add item res
+			// for _, v := range item.FBList {
+			// 	item := models.RestaurantItem{
+			// 		Type:             v.Type,
+			// 		ItemId:           serviceCartItem.Id,
+			// 		ItemName:         v.VieName,
+			// 		ItemComboName:    item.VieName,
+			// 		ItemComboCode:    item.Code,
+			// 		ItemCode:         v.FBCode,
+			// 		ItemUnit:         v.Unit,
+			// 		Quantity:         v.Quantity * quantity,
+			// 		QuantityProgress: v.Quantity * quantity,
+			// 	}
 
-				restaurantItems = append(restaurantItems, item)
-			}
+			// 	restaurantItems = append(restaurantItems, item)
+			// }
 
 			// update amount service cart
 			serviceCart.Amount += (int64(quantity) * serviceCartItem.UnitPrice)
@@ -1184,18 +1184,18 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 				return
 			}
 
-			// add infor res item
-			item := models.RestaurantItem{
-				Type:             item.Type,
-				ItemId:           serviceCartItem.Id,
-				ItemName:         item.VieName,
-				ItemCode:         item.FBCode,
-				ItemUnit:         item.Unit,
-				Quantity:         quantity,
-				QuantityProgress: quantity,
-			}
+			// // add infor res item
+			// item := models.RestaurantItem{
+			// 	Type:             item.Type,
+			// 	ItemId:           serviceCartItem.Id,
+			// 	ItemName:         item.VieName,
+			// 	ItemCode:         item.FBCode,
+			// 	ItemUnit:         item.Unit,
+			// 	Quantity:         quantity,
+			// 	QuantityProgress: quantity,
+			// }
 
-			restaurantItems = append(restaurantItems, item)
+			// restaurantItems = append(restaurantItems, item)
 
 			// update amount service cart
 			serviceCart.Amount += (int64(quantity) * serviceCartItem.UnitPrice)
@@ -1208,20 +1208,20 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 		return
 	}
 
-	for _, v := range restaurantItems {
-		// add infor restaurant item
-		v.PartnerUid = body.PartnerUid
-		v.CourseUid = body.CourseUid
-		v.ServiceId = serviceCart.ServiceId
-		v.OrderDate = time.Now().Format(constants.DATE_FORMAT_1)
-		v.BillId = serviceCart.Id
-		v.ItemStatus = constants.RES_STATUS_ORDER
+	// for _, v := range restaurantItems {
+	// 	// add infor restaurant item
+	// 	v.PartnerUid = body.PartnerUid
+	// 	v.CourseUid = body.CourseUid
+	// 	v.ServiceId = serviceCart.ServiceId
+	// 	v.OrderDate = time.Now().Format(constants.DATE_FORMAT_1)
+	// 	v.BillId = serviceCart.Id
+	// 	v.ItemStatus = constants.RES_STATUS_ORDER
 
-		if err := v.Create(db); err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
-		}
-	}
+	// 	if err := v.Create(db); err != nil {
+	// 		response_message.BadRequest(c, err.Error())
+	// 		return
+	// 	}
+	// }
 
 	okRes(c)
 }
