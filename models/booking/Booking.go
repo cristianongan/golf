@@ -139,7 +139,11 @@ type FlyInfoResponse struct {
 type BagDetail struct {
 	Booking
 	Rounds models.ListRound `json:"rounds"`
-	//ListServiceItems ListBookingServiceItems `json:"list_service_items,omitempty"`
+}
+
+type BagRoundNote struct {
+	Booking
+	RoundsWithNote []models.RoundWithNote `json:"rounds,omitempty"`
 }
 
 type GolfFeeOfBag struct {
@@ -472,21 +476,6 @@ func (item BookingAgency) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
-// type AgencyPaid struct {
-// 	CaddieFee int64 `json:"caddie_fee"`
-// 	BuggyFee  int64 `json:"buggy_fee"`
-// 	GolfFee   int64 `json:"golf_fee"`
-// 	Amount    int64 `json:"amount"`
-// }
-
-// func (item *AgencyPaid) Scan(v interface{}) error {
-// 	return json.Unmarshal(v.([]byte), item)
-// }
-
-// func (item AgencyPaid) Value() (driver.Value, error) {
-// 	return json.Marshal(&item)
-// }
-
 // Caddie Info
 type BookingCaddie struct {
 	Id       int64  `json:"id"`
@@ -564,25 +553,6 @@ type MainBagOfSubInfo struct {
 	MainBagPaid        int64
 }
 
-// -------- Booking Logic --------
-
-func (item *Booking) CheckDuplicatedCaddieInTeeTime(db *gorm.DB) bool {
-	if item.TeeTime == "" {
-		return false
-	}
-
-	booking := Booking{
-		PartnerUid:  item.PartnerUid,
-		CourseUid:   item.CourseUid,
-		TeeTime:     item.TeeTime,
-		BookingDate: item.BookingDate,
-		CaddieId:    item.CaddieId,
-	}
-
-	errFind := booking.FindFirstNotCancel(db)
-	return errFind == nil
-}
-
 // ----------- CRUD ------------
 func (item *Booking) Create(db *gorm.DB, uid string) error {
 	item.Model.Uid = uid
@@ -648,8 +618,7 @@ func (item *Booking) FindFirstWithJoin(database *gorm.DB) error {
 
 func (item *Booking) FindFirstNotCancel(db *gorm.DB) error {
 	db = db.Not("bag_status = ?", constants.BAG_STATUS_CANCEL)
-	log.Println("FindFirstNotCancel")
-	return db.Where(item).Debug().First(item).Error
+	return db.Where(item).First(item).Error
 }
 
 func (item *Booking) Count(database *gorm.DB) (int64, error) {

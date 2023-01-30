@@ -5,7 +5,7 @@ import (
 	"start/config"
 	"start/datasources"
 	"start/logger"
-	socket "start/socket"
+	"start/socket"
 
 	ccron "start/cron"
 	// "start/datasources/aws"
@@ -20,6 +20,8 @@ func Init() {
 
 	// Init Logger
 	logger.InitLogger()
+
+	// go socket_room.Hub.Run()
 
 	// --- Socket ---
 

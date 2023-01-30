@@ -43,6 +43,11 @@ type RoundPaidByMainBag struct {
 	IsPaid bool `json:"is_paid"`
 }
 
+type RoundWithNote struct {
+	Round
+	Note string `json:"note,omitempty"`
+}
+
 type ListRound []Round
 
 func (item *ListRound) Scan(v interface{}) error {

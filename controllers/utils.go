@@ -642,11 +642,6 @@ func udpCaddieOut(db *gorm.DB, caddieId int64) {
 			if errUpd != nil {
 				log.Println("udpCaddieOut err", err.Error())
 			}
-			go func() {
-				cNotification := CNotification{}
-				title := fmt.Sprint("Caddie", " ", caddie.Code, " ", caddie.CurrentStatus)
-				cNotification.CreateCaddieWorkingStatusNotification(title)
-			}()
 		}
 	}
 }
@@ -949,6 +944,77 @@ find booking with round va service items data
 func getBagDetailFromBooking(db *gorm.DB, booking model_booking.Booking) model_booking.BagDetail {
 	//Get service items
 	booking.FindServiceItems(db)
+
+	bagDetail := model_booking.BagDetail{
+		Booking: booking,
+	}
+
+	// Get Rounds
+	if booking.BillCode != "" {
+		round := models.Round{BillCode: booking.BillCode}
+		listRound, _ := round.FindAll(db)
+
+		if len(listRound) > 0 {
+			bagDetail.Rounds = listRound
+		}
+	}
+	return bagDetail
+}
+
+/*
+find booking with round va service items data
+*/
+func getBagWithRoundDetail(db *gorm.DB, booking model_booking.Booking) model_booking.BagRoundNote {
+	//Get service items
+	booking.FindServiceItems(db)
+
+	bagDetail := model_booking.BagRoundNote{
+		Booking: booking,
+	}
+
+	// Get Rounds
+	if booking.BillCode != "" {
+		round := models.Round{BillCode: booking.BillCode}
+		listRound, _ := round.FindAll(db)
+		listRoundWithNote := []models.RoundWithNote{}
+		for _, item := range listRound {
+			listRoundWithNote = append(listRoundWithNote, models.RoundWithNote{
+				Round: item,
+			})
+		}
+
+		bookingListR := model_booking.BookingList{
+			BillCode: booking.BillCode,
+		}
+
+		bookingList := []model_booking.Booking{}
+		db1 := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+		db2, _, _ := bookingListR.FindAllBookingList(db1)
+		db2 = db2.Order("created_at asc")
+		db2.Find(&bookingList)
+
+		for index, booking := range bookingList {
+			roundIndex := index + 1
+			for idx, round := range listRoundWithNote {
+				if round.Index == roundIndex {
+					listRoundWithNote[idx].Note = booking.NoteOfGo
+					break
+				}
+			}
+		}
+		if len(listRound) > 0 {
+			bagDetail.RoundsWithNote = listRoundWithNote
+		}
+	}
+	return bagDetail
+}
+
+/*
+find booking with round va service items data
+*/
+func getBagDetailForPayment(db *gorm.DB, booking model_booking.Booking) model_booking.BagDetail {
+	//Get service items
+	booking.FindServiceItemsInPayment(db)
 
 	bagDetail := model_booking.BagDetail{
 		Booking: booking,
@@ -1551,6 +1617,7 @@ func getBuggyFee(gs string) utils.ListGolfHoleFee {
 
 func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 	var caddieSlotNew []string
+	var caddieSlotExist []string
 	// Format date
 	dateNow, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
@@ -1572,11 +1639,12 @@ func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 			index := utils.StringInList(item, caddieSlotNew)
 			if index != -1 {
 				caddieSlotNew = utils.Remove(caddieSlotNew, index)
+				caddieSlotExist = append(caddieSlotExist, item)
 			}
 		}
 	}
 
-	caddieWS.CaddieSlot = append(caddieSlotNew, caddies...)
+	caddieWS.CaddieSlot = append(caddieSlotNew, caddieSlotExist...)
 	err = caddieWS.Update(db)
 	if err != nil {
 		return err

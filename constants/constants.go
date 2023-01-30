@@ -52,7 +52,8 @@ const (
 Trạng thái thanh toán
 */
 const (
-	PAYMENT_STATUS_PAID         = "PAID"         //  Thanh toán (Paid)
+	PAYMENT_STATUS_PAID         = "PAID" //  Thanh toán (Paid)
+	PAYMENT_STATUS_PREPAID      = "PREPAID"
 	PAYMENT_STATUS_UN_PAID      = "UN_PAID"      // Chưa thanh toán (Unpaid)
 	PAYMENT_STATUS_PARTIAL_PAID = "PARTIAL_PAID" // Thanh toán 1 phần (Partial Paid):
 	//Thanh toán 1 phần hiển thị thông tin khi khách thanh toán 1 phần tiền
@@ -137,6 +138,7 @@ const (
 const (
 	BOOKING_INIT_TYPE_BOOKING = "BOOKING" // được tạo từ booking single book
 	BOOKING_INIT_TYPE_CHECKIN = "CHECKIN" // Tạo từ check in lễ tân
+	BOOKING_INIT_ROUND        = "ROUND"   // Tạo khi add round
 )
 
 /*
@@ -310,6 +312,7 @@ const (
 Các trạng thái đơn của nhà hàng
 */
 const (
+	RES_BILL_STATUS_SHOW     = "SHOW"     // Trạng thái bao gồm các đơn PROCESS, TRANSFER, ORDER, FINISH
 	RES_BILL_STATUS_ACTIVE   = "ACTIVE"   // Trạng thái bao gồm các đơn PROCESS, FINISH
 	RES_BILL_STATUS_BOOKING  = "BOOKING"  // Trạng thái là người booking bàn nhưng chưa vào nhà hàng dùng món
 	RES_BILL_STATUS_ORDER    = "ORDER"    // Trạng thái là người đã đặt món và đang chờ đồ ăn

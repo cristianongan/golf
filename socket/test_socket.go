@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -42,7 +43,7 @@ type Client struct {
 
 	// The websocket connection.
 	conn *websocket.Conn
-
+	mu   sync.Mutex
 	// Buffered channel of outbound messages.
 	send chan []byte
 }
@@ -150,6 +151,8 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Client) write(mt int, payload []byte) error {
-	c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+	// c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	return c.conn.WriteMessage(mt, payload)
 }

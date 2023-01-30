@@ -154,11 +154,9 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 
 			//Update other info
 			singlePayment.BagInfo = bagInfo
-			singlePayment.TotalPaid = body.Amount
 			singlePayment.Note = body.Note
 			singlePayment.Cashiers = prof.UserName
 			singlePayment.PaymentDate = toDayDate
-
 			singlePayment.TotalPaid = totalPaid
 			singlePayment.UpdatePaymentStatus(booking.BagStatus, db)
 			errUdp := singlePayment.Update(db)
@@ -593,7 +591,7 @@ func (_ *CPayment) GetAgencyPayForBagDetail(c *gin.Context, prof models.CmsUser)
 	}
 
 	if booking.CheckAgencyPaidAll() {
-		booking.FindServiceItems(db)
+		booking.FindServiceItemsOfBag(db)
 		payForBag.FeeData = utils.ListBookingAgencyPayForBagData{}
 		payForBag.FeeData = append(payForBag.FeeData, utils.BookingAgencyPayForBagData{
 			Type: constants.BOOKING_AGENCY_GOLF_FEE,

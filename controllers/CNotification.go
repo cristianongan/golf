@@ -226,6 +226,12 @@ func (_ *CNotification) PushNotificationCreateBooking(bookType string, booking a
 
 	newFsConfigBytes, _ := json.Marshal(notiData)
 	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+
+	// m := socket_room.Message{
+	// 	Data: newFsConfigBytes,
+	// 	Room: "1",
+	// }
+	// socket_room.Hub.Broadcast <- m
 }
 
 func (_ *CNotification) PushNotificationLockTee(lockType string) {

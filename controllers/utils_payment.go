@@ -7,6 +7,7 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
+	"start/models"
 	model_booking "start/models/booking"
 	model_payment "start/models/payment"
 	"start/utils"
@@ -293,5 +294,44 @@ func updateBookingAgencyPaymentForAllFee(booking model_booking.Booking) {
 			Fee:  booking.GetAgencyPaid(),
 		})
 		bookingAgencyPayment.Update(db)
+	}
+}
+
+func updateSinglePaymentOfSubBag(mainBag model_booking.Booking, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(mainBag.PartnerUid)
+	for _, subBooking := range mainBag.SubBags {
+		bookingR := model_booking.Booking{
+			Model: models.Model{Uid: subBooking.BookingUid},
+		}
+
+		booking, errF := bookingR.FindFirstByUId(db)
+		if errF == nil {
+			totalPaid := booking.CurrentBagPrice.MainBagPaid
+
+			singlePayment := model_payment.SinglePayment{
+				PartnerUid: booking.PartnerUid,
+				CourseUid:  booking.CourseUid,
+				BillCode:   booking.BillCode,
+			}
+			singlePayment.Status = constants.STATUS_ENABLE
+			if errFind := singlePayment.FindFirst(db); errFind == nil {
+				singlePaymentItem := model_payment.SinglePaymentItem{
+					PartnerUid:  booking.PartnerUid,
+					CourseUid:   booking.CourseUid,
+					BookingUid:  booking.Uid,
+					BillCode:    booking.BillCode,
+					Bag:         booking.Bag,
+					Paid:        totalPaid,
+					PaymentType: constants.PAYMENT_STATUS_PREPAID,
+					PaymentUid:  singlePayment.Uid,
+					Cashiers:    prof.UserName,
+					BookingDate: booking.BookingDate,
+				}
+				if errC := singlePaymentItem.Create(db); errC == nil {
+					singlePayment.UpdateTotalPaid(db)
+					handleSinglePayment(db, booking)
+				}
+			}
+		}
 	}
 }

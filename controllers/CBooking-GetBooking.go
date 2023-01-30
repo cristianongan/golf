@@ -114,7 +114,7 @@ func (_ *CBooking) GetBookingPaymentDetail(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
-	bagDetail := getBagDetailFromBooking(db, booking)
+	bagDetail := getBagDetailForPayment(db, booking)
 
 	// Get List Round Of Sub Bag
 	listRoundOfSub := []model_booking.RoundOfBag{}
@@ -170,7 +170,7 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	bagDetail := getBagDetailFromBooking(db, booking)
+	bagDetail := getBagWithRoundDetail(db, booking)
 	okResponse(c, bagDetail)
 }
 

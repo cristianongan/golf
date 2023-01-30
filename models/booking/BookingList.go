@@ -56,6 +56,7 @@ type BookingList struct {
 	IsGroupBillCode       bool
 	IsGroupBookingCode    bool
 	NotNoneGolfAndWalking bool
+	BillCode              string
 }
 
 type ResBookingWithBuggyFeeInfo struct {
@@ -290,6 +291,10 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 		db = db.Where("customer_type NOT IN (?) ", customerType)
 	}
 
+	if item.BillCode != "" {
+		db = db.Where("bill_code = ?", item.BillCode)
+	}
+
 	return db
 }
 
@@ -316,7 +321,7 @@ func (item *BookingList) FindBookingListWithSelect(database *gorm.DB, page model
 	db := database.Model(Booking{})
 
 	db = addFilter(db, item, isGroupBillCode)
-	db = db.Not("added_round = ?", true)
+	db = db.Where("init_type = ?", constants.BOOKING_INIT_TYPE_BOOKING)
 
 	db.Count(&total)
 

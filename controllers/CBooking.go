@@ -528,17 +528,17 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		go updateMemberCard(db, memberCard)
 	}
 
-	if body.TeeTime != "" {
+	if body.TeeTime != "" && len(rowIndexsRedis) >= 3 {
 		cLockTeeTime := CLockTeeTime{}
-		teeType := fmt.Sprint(body.TeeType, body.CourseType)
 		lockTurn := request.CreateLockTurn{
 			BookingDate: body.BookingDate,
 			CourseUid:   body.CourseUid,
 			PartnerUid:  body.PartnerUid,
 			TeeTime:     body.TeeTime,
-			TeeType:     teeType,
+			TeeType:     body.TeeType,
+			CourseType:  body.CourseType,
 		}
-		cLockTeeTime.LockTurn(lockTurn, body.Hole, c, prof)
+		go cLockTeeTime.LockTurn(lockTurn, body.Hole, c, prof)
 	}
 
 	if body.IsCheckIn && booking.CustomerUid != "" {
@@ -1405,10 +1405,7 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// delete tee time locked theo booking date
-	// if booking.TeeTime != "" {
-	// 	go unlockTurnTime(db, booking)
-	// }
+	go updateSinglePaymentOfSubBag(booking, prof)
 
 	okResponse(c, booking)
 }
