@@ -392,6 +392,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/caddie", middlewares.AuthorizedCmsUserHandler(cCaddie.CreateCaddie))
 			cmsApiAuthorized.POST("/caddie-batch", middlewares.AuthorizedCmsUserHandler(cCaddie.CreateCaddieBatch))
 			cmsApiAuthorized.GET("/caddie/list", middlewares.AuthorizedCmsUserHandler(cCaddie.GetCaddieList))
+			cmsApiAuthorized.GET("/caddie/list-day-off", middlewares.AuthorizedCmsUserHandler(cCaddie.GetCaddiGroupDayOffByDate))
 			cmsApiAuthorized.GET("/caddie-ready-on-date", middlewares.AuthorizedCmsUserHandler(cCaddie.GetCaddieReadyOnDay))
 			cmsApiAuthorized.GET("/caddie/:id", middlewares.AuthorizedCmsUserHandler(cCaddie.GetCaddieDetail))
 			cmsApiAuthorized.PUT("/caddie/:id", middlewares.AuthorizedCmsUserHandler(cCaddie.UpdateCaddie))
@@ -439,6 +440,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/caddie-working-calendar/list", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetCaddieWorkingCalendarList))
 			cmsApiAuthorized.GET("/caddie-working-calendar/list-normal", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetCaddieWorkingCalendarListNormal))
 			cmsApiAuthorized.PUT("/caddie-working-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.UpdateCaddieWorkingCalendar))
+			cmsApiAuthorized.POST("/caddie-working-calendar/update-slot-auto", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.UpdateCaddieSlotAuto))
 			cmsApiAuthorized.DELETE("/caddie-working-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.DeleteCaddieWorkingCalendar))
 
 			/// =================== Caddie Fee Setting ===================

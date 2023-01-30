@@ -466,8 +466,26 @@ func Contains[T comparable](s []T, e T) bool {
 	return false
 }
 
+func IndexOf[T comparable](s []T, e T) int {
+	for k, v := range s {
+		if v == e {
+			return k
+		}
+	}
+	return -1
+}
+
 func Remove[T comparable](slice []T, s int) []T {
 	return append(slice[:s], slice[s+1:]...)
+}
+
+func SwapValue[T comparable](s []T, o, n T) []T {
+	indexOld := IndexOf(s, o)
+	indexNew := IndexOf(s, n)
+
+	s[indexOld], s[indexNew] = s[indexNew], s[indexOld]
+
+	return s
 }
 
 func removeDuplicateStr(str []string) []string {

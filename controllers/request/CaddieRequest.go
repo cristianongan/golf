@@ -47,7 +47,17 @@ type GetListCaddieForm struct {
 type GetListCaddieReady struct {
 	CourseId   string `form:"course_uid" json:"course_uid" binding:"required"`
 	PartnerUid string `form:"partner_uid" json:"partner_uid" binding:"required"`
-	DateTime   string `form:"date_time"`
+	DateTime   string `form:"date_time" binding:"required"`
+}
+
+type GetCaddiGroupDayOffByDateForm struct {
+	PageRequest
+	CourseId   string `form:"course_uid" json:"course_uid" binding:"required"`
+	PartnerUid string `form:"partner_uid" json:"partner_uid" binding:"required"`
+	Date       string `form:"date"`
+	Name       string `form:"name" json:"name"`
+	Code       string `form:"code" json:"code"`
+	GroupId    string `form:"group_id"`
 }
 
 type UpdateCaddieBody struct {
