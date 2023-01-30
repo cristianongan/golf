@@ -1632,3 +1632,12 @@ func getKeyTeeTimeRowIndex(bookingDate, courseUid, teeTime, teeType string) stri
 
 	return teeRowIndexTimeRedisKey
 }
+
+func getIdGroup(s []models.CaddieGroup, e string) int64 {
+	for _, v := range s {
+		if v.Code == e {
+			return v.Id
+		}
+	}
+	return 0
+}

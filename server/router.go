@@ -388,6 +388,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/caddie", middlewares.AuthorizedCmsUserHandler(cCaddie.CreateCaddie))
 			cmsApiAuthorized.POST("/caddie-batch", middlewares.AuthorizedCmsUserHandler(cCaddie.CreateCaddieBatch))
 			cmsApiAuthorized.GET("/caddie/list", middlewares.AuthorizedCmsUserHandler(cCaddie.GetCaddieList))
+			cmsApiAuthorized.GET("/caddie/list-day-off", middlewares.AuthorizedCmsUserHandler(cCaddie.GetCaddiGroupDayOffByDate))
 			cmsApiAuthorized.GET("/caddie-ready-on-date", middlewares.AuthorizedCmsUserHandler(cCaddie.GetCaddieReadyOnDay))
 			cmsApiAuthorized.GET("/caddie/:id", middlewares.AuthorizedCmsUserHandler(cCaddie.GetCaddieDetail))
 			cmsApiAuthorized.PUT("/caddie/:id", middlewares.AuthorizedCmsUserHandler(cCaddie.UpdateCaddie))
