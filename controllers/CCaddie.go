@@ -375,7 +375,7 @@ func (_ *CCaddie) GetCaddiGroupDayOffByDate(c *gin.Context, prof models.CmsUser)
 		caddie.GroupId, _ = strconv.ParseInt(form.GroupId, 10, 64)
 	}
 
-	if len(groupDayOff) > 0 {
+	if form.GroupId == "" && len(groupDayOff) > 0 {
 		caddie.GroupList = groupDayOff
 	}
 
