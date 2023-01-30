@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"start/config"
 	"start/constants"
+	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
 	"start/models"
@@ -17,6 +18,7 @@ import (
 	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
 	"start/utils"
+	"strconv"
 	"strings"
 	"time"
 
@@ -1512,68 +1514,6 @@ func removeRowIndexRedis(booking model_booking.Booking) {
 	}
 }
 
-/*
-Check Tee Time chỗ để booking không
-*/
-func checkTeeTimeAvailable(booking model_booking.Booking) bool {
-	bookings := model_booking.BookingList{}
-	bookings.PartnerUid = booking.PartnerUid
-	bookings.CourseUid = booking.CourseUid
-	bookings.BookingDate = booking.BookingDate
-	bookings.TeeTime = booking.TeeTime
-	bookings.TeeType = booking.TeeType
-	bookings.CourseType = booking.CourseType
-
-	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
-	_, total, _ := bookings.FindAllBookingNotCancelList(db)
-
-	return total < constants.SLOT_TEE_TIME
-}
-
-func updateSlotTeeTimeWithLock(booking model_booking.Booking) {
-	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
-	bookings := model_booking.BookingList{}
-	bookings.PartnerUid = booking.PartnerUid
-	bookings.CourseUid = booking.CourseUid
-	bookings.BookingDate = booking.BookingDate
-	bookings.TeeTime = booking.TeeTime
-	bookings.TeeType = booking.TeeType
-	bookings.CourseType = booking.CourseType
-
-	_, total, _ := bookings.FindAllBookingNotCancelList(db)
-
-	prefixRedisKey := getKeyTeeTimeLockRedis(booking.BookingDate, booking.CourseUid, booking.TeeTime, booking.TeeType+booking.CourseType)
-	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
-	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
-	if errRedis == nil && len(listKey) > 0 {
-		strData, errGet := datasources.GetCaches(listKey...)
-
-		log.Println("updateSlotTeeTimeWithLock-listKey", listKey)
-		if errGet != nil {
-			log.Println("updateSlotTeeTimeWithLock-error", errGet.Error())
-		} else {
-			for _, data := range strData {
-				if data != nil {
-					byteData := []byte(data.(string))
-					teeTime := models.LockTeeTimeWithSlot{}
-					err2 := json.Unmarshal(byteData, &teeTime)
-					if err2 == nil && teeTime.Type == constants.LOCK_OTA {
-						listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
-					}
-				}
-			}
-		}
-	}
-
-	for _, item := range listTeeTimeLockRedis {
-		total += int64(item.Slot)
-	}
-	teeTimeSlotEmptyRedisKey := getKeyTeeTimeSlotRedis(booking.BookingDate, booking.CourseUid, booking.TeeTime, booking.TeeType)
-	if err := datasources.SetCache(teeTimeSlotEmptyRedisKey, total, 0); err != nil {
-		log.Print("updateSlotTeeTime", err)
-	}
-}
-
 func getBuggyFee(gs string) utils.ListGolfHoleFee {
 
 	partnerUid := "CHI-LINH"
@@ -1717,4 +1657,79 @@ func getKeyTeeTimeRowIndex(bookingDate, courseUid, teeTime, teeType string) stri
 	teeRowIndexTimeRedisKey += teeType + "_" + teeTime
 
 	return teeRowIndexTimeRedisKey
+}
+
+func getTeeTimeList(courseUid, partnerUid, bookingDate string) []string {
+	db := datasources.GetDatabaseWithPartner(partnerUid)
+	form := request.GetListBookingSettingForm{
+		CourseUid:  courseUid,
+		PartnerUid: partnerUid,
+		OnDate:     bookingDate,
+	}
+
+	cBookingSetting := CBookingSetting{}
+	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
+	bookingDateTime, _ := time.Parse(constants.DATE_FORMAT_1, bookingDate)
+	weekday := strconv.Itoa(int(bookingDateTime.Weekday() + 1))
+	bookSetting := model_booking.BookingSetting{}
+
+	for _, data := range listSettingDetail {
+		if strings.ContainsAny(data.Dow, weekday) {
+			bookSetting = data
+			break
+		}
+	}
+
+	timeParts := []response.TeeTimePartOTA{
+		{
+			IsHideTeePart: bookSetting.IsHideTeePart1,
+			StartPart:     bookSetting.StartPart1,
+			EndPart:       bookSetting.EndPart1,
+		},
+		{
+			IsHideTeePart: bookSetting.IsHideTeePart2,
+			StartPart:     bookSetting.StartPart2,
+			EndPart:       bookSetting.EndPart2,
+		},
+		{
+			IsHideTeePart: bookSetting.IsHideTeePart3,
+			StartPart:     bookSetting.StartPart3,
+			EndPart:       bookSetting.EndPart3,
+		},
+	}
+
+	index := 0
+	teeTimeListLL := []string{}
+
+	for _, part := range timeParts {
+		if !part.IsHideTeePart {
+			endTime, _ := utils.ConvertHourToTime(part.EndPart)
+			teeTimeInit, _ := utils.ConvertHourToTime(part.StartPart)
+			for {
+				index += 1
+
+				hour := teeTimeInit.Hour()
+				minute := teeTimeInit.Minute()
+
+				hourStr_ := strconv.Itoa(hour)
+				if hour < 10 {
+					hourStr_ = "0" + hourStr_
+				}
+				minuteStr := strconv.Itoa(minute)
+				if minute < 10 {
+					minuteStr = "0" + minuteStr
+				}
+
+				hourStr := hourStr_ + ":" + minuteStr
+
+				teeTimeListLL = append(teeTimeListLL, hourStr)
+				teeTimeInit = teeTimeInit.Add(time.Minute * time.Duration(bookSetting.TeeMinutes))
+
+				if teeTimeInit.Unix() > endTime.Unix() {
+					break
+				}
+			}
+		}
+	}
+	return teeTimeListLL
 }

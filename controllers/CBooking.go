@@ -86,16 +86,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	}
 
-	// validate trường hợp đóng tee 1
-	// teeList := []string{constants.TEE_TYPE_1, constants.TEE_TYPE_1A, constants.TEE_TYPE_1B, constants.TEE_TYPE_1C}
-	// if utils.Contains(teeList, body.TeeType) {
-	// 	cBookingSetting := CBookingSetting{}
-	// 	if errors := cBookingSetting.ValidateClose1ST(db, body.BookingDate, body.PartnerUid, body.CourseUid); errors != nil {
-	// 		response_message.InternalServerError(c, errors.Error())
-	// 		return nil, errors
-	// 	}
-	// }
-
 	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, body.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
 
 	rowIndexsRedisStr := ""
@@ -130,23 +120,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		if errRedis != nil {
 			log.Println("CreateBookingCommon errRedis", errRedis)
 		}
-	}
-
-	//check Booking Source with date time rule
-	if body.BookingSourceId != "" {
-		//TODO: check lại khi rãnh
-		// bookingSource := model_booking.BookingSource{
-		// 	PartnerUid: prof.PartnerUid,
-		// 	CourseUid:  prof.CourseUid,
-		// }
-		// bookingSource.BookingSourceId = body.BookingSourceId
-
-		// errorTime := bookingSource.ValidateTimeRuleInBookingSource(db, body.BookingDate, body.TeePath)
-		// if errorTime != nil {
-		// 	log.Println("", errorTime.Error())
-		// 	response_message.BadRequest(c, errorTime.Error())
-		// 	return nil, errorTime
-		// }
 	}
 
 	if !body.IsCheckIn {
@@ -230,10 +203,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	//Check duplicated
 	isDuplicated, _ := booking.IsDuplicated(db, true, true)
 	if isDuplicated {
-		// if errDupli != nil {
-		// 	response_message.DuplicateRecord(c, errDupli.Error())
-		// 	return nil, errDupli
-		// }
 		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 		return nil, errors.New(constants.API_ERR_DUPLICATED_RECORD)
 	}
@@ -437,10 +406,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			go handleSinglePayment(db, booking)
 		}
 	}
-
-	// if !body.BookFromOTA {
-	// 	go updateSlotTeeTimeWithLock(booking)
-	// }
 
 	return &booking, nil
 }
@@ -833,12 +798,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 	}
-	//Find Booking Code
-	// list, _ := booking.FindListWithBookingCode(db)
-	// if len(list) == 1 {
-	// 	booking.CustomerBookingName = booking.CustomerName
-	// 	booking.CustomerBookingPhone = booking.CustomerInfo.Phone
-	// }
 
 	// Booking Note
 	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
@@ -902,11 +861,6 @@ Update booking caddie when create booking or update
 func (_ *CBooking) UpdateBookingCaddieCommon(db *gorm.DB, PartnerUid string, CourseUid string, booking *model_booking.Booking, caddie models.Caddie) {
 	booking.CaddieId = caddie.Id
 
-	// if booking.CheckDuplicatedCaddieInTeeTime() {
-	// 	response_message.InternalServerError(c, "Caddie không được trùng trong cùng TeeTime")
-	// 	return
-	// }
-
 	booking.CaddieInfo = cloneToCaddieBooking(caddie)
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
 
@@ -915,12 +869,9 @@ func (_ *CBooking) UpdateBookingCaddieCommon(db *gorm.DB, PartnerUid string, Cou
 		booking.HasBookCaddie = true
 	}
 
-	// udp trạng thái caddie sang LOCK
-	// caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
 	if errCad := caddie.Update(db); errCad != nil {
 		log.Println("err udp caddie", errCad.Error())
 	}
-
 }
 
 /*
@@ -1045,8 +996,6 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			booking.AgencyInfo = model_booking.BookingAgency{}
 			booking.AgencyId = 0
 		}
-
-		//Update giá đặc biệt nếu có
 
 		// Tính giá
 		//Guest style

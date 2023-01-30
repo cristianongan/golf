@@ -10,6 +10,7 @@ import (
 	model_booking "start/models/booking"
 	"start/utils"
 	"start/utils/response_message"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -103,6 +104,23 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		newBooking.AddedRound = setBoolForCursor(false)
 		newBooking.NoteOfGo = ""
 		newBooking.InitType = constants.BOOKING_INIT_ROUND
+
+		// Tính teeTime gần nhất
+		teeTimeList := getTeeTimeList(booking.CourseUid, booking.PartnerUid, booking.BookingDate)
+		timeNowStrConv := time.Now().Format(constants.HOUR_FORMAT)
+		timeNowFM, _ := utils.ConvertHourToTime(timeNowStrConv)
+
+		teeTimeNearest := ""
+		for _, teeTime := range teeTimeList {
+			teeTimeFM, _ := utils.ConvertHourToTime(teeTime)
+
+			if teeTimeFM.After(timeNowFM) {
+				teeTimeNearest = teeTime
+				break
+			}
+		}
+		newBooking.TeeTime = teeTimeNearest
+
 		errCreateBooking := newBooking.Create(db, bUid)
 
 		if errCreateBooking != nil {
