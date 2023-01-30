@@ -105,7 +105,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		newBooking.NoteOfGo = ""
 		newBooking.InitType = constants.BOOKING_INIT_ROUND
 
-		// Tính teeTime gần nhất
+		// Tính teeTime gần nhất cho round mới
 		teeTimeList := getTeeTimeList(booking.CourseUid, booking.PartnerUid, booking.BookingDate)
 		timeNowStrConv := time.Now().Format(constants.HOUR_FORMAT)
 		timeNowFM, _ := utils.ConvertHourToTime(timeNowStrConv)

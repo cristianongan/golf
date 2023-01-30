@@ -53,6 +53,11 @@ type PaymentBagInfo struct {
 	MainBags       utils.ListSubBag             `json:"main_bags"`
 }
 
+type SinglePaymentWithDebt struct {
+	SinglePayment
+	CountDebt int `json:"count_debt"`
+}
+
 func (item *PaymentBagInfo) Scan(v interface{}) error {
 	return json.Unmarshal(v.([]byte), item)
 }
@@ -258,9 +263,50 @@ func (item *SinglePayment) FindList(db *gorm.DB, page models.Page, playerName st
 	return list, total, db.Error
 }
 
-// func (item *Payment) Delete() error {
-// 	if item.Model.Uid == "" {
-// 		return errors.New("Primary key is undefined!")
-// 	}
-// 	return datasources.GetDatabase().Delete(item).Error
-// }
+func (item *SinglePayment) FindListWithJoin(db *gorm.DB, page models.Page, playerName string) ([]SinglePaymentWithDebt, int64, error) {
+	db = db.Model(SinglePayment{})
+	list := []SinglePaymentWithDebt{}
+	total := int64(0)
+	status := item.Model.Status
+	item.Model.Status = ""
+
+	if status != "" {
+		db = db.Where("status in (?)", strings.Split(status, ","))
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("single_payments.partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("single_payments.course_uid = ?", item.CourseUid)
+	}
+
+	if item.Bag != "" {
+		db = db.Where("single_payments.bag = ?", item.Bag)
+	}
+
+	if item.Type != "" {
+		db = db.Where("single_payments.type = ?", item.Type)
+	}
+
+	if item.PaymentDate != "" {
+		db = db.Where("single_payments.payment_date = ?", item.PaymentDate)
+	}
+
+	if item.PaymentStatus != "" {
+		db = db.Where("single_payments.payment_status = ?", item.PaymentStatus)
+	}
+
+	if playerName != "" {
+		db = db.Where("single_payments.bag_info->'$.customer_name' LIKE ?", "%"+playerName+"%")
+	}
+
+	db.Joins("LEFT JOIN single_payment_items ON single_payment_items.payment_uid = single_payments.uid")
+	db.Select("single_payments.*, SUM(single_payment_items.payment_type ='DEBT') as count_debt")
+	db.Group("single_payments.uid")
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Debug().Find(&list)
+	}
+	return list, total, db.Error
+}

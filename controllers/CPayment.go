@@ -210,7 +210,7 @@ func (_ *CPayment) GetListSinglePayment(c *gin.Context, prof models.CmsUser) {
 		Type:          constants.PAYMENT_CATE_TYPE_SINGLE,
 	}
 
-	list, total, err := paymentR.FindList(db, page, body.PlayerName)
+	list, total, err := paymentR.FindListWithJoin(db, page, body.PlayerName)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
