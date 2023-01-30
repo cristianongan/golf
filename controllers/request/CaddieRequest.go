@@ -55,6 +55,9 @@ type GetCaddiGroupDayOffByDateForm struct {
 	CourseId   string `form:"course_uid" json:"course_uid" binding:"required"`
 	PartnerUid string `form:"partner_uid" json:"partner_uid" binding:"required"`
 	Date       string `form:"date"`
+	Name       string `form:"name" json:"name"`
+	Code       string `form:"code" json:"code"`
+	GroupId    string `form:"group_id"`
 }
 
 type UpdateCaddieBody struct {
