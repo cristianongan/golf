@@ -285,7 +285,7 @@ func (_ *CCaddie) GetCaddieReadyOnDay(c *gin.Context, prof models.CmsUser) {
 	}
 
 	caddie.IsReadyForJoin = "1"
-	list, _, err := caddie.FindAllCaddieReadyOnDayList(db, form.DateTime)
+	list, _, err := caddie.FindAllCaddieReadyOnDayList(db)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

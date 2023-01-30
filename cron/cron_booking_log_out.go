@@ -42,14 +42,14 @@ func runBookingLogout() {
 	// 	}
 	// }
 
-	caddie := models.Caddie{}
+	caddie := models.CaddieList{}
 	dbCaddie := datasources.GetDatabase()
-	listCaddie, _, _ := caddie.FindListCaddieNotReady(dbCaddie)
+	listCaddie, _, _ := caddie.FindAllCaddieReadyOnDayList(dbCaddie)
 	for _, v := range listCaddie {
 		v.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
 		v.CurrentRound = 0
+		v.IsWorking = 0
 		v.Update(dbCaddie)
-		// go updateCaddieOutSlot(v.PartnerUid, v.CourseUid, []string{v.Code})
 	}
 
 	buggy := models.Buggy{}
