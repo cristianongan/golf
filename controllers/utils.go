@@ -1557,6 +1557,7 @@ func getBuggyFee(gs string) utils.ListGolfHoleFee {
 
 func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 	var caddieSlotNew []string
+	var caddieSlotExist []string
 	// Format date
 	dateNow, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
@@ -1578,11 +1579,12 @@ func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 			index := utils.StringInList(item, caddieSlotNew)
 			if index != -1 {
 				caddieSlotNew = utils.Remove(caddieSlotNew, index)
+				caddieSlotExist = append(caddieSlotExist, item)
 			}
 		}
 	}
 
-	caddieWS.CaddieSlot = append(caddieSlotNew, caddies...)
+	caddieWS.CaddieSlot = append(caddieSlotNew, caddieSlotExist...)
 	err = caddieWS.Update(db)
 	if err != nil {
 		return err
@@ -1732,4 +1734,12 @@ func getTeeTimeList(courseUid, partnerUid, bookingDate string) []string {
 		}
 	}
 	return teeTimeListLL
+}
+func getIdGroup(s []models.CaddieGroup, e string) int64 {
+	for _, v := range s {
+		if v.Code == e {
+			return v.Id
+		}
+	}
+	return 0
 }

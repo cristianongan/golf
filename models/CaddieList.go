@@ -29,6 +29,7 @@ type CaddieList struct {
 	ContractStatus        string
 	CurrentStatus         string
 	IsBooked              string
+	GroupList             []int64
 }
 
 type CaddieRes struct {
@@ -118,6 +119,10 @@ func addFilter(db *gorm.DB, item *CaddieList) *gorm.DB {
 		}
 
 		db = db.Where("current_status IN (?) ", caddieStatus)
+	}
+
+	if len(item.GroupList) > 0 {
+		db = db.Where("group_id IN ?", item.GroupList)
 	}
 
 	return db
