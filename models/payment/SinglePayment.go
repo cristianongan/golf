@@ -301,12 +301,12 @@ func (item *SinglePayment) FindListWithJoin(db *gorm.DB, page models.Page, playe
 	}
 
 	db.Joins("LEFT JOIN single_payment_items ON single_payment_items.payment_uid = single_payments.uid")
-	db.Select("single_payments.*, SUM(single_payment_items.payment_type ='DEBT') as count_debt")
+	db.Select("single_payments.*, SUM(single_payment_items.payment_type ='DEBIT') as count_debt")
 	db.Group("single_payments.uid")
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Debug().Find(&list)
+		db = page.Setup(db).Find(&list)
 	}
 	return list, total, db.Error
 }
