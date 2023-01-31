@@ -191,7 +191,7 @@ func (item *AgencySpecialPrice) FindList(database *gorm.DB, page Page, agencyIdS
 		db = db.Where("agency_special_prices.status = ?", item.Status)
 	}
 	if agencyIdStr != "" {
-		db = db.Where("agency_special_prices.agency_id = ?", agencyIdStr)
+		db = db.Where("agencies.agency_id LIKE ? OR agencies.name LIKE ?", "%"+agencyIdStr+"%", "%"+agencyIdStr+"%")
 	}
 
 	// queryStr := `select * from (select tb0.*,
