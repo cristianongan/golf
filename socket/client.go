@@ -64,7 +64,7 @@ func (c *Client) readPump() {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error: %v", err)
+				log.Printf("[SOCKET] readPump error: %v", err)
 			}
 			break
 		}
@@ -91,7 +91,7 @@ func (c *Client) writePump() {
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// The hub closed the channel.
-				log.Println("[SOCKET] WritePump Message Error: ???")
+				log.Println("[SOCKET] WritePump Message Error: The hub closed the channel.")
 				c.write(websocket.CloseMessage, []byte{})
 				return
 			}
@@ -105,37 +105,6 @@ func (c *Client) writePump() {
 				return
 			}
 		}
-
-		// case message, ok := <-c.send:
-		// 	c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-		// 	if !ok {
-		// 		// The hub closed the channel.
-		// 		c.conn.WriteMessage(websocket.CloseMessage, []byte{})
-		// 		return
-		// 	}
-
-		// 	w, err := c.conn.NextWriter(websocket.TextMessage)
-		// 	if err != nil {
-		// 		return
-		// 	}
-		// 	w.Write(message)
-
-		// 	// Add queued chat messages to the current websocket message.
-		// 	n := len(c.send)
-		// 	for i := 0; i < n; i++ {
-		// 		w.Write(newline)
-		// 		w.Write(<-c.send)
-		// 	}
-
-		// 	if err := w.Close(); err != nil {
-		// 		return
-		// 	}
-		// case <-ticker.C:
-		// 	c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-		// 	if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-		// 		return
-		// 	}
-		// }
 	}
 }
 
@@ -143,7 +112,7 @@ func (c *Client) writePump() {
 func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader1.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println(err)
+		log.Println("[SOCKET] ServeWs err: ", err)
 		return
 	}
 	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
