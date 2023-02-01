@@ -89,14 +89,17 @@ func (c *Client) WritePump() {
 		select {
 		case message, ok := <-c.send:
 			if !ok {
+				log.Println("WritePump Message Error: ???")
 				c.write(websocket.CloseMessage, []byte{})
 				return
 			}
 			if err := c.write(websocket.TextMessage, message); err != nil {
+				log.Println("WritePump Message: ", err)
 				return
 			}
 		case <-ticker.C:
 			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
+				log.Println("WritePump Message ticker.C: ", err)
 				return
 			}
 		}
