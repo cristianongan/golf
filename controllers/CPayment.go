@@ -597,7 +597,7 @@ func (_ *CPayment) GetAgencyPayForBagDetail(c *gin.Context, prof models.CmsUser)
 		listGolfService, _ := serviceGolfs.FindAll(db)
 
 		hasCaddie := false
-		hasBuggy := true
+		hasBuggy := false
 
 		agencyBuggyBookingFee := int64(0)
 		agencyCaddieBookingFee := int64(0)
@@ -610,10 +610,10 @@ func (_ *CPayment) GetAgencyPayForBagDetail(c *gin.Context, prof models.CmsUser)
 				hasCaddie = true
 			}
 			if item.Type == constants.AGENCY_PAID_ALL_BUGGY {
-				agencyBuggyBookingFee = item.UnitPrice
+				agencyBuggyBookingFee = item.Amount
 			}
 			if item.Type == constants.AGENCY_PAID_ALL_CADDIE {
-				agencyCaddieBookingFee = item.UnitPrice
+				agencyCaddieBookingFee = item.Amount
 			}
 		}
 
