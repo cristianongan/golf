@@ -66,8 +66,8 @@ func (h *Hub) Run() {
 					log.Println("[SOCKET] Hub Run client.Send " + string(<-client.send))
 				default:
 					log.Println("[SOCKET] Hub Run default client.Send " + string(<-client.send))
-					// close(client.send)
-					// delete(h.Clients, client)
+					close(client.send)
+					delete(h.Clients, client)
 				}
 			}
 		}
