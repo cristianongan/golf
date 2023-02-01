@@ -155,6 +155,127 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 	item.ListServiceItems = listServiceItems
 }
 
+func (item *Booking) FindServiceItemsForHandleFee(db *gorm.DB) {
+	//MainBag
+	listServiceItems := ListBookingServiceItems{}
+	serviceGolfs := BookingServiceItem{
+		BillCode: item.BillCode,
+	}
+
+	listGolfService, _ := serviceGolfs.FindAll(db)
+	if len(listGolfService) > 0 {
+		for index, v := range listGolfService {
+			// Check trạng thái bill
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_MANUAL {
+				// Add từ lễ tân thì k cần check
+				listServiceItems = append(listServiceItems, v)
+			} else {
+				serviceCart := models.ServiceCart{}
+				serviceCart.Id = v.ServiceBill
+
+				errSC := serviceCart.FindFirst(db)
+				if errSC != nil {
+					log.Println("FindFristServiceCart errSC", errSC.Error())
+					return
+				}
+
+				if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
+					serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS ||
+					serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH ||
+					serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
+					listServiceItems = append(listServiceItems, v)
+				}
+			}
+
+			// Update lại bag cho service item thiếu bag
+			if v.Bag == "" {
+				listGolfService[index].Bag = item.Bag
+				listGolfService[index].Update(db)
+			}
+		}
+	}
+
+	//Check Subbag
+	listTemp := ListBookingServiceItems{}
+	if item.SubBags != nil && len(item.SubBags) > 0 {
+		for _, v := range item.SubBags {
+			serviceGolfsTemp := BookingServiceItem{
+				BillCode: v.BillCode,
+			}
+			listGolfServiceTemp, _ := serviceGolfsTemp.FindAll(db)
+
+			RsubDetail := Booking{
+				Bag: v.GolfBag,
+			}
+
+			subDetail, _ := RsubDetail.FindFirstByUId(db)
+			isAgencyPaidBookingCaddie := subDetail.GetAgencyPaidBookingCaddie() > 0
+			isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
+
+			if subDetail.CheckAgencyPaidAll() {
+				break
+			}
+
+			for _, v1 := range listGolfServiceTemp {
+				isCanAdd := false
+				if item.MainBagPay != nil && len(item.MainBagPay) > 0 {
+					for _, v2 := range item.MainBagPay {
+						// Check trạng thái bill
+						serviceCart := models.ServiceCart{}
+						serviceCart.Id = v1.ServiceBill
+
+						errSC := serviceCart.FindFirst(db)
+						if errSC != nil {
+							log.Println("FindFristServiceCart errSC", errSC.Error())
+							return
+						}
+
+						// Check trong MainBag có trả mới add
+						serviceTypV1 := v1.Type
+						if serviceTypV1 == constants.MINI_B_SETTING || serviceTypV1 == constants.MINI_R_SETTING {
+							serviceTypV1 = constants.GOLF_SERVICE_RESTAURANT
+						}
+						if serviceTypV1 == constants.DRIVING_SETTING {
+							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
+						}
+						if v2 == serviceTypV1 && v1.PaidBy != constants.PAID_BY_AGENCY {
+							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+								isCanAdd = true
+							} else {
+								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+									serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
+									serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS ||
+									serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH {
+									isCanAdd = true
+								}
+							}
+						}
+						if v1.ServiceType == constants.BUGGY_SETTING && isAgencyPaidBuggy {
+							isCanAdd = false
+						}
+						if v1.ServiceType == constants.CADDIE_SETTING && isAgencyPaidBookingCaddie {
+							isCanAdd = false
+						}
+					}
+				}
+
+				if item.CheckOutTime > 0 && v1.CreatedAt > item.CheckOutTime {
+					isCanAdd = false
+				}
+
+				if isCanAdd {
+					listTemp = append(listTemp, v1)
+				}
+
+			}
+		}
+	}
+
+	listServiceItems = append(listServiceItems, listTemp...)
+
+	item.ListServiceItems = listServiceItems
+}
+
 func (item *Booking) FindServiceItemsInPayment(db *gorm.DB) {
 	//MainBag
 	listServiceItems := ListBookingServiceItems{}
@@ -916,7 +1037,7 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 	buggyCaddieRentalFee := int64(0)
 	buggyCaddieAgencyPaidAllFee := int64(0)
 
-	item.FindServiceItems(db)
+	item.FindServiceItemsForHandleFee(db)
 	for _, v := range item.ListServiceItems {
 		isNeedPay := false
 		isBuggyCaddieRental := false
@@ -953,7 +1074,7 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 			}
 
 		} else {
-			if v.Bag != item.Bag {
+			if v.Bag != "" && v.Bag != item.Bag {
 				// Tính giá service của sub
 				subBagFee += v.Amount
 			} else {
@@ -965,7 +1086,7 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 			isNeedPay = true
 		}
 
-		if item.CheckAgencyPaidAll() && v.Type == constants.AGENCY_PAID_ALL_BUGGY_CADDIE {
+		if item.CheckAgencyPaidAll() && (v.Type == constants.AGENCY_PAID_ALL_BUGGY || v.Type == constants.AGENCY_PAID_ALL_CADDIE) {
 			isNeedPay = false
 			buggyCaddieAgencyPaidAllFee += v.Amount
 		}
@@ -991,8 +1112,8 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 	}
 
 	if item.CheckAgencyPaidAll() {
-		buggyCaddieRental := buggyCaddieAgencyPaidAllFee - buggyCaddieRentalFee
-		agencyPaidAll += buggyCaddieRental
+		agencyPaidAll -= buggyCaddieRentalFee
+		feePaid = agencyPaidAll
 
 		mushPay.MushPay = subBagFee
 		if item.GetAgencyPaid() != agencyPaidAll {
