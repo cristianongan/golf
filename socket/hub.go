@@ -40,11 +40,13 @@ func (h *Hub) Run() {
 				close(client.send)
 			}
 		case message := <-h.Broadcast:
-			log.Println("[SOCKET] message " + string(message))
+			log.Println("[SOCKET] Hub Run message " + string(message))
 			for client := range h.Clients {
-				log.Println("[SOCKET] client " + client.conn.LocalAddr().String())
+
 				select {
 				case client.send <- message:
+					log.Println("[SOCKET] Hub Run message " + string(message))
+					log.Println("[SOCKET] Hub Run client.Send " + string(<-client.send))
 				default:
 					// close(client.send)
 					// delete(h.Clients, client)
