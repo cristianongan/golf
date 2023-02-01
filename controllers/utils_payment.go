@@ -211,14 +211,14 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 			Quality:  1,
 			Amount:   feeInfo.CaddieFee,
 			BillCode: booking.BillCode,
-			Location: constants.SERVICE_ITEM_ADD_BY_RECEPTION,
+			Location: constants.SERVICE_ITEM_ADD_BY_MANUAL,
 		}
 		buggyBooking := model_booking.BookingServiceItem{
 			Type:     "AGENCY_PAID_ALL_BUGGY",
 			Quality:  1,
 			Amount:   feeInfo.BuggyFee,
 			BillCode: booking.BillCode,
-			Location: constants.SERVICE_ITEM_ADD_BY_RECEPTION,
+			Location: constants.SERVICE_ITEM_ADD_BY_MANUAL,
 		}
 
 		caddieBooking.Create(db)
