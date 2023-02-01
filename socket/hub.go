@@ -57,6 +57,7 @@ func (h *Hub) Run() {
 			}
 		case message := <-h.Broadcast:
 			log.Println("[SOCKET] Hub Run message " + string(message))
+			log.Println("[SOCKET] len clients1 ", len(h.Clients))
 			i := 0
 			for client := range h.Clients {
 				log.Println("[SOCKET] Hub Run clients index ", i)
