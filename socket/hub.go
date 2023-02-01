@@ -20,8 +20,17 @@ type Hub struct {
 	Unregister chan *Client
 }
 
-func NewHub() *Hub {
-	return &Hub{
+// func NewHub() *Hub {
+// 	return &Hub{
+// 		Broadcast:  make(chan []byte),
+// 		Register:   make(chan *Client),
+// 		Unregister: make(chan *Client),
+// 		Clients:    make(map[*Client]bool),
+// 	}
+// }
+
+func NewHubSocket() {
+	HubBroadcastSocket = &Hub{
 		Broadcast:  make(chan []byte),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),

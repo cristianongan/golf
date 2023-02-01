@@ -25,7 +25,8 @@ func Init() {
 
 	// --- Socket ---
 
-	socket.HubBroadcastSocket = socket.NewHub()
+	// socket.HubBroadcastSocket = socket.NewHub()
+	socket.NewHubSocket()
 	go socket.HubBroadcastSocket.Run()
 
 	// http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
