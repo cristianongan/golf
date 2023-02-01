@@ -113,8 +113,8 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		teeTimeNearest := ""
 		for _, teeTime := range teeTimeList {
 			teeTimeFM, _ := utils.ConvertHourToTime(teeTime)
-
-			if teeTimeFM.After(timeNowFM) {
+			diff := teeTimeFM.Unix() - timeNowFM.Unix()
+			if diff > 0 {
 				teeTimeNearest = teeTime
 				break
 			}
