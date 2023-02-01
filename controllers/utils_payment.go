@@ -205,6 +205,21 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 	}
 
 	if booking.AgencyPaidAll != nil && *booking.AgencyPaidAll {
+
+		caddieBooking := model_booking.BookingServiceItem{
+			Type:      "AGENCY_PAID_ALL",
+			Quality:   1,
+			UnitPrice: feeInfo.CaddieFee,
+		}
+		buggyBooking := model_booking.BookingServiceItem{
+			Type:      "AGENCY_PAID_ALL",
+			Quality:   1,
+			UnitPrice: feeInfo.BuggyFee,
+		}
+
+		caddieBooking.Create(db)
+		buggyBooking.Create(db)
+
 		booking.UpdatePriceDetailCurrentBag(db)
 		booking.UpdateMushPay(db)
 		booking.Update(db)
