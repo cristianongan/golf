@@ -115,5 +115,5 @@ func pushNotificationUnlockTee() {
 	}
 
 	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+	socket.GetHubSocket().Broadcast <- newFsConfigBytes
 }

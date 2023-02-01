@@ -55,7 +55,7 @@ package socket
 // // reads from this goroutine.
 // func (c *Client) ReadPump() {
 // 	defer func() {
-// 		HubBroadcastSocket.Unregister <- c
+// 		GetHubSocket().Unregister <- c
 // 		c.conn.Close()
 // 	}()
 // 	c.conn.SetReadLimit(maxMessageSize)
@@ -70,7 +70,7 @@ package socket
 // 			break
 // 		}
 // 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-// 		HubBroadcastSocket.Broadcast <- message
+// 		GetHubSocket().Broadcast <- message
 // 	}
 // }
 
@@ -145,7 +145,7 @@ package socket
 // 		return
 // 	}
 // 	client := &Client{conn: conn, send: make(chan []byte, 256)}
-// 	HubBroadcastSocket.Register <- client
+// 	GetHubSocket().Register <- client
 
 // 	// Allow collection of memory referenced by the caller by doing all work in
 // 	// new goroutines.

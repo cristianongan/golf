@@ -44,7 +44,7 @@ func NewRouter() *gin.Engine {
 	router.Group(moduleName).GET("/", healthcheck)
 	router.Group(moduleName).GET("/healthz", healthcheck)
 	router.Group(moduleName).GET("/ws", func(c *gin.Context) {
-		socket.ServeWs(socket.HubBroadcastSocket, c.Writer, c.Request)
+		socket.ServeWs(socket.GetHubSocket(), c.Writer, c.Request)
 	})
 
 	// router.Group(moduleName).GET("/ws/:roomId", func(c *gin.Context) {
