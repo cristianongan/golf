@@ -33,16 +33,20 @@ func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.Register:
+			log.Println("[SOCKET] Hub Run Register")
 			h.Clients[client] = true
 		case client := <-h.Unregister:
+			log.Println("[SOCKET] Hub Run Unregister")
 			if _, ok := h.Clients[client]; ok {
 				delete(h.Clients, client)
 				close(client.send)
 			}
 		case message := <-h.Broadcast:
 			log.Println("[SOCKET] Hub Run message " + string(message))
+			i := 0
 			for client := range h.Clients {
-
+				log.Println("[SOCKET] Hub Run clients index ", i)
+				i++
 				select {
 				case client.send <- message:
 					log.Println("[SOCKET] Hub Run client.Send message " + string(message))
