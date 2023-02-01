@@ -153,9 +153,9 @@ package socket
 // 	go client.ReadPump()
 // }
 
-// func (c *Client) write(mt int, payload []byte) error {
-// 	// c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-// 	c.mu.Lock()
-// 	defer c.mu.Unlock()
-// 	return c.conn.WriteMessage(mt, payload)
-// }
+func (c *Client) write(mt int, payload []byte) error {
+	// c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+	// c.mu.Lock()
+	// defer c.mu.Unlock()
+	return c.conn.WriteMessage(mt, payload)
+}
