@@ -45,9 +45,10 @@ func (h *Hub) Run() {
 
 				select {
 				case client.send <- message:
-					log.Println("[SOCKET] Hub Run message " + string(message))
+					log.Println("[SOCKET] Hub Run client.Send message " + string(message))
 					log.Println("[SOCKET] Hub Run client.Send " + string(<-client.send))
 				default:
+					log.Println("[SOCKET] Hub Run default client.Send " + string(<-client.send))
 					// close(client.send)
 					// delete(h.Clients, client)
 				}
