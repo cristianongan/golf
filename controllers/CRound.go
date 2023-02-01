@@ -103,6 +103,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		newBooking.ShowCaddieBuggy = setBoolForCursor(false)
 		newBooking.AddedRound = setBoolForCursor(false)
 		newBooking.NoteOfGo = ""
+		newBooking.TeeOffTime = ""
 		newBooking.InitType = constants.BOOKING_INIT_ROUND
 
 		// Tính teeTime gần nhất cho round mới
