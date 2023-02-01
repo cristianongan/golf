@@ -1222,11 +1222,13 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	booking := model_booking.Booking{}
-	booking.PartnerUid = serviceCart.PartnerUid
-	booking.CourseUid = serviceCart.CourseUid
-	booking.Uid = serviceCart.BookingUid
-	if err := booking.FindFirst(db); err != nil {
+	bookingR := model_booking.Booking{}
+	bookingR.PartnerUid = serviceCart.PartnerUid
+	bookingR.CourseUid = serviceCart.CourseUid
+	bookingR.Uid = serviceCart.BookingUid
+	booking, err := bookingR.FindFirstByUId(db)
+
+	if err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
 		return
 	}

@@ -591,6 +591,32 @@ func (_ *CPayment) GetAgencyPayForBagDetail(c *gin.Context, prof models.CmsUser)
 	}
 
 	if booking.CheckAgencyPaidAll() {
+		serviceGolfs := model_booking.BookingServiceItem{
+			BillCode: booking.BillCode,
+		}
+		listGolfService, _ := serviceGolfs.FindAll(db)
+
+		hasCaddie := false
+		hasBuggy := false
+
+		agencyBuggyBookingFee := int64(0)
+		agencyCaddieBookingFee := int64(0)
+
+		for _, item := range listGolfService {
+			if item.ServiceType == constants.BUGGY_SETTING {
+				hasBuggy = true
+			}
+			if item.ServiceType == constants.CADDIE_SETTING {
+				hasCaddie = true
+			}
+			if item.Type == constants.AGENCY_PAID_ALL_BUGGY {
+				agencyBuggyBookingFee = item.Amount
+			}
+			if item.Type == constants.AGENCY_PAID_ALL_CADDIE {
+				agencyCaddieBookingFee = item.Amount
+			}
+		}
+
 		booking.FindServiceItemsOfBag(db)
 		payForBag.FeeData = utils.ListBookingAgencyPayForBagData{}
 		payForBag.FeeData = append(payForBag.FeeData, utils.BookingAgencyPayForBagData{
@@ -598,12 +624,31 @@ func (_ *CPayment) GetAgencyPayForBagDetail(c *gin.Context, prof models.CmsUser)
 			Fee:  booking.CurrentBagPrice.GolfFee,
 			Name: "Golf Fee",
 		})
-		for _, item := range booking.ListServiceItems {
+
+		if !hasBuggy {
 			payForBag.FeeData = append(payForBag.FeeData, utils.BookingAgencyPayForBagData{
-				Type: item.Type,
-				Fee:  item.Amount,
-				Name: item.Name,
+				Type: constants.BOOKING_AGENCY_BUGGY_FEE,
+				Fee:  agencyBuggyBookingFee,
+				Name: "Thuê xe (1/2 xe)",
 			})
+		}
+
+		if !hasCaddie {
+			payForBag.FeeData = append(payForBag.FeeData, utils.BookingAgencyPayForBagData{
+				Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
+				Fee:  agencyCaddieBookingFee,
+				Name: "Booking Caddie fee",
+			})
+		}
+
+		for _, item := range booking.ListServiceItems {
+			if !(item.Type == constants.AGENCY_PAID_ALL_BUGGY || item.Type == constants.AGENCY_PAID_ALL_CADDIE) {
+				payForBag.FeeData = append(payForBag.FeeData, utils.BookingAgencyPayForBagData{
+					Type: item.Type,
+					Fee:  item.Amount,
+					Name: item.Name,
+				})
+			}
 		}
 	}
 

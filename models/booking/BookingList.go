@@ -309,7 +309,7 @@ func (item *BookingList) FindBookingListWithSelect(database *gorm.DB, page model
 	db := database.Model(Booking{})
 
 	db = addFilter(db, item, isGroupBillCode)
-	db = db.Where("init_type = ?", constants.BOOKING_INIT_TYPE_BOOKING)
+	db = db.Where("init_type IN (?)", []string{constants.BOOKING_INIT_TYPE_BOOKING, constants.BOOKING_INIT_TYPE_CHECKIN})
 
 	db.Count(&total)
 

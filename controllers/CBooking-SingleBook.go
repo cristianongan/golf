@@ -236,8 +236,10 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 	}
 
 	// Bắn socket để client update ui
-	cNotification := CNotification{}
-	cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, listBooking)
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, listBooking)
+	}()
 	okResponse(c, listBooking)
 }
 
