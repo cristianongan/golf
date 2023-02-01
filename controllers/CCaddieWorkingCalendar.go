@@ -164,9 +164,14 @@ func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, pr
 	// 	response_message.BadRequest(c, "Find first caddie working calendar note "+err.Error())
 	// 	return
 	// }
+	dataCaddieSlot := models.CaddieWorkingSlot{}
+
+	if len(list) > 0 {
+		dataCaddieSlot = list[0]
+	}
 
 	listRes := map[string]interface{}{
-		"data_caddie":          list[0],
+		"data_caddie":          dataCaddieSlot,
 		"data_caddie_increase": listIncrease,
 		// "note":                 listNote,
 	}
