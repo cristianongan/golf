@@ -1022,13 +1022,43 @@ func getBagDetailForPayment(db *gorm.DB, booking model_booking.Booking) model_bo
 		Booking: booking,
 	}
 
+	mainPaidRound1 := false
+	mainPaidRound2 := false
+
+	if len(booking.MainBags) > 0 {
+		mainBook := model_booking.Booking{
+			CourseUid:   booking.CourseUid,
+			PartnerUid:  booking.PartnerUid,
+			Bag:         booking.MainBags[0].GolfBag,
+			BookingDate: booking.BookingDate,
+		}
+		errFMB := mainBook.FindFirst(db)
+		if errFMB != nil {
+			log.Println("UpdateMushPay-"+booking.Bag+"-Find Main Bag", errFMB.Error())
+		}
+
+		mainPaidRound1 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND) > -1
+		mainPaidRound2 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS) > -1
+	}
+
 	// Get Rounds
 	if booking.BillCode != "" {
 		round := models.Round{BillCode: booking.BillCode}
 		listRound, _ := round.FindAll(db)
 
+		newListRoundWillAdd := []models.Round{}
+
+		for _, rd := range listRound {
+			if rd.Index == 1 && !mainPaidRound1 && !booking.CheckAgencyPaidAll() && !booking.CheckAgencyPaidRound1() {
+				newListRoundWillAdd = append(newListRoundWillAdd, rd)
+			}
+			if rd.Index == 2 && !mainPaidRound2 {
+				newListRoundWillAdd = append(newListRoundWillAdd, rd)
+			}
+		}
+
 		if len(listRound) > 0 {
-			bagDetail.Rounds = listRound
+			bagDetail.Rounds = newListRoundWillAdd
 		}
 	}
 	return bagDetail
