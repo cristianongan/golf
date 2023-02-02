@@ -65,6 +65,7 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 
 	caddieRequest.Phone = ""
 	caddieRequest.Code = body.Code // Id Caddie vận hành
+	caddieRequest.Status = constants.STATUS_ENABLE
 	errCodeExist := caddieRequest.FindFirst(db)
 
 	if errCodeExist == nil {
