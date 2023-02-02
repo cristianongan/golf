@@ -56,20 +56,12 @@ func (h *Hub) Run() {
 				close(client.send)
 			}
 		case message := <-h.Broadcast:
-			log.Println("[SOCKET] Hub Run message " + string(message))
-			log.Println("[SOCKET] len clients1 ", len(h.Clients))
-			i := 0
-			for client := range h.Clients {
-				log.Println("[SOCKET] Hub Run clients index ", i)
-				i++
-				select {
-				case client.send <- message:
-					log.Println("[SOCKET] Hub Run client.Send message " + string(message))
-					log.Println("[SOCKET] Hub Run client.Send " + string(<-client.send))
-				default:
-					log.Println("[SOCKET] Hub Run default client.Send " + string(<-client.send))
-					close(client.send)
-					delete(h.Clients, client)
+			for client := range clients {
+				err := client.WriteJSON(message)
+				if err != nil {
+					log.Printf("error: %v", err)
+					client.Close()
+					delete(clients, client)
 				}
 			}
 		}
