@@ -115,6 +115,40 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 	okRes(c)
 }
 
+func (_ *CCaddieWorkingCalendar) ImportCaddieSlotAuto(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	var body request.ImportCaddieSlotAutoBody
+	if err := c.BindJSON(&body); err != nil {
+		log.Print("ImportCaddieSlotAuto BindJSON error", err)
+		response_message.BadRequest(c, "")
+		return
+	}
+
+	caddieWCS := models.CaddieWorkingSlot{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		ApplyDate:  body.ApplyDate,
+	}
+
+	// Xóa dữ liệu ngày truy vấn
+	if errD := caddieWCS.DeleteBatch(db); errD != nil {
+		response_message.BadRequest(c, "Delete caddie slot auto "+errD.Error())
+		return
+	}
+
+	caddieWCS.CaddieSlot = body.CaddieSlot
+
+	err := caddieWCS.Create(db)
+	if err != nil {
+		log.Println("Create report caddie slot err", err.Error())
+	}
+
+	//Update lại ds caddie trong GO
+	go updateCaddieWorkingOnDay(body.CaddieSlot, body.PartnerUid, body.CourseUid, true)
+
+	okRes(c)
+}
+
 func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	// TODO: filter by from and to

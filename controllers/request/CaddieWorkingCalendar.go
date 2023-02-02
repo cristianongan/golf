@@ -7,6 +7,13 @@ type CreateCaddieWorkingCalendarBody struct {
 	ActionType        string                             `json:"action_type"`
 }
 
+type ImportCaddieSlotAutoBody struct {
+	PartnerUid string   `json:"partner_uid" binding:"required"`
+	CourseUid  string   `json:"course_uid" binding:"required"`
+	CaddieSlot []string `json:"caddie_slot" binding:"required"`
+	ApplyDate  string   `json:"apply_date" binding:"required"`
+}
+
 type GetCaddieWorkingCalendarList struct {
 	PartnerUid string `form:"partner_uid" validate:"required"`
 	CourseUid  string `form:"course_uid" validate:"required"`
