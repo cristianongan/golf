@@ -55,7 +55,7 @@ type Client struct {
 func (c *Client) readPump() {
 	defer func() {
 		// c.hub.Unregister <- c
-		c.conn.Close()
+		// c.conn.Close()
 	}()
 	c.conn.SetReadLimit(maxMessageSize)
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
