@@ -120,20 +120,22 @@ func (c *Client) WritePump() {
 			}
 			w.Write(message)
 
+			log.Println("[SOCKET] WritePump message ", string(message))
+
 			// Add queued chat messages to the current websocket message.
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				// for msg := range c.send {
-				// 	msgByte, _ := json.Marshal(msg)
-				// 	_, err := w.Write(msgByte)
-				// 	if err != nil {
-				// 		hubBroadcastSocket.Unregister <- c
-				// 		break
-				// 	}
-				// }
-				w.Write(newline)
-				w.Write(<-c.send)
-			}
+			// n := len(c.send)
+			// for i := 0; i < n; i++ {
+			// 	// for msg := range c.send {
+			// 	// 	msgByte, _ := json.Marshal(msg)
+			// 	// 	_, err := w.Write(msgByte)
+			// 	// 	if err != nil {
+			// 	// 		hubBroadcastSocket.Unregister <- c
+			// 	// 		break
+			// 	// 	}
+			// 	// }
+			// 	w.Write(newline)
+			// 	w.Write(<-c.send)
+			// }
 
 			if err := w.Close(); err != nil {
 				log.Println("[SOCKET] WritePump err 1", err)
