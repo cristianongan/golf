@@ -338,6 +338,24 @@ func (item *BookingList) FindAllBookingList(database *gorm.DB) (*gorm.DB, int64,
 	return db, total, db.Error
 }
 
+func (item *BookingList) FindListRoundOfBagPlaying(database *gorm.DB, page models.Page) (*gorm.DB, int64, error) {
+	var list []Booking
+	total := int64(0)
+
+	db := database.Model(Booking{})
+
+	db = addFilter(db, item, false)
+	db = db.Where("added_round = ?", false)
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return db, total, db.Error
+}
+
 func (item *BookingList) FindAllBookingNotCancelList(database *gorm.DB) (*gorm.DB, int64, error) {
 	total := int64(0)
 	db := database.Model(Booking{})
