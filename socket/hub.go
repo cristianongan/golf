@@ -1,5 +1,7 @@
 package socket
 
+import "log"
+
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
 var HubBroadcastSocket *Hub
@@ -44,8 +46,11 @@ func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.Register:
+			log.Println("[SOCKET] Hub Run Register")
+			log.Println("[SOCKET] len clients", len(h.Clients))
 			h.Clients[client] = true
 		case client := <-h.Unregister:
+			log.Println("[SOCKET] Hub Run Unregister")
 			if _, ok := h.Clients[client]; ok {
 				delete(h.Clients, client)
 				close(client.send)
