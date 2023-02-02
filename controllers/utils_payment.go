@@ -204,6 +204,12 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		BookingUid:  booking.Uid,
 	}
 
+	isUpdate := false
+
+	if errFind := bookingAgencyPayment.FindFirst(db); errFind == nil {
+		isUpdate = true
+	}
+
 	if booking.AgencyPaidAll != nil && *booking.AgencyPaidAll {
 
 		caddieBooking := model_booking.BookingServiceItem{
@@ -267,7 +273,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 
 	if feeInfo.BuggyFee > 0 || feeInfo.CaddieFee > 0 || feeInfo.GolfFee > 0 {
 		// Ghi nhận số tiền agency thanh toán của agency
-		if errFind := bookingAgencyPayment.FindFirst(db); errFind != nil {
+		if !isUpdate {
 			bookingAgencyPayment.CaddieId = fmt.Sprint(booking.CaddieId)
 			bookingAgencyPayment.Create(db)
 		} else {
