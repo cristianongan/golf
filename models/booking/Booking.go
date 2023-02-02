@@ -807,6 +807,7 @@ func (item *Booking) FindListForSubBag(database *gorm.DB) ([]BookingForSubBag, e
 	bagStatus := []string{
 		constants.BAG_STATUS_CHECK_OUT,
 		constants.BAG_STATUS_BOOKING,
+		constants.BAG_STATUS_CANCEL,
 	}
 
 	db = db.Where("bag_status NOT IN (?)", bagStatus)
