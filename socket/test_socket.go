@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"log"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -39,11 +38,11 @@ var upgrader1 = websocket.Upgrader{
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
-	// hub *Hub
+	hub *Hub
 
 	// The websocket connection.
 	conn *websocket.Conn
-	mu   sync.Mutex
+	// mu   sync.Mutex
 	// Buffered channel of outbound messages.
 	send chan []byte
 }
@@ -86,54 +85,54 @@ func (c *Client) WritePump() {
 		c.conn.Close()
 	}()
 	for {
-		select {
-		case message, ok := <-c.send:
-			if !ok {
-				log.Println("WritePump Message Error: ???")
-				c.write(websocket.CloseMessage, []byte{})
-				return
-			}
-			if err := c.write(websocket.TextMessage, message); err != nil {
-				log.Println("WritePump Message: ", err)
-				return
-			}
-		case <-ticker.C:
-			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
-				log.Println("WritePump Message ticker.C: ", err)
-				return
-			}
-		}
 		// select {
 		// case message, ok := <-c.send:
-		// 	c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 		// 	if !ok {
-		// 		// The hub closed the channel.
-		// 		c.conn.WriteMessage(websocket.CloseMessage, []byte{})
+		// 		log.Println("WritePump Message Error: ???")
+		// 		c.write(websocket.CloseMessage, []byte{})
 		// 		return
 		// 	}
-
-		// 	err := c.conn.WriteMessage(websocket.TextMessage, message)
-		// 	if err != nil {
+		// 	if err := c.write(websocket.TextMessage, message); err != nil {
+		// 		log.Println("WritePump Message: ", err)
 		// 		return
 		// 	}
-		// 	// w.Write(message)
-
-		// 	// // Add queued chat messages to the current websocket message.
-		// 	// n := len(c.send)
-		// 	// for i := 0; i < n; i++ {
-		// 	// 	w.Write(newline)
-		// 	// 	w.Write(<-c.send)
-		// 	// }
-
-		// 	// if err := w.Close(); err != nil {
-		// 	// 	return
-		// 	// }
 		// case <-ticker.C:
-		// 	c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-		// 	if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+		// 	if err := c.write(websocket.PingMessage, []byte{}); err != nil {
+		// 		log.Println("WritePump Message ticker.C: ", err)
 		// 		return
 		// 	}
 		// }
+		select {
+		case message, ok := <-c.send:
+			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if !ok {
+				// The hub closed the channel.
+				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+
+			w, err := c.conn.NextWriter(websocket.TextMessage)
+			if err != nil {
+				return
+			}
+			w.Write(message)
+
+			// Add queued chat messages to the current websocket message.
+			n := len(c.send)
+			for i := 0; i < n; i++ {
+				w.Write(newline)
+				w.Write(<-c.send)
+			}
+
+			if err := w.Close(); err != nil {
+				return
+			}
+		case <-ticker.C:
+			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				return
+			}
+		}
 	}
 }
 
@@ -144,18 +143,18 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	client := &Client{conn: conn, send: make(chan []byte, 256)}
-	HubBroadcastSocket.Register <- client
+	client := &Client{hub: HubBroadcastSocket, conn: conn, send: make(chan []byte, 256)}
+	client.hub.Register <- client
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.
-	// go client.WritePump()
+	go client.WritePump()
 	go client.ReadPump()
 }
 
-func (c *Client) write(mt int, payload []byte) error {
-	// c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	return c.conn.WriteMessage(mt, payload)
-}
+// func (c *Client) write(mt int, payload []byte) error {
+// 	// c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+// 	c.mu.Lock()
+// 	defer c.mu.Unlock()
+// 	return c.conn.WriteMessage(mt, payload)
+// }
