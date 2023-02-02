@@ -252,3 +252,33 @@ func (_ *CRevenueReport) GetReportGolfFeeService(c *gin.Context, prof models.Cms
 
 	okResponse(c, res)
 }
+
+func (_ *CRevenueReport) GetReportBuggyForGuestStyle(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.ReportBuggyForGuestStyleForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	report := model_booking.Booking{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+
+	list, total, _ := report.FindReportBuggyForGuestStyle(db, page, form.Month, form.Year)
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	okResponse(c, res)
+}

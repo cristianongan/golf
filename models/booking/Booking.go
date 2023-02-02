@@ -1238,3 +1238,53 @@ func (item *Booking) ReportBookingRevenue(database *gorm.DB, bookingType, date s
 
 	return list, db.Error
 }
+
+func (item *Booking) FindReportBuggyForGuestStyle(database *gorm.DB, page models.Page, month, year string) ([]map[string]interface{}, int64, error) {
+	db := database.Table("bookings")
+	list := []map[string]interface{}{}
+	total := int64(0)
+
+	db = db.Select(`bookings.booking_date, bookings.customer_type,
+		SUM(if(bookings.customer_type = 'MEMBER', 1, 0)) AS member,
+		SUM(if(bookings.customer_type = 'GUEST', 1, 0)) AS guest,
+		SUM(if(bookings.customer_type = 'VISITOR', 1, 0)) AS visitor,
+		SUM(if(bookings.customer_type = 'TRADITIONAL' || bookings.customer_type = 'OTA', 1, 0)) AS agency,
+		SUM(if(bookings.customer_type = '' || bookings.customer_type = 'FOC', 1, 0)) AS other`)
+
+	if item.PartnerUid != "" {
+		db = db.Where("bookings.partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("bookings.course_uid = ?", item.CourseUid)
+	}
+
+	if year != "" {
+		db = db.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y') = ?", year)
+	} else if month != "" {
+		db = db.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y-%m') = ?", month)
+	}
+
+	// sub query
+	subQuery := database.Table("caddie_buggy_in_outs")
+
+	if item.PartnerUid != "" {
+		subQuery = subQuery.Where("caddie_buggy_in_outs.partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		subQuery = subQuery.Where("caddie_buggy_in_outs.course_uid = ?", item.CourseUid)
+	}
+
+	subQuery = subQuery.Where("caddie_buggy_in_outs.buggy_id > 0")
+
+	db = db.Joins("INNER JOIN (?) as tb1 ON tb1.booking_uid = bookings.uid", subQuery)
+
+	db.Group("bookings.booking_date")
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, total, db.Error
+}

@@ -66,8 +66,8 @@ func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 	// }
 
 	// newFsConfigBytes, _ := json.Marshal(notiData)
-	// // socket.HubBroadcastSocket = socket.NewHub()
-	// socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+	// // socket.GetHubSocket() = socket.NewHub()
+	// socket.GetHubSocket().Broadcast <- newFsConfigBytes
 
 	// m := socket_room.Message{
 	// 	Data: newFsConfigBytes,

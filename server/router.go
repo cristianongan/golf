@@ -44,7 +44,7 @@ func NewRouter() *gin.Engine {
 	router.Group(moduleName).GET("/", healthcheck)
 	router.Group(moduleName).GET("/healthz", healthcheck)
 	router.Group(moduleName).GET("/ws", func(c *gin.Context) {
-		socket.ServeWs(c.Writer, c.Request)
+		socket.ServeWs(socket.GetHubSocket(), c.Writer, c.Request)
 	})
 
 	// router.Group(moduleName).GET("/ws/:roomId", func(c *gin.Context) {
@@ -756,6 +756,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/revenue/report-cashier-audit", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportCashierAudit))
 			cmsApiAuthorized.GET("/report/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportGolfFeeService))
 			cmsApiAuthorized.GET("/report/booking/list", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBookingList))
+			cmsApiAuthorized.GET("/report/revenue/report-buggy-with-gs", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBuggyForGuestStyle))
 
 			/// =================== Redis Settings ===================
 			cRedis := new(controllers.CRedis)

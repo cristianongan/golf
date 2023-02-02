@@ -131,7 +131,7 @@ func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, pr
 	caddieWorkingCalendar.PartnerUid = body.PartnerUid
 	caddieWorkingCalendar.ApplyDate = body.ApplyDate
 
-	err := caddieWorkingCalendar.FindFirst(db)
+	list, err := caddieWorkingCalendar.Find(db)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -164,9 +164,14 @@ func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, pr
 	// 	response_message.BadRequest(c, "Find first caddie working calendar note "+err.Error())
 	// 	return
 	// }
+	dataCaddieSlot := models.CaddieWorkingSlot{}
+
+	if len(list) > 0 {
+		dataCaddieSlot = list[0]
+	}
 
 	listRes := map[string]interface{}{
-		"data_caddie":          caddieWorkingCalendar,
+		"data_caddie":          dataCaddieSlot,
 		"data_caddie_increase": listIncrease,
 		// "note":                 listNote,
 	}

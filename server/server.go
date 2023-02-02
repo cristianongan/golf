@@ -25,11 +25,12 @@ func Init() {
 
 	// --- Socket ---
 
-	socket.HubBroadcastSocket = socket.NewHub()
-	go socket.HubBroadcastSocket.Run()
+	// socket.GetHubSocket() = socket.NewHub()
+	socket.InitHubSocket()
+	go socket.GetHubSocket().Run()
 
 	// http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-	// 	socket.ServeWs(socket.HubBroadcastSocket, w, r)
+	// 	socket.ServeWs(socket.GetHubSocket(), w, r)
 	// })
 
 	// listener := func() {
