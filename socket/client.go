@@ -99,11 +99,19 @@ func (c *Client) writePump() {
 				log.Println("[SOCKET] WritePump Message: ", err)
 				return
 			}
-		case <-ticker.C:
-			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
+		case t := <-ticker.C:
+			err := c.write(websocket.TextMessage, []byte(t.String()))
+			if err != nil {
+				// level.Error(as.Logger).Log("wsWrite", err)
 				log.Println("[SOCKET] WritePump Message ticker.C: ", err)
 				return
 			}
+
+			// case <-ticker.C:
+			// 	if err := c.write(websocket.PingMessage, []byte{t.String()}); err != nil {
+			// 		log.Println("[SOCKET] WritePump Message ticker.C: ", err)
+			// 		return
+			// 	}
 		}
 	}
 }
