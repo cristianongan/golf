@@ -149,7 +149,7 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.
-	go client.WritePump()
+	// go client.WritePump()
 	go client.ReadPump()
 }
 

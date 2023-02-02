@@ -1,5 +1,7 @@
 package socket
 
+import "log"
+
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
 var HubBroadcastSocket *Hub
@@ -38,12 +40,12 @@ func (h *Hub) Run() {
 				close(client.send)
 			}
 		case message := <-h.Broadcast:
-			for client := range h.Clients {
-				select {
-				case client.send <- message:
-				default:
-					close(client.send)
-					delete(h.Clients, client)
+			for client := range clients {
+				err := client.WriteJSON(message)
+				if err != nil {
+					log.Printf("error: %v", err)
+					client.Close()
+					delete(clients, client)
 				}
 			}
 		}
