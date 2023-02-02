@@ -243,7 +243,14 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	}
 
 	if item.IsCheckIn != "" {
-		db = db.Where("check_in_time > 0")
+		// IsCheckIn = 1 lấy các booking đã check in nhưng chưa check out trong ngày hiện tại
+		// IsCheckIn = 2 lấy lịch sử booking đã check in
+		if item.IsCheckIn == "1" {
+			db = db.Where("check_in_time > 0")
+			db = db.Where("check_out_time = 0")
+		} else if item.IsCheckIn == "2" {
+			db = db.Where("check_in_time > 0")
+		}
 	}
 
 	if item.IsBuggyPrepareForJoin != "" {
