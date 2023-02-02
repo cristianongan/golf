@@ -55,7 +55,7 @@ type Client struct {
 // reads from this goroutine.
 func (c *Client) ReadPump() {
 	defer func() {
-		HubBroadcastSocket.Unregister <- c
+		hubBroadcastSocket.Unregister <- c
 		c.conn.Close()
 	}()
 	c.conn.SetReadLimit(maxMessageSize)
@@ -71,7 +71,7 @@ func (c *Client) ReadPump() {
 			break
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		HubBroadcastSocket.Broadcast <- message
+		hubBroadcastSocket.Broadcast <- message
 	}
 }
 
@@ -128,7 +128,7 @@ func (c *Client) WritePump() {
 					msgByte, _ := json.Marshal(msg)
 					_, err := w.Write(msgByte)
 					if err != nil {
-						HubBroadcastSocket.Unregister <- c
+						hubBroadcastSocket.Unregister <- c
 						break
 					}
 				}
@@ -157,7 +157,7 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 		log.Println("[SOCKET] ServeWs err", err)
 		return
 	}
-	client := &Client{hub: HubBroadcastSocket, conn: conn, send: make(chan []byte, 256)}
+	client := &Client{hub: hubBroadcastSocket, conn: conn, send: make(chan []byte, 256)}
 	client.hub.Register <- client
 
 	// Allow collection of memory referenced by the caller by doing all work in
