@@ -763,6 +763,7 @@ func NewRouter() *gin.Engine {
 			cRedis := new(controllers.CRedis)
 			cmsApiAuthorized.POST("/redis/tee-time/reset-all", middlewares.AuthorizedCmsUserHandler(cRedis.DeleteAllRedisTeeTime))
 			cmsApiAuthorized.POST("/redis/tee-time/reset", middlewares.AuthorizedCmsUserHandler(cRedis.DeleteTeeTimeRedis))
+			cmsApiAuthorized.POST("/redis/tee-time/update", middlewares.AuthorizedCmsUserHandler(cRedis.UpdateTeeTimeRedis))
 
 			/// =================== Test ===================
 			cTest := new(controllers.CTest)
