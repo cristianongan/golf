@@ -2,6 +2,7 @@ package socket
 
 import (
 	"bytes"
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -120,8 +121,16 @@ func (c *Client) WritePump() {
 			// Add queued chat messages to the current websocket message.
 			n := len(c.send)
 			for i := 0; i < n; i++ {
-				w.Write(newline)
-				w.Write(<-c.send)
+				for msg := range c.send {
+					msgByte, _ := json.Marshal(msg)
+					_, err := w.Write(msgByte)
+					if err != nil {
+						HubBroadcastSocket.Unregister <- c
+						break
+					}
+				}
+				// w.Write(newline)
+				// w.Write(<-c.send)
 			}
 
 			if err := w.Close(); err != nil {
