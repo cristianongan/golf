@@ -728,7 +728,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	//TODO: if body.MemberCardUid != "" && (body.MemberCardUid != booking.MemberCardUid ||
 	// 	body.AgencyId != booking.AgencyId) {
-	if body.MemberCardUid != "" && (body.AgencyId != booking.AgencyId) {
+	if body.MemberCardUid != "" {
 		memberCardBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:    body.PartnerUid,
 			CourseUid:     body.CourseUid,
