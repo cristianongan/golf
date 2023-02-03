@@ -716,11 +716,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerBookingPhone = body.CustomerBookingPhone
 	}
 
-	if body.CustomerName != "" {
-		booking.CustomerName = body.CustomerName
-		booking.CustomerInfo.Name = body.CustomerName
-	}
-
 	if body.MemberCardUid != booking.MemberCardUid ||
 		body.AgencyId != booking.AgencyId {
 		booking.SeparatePrice = false
@@ -830,6 +825,11 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
 			booking.HasBookCaddie = false
 		}
+	}
+
+	if body.CustomerName != "" {
+		booking.CustomerName = body.CustomerName
+		booking.CustomerInfo.Name = body.CustomerName
 	}
 
 	// Create booking payment
