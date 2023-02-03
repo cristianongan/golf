@@ -94,6 +94,9 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 				break
 			}
 
+			hasBuggy := false
+			hasCaddie := false
+
 			for _, v1 := range listGolfServiceTemp {
 				isCanAdd := false
 				if item.MainBagPay != nil && len(item.MainBagPay) > 0 {
@@ -127,12 +130,17 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 								}
 							}
 						}
-						if v1.ServiceType == constants.BUGGY_SETTING && isAgencyPaidBuggy {
-							isCanAdd = false
-						}
-						if v1.ServiceType == constants.CADDIE_SETTING && isAgencyPaidBookingCaddie {
-							isCanAdd = false
-						}
+
+					}
+
+					if isAgencyPaidBuggy && v1.Name == subDetail.GetAgencyBuggyName() && !hasBuggy {
+						hasBuggy = true
+						isCanAdd = false
+					}
+
+					if v1.ServiceType == constants.CADDIE_SETTING && isAgencyPaidBookingCaddie && !hasCaddie {
+						hasCaddie = true
+						isCanAdd = false
 					}
 				}
 
@@ -645,16 +653,15 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 								}
 							}
 						}
+					}
+					if isAgencyPaidBuggy && v1.Name == subDetail.GetAgencyBuggyName() && !hasBuggy {
+						hasBuggy = true
+						isCanAdd = false
+					}
 
-						if isAgencyPaidBuggy && v1.Name == subDetail.GetAgencyBuggyName() && !hasBuggy {
-							hasBuggy = true
-							isCanAdd = false
-						}
-
-						if v1.ServiceType == constants.CADDIE_SETTING && isAgencyPaidBookingCaddie && !hasCaddie {
-							hasCaddie = true
-							isCanAdd = false
-						}
+					if v1.ServiceType == constants.CADDIE_SETTING && isAgencyPaidBookingCaddie && !hasCaddie {
+						hasCaddie = true
+						isCanAdd = false
 					}
 				}
 
