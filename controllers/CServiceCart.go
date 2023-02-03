@@ -38,7 +38,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
 
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid
@@ -144,7 +144,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	} else {
 		serviceCart.GolfBag = body.GolfBag
 		serviceCart.BookingUid = booking.Uid
-		serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
+		serviceCart.BookingDate = datatypes.Date(time.Now().AddDate(0, 0, -1).UTC())
 		serviceCart.ServiceId = body.ServiceId
 		serviceCart.BillCode = constants.BILL_NONE
 		serviceCart.StaffOrder = prof.FullName
@@ -215,7 +215,7 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
 
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid
@@ -280,7 +280,7 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 	} else {
 		serviceCart.GolfBag = body.GolfBag
 		serviceCart.BookingUid = booking.Uid
-		serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
+		serviceCart.BookingDate = datatypes.Date(time.Now().AddDate(0, 0, -1).UTC())
 		serviceCart.ServiceId = body.ServiceId
 		serviceCart.BillCode = constants.BILL_NONE
 		serviceCart.StaffOrder = prof.FullName
@@ -633,7 +633,7 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
 
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid
@@ -740,7 +740,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
 
 	booking := model_booking.Booking{}
 	booking.PartnerUid = serviceCartItem.PartnerUid
@@ -815,7 +815,7 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
 
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid
@@ -832,7 +832,7 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 	serviceCart.CourseUid = body.CourseUid
 	serviceCart.ServiceId = body.ServiceId
 	serviceCart.GolfBag = body.GolfBag
-	serviceCart.BookingDate = datatypes.Date(time.Now().UTC())
+	serviceCart.BookingDate = datatypes.Date(time.Now().AddDate(0, 0, -1).UTC())
 	serviceCart.BillCode = constants.BILL_NONE
 
 	if err := serviceCart.FindFirst(db); err != nil {
@@ -846,7 +846,7 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	serviceCart.BillCode = time.Now().Format("20060102150405")
+	serviceCart.BillCode = time.Now().AddDate(0, 0, -1).Format("20060102150405")
 
 	if err := serviceCart.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -874,7 +874,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
 
 	booking := model_booking.Booking{}
 	booking.Bag = body.GolfBag
@@ -912,7 +912,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	targetServiceCart.PartnerUid = body.PartnerUid
 	targetServiceCart.CourseUid = body.CourseUid
 	targetServiceCart.GolfBag = body.GolfBag
-	targetServiceCart.BookingDate = datatypes.Date(time.Now().UTC())
+	targetServiceCart.BookingDate = datatypes.Date(time.Now().AddDate(0, 0, -1).UTC())
 	targetServiceCart.ServiceId = sourceServiceCart.ServiceId
 	targetServiceCart.ServiceType = sourceServiceCart.ServiceType
 	targetServiceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
@@ -1124,7 +1124,7 @@ func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
 
 	for {
 		// validate golf bag
-		dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
 
 		booking := model_booking.Booking{}
 		booking.Bag = bagClone
@@ -1168,10 +1168,10 @@ func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
 		CourseUid:      body.CourseUid,
 		Bag:            bagClone,
 		BillCode:       billCode,
-		BookingDate:    time.Now().Format("02/01/2006"),
+		BookingDate:    time.Now().AddDate(0, 0, -1).Format("02/01/2006"),
 		BagStatus:      constants.BAG_STATUS_WAITING,
 		InitType:       constants.BOOKING_INIT_TYPE_CHECKIN,
-		CheckInTime:    time.Now().Unix(),
+		CheckInTime:    time.Now().AddDate(0, 0, -1).Unix(),
 		CustomerName:   body.GuestName,
 		CustomerType:   constants.CUSTOMER_TYPE_NONE_GOLF,
 		GuestStyle:     golfFeeR.GuestStyle,

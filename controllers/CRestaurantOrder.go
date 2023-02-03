@@ -39,7 +39,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
 
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid
@@ -84,7 +84,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 	serviceCart.CourseUid = body.CourseUid
 	serviceCart.GolfBag = body.GolfBag
 	serviceCart.BookingUid = booking.Uid
-	serviceCart.BookingDate = datatypes.Date(time.Now().Local())
+	serviceCart.BookingDate = datatypes.Date(time.Now().AddDate(0, 0, -1).Local())
 	serviceCart.ServiceId = body.ServiceId
 	serviceCart.ServiceType = kiosk.KioskType
 	serviceCart.BillCode = constants.BILL_NONE
@@ -135,7 +135,7 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 
 	if serviceCart.BillCode == constants.BILL_NONE {
 		serviceCart.BillCode = "OD-" + strconv.Itoa(int(body.BillId))
-		serviceCart.TimeProcess = time.Now().Unix()
+		serviceCart.TimeProcess = time.Now().AddDate(0, 0, -1).Unix()
 		serviceCart.BillStatus = constants.RES_STATUS_PROCESS
 		// serviceCart.TotalMoveKitchen += 1
 
@@ -159,7 +159,7 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 
 	if len(list) > 0 {
 		if serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH {
-			serviceCart.TimeProcess = time.Now().Unix()
+			serviceCart.TimeProcess = time.Now().AddDate(0, 0, -1).Unix()
 			serviceCart.BillStatus = constants.RES_STATUS_PROCESS
 		}
 		// Update số lần move kitchen
@@ -484,7 +484,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		v.PartnerUid = body.PartnerUid
 		v.CourseUid = body.CourseUid
 		v.ServiceId = serviceCart.ServiceId
-		v.OrderDate = time.Now().Format(constants.DATE_FORMAT_1)
+		v.OrderDate = time.Now().AddDate(0, 0, -1).Format(constants.DATE_FORMAT_1)
 		v.BillId = serviceCart.Id
 		v.ItemId = serviceCartItem.Id
 		v.ItemStatus = constants.RES_STATUS_ORDER
@@ -977,7 +977,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 
 	if body.GolfBag != "" {
 		// validate golf bag
-		dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
 
 		booking.PartnerUid = body.PartnerUid
 		booking.CourseUid = body.CourseUid
@@ -1066,7 +1066,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 	// create service cart
 	serviceCart.PartnerUid = body.PartnerUid
 	serviceCart.CourseUid = body.CourseUid
-	serviceCart.BookingDate = datatypes.Date(time.Now().Local())
+	serviceCart.BookingDate = datatypes.Date(time.Now().AddDate(0, 0, -1).Local())
 	serviceCart.ServiceId = body.ServiceId
 	serviceCart.ServiceType = kiosk.KioskType
 	serviceCart.BillCode = constants.BILL_NONE
@@ -1213,7 +1213,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 	// 	v.PartnerUid = body.PartnerUid
 	// 	v.CourseUid = body.CourseUid
 	// 	v.ServiceId = serviceCart.ServiceId
-	// 	v.OrderDate = time.Now().Format(constants.DATE_FORMAT_1)
+	// 	v.OrderDate = time.Now().AddDate(0, 0, -1).Format(constants.DATE_FORMAT_1)
 	// 	v.BillId = serviceCart.Id
 	// 	v.ItemStatus = constants.RES_STATUS_ORDER
 
@@ -1322,7 +1322,7 @@ func (_ CRestaurantOrder) UpdateRestaurantBooking(c *gin.Context, prof models.Cm
 	booking := model_booking.Booking{}
 	if body.GolfBag != "" {
 		// validate golf bag
-		dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
 
 		booking := model_booking.Booking{}
 		booking.PartnerUid = body.PartnerUid
@@ -1533,7 +1533,7 @@ func (_ CRestaurantOrder) ConfrimRestaurantBooking(c *gin.Context, prof models.C
 
 	if body.GolfBag != "" {
 		// validate golf bag
-		dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
 
 		booking.PartnerUid = serviceCart.PartnerUid
 		booking.CourseUid = serviceCart.CourseUid
@@ -1633,7 +1633,7 @@ func (_ CRestaurantOrder) ConfrimRestaurantBooking(c *gin.Context, prof models.C
 			v.PartnerUid = serviceCart.PartnerUid
 			v.CourseUid = serviceCart.CourseUid
 			v.ServiceId = serviceCart.ServiceId
-			v.OrderDate = time.Now().Format(constants.DATE_FORMAT_1)
+			v.OrderDate = time.Now().AddDate(0, 0, -1).Format(constants.DATE_FORMAT_1)
 			v.ItemStatus = constants.RES_STATUS_ORDER
 
 			if err := v.Create(db); err != nil {
@@ -1669,7 +1669,7 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
 
 	booking := model_booking.Booking{}
 	booking.Bag = body.GolfBag
@@ -1707,7 +1707,7 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 	targetServiceCart.PartnerUid = body.PartnerUid
 	targetServiceCart.CourseUid = body.CourseUid
 	targetServiceCart.GolfBag = body.GolfBag
-	targetServiceCart.BookingDate = datatypes.Date(time.Now().UTC())
+	targetServiceCart.BookingDate = datatypes.Date(time.Now().AddDate(0, 0, -1).UTC())
 	targetServiceCart.ServiceId = sourceServiceCart.ServiceId
 	targetServiceCart.ServiceType = sourceServiceCart.ServiceType
 	targetServiceCart.BillStatus = sourceServiceCart.BillStatus
