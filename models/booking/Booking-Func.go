@@ -650,6 +650,7 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 							hasBuggy = true
 							isCanAdd = false
 						}
+
 						if v1.ServiceType == constants.CADDIE_SETTING && isAgencyPaidBookingCaddie && !hasCaddie {
 							hasCaddie = true
 							isCanAdd = false
@@ -1316,7 +1317,7 @@ func (item *Booking) GetAgencyBuggyName() string {
 	name := ""
 	for _, v := range item.AgencyPaid {
 		if v.Type == constants.BOOKING_AGENCY_BUGGY_FEE {
-			name = v.Type
+			name = v.Name
 		}
 	}
 	return name

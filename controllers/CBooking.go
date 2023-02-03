@@ -835,9 +835,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	// Create booking payment
 	if booking.AgencyId > 0 {
-		if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
-			go handleAgencyPaid(booking, body.FeeInfo)
-		}
+		go handleAgencyPaid(booking, body.FeeInfo)
+		// if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
+		// }
 	}
 
 	// Update các thông tin khác trước
@@ -1074,6 +1074,9 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 }
 
 func validateAgencyFeeBeforUpdate(booking model_booking.Booking, feeInfo request.AgencyFeeInfo) bool {
+	if len(booking.AgencyPaid) == 0 {
+		return true
+	}
 	if len(booking.AgencyPaid) > 0 && feeInfo.GolfFee > 0 && booking.AgencyPaid[0].Fee != feeInfo.GolfFee {
 		return true
 	}

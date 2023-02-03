@@ -21,7 +21,9 @@ type GetListAgencySpecialPriceForm struct {
 }
 
 type GetOtherBasePriceForm struct {
-	Type string `form:"type"`
-	Uid  string `form:"uid"`
-	Id   int64  `form:"id"`
+	Type       string `form:"type"`
+	Uid        string `form:"uid"`
+	Id         int64  `form:"id"`
+	PartnerUid string `form:"partner_uid"`
+	CourseUid  string `form:"course_uid"`
 }
