@@ -191,7 +191,9 @@ func (cRound CRound) GetFeeOfRound(c *gin.Context, db *gorm.DB, booking *model_b
 			}
 
 			agencySpecialPrice := models.AgencySpecialPrice{
-				AgencyId: agency.Id,
+				AgencyId:   agency.Id,
+				CourseUid:  booking.CourseUid,
+				PartnerUid: booking.PartnerUid,
 			}
 			errFSP := agencySpecialPrice.FindFirst(db)
 			if errFSP == nil && agencySpecialPrice.Id > 0 {

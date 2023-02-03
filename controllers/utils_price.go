@@ -172,7 +172,9 @@ func updateListGolfFeeWithRound(db *gorm.DB, round *models.Round, booking model_
 			}
 
 			agencySpecialPrice := models.AgencySpecialPrice{
-				AgencyId: agency.Id,
+				AgencyId:   agency.Id,
+				CourseUid:  agency.CourseUid,
+				PartnerUid: agency.PartnerUid,
 			}
 			errFSP := agencySpecialPrice.FindFirst(db)
 			if errFSP == nil && agencySpecialPrice.Id > 0 {

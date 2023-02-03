@@ -435,7 +435,9 @@ func (_ CBooking) updateAgencyForBooking(
 	if booking.MemberCardUid == "" {
 		// Nếu có cả member card thì ưu tiên giá member card
 		agencySpecialPriceR := models.AgencySpecialPrice{
-			AgencyId: agency.Id,
+			AgencyId:   agency.Id,
+			CourseUid:  booking.CourseUid,
+			PartnerUid: booking.PartnerUid,
 		}
 		// Tính lại giá riêng nếu thoả mãn các dk time
 		agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnTime(db)
