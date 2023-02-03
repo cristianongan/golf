@@ -267,7 +267,7 @@ func (_ *CBooking) GetListBookingForAddSubBag(c *gin.Context, prof models.CmsUse
 		CourseUid:  form.CourseUid,
 	}
 
-	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
 	if errDate == nil {
 		bookingR.BookingDate = dateDisplay
 	} else {

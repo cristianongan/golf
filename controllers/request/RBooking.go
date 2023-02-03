@@ -110,10 +110,11 @@ type CancelAllBookingBody struct {
 }
 
 type FinishBookingBody struct {
-	PartnerUid string `json:"partner_uid" binding:"required"` // Hang Golf
-	CourseUid  string `json:"course_uid" binding:"required"`  // San Golf
-	Bag        string `json:"bag" binding:"required"`
-	BillNo     string `json:"bill_no" binding:"required"`
+	PartnerUid  string `json:"partner_uid" binding:"required"` // Hang Golf
+	CourseUid   string `json:"course_uid" binding:"required"`  // San Golf
+	Bag         string `json:"bag" binding:"required"`
+	BillNo      string `json:"bill_no" binding:"required"`
+	BookingDate string `json:"booking_date"`
 }
 
 // Tạo Tee booking
