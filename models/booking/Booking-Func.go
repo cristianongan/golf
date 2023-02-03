@@ -1195,19 +1195,17 @@ func (item *Booking) UpdatePriceDetailCurrentBag(db *gorm.DB) {
 		return prev + item.GreenFee
 	})
 
-	if len(item.ListGolfFee) == 0 {
-		return
-	}
+	if len(item.ListGolfFee) != 0 {
+		bookingGolfFee := item.ListGolfFee[0]
+		bookingGolfFee.BookingUid = item.Uid
+		bookingGolfFee.CaddieFee = bookingCaddieFee
+		bookingGolfFee.BuggyFee = bookingBuggyFee
+		bookingGolfFee.GreenFee = bookingGreenFee
+		item.ListGolfFee[0] = bookingGolfFee
 
-	bookingGolfFee := item.ListGolfFee[0]
-	bookingGolfFee.BookingUid = item.Uid
-	bookingGolfFee.CaddieFee = bookingCaddieFee
-	bookingGolfFee.BuggyFee = bookingBuggyFee
-	bookingGolfFee.GreenFee = bookingGreenFee
-	item.ListGolfFee[0] = bookingGolfFee
-
-	if len(item.ListGolfFee) > 0 {
-		priceDetail.GolfFee = item.ListGolfFee[0].BuggyFee + item.ListGolfFee[0].CaddieFee + item.ListGolfFee[0].GreenFee
+		if len(item.ListGolfFee) > 0 {
+			priceDetail.GolfFee = item.ListGolfFee[0].BuggyFee + item.ListGolfFee[0].CaddieFee + item.ListGolfFee[0].GreenFee
+		}
 	}
 
 	item.FindServiceItems(db)
