@@ -220,7 +220,9 @@ func (_ *CAgency) GetOtherBasePrice(c *gin.Context, prof models.CmsUser) {
 	if form.Type == constants.OTHER_BASE_PRICE_AGENCY && form.Id > 0 {
 		// Get cho other price cho agency
 		agencyPriceR := models.AgencySpecialPrice{
-			AgencyId: form.Id,
+			AgencyId:   form.Id,
+			CourseUid:  form.CourseUid,
+			PartnerUid: form.PartnerUid,
 		}
 
 		agenPrice, errF := agencyPriceR.FindOtherPriceOnTime(db)
