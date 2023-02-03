@@ -10,6 +10,7 @@ import (
 	model_booking "start/models/booking"
 	"start/utils"
 	"start/utils/response_message"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -101,6 +102,26 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		newBooking.CourseType = body.CourseType
 		newBooking.ShowCaddieBuggy = setBoolForCursor(false)
 		newBooking.AddedRound = setBoolForCursor(false)
+		newBooking.NoteOfGo = ""
+		newBooking.TeeOffTime = ""
+		newBooking.InitType = constants.BOOKING_INIT_ROUND
+
+		// Tính teeTime gần nhất cho round mới
+		teeTimeList := getTeeTimeList(booking.CourseUid, booking.PartnerUid, booking.BookingDate)
+		timeNowStrConv, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.HOUR_FORMAT, time.Now().Unix())
+		timeNowFM, _ := utils.ConvertHourToTime(timeNowStrConv)
+
+		teeTimeNearest := ""
+		for _, teeTime := range teeTimeList {
+			teeTimeFM, _ := utils.ConvertHourToTime(teeTime)
+			diff := teeTimeFM.Unix() - timeNowFM.Unix()
+			if diff > 0 {
+				teeTimeNearest = teeTime
+				break
+			}
+		}
+		newBooking.TeeTime = teeTimeNearest
+
 		errCreateBooking := newBooking.Create(db, bUid)
 
 		if errCreateBooking != nil {
@@ -170,7 +191,9 @@ func (cRound CRound) GetFeeOfRound(c *gin.Context, db *gorm.DB, booking *model_b
 			}
 
 			agencySpecialPrice := models.AgencySpecialPrice{
-				AgencyId: agency.Id,
+				AgencyId:   agency.Id,
+				CourseUid:  booking.CourseUid,
+				PartnerUid: booking.PartnerUid,
 			}
 			errFSP := agencySpecialPrice.FindFirst(db)
 			if errFSP == nil && agencySpecialPrice.Id > 0 {
@@ -389,23 +412,23 @@ func (cRound CRound) ChangeGuestyleOfRound(c *gin.Context, prof models.CmsUser) 
 	round.GuestStyle = body.GuestStyle
 
 	// Update lại GS booking
-	// go func() {
-	// 	Rround := models.Round{}
-	// 	Rround.BillCode = booking.BillCode
-	// 	list, _ := Rround.FindAll(db)
+	go func() {
+		Rround := models.Round{}
+		Rround.BillCode = booking.BillCode
+		list, _ := Rround.FindAll(db)
 
-	// 	if round.Index == len(list) {
-	// 		booking.GuestStyle = body.GuestStyle
-	// 		golfFee := models.GolfFee{
-	// 			GuestStyle: body.GuestStyle,
-	// 		}
+		if round.Index == len(list) {
+			booking.GuestStyle = body.GuestStyle
+			golfFee := models.GolfFee{
+				GuestStyle: body.GuestStyle,
+			}
 
-	// 		if golfFeeFind := golfFee.FindFirst(db); golfFeeFind == nil {
-	// 			booking.GuestStyleName = golfFee.GuestStyleName
-	// 			booking.Update(db)
-	// 		}
-	// 	}
-	// }()
+			if golfFeeFind := golfFee.FindFirst(db); golfFeeFind == nil {
+				booking.GuestStyleName = golfFee.GuestStyleName
+				booking.Update(db)
+			}
+		}
+	}()
 	// Update giá
 	cRound.UpdateListFeePriceInRound(c, db, &booking, body.GuestStyle, &round, round.Hole)
 

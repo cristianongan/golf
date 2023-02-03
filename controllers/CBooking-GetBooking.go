@@ -114,7 +114,7 @@ func (_ *CBooking) GetBookingPaymentDetail(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
-	bagDetail := getBagDetailFromBooking(db, booking)
+	bagDetail := getBagDetailForPayment(db, booking)
 
 	// Get List Round Of Sub Bag
 	listRoundOfSub := []model_booking.RoundOfBag{}
@@ -170,7 +170,7 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	bagDetail := getBagDetailFromBooking(db, booking)
+	bagDetail := getBagWithRoundDetail(db, booking)
 	okResponse(c, bagDetail)
 }
 
@@ -332,6 +332,32 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 		SortDir: form.PageRequest.SortDir,
 	}
 
+	bookings := setParamGetBookingRequest(form)
+
+	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
+
+	if form.HasCaddieInOut != "" {
+		db = db.Preload("CaddieBuggyInOut")
+	}
+
+	res := response.PageResponse{}
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+	res = response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	okResponse(c, res)
+}
+
+func setParamGetBookingRequest(form request.GetListBookingWithSelectForm) model_booking.BookingList {
 	bookings := model_booking.BookingList{}
 	bookings.PartnerUid = form.PartnerUid
 	bookings.CourseUid = form.CourseUid
@@ -367,27 +393,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	bookings.GuestStyle = form.GuestStyle
 	bookings.CaddieName = form.CaddieName
 
-	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
-
-	if form.HasCaddieInOut != "" {
-		db = db.Preload("CaddieBuggyInOut")
-	}
-
-	res := response.PageResponse{}
-
-	if err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
-
-	var list []model_booking.Booking
-	db.Find(&list)
-	res = response.PageResponse{
-		Total: total,
-		Data:  list,
-	}
-
-	okResponse(c, res)
+	return bookings
 }
 
 /*
@@ -587,14 +593,16 @@ func (cBooking *CBooking) GetBagNotCheckOut(c *gin.Context, prof models.CmsUser)
 		return
 	}
 
-	now := time.Now().Format(constants.DATE_FORMAT_1)
-	bookings := model_booking.BookingList{}
-	bookings.PartnerUid = form.PartnerUid
-	bookings.CourseUid = form.CourseUid
-	bookings.BookingDate = now
-	bookings.IsCheckIn = "1"
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
 
-	db, total, err := bookings.FindAllBookingList(db)
+	bookings := setParamGetBookingRequest(form)
+
+	db, total, err := bookings.FindListRoundOfBagPlaying(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -605,6 +613,7 @@ func (cBooking *CBooking) GetBagNotCheckOut(c *gin.Context, prof models.CmsUser)
 	db.Find(&list)
 	res := map[string]interface{}{
 		"total": total,
+		"data":  list,
 	}
 
 	okResponse(c, res)

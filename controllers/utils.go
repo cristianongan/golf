@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"start/config"
 	"start/constants"
+	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
 	"start/models"
@@ -17,6 +18,7 @@ import (
 	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
 	"start/utils"
+	"strconv"
 	"strings"
 	"time"
 
@@ -642,11 +644,6 @@ func udpCaddieOut(db *gorm.DB, caddieId int64) {
 			if errUpd != nil {
 				log.Println("udpCaddieOut err", err.Error())
 			}
-			go func() {
-				cNotification := CNotification{}
-				title := fmt.Sprint("Caddie", " ", caddie.Code, " ", caddie.CurrentStatus)
-				cNotification.CreateCaddieWorkingStatusNotification(title)
-			}()
 		}
 	}
 }
@@ -961,6 +958,107 @@ func getBagDetailFromBooking(db *gorm.DB, booking model_booking.Booking) model_b
 
 		if len(listRound) > 0 {
 			bagDetail.Rounds = listRound
+		}
+	}
+	return bagDetail
+}
+
+/*
+find booking with round va service items data
+*/
+func getBagWithRoundDetail(db *gorm.DB, booking model_booking.Booking) model_booking.BagRoundNote {
+	//Get service items
+	booking.FindServiceItems(db)
+
+	bagDetail := model_booking.BagRoundNote{
+		Booking: booking,
+	}
+
+	// Get Rounds
+	if booking.BillCode != "" {
+		round := models.Round{BillCode: booking.BillCode}
+		listRound, _ := round.FindAll(db)
+		listRoundWithNote := []models.RoundWithNote{}
+		for _, item := range listRound {
+			listRoundWithNote = append(listRoundWithNote, models.RoundWithNote{
+				Round: item,
+			})
+		}
+
+		bookingListR := model_booking.BookingList{
+			BillCode: booking.BillCode,
+		}
+
+		bookingList := []model_booking.Booking{}
+		db1 := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+		db2, _, _ := bookingListR.FindAllBookingList(db1)
+		db2 = db2.Order("created_at asc")
+		db2.Find(&bookingList)
+
+		for index, booking := range bookingList {
+			roundIndex := index + 1
+			for idx, round := range listRoundWithNote {
+				if round.Index == roundIndex {
+					listRoundWithNote[idx].Note = booking.NoteOfGo
+					break
+				}
+			}
+		}
+		if len(listRound) > 0 {
+			bagDetail.RoundsWithNote = listRoundWithNote
+		}
+	}
+	return bagDetail
+}
+
+/*
+find booking with round va service items data
+*/
+func getBagDetailForPayment(db *gorm.DB, booking model_booking.Booking) model_booking.BagDetail {
+	//Get service items
+	booking.FindServiceItemsInPayment(db)
+
+	bagDetail := model_booking.BagDetail{
+		Booking: booking,
+	}
+
+	mainPaidRound1 := false
+	mainPaidRound2 := false
+
+	if len(booking.MainBags) > 0 {
+		mainBook := model_booking.Booking{
+			CourseUid:   booking.CourseUid,
+			PartnerUid:  booking.PartnerUid,
+			Bag:         booking.MainBags[0].GolfBag,
+			BookingDate: booking.BookingDate,
+		}
+		errFMB := mainBook.FindFirst(db)
+		if errFMB != nil {
+			log.Println("UpdateMushPay-"+booking.Bag+"-Find Main Bag", errFMB.Error())
+		}
+
+		mainPaidRound1 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND) > -1
+		mainPaidRound2 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS) > -1
+	}
+
+	// Get Rounds
+	if booking.BillCode != "" {
+		round := models.Round{BillCode: booking.BillCode}
+		listRound, _ := round.FindAll(db)
+
+		newListRoundWillAdd := []models.Round{}
+
+		for _, rd := range listRound {
+			if rd.Index == 1 && !mainPaidRound1 && !booking.CheckAgencyPaidAll() && !booking.CheckAgencyPaidRound1() {
+				newListRoundWillAdd = append(newListRoundWillAdd, rd)
+			}
+			if rd.Index == 2 && !mainPaidRound2 {
+				newListRoundWillAdd = append(newListRoundWillAdd, rd)
+			}
+		}
+
+		if len(listRound) > 0 {
+			bagDetail.Rounds = newListRoundWillAdd
 		}
 	}
 	return bagDetail
@@ -1446,68 +1544,6 @@ func removeRowIndexRedis(booking model_booking.Booking) {
 	}
 }
 
-/*
-Check Tee Time chỗ để booking không
-*/
-func checkTeeTimeAvailable(booking model_booking.Booking) bool {
-	bookings := model_booking.BookingList{}
-	bookings.PartnerUid = booking.PartnerUid
-	bookings.CourseUid = booking.CourseUid
-	bookings.BookingDate = booking.BookingDate
-	bookings.TeeTime = booking.TeeTime
-	bookings.TeeType = booking.TeeType
-	bookings.CourseType = booking.CourseType
-
-	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
-	_, total, _ := bookings.FindAllBookingNotCancelList(db)
-
-	return total < constants.SLOT_TEE_TIME
-}
-
-func updateSlotTeeTimeWithLock(booking model_booking.Booking) {
-	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
-	bookings := model_booking.BookingList{}
-	bookings.PartnerUid = booking.PartnerUid
-	bookings.CourseUid = booking.CourseUid
-	bookings.BookingDate = booking.BookingDate
-	bookings.TeeTime = booking.TeeTime
-	bookings.TeeType = booking.TeeType
-	bookings.CourseType = booking.CourseType
-
-	_, total, _ := bookings.FindAllBookingNotCancelList(db)
-
-	prefixRedisKey := getKeyTeeTimeLockRedis(booking.BookingDate, booking.CourseUid, booking.TeeTime, booking.TeeType+booking.CourseType)
-	listKey, errRedis := datasources.GetAllKeysWith(prefixRedisKey)
-	listTeeTimeLockRedis := []models.LockTeeTimeWithSlot{}
-	if errRedis == nil && len(listKey) > 0 {
-		strData, errGet := datasources.GetCaches(listKey...)
-
-		log.Println("updateSlotTeeTimeWithLock-listKey", listKey)
-		if errGet != nil {
-			log.Println("updateSlotTeeTimeWithLock-error", errGet.Error())
-		} else {
-			for _, data := range strData {
-				if data != nil {
-					byteData := []byte(data.(string))
-					teeTime := models.LockTeeTimeWithSlot{}
-					err2 := json.Unmarshal(byteData, &teeTime)
-					if err2 == nil && teeTime.Type == constants.LOCK_OTA {
-						listTeeTimeLockRedis = append(listTeeTimeLockRedis, teeTime)
-					}
-				}
-			}
-		}
-	}
-
-	for _, item := range listTeeTimeLockRedis {
-		total += int64(item.Slot)
-	}
-	teeTimeSlotEmptyRedisKey := getKeyTeeTimeSlotRedis(booking.BookingDate, booking.CourseUid, booking.TeeTime, booking.TeeType)
-	if err := datasources.SetCache(teeTimeSlotEmptyRedisKey, total, 0); err != nil {
-		log.Print("updateSlotTeeTime", err)
-	}
-}
-
 func getBuggyFee(gs string) utils.ListGolfHoleFee {
 
 	partnerUid := "CHI-LINH"
@@ -1551,6 +1587,7 @@ func getBuggyFee(gs string) utils.ListGolfHoleFee {
 
 func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 	var caddieSlotNew []string
+	var caddieSlotExist []string
 	// Format date
 	dateNow, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
@@ -1572,17 +1609,38 @@ func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 			index := utils.StringInList(item, caddieSlotNew)
 			if index != -1 {
 				caddieSlotNew = utils.Remove(caddieSlotNew, index)
+				caddieSlotExist = append(caddieSlotExist, item)
 			}
 		}
 	}
 
-	caddieWS.CaddieSlot = append(caddieSlotNew, caddies...)
+	caddieWS.CaddieSlot = append(caddieSlotNew, caddieSlotExist...)
 	err = caddieWS.Update(db)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func updateCaddieWorkingOnDay(caddieCodeList []string, partnerUid, courseUid string, isWorking bool) {
+	db := datasources.GetDatabaseWithPartner("CHI-LINH")
+	for _, code := range caddieCodeList {
+		caddie := models.Caddie{
+			PartnerUid: partnerUid,
+			CourseUid:  courseUid,
+			Code:       code,
+		}
+
+		if err := caddie.FindFirst(db); err == nil {
+			if isWorking {
+				caddie.IsWorking = 1
+			} else {
+				caddie.IsWorking = 0
+			}
+			caddie.Update(db)
+		}
+	}
 }
 
 func lockTeeTimeToRedis(body models.LockTeeTimeWithSlot) {
@@ -1631,4 +1689,87 @@ func getKeyTeeTimeRowIndex(bookingDate, courseUid, teeTime, teeType string) stri
 	teeRowIndexTimeRedisKey += teeType + "_" + teeTime
 
 	return teeRowIndexTimeRedisKey
+}
+
+func getTeeTimeList(courseUid, partnerUid, bookingDate string) []string {
+	db := datasources.GetDatabaseWithPartner(partnerUid)
+	form := request.GetListBookingSettingForm{
+		CourseUid:  courseUid,
+		PartnerUid: partnerUid,
+		OnDate:     bookingDate,
+	}
+
+	cBookingSetting := CBookingSetting{}
+	listSettingDetail, _, _ := cBookingSetting.GetSettingOnDate(db, form)
+	bookingDateTime, _ := time.Parse(constants.DATE_FORMAT_1, bookingDate)
+	weekday := strconv.Itoa(int(bookingDateTime.Weekday() + 1))
+	bookSetting := model_booking.BookingSetting{}
+
+	for _, data := range listSettingDetail {
+		if strings.ContainsAny(data.Dow, weekday) {
+			bookSetting = data
+			break
+		}
+	}
+
+	timeParts := []response.TeeTimePartOTA{
+		{
+			IsHideTeePart: bookSetting.IsHideTeePart1,
+			StartPart:     bookSetting.StartPart1,
+			EndPart:       bookSetting.EndPart1,
+		},
+		{
+			IsHideTeePart: bookSetting.IsHideTeePart2,
+			StartPart:     bookSetting.StartPart2,
+			EndPart:       bookSetting.EndPart2,
+		},
+		{
+			IsHideTeePart: bookSetting.IsHideTeePart3,
+			StartPart:     bookSetting.StartPart3,
+			EndPart:       bookSetting.EndPart3,
+		},
+	}
+
+	index := 0
+	teeTimeListLL := []string{}
+
+	for _, part := range timeParts {
+		if !part.IsHideTeePart {
+			endTime, _ := utils.ConvertHourToTime(part.EndPart)
+			teeTimeInit, _ := utils.ConvertHourToTime(part.StartPart)
+			for {
+				index += 1
+
+				hour := teeTimeInit.Hour()
+				minute := teeTimeInit.Minute()
+
+				hourStr_ := strconv.Itoa(hour)
+				if hour < 10 {
+					hourStr_ = "0" + hourStr_
+				}
+				minuteStr := strconv.Itoa(minute)
+				if minute < 10 {
+					minuteStr = "0" + minuteStr
+				}
+
+				hourStr := hourStr_ + ":" + minuteStr
+
+				teeTimeListLL = append(teeTimeListLL, hourStr)
+				teeTimeInit = teeTimeInit.Add(time.Minute * time.Duration(bookSetting.TeeMinutes))
+
+				if teeTimeInit.Unix() > endTime.Unix() {
+					break
+				}
+			}
+		}
+	}
+	return teeTimeListLL
+}
+func getIdGroup(s []models.CaddieGroup, e string) int64 {
+	for _, v := range s {
+		if v.Code == e {
+			return v.Id
+		}
+	}
+	return 0
 }

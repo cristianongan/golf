@@ -139,7 +139,11 @@ type FlyInfoResponse struct {
 type BagDetail struct {
 	Booking
 	Rounds models.ListRound `json:"rounds"`
-	//ListServiceItems ListBookingServiceItems `json:"list_service_items,omitempty"`
+}
+
+type BagRoundNote struct {
+	Booking
+	RoundsWithNote []models.RoundWithNote `json:"rounds,omitempty"`
 }
 
 type GolfFeeOfBag struct {
@@ -472,21 +476,6 @@ func (item BookingAgency) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
-// type AgencyPaid struct {
-// 	CaddieFee int64 `json:"caddie_fee"`
-// 	BuggyFee  int64 `json:"buggy_fee"`
-// 	GolfFee   int64 `json:"golf_fee"`
-// 	Amount    int64 `json:"amount"`
-// }
-
-// func (item *AgencyPaid) Scan(v interface{}) error {
-// 	return json.Unmarshal(v.([]byte), item)
-// }
-
-// func (item AgencyPaid) Value() (driver.Value, error) {
-// 	return json.Marshal(&item)
-// }
-
 // Caddie Info
 type BookingCaddie struct {
 	Id       int64  `json:"id"`
@@ -564,25 +553,6 @@ type MainBagOfSubInfo struct {
 	MainBagPaid        int64
 }
 
-// -------- Booking Logic --------
-
-func (item *Booking) CheckDuplicatedCaddieInTeeTime(db *gorm.DB) bool {
-	if item.TeeTime == "" {
-		return false
-	}
-
-	booking := Booking{
-		PartnerUid:  item.PartnerUid,
-		CourseUid:   item.CourseUid,
-		TeeTime:     item.TeeTime,
-		BookingDate: item.BookingDate,
-		CaddieId:    item.CaddieId,
-	}
-
-	errFind := booking.FindFirstNotCancel(db)
-	return errFind == nil
-}
-
 // ----------- CRUD ------------
 func (item *Booking) Create(db *gorm.DB, uid string) error {
 	item.Model.Uid = uid
@@ -648,8 +618,7 @@ func (item *Booking) FindFirstWithJoin(database *gorm.DB) error {
 
 func (item *Booking) FindFirstNotCancel(db *gorm.DB) error {
 	db = db.Not("bag_status = ?", constants.BAG_STATUS_CANCEL)
-	log.Println("FindFirstNotCancel")
-	return db.Where(item).Debug().First(item).Error
+	return db.Where(item).First(item).Error
 }
 
 func (item *Booking) Count(database *gorm.DB) (int64, error) {
@@ -838,6 +807,7 @@ func (item *Booking) FindListForSubBag(database *gorm.DB) ([]BookingForSubBag, e
 	bagStatus := []string{
 		constants.BAG_STATUS_CHECK_OUT,
 		constants.BAG_STATUS_BOOKING,
+		constants.BAG_STATUS_CANCEL,
 	}
 
 	db = db.Where("bag_status NOT IN (?)", bagStatus)
@@ -1268,4 +1238,54 @@ func (item *Booking) ReportBookingRevenue(database *gorm.DB, bookingType, date s
 	db.Find(&list)
 
 	return list, db.Error
+}
+
+func (item *Booking) FindReportBuggyForGuestStyle(database *gorm.DB, page models.Page, month, year string) ([]map[string]interface{}, int64, error) {
+	db := database.Table("bookings")
+	list := []map[string]interface{}{}
+	total := int64(0)
+
+	db = db.Select(`bookings.booking_date, bookings.customer_type,
+		SUM(if(bookings.customer_type = 'MEMBER', 1, 0)) AS member,
+		SUM(if(bookings.customer_type = 'GUEST', 1, 0)) AS guest,
+		SUM(if(bookings.customer_type = 'VISITOR', 1, 0)) AS visitor,
+		SUM(if(bookings.customer_type = 'TRADITIONAL' || bookings.customer_type = 'OTA', 1, 0)) AS agency,
+		SUM(if(bookings.customer_type = '' || bookings.customer_type = 'FOC', 1, 0)) AS other`)
+
+	if item.PartnerUid != "" {
+		db = db.Where("bookings.partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("bookings.course_uid = ?", item.CourseUid)
+	}
+
+	if year != "" {
+		db = db.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y') = ?", year)
+	} else if month != "" {
+		db = db.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y-%m') = ?", month)
+	}
+
+	// sub query
+	subQuery := database.Table("caddie_buggy_in_outs")
+
+	if item.PartnerUid != "" {
+		subQuery = subQuery.Where("caddie_buggy_in_outs.partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		subQuery = subQuery.Where("caddie_buggy_in_outs.course_uid = ?", item.CourseUid)
+	}
+
+	subQuery = subQuery.Where("caddie_buggy_in_outs.buggy_id > 0")
+
+	db = db.Joins("INNER JOIN (?) as tb1 ON tb1.booking_uid = bookings.uid", subQuery)
+
+	db.Group("bookings.booking_date")
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, total, db.Error
 }

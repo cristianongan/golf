@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -9,8 +10,10 @@ import (
 	"start/models"
 	"start/utils/response_message"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 )
 
 type CCaddie struct{}
@@ -62,6 +65,7 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 
 	caddieRequest.Phone = ""
 	caddieRequest.Code = body.Code // Id Caddie vận hành
+	caddieRequest.Status = constants.STATUS_ENABLE
 	errCodeExist := caddieRequest.FindFirst(db)
 
 	if errCodeExist == nil {
@@ -282,7 +286,7 @@ func (_ *CCaddie) GetCaddieReadyOnDay(c *gin.Context, prof models.CmsUser) {
 	}
 
 	caddie.IsReadyForJoin = "1"
-	list, _, err := caddie.FindAllCaddieReadyOnDayList(db, form.DateTime)
+	list, _, err := caddie.FindAllCaddieReadyOnDayList(db)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -291,6 +295,101 @@ func (_ *CCaddie) GetCaddieReadyOnDay(c *gin.Context, prof models.CmsUser) {
 
 	res := map[string]interface{}{
 		"data": list,
+	}
+
+	c.JSON(200, res)
+}
+
+func (_ *CCaddie) GetCaddiGroupDayOffByDate(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetCaddiGroupDayOffByDateForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// Get group caddie work today
+	dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, form.Date)
+	applyDate1 := datatypes.Date(dateConvert)
+	idDayOff1 := true
+
+	// get caddie work sechedule
+	caddieWCN := models.CaddieWorkingSchedule{
+		PartnerUid: "CHI-LINH",
+		CourseUid:  "CHI-LINH-01",
+		ApplyDate:  &(applyDate1),
+		IsDayOff:   &idDayOff1,
+	}
+
+	listCWS, err := caddieWCN.FindListWithoutPage(db)
+	if err != nil {
+		log.Println("Find list caddie working schedule today", err.Error())
+	}
+
+	//get all group
+	caddieGroup := models.CaddieGroup{
+		PartnerUid: "CHI-LINH",
+		CourseUid:  "CHI-LINH-01",
+	}
+
+	listCaddieGroup, err := caddieGroup.FindListWithoutPage(db)
+	if err != nil {
+		log.Println("Find frist caddie working schedule", err.Error())
+	}
+
+	var groupDayOff []int64
+
+	//add group caddie
+	for _, item := range listCWS {
+		id := getIdGroup(listCaddieGroup, item.CaddieGroupCode)
+
+		groupDayOff = append(groupDayOff, id)
+	}
+
+	//Get caddie list
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	caddie := models.CaddieList{}
+
+	if form.PartnerUid != "" {
+		caddie.PartnerUid = form.PartnerUid
+	}
+
+	if form.CourseId != "" {
+		caddie.CourseUid = form.CourseId
+	}
+
+	if form.Name != "" {
+		caddie.CaddieName = form.Name
+	}
+
+	if form.Code != "" {
+		caddie.CaddieCode = form.Code
+	}
+
+	if form.GroupId != "" {
+		caddie.GroupId, _ = strconv.ParseInt(form.GroupId, 10, 64)
+	}
+
+	if form.GroupId == "" && len(groupDayOff) > 0 {
+		caddie.GroupList = groupDayOff
+	}
+
+	list, total, err := caddie.FindList(db, page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
 	}
 
 	c.JSON(200, res)

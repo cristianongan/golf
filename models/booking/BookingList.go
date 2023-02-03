@@ -56,6 +56,7 @@ type BookingList struct {
 	IsGroupBillCode       bool
 	IsGroupBookingCode    bool
 	NotNoneGolfAndWalking bool
+	BillCode              string
 }
 
 type ResBookingWithBuggyFeeInfo struct {
@@ -245,13 +246,8 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 		// IsCheckIn = 1 lấy các booking đã check in nhưng chưa check out trong ngày hiện tại
 		// IsCheckIn = 2 lấy lịch sử booking đã check in
 		if item.IsCheckIn == "1" {
-			bagStatus := []string{
-				constants.BAG_STATUS_IN_COURSE,
-				constants.BAG_STATUS_TIMEOUT,
-				constants.BAG_STATUS_WAITING,
-			}
-
-			db = db.Where("bag_status IN (?) ", bagStatus)
+			db = db.Where("check_in_time > 0")
+			db = db.Where("check_out_time = 0")
 		} else if item.IsCheckIn == "2" {
 			db = db.Where("check_in_time > 0")
 		}
@@ -290,6 +286,10 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 		db = db.Where("customer_type NOT IN (?) ", customerType)
 	}
 
+	if item.BillCode != "" {
+		db = db.Where("bill_code = ?", item.BillCode)
+	}
+
 	return db
 }
 
@@ -316,7 +316,7 @@ func (item *BookingList) FindBookingListWithSelect(database *gorm.DB, page model
 	db := database.Model(Booking{})
 
 	db = addFilter(db, item, isGroupBillCode)
-	db = db.Not("added_round = ?", true)
+	db = db.Where("init_type IN (?)", []string{constants.BOOKING_INIT_TYPE_BOOKING, constants.BOOKING_INIT_TYPE_CHECKIN})
 
 	db.Count(&total)
 
@@ -334,6 +334,24 @@ func (item *BookingList) FindAllBookingList(database *gorm.DB) (*gorm.DB, int64,
 	db = addFilter(db, item, false)
 
 	db.Count(&total)
+
+	return db, total, db.Error
+}
+
+func (item *BookingList) FindListRoundOfBagPlaying(database *gorm.DB, page models.Page) (*gorm.DB, int64, error) {
+	var list []Booking
+	total := int64(0)
+
+	db := database.Model(Booking{})
+
+	db = addFilter(db, item, false)
+	db = db.Where("added_round = ?", false)
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
 
 	return db, total, db.Error
 }

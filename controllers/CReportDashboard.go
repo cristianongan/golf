@@ -217,11 +217,15 @@ func (_ *CReportDashboard) GetReportRevenueFromBooking(c *gin.Context, prof mode
 		return
 	}
 
+	now := time.Now().Format(constants.MONTH_FORMAT)
+
+	monthNow, _ := time.Parse(constants.MONTH_FORMAT, now)
+
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 	listData := make([]map[string]interface{}, 12)
 
 	for month := 0; month < 12; month++ {
-		date := time.Now().AddDate(0, -month, 0).Format(constants.MONTH_FORMAT)
+		date := monthNow.AddDate(0, -month, 0).Format(constants.MONTH_FORMAT)
 
 		// Add infor to response
 		listData[month] = map[string]interface{}{

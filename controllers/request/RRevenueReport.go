@@ -29,3 +29,11 @@ type RevenueBookingReportDetail struct {
 	Month      int    `form:"month"`
 	Year       int    `form:"year"`
 }
+
+type ReportBuggyForGuestStyleForm struct {
+	PageRequest
+	PartnerUid string `form:"partner_uid"`
+	CourseUid  string `form:"course_uid"`
+	Month      string `form:"month"`
+	Year       string `form:"year"`
+}

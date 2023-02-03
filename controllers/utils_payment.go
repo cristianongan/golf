@@ -7,6 +7,7 @@ import (
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
+	"start/models"
 	model_booking "start/models/booking"
 	model_payment "start/models/payment"
 	"start/utils"
@@ -203,7 +204,32 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		BookingUid:  booking.Uid,
 	}
 
+	isUpdate := false
+
+	if errFind := bookingAgencyPayment.FindFirst(db); errFind == nil {
+		isUpdate = true
+	}
+
 	if booking.AgencyPaidAll != nil && *booking.AgencyPaidAll {
+
+		caddieBooking := model_booking.BookingServiceItem{
+			Type:     "AGENCY_PAID_ALL_CADDIE",
+			Quality:  1,
+			Amount:   feeInfo.CaddieFee,
+			BillCode: booking.BillCode,
+			Location: constants.SERVICE_ITEM_ADD_BY_MANUAL,
+		}
+		buggyBooking := model_booking.BookingServiceItem{
+			Type:     "AGENCY_PAID_ALL_BUGGY",
+			Quality:  1,
+			Amount:   feeInfo.BuggyFee,
+			BillCode: booking.BillCode,
+			Location: constants.SERVICE_ITEM_ADD_BY_MANUAL,
+		}
+
+		caddieBooking.Create(db)
+		buggyBooking.Create(db)
+
 		booking.UpdatePriceDetailCurrentBag(db)
 		booking.UpdateMushPay(db)
 		booking.Update(db)
@@ -225,9 +251,9 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 	if feeInfo.BuggyFee > 0 {
 		name := ""
 		if *booking.IsPrivateBuggy {
-			name = "Buggy (1 xe)"
+			name = "Thuê riêng xe"
 		} else {
-			name = "Buggy (1/2 xe)"
+			name = "Thuê xe (1/2 xe)"
 		}
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
 			Fee:  feeInfo.BuggyFee,
@@ -239,7 +265,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 	if feeInfo.CaddieFee > 0 {
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
 			Fee:  feeInfo.CaddieFee,
-			Name: "Booking Caddie fee",
+			Name: "Booking Caddie",
 			Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
 			Hole: booking.Hole,
 		})
@@ -247,7 +273,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 
 	if feeInfo.BuggyFee > 0 || feeInfo.CaddieFee > 0 || feeInfo.GolfFee > 0 {
 		// Ghi nhận số tiền agency thanh toán của agency
-		if errFind := bookingAgencyPayment.FindFirst(db); errFind != nil {
+		if !isUpdate {
 			bookingAgencyPayment.CaddieId = fmt.Sprint(booking.CaddieId)
 			bookingAgencyPayment.Create(db)
 		} else {
@@ -293,5 +319,44 @@ func updateBookingAgencyPaymentForAllFee(booking model_booking.Booking) {
 			Fee:  booking.GetAgencyPaid(),
 		})
 		bookingAgencyPayment.Update(db)
+	}
+}
+
+func updateSinglePaymentOfSubBag(mainBag model_booking.Booking, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(mainBag.PartnerUid)
+	for _, subBooking := range mainBag.SubBags {
+		bookingR := model_booking.Booking{
+			Model: models.Model{Uid: subBooking.BookingUid},
+		}
+
+		booking, errF := bookingR.FindFirstByUId(db)
+		if errF == nil {
+			totalPaid := booking.CurrentBagPrice.MainBagPaid
+
+			singlePayment := model_payment.SinglePayment{
+				PartnerUid: booking.PartnerUid,
+				CourseUid:  booking.CourseUid,
+				BillCode:   booking.BillCode,
+			}
+			singlePayment.Status = constants.STATUS_ENABLE
+			if errFind := singlePayment.FindFirst(db); errFind == nil {
+				singlePaymentItem := model_payment.SinglePaymentItem{
+					PartnerUid:  booking.PartnerUid,
+					CourseUid:   booking.CourseUid,
+					BookingUid:  booking.Uid,
+					BillCode:    booking.BillCode,
+					Bag:         booking.Bag,
+					Paid:        totalPaid,
+					PaymentType: constants.PAYMENT_STATUS_PREPAID,
+					PaymentUid:  singlePayment.Uid,
+					Cashiers:    prof.UserName,
+					BookingDate: booking.BookingDate,
+				}
+				if errC := singlePaymentItem.Create(db); errC == nil {
+					singlePayment.UpdateTotalPaid(db)
+					handleSinglePayment(db, booking)
+				}
+			}
+		}
 	}
 }

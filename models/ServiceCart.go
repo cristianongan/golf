@@ -97,8 +97,10 @@ func (item *ServiceCart) FindList(database *gorm.DB, page Page) ([]ServiceCart, 
 		db = db.Where("type = ?", item.Type)
 	}
 
-	if item.BillStatus == constants.RES_BILL_STATUS_ACTIVE {
-		db = db.Where("bill_status = ? OR bill_status = ?", constants.RES_STATUS_PROCESS, constants.RES_STATUS_DONE)
+	if item.BillStatus == constants.RES_BILL_STATUS_SHOW {
+		db = db.Where("bill_status IN ?", []string{constants.RES_STATUS_PROCESS, constants.RES_BILL_STATUS_TRANSFER, constants.RES_STATUS_ORDER, constants.RES_BILL_STATUS_FINISH})
+	} else if item.BillStatus == constants.RES_BILL_STATUS_ACTIVE {
+		db = db.Where("bill_status IN ?", []string{constants.RES_STATUS_PROCESS, constants.RES_STATUS_DONE})
 	} else if item.BillStatus != "" {
 		db = db.Where("bill_status = ?", item.BillStatus)
 	}

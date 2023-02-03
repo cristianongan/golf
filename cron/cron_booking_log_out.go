@@ -42,14 +42,14 @@ func runBookingLogout() {
 	// 	}
 	// }
 
-	caddie := models.Caddie{}
+	caddie := models.CaddieList{}
 	dbCaddie := datasources.GetDatabase()
-	listCaddie, _, _ := caddie.FindListCaddieNotReady(dbCaddie)
+	listCaddie, _, _ := caddie.FindAllCaddieReadyOnDayList(dbCaddie)
 	for _, v := range listCaddie {
 		v.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
 		v.CurrentRound = 0
+		v.IsWorking = 0
 		v.Update(dbCaddie)
-		// go updateCaddieOutSlot(v.PartnerUid, v.CourseUid, []string{v.Code})
 	}
 
 	buggy := models.Buggy{}
@@ -63,6 +63,7 @@ func runBookingLogout() {
 
 func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 	var caddieSlotNew []string
+	var caddieSlotExist []string
 	// Format date
 	dateNow, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
@@ -84,11 +85,12 @@ func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 			index := utils.StringInList(item, caddieSlotNew)
 			if index != -1 {
 				caddieSlotNew = utils.Remove(caddieSlotNew, index)
+				caddieSlotExist = append(caddieSlotExist, item)
 			}
 		}
 	}
 
-	caddieWS.CaddieSlot = append(caddieSlotNew, caddies...)
+	caddieWS.CaddieSlot = append(caddieSlotNew, caddieSlotExist...)
 	err = caddieWS.Update(db)
 	if err != nil {
 		return err

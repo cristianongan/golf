@@ -30,6 +30,7 @@ Service item được add từ đâu, lễ tân, GO,..
 const (
 	SERVICE_ITEM_ADD_BY_RECEPTION = "RECEPTION"
 	SERVICE_ITEM_ADD_BY_GO        = "GO"
+	SERVICE_ITEM_ADD_BY_MANUAL    = "MANUAL"
 )
 
 /*
@@ -52,7 +53,8 @@ const (
 Trạng thái thanh toán
 */
 const (
-	PAYMENT_STATUS_PAID         = "PAID"         //  Thanh toán (Paid)
+	PAYMENT_STATUS_PAID         = "PAID" //  Thanh toán (Paid)
+	PAYMENT_STATUS_PREPAID      = "PREPAID"
 	PAYMENT_STATUS_UN_PAID      = "UN_PAID"      // Chưa thanh toán (Unpaid)
 	PAYMENT_STATUS_PARTIAL_PAID = "PARTIAL_PAID" // Thanh toán 1 phần (Partial Paid):
 	//Thanh toán 1 phần hiển thị thông tin khi khách thanh toán 1 phần tiền
@@ -137,6 +139,7 @@ const (
 const (
 	BOOKING_INIT_TYPE_BOOKING = "BOOKING" // được tạo từ booking single book
 	BOOKING_INIT_TYPE_CHECKIN = "CHECKIN" // Tạo từ check in lễ tân
+	BOOKING_INIT_ROUND        = "ROUND"   // Tạo khi add round
 )
 
 /*
@@ -190,6 +193,7 @@ const (
 	MAIN_BAG_FOR_PAY_SUB_RESTAURANT  = "RESTAURANT"
 	MAIN_BAG_FOR_PAY_SUB_PROSHOP     = "PROSHOP"
 	MAIN_BAG_FOR_PAY_SUB_OTHER_FEE   = "OTHER_FEE"
+	AGENCY_PAID_ALL_BUGGY_CADDIE     = "AGENCY_PAID_ALL_BUGGY_CADDIE"
 )
 
 /*
@@ -310,6 +314,7 @@ const (
 Các trạng thái đơn của nhà hàng
 */
 const (
+	RES_BILL_STATUS_SHOW     = "SHOW"     // Trạng thái bao gồm các đơn PROCESS, TRANSFER, ORDER, FINISH
 	RES_BILL_STATUS_ACTIVE   = "ACTIVE"   // Trạng thái bao gồm các đơn PROCESS, FINISH
 	RES_BILL_STATUS_BOOKING  = "BOOKING"  // Trạng thái là người booking bàn nhưng chưa vào nhà hàng dùng món
 	RES_BILL_STATUS_ORDER    = "ORDER"    // Trạng thái là người đã đặt món và đang chờ đồ ăn
@@ -470,5 +475,8 @@ const BOOKING_AGENCY_GOLF_FEE = "GOLF_FEE"
 const BOOKING_AGENCY_BUGGY_FEE = "BUGGY_FEE"
 const BOOKING_AGENCY_BOOKING_CADDIE_FEE = "BOOKING_CADDIE_FEE"
 const BOOKING_AGENCY_PAID_ALL = "AGENCY_PAID_ALL"
+
+const AGENCY_PAID_ALL_BUGGY = "AGENCY_PAID_ALL_BUGGY"
+const AGENCY_PAID_ALL_CADDIE = "AGENCY_PAID_ALL_CADDIE"
 
 const TIME_REDIS_PERMISION = 24 * 60 * 60 * 30

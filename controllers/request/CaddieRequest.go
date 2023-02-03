@@ -50,6 +50,16 @@ type GetListCaddieReady struct {
 	DateTime   string `form:"date_time"`
 }
 
+type GetCaddiGroupDayOffByDateForm struct {
+	PageRequest
+	CourseId   string `form:"course_uid" json:"course_uid" binding:"required"`
+	PartnerUid string `form:"partner_uid" json:"partner_uid" binding:"required"`
+	Date       string `form:"date"`
+	Name       string `form:"name" json:"name"`
+	Code       string `form:"code" json:"code"`
+	GroupId    string `form:"group_id"`
+}
+
 type UpdateCaddieBody struct {
 	Code           string  `json:"code"` // id caddie
 	CourseId       *string `json:"course_uid"`

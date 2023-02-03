@@ -261,8 +261,10 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 
 	unlockTee(body)
 	if len(listBooking) > 0 {
-		cNotification := CNotification{}
-		cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_OTA, listBooking)
+		go func() {
+			cNotification := CNotification{}
+			cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_OTA, listBooking)
+		}()
 	}
 
 	okResponse(c, dataRes)

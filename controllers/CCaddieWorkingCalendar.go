@@ -7,6 +7,7 @@ import (
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 	"time"
@@ -82,6 +83,8 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 		}
 
 		listCreate := []models.CaddieWorkingCalendar{}
+		listCaddieCode := []string{}
+
 		for _, data := range v.CaddieList {
 			caddieWC := models.CaddieWorkingCalendar{}
 			caddieWC.CreatedAt = now.Unix()
@@ -95,6 +98,7 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 			caddieWC.NumberOrder = data.NumberOrder
 			caddieWC.CaddieIncrease = data.CaddieIncrease
 			listCreate = append(listCreate, caddieWC)
+			listCaddieCode = append(listCaddieCode, data.CaddieCode)
 		}
 
 		// create
@@ -104,7 +108,43 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 			return
 		}
 
+		//Update lại ds caddie trong GO
+		go updateCaddieWorkingOnDay(listCaddieCode, body.PartnerUid, body.CourseUid, true)
 	}
+
+	okRes(c)
+}
+
+func (_ *CCaddieWorkingCalendar) ImportCaddieSlotAuto(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	var body request.ImportCaddieSlotAutoBody
+	if err := c.BindJSON(&body); err != nil {
+		log.Print("ImportCaddieSlotAuto BindJSON error", err)
+		response_message.BadRequest(c, "")
+		return
+	}
+
+	caddieWCS := models.CaddieWorkingSlot{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		ApplyDate:  body.ApplyDate,
+	}
+
+	// Xóa dữ liệu ngày truy vấn
+	if errD := caddieWCS.DeleteBatch(db); errD != nil {
+		response_message.BadRequest(c, "Delete caddie slot auto "+errD.Error())
+		return
+	}
+
+	caddieWCS.CaddieSlot = body.CaddieSlot
+
+	err := caddieWCS.Create(db)
+	if err != nil {
+		log.Println("Create report caddie slot err", err.Error())
+	}
+
+	//Update lại ds caddie trong GO
+	go updateCaddieWorkingOnDay(body.CaddieSlot, body.PartnerUid, body.CourseUid, true)
 
 	okRes(c)
 }
@@ -125,7 +165,7 @@ func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, pr
 	caddieWorkingCalendar.PartnerUid = body.PartnerUid
 	caddieWorkingCalendar.ApplyDate = body.ApplyDate
 
-	err := caddieWorkingCalendar.FindFirst(db)
+	list, err := caddieWorkingCalendar.Find(db)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -158,9 +198,14 @@ func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarList(c *gin.Context, pr
 	// 	response_message.BadRequest(c, "Find first caddie working calendar note "+err.Error())
 	// 	return
 	// }
+	dataCaddieSlot := models.CaddieWorkingSlot{}
+
+	if len(list) > 0 {
+		dataCaddieSlot = list[0]
+	}
 
 	listRes := map[string]interface{}{
-		"data_caddie":          caddieWorkingCalendar,
+		"data_caddie":          dataCaddieSlot,
 		"data_caddie_increase": listIncrease,
 		// "note":                 listNote,
 	}
@@ -261,9 +306,49 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieWorkingCalendar(c *gin.Context, pro
 		return
 	}
 
+	oldCaddie := caddiWC.CaddieCode
+	newCaddie := body.CaddieCode
 	caddiWC.CaddieCode = body.CaddieCode
 
 	if err := caddiWC.Update(db); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	//Update lại ds caddie trong GO
+	go func() {
+		updateCaddieWorkingOnDay([]string{oldCaddie}, prof.PartnerUid, prof.CourseUid, false)
+		updateCaddieWorkingOnDay([]string{newCaddie}, prof.PartnerUid, prof.CourseUid, true)
+	}()
+	okRes(c)
+}
+
+func (_ *CCaddieWorkingCalendar) UpdateCaddieSlotAuto(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	// validate body
+	var body request.UpdateCaddieWorkingSlotAutoBody
+	if err := c.BindJSON(&body); err != nil {
+		log.Print("UpdateCaddieWorkingSlotAutoBody BindJSON error")
+		response_message.BadRequest(c, "")
+	}
+
+	// Find slot caddie with date
+	caddieWS := models.CaddieWorkingSlot{}
+	caddieWS.PartnerUid = body.PartnerUid
+	caddieWS.CourseUid = body.CourseUid
+	caddieWS.ApplyDate = body.ApplyDate
+
+	if err := caddieWS.FindFirst(db); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// Swap slot caddie
+	caddieWS.CaddieSlot = utils.SwapValue(caddieWS.CaddieSlot, body.CaddieCodeOld, body.CaddieCodeNew)
+
+	// Update slot caddie
+	if err := caddieWS.Update(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -291,5 +376,7 @@ func (_ *CCaddieWorkingCalendar) DeleteCaddieWorkingCalendar(c *gin.Context, pro
 		return
 	}
 
+	//Update lại ds caddie trong GO
+	go updateCaddieWorkingOnDay([]string{caddiWC.CaddieCode}, prof.PartnerUid, prof.CourseUid, false)
 	okRes(c)
 }

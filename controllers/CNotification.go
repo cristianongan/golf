@@ -168,7 +168,7 @@ func (_ *CNotification) ApproveCaddieCalendarNotification(c *gin.Context, prof m
 	go cCaddieVacation.UpdateCaddieVacationStatus(notification.ExtraInfo.Id, form.IsApprove, notification.PartnerUid, prof)
 
 	newFsConfigBytes, _ := json.Marshal(newNotification)
-	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+	socket.GetHubSocket().Broadcast <- newFsConfigBytes
 	okRes(c)
 }
 
@@ -204,7 +204,7 @@ func (_ *CNotification) CreateCaddieVacationNotification(db *gorm.DB, body reque
 	notiData.Create(db)
 
 	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+	socket.GetHubSocket().Broadcast <- newFsConfigBytes
 }
 
 func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
@@ -214,7 +214,7 @@ func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
 	}
 
 	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+	socket.GetHubSocket().Broadcast <- newFsConfigBytes
 }
 
 func (_ *CNotification) PushNotificationCreateBooking(bookType string, booking any) {
@@ -225,7 +225,13 @@ func (_ *CNotification) PushNotificationCreateBooking(bookType string, booking a
 	}
 
 	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+	socket.GetHubSocket().Broadcast <- newFsConfigBytes
+
+	// m := socket_room.Message{
+	// 	Data: newFsConfigBytes,
+	// 	Room: "1",
+	// }
+	// socket_room.Hub.Broadcast <- m
 }
 
 func (_ *CNotification) PushNotificationLockTee(lockType string) {
@@ -235,5 +241,5 @@ func (_ *CNotification) PushNotificationLockTee(lockType string) {
 	}
 
 	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket.HubBroadcastSocket.Broadcast <- newFsConfigBytes
+	socket.GetHubSocket().Broadcast <- newFsConfigBytes
 }

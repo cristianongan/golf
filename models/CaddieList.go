@@ -29,6 +29,7 @@ type CaddieList struct {
 	ContractStatus        string
 	CurrentStatus         string
 	IsBooked              string
+	GroupList             []int64
 }
 
 type CaddieRes struct {
@@ -120,6 +121,10 @@ func addFilter(db *gorm.DB, item *CaddieList) *gorm.DB {
 		db = db.Where("current_status IN (?) ", caddieStatus)
 	}
 
+	if len(item.GroupList) > 0 {
+		db = db.Where("group_id IN ?", item.GroupList)
+	}
+
 	return db
 }
 
@@ -141,7 +146,7 @@ func (item *CaddieList) FindList(database *gorm.DB, page Page) ([]Caddie, int64,
 	return list, total, db.Error
 }
 
-func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB, date string) ([]Caddie, int64, error) {
+func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB) ([]Caddie, int64, error) {
 	var list []Caddie
 
 	db := database.Model(Caddie{})
@@ -149,34 +154,11 @@ func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB, date stri
 	db = addFilter(db, item)
 
 	db.Not("status = ?", constants.STATUS_DELETED)
+	db.Where("is_working = 1")
 
-	db.Preload("GroupInfo").Find(&list)
+	db.Preload("GroupInfo").Debug().Find(&list)
 
-	var timeNow datatypes.Date
-	if date != "" {
-		timeUnix, _ := time.Parse(constants.DATE_FORMAT, date)
-		timeNow = datatypes.Date(timeUnix)
-	} else {
-		timeNow = datatypes.Date(time.Now())
-	}
-
-	listResponse := []Caddie{}
-
-	for _, data := range list {
-		dbCaddieWorkingSchedule := database.Model(CaddieWorkingSchedule{})
-		caddieSchedules := CaddieWorkingSchedule{
-			ApplyDate:       &timeNow,
-			PartnerUid:      data.PartnerUid,
-			CourseUid:       data.CourseUid,
-			CaddieGroupCode: data.GroupInfo.Code,
-		}
-
-		if caddieSchedules.CheckCaddieWorkOnDay(dbCaddieWorkingSchedule) {
-			listResponse = append(listResponse, data)
-		}
-	}
-
-	return listResponse, int64(len(listResponse)), db.Error
+	return list, int64(len(list)), db.Error
 }
 
 func (item *CaddieList) FindAllCaddieReadyOnDayListOTA(database *gorm.DB, date string) ([]CaddieRes, int64, error) {

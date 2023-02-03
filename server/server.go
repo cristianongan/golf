@@ -5,7 +5,7 @@ import (
 	"start/config"
 	"start/datasources"
 	"start/logger"
-	socket "start/socket"
+	"start/socket"
 
 	ccron "start/cron"
 	// "start/datasources/aws"
@@ -21,13 +21,16 @@ func Init() {
 	// Init Logger
 	logger.InitLogger()
 
+	// go socket_room.Hub.Run()
+
 	// --- Socket ---
 
-	socket.HubBroadcastSocket = socket.NewHub()
-	go socket.HubBroadcastSocket.Run()
+	// socket.GetHubSocket() = socket.NewHub()
+	socket.InitHubSocket()
+	go socket.GetHubSocket().Run()
 
 	// http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-	// 	socket.ServeWs(socket.HubBroadcastSocket, w, r)
+	// 	socket.ServeWs(socket.GetHubSocket(), w, r)
 	// })
 
 	// listener := func() {

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"log"
 	"start/constants"
 	"start/controllers/request"
@@ -63,7 +64,14 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 			removeRowIndexRedis(booking)
 			// updateSlotTeeTimeWithLock(booking)
 			if booking.TeeTime != "" {
-				unlockTurnTime(db, booking)
+				// Lấy số slot đã book
+				teeType := fmt.Sprint(booking.TeeType, booking.CourseType)
+				teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(booking.BookingDate, booking.CourseUid, booking.TeeTime, teeType)
+				rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+				rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+				if len(rowIndexsRedis) < 3 {
+					unlockTurnTime(db, booking)
+				}
 			}
 		}()
 	}
@@ -228,8 +236,10 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 	}
 
 	// Bắn socket để client update ui
-	cNotification := CNotification{}
-	cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, listBooking)
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, listBooking)
+	}()
 	okResponse(c, listBooking)
 }
 
@@ -278,7 +288,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 		TeeType:     form.TeeType,
 	}
 
-	db, _, err := bookingR.FindAllBookingList(db1)
+	db, _, err := bookingR.FindAllBookingNotCancelList(db1)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
