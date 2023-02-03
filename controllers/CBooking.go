@@ -182,14 +182,14 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	}
 
 	if body.BookingDate != "" {
-		bookingDateInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, body.BookingDate)
-		nowStr, _ := utils.GetLocalTimeFromTimeStamp("", constants.DATE_FORMAT_1, time.Now().Unix())
-		nowUnix := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, nowStr)
+		// bookingDateInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, body.BookingDate)
+		// nowStr, _ := utils.GetLocalTimeFromTimeStamp("", constants.DATE_FORMAT_1, time.Now().Unix())
+		// nowUnix := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, nowStr)
 
-		if bookingDateInt < nowUnix {
-			response_message.BadRequest(c, constants.BOOKING_DATE_NOT_VALID)
-			return nil, errors.New(constants.BOOKING_DATE_NOT_VALID)
-		}
+		// if bookingDateInt < nowUnix {
+		// 	response_message.BadRequest(c, constants.BOOKING_DATE_NOT_VALID)
+		// 	return nil, errors.New(constants.BOOKING_DATE_NOT_VALID)
+		// }
 		booking.BookingDate = body.BookingDate
 	} else {
 		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
@@ -714,6 +714,11 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	if body.CustomerBookingPhone != "" {
 		booking.CustomerBookingPhone = body.CustomerBookingPhone
+	}
+
+	if body.CustomerName != "" {
+		booking.CustomerName = body.CustomerName
+		booking.CustomerInfo.Name = body.CustomerName
 	}
 
 	if body.MemberCardUid != booking.MemberCardUid ||

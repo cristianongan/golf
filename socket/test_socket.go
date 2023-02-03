@@ -2,7 +2,6 @@ package socket
 
 import (
 	"bytes"
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -55,7 +54,7 @@ type Client struct {
 // reads from this goroutine.
 func (c *Client) ReadPump() {
 	defer func() {
-		HubBroadcastSocket.Unregister <- c
+		hubBroadcastSocket.Unregister <- c
 		c.conn.Close()
 	}()
 	c.conn.SetReadLimit(maxMessageSize)
@@ -71,7 +70,7 @@ func (c *Client) ReadPump() {
 			break
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		HubBroadcastSocket.Broadcast <- message
+		hubBroadcastSocket.Broadcast <- message
 	}
 }
 
@@ -121,20 +120,22 @@ func (c *Client) WritePump() {
 			}
 			w.Write(message)
 
+			log.Println("[SOCKET] WritePump message ", string(message))
+
 			// Add queued chat messages to the current websocket message.
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				for msg := range c.send {
-					msgByte, _ := json.Marshal(msg)
-					_, err := w.Write(msgByte)
-					if err != nil {
-						HubBroadcastSocket.Unregister <- c
-						break
-					}
-				}
-				// w.Write(newline)
-				// w.Write(<-c.send)
-			}
+			// n := len(c.send)
+			// for i := 0; i < n; i++ {
+			// 	// for msg := range c.send {
+			// 	// 	msgByte, _ := json.Marshal(msg)
+			// 	// 	_, err := w.Write(msgByte)
+			// 	// 	if err != nil {
+			// 	// 		hubBroadcastSocket.Unregister <- c
+			// 	// 		break
+			// 	// 	}
+			// 	// }
+			// 	w.Write(newline)
+			// 	w.Write(<-c.send)
+			// }
 
 			if err := w.Close(); err != nil {
 				log.Println("[SOCKET] WritePump err 1", err)
@@ -157,13 +158,13 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 		log.Println("[SOCKET] ServeWs err", err)
 		return
 	}
-	client := &Client{hub: HubBroadcastSocket, conn: conn, send: make(chan []byte, 256)}
+	client := &Client{hub: hubBroadcastSocket, conn: conn, send: make(chan []byte, 256)}
 	client.hub.Register <- client
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.
 	go client.WritePump()
-	go client.ReadPump()
+	// go client.ReadPump()
 }
 
 // func (c *Client) write(mt int, payload []byte) error {

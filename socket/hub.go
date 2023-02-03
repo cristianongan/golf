@@ -4,7 +4,7 @@ import "log"
 
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
-var HubBroadcastSocket *Hub
+var hubBroadcastSocket *Hub
 
 type Hub struct {
 	// Registered Clients.
@@ -30,7 +30,7 @@ type Hub struct {
 // }
 
 func InitHubSocket() {
-	HubBroadcastSocket = &Hub{
+	hubBroadcastSocket = &Hub{
 		Broadcast:  make(chan []byte),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
@@ -39,7 +39,7 @@ func InitHubSocket() {
 }
 
 func GetHubSocket() *Hub {
-	return HubBroadcastSocket
+	return hubBroadcastSocket
 }
 
 func (h *Hub) Run() {
@@ -60,7 +60,7 @@ func (h *Hub) Run() {
 			for client := range h.Clients {
 				select {
 				case client.send <- message:
-					log.Println("[SOCKET] Hub Run client.send <- message ", message)
+					log.Println("[SOCKET] Hub Run client.send <- message ", string(message))
 				default:
 					log.Println("[SOCKET] Hub Run default")
 					close(client.send)
