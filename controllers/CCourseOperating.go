@@ -297,7 +297,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	flight.GroupName = yearStr + "_" + strconv.Itoa(body.Tee) + "_" + hourStr
 
 	// Date display
-	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().AddDate(0, 0, -1).Unix())
+	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 	if errDate == nil {
 		flight.DateDisplay = dateDisplay
 	} else {
