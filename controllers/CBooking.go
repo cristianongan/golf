@@ -435,7 +435,9 @@ func (_ CBooking) updateAgencyForBooking(
 	if booking.MemberCardUid == "" {
 		// Nếu có cả member card thì ưu tiên giá member card
 		agencySpecialPriceR := models.AgencySpecialPrice{
-			AgencyId: agency.Id,
+			AgencyId:   agency.Id,
+			CourseUid:  booking.CourseUid,
+			PartnerUid: booking.PartnerUid,
 		}
 		// Tính lại giá riêng nếu thoả mãn các dk time
 		agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnTime(db)
@@ -716,18 +718,14 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerBookingPhone = body.CustomerBookingPhone
 	}
 
-	if body.CustomerName != "" {
-		booking.CustomerName = body.CustomerName
-		booking.CustomerInfo.Name = body.CustomerName
-	}
-
 	if body.MemberCardUid != booking.MemberCardUid ||
 		body.AgencyId != booking.AgencyId {
 		booking.SeparatePrice = false
 	}
 
-	if body.MemberCardUid != "" && (body.MemberCardUid != booking.MemberCardUid ||
-		body.AgencyId != booking.AgencyId) {
+	//TODO: if body.MemberCardUid != "" && (body.MemberCardUid != booking.MemberCardUid ||
+	// 	body.AgencyId != booking.AgencyId) {
+	if body.MemberCardUid != "" {
 		memberCardBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:    body.PartnerUid,
 			CourseUid:     body.CourseUid,
@@ -831,11 +829,16 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	if body.CustomerName != "" {
+		booking.CustomerName = body.CustomerName
+		booking.CustomerInfo.Name = body.CustomerName
+	}
+
 	// Create booking payment
 	if booking.AgencyId > 0 {
-		if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
-			go handleAgencyPaid(booking, body.FeeInfo)
-		}
+		go handleAgencyPaid(booking, body.FeeInfo)
+		// if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
+		// }
 	}
 
 	// Update các thông tin khác trước
@@ -1072,6 +1075,9 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 }
 
 func validateAgencyFeeBeforUpdate(booking model_booking.Booking, feeInfo request.AgencyFeeInfo) bool {
+	if len(booking.AgencyPaid) == 0 {
+		return true
+	}
 	if len(booking.AgencyPaid) > 0 && feeInfo.GolfFee > 0 && booking.AgencyPaid[0].Fee != feeInfo.GolfFee {
 		return true
 	}
@@ -1447,6 +1453,34 @@ func (cBooking *CBooking) FinishBill(c *gin.Context, prof models.CmsUser) {
 
 	go updatePriceForRevenue(db, booking, body.BillNo)
 	okRes(c)
+}
+
+func (cBooking *CBooking) ReportDayEnd(c *gin.Context, prof models.CmsUser) {
+	body := request.FinishBookingBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
+
+	bookings := model_booking.BookingList{
+		BookingDate: body.BookingDate,
+	}
+
+	db, _, err := bookings.FindAllBookingList(db)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+
+	// for _, item :=range list {
+	// 	// go updatePriceForRevenue(db, booking, body.BillNo)
+	// }
 }
 
 func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {

@@ -62,7 +62,9 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 		}
 
 		agencySpecialPriceR := models.AgencySpecialPrice{
-			AgencyId: agency.Id,
+			AgencyId:   agency.Id,
+			CourseUid:  form.CourseUid,
+			PartnerUid: form.PartnerUid,
 		}
 		// Tính lại giá riêng nếu thoả mãn các dk time
 		agencySpecialPrice, errFSP := agencySpecialPriceR.FindOtherPriceOnTime(db)
