@@ -61,6 +61,7 @@ type DayEndRevenue struct {
 	Member           int64  `json:"member"`
 	Visitor          int64  `json:"visitor"`
 	Foc              int64  `json:"foc"`
+	Tour             int64  `json:"tour"`
 	MemberGuest      int64  `json:"member_guest"`
 }
 
@@ -145,7 +146,8 @@ func (item *ReportRevenueDetail) FindReportDayEnd(database *gorm.DB) (DayEndReve
 					SUM(customer_type = 'MEMBER') AS member,
 					SUM(customer_type = 'GUEST') AS member_guest,
 					SUM(customer_type = 'VISITOR') AS visitor,
-					SUM(customer_type = 'FOC') AS foc`)
+					SUM(customer_type = 'FOC') AS foc,
+					SUM(customer_type = 'TRADITIONAL' || customer_type = 'OTA') AS tour`)
 
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
