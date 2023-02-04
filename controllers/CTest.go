@@ -57,7 +57,12 @@ func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 	booking.UpdatePriceDetailCurrentBag(db)
 	booking.UpdateMushPay(db)
 	booking.Update(db)
-	go handlePayment(db, booking)
+
+	// go handlePayment(db, booking)
+	// go handleAgencyPaid(booking, request.AgencyFeeInfo{
+	// 	GolfFee:  booking.AgencyPaid[0].Fee,
+	// 	BuggyFee: booking.AgencyPaid[1].Fee,
+	// })
 
 	// notiData := map[string]interface{}{
 	// 	"type":  constants.NOTIFICATION_CADDIE_WORKING_STATUS_UPDATE,
