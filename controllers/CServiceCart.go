@@ -1037,6 +1037,10 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 
 	serviceCart.BillStatus = constants.POS_BILL_STATUS_OUT
 
+	if serviceCart.BillCode == constants.BILL_NONE {
+		serviceCart.BillCode = utils.GetTimeNow().Format("20060102150405")
+	}
+
 	if serviceCart.RentalStatus == constants.POS_RETAL_STATUS_RENT {
 		serviceCart.RentalStatus = constants.POS_RETAL_STATUS_CANCEL
 	}
