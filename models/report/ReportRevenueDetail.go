@@ -50,6 +50,7 @@ type ReportRevenueDetail struct {
 type DayEndRevenue struct {
 	PartnerUid       string `json:"partner_uid"`        // Hang Golf
 	CourseUid        string `json:"course_uid"`         // San GolfGreenFee         int64  `json:"green_fee"`                                  // Phí sân cỏ
+	GreenFee         int64  `json:"green_fee"`          // Phí sân cỏ
 	CaddieFee        int64  `json:"caddie_fee"`         // Phí caddie
 	SubBagFee        int64  `json:"sub_bag_fee"`        // Phí trả cho sub bag
 	FBFee            int64  `json:"fb_fee"`             // Phí ăn uống
