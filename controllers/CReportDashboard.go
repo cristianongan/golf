@@ -21,7 +21,7 @@ func (_ *CReportDashboard) GetReportBookingStatusOnDay(c *gin.Context, prof mode
 		badRequest(c, bindErr.Error())
 		return
 	}
-	now := time.Now().Format(constants.DATE_FORMAT_1)
+	now := utils.GetTimeNow().Format(constants.DATE_FORMAT_1)
 
 	bookingBookingList := model_booking.BookingList{
 		PartnerUid:            body.PartnerUid,
@@ -87,7 +87,7 @@ func (_ *CReportDashboard) GetReportGuestOnDay(c *gin.Context, prof models.CmsUs
 		return
 	}
 
-	date, _ := utils.GetDateFromTimestampWithFormat(time.Now().Unix(), constants.DATE_FORMAT_1)
+	date, _ := utils.GetDateFromTimestampWithFormat(utils.GetTimeNow().Unix(), constants.DATE_FORMAT_1)
 
 	// Money Bag
 	// bookingBookingList := model_booking.BookingList{
@@ -217,7 +217,7 @@ func (_ *CReportDashboard) GetReportRevenueFromBooking(c *gin.Context, prof mode
 		return
 	}
 
-	now := time.Now().Format(constants.MONTH_FORMAT)
+	now := utils.GetTimeNow().Format(constants.MONTH_FORMAT)
 
 	monthNow, _ := time.Parse(constants.MONTH_FORMAT, now)
 

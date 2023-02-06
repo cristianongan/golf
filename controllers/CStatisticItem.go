@@ -8,7 +8,6 @@ import (
 	kiosk_inventory "start/models/kiosk-inventory"
 	"start/utils"
 	"start/utils/response_message"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -17,8 +16,8 @@ import (
 type CStatisticItem struct{}
 
 func (_ CStatisticItem) AddItemToStatistic(db *gorm.DB) {
-	now := time.Now().Format(constants.DATE_FORMAT_1)
-	yesterday := time.Now().AddDate(0, 0, -1).Format(constants.DATE_FORMAT_1)
+	now := utils.GetTimeNow().Format(constants.DATE_FORMAT_1)
+	yesterday := utils.GetTimeNow().AddDate(0, 0, -1).Format(constants.DATE_FORMAT_1)
 
 	outputInventory := kiosk_inventory.InventoryOutputItem{
 		OutputDate: now,
@@ -95,7 +94,7 @@ func (_ CStatisticItem) AddItemToStatistic(db *gorm.DB) {
 }
 
 func (_ CStatisticItem) TestAddItemToStatistic(c *gin.Context, prof models.CmsUser) {
-	// now := time.Now().Format(constants.DATE_FORMAT_1)
+	// now := utils.GetTimeNow().Format(constants.DATE_FORMAT_1)
 	now := "20/12/2022"
 	yesterday := "19/12/2022"
 

@@ -3,8 +3,8 @@ package models
 import (
 	"start/constants"
 	"start/datasources"
+	"start/utils"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -18,7 +18,7 @@ type GolfLog struct {
 
 // ======= CRUD ===========
 func (item *GolfLog) Create() error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
 
@@ -32,7 +32,7 @@ func (item *GolfLog) Create() error {
 
 func (item *GolfLog) Update() error {
 	mydb := datasources.GetDatabase()
-	item.UpdatedAt = time.Now().Unix()
+	item.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := mydb.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

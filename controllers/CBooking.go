@@ -183,7 +183,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	if body.BookingDate != "" {
 		// bookingDateInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, body.BookingDate)
-		// nowStr, _ := utils.GetLocalTimeFromTimeStamp("", constants.DATE_FORMAT_1, time.Now().Unix())
+		// nowStr, _ := utils.GetLocalTimeFromTimeStamp("", constants.DATE_FORMAT_1, utils.GetTimeNow().Unix())
 		// nowUnix := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, nowStr)
 
 		// if bookingDateInt < nowUnix {
@@ -192,7 +192,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		// }
 		booking.BookingDate = body.BookingDate
 	} else {
-		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 		if errDate == nil {
 			booking.BookingDate = dateDisplay
 		} else {
@@ -213,7 +213,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	booking.BillCode = utils.HashCodeUuid(bookingUid.String())
 
 	// Checkin Time
-	checkInTime := time.Now().Unix()
+	checkInTime := utils.GetTimeNow().Unix()
 
 	// Member Card
 	// Check xem booking guest hay booking member
@@ -276,7 +276,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.CustomerUid = body.CustomerUid
 	}
 
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
 	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
 	if body.GuestStyle != "" && guestStyle != body.GuestStyle {
@@ -1036,8 +1036,8 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	booking.CmsUser = prof.UserName
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
-	booking.CheckInTime = time.Now().Unix()
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
+	booking.CheckInTime = utils.GetTimeNow().Unix()
 	booking.BagStatus = constants.BAG_STATUS_WAITING
 	booking.CourseType = body.CourseType
 
@@ -1160,7 +1160,7 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 	booking.OtherPaids = body.OtherPaids
 
 	booking.CmsUser = prof.UserName
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
 	errUdp := booking.Update(db)
 
@@ -1211,7 +1211,7 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 	}
 
 	booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
-	booking.CheckOutTime = time.Now().Unix()
+	booking.CheckOutTime = utils.GetTimeNow().Unix()
 
 	if err := booking.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -1376,7 +1376,7 @@ func (cBooking *CBooking) FinishBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	today, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	today, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 
 	booking := model_booking.Booking{
 		Bag:         body.Bag,
@@ -1462,7 +1462,7 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	today, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	today, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 
 	Rbooking := model_booking.Booking{
 		PartnerUid:  body.PartnerUid,

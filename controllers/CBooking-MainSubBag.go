@@ -10,7 +10,6 @@ import (
 	model_booking "start/models/booking"
 	"start/utils"
 	"start/utils/response_message"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -89,7 +88,7 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	booking.CmsUser = prof.UserName
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
 	errUdp := booking.Update(db)
 	if errUdp != nil {
@@ -233,7 +232,7 @@ func (_ *CBooking) EditSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	booking.CmsUser = prof.UserName
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
 	errUdp := booking.Update(db)
 
@@ -267,7 +266,7 @@ func (_ *CBooking) GetListBookingForAddSubBag(c *gin.Context, prof models.CmsUse
 		CourseUid:  form.CourseUid,
 	}
 
-	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 	if errDate == nil {
 		bookingR.BookingDate = dateDisplay
 	} else {

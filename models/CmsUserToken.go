@@ -4,8 +4,8 @@ import (
 	"errors"
 	"start/constants"
 	"start/datasources"
+	"start/utils"
 	"strings"
-	"time"
 )
 
 type CmsUserToken struct {
@@ -19,7 +19,7 @@ type CmsUserToken struct {
 
 // ======= CRUD ===========
 func (item *CmsUserToken) Create() error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
 	item.Status = constants.STATUS_ENABLE
@@ -30,7 +30,7 @@ func (item *CmsUserToken) Create() error {
 
 func (item *CmsUserToken) Update() error {
 	mydb := datasources.GetDatabaseAuth()
-	item.UpdatedAt = time.Now().Unix()
+	item.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := mydb.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

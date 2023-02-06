@@ -4,8 +4,8 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"start/constants"
+	"start/utils"
 	"strings"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -39,7 +39,7 @@ func (item ExtraInfo) Value() (driver.Value, error) {
 
 // ======= CRUD ===========
 func (item *Notification) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
 
@@ -51,7 +51,7 @@ func (item *Notification) Create(db *gorm.DB) error {
 }
 
 func (item *Notification) Update(database *gorm.DB) error {
-	item.UpdatedAt = time.Now().Unix()
+	item.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := database.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

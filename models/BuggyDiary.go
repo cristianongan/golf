@@ -1,10 +1,11 @@
 package models
 
 import (
-	"github.com/pkg/errors"
 	"start/constants"
 	"start/datasources"
-	"time"
+	"start/utils"
+
+	"github.com/pkg/errors"
 )
 
 type BuggyDiary struct {
@@ -28,7 +29,7 @@ type BuggyDiaryResponse struct {
 }
 
 func (item *BuggyDiary) Create() error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
@@ -45,7 +46,7 @@ func (item *BuggyDiary) Delete() error {
 }
 
 func (item *BuggyDiary) Update() error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 
 	db := datasources.GetDatabase()
 	errUpdate := db.Save(item).Error

@@ -48,8 +48,8 @@ func (w bodyLogWriter) Write(b []byte) (int, error) {
 
 func GinBodyLogMiddleware(c *gin.Context) {
 	newlogmessage := logmsg{}
-	start := time.Now().UTC()
-	newlogmessage.TimeStamp = time.Now()
+	start := utils.GetTimeNow().UTC()
+	newlogmessage.TimeStamp = utils.GetTimeNow()
 	newlogmessage.CreatedAt = utils.TimeStampMilisecond(newlogmessage.TimeStamp.UnixNano())
 	buf, _ := ioutil.ReadAll(c.Request.Body)
 	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
@@ -60,7 +60,7 @@ func GinBodyLogMiddleware(c *gin.Context) {
 	blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 	c.Writer = blw
 	c.Next()
-	end := time.Now().UTC()
+	end := utils.GetTimeNow().UTC()
 	newlogmessage.Environment = config.GetEnvironmentName()
 	newlogmessage.Module = config.GetModuleName()
 	newlogmessage.Path = c.Request.URL.Path

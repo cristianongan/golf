@@ -2,7 +2,7 @@ package models
 
 import (
 	"start/constants"
-	"time"
+	"start/utils"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -34,7 +34,7 @@ type RestaurantItem struct {
 }
 
 func (item *RestaurantItem) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -48,7 +48,7 @@ func (item *RestaurantItem) FindFirst(db *gorm.DB) error {
 }
 
 func (item *RestaurantItem) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 
 	return db.Save(item).Error
 }

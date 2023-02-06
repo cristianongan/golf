@@ -12,7 +12,6 @@ import (
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -175,7 +174,7 @@ func (_ *CBuggy) GetBuggyReadyList(c *gin.Context, prof models.CmsUser) {
 	}
 
 	result := []models.Buggy{}
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 	for _, buggy := range listBuggyReady {
 		if buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_IN_COURSE ||
 			buggy.BuggyStatus == constants.BUGGY_CURRENT_STATUS_LOCK {

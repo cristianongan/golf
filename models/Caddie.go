@@ -2,7 +2,7 @@ package models
 
 import (
 	"start/constants"
-	"time"
+	"start/utils"
 
 	"gorm.io/gorm"
 )
@@ -46,7 +46,7 @@ type CaddieResponse struct {
 }
 
 func (item *Caddie) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
@@ -55,7 +55,7 @@ func (item *Caddie) Create(db *gorm.DB) error {
 }
 
 func (item *Caddie) CreateBatch(db *gorm.DB, caddies []Caddie) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	for i := range caddies {
 		c := &caddies[i]
 		c.ModelId.CreatedAt = now.Unix()
@@ -71,7 +71,7 @@ func (item *Caddie) Delete(db *gorm.DB) error {
 }
 
 func (item *Caddie) SolfDelete(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	item.ModelId.Status = constants.STATUS_DELETED
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
@@ -81,7 +81,7 @@ func (item *Caddie) SolfDelete(db *gorm.DB) error {
 }
 
 func (item *Caddie) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {

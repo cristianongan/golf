@@ -3,8 +3,8 @@ package models
 import (
 	"errors"
 	"start/constants"
+	"start/utils"
 	"strings"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -19,19 +19,19 @@ type SystemConfigPosition struct {
 
 // ========== CRUD ===========
 func (item *SystemConfigPosition) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
 
 	if item.Status == "" {
 		item.Status = constants.STATUS_ENABLE
 	}
-	
+
 	return db.Create(item).Error
 }
 
 func (item *SystemConfigPosition) Update(db *gorm.DB) error {
-	item.UpdatedAt = time.Now().Unix()
+	item.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -51,7 +51,7 @@ func (item *SystemConfigPosition) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *SystemConfigPosition) FindList(database *gorm.DB,page Page) ([]SystemConfigPosition, int64, error) {
+func (item *SystemConfigPosition) FindList(database *gorm.DB, page Page) ([]SystemConfigPosition, int64, error) {
 	db := database.Model(SystemConfigPosition{})
 	list := []SystemConfigPosition{}
 	total := int64(0)

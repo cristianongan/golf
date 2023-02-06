@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"start/constants"
+	"start/utils"
 	"strings"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -60,7 +60,7 @@ func (item ListRound) Value() (driver.Value, error) {
 
 // ======= CRUD ===========
 func (item *Round) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
 
@@ -72,7 +72,7 @@ func (item *Round) Create(db *gorm.DB) error {
 }
 
 func (item *Round) Update(db *gorm.DB) error {
-	item.UpdatedAt = time.Now().Unix()
+	item.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

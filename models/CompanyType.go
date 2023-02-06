@@ -3,8 +3,8 @@ package models
 import (
 	"errors"
 	"start/constants"
+	"start/utils"
 	"strings"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -19,7 +19,7 @@ type CompanyType struct {
 
 // ======= CRUD ===========
 func (item *CompanyType) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
 
@@ -31,7 +31,7 @@ func (item *CompanyType) Create(db *gorm.DB) error {
 }
 
 func (item *CompanyType) Update(db *gorm.DB) error {
-	item.UpdatedAt = time.Now().Unix()
+	item.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

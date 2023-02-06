@@ -2,7 +2,7 @@ package models
 
 import (
 	"start/constants"
-	"time"
+	"start/utils"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -22,7 +22,7 @@ type CaddieCalendar struct {
 }
 
 func (item *CaddieCalendar) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
@@ -35,7 +35,7 @@ func (item *CaddieCalendar) FindFirst(db *gorm.DB) error {
 }
 
 func (item *CaddieCalendar) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 
 	return db.Save(item).Error
 }

@@ -7,6 +7,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 	"time"
@@ -30,7 +31,7 @@ func (_ *CBookingWaiting) CreateBookingWaiting(c *gin.Context, prof models.CmsUs
 		return
 	}
 
-	bookingCode := strconv.FormatInt(time.Now().Unix(), 10)
+	bookingCode := strconv.FormatInt(utils.GetTimeNow().Unix(), 10)
 
 	bookingWaiting := model_booking.BookingWaiting{
 		PartnerUid:    body.PartnerUid,

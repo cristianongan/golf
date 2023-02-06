@@ -3,7 +3,7 @@ package models
 import (
 	"start/constants"
 	"start/datasources"
-	"time"
+	"start/utils"
 
 	"github.com/pkg/errors"
 	"gorm.io/datatypes"
@@ -21,7 +21,7 @@ type CaddieConfigFee struct {
 }
 
 func (item *CaddieConfigFee) Create() error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
@@ -36,7 +36,7 @@ func (item *CaddieConfigFee) FindFirst() error {
 }
 
 func (item *CaddieConfigFee) Update() error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 
 	db := datasources.GetDatabase()
 	return db.Save(item).Error

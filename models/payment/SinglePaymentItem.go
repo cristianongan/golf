@@ -3,8 +3,8 @@ package model_payment
 import (
 	"start/constants"
 	"start/models"
+	"start/utils"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -35,7 +35,7 @@ type BookingSinglePayment struct {
 }
 
 func (item *SinglePaymentItem) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.Model.CreatedAt = now.Unix()
 	item.Model.UpdatedAt = now.Unix()
 	if item.Model.Status == "" {
@@ -49,7 +49,7 @@ func (item *SinglePaymentItem) Create(db *gorm.DB) error {
 }
 
 func (item *SinglePaymentItem) Update(mydb *gorm.DB) error {
-	item.Model.UpdatedAt = time.Now().Unix()
+	item.Model.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := mydb.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -147,8 +147,8 @@ func (item *SinglePaymentItem) FindList(db *gorm.DB, page models.Page) ([]Single
 	return list, total, db.Error
 }
 
-func (item *SinglePaymentItem) FindAllTransfer(db *gorm.DB) ([]BookingSinglePayment, error) {
-	db = db.Model(SinglePaymentItem{})
+func (item *SinglePaymentItem) FindAllTransfer(database *gorm.DB) ([]BookingSinglePayment, error) {
+	db := database.Model(SinglePaymentItem{})
 	list := []BookingSinglePayment{}
 	db = db.Select("single_payment_items.*, bookings.customer_name, bookings.customer_booking_name, SUM(CAST(single_payment_items.paid as SIGNED)) as amount")
 	db = db.Joins("LEFT JOIN bookings ON bookings.uid = single_payment_items.booking_uid")
@@ -171,8 +171,8 @@ func (item *SinglePaymentItem) FindAllTransfer(db *gorm.DB) ([]BookingSinglePaym
 	return list, db.Error
 }
 
-func (item *SinglePaymentItem) FindAllCards(db *gorm.DB) ([]BookingSinglePayment, error) {
-	db = db.Model(SinglePaymentItem{})
+func (item *SinglePaymentItem) FindAllCards(database *gorm.DB) ([]BookingSinglePayment, error) {
+	db := database.Model(SinglePaymentItem{})
 	list := []BookingSinglePayment{}
 
 	if item.PartnerUid != "" {
@@ -188,13 +188,6 @@ func (item *SinglePaymentItem) FindAllCards(db *gorm.DB) ([]BookingSinglePayment
 
 	db = db.Where(`payment_type = 'CARDS'`)
 	db = db.Where(`status <> 'DELETE'`)
-	db.Find(&list)
+	db.Debug().Find(&list)
 	return list, db.Error
 }
-
-// func (item *Payment) Delete() error {
-// 	if item.Model.Uid == "" {
-// 		return errors.New("Primary key is undefined!")
-// 	}
-// 	return datasources.GetDatabase().Delete(item).Error
-// }

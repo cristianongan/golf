@@ -174,7 +174,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 					if item2.BuggyCommonCode != "" {
 						body.ListData[index].BuggyCommonCode = item2.BuggyCommonCode
 					} else {
-						body.ListData[index].BuggyCommonCode = fmt.Sprint(time.Now().UnixNano())
+						body.ListData[index].BuggyCommonCode = fmt.Sprint(utils.GetTimeNow().UnixNano())
 					}
 				}
 			}
@@ -183,7 +183,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 
 	for index, _ := range body.ListData {
 		if body.ListData[index].BuggyCommonCode == "" {
-			body.ListData[index].BuggyCommonCode = fmt.Sprint(time.Now().UnixNano())
+			body.ListData[index].BuggyCommonCode = fmt.Sprint(utils.GetTimeNow().UnixNano())
 		}
 	}
 
@@ -292,12 +292,12 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		CourseType: body.CourseType,
 	}
 
-	hourStr, _ := utils.GetDateFromTimestampWithFormat(time.Now().Unix(), constants.HOUR_FORMAT)
-	yearStr, _ := utils.GetDateFromTimestampWithFormat(time.Now().Unix(), "060102")
+	hourStr, _ := utils.GetDateFromTimestampWithFormat(utils.GetTimeNow().Unix(), constants.HOUR_FORMAT)
+	yearStr, _ := utils.GetDateFromTimestampWithFormat(utils.GetTimeNow().Unix(), "060102")
 	flight.GroupName = yearStr + "_" + strconv.Itoa(body.Tee) + "_" + hourStr
 
 	// Date display
-	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, errDate := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 	if errDate == nil {
 		flight.DateDisplay = dateDisplay
 	} else {
@@ -405,9 +405,9 @@ func (_ *CCourseOperating) OutCaddie(c *gin.Context, prof models.CmsUser) {
 
 	udpCaddieOut(db, caddieId)
 
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 	booking.CaddieHoles = body.CaddieHoles
-	booking.TimeOutFlight = time.Now().Unix()
+	booking.TimeOutFlight = utils.GetTimeNow().Unix()
 	booking.HoleTimeOut = body.GuestHoles
 	booking.BagStatus = constants.BAG_STATUS_TIMEOUT
 	errUdp := booking.Update(db)
@@ -482,7 +482,7 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Udp các booking
-	timeOutFlight := time.Now().Unix()
+	timeOutFlight := utils.GetTimeNow().Unix()
 	caddieList := []string{}
 	partnerUid := ""
 	courseUid := ""
@@ -497,7 +497,7 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 			if errBuggy := udpOutBuggy(db, &booking, false); errBuggy != nil {
 				log.Println("OutAllFlight err book udp ", errBuggy.Error())
 			}
-			booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+			booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 			booking.CaddieHoles = body.CaddieHoles
 			booking.TimeOutFlight = timeOutFlight
 			booking.HoleTimeOut = body.GuestHoles
@@ -594,10 +594,10 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 		log.Println("SimpleOutFlight err book udp ", errBuggy.Error())
 	}
 
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 	booking.CaddieHoles = body.CaddieHoles
 	booking.HoleTimeOut = body.GuestHoles
-	booking.TimeOutFlight = time.Now().Unix()
+	booking.TimeOutFlight = utils.GetTimeNow().Unix()
 	booking.BagStatus = constants.BAG_STATUS_TIMEOUT
 	errUdp := booking.Update(db)
 	if errUdp != nil {
@@ -719,7 +719,7 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 		booking.CaddieId = caddieNew.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
-		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
 		if err := booking.Update(db); err != nil {
 			response_message.InternalServerError(c, err.Error())
@@ -810,7 +810,7 @@ func (_ *CCourseOperating) DeleteAttach(c *gin.Context, prof models.CmsUser) {
 		booking.FlightId = 0
 	}
 
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 	errUdp := booking.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
@@ -939,7 +939,7 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 		booking.CaddieId = caddieNew.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
-		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
 		if err := booking.Update(db); err != nil {
 			response_message.InternalServerError(c, err.Error())
@@ -1032,7 +1032,7 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 	booking.BuggyInfo = cloneToBuggyBooking(buggyNew)
 	booking.IsPrivateBuggy = setBoolForCursor(body.IsPrivateBuggy)
 	//booking.BuggyStatus
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
 	if err := booking.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -1053,7 +1053,7 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 
 func updateBagShareWhenChangeBuggy(booking model_booking.Booking, prof models.CmsUser, IsPrivateBuggy bool) {
 	var bagShare = ""
-	buggyCommonCode := fmt.Sprint(time.Now().UnixNano())
+	buggyCommonCode := fmt.Sprint(utils.GetTimeNow().UnixNano())
 
 	bookingR := model_booking.BookingList{
 		BookingDate: booking.BookingDate,
@@ -1165,7 +1165,7 @@ func (cCourseOperating CCourseOperating) EditHolesOfCaddie(c *gin.Context, prof 
 
 	booking.CaddieHoles = body.Hole
 
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
 	if err := booking.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -1183,7 +1183,7 @@ func (_ CCourseOperating) validateFlight(courseUid string, flightId int64) (mode
 		return flight, err
 	}
 
-	// dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	// dateDisplay, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 	// bookingList := model_booking.BookingList{
 	// 	FlightId:    flightId,
 	// 	BagStatus:   constants.BAG_STATUS_IN_COURSE,
@@ -1349,7 +1349,7 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 	}
 
 	//Update trạng thái của các old buggy
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 	for _, buggy := range listOldBuggy {
 		//Update trạng thái của các old buggy
 		if buggy.Id > 0 {
@@ -1439,7 +1439,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 
 	// Chuyển booking cũ sang time out
 	booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
-	booking.TimeOutFlight = time.Now().Unix()
+	booking.TimeOutFlight = utils.GetTimeNow().Unix()
 	booking.HoleTimeOut = int(body.HolePlayed)
 	booking.HoleMoveFlight = body.HoleMoveFlight
 	booking.MovedFlight = setBoolForCursor(true)

@@ -3,7 +3,7 @@ package kiosk_inventory
 import (
 	"start/constants"
 	"start/models"
-	"time"
+	"start/utils"
 
 	"gorm.io/gorm"
 )
@@ -46,7 +46,7 @@ func (item *InputInventoryBill) IsDuplicated(db *gorm.DB) bool {
 }
 
 func (item *InputInventoryBill) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
@@ -55,7 +55,7 @@ func (item *InputInventoryBill) Create(db *gorm.DB) error {
 }
 
 func (item *InputInventoryBill) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 
 	return db.Save(item).Error
 }

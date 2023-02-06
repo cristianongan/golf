@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"log"
 	"net/http"
+	"start/utils"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -58,8 +59,8 @@ func (c *Client) ReadPump() {
 		c.conn.Close()
 	}()
 	c.conn.SetReadLimit(maxMessageSize)
-	c.conn.SetReadDeadline(time.Now().Add(pongWait))
-	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	c.conn.SetReadDeadline(utils.GetTimeNow().Add(pongWait))
+	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(utils.GetTimeNow().Add(pongWait)); return nil })
 	for {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
@@ -98,8 +99,6 @@ func (c *Client) WritePump() {
 		// 		return
 		// 	}
 		// case <-ticker.C:
-		// 	if err := c.write(websocket.PingMessage, []byte{}); err != nil {
-		// 		log.Println("WritePump Message ticker.C: ", err)
 		// 		return
 		// 	}
 		// }

@@ -11,7 +11,6 @@ import (
 	model_payment "start/models/payment"
 	"start/utils"
 	"strings"
-	"time"
 
 	model_report "start/models/report"
 
@@ -307,7 +306,7 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	booking.CmsUser = prof.UserName
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
 	if booking.MainBags != nil && len(booking.MainBags) > 0 {
 		// Nếu bag có Main Bag
@@ -449,9 +448,11 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 				proshopFee += v.Amount
 			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE {
 				otherFee += v.Amount
-			} else if v.ServiceType == constants.BUGGY_SETTING {
+			}
+			if v.ServiceType == constants.BUGGY_SETTING {
 				buggyFee += v.Amount
-			} else if v.ServiceType == constants.CADDIE_SETTING {
+			}
+			if v.ServiceType == constants.CADDIE_SETTING {
 				bookingCaddieFee += v.Amount
 			}
 		}

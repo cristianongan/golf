@@ -7,6 +7,7 @@ import (
 	"start/controllers/response"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 	"strings"
@@ -42,7 +43,7 @@ func (_ *CCaddieWorkingSchedule) CreateCaddieWorkingSchedule(c *gin.Context, pro
 		}
 
 		// validate week_id
-		g, _ := goment.New(time.Now().UnixNano())
+		g, _ := goment.New(utils.GetTimeNow().UnixNano())
 		totalWeekInYear := int64(g.WeekYear())
 
 		weekId := strings.Split(item.WeekId, "-")
@@ -156,7 +157,7 @@ func (_ *CCaddieWorkingSchedule) UpdateCaddieWorkingSchedule(c *gin.Context, pro
 	}
 
 	// validate week_id
-	g, _ := goment.New(time.Now().UnixNano())
+	g, _ := goment.New(utils.GetTimeNow().UnixNano())
 	totalWeekInYear := int64(g.WeekYear())
 
 	weekId := strings.Split(body.WeekId, "-")

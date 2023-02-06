@@ -9,7 +9,6 @@ import (
 	model_booking "start/models/booking"
 	"start/utils"
 	"start/utils/response_message"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,7 +28,7 @@ func (_ *CReport) GetListReportMainBagSubBagToDay(c *gin.Context, prof models.Cm
 		return
 	}
 
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 
 	if dateDisplay == "" {
 		response_message.InternalServerError(c, "date error")

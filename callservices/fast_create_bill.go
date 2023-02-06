@@ -8,7 +8,6 @@ import (
 	"start/constants"
 	"start/controllers/response"
 	"start/utils"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -61,7 +60,7 @@ func TransferFast(paymentType string, price int64, note, customerUid, customerNa
 		IdOnes:       idOnes,
 		MaDVCS:       "CTY",
 		SoCT:         billNo,
-		NgayCt:       time.Now().Format("2006-01-02T15:04:05.000Z"),
+		NgayCt:       utils.GetTimeNow().Format("2006-01-02T15:04:05.000Z"),
 		MaNT:         "VND",
 		TyGia:        1,
 		MaKH:         customerUid,

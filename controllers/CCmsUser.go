@@ -141,7 +141,7 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 	// // create jwt
 	prof := models.CmsUserProfile{
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Second * time.Duration(body.Ttl)).Unix(),
+			ExpiresAt: utils.GetTimeNow().Add(time.Second * time.Duration(body.Ttl)).Unix(),
 		},
 	}
 	prof.Uid = user.Uid

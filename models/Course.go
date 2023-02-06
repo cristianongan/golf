@@ -6,7 +6,6 @@ import (
 	"start/datasources"
 	"start/utils"
 	"strings"
-	"time"
 )
 
 // Sân Golf
@@ -42,7 +41,7 @@ type CourseRes struct {
 // ======= CRUD ===========
 func (item *Course) Create() error {
 	db := datasources.GetDatabaseAuth()
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
 	if item.Status == "" {
@@ -56,7 +55,7 @@ func (item *Course) Create() error {
 
 func (item *Course) Update() error {
 	db := datasources.GetDatabaseAuth()
-	item.UpdatedAt = time.Now().Unix()
+	item.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

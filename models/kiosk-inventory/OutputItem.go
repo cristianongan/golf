@@ -3,7 +3,7 @@ package kiosk_inventory
 import (
 	"start/constants"
 	"start/models"
-	"time"
+	"start/utils"
 
 	"gorm.io/gorm"
 )
@@ -42,7 +42,7 @@ type OutputStatisticItem struct {
 }
 
 func (item *InventoryOutputItem) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE

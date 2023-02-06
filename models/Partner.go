@@ -4,8 +4,8 @@ import (
 	"errors"
 	"start/constants"
 	"start/datasources"
+	"start/utils"
 	"strings"
-	"time"
 )
 
 // Hãng Golf
@@ -16,7 +16,7 @@ type Partner struct {
 
 // ======= CRUD ===========
 func (item *Partner) Create() error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
 
@@ -30,7 +30,7 @@ func (item *Partner) Create() error {
 
 func (item *Partner) Update() error {
 	mydb := datasources.GetDatabaseAuth()
-	item.UpdatedAt = time.Now().Unix()
+	item.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := mydb.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

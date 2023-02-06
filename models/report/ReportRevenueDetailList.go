@@ -3,6 +3,7 @@ package mdoel_report
 import (
 	"start/constants"
 	"start/models"
+	"start/utils"
 	"time"
 
 	"gorm.io/gorm"
@@ -84,7 +85,7 @@ func (item *ReportRevenueDetailList) FindBookingRevenueList(database *gorm.DB, p
 }
 
 func (item *ReportRevenueDetailList) FindGolfFeeRevenue(database *gorm.DB) ResReportGolfService {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	currentYear, _, _ := now.Date()
 
 	yearToMonth1 := getGolfFeeService(item.Year, item.Month, database)
@@ -97,7 +98,7 @@ func (item *ReportRevenueDetailList) FindGolfFeeRevenue(database *gorm.DB) ResRe
 }
 
 func getGolfFeeService(year int, month int, database *gorm.DB) GolfService {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	currentLocation := now.Location()
 
 	firstOfMonth2 := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, currentLocation)
