@@ -1451,36 +1451,8 @@ func (cBooking *CBooking) FinishBill(c *gin.Context, prof models.CmsUser) {
 		// callservices.TransferFast(constants.PAYMENT_TYPE_CASH, otherTotal, "", booking.CustomerUid, booking.CustomerName)
 	}
 
-	go updatePriceForRevenue(db, booking, body.BillNo)
+	go updatePriceForRevenue(booking, body.BillNo)
 	okRes(c)
-}
-
-func (cBooking *CBooking) ReportDayEnd(c *gin.Context, prof models.CmsUser) {
-	body := request.FinishBookingBody{}
-	if bindErr := c.ShouldBind(&body); bindErr != nil {
-		badRequest(c, bindErr.Error())
-		return
-	}
-
-	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
-
-	bookings := model_booking.BookingList{
-		BookingDate: body.BookingDate,
-	}
-
-	db, _, err := bookings.FindAllBookingList(db)
-
-	if err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
-
-	var list []model_booking.Booking
-	db.Find(&list)
-
-	// for _, item :=range list {
-	// 	// go updatePriceForRevenue(db, booking, body.BillNo)
-	// }
 }
 
 func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
