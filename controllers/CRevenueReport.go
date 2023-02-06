@@ -6,6 +6,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	model_payment "start/models/payment"
 	model_report "start/models/report"
 	"start/utils/response_message"
 
@@ -304,7 +305,19 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 		return
 	}
 
-	okResponse(c, data)
+	singlePaymentItemR := model_payment.SinglePaymentItem{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+	}
+
+	list, _ := singlePaymentItemR.FindAllTransfer(db)
+	res := map[string]interface{}{
+		"revenue": data,
+		"players": list,
+	}
+
+	okResponse(c, res)
 }
 
 func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.CmsUser) {

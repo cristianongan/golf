@@ -51,6 +51,7 @@ type DayEndRevenue struct {
 	CourseUid        string `json:"course_uid"`         // San Golf
 	GreenFee         int64  `json:"green_fee"`          // Phí sân cỏ
 	CaddieFee        int64  `json:"caddie_fee"`         // Phí caddie
+	BuggyFee         int64  `json:"buggy_fee"`          // Phí thuê xe
 	BookingCaddieFee int64  `json:"booking_caddie_fee"` // Phí booking caddie
 	ProshopFee       int64  `json:"proshop_fee"`        // Phí đồ ở Proshop
 	RestaurantFee    int64  `json:"restaurant_fee"`     // Phí nhà hàng
