@@ -4,7 +4,6 @@ import (
 	"start/constants"
 	"start/models"
 	"start/utils"
-	"time"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -70,7 +69,7 @@ func (item *BookingSource) ValidateTimeRuleInBookingSource(db *gorm.DB, BookingD
 }
 
 func (item *BookingSource) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
@@ -81,7 +80,7 @@ func (item *BookingSource) Create(db *gorm.DB) error {
 }
 
 func (item *BookingSource) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

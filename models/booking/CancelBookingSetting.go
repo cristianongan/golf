@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"start/constants"
 	"start/models"
+	"start/utils"
 
 	// "start/utils"
 
 	// "strconv"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -47,7 +47,7 @@ func (item *CancelBookingSetting) IsValidated() bool {
 }
 
 func (item *CancelBookingSetting) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
@@ -58,7 +58,7 @@ func (item *CancelBookingSetting) Create(db *gorm.DB) error {
 }
 
 func (item *CancelBookingSetting) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -120,7 +120,7 @@ func (item *CancelBookingSetting) Delete(db *gorm.DB) error {
 
 func (item *CancelBookingSetting) ValidateBookingCancel(db *gorm.DB, booking Booking) error {
 	// Tính ra số giờ từ lúc cancel so với lúc tạo booking CreateAt
-	rangeTime := time.Now().Unix() - booking.CreatedAt
+	rangeTime := utils.GetTimeNow().Unix() - booking.CreatedAt
 	oneDayTimeUnix := int64(24 * 3600)
 	twoHourTimeUnix := int64(2 * 3600)
 

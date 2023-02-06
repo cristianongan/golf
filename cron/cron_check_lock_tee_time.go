@@ -9,7 +9,7 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	"start/socket"
-	"time"
+	"start/utils"
 )
 
 func runCheckLockTeeTime() {
@@ -36,7 +36,7 @@ func runCheckLockTeeTime() {
 
 	constantTime := 5 * 60
 	for _, teeTime := range listTeeTimeLockRedis {
-		diff := time.Now().Local().Unix() - teeTime.CreatedAt
+		diff := utils.GetTimeNow().Local().Unix() - teeTime.CreatedAt
 		if diff >= int64(constantTime) && teeTime.Type == constants.LOCK_OTA {
 
 			teeTimeRedisKey := getKeyTeeTimeLockRedis(teeTime.DateTime, teeTime.CourseUid, teeTime.TeeTime, "1A")

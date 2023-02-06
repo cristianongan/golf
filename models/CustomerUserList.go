@@ -1,8 +1,8 @@
 package models
 
 import (
+	"start/utils"
 	"strconv"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -24,11 +24,11 @@ func (item CustomerUserList) FindCustomerList(database *gorm.DB, page Page) ([]C
 	}
 
 	if item.FromBirthDate != "" {
-		db = db.Where("DATE(DATE_FORMAT(FROM_UNIXTIME(dob), ?)) >= ?", strconv.FormatInt(int64(time.Now().Year()), 10)+"-%m-%d", item.FromBirthDate)
+		db = db.Where("DATE(DATE_FORMAT(FROM_UNIXTIME(dob), ?)) >= ?", strconv.FormatInt(int64(utils.GetTimeNow().Year()), 10)+"-%m-%d", item.FromBirthDate)
 	}
 
 	if item.ToBirthDate != "" {
-		db = db.Where("DATE(DATE_FORMAT(FROM_UNIXTIME(dob), ?)) <= ?", strconv.FormatInt(int64(time.Now().Year()), 10)+"-%m-%d", item.ToBirthDate)
+		db = db.Where("DATE(DATE_FORMAT(FROM_UNIXTIME(dob), ?)) <= ?", strconv.FormatInt(int64(utils.GetTimeNow().Year()), 10)+"-%m-%d", item.ToBirthDate)
 	}
 
 	db.Count(&total)

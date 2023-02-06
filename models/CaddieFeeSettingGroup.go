@@ -2,9 +2,9 @@ package models
 
 import (
 	"start/constants"
+	"start/utils"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -50,7 +50,7 @@ func (item *CaddieFeeSettingGroup) IsValidated() bool {
 }
 
 func (item *CaddieFeeSettingGroup) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
@@ -61,7 +61,7 @@ func (item *CaddieFeeSettingGroup) Create(db *gorm.DB) error {
 }
 
 func (item *CaddieFeeSettingGroup) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

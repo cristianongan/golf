@@ -8,7 +8,7 @@ type CCron struct{}
 
 // 	// get caddie groups
 // 	var caddieWorkingScheduleList []models.CaddieWorkingSchedule
-// 	today := datatypes.Date(time.Now())
+// 	today := datatypes.Date(utils.GetTimeNow())
 
 // 	idDayOff := false
 // 	caddieWorkingSchedule := models.CaddieWorkingSchedule{}
@@ -92,7 +92,7 @@ type CCron struct{}
 // 			caddieWorkingCalendar.CaddieColumn = 10
 // 		}
 // 		caddieWorkingCalendar.CaddieRow = "H" + strconv.FormatInt(int64(math.Round(float64(i+1)/float64(10))), 10)
-// 		caddieWorkingCalendar.ApplyDate = datatypes.Date(time.Now())
+// 		caddieWorkingCalendar.ApplyDate = datatypes.Date(utils.GetTimeNow())
 
 // 		if err := caddieWorkingCalendar.Create(db); err != nil {
 // 			fmt.Println("[CRON_JOB] [CREATE_CADDIE_WORKING_CALENDAR] [ERROR]", err.Error())

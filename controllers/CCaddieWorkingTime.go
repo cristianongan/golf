@@ -8,9 +8,9 @@ import (
 	"start/controllers/response"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -40,7 +40,7 @@ func (_ *CCaddieWorkingTime) CaddieCheckInWorkingTime(c *gin.Context, prof model
 		Status: constants.STATUS_ENABLE,
 	}
 
-	checkInTime := time.Now().Unix()
+	checkInTime := utils.GetTimeNow().Unix()
 
 	caddieWorkingTime := models.CaddieWorkingTime{
 		ModelId:     base,
@@ -76,7 +76,7 @@ func (_ *CCaddieWorkingTime) CaddieCheckOutWorkingTime(c *gin.Context, prof mode
 		return
 	}
 
-	checkOutTime := time.Now().Unix()
+	checkOutTime := utils.GetTimeNow().Unix()
 
 	caddieWorkingTime := models.CaddieWorkingTime{
 		ModelId:      response.ModelId,

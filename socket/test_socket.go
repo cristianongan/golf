@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"log"
 	"net/http"
+	"start/utils"
 	"sync"
 	"time"
 
@@ -59,8 +60,8 @@ func (c *Client) ReadPump() {
 		c.conn.Close()
 	}()
 	c.conn.SetReadLimit(maxMessageSize)
-	c.conn.SetReadDeadline(time.Now().Add(pongWait))
-	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	c.conn.SetReadDeadline(utils.GetTimeNow().Add(pongWait))
+	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(utils.GetTimeNow().Add(pongWait)); return nil })
 	for {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
@@ -105,7 +106,7 @@ func (c *Client) WritePump() {
 		}
 		// select {
 		// case message, ok := <-c.send:
-		// 	c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+		// 	c.conn.SetWriteDeadline(utils.GetTimeNow().Add(writeWait))
 		// 	if !ok {
 		// 		// The hub closed the channel.
 		// 		c.conn.WriteMessage(websocket.CloseMessage, []byte{})
@@ -129,7 +130,7 @@ func (c *Client) WritePump() {
 		// 	// 	return
 		// 	// }
 		// case <-ticker.C:
-		// 	c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+		// 	c.conn.SetWriteDeadline(utils.GetTimeNow().Add(writeWait))
 		// 	if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 		// 		return
 		// 	}
@@ -154,7 +155,7 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Client) write(mt int, payload []byte) error {
-	// c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+	// c.conn.SetWriteDeadline(utils.GetTimeNow().Add(writeWait))
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.conn.WriteMessage(mt, payload)

@@ -5,7 +5,6 @@ import (
 	"start/models"
 	"start/utils"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -25,7 +24,7 @@ type BookingWaiting struct {
 }
 
 func (item *BookingWaiting) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
@@ -36,7 +35,7 @@ func (item *BookingWaiting) Create(db *gorm.DB) error {
 }
 
 func (item *BookingWaiting) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

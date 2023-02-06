@@ -8,7 +8,6 @@ import (
 	"start/datasources"
 	"start/utils"
 	"strings"
-	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
@@ -71,7 +70,7 @@ type CmsUserProfile struct {
 
 func (item *CmsUser) Create() error {
 	uid := uuid.New()
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.Model.Uid = uid.String()
 	item.Model.CreatedAt = now.Unix()
 	item.Model.UpdatedAt = now.Unix()
@@ -83,7 +82,7 @@ func (item *CmsUser) Create() error {
 
 func (item *CmsUser) Update() error {
 	mydb := datasources.GetDatabaseAuth()
-	item.Model.UpdatedAt = time.Now().Unix()
+	item.Model.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := mydb.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

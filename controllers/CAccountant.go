@@ -5,8 +5,8 @@ import (
 	"start/controllers/request"
 	"start/datasources"
 	model_service "start/models/service"
+	"start/utils"
 	"start/utils/response_message"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -49,7 +49,7 @@ func (item CAccountant) ImportInventory(c *gin.Context) {
 		OutputDate: body.OutputDate,
 	}
 
-	billcode := time.Now().Format("20060102150405")
+	billcode := utils.GetTimeNow().Format("20060102150405")
 	if errInputBill := MethodInputBill(c, nil, newBody,
 		constants.KIOSK_BILL_INVENTORY_APPROVED, billcode); errInputBill != nil {
 		errData := response_message.ErrorResponseData{

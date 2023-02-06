@@ -5,7 +5,7 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
-	"time"
+	"start/utils"
 
 	"github.com/ivpusic/golog"
 	"gorm.io/driver/mysql"
@@ -47,7 +47,7 @@ func (activityMysql ActivityMysqlAppender) Append(activityGoLog golog.Log) {
 		panic(fmt.Sprint("activity_go_log_data_0 is invalid"))
 	}
 
-	now := time.Now()
+	now := utils.GetTimeNow()
 
 	activityLog := ActivityLog{
 		ModelId: models.ModelId{
@@ -93,7 +93,7 @@ func ActivityMysql(cnf golog.Conf) *ActivityMysqlAppender {
 }
 
 func Log(db *gorm.DB, action, category, label, value string, prof models.CmsUser) {
-	now := time.Now()
+	now := utils.GetTimeNow()
 
 	activityLog := ActivityLog{
 		ModelId: models.ModelId{

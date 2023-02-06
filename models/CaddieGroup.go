@@ -3,7 +3,7 @@ package models
 import (
 	"start/constants"
 	"start/datasources"
-	"time"
+	"start/utils"
 
 	"gorm.io/gorm"
 )
@@ -18,7 +18,7 @@ type CaddieGroup struct {
 }
 
 func (item *CaddieGroup) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE

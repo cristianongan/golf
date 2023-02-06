@@ -7,6 +7,7 @@ import (
 	"start/controllers/response"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 	"strings"
@@ -33,7 +34,7 @@ func (_ *CMaintainSchedule) CreateMaintainSchedule(c *gin.Context, prof models.C
 
 	for _, item := range body.MaintainScheduleList {
 		// validate week_id
-		g, _ := goment.New(time.Now().UnixNano())
+		g, _ := goment.New(utils.GetTimeNow().UnixNano())
 		totalWeekInYear := int64(g.WeekYear())
 
 		weekId := strings.Split(item.WeekId, "-")
@@ -139,7 +140,7 @@ func (_ *CMaintainSchedule) UpdateMaintainSchedule(c *gin.Context, prof models.C
 	}
 
 	// validate week_id
-	g, _ := goment.New(time.Now().UnixNano())
+	g, _ := goment.New(utils.GetTimeNow().UnixNano())
 	totalWeekInYear := int64(g.WeekYear())
 
 	weekId := strings.Split(body.WeekId, "-")

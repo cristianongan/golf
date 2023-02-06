@@ -2,7 +2,7 @@ package models
 
 import (
 	"start/constants"
-	"time"
+	"start/utils"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -40,7 +40,7 @@ type WorkingTimeTotal struct {
 }
 
 func (item *CaddieWorkingTime) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
@@ -49,7 +49,7 @@ func (item *CaddieWorkingTime) Create(db *gorm.DB) error {
 }
 
 func (item *CaddieWorkingTime) CreateBatch(db *gorm.DB, caddies []CaddieWorkingTime) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	for i := range caddies {
 		c := &caddies[i]
 		c.ModelId.CreatedAt = now.Unix()
@@ -68,7 +68,7 @@ func (item *CaddieWorkingTime) Delete(db *gorm.DB) error {
 }
 
 func (item *CaddieWorkingTime) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {

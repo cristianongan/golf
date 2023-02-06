@@ -12,7 +12,6 @@ import (
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
-	"time"
 
 	model_payment "start/models/payment"
 
@@ -63,7 +62,7 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 		log.Println("CreateSinglePayment errUM", errUM.Error())
 	}
 
-	toDayDate, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 
 	// Check single Payment
 	singlePayment := model_payment.SinglePayment{

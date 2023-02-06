@@ -2,6 +2,7 @@ package models
 
 import (
 	"start/constants"
+	"start/utils"
 	"time"
 
 	"gorm.io/datatypes"
@@ -20,7 +21,7 @@ type CaddieWorkingSchedule struct {
 }
 
 func (item *CaddieWorkingSchedule) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE
@@ -169,6 +170,6 @@ func (item *CaddieWorkingSchedule) CheckCaddieWorkOnDay(database *gorm.DB) bool 
 }
 
 func (item *CaddieWorkingSchedule) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	return db.Save(item).Error
 }

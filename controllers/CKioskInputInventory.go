@@ -9,7 +9,6 @@ import (
 	model_service "start/models/service"
 	"start/utils"
 	"start/utils/response_message"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -25,7 +24,7 @@ func (item CKioskInputInventory) CreateManualInputBill(c *gin.Context, prof mode
 		return
 	}
 
-	billcode := time.Now().Format("20060102150405")
+	billcode := utils.GetTimeNow().Format("20060102150405")
 	if errInputBill := MethodInputBill(c, &prof, body,
 		constants.KIOSK_BILL_INVENTORY_APPROVED, billcode); errInputBill != nil {
 		response_message.BadRequest(c, errInputBill.Error())
@@ -90,7 +89,7 @@ func MethodInputBill(c *gin.Context, prof *models.CmsUser, body request.CreateBi
 			Unit:      itemInfo.Unit,
 		}
 
-		inputItem.InputDate = time.Now().Format(constants.DATE_FORMAT_1)
+		inputItem.InputDate = utils.GetTimeNow().Format(constants.DATE_FORMAT_1)
 
 		if err := inputItem.Create(db); err != nil {
 			return err
@@ -135,7 +134,7 @@ func (item CKioskInputInventory) AcceptInputBill(c *gin.Context, prof models.Cms
 
 	inventoryStatus.BillStatus = constants.KIOSK_BILL_INVENTORY_APPROVED
 	inventoryStatus.UserUpdate = prof.UserName
-	inventoryStatus.InputDate = time.Now().Unix()
+	inventoryStatus.InputDate = utils.GetTimeNow().Unix()
 	if err := inventoryStatus.Update(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return

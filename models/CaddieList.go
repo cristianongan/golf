@@ -2,6 +2,7 @@ package models
 
 import (
 	"start/constants"
+	"start/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -177,7 +178,7 @@ func (item *CaddieList) FindAllCaddieReadyOnDayListOTA(database *gorm.DB, date s
 		timeUnix, _ := time.Parse(constants.DATE_FORMAT, date)
 		timeNow = datatypes.Date(timeUnix)
 	} else {
-		timeNow = datatypes.Date(time.Now())
+		timeNow = datatypes.Date(utils.GetTimeNow())
 	}
 
 	listResponse := []CaddieRes{}

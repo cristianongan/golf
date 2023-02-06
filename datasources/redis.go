@@ -8,6 +8,7 @@ import (
 	"log"
 	"start/config"
 	"start/constants"
+	"start/utils"
 	"time"
 
 	// https://godoc.org/github.com/go-redis/redis
@@ -118,7 +119,7 @@ func Lock(opt LockOption) error {
 		return fmt.Errorf("Could not obtain lock key '%s'. %v", opt.Key, err)
 	}
 
-	obtainedAt := time.Now()
+	obtainedAt := utils.GetTimeNow()
 	defer func() {
 		// Try to release lock, up to the specified ttl
 		releaseDeadline, cancelFn := context.WithTimeout(ctx, opt.Ttl)

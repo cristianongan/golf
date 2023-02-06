@@ -9,7 +9,6 @@ import (
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -77,7 +76,7 @@ func (_ *CAnnualFee) GetListAnnualFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 	if form.Year == 0 && form.MemberCardUid == "" {
-		currentYearStr, errParseTime := utils.GetDateFromTimestampWithFormat(time.Now().Unix(), constants.YEAR_FORMAT)
+		currentYearStr, errParseTime := utils.GetDateFromTimestampWithFormat(utils.GetTimeNow().Unix(), constants.YEAR_FORMAT)
 		if errParseTime == nil {
 			currentYearInt, errPInt := strconv.Atoi(currentYearStr)
 			if errPInt == nil {

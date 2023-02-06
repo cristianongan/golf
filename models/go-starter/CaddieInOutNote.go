@@ -3,6 +3,7 @@ package model_gostarter
 import (
 	"start/constants"
 	"start/models"
+	"start/utils"
 	"strings"
 	"time"
 
@@ -48,7 +49,7 @@ type CaddieBuggyInOutRequest struct {
 }
 
 func (item *CaddieBuggyInOut) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
@@ -59,7 +60,7 @@ func (item *CaddieBuggyInOut) Create(db *gorm.DB) error {
 }
 
 func (item *CaddieBuggyInOut) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -192,7 +193,7 @@ func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB,
 	if request.Bag != "" {
 		db = db.Where("bookings.bag = ?", request.Bag)
 	}
-	// localTime, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, time.Now().Unix())
+	// localTime, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, utils.GetTimeNow().Unix())
 	if request.Date != "" {
 		db = db.Where("bookings.booking_date = ?", request.Date)
 	}
