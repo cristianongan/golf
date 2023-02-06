@@ -312,9 +312,26 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 	}
 
 	list, _ := singlePaymentItemR.FindAllTransfer(db)
+
+	vcb := int64(0)
+	bidv := int64(0)
+
+	for _, item := range list {
+		if item.BankType == "VCB" {
+			vcb += item.Amount
+		}
+		if item.BankType == "BIDV" {
+			bidv += item.Amount
+		}
+	}
+
 	res := map[string]interface{}{
 		"revenue": data,
 		"players": list,
+		"cards": map[string]interface{}{
+			"vcb":  vcb,
+			"bidv": bidv,
+		},
 	}
 
 	okResponse(c, res)
