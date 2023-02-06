@@ -171,6 +171,27 @@ func (item *SinglePaymentItem) FindAllTransfer(db *gorm.DB) ([]BookingSinglePaym
 	return list, db.Error
 }
 
+func (item *SinglePaymentItem) FindAllCards(db *gorm.DB) ([]BookingSinglePayment, error) {
+	db = db.Model(SinglePaymentItem{})
+	list := []BookingSinglePayment{}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+
+	db = db.Where(`payment_type = 'CARDS'`)
+	db = db.Where(`status <> 'DELETE'`)
+	db.Find(&list)
+	return list, db.Error
+}
+
 // func (item *Payment) Delete() error {
 // 	if item.Model.Uid == "" {
 // 		return errors.New("Primary key is undefined!")
