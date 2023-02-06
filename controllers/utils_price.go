@@ -449,9 +449,11 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 				proshopFee += v.Amount
 			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE {
 				otherFee += v.Amount
-			} else if v.ServiceType == constants.BUGGY_SETTING {
+			}
+			if v.ServiceType == constants.BUGGY_SETTING {
 				buggyFee += v.Amount
-			} else if v.ServiceType == constants.CADDIE_SETTING {
+			}
+			if v.ServiceType == constants.CADDIE_SETTING {
 				bookingCaddieFee += v.Amount
 			}
 		}

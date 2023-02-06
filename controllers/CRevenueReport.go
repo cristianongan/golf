@@ -311,14 +311,9 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 		BookingDate: body.BookingDate,
 	}
 
-	singlePaymentItemR2 := model_payment.SinglePaymentItem{
-		PartnerUid:  body.PartnerUid,
-		CourseUid:   body.CourseUid,
-		BookingDate: body.BookingDate,
-	}
-
-	listTransfer, _ := singlePaymentItemR1.FindAllTransfer(db)
-	listCards, _ := singlePaymentItemR2.FindAllCards(db)
+	db1 := datasources.GetDatabaseWithPartner(body.PartnerUid)
+	listTransfer, _ := singlePaymentItemR1.FindAllTransfer(db1)
+	listCards, _ := singlePaymentItemR1.FindAllCards(datasources.GetDatabaseWithPartner(body.PartnerUid))
 
 	vcb := int64(0)
 	bidv := int64(0)
@@ -358,6 +353,8 @@ func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.
 	}
 
 	db, _, err := bookings.FindAllBookingList(db)
+	db = db.Where("check_in_time > 0")
+	db = db.Where("bag_status <> 'CANCEL'")
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
