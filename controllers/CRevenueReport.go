@@ -305,16 +305,40 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 		return
 	}
 
-	singlePaymentItemR := model_payment.SinglePaymentItem{
+	singlePaymentItemR1 := model_payment.SinglePaymentItem{
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,
 		BookingDate: body.BookingDate,
 	}
 
-	list, _ := singlePaymentItemR.FindAllTransfer(db)
+	singlePaymentItemR2 := model_payment.SinglePaymentItem{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+	}
+
+	listTransfer, _ := singlePaymentItemR1.FindAllTransfer(db)
+	listCards, _ := singlePaymentItemR2.FindAllCards(db)
+
+	vcb := int64(0)
+	bidv := int64(0)
+
+	for _, item := range listCards {
+		if item.BankType == "VCB" {
+			vcb += item.Amount
+		}
+		if item.BankType == "BIDV" {
+			bidv += item.Amount
+		}
+	}
+
 	res := map[string]interface{}{
 		"revenue": data,
-		"players": list,
+		"players": listTransfer,
+		"cards": map[string]interface{}{
+			"vcb":  vcb,
+			"bidv": bidv,
+		},
 	}
 
 	okResponse(c, res)
