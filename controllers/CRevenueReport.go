@@ -282,3 +282,57 @@ func (_ *CRevenueReport) GetReportBuggyForGuestStyle(c *gin.Context, prof models
 
 	okResponse(c, res)
 }
+
+func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUser) {
+	body := request.FinishBookingBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
+
+	repotR := model_report.ReportRevenueDetail{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+	}
+
+	data, err := repotR.FindReportDayEnd(db)
+	if err != nil {
+		badRequest(c, err.Error())
+		return
+	}
+
+	okResponse(c, data)
+}
+
+func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.CmsUser) {
+	body := request.FinishBookingBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
+
+	bookings := model_booking.BookingList{
+		BookingDate: body.BookingDate,
+	}
+
+	db, _, err := bookings.FindAllBookingList(db)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+
+	for _, booking := range list {
+		updatePriceForRevenue(booking, body.BillNo)
+	}
+
+	okRes(c)
+}
