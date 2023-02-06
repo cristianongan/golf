@@ -27,6 +27,13 @@ type SinglePaymentItem struct {
 	BankType    string `json:"bank_type" gorm:"type:varchar(20)"`          // Chuyển khoản qua VCB,BIDV...
 }
 
+type BookingSinglePayment struct {
+	SinglePaymentItem
+	CustomerBookingName string `json:"customer_booking_name"`
+	CustomerName        string `json:"customer_name"`
+	Amount              int64  `json:"amount"`
+}
+
 func (item *SinglePaymentItem) Create(db *gorm.DB) error {
 	now := time.Now()
 	item.Model.CreatedAt = now.Unix()
@@ -138,6 +145,29 @@ func (item *SinglePaymentItem) FindList(db *gorm.DB, page models.Page) ([]Single
 		db = page.Setup(db).Find(&list)
 	}
 	return list, total, db.Error
+}
+
+func (item *SinglePaymentItem) FindAllTransfer(db *gorm.DB) ([]BookingSinglePayment, error) {
+	db = db.Model(SinglePaymentItem{})
+	list := []BookingSinglePayment{}
+	db = db.Select("single_payment_items.*, bookings.customer_name, bookings.customer_booking_name, SUM(CAST(single_payment_items.paid as SIGNED)) as amount")
+	db = db.Joins("LEFT JOIN bookings ON bookings.uid = single_payment_items.booking_uid")
+	if item.PartnerUid != "" {
+		db = db.Where("single_payment_items.partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("single_payment_items.course_uid = ?", item.CourseUid)
+	}
+
+	if item.BookingDate != "" {
+		db = db.Where("single_payment_items.booking_date = ?", item.BookingDate)
+	}
+
+	db = db.Where(`single_payment_items.payment_type = 'TRANSFER'`)
+	db = db.Where(`single_payment_items.status <> 'DELETE'`)
+	// db.Group("single_payment_items.bag")
+	db.Debug().Find(&list)
+	return list, db.Error
 }
 
 // func (item *Payment) Delete() error {
