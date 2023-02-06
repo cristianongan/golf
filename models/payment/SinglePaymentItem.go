@@ -165,8 +165,8 @@ func (item *SinglePaymentItem) FindAllTransfer(db *gorm.DB) ([]BookingSinglePaym
 
 	db = db.Where(`single_payment_items.payment_type = 'TRANSFER'`)
 	db = db.Where(`single_payment_items.status <> 'DELETE'`)
-	// db.Group("single_payment_items.bag")
-	db.Debug().Find(&list)
+	db.Group("single_payment_items.bag")
+	db.Find(&list)
 	return list, db.Error
 }
 
