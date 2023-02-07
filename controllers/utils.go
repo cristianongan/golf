@@ -1525,8 +1525,12 @@ func removeRowIndexRedis(booking model_booking.Booking) {
 	newRowIndexsRedis := utils.ListInt{}
 
 	for _, item := range rowIndexsRedis {
-		if item != *booking.RowIndex {
-			newRowIndexsRedis = append(newRowIndexsRedis, item)
+		if booking.RowIndex != nil {
+			if item != *booking.RowIndex {
+				newRowIndexsRedis = append(newRowIndexsRedis, item)
+			}
+		} else {
+			log.Println("removeRowIndexRedis booking.RowIndex == nil")
 		}
 	}
 
