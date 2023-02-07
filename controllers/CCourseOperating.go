@@ -232,6 +232,8 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 			CourseUid:       bookingTemp.CourseUid,
 			BookingUid:      bookingTemp.Uid,
 			BuggyCommonCode: v.BuggyCommonCode,
+			Bag:             bookingTemp.Bag,
+			BookingDate:     body.BookingDate,
 		}
 
 		if caddieTemp.Id > 0 {
@@ -418,14 +420,16 @@ func (_ *CCourseOperating) OutCaddie(c *gin.Context, prof models.CmsUser) {
 
 	// Udp Note
 	caddieOutNote := model_gostarter.CaddieBuggyInOut{
-		PartnerUid: booking.PartnerUid,
-		CourseUid:  booking.CourseUid,
-		BookingUid: booking.Uid,
-		CaddieId:   caddieId,
-		CaddieCode: caddieCode,
-		CaddieType: constants.STATUS_OUT,
-		Hole:       body.CaddieHoles,
-		Note:       body.Note,
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		BookingUid:  booking.Uid,
+		CaddieId:    caddieId,
+		CaddieCode:  caddieCode,
+		CaddieType:  constants.STATUS_OUT,
+		Hole:        body.CaddieHoles,
+		Note:        body.Note,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
 	}
 	go addBuggyCaddieInOutNote(db, caddieOutNote)
 
@@ -518,10 +522,12 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 
 			// update caddie in out note
 			caddieOutNote := model_gostarter.CaddieBuggyInOut{
-				PartnerUid: booking.PartnerUid,
-				CourseUid:  booking.CourseUid,
-				BookingUid: booking.Uid,
-				Note:       body.Note,
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				BookingUid:  booking.Uid,
+				Note:        body.Note,
+				Bag:         booking.Bag,
+				BookingDate: booking.BookingDate,
 			}
 
 			if booking.CaddieId > 0 {
@@ -536,6 +542,7 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 				caddieOutNote.BuggyId = booking.BuggyId
 				caddieOutNote.BuggyCode = booking.BuggyInfo.Code
 				caddieOutNote.BuggyType = constants.STATUS_OUT
+				caddieOutNote.HoleBuggy = body.BuggyHoles
 			}
 
 			go addBuggyCaddieInOutNote(db, caddieOutNote)
@@ -615,10 +622,12 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 
 	// update caddie in out note
 	caddieOutNote := model_gostarter.CaddieBuggyInOut{
-		PartnerUid: booking.PartnerUid,
-		CourseUid:  booking.CourseUid,
-		BookingUid: booking.Uid,
-		Note:       body.Note,
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		BookingUid:  booking.Uid,
+		Note:        body.Note,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
 	}
 
 	if booking.CaddieId > 0 {
@@ -632,6 +641,7 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 		caddieOutNote.BuggyId = booking.BuggyId
 		caddieOutNote.BuggyCode = booking.BuggyInfo.Code
 		caddieOutNote.BuggyType = constants.STATUS_OUT
+		caddieOutNote.HoleBuggy = body.BuggyHoles
 	}
 
 	go addBuggyCaddieInOutNote(db, caddieOutNote)
@@ -678,14 +688,15 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 
 		// Udp Note
 		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
-			PartnerUid: prof.PartnerUid,
-			CourseUid:  prof.CourseUid,
-			BookingUid: booking.Uid,
-			CaddieId:   oldCaddie.Id,
-			CaddieCode: oldCaddie.Code,
-			Hole:       body.CaddieHoles,
-			CaddieType: constants.STATUS_OUT,
-			Note:       "",
+			PartnerUid:  prof.PartnerUid,
+			CourseUid:   prof.CourseUid,
+			BookingUid:  booking.Uid,
+			CaddieId:    oldCaddie.Id,
+			CaddieCode:  oldCaddie.Code,
+			Hole:        body.CaddieHoles,
+			CaddieType:  constants.STATUS_OUT,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
 		}
 
 		// Update node caddie
@@ -741,14 +752,14 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 
 		// Udp new caddie in
 		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
-			PartnerUid: prof.PartnerUid,
-			CourseUid:  prof.CourseUid,
-			BookingUid: booking.Uid,
-			CaddieId:   caddieNew.Id,
-			CaddieCode: caddieNew.Code,
-			CaddieType: constants.STATUS_IN,
-			Hole:       0,
-			Note:       "",
+			PartnerUid:  prof.PartnerUid,
+			CourseUid:   prof.CourseUid,
+			BookingUid:  booking.Uid,
+			CaddieId:    caddieNew.Id,
+			CaddieCode:  caddieNew.Code,
+			CaddieType:  constants.STATUS_IN,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
 		}
 
 		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
@@ -898,14 +909,15 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 
 		// Udp Note
 		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
-			PartnerUid: prof.PartnerUid,
-			CourseUid:  prof.CourseUid,
-			BookingUid: booking.Uid,
-			CaddieId:   oldCaddie.Id,
-			CaddieCode: oldCaddie.Code,
-			Hole:       body.CaddieHoles,
-			CaddieType: constants.STATUS_OUT,
-			Note:       "",
+			PartnerUid:  prof.PartnerUid,
+			CourseUid:   prof.CourseUid,
+			BookingUid:  booking.Uid,
+			CaddieId:    oldCaddie.Id,
+			CaddieCode:  oldCaddie.Code,
+			Hole:        body.CaddieHoles,
+			CaddieType:  constants.STATUS_OUT,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
 		}
 
 		// Update node caddie
@@ -957,14 +969,14 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 
 		// Udp new caddie in
 		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
-			PartnerUid: prof.PartnerUid,
-			CourseUid:  prof.CourseUid,
-			BookingUid: booking.Uid,
-			CaddieId:   caddieNew.Id,
-			CaddieCode: caddieNew.Code,
-			CaddieType: constants.STATUS_IN,
-			Hole:       0,
-			Note:       "",
+			PartnerUid:  prof.PartnerUid,
+			CourseUid:   prof.CourseUid,
+			BookingUid:  booking.Uid,
+			CaddieId:    caddieNew.Id,
+			CaddieCode:  caddieNew.Code,
+			CaddieType:  constants.STATUS_IN,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
 		}
 
 		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
@@ -1016,12 +1028,15 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 
 		// Udp Note
 		caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
-			PartnerUid: prof.PartnerUid,
-			CourseUid:  prof.CourseUid,
-			BookingUid: booking.Uid,
-			BuggyId:    booking.BuggyId,
-			BuggyCode:  booking.BuggyInfo.Code,
-			BuggyType:  constants.STATUS_OUT,
+			PartnerUid:  prof.PartnerUid,
+			CourseUid:   prof.CourseUid,
+			BookingUid:  booking.Uid,
+			BuggyId:     booking.BuggyId,
+			BuggyCode:   booking.BuggyInfo.Code,
+			BuggyType:   constants.STATUS_OUT,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
+			HoleBuggy:   body.Hole,
 		}
 
 		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
@@ -1098,6 +1113,8 @@ func updateBagShareWhenChangeBuggy(booking model_booking.Booking, prof models.Cm
 		IsPrivateBuggy:  &IsPrivateBuggy,
 		BagShareBuggy:   bagShare,
 		BuggyCommonCode: buggyCommonCode,
+		Bag:             booking.Bag,
+		BookingDate:     booking.BookingDate,
 	}
 
 	addBuggyCaddieInOutNote(db, caddieBuggyInNote)

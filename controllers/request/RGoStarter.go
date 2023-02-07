@@ -60,6 +60,7 @@ type OutAllFlightBody struct {
 	FlightId    int64  `json:"flight_id" binding:"required"`
 	CaddieHoles int    `json:"caddie_holes"`
 	GuestHoles  int    `json:"guest_holes"`
+	BuggyHoles  int    `json:"buggy_holes"`
 	Note        string `json:"note"`
 }
 
@@ -68,6 +69,7 @@ type SimpleOutFlightBody struct {
 	Bag         string `json:"bag" binding:"required"`
 	CaddieHoles int    `json:"caddie_holes"`
 	GuestHoles  int    `json:"guest_holes"`
+	BuggyHoles  int    `json:"buggy_holes"`
 	Note        string `json:"note"`
 }
 
@@ -103,7 +105,7 @@ type ChangeBuggyBody struct {
 	BuggyCode      string `json:"buggy_code"`
 	Reason         string `json:"reason"`
 	Note           string `json:"note"`
-	Hole           string `json:"hole"`
+	Hole           int    `json:"hole"`
 	IsPrivateBuggy bool   `json:"is_private_buggy"`
 }
 
