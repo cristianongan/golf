@@ -667,6 +667,7 @@ func ConvertStringToIntArray(data string) ListInt {
 }
 
 func GetTimeNow() time.Time {
-	time, _ := time.Parse(constants.DATE_FORMAT_1, "04/02/2023")
+	hours := time.Now().Format(constants.HOUR_FORMAT)
+	time, _ := time.Parse(constants.DATE_FORMAT_2, "04/02/2023 "+hours)
 	return time
 }

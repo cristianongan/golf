@@ -1224,73 +1224,6 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
-Update booking fee by hole price formula
-*/
-func (_ *CBooking) ChangeBookingHole(c *gin.Context, prof models.CmsUser) {
-	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	bookingIdStr := c.Param("uid")
-	if bookingIdStr == "" {
-		response_message.BadRequest(c, errors.New("uid not valid").Error())
-		return
-	}
-
-	booking := model_booking.Booking{}
-	booking.Uid = bookingIdStr
-	errF := booking.FindFirst(db)
-	if errF != nil {
-		response_message.InternalServerError(c, errF.Error())
-		return
-	}
-
-	body := request.ChangeBookingHole{}
-	if bindErr := c.ShouldBind(&body); bindErr != nil {
-		response_message.BadRequest(c, bindErr.Error())
-		return
-	}
-
-	// Booking Note
-	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
-		booking.NoteOfBag = body.NoteOfBag
-		go createBagsNoteNoteOfBag(db, booking)
-	}
-
-	// Update hole and type change hole
-	booking.Hole = body.Hole
-	booking.TypeChangeHole = constants.BOOKING_CHANGE_HOLE
-
-	if body.TypeChangeHole == constants.BOOKING_STOP_BY_RAIN {
-		booking.TypeChangeHole = constants.BOOKING_STOP_BY_RAIN
-	}
-
-	if body.TypeChangeHole == constants.BOOKING_STOP_BY_SELF {
-		booking.TypeChangeHole = constants.BOOKING_STOP_BY_SELF
-	}
-
-	// List Booking GolfFee
-	golfFeeModel := models.GolfFee{
-		PartnerUid: booking.PartnerUid,
-		CourseUid:  booking.CourseUid,
-		GuestStyle: booking.GuestStyle,
-	}
-	golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)
-	if errFindGF != nil {
-		response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
-		return
-	}
-
-	bookingGolfFee := getInitGolfFeeForChangeHole(db, body, golfFee)
-	initUpdatePriceBookingForChanegHole(&booking, bookingGolfFee)
-
-	errUdp := booking.Update(db)
-	if errUdp != nil {
-		response_message.InternalServerError(c, errUdp.Error())
-		return
-	}
-
-	okResponse(c, booking)
-}
-
-/*
 Check bag có được checkout hay không
 */
 func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUser) {
@@ -1485,5 +1418,47 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	okRes(c)
+}
+
+func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	// Body request
+	body := request.CheckInBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	errF := booking.FindFirst(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	roundR := models.Round{
+		BillCode: booking.BillCode,
+	}
+
+	listRound, _ := roundR.FindAll(db)
+	if len(listRound) > 1 {
+		response_message.InternalServerError(c, "Bag can not undo checkin")
+		return
+	}
+
+	booking.Bag = ""
+	booking.CheckInTime = 0
+	booking.CmsUser = prof.UserName
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
+	booking.BagStatus = constants.BAG_STATUS_BOOKING
+
+	if err := booking.Update(db); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	roundR.DeleteByBillCode(db)
 	okRes(c)
 }
