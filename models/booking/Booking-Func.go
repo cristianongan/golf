@@ -112,7 +112,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 
 						// Check trong MainBag có trả mới add
 						serviceTypV1 := v1.Type
-						if serviceTypV1 == constants.MINI_B_SETTING || serviceTypV1 == constants.MINI_R_SETTING {
+						if serviceTypV1 == constants.MINI_R_SETTING {
 							serviceTypV1 = constants.GOLF_SERVICE_RESTAURANT
 						}
 						if serviceTypV1 == constants.DRIVING_SETTING {
@@ -883,12 +883,11 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP && !mainPaidProshop {
 					isNeedPay = true
 				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT ||
-					v.Type == constants.MINI_B_SETTING ||
 					v.Type == constants.MINI_R_SETTING) && !mainPaidRestaurant {
 					isNeedPay = true
 				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE && !mainPaidOtherFee {
 					isNeedPay = true
-				} else if (v.Type == constants.GOLF_SERVICE_KIOSK) && !mainPaidKiosk {
+				} else if (v.Type == constants.GOLF_SERVICE_KIOSK || v.Type == constants.MINI_B_SETTING) && !mainPaidKiosk {
 					isNeedPay = true
 				}
 			}
