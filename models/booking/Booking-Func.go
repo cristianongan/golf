@@ -115,6 +115,9 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 						if serviceTypV1 == constants.MINI_R_SETTING {
 							serviceTypV1 = constants.GOLF_SERVICE_RESTAURANT
 						}
+						if serviceTypV1 == constants.MINI_B_SETTING {
+							serviceTypV1 = constants.GOLF_SERVICE_KIOSK
+						}
 						if serviceTypV1 == constants.DRIVING_SETTING {
 							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
 						}
