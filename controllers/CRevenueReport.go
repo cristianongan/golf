@@ -282,3 +282,26 @@ func (_ *CRevenueReport) GetReportBuggyForGuestStyle(c *gin.Context, prof models
 
 	okResponse(c, res)
 }
+
+func (_ *CRevenueReport) GetReportSalePOS(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.ReportSalePOSForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	report := model_booking.BookingServiceItem{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		Type:       form.Type,
+	}
+
+	list, _ := report.FindReportSalePOS(db, form.Date)
+
+	res := response.PageResponse{
+		Data: list,
+	}
+
+	okResponse(c, res)
+}
