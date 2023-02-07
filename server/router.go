@@ -759,12 +759,9 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportGolfFeeService))
 			cmsApiAuthorized.GET("/report/booking/list", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBookingList))
 			cmsApiAuthorized.GET("/report/revenue/report-buggy-with-gs", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBuggyForGuestStyle))
-<<<<<<< HEAD
 			cmsApiAuthorized.GET("/report/revenue/report-sale-pos", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportSalePOS))
-=======
 			cmsApiAuthorized.GET("/report/revenue/daily-report", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetDailyReport))
 			cmsApiAuthorized.POST("/report/revenue/update-daily-report", middlewares.AuthorizedCmsUserHandler(cRevenueReport.UpdateReportRevenue))
->>>>>>> 28522bf3cc17b8d0257c4dd3b633fcbc254bde2d
 
 			/// =================== Redis Settings ===================
 			cRedis := new(controllers.CRedis)
