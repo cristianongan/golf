@@ -175,6 +175,7 @@ func (item *SinglePaymentItem) FindAllCards(database *gorm.DB) ([]BookingSingleP
 	db := database.Model(SinglePaymentItem{})
 	list := []BookingSinglePayment{}
 
+	db = db.Select("single_payment_items.*")
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
@@ -186,8 +187,8 @@ func (item *SinglePaymentItem) FindAllCards(database *gorm.DB) ([]BookingSingleP
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
 
-	db = db.Where(`payment_type = 'CARDS'`)
-	db = db.Where(`status <> 'DELETE'`)
+	db = db.Where("payment_type = 'CARDS'")
+	db = db.Where("status <> 'DELETE'")
 	db.Debug().Find(&list)
 	return list, db.Error
 }
