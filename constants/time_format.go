@@ -12,3 +12,4 @@ const DAY_FORMAT = "02/01" //dd/MM
 const MONTH_FORMAT = "2006-01"
 const YEAR_FORMAT = "2006"
 const HOUR_FORMAT = "15:04"
+const HOUR_FORMAT_1 = "15:04:05"
