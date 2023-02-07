@@ -493,35 +493,65 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		return prev + item.Paid
 	})
 
-	m := model_report.ReportRevenueDetail{
-		PartnerUid:       item.PartnerUid,
-		CourseUid:        item.CourseUid,
-		BillNo:           billNo,
-		Bag:              item.Bag,
-		GuestStyle:       item.GuestStyle,
-		GuestStyleName:   item.GuestStyleName,
-		BookingDate:      item.BookingDate,
-		CustomerId:       item.CustomerUid,
-		MembershipNo:     item.CardId,
-		CustomerType:     item.CustomerType,
-		Hole:             hole,
-		GreenFee:         bookingGreenFee,
-		CaddieFee:        caddieFee,
-		FBFee:            fbFee,
-		RentalFee:        rentalFee,
-		BuggyFee:         buggyFee,
-		BookingCaddieFee: bookingCaddieFee,
-		ProshopFee:       proshopFee,
-		PraticeBallFee:   practiceBallFee,
-		OtherFee:         otherFee,
-		MushPay:          item.MushPayInfo.MushPay,
-		Cash:             cashTotal,
-		Debit:            debtTotal,
-		Card:             cardTotal,
-		RestaurantFee:    restaurantFee,
-		MinibarFee:       minibarFee,
-		KioskFee:         kioskFee,
+	reportR := model_report.ReportRevenueDetail{
+		PartnerUid:  item.PartnerUid,
+		CourseUid:   item.CourseUid,
+		Bag:         item.Bag,
+		BookingDate: item.BookingDate,
 	}
 
-	log.Println(m.Create(db))
+	errFindReport := reportR.FindFirst(db)
+	if errFindReport == nil {
+		reportR.BillNo = billNo
+		reportR.GreenFee = bookingGreenFee
+		reportR.CaddieFee = caddieFee
+		reportR.FBFee = fbFee
+		reportR.RentalFee = rentalFee
+		reportR.BuggyFee = buggyFee
+		reportR.BookingCaddieFee = bookingCaddieFee
+		reportR.ProshopFee = proshopFee
+		reportR.PraticeBallFee = practiceBallFee
+		reportR.OtherFee = otherFee
+		reportR.MushPay = item.MushPayInfo.MushPay
+		reportR.Cash = cashTotal
+		reportR.Debit = debtTotal
+		reportR.Card = cardTotal
+		reportR.RestaurantFee = restaurantFee
+		reportR.MinibarFee = minibarFee
+		reportR.KioskFee = kioskFee
+
+		log.Println(reportR.Update(db))
+	} else {
+		m := model_report.ReportRevenueDetail{
+			PartnerUid:       item.PartnerUid,
+			CourseUid:        item.CourseUid,
+			BillNo:           billNo,
+			Bag:              item.Bag,
+			GuestStyle:       item.GuestStyle,
+			GuestStyleName:   item.GuestStyleName,
+			BookingDate:      item.BookingDate,
+			CustomerId:       item.CustomerUid,
+			MembershipNo:     item.CardId,
+			CustomerType:     item.CustomerType,
+			Hole:             hole,
+			GreenFee:         bookingGreenFee,
+			CaddieFee:        caddieFee,
+			FBFee:            fbFee,
+			RentalFee:        rentalFee,
+			BuggyFee:         buggyFee,
+			BookingCaddieFee: bookingCaddieFee,
+			ProshopFee:       proshopFee,
+			PraticeBallFee:   practiceBallFee,
+			OtherFee:         otherFee,
+			MushPay:          item.MushPayInfo.MushPay,
+			Cash:             cashTotal,
+			Debit:            debtTotal,
+			Card:             cardTotal,
+			RestaurantFee:    restaurantFee,
+			MinibarFee:       minibarFee,
+			KioskFee:         kioskFee,
+		}
+
+		log.Println(m.Create(db))
+	}
 }

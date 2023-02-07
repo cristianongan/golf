@@ -75,3 +75,41 @@ func (item *CaddieWorkingSlot) Delete(db *gorm.DB) error {
 	}
 	return db.Delete(item).Error
 }
+
+func (item *CaddieWorkingSlot) DeleteBatch(db *gorm.DB) error {
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.ApplyDate != "" {
+		db = db.Where("apply_date = ?", item.ApplyDate)
+	}
+
+	return db.Delete(item).Error
+}
+
+func (item *CaddieWorkingSlot) FindAll(database *gorm.DB) ([]CaddieWorkingSlot, error) {
+	list := []CaddieWorkingSlot{}
+
+	db := database.Model(CaddieWorkingSlot{})
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.ApplyDate != "" {
+		db = db.Where("apply_date = ?", item.ApplyDate)
+	}
+
+	db.Find(&list)
+
+	return list, db.Error
+}

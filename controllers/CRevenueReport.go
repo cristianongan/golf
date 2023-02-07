@@ -294,6 +294,26 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 
+	bookings := model_booking.BookingList{
+		BookingDate: body.BookingDate,
+	}
+
+	db, _, err := bookings.FindAllBookingList(db)
+	db = db.Where("check_in_time > 0")
+	db = db.Where("bag_status <> 'CANCEL'")
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+
+	for _, booking := range list {
+		updatePriceForRevenue(booking, body.BillNo)
+	}
+
 	repotR := model_report.ReportRevenueDetail{
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,

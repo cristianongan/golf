@@ -166,6 +166,11 @@ func (item *Round) Delete(db *gorm.DB) error {
 	return db.Delete(item).Error
 }
 
+func (item *Round) DeleteByBillCode(db *gorm.DB) error {
+	db = db.Delete("bill_code = ?", item.BillCode)
+	return db.Delete(item).Error
+}
+
 func (item *Round) GetAmountGolfFee() int64 {
 	return item.CaddieFee + item.GreenFee + item.BuggyFee
 }
