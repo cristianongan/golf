@@ -11,7 +11,6 @@ import (
 	model_payment "start/models/payment"
 	"start/utils"
 	"strings"
-	"time"
 
 	model_report "start/models/report"
 
@@ -307,7 +306,7 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	booking.CmsUser = prof.UserName
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
 	if booking.MainBags != nil && len(booking.MainBags) > 0 {
 		// Nếu bag có Main Bag
@@ -377,7 +376,8 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 }
 
 // Udp Revenue
-func updatePriceForRevenue(db *gorm.DB, item model_booking.Booking, billNo string) {
+func updatePriceForRevenue(item model_booking.Booking, billNo string) {
+	db := datasources.GetDatabaseWithPartner(item.PartnerUid)
 	mushPay := model_booking.BookingMushPay{}
 
 	listRoundGolfFee := []models.Round{}
@@ -385,9 +385,13 @@ func updatePriceForRevenue(db *gorm.DB, item model_booking.Booking, billNo strin
 	fbFee := int64(0)
 	rentalFee := int64(0)
 	buggyFee := int64(0)
+	bookingCaddieFee := int64(0)
 	practiceBallFee := int64(0)
 	proshopFee := int64(0)
 	otherFee := int64(0)
+	restaurantFee := int64(0)
+	minibarFee := int64(0)
+	kioskFee := int64(0)
 
 	roundToFindList := models.Round{BillCode: item.BillCode}
 	listRoundOfCurrentBag, _ := roundToFindList.FindAll(db)
@@ -400,7 +404,7 @@ func updatePriceForRevenue(db *gorm.DB, item model_booking.Booking, billNo strin
 		return prev + item.Hole
 	})
 
-	bookingCaddieFee := slices.Reduce(listRoundGolfFee, func(prev int64, item models.Round) int64 {
+	caddieFee := slices.Reduce(listRoundGolfFee, func(prev int64, item models.Round) int64 {
 		return prev + item.CaddieFee
 	})
 
@@ -412,7 +416,7 @@ func updatePriceForRevenue(db *gorm.DB, item model_booking.Booking, billNo strin
 		return prev + item.GreenFee
 	})
 
-	totalGolfFeeOfSubBag := bookingCaddieFee + bookingBuggyFee + bookingGreenFee
+	totalGolfFeeOfSubBag := caddieFee + bookingBuggyFee + bookingGreenFee
 	mushPay.TotalGolfFee = totalGolfFeeOfSubBag
 
 	// SubBag
@@ -420,9 +424,18 @@ func updatePriceForRevenue(db *gorm.DB, item model_booking.Booking, billNo strin
 	// Sub Service Item của current Bag
 	// Get item for current Bag
 	// update lại lấy service items mới
-	item.FindServiceItems(db)
+	item.FindServiceItemsOfBag(db)
 	for _, v := range item.ListServiceItems {
 		if v.BillCode == item.BillCode {
+			if v.Type == constants.MINI_B_SETTING {
+				minibarFee += v.Amount
+			}
+			if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT {
+				restaurantFee += v.Amount
+			}
+			if v.Type == constants.KIOSK_SETTING {
+				kioskFee += v.Amount
+			}
 			if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT || v.Type == constants.MINI_B_SETTING || v.Type == constants.MINI_R_SETTING {
 				fbFee += v.Amount
 			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL || v.Type == constants.DRIVING_SETTING {
@@ -435,8 +448,12 @@ func updatePriceForRevenue(db *gorm.DB, item model_booking.Booking, billNo strin
 				proshopFee += v.Amount
 			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE {
 				otherFee += v.Amount
-			} else if v.Type == constants.BUGGY_SETTING {
+			}
+			if v.ServiceType == constants.BUGGY_SETTING {
 				buggyFee += v.Amount
+			}
+			if v.ServiceType == constants.CADDIE_SETTING {
+				bookingCaddieFee += v.Amount
 			}
 		}
 	}
@@ -476,31 +493,65 @@ func updatePriceForRevenue(db *gorm.DB, item model_booking.Booking, billNo strin
 		return prev + item.Paid
 	})
 
-	m := model_report.ReportRevenueDetail{
-		PartnerUid:     item.PartnerUid,
-		CourseUid:      item.CourseUid,
-		BillNo:         billNo,
-		Bag:            item.Bag,
-		GuestStyle:     item.GuestStyle,
-		GuestStyleName: item.GuestStyleName,
-		BookingDate:    item.BookingDate,
-		CustomerId:     item.CustomerUid,
-		MembershipNo:   item.CardId,
-		CustomerType:   item.CustomerType,
-		Hole:           hole,
-		GreenFee:       bookingGreenFee,
-		CaddieFee:      bookingCaddieFee,
-		FBFee:          fbFee,
-		RentalFee:      rentalFee,
-		BuggyFee:       buggyFee,
-		ProshopFee:     proshopFee,
-		PraticeBallFee: practiceBallFee,
-		OtherFee:       otherFee,
-		MushPay:        item.MushPayInfo.MushPay,
-		Cash:           cashTotal,
-		Debit:          debtTotal,
-		Card:           cardTotal,
+	reportR := model_report.ReportRevenueDetail{
+		PartnerUid:  item.PartnerUid,
+		CourseUid:   item.CourseUid,
+		Bag:         item.Bag,
+		BookingDate: item.BookingDate,
 	}
 
-	m.Create(db)
+	errFindReport := reportR.FindFirst(db)
+	if errFindReport == nil {
+		reportR.BillNo = billNo
+		reportR.GreenFee = bookingGreenFee
+		reportR.CaddieFee = caddieFee
+		reportR.FBFee = fbFee
+		reportR.RentalFee = rentalFee
+		reportR.BuggyFee = buggyFee
+		reportR.BookingCaddieFee = bookingCaddieFee
+		reportR.ProshopFee = proshopFee
+		reportR.PraticeBallFee = practiceBallFee
+		reportR.OtherFee = otherFee
+		reportR.MushPay = item.MushPayInfo.MushPay
+		reportR.Cash = cashTotal
+		reportR.Debit = debtTotal
+		reportR.Card = cardTotal
+		reportR.RestaurantFee = restaurantFee
+		reportR.MinibarFee = minibarFee
+		reportR.KioskFee = kioskFee
+
+		log.Println(reportR.Update(db))
+	} else {
+		m := model_report.ReportRevenueDetail{
+			PartnerUid:       item.PartnerUid,
+			CourseUid:        item.CourseUid,
+			BillNo:           billNo,
+			Bag:              item.Bag,
+			GuestStyle:       item.GuestStyle,
+			GuestStyleName:   item.GuestStyleName,
+			BookingDate:      item.BookingDate,
+			CustomerId:       item.CustomerUid,
+			MembershipNo:     item.CardId,
+			CustomerType:     item.CustomerType,
+			Hole:             hole,
+			GreenFee:         bookingGreenFee,
+			CaddieFee:        caddieFee,
+			FBFee:            fbFee,
+			RentalFee:        rentalFee,
+			BuggyFee:         buggyFee,
+			BookingCaddieFee: bookingCaddieFee,
+			ProshopFee:       proshopFee,
+			PraticeBallFee:   practiceBallFee,
+			OtherFee:         otherFee,
+			MushPay:          item.MushPayInfo.MushPay,
+			Cash:             cashTotal,
+			Debit:            debtTotal,
+			Card:             cardTotal,
+			RestaurantFee:    restaurantFee,
+			MinibarFee:       minibarFee,
+			KioskFee:         kioskFee,
+		}
+
+		log.Println(m.Create(db))
+	}
 }

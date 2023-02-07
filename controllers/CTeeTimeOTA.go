@@ -299,7 +299,7 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 		TeeTime:        body.TeeOffStr,
 		CurrentTeeTime: body.TeeOffStr,
 		ModelId: models.ModelId{
-			CreatedAt: time.Now().Unix(),
+			CreatedAt: utils.GetTimeNow().Unix(),
 		},
 	}
 

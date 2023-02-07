@@ -9,7 +9,6 @@ import (
 	model_booking "start/models/booking"
 	"start/utils"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -171,7 +170,7 @@ func (item *AgencyPayment) UpdateTotalPaid(db *gorm.DB) {
 }
 
 func (item *AgencyPayment) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.Model.CreatedAt = now.Unix()
 	item.Model.UpdatedAt = now.Unix()
 	if item.Model.Status == "" {
@@ -187,7 +186,7 @@ func (item *AgencyPayment) Create(db *gorm.DB) error {
 }
 
 func (item *AgencyPayment) Update(mydb *gorm.DB) error {
-	item.Model.UpdatedAt = time.Now().Unix()
+	item.Model.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := mydb.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

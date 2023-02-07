@@ -26,11 +26,11 @@ func runReportCaddieFeeToDayJob() {
 // Báo cáo số fee của caddie trong ngày,
 func runReportCaddieFeeToDay() {
 	//Lấy danh sách caddie in out note trong ngày
-	now := time.Now().Format("02/01/2006")
-	day := time.Now().Weekday()
-	nowUnix := time.Now().Unix()
+	now := utils.GetTimeNow().Format("02/01/2006")
+	day := utils.GetTimeNow().Weekday()
+	nowUnix := utils.GetTimeNow().Unix()
 
-	log.Println("runReportCaddieFeeToDay", time.Now().UnixNano())
+	log.Println("runReportCaddieFeeToDay", utils.GetTimeNow().UnixNano())
 	db := datasources.GetDatabase()
 
 	caddies := models.Caddie{}

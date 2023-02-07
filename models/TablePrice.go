@@ -2,8 +2,8 @@ package models
 
 import (
 	"start/constants"
+	"start/utils"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -20,7 +20,7 @@ type TablePrice struct {
 }
 
 func (item *TablePrice) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
@@ -31,7 +31,7 @@ func (item *TablePrice) Create(db *gorm.DB) error {
 }
 
 func (item *TablePrice) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -105,7 +105,7 @@ func (item *TablePrice) FindCurrentUse(database *gorm.DB) (TablePrice, error) {
 	maxFromDate := int64(0)
 	indexCurrent := -1
 
-	currentTime := time.Now().Unix()
+	currentTime := utils.GetTimeNow().Unix()
 
 	// Lấy theo điều kiện
 	// TODO: điều kiện ap dụng bảng giá

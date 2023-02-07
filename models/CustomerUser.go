@@ -4,7 +4,6 @@ import (
 	"start/constants"
 	"start/utils"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -59,7 +58,7 @@ func (item *CustomerUser) IsDuplicated(db *gorm.DB) bool {
 
 func (item *CustomerUser) Create(db *gorm.DB) error {
 	uid := uuid.New()
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.Model.Uid = utils.HashCodeUuid(uid.String())
 	item.Model.CreatedAt = now.Unix()
 	item.Model.UpdatedAt = now.Unix()
@@ -71,7 +70,7 @@ func (item *CustomerUser) Create(db *gorm.DB) error {
 }
 
 func (item *CustomerUser) Update(db *gorm.DB) error {
-	item.Model.UpdatedAt = time.Now().Unix()
+	item.Model.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

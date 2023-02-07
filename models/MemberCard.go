@@ -6,7 +6,6 @@ import (
 	"start/constants"
 	"start/utils"
 	"strconv"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -105,7 +104,7 @@ Check time có thể sử dụng giá riêng
 */
 func (item *MemberCard) IsValidTimePrecial() bool {
 
-	currentTime := time.Now().Unix()
+	currentTime := utils.GetTimeNow().Unix()
 
 	if item.StartPrecial == 0 && item.EndPrecial == 0 {
 		return true
@@ -201,7 +200,7 @@ func (item *MemberCard) IsDuplicated(db *gorm.DB) bool {
 
 func (item *MemberCard) Create(db *gorm.DB) error {
 	uid := uuid.New()
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.Model.Uid = uid.String()
 	item.Model.CreatedAt = now.Unix()
 	item.Model.UpdatedAt = now.Unix()
@@ -213,7 +212,7 @@ func (item *MemberCard) Create(db *gorm.DB) error {
 }
 
 func (item *MemberCard) Update(db *gorm.DB) error {
-	item.Model.UpdatedAt = time.Now().Unix()
+	item.Model.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

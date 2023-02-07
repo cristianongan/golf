@@ -6,6 +6,7 @@ import (
 	"log"
 	"start/constants"
 	"start/models"
+	"start/utils"
 	"time"
 
 	"github.com/pkg/errors"
@@ -73,7 +74,7 @@ func (item *BookingServiceItem) IsDuplicated(db *gorm.DB) bool {
 }
 
 func (item *BookingServiceItem) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
@@ -84,7 +85,7 @@ func (item *BookingServiceItem) Create(db *gorm.DB) error {
 }
 
 func (item *BookingServiceItem) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -384,7 +385,7 @@ func (item *BookingServiceItem) BatchUpdate(database *gorm.DB, list []BookingSer
 
 // ------ Find Best Item ------
 func (item *BookingServiceItem) FindBestCartItem(database *gorm.DB, page models.Page) ([]BookingServiceItem, int64, error) {
-	now := time.Now().Format("02/01/2006")
+	now := utils.GetTimeNow().Format("02/01/2006")
 
 	from, _ := time.Parse("02/01/2006 15:04:05", now+" 17:00:00")
 
@@ -422,7 +423,7 @@ func (item *BookingServiceItem) FindBestCartItem(database *gorm.DB, page models.
 
 // ------ Find Best Group ------
 func (item *BookingServiceItem) FindBestGroup(database *gorm.DB, page models.Page) ([]BookingServiceItem, int64, error) {
-	now := time.Now().Format("02/01/2006")
+	now := utils.GetTimeNow().Format("02/01/2006")
 
 	from, _ := time.Parse("02/01/2006 15:04:05", now+" 17:00:00")
 

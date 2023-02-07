@@ -4,7 +4,7 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
-	"time"
+	"start/utils"
 )
 
 /*
@@ -25,7 +25,7 @@ type StatisticItem struct {
 }
 
 func (item *StatisticItem) Create() error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	item.ModelId.Status = constants.STATUS_ENABLE

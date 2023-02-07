@@ -2,8 +2,8 @@ package models
 
 import (
 	"start/constants"
+	"start/utils"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -19,7 +19,7 @@ type GroupFee struct {
 }
 
 func (item *GroupFee) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
@@ -30,7 +30,7 @@ func (item *GroupFee) Create(db *gorm.DB) error {
 }
 
 func (item *GroupFee) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -50,7 +50,7 @@ func (item *GroupFee) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *GroupFee) FindList(database *gorm.DB,page Page) ([]GroupFee, int64, error) {
+func (item *GroupFee) FindList(database *gorm.DB, page Page) ([]GroupFee, int64, error) {
 	db := database.Model(GroupFee{})
 	list := []GroupFee{}
 	total := int64(0)

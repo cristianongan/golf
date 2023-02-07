@@ -2,7 +2,7 @@ package models
 
 import (
 	"start/constants"
-	"time"
+	"start/utils"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -45,7 +45,7 @@ type ServiceCart struct {
 }
 
 func (item *ServiceCart) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
@@ -59,7 +59,7 @@ func (item *ServiceCart) FindFirst(db *gorm.DB) error {
 }
 
 func (item *ServiceCart) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	return db.Save(item).Error
 }
 

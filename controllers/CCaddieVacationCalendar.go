@@ -8,6 +8,7 @@ import (
 	"start/controllers/response"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 	"time"
@@ -228,7 +229,7 @@ func (_ *CCaddieVacationCalendar) UpdateCaddieVacationStatus(id int64, isApprove
 		} else {
 			RCaddieVacation.ApproveStatus = constants.CADDIE_VACATION_REJECTED
 		}
-		RCaddieVacation.ApproveTime = time.Now().Unix()
+		RCaddieVacation.ApproveTime = utils.GetTimeNow().Unix()
 		RCaddieVacation.UserApprove = prof.UserName
 		RCaddieVacation.Update(db)
 	}

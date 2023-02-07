@@ -183,7 +183,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	if body.BookingDate != "" {
 		// bookingDateInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, body.BookingDate)
-		// nowStr, _ := utils.GetLocalTimeFromTimeStamp("", constants.DATE_FORMAT_1, time.Now().Unix())
+		// nowStr, _ := utils.GetLocalTimeFromTimeStamp("", constants.DATE_FORMAT_1, utils.GetTimeNow().Unix())
 		// nowUnix := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, nowStr)
 
 		// if bookingDateInt < nowUnix {
@@ -192,7 +192,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		// }
 		booking.BookingDate = body.BookingDate
 	} else {
-		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 		if errDate == nil {
 			booking.BookingDate = dateDisplay
 		} else {
@@ -213,7 +213,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	booking.BillCode = utils.HashCodeUuid(bookingUid.String())
 
 	// Checkin Time
-	checkInTime := time.Now().Unix()
+	checkInTime := utils.GetTimeNow().Unix()
 
 	// Member Card
 	// Check xem booking guest hay booking member
@@ -276,7 +276,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		booking.CustomerUid = body.CustomerUid
 	}
 
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
 	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
 	if body.GuestStyle != "" && guestStyle != body.GuestStyle {
@@ -1036,8 +1036,8 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	booking.CmsUser = prof.UserName
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
-	booking.CheckInTime = time.Now().Unix()
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
+	booking.CheckInTime = utils.GetTimeNow().Unix()
 	booking.BagStatus = constants.BAG_STATUS_WAITING
 	booking.CourseType = body.CourseType
 
@@ -1160,7 +1160,7 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 	booking.OtherPaids = body.OtherPaids
 
 	booking.CmsUser = prof.UserName
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
 	errUdp := booking.Update(db)
 
@@ -1211,7 +1211,7 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 	}
 
 	booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
-	booking.CheckOutTime = time.Now().Unix()
+	booking.CheckOutTime = utils.GetTimeNow().Unix()
 
 	if err := booking.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -1219,73 +1219,6 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 	}
 
 	go updateSinglePaymentOfSubBag(booking, prof)
-
-	okResponse(c, booking)
-}
-
-/*
-Update booking fee by hole price formula
-*/
-func (_ *CBooking) ChangeBookingHole(c *gin.Context, prof models.CmsUser) {
-	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	bookingIdStr := c.Param("uid")
-	if bookingIdStr == "" {
-		response_message.BadRequest(c, errors.New("uid not valid").Error())
-		return
-	}
-
-	booking := model_booking.Booking{}
-	booking.Uid = bookingIdStr
-	errF := booking.FindFirst(db)
-	if errF != nil {
-		response_message.InternalServerError(c, errF.Error())
-		return
-	}
-
-	body := request.ChangeBookingHole{}
-	if bindErr := c.ShouldBind(&body); bindErr != nil {
-		response_message.BadRequest(c, bindErr.Error())
-		return
-	}
-
-	// Booking Note
-	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
-		booking.NoteOfBag = body.NoteOfBag
-		go createBagsNoteNoteOfBag(db, booking)
-	}
-
-	// Update hole and type change hole
-	booking.Hole = body.Hole
-	booking.TypeChangeHole = constants.BOOKING_CHANGE_HOLE
-
-	if body.TypeChangeHole == constants.BOOKING_STOP_BY_RAIN {
-		booking.TypeChangeHole = constants.BOOKING_STOP_BY_RAIN
-	}
-
-	if body.TypeChangeHole == constants.BOOKING_STOP_BY_SELF {
-		booking.TypeChangeHole = constants.BOOKING_STOP_BY_SELF
-	}
-
-	// List Booking GolfFee
-	golfFeeModel := models.GolfFee{
-		PartnerUid: booking.PartnerUid,
-		CourseUid:  booking.CourseUid,
-		GuestStyle: booking.GuestStyle,
-	}
-	golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)
-	if errFindGF != nil {
-		response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
-		return
-	}
-
-	bookingGolfFee := getInitGolfFeeForChangeHole(db, body, golfFee)
-	initUpdatePriceBookingForChanegHole(&booking, bookingGolfFee)
-
-	errUdp := booking.Update(db)
-	if errUdp != nil {
-		response_message.InternalServerError(c, errUdp.Error())
-		return
-	}
 
 	okResponse(c, booking)
 }
@@ -1376,7 +1309,7 @@ func (cBooking *CBooking) FinishBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	today, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	today, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 
 	booking := model_booking.Booking{
 		Bag:         body.Bag,
@@ -1451,36 +1384,8 @@ func (cBooking *CBooking) FinishBill(c *gin.Context, prof models.CmsUser) {
 		// callservices.TransferFast(constants.PAYMENT_TYPE_CASH, otherTotal, "", booking.CustomerUid, booking.CustomerName)
 	}
 
-	go updatePriceForRevenue(db, booking, body.BillNo)
+	go updatePriceForRevenue(booking, body.BillNo)
 	okRes(c)
-}
-
-func (cBooking *CBooking) ReportDayEnd(c *gin.Context, prof models.CmsUser) {
-	body := request.FinishBookingBody{}
-	if bindErr := c.ShouldBind(&body); bindErr != nil {
-		badRequest(c, bindErr.Error())
-		return
-	}
-
-	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
-
-	bookings := model_booking.BookingList{
-		BookingDate: body.BookingDate,
-	}
-
-	db, _, err := bookings.FindAllBookingList(db)
-
-	if err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
-
-	var list []model_booking.Booking
-	db.Find(&list)
-
-	// for _, item :=range list {
-	// 	// go updatePriceForRevenue(db, booking, body.BillNo)
-	// }
 }
 
 func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
@@ -1490,7 +1395,7 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	today, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	today, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 
 	Rbooking := model_booking.Booking{
 		PartnerUid:  body.PartnerUid,
@@ -1513,5 +1418,47 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	okRes(c)
+}
+
+func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	// Body request
+	body := request.CheckInBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	errF := booking.FindFirst(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	roundR := models.Round{
+		BillCode: booking.BillCode,
+	}
+
+	listRound, _ := roundR.FindAll(db)
+	if len(listRound) > 1 {
+		response_message.InternalServerError(c, "Bag can not undo checkin")
+		return
+	}
+
+	booking.Bag = ""
+	booking.CheckInTime = 0
+	booking.CmsUser = prof.UserName
+	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
+	booking.BagStatus = constants.BAG_STATUS_BOOKING
+
+	if err := booking.Update(db); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	roundR.DeleteByBillCode(db)
 	okRes(c)
 }

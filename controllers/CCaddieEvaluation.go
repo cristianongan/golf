@@ -7,9 +7,9 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
@@ -54,7 +54,7 @@ func (cCaddieEvaluation *CCaddieEvaluation) CreateCaddieEvaluation(c *gin.Contex
 	caddieEvaluation := models.CaddieEvaluation{
 		BookingUid:  body.BookingUid,
 		BookingCode: "",
-		BookingDate: datatypes.Date(time.Now()),
+		BookingDate: datatypes.Date(utils.GetTimeNow()),
 		CaddieUid:   body.CaddieUid,
 		CaddieCode:  body.CaddieCode,
 		CaddieName:  booking.CaddieInfo.Name,

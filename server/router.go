@@ -283,6 +283,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/booking/tee-time-slot-remain", middlewares.AuthorizedCmsUserHandler(cBooking.GetSlotRemainInTeeTime)) // Change To Main Bag
 			cmsApiAuthorized.POST("/booking/finish-bill", middlewares.AuthorizedCmsUserHandler(cBooking.FinishBill))                     // Ghi nhận bước thanh toán cuối cùng
 			cmsApiAuthorized.POST("/booking/lock-bill", middlewares.AuthorizedCmsUserHandler(cBooking.LockBill))                         // Lễ tân lock bill chờ thanh toán
+			cmsApiAuthorized.POST("/booking/undo-check-in", middlewares.AuthorizedCmsUserHandler(cBooking.UndoCheckIn))                  // Undo CheckIn
 			// cmsApiAuthorized.GET("/booking/golf-fee", middlewares.AuthorizedCmsUserHandler(cBooking.GetGolfFeeInfoOfBag))
 
 			/// =================== Caddie Buggy In Out Bag ===================
@@ -758,7 +759,12 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/revenue/report-golf-service", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportGolfFeeService))
 			cmsApiAuthorized.GET("/report/booking/list", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBookingList))
 			cmsApiAuthorized.GET("/report/revenue/report-buggy-with-gs", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBuggyForGuestStyle))
+<<<<<<< HEAD
 			cmsApiAuthorized.GET("/report/revenue/report-sale-pos", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportSalePOS))
+=======
+			cmsApiAuthorized.GET("/report/revenue/daily-report", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetDailyReport))
+			cmsApiAuthorized.POST("/report/revenue/update-daily-report", middlewares.AuthorizedCmsUserHandler(cRevenueReport.UpdateReportRevenue))
+>>>>>>> 28522bf3cc17b8d0257c4dd3b633fcbc254bde2d
 
 			/// =================== Redis Settings ===================
 			cRedis := new(controllers.CRedis)
@@ -775,9 +781,9 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/test-caddie-slot", middlewares.AuthorizedCmsUserHandler(cTest.TestCaddieSlot))
 
 			/// =================== Test ===================
-			// cHelper := new(controllers.CHelper)
-			// cmsApiAuthorized.POST("/helper/admin/add-customer-user", middlewares.AuthorizedCmsUserHandler(cHelper.CreateAddCustomer)) // chỉ dùng cho import data
-			// cmsApiAuthorized.POST("/helper/admin/add-member-card", middlewares.AuthorizedCmsUserHandler(cHelper.CreateMemberCard)) // Chỉ dùng cho import data
+			cHelper := new(controllers.CHelper)
+			cmsApiAuthorized.POST("/helper/admin/add-customer-user", middlewares.AuthorizedCmsUserHandler(cHelper.CreateAddCustomer)) // chỉ dùng cho import data
+			cmsApiAuthorized.POST("/helper/admin/add-member-card", middlewares.AuthorizedCmsUserHandler(cHelper.CreateMemberCard))    // Chỉ dùng cho import data
 		}
 
 		// ----------------------------------------------------------

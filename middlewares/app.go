@@ -50,7 +50,7 @@ func AppApiHeaderMiddleware(c *gin.Context) {
 	// }
 
 	// if config.GetEnviromentName() == constants.ENV_PROD {
-	// 	currentTime := time.Now().Unix()
+	// 	currentTime := utils.GetTimeNow().Unix()
 
 	// 	if currentTime-requestTimeInt64 > int64(config.GetTimeAppMiddleware()) || requestTimeInt64-currentTime > int64(config.GetTimeAppMiddleware()) {
 	// 		response_message.PermissionDeny(c, "rtime error")

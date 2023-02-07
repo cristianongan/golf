@@ -10,7 +10,6 @@ import (
 	"start/utils"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -556,7 +555,7 @@ type MainBagOfSubInfo struct {
 // ----------- CRUD ------------
 func (item *Booking) Create(db *gorm.DB, uid string) error {
 	item.Model.Uid = uid
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.Model.CreatedAt = now.Unix()
 	item.Model.UpdatedAt = now.Unix()
 	if item.Model.Status == "" {
@@ -567,7 +566,7 @@ func (item *Booking) Create(db *gorm.DB, uid string) error {
 }
 
 func (item *Booking) Update(db *gorm.DB) error {
-	item.Model.UpdatedAt = time.Now().Unix()
+	item.Model.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -576,7 +575,7 @@ func (item *Booking) Update(db *gorm.DB) error {
 }
 
 func (item *Booking) CreateBatch(db *gorm.DB, bookings []Booking) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	for i := range bookings {
 		c := &bookings[i]
 		c.Model.CreatedAt = now.Unix()

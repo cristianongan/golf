@@ -10,7 +10,6 @@ import (
 	model_booking "start/models/booking"
 	"start/utils"
 	"start/utils/response_message"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -51,8 +50,8 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 
 		booking.BagStatus = constants.BAG_STATUS_CANCEL
 		booking.CancelNote = body.Note
-		booking.CancelBookingTime = time.Now().Unix()
-		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+		booking.CancelBookingTime = utils.GetTimeNow().Unix()
+		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
 		errUdp := booking.Update(db)
 		if errUdp != nil {
@@ -92,7 +91,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	bookingDateInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, body.BookingDate)
-	nowStr, _ := utils.GetLocalTimeFromTimeStamp("", constants.DATE_FORMAT_1, time.Now().Unix())
+	nowStr, _ := utils.GetLocalTimeFromTimeStamp("", constants.DATE_FORMAT_1, utils.GetTimeNow().Unix())
 	nowUnix := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, nowStr)
 
 	if bookingDateInt < nowUnix {
@@ -301,8 +300,8 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 		if booking.BagStatus == constants.BAG_STATUS_BOOKING {
 			booking.BagStatus = constants.BAG_STATUS_CANCEL
 			booking.CancelNote = form.Reason
-			booking.CancelBookingTime = time.Now().Unix()
-			booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, time.Now().Unix())
+			booking.CancelBookingTime = utils.GetTimeNow().Unix()
+			booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
 			errUdp := booking.Update(db1)
 			if errUdp != nil {

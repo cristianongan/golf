@@ -6,6 +6,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	model_payment "start/models/payment"
 	model_report "start/models/report"
 	"start/utils/response_message"
 
@@ -304,4 +305,111 @@ func (_ *CRevenueReport) GetReportSalePOS(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, res)
+}
+
+func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUser) {
+	body := request.FinishBookingBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
+
+	bookings := model_booking.BookingList{
+		BookingDate: body.BookingDate,
+	}
+
+	db, _, err := bookings.FindAllBookingList(db)
+	db = db.Where("check_in_time > 0")
+	db = db.Where("bag_status <> 'CANCEL'")
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+
+	for _, booking := range list {
+		updatePriceForRevenue(booking, body.BillNo)
+	}
+
+	repotR := model_report.ReportRevenueDetail{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+	}
+
+	data, err := repotR.FindReportDayEnd(db)
+	if err != nil {
+		badRequest(c, err.Error())
+		return
+	}
+
+	singlePaymentItemR1 := model_payment.SinglePaymentItem{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+	}
+
+	db1 := datasources.GetDatabaseWithPartner(body.PartnerUid)
+	listTransfer, _ := singlePaymentItemR1.FindAllTransfer(db1)
+	listCards, _ := singlePaymentItemR1.FindAllCards(datasources.GetDatabaseWithPartner(body.PartnerUid))
+
+	vcb := int64(0)
+	bidv := int64(0)
+
+	for _, item := range listCards {
+		if item.BankType == "VCB" {
+			vcb += item.Amount
+		}
+		if item.BankType == "BIDV" {
+			bidv += item.Amount
+		}
+	}
+
+	res := map[string]interface{}{
+		"revenue": data,
+		"players": listTransfer,
+		"cards": map[string]interface{}{
+			"vcb":  vcb,
+			"bidv": bidv,
+		},
+	}
+
+	okResponse(c, res)
+}
+
+func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.CmsUser) {
+	body := request.FinishBookingBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
+
+	bookings := model_booking.BookingList{
+		BookingDate: body.BookingDate,
+	}
+
+	db, _, err := bookings.FindAllBookingList(db)
+	db = db.Where("check_in_time > 0")
+	db = db.Where("bag_status <> 'CANCEL'")
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+
+	for _, booking := range list {
+		updatePriceForRevenue(booking, body.BillNo)
+	}
+
+	okRes(c)
 }

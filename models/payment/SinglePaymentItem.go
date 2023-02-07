@@ -3,8 +3,8 @@ package model_payment
 import (
 	"start/constants"
 	"start/models"
+	"start/utils"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -27,8 +27,15 @@ type SinglePaymentItem struct {
 	BankType    string `json:"bank_type" gorm:"type:varchar(20)"`          // Chuyển khoản qua VCB,BIDV...
 }
 
+type BookingSinglePayment struct {
+	SinglePaymentItem
+	CustomerBookingName string `json:"customer_booking_name"`
+	CustomerName        string `json:"customer_name"`
+	Amount              int64  `json:"amount"`
+}
+
 func (item *SinglePaymentItem) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.Model.CreatedAt = now.Unix()
 	item.Model.UpdatedAt = now.Unix()
 	if item.Model.Status == "" {
@@ -42,7 +49,7 @@ func (item *SinglePaymentItem) Create(db *gorm.DB) error {
 }
 
 func (item *SinglePaymentItem) Update(mydb *gorm.DB) error {
-	item.Model.UpdatedAt = time.Now().Unix()
+	item.Model.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := mydb.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -140,9 +147,47 @@ func (item *SinglePaymentItem) FindList(db *gorm.DB, page models.Page) ([]Single
 	return list, total, db.Error
 }
 
-// func (item *Payment) Delete() error {
-// 	if item.Model.Uid == "" {
-// 		return errors.New("Primary key is undefined!")
-// 	}
-// 	return datasources.GetDatabase().Delete(item).Error
-// }
+func (item *SinglePaymentItem) FindAllTransfer(database *gorm.DB) ([]BookingSinglePayment, error) {
+	db := database.Model(SinglePaymentItem{})
+	list := []BookingSinglePayment{}
+	db = db.Select("single_payment_items.*, bookings.customer_name, bookings.customer_booking_name, SUM(CAST(single_payment_items.paid as SIGNED)) as amount")
+	db = db.Joins("LEFT JOIN bookings ON bookings.uid = single_payment_items.booking_uid")
+	if item.PartnerUid != "" {
+		db = db.Where("single_payment_items.partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("single_payment_items.course_uid = ?", item.CourseUid)
+	}
+
+	if item.BookingDate != "" {
+		db = db.Where("single_payment_items.booking_date = ?", item.BookingDate)
+	}
+
+	db = db.Where(`single_payment_items.payment_type = 'TRANSFER'`)
+	db = db.Where(`single_payment_items.status <> 'DELETE'`)
+	db.Group("single_payment_items.bag")
+	db.Group("single_payment_items.payment_type")
+	db.Find(&list)
+	return list, db.Error
+}
+
+func (item *SinglePaymentItem) FindAllCards(database *gorm.DB) ([]BookingSinglePayment, error) {
+	db := database.Model(SinglePaymentItem{})
+	list := []BookingSinglePayment{}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+
+	db = db.Where(`payment_type = 'CARDS'`)
+	db = db.Where(`status <> 'DELETE'`)
+	db.Debug().Find(&list)
+	return list, db.Error
+}

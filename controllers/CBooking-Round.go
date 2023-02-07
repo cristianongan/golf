@@ -11,7 +11,6 @@ import (
 	model_booking "start/models/booking"
 	"start/utils"
 	"start/utils/response_message"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -107,7 +106,7 @@ func (_ *CBooking) GetRoundOfBag(c *gin.Context, prof models.CmsUser) {
 	if form.BookingDate != "" {
 		booking.BookingDate = form.BookingDate
 	} else {
-		toDayDate, errD := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 		if errD != nil {
 			response_message.InternalServerError(c, errD.Error())
 			return
