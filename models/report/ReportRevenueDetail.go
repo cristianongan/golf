@@ -49,9 +49,11 @@ type ReportRevenueDetail struct {
 
 type DayEndRevenue struct {
 	PartnerUid       string `json:"partner_uid"`        // Hang Golf
-	CourseUid        string `json:"course_uid"`         // San Golf
-	GreenFee         int64  `json:"green_fee"`          // Phí sân cỏ
+	CourseUid        string `json:"course_uid"`         // San GolfGreenFee         int64  `json:"green_fee"`                                  // Phí sân cỏ
 	CaddieFee        int64  `json:"caddie_fee"`         // Phí caddie
+	SubBagFee        int64  `json:"sub_bag_fee"`        // Phí trả cho sub bag
+	FBFee            int64  `json:"fb_fee"`             // Phí ăn uống
+	RentalFee        int64  `json:"rental_fee"`         // Phí thuê đồ
 	BuggyFee         int64  `json:"buggy_fee"`          // Phí thuê xe
 	BookingCaddieFee int64  `json:"booking_caddie_fee"` // Phí booking caddie
 	ProshopFee       int64  `json:"proshop_fee"`        // Phí đồ ở Proshop
@@ -59,7 +61,8 @@ type DayEndRevenue struct {
 	KioskFee         int64  `json:"kiosk_fee"`          // Phí kiosk
 	MinibarFee       int64  `json:"minibar_fee"`        // Phí minibar
 	PraticeBallFee   int64  `json:"pratice_ball_fee"`   // Phí bóng tập
-	MushPay          int64  `json:"mush_pay"`           // Tổng tiền phải trả
+	OtherFee         int64  `json:"other_fee"`
+	MushPay          int64  `json:"mush_pay"` // Tổng tiền phải trả
 	Member           int64  `json:"member"`
 	Visitor          int64  `json:"visitor"`
 	Foc              int64  `json:"foc"`
@@ -154,6 +157,9 @@ func (item *ReportRevenueDetail) FindReportDayEnd(database *gorm.DB) (DayEndReve
 					SUM(minibar_fee) AS minibar_fee,
 					SUM(booking_caddie_fee) AS booking_caddie_fee,
 					SUM(mush_pay) as mush_pay,
+					SUM(rental_fee) as rental_fee,
+					SUM(other_fee) as other_fee,
+					SUM(fb_fee) as fb_fee,
 					SUM(customer_type = 'MEMBER') AS member,
 					SUM(customer_type = 'GUEST') AS member_guest,
 					SUM(customer_type = 'VISITOR') AS visitor,
