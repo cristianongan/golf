@@ -7,12 +7,24 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
+	"start/utils/response_message"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 type CHelper struct{}
+
+func (_ *CHelper) AppLog(c *gin.Context, prof models.CmsUser) {
+	var body map[string]interface{}
+
+	if bindErr := c.BindJSON(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	okResponse(c, "ok")
+}
 
 type CustomerT struct {
 	Name string `json:"name"`
