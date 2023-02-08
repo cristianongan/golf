@@ -520,7 +520,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		PraticeBallFee:   practiceBallFee,
 		OtherFee:         otherFee,
 		MushPay:          totalGolfFeeOfSubBag + totalServiceItems,
-		Total:            item.MushPayInfo.MushPay + item.GetAgencyPaid(),
+		Total:            totalGolfFeeOfSubBag + totalServiceItems,
 		Cash:             cashTotal,
 		Debit:            debtTotal,
 		Card:             cardTotal,
