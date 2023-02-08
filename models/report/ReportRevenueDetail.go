@@ -43,6 +43,7 @@ type ReportRevenueDetail struct {
 	Voucher          int64  `json:"voucher"`                                    // Số tiền Voucher
 	Debit            int64  `json:"debit"`                                      // Số tiền nợ
 	MushPay          int64  `json:"mush_pay"`                                   // Tổng tiền phải trả
+	Paid             int64  `json:"paid"`                                       // Tổng tiền phải trả
 	Transfer         int64  `json:"transfer"`                                   // Số tiền chuyển khoản
 }
 
@@ -58,6 +59,7 @@ type DayEndRevenue struct {
 	KioskFee         int64  `json:"kiosk_fee"`          // Phí kiosk
 	MinibarFee       int64  `json:"minibar_fee"`        // Phí minibar
 	PraticeBallFee   int64  `json:"pratice_ball_fee"`   // Phí bóng tập
+	MushPay          int64  `json:"mush_pay"`           // Tổng tiền phải trả
 	Member           int64  `json:"member"`
 	Visitor          int64  `json:"visitor"`
 	Foc              int64  `json:"foc"`
@@ -130,6 +132,14 @@ func (item *ReportRevenueDetail) Delete() error {
 	return datasources.GetDatabase().Delete(item).Error
 }
 
+func (item *ReportRevenueDetail) DeleteByBookingDate() error {
+	db := datasources.GetDatabase().Model(ReportRevenueDetail{})
+	db = db.Where("booking_date = ?", item.BookingDate)
+	db = db.Where("partner_uid = ?", item.PartnerUid)
+	db = db.Where("course_uid = ?", item.CourseUid)
+	return db.Delete(item).Error
+}
+
 func (item *ReportRevenueDetail) FindReportDayEnd(database *gorm.DB) (DayEndRevenue, error) {
 	db := datasources.GetDatabase().Model(ReportRevenueDetail{})
 	db = db.Select(`partner_uid,
@@ -143,6 +153,7 @@ func (item *ReportRevenueDetail) FindReportDayEnd(database *gorm.DB) (DayEndReve
 					SUM(proshop_fee) AS proshop_fee,
 					SUM(minibar_fee) AS minibar_fee,
 					SUM(booking_caddie_fee) AS booking_caddie_fee,
+					SUM(mush_pay) as mush_pay,
 					SUM(customer_type = 'MEMBER') AS member,
 					SUM(customer_type = 'GUEST') AS member_guest,
 					SUM(customer_type = 'VISITOR') AS visitor,

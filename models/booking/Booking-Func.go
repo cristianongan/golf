@@ -487,6 +487,7 @@ func (item *Booking) FindServiceItemsOfBag(db *gorm.DB) {
 				errSC := serviceCart.FindFirst(db)
 				if errSC != nil {
 					log.Println("FindFristServiceCart errSC", errSC.Error())
+					continue
 				}
 
 				if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||

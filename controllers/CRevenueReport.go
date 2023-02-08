@@ -324,6 +324,7 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 	db, _, err := bookings.FindAllBookingList(db)
 	db = db.Where("check_in_time > 0")
 	db = db.Where("bag_status <> 'CANCEL'")
+	db = db.Where("init_type <> 'ROUND'")
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -332,6 +333,14 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 
 	var list []model_booking.Booking
 	db.Find(&list)
+
+	reportR := model_report.ReportRevenueDetail{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+	}
+
+	reportR.DeleteByBookingDate()
 
 	for _, booking := range list {
 		updatePriceForRevenue(booking, body.BillNo)
