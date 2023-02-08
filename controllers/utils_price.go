@@ -552,28 +552,12 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 	roundToFindList := models.Round{BillCode: item.BillCode}
 	listRoundOfCurrentBag, _ := roundToFindList.FindAll(db)
 
-	golfFeeByAgency := int64(0)
+	// golfFeeByAgency := int64(0)
 	caddieAgenPaid := int64(0)
 	greenAgenPaid := int64(0)
 
 	for _, round := range listRoundOfCurrentBag {
-		if round.Index == 1 && item.GetAgencyGolfFee() > 0 {
-			// golfFeeByAgency = item.GetAgencyGolfFee()
-			golfFee := models.GolfFee{
-				GuestStyle: item.GuestStyle,
-				CourseUid:  item.CourseUid,
-				PartnerUid: item.PartnerUid,
-			}
-			fee, _ := golfFee.GetGuestStyleOnDay(db)
-
-			caddieAgenPaid = utils.GetFeeFromListFee(fee.CaddieFee, item.HoleBooking)
-			greenAgenPaid = utils.GetFeeFromListFee(fee.GreenFee, item.HoleBooking)
-
-			log.Println("bag: ", item.Bag, " ||", caddieAgenPaid+greenAgenPaid)
-
-		} else {
-			listRoundGolfFee = append(listRoundGolfFee, round)
-		}
+		listRoundGolfFee = append(listRoundGolfFee, round)
 	}
 
 	hole = slices.Reduce(listRoundGolfFee, func(prev int, item models.Round) int {
@@ -605,7 +589,6 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 	// update lại lấy service items mới
 	totalServiceItems := int64(0)
 	item.FindServiceItemsOfBag(db)
-	hasHalfBuggy := false
 	for _, v := range item.ListServiceItems {
 		totalServiceItems += v.Amount
 		checkBuggy := strings.Contains(v.Name, "xe")
@@ -637,20 +620,11 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 			}
 
 			if checkBuggy {
-				if item.GetAgencyPaidBuggy() > 0 && item.GetAgencyBuggyName() == v.Name && !hasHalfBuggy {
-					buggyFee += item.GetAgencyPaidBuggy()
-					hasHalfBuggy = true
-				} else {
-					buggyFee += v.Amount
-				}
+				buggyFee += v.Amount
 			}
 
 			if v.ServiceType == constants.CADDIE_SETTING {
-				if item.GetAgencyPaidBookingCaddie() > 0 {
-					bookingCaddieFee += item.GetAgencyPaidBookingCaddie()
-				} else {
-					bookingCaddieFee += v.Amount
-				}
+				bookingCaddieFee += v.Amount
 			}
 		}
 	}
@@ -690,6 +664,15 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		return prev + item.Paid
 	})
 
+	bookingR := model_booking.Booking{
+		PartnerUid:  item.PartnerUid,
+		CourseUid:   item.CourseUid,
+		BookingDate: item.BookingDate,
+		Bag:         item.Bag,
+	}
+
+	bookingR.FindFirst(db)
+
 	m := model_report.ReportRevenueDetail{
 		PartnerUid:       item.PartnerUid,
 		CourseUid:        item.CourseUid,
@@ -702,7 +685,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		MembershipNo:     item.CardId,
 		CustomerType:     item.CustomerType,
 		Hole:             hole,
-		Paid:             golfFeeByAgency,
+		Paid:             item.GetAgencyPaid(),
 		GreenFee:         bookingGreenFee,
 		CaddieFee:        caddieFee,
 		FBFee:            fbFee,
@@ -712,7 +695,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		ProshopFee:       proshopFee,
 		PraticeBallFee:   practiceBallFee,
 		OtherFee:         otherFee,
-		MushPay:          totalGolfFee + totalServiceItems,
+		MushPay:          bookingR.MushPayInfo.MushPay,
 		Total:            totalGolfFee + totalServiceItems,
 		Cash:             cashTotal,
 		Debit:            debtTotal,
