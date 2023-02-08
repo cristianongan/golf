@@ -67,6 +67,8 @@ func (_ *CHelper) CreateAddCustomer(c *gin.Context, prof models.CmsUser) {
 
 		customerUser.Create(db)
 	}
+
+	okResponse(c, "ok")
 }
 
 /// Member card
@@ -115,4 +117,6 @@ func (_ *CHelper) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 
 		memberCard.Create(db)
 	}
+
+	okResponse(c, "ok")
 }
