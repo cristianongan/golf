@@ -424,8 +424,11 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 	// Sub Service Item của current Bag
 	// Get item for current Bag
 	// update lại lấy service items mới
+	totalServiceItems := int64(0)
 	item.FindServiceItemsOfBag(db)
 	for _, v := range item.ListServiceItems {
+		totalServiceItems += v.Amount
+
 		if v.BillCode == item.BillCode {
 			if v.Type == constants.MINI_B_SETTING {
 				minibarFee += v.Amount
@@ -516,7 +519,8 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		ProshopFee:       proshopFee,
 		PraticeBallFee:   practiceBallFee,
 		OtherFee:         otherFee,
-		MushPay:          item.MushPayInfo.MushPay + item.CurrentBagPrice.MainBagPaid,
+		MushPay:          totalGolfFeeOfSubBag + totalServiceItems,
+		Total:            item.MushPayInfo.MushPay + item.GetAgencyPaid(),
 		Cash:             cashTotal,
 		Debit:            debtTotal,
 		Card:             cardTotal,

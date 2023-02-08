@@ -45,6 +45,7 @@ type ReportRevenueDetail struct {
 	MushPay          int64  `json:"mush_pay"`                                   // Tổng tiền phải trả
 	Paid             int64  `json:"paid"`                                       // Tổng tiền phải trả
 	Transfer         int64  `json:"transfer"`                                   // Số tiền chuyển khoản
+	Total            int64  `json:"total"`
 }
 
 type DayEndRevenue struct {
@@ -70,6 +71,7 @@ type DayEndRevenue struct {
 	Tour             int64  `json:"tour"`
 	MemberGuest      int64  `json:"member_guest"`
 	TotalFee         int64  `json:"total_fee"`
+	AllFee           int64  `json:"all_fee"`
 }
 
 // ======= CRUD ===========
@@ -162,6 +164,7 @@ func (item *ReportRevenueDetail) FindReportDayEnd(database *gorm.DB) (DayEndReve
 					SUM(rental_fee) as rental_fee,
 					SUM(other_fee) as other_fee,
 					SUM(fb_fee) as fb_fee,
+					SUM(total) as all_fee,
 					SUM(green_fee+caddie_fee+buggy_fee+pratice_ball_fee+rental_fee+booking_caddie_fee+kiosk_fee+other_fee+restaurant_fee+minibar_fee) as total_fee,
 					SUM(customer_type = 'MEMBER') AS member,
 					SUM(customer_type = 'GUEST') AS member_guest,
