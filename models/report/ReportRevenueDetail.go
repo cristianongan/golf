@@ -50,7 +50,8 @@ type ReportRevenueDetail struct {
 
 type DayEndRevenue struct {
 	PartnerUid       string `json:"partner_uid"`        // Hang Golf
-	CourseUid        string `json:"course_uid"`         // San GolfGreenFee         int64  `json:"green_fee"`                                  // Phí sân cỏ
+	CourseUid        string `json:"course_uid"`         // San GolfGreenFee         int64  `json:"green_fee"`
+	AgencyPaid       int64  `json:"agency_paid"`        // ĐL trả
 	GreenFee         int64  `json:"green_fee"`          // Phí sân cỏ
 	CaddieFee        int64  `json:"caddie_fee"`         // Phí caddie
 	SubBagFee        int64  `json:"sub_bag_fee"`        // Phí trả cho sub bag
@@ -151,6 +152,7 @@ func (item *ReportRevenueDetail) FindReportDayEnd(database *gorm.DB) (DayEndReve
 	db := datasources.GetDatabase().Model(ReportRevenueDetail{})
 	db = db.Select(`partner_uid,
 					course_uid,
+					SUM(paid) AS agency_paid, 
 					SUM(green_fee) AS green_fee, 
 					SUM(caddie_fee) AS caddie_fee,
 					SUM(buggy_fee) AS buggy_fee,
