@@ -38,6 +38,13 @@ type ReportBuggyForGuestStyleForm struct {
 	Year       string `form:"year"`
 }
 
+type ReportBagDaily struct {
+	PageRequest
+	PartnerUid  string `form:"partner_uid"`
+	CourseUid   string `form:"course_uid"`
+	BookingDate string `form:"booking_date"`
+}
+
 type ReportSalePOSForm struct {
 	PageRequest
 	PartnerUid string `form:"partner_uid" binding:"required"`

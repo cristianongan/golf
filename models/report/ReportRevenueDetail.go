@@ -51,6 +51,7 @@ type ReportRevenueDetail struct {
 type DayEndRevenue struct {
 	PartnerUid       string `json:"partner_uid"`        // Hang Golf
 	CourseUid        string `json:"course_uid"`         // San GolfGreenFee         int64  `json:"green_fee"`
+	AgencyPaid       int64  `json:"agency_paid"`        // Phí sân cỏ
 	GreenFee         int64  `json:"green_fee"`          // Phí sân cỏ
 	CaddieFee        int64  `json:"caddie_fee"`         // Phí caddie
 	RentalFee        int64  `json:"rental_fee"`         // Phí thuê đồ
@@ -105,8 +106,8 @@ func (item *ReportRevenueDetail) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *ReportRevenueDetail) FindList(page models.Page) ([]ReportRevenueDetail, int64, error) {
-	db := datasources.GetDatabase().Model(ReportRevenueDetail{})
+func (item *ReportRevenueDetail) FindList(dbase *gorm.DB, page models.Page) ([]ReportRevenueDetail, int64, error) {
+	db := dbase.Model(ReportRevenueDetail{})
 	list := []ReportRevenueDetail{}
 	total := int64(0)
 	status := item.Status
@@ -120,6 +121,9 @@ func (item *ReportRevenueDetail) FindList(page models.Page) ([]ReportRevenueDeta
 	}
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
 	}
 
 	db.Count(&total)

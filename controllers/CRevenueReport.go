@@ -392,6 +392,37 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 	okResponse(c, res)
 }
 
+func (cBooking *CRevenueReport) GetBagDailyReport(c *gin.Context, prof models.CmsUser) {
+	form := request.ReportBagDaily{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	db := datasources.GetDatabaseWithPartner(form.PartnerUid)
+
+	repotR := model_report.ReportRevenueDetail{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: form.BookingDate,
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	list, total, _ := repotR.FindList(db, page)
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+	okResponse(c, res)
+}
+
 func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.CmsUser) {
 	body := request.FinishBookingBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
