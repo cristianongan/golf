@@ -595,8 +595,8 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 	caddieFee += caddieAgenPaid
 	bookingGreenFee += greenAgenPaid
 
-	totalGolfFeeOfSubBag := caddieFee + bookingBuggyFee + bookingGreenFee + golfFeeByAgency
-	mushPay.TotalGolfFee = totalGolfFeeOfSubBag
+	totalGolfFee := caddieFee + bookingBuggyFee + bookingGreenFee
+	mushPay.TotalGolfFee = totalGolfFee
 
 	// SubBag
 
@@ -626,7 +626,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 				if v.ItemCode == "R1_3" {
 					practiceBallFee += v.Amount
 				} else {
-					if v.ServiceType != constants.BUGGY_SETTING && v.ServiceType != constants.CADDIE_SETTING {
+					if v.ServiceType != constants.BUGGY_SETTING && v.ServiceType != constants.CADDIE_SETTING && !checkBuggy {
 						rentalFee += v.Amount
 					}
 				}
@@ -712,8 +712,8 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		ProshopFee:       proshopFee,
 		PraticeBallFee:   practiceBallFee,
 		OtherFee:         otherFee,
-		MushPay:          totalGolfFeeOfSubBag + totalServiceItems,
-		Total:            totalGolfFeeOfSubBag + totalServiceItems,
+		MushPay:          totalGolfFee + totalServiceItems,
+		Total:            totalGolfFee + totalServiceItems,
 		Cash:             cashTotal,
 		Debit:            debtTotal,
 		Card:             cardTotal,
