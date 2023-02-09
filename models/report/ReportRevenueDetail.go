@@ -63,8 +63,7 @@ type DayEndRevenue struct {
 	MinibarFee       int64  `json:"minibar_fee"`        // Phí minibar
 	PraticeBallFee   int64  `json:"pratice_ball_fee"`   // Phí bóng tập
 	OtherFee         int64  `json:"other_fee"`
-	MushPay          int64  `json:"mush_pay"`  // Tổng tiền phải trả
-	TotalFee         int64  `json:"total_fee"` // Tổng tiền phải trả
+	MushPay          int64  `json:"mush_pay"` // Tổng tiền phải trả
 	Member           int64  `json:"member"`
 	Visitor          int64  `json:"visitor"`
 	Foc              int64  `json:"foc"`
