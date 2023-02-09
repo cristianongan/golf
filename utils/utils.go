@@ -670,7 +670,7 @@ func GetTimeNow() time.Time {
 	hours, _ := GetDateFromTimestampWithFormat(time.Now().Unix(), constants.HOUR_FORMAT_1)
 	time, _ := time.Parse(constants.DATE_FORMAT_4, "08/02/2023 "+hours)
 
-	log.Println("GetTimeNow Hour: ", hours)
-	log.Println("GetTimeNow Unix: ", time.Unix())
+	// log.Println("GetTimeNow Hour: ", hours)
+	// log.Println("GetTimeNow Unix: ", time.Unix())
 	return time
 }
