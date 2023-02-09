@@ -70,6 +70,7 @@ type DayEndRevenue struct {
 	Foc              int64  `json:"foc"`
 	Tour             int64  `json:"tour"`
 	MemberGuest      int64  `json:"member_guest"`
+	TotalFee         int64  `json:"total_fee"`
 }
 
 // ======= CRUD ===========
@@ -162,6 +163,7 @@ func (item *ReportRevenueDetail) FindReportDayEnd(database *gorm.DB) (DayEndReve
 					SUM(rental_fee) as rental_fee,
 					SUM(other_fee) as other_fee,
 					SUM(fb_fee) as fb_fee,
+					SUM(green_fee+caddie_fee+buggy_fee+pratice_ball_fee+rental_fee+booking_caddie_fee+kiosk_fee+other_fee+restaurant_fee+minibar_fee) as total_fee,
 					SUM(customer_type = 'MEMBER') AS member,
 					SUM(customer_type = 'GUEST') AS member_guest,
 					SUM(customer_type = 'VISITOR') AS visitor,

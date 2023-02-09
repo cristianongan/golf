@@ -442,7 +442,9 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 				if v.ItemCode == "R1_3" {
 					practiceBallFee += v.Amount
 				} else {
-					rentalFee += v.Amount
+					if v.ServiceType != constants.BUGGY_SETTING && v.ServiceType != constants.CADDIE_SETTING {
+						rentalFee += v.Amount
+					}
 				}
 			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP {
 				proshopFee += v.Amount
@@ -514,7 +516,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		ProshopFee:       proshopFee,
 		PraticeBallFee:   practiceBallFee,
 		OtherFee:         otherFee,
-		MushPay:          item.MushPayInfo.MushPay + item.GetAgencyPaid(),
+		MushPay:          item.MushPayInfo.MushPay + item.CurrentBagPrice.MainBagPaid,
 		Cash:             cashTotal,
 		Debit:            debtTotal,
 		Card:             cardTotal,
