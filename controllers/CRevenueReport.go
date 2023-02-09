@@ -325,6 +325,8 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 	db = db.Where("check_in_time > 0")
 	db = db.Where("bag_status <> 'CANCEL'")
 	db = db.Where("init_type <> 'ROUND'")
+	// db = db.Where("agency_id = 4")
+	// db = db.Where("bag = 36618")
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

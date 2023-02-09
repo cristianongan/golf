@@ -63,7 +63,8 @@ type DayEndRevenue struct {
 	MinibarFee       int64  `json:"minibar_fee"`        // Phí minibar
 	PraticeBallFee   int64  `json:"pratice_ball_fee"`   // Phí bóng tập
 	OtherFee         int64  `json:"other_fee"`
-	MushPay          int64  `json:"mush_pay"` // Tổng tiền phải trả
+	MushPay          int64  `json:"mush_pay"`  // Tổng tiền phải trả
+	TotalFee         int64  `json:"total_fee"` // Tổng tiền phải trả
 	Member           int64  `json:"member"`
 	Visitor          int64  `json:"visitor"`
 	Foc              int64  `json:"foc"`
@@ -165,6 +166,7 @@ func (item *ReportRevenueDetail) FindReportDayEnd(database *gorm.DB) (DayEndReve
 					SUM(customer_type = 'GUEST') AS member_guest,
 					SUM(customer_type = 'VISITOR') AS visitor,
 					SUM(customer_type = 'FOC') AS foc,
+					SUM(green_fee + caddie_fee + buggy_fee + pratice_ball_fee + restaurant_fee + kiosk_fee + proshop_fee + minibar_fee + booking_caddie_fee + rental_fee + other_fee) AS total_fee,
 					SUM(customer_type = 'TRADITIONAL' || customer_type = 'OTA') AS tour`)
 
 	if item.PartnerUid != "" {
