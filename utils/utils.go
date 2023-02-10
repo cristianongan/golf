@@ -666,6 +666,10 @@ func ConvertStringToIntArray(data string) ListInt {
 	return ints
 }
 
+func RemoveIndex(s []int, index int) []int {
+	return append(s[:index], s[index+1:]...)
+}
+
 func GetTimeNow() time.Time {
 	// hours, _ := GetDateFromTimestampWithFormat(time.Now().Unix(), constants.HOUR_FORMAT_1)
 	// time, _ := time.Parse(constants.DATE_FORMAT_4, "08/02/2023 "+hours)
