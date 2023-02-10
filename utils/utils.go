@@ -671,3 +671,12 @@ func GetTimeNow() time.Time {
 	// time, _ := time.Parse(constants.DATE_FORMAT_4, "08/02/2023 "+hours)
 	return time.Now()
 }
+
+func GetLocalUnixTime() time.Time {
+	loc, errLoc := time.LoadLocation(constants.LOCATION_DEFAULT)
+	if errLoc != nil {
+		return GetTimeNow()
+	}
+	tm := GetTimeNow().In(loc)
+	return tm
+}
