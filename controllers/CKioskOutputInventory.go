@@ -12,7 +12,6 @@ import (
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -27,7 +26,7 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 		return
 	}
 
-	billCode := time.Now().Format("20060102150405")
+	billCode := utils.GetTimeNow().Format("20060102150405")
 	if errOutputBill := item.MethodOutputBill(c, prof, body,
 		constants.KIOSK_BILL_INVENTORY_TRANSFER, billCode, constants.KIOSK_BILL_INVENTORY_PENDING); errOutputBill != nil {
 		response_message.BadRequest(c, errOutputBill.Error())
@@ -152,7 +151,7 @@ func (item CKioskOutputInventory) MethodOutputBill(c *gin.Context, prof models.C
 			Unit:      data.Unit,
 		}
 
-		outputItem.OutputDate = time.Now().Format(constants.DATE_FORMAT_1)
+		outputItem.OutputDate = utils.GetTimeNow().Format(constants.DATE_FORMAT_1)
 
 		if err := outputItem.Create(db); err != nil {
 			return err

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"start/utils"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -48,8 +49,8 @@ func (s subscription) readPump() {
 		c.ws.Close()
 	}()
 	c.ws.SetReadLimit(maxMessageSize)
-	c.ws.SetReadDeadline(time.Now().Add(pongWait))
-	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	c.ws.SetReadDeadline(utils.GetTimeNow().Add(pongWait))
+	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(utils.GetTimeNow().Add(pongWait)); return nil })
 	for {
 		_, msg, err := c.ws.ReadMessage()
 		if err != nil {
@@ -65,7 +66,7 @@ func (s subscription) readPump() {
 
 // write writes a message with the given message type and payload.
 func (c *connection) write(mt int, payload []byte) error {
-	c.ws.SetWriteDeadline(time.Now().Add(writeWait))
+	c.ws.SetWriteDeadline(utils.GetTimeNow().Add(writeWait))
 	return c.ws.WriteMessage(mt, payload)
 }
 

@@ -7,7 +7,6 @@ import (
 	"start/datasources"
 	"start/utils"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -53,7 +52,7 @@ func (item ListBuggyFeeItemSetting) Value() (driver.Value, error) {
 
 // ======= CRUD ===========
 func (item *BuggyFeeItemSetting) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
 
@@ -80,7 +79,7 @@ func (item *BuggyFeeItemSetting) ValidateCreate(db *gorm.DB) error {
 
 func (item *BuggyFeeItemSetting) Update(db *gorm.DB) error {
 	mydb := datasources.GetDatabase()
-	item.UpdatedAt = time.Now().Unix()
+	item.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := mydb.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

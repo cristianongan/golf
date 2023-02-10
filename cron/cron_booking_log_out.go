@@ -6,7 +6,6 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils"
-	"time"
 )
 
 func runBookingLogutJob() {
@@ -22,7 +21,7 @@ func runBookingLogutJob() {
 
 func runBookingLogout() {
 	dbBooking1 := datasources.GetDatabase()
-	localTime, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, time.Now().Unix())
+	localTime, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, utils.GetTimeNow().Unix())
 	bookingList := model_booking.BookingList{
 		BookingDate: localTime,
 		IsCheckIn:   "1",
@@ -36,7 +35,7 @@ func runBookingLogout() {
 	// dbBooking2 := datasources.GetDatabase()
 	// for _, booking := range list {
 	// 	booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
-	// 	booking.CheckOutTime = time.Now().Unix()
+	// 	booking.CheckOutTime = utils.GetTimeNow().Unix()
 	// 	if err := booking.Update(dbBooking2); err != nil {
 	// 		log.Print(err.Error())
 	// 	}
@@ -65,7 +64,7 @@ func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 	var caddieSlotNew []string
 	var caddieSlotExist []string
 	// Format date
-	dateNow, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateNow, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 
 	caddieWS := models.CaddieWorkingSlot{}
 	caddieWS.PartnerUid = partnerUid

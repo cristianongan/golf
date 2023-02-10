@@ -26,17 +26,17 @@ import (
 )
 
 func GetCurrentYear() string {
-	currentYearStr, _ := GetDateFromTimestampWithFormat(time.Now().Unix(), constants.YEAR_FORMAT)
+	currentYearStr, _ := GetDateFromTimestampWithFormat(GetTimeNow().Unix(), constants.YEAR_FORMAT)
 	return currentYearStr
 }
 
 func GetCurrentDay() string {
-	currentDayStr, _ := GetDateFromTimestampWithFormat(time.Now().Unix(), constants.DATE_FORMAT)
+	currentDayStr, _ := GetDateFromTimestampWithFormat(GetTimeNow().Unix(), constants.DATE_FORMAT)
 	return currentDayStr
 }
 
 func GetCurrentDay1() string {
-	currentDayStr, _ := GetDateFromTimestampWithFormat(time.Now().Unix(), constants.DATE_FORMAT_1)
+	currentDayStr, _ := GetDateFromTimestampWithFormat(GetTimeNow().Unix(), constants.DATE_FORMAT_1)
 	return currentDayStr
 }
 
@@ -178,7 +178,7 @@ func StringToInt64(number string) (int64, error) {
 
 func GetStartDayByLocation(location string) int64 {
 	loc, _ := time.LoadLocation(location)
-	t := time.Now().In(loc)
+	t := GetTimeNow().In(loc)
 	year, month, day := t.Date()
 	rounded := time.Date(year, month, day, 0, 0, 0, 0, t.Location())
 	return rounded.Unix()
@@ -193,7 +193,7 @@ func GetStartDayByTimeStamp(timestamp int64, location string) int64 {
 }
 
 func UuidElasticSearch() string {
-	return uuid.New().String() + "-" + NumberToString(time.Now().UnixNano())
+	return uuid.New().String() + "-" + NumberToString(GetTimeNow().UnixNano())
 }
 
 func RandStringBytes(n int, letter string) string {
@@ -285,7 +285,7 @@ func FormatMoney(inputMoney float64) string {
 
 func GenerateUidTimestamp() string {
 	uid := uuid.New()
-	return uid.String() + "-" + NumberToString(time.Now().UnixNano())
+	return uid.String() + "-" + NumberToString(GetTimeNow().UnixNano())
 }
 
 // ================================================================================
@@ -589,7 +589,7 @@ là cấu hình bảng giá theo thứ
 0/ Ngày lễ, ngày nghỉ
 */
 func GetCurrentDayStrWithMap() string {
-	day := strconv.FormatInt(int64(time.Now().Weekday())+1, 10)
+	day := strconv.FormatInt(int64(GetTimeNow().Weekday())+1, 10)
 	log.Println("GetCurrentDayStrWithMap ", day)
 	return day
 }
@@ -664,4 +664,19 @@ func ConvertStringToIntArray(data string) ListInt {
 	}
 
 	return ints
+}
+
+func GetTimeNow() time.Time {
+	// hours, _ := GetDateFromTimestampWithFormat(time.Now().Unix(), constants.HOUR_FORMAT_1)
+	// time, _ := time.Parse(constants.DATE_FORMAT_4, "08/02/2023 "+hours)
+	return time.Now()
+}
+
+func GetLocalUnixTime() time.Time {
+	loc, errLoc := time.LoadLocation(constants.LOCATION_DEFAULT)
+	if errLoc != nil {
+		return GetTimeNow()
+	}
+	tm := GetTimeNow().In(loc)
+	return tm
 }

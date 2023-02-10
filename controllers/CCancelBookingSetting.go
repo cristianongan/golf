@@ -6,9 +6,9 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +24,7 @@ func (item *CCancelBookingSetting) CreateCancelBookingSetting(c *gin.Context, pr
 	}
 
 	list := model_booking.ListCancelBookingSetting{}
-	uniqueNumber := time.Now().Unix()
+	uniqueNumber := utils.GetTimeNow().Unix()
 
 	for _, body := range bodyCollection {
 		if !body.IsValidated() {

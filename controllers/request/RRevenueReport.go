@@ -37,3 +37,18 @@ type ReportBuggyForGuestStyleForm struct {
 	Month      string `form:"month"`
 	Year       string `form:"year"`
 }
+
+type ReportBagDaily struct {
+	PageRequest
+	PartnerUid  string `form:"partner_uid"`
+	CourseUid   string `form:"course_uid"`
+	BookingDate string `form:"booking_date"`
+}
+
+type ReportSalePOSForm struct {
+	PageRequest
+	PartnerUid string `form:"partner_uid" binding:"required"`
+	CourseUid  string `form:"course_uid" binding:"required"`
+	Date       string `form:"date" binding:"required"`
+	Type       string `form:"type" binding:"required"`
+}

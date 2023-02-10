@@ -12,7 +12,6 @@ import (
 	"start/utils"
 	"start/utils/response_message"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -41,7 +40,7 @@ func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 	// if form.BookingDate != "" {
 	// 	booking.BookingDate = form.BookingDate
 	// } else {
-	// 	toDayDate, errD := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	// 	toDayDate, errD := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 	// 	if errD != nil {
 	// 		response_message.InternalServerError(c, errD.Error())
 	// 		return
@@ -58,7 +57,12 @@ func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 	booking.UpdatePriceDetailCurrentBag(db)
 	booking.UpdateMushPay(db)
 	booking.Update(db)
-	go handlePayment(db, booking)
+
+	// go handlePayment(db, booking)
+	// go handleAgencyPaid(booking, request.AgencyFeeInfo{
+	// 	GolfFee:  booking.AgencyPaid[0].Fee,
+	// 	BuggyFee: booking.AgencyPaid[1].Fee,
+	// })
 
 	// notiData := map[string]interface{}{
 	// 	"type":  constants.NOTIFICATION_CADDIE_WORKING_STATUS_UPDATE,
@@ -109,7 +113,7 @@ func (cBooking *CTest) TestFastCustomer(c *gin.Context, prof models.CmsUser) {
 
 func (cBooking *CTest) TestFastFee(c *gin.Context, prof models.CmsUser) {
 	uid := utils.HashCodeUuid(uuid.New().String())
-	billNo := fmt.Sprint(time.Now().UnixMilli())
+	billNo := fmt.Sprint(utils.GetTimeNow().UnixMilli())
 	customerBody := request.CustomerBody{
 		MaKh:   uid,
 		TenKh:  "Duy Tuan",

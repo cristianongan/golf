@@ -868,7 +868,7 @@ func handleCheckMemberCardOfGuest(db *gorm.DB, memberUidOfGuest, guestStyle stri
 	}
 
 	// Check còn slot
-	isOk, errCheckMember := checkMemberCardGuestOfDay(memberCard, memberCardType, guestStyle, time.Now())
+	isOk, errCheckMember := checkMemberCardGuestOfDay(memberCard, memberCardType, guestStyle, utils.GetTimeNow())
 	if !isOk {
 		if errCheckMember == nil {
 			errCheckMember = errors.New("not ok")
@@ -890,7 +890,7 @@ func handleCheckMemberCardOfGuest(db *gorm.DB, memberUidOfGuest, guestStyle stri
 }
 
 func updateAnnualFeeToMcType(db *gorm.DB, yearInt int, mcTypeId, fee int64) {
-	if time.Now().Year() == yearInt {
+	if utils.GetTimeNow().Year() == yearInt {
 		mcType := models.MemberCardType{}
 		mcType.Id = mcTypeId
 		errFMCType := mcType.FindFirst(db)
@@ -1274,7 +1274,7 @@ func updateReportTotalHourPlayCountForCustomerUser(booking model_booking.Booking
 		CustomerUid: userUid,
 	}
 
-	now := time.Now()
+	now := utils.GetTimeNow()
 
 	loc, errLoc := time.LoadLocation(constants.LOCATION_DEFAULT)
 	if errLoc != nil {
@@ -1493,7 +1493,7 @@ func addServiceCart(db *gorm.DB, numberGuest int, partnerUid, courseUid, playerN
 	serviceCart.StaffOrder = staffName
 	serviceCart.PlayerName = playerName
 	serviceCart.Phone = phone
-	serviceCart.OrderTime = time.Now().Unix()
+	serviceCart.OrderTime = utils.GetTimeNow().Unix()
 
 	if err := serviceCart.Create(db); err != nil {
 		log.Println("add service cart error!")
@@ -1504,7 +1504,7 @@ func addServiceCart(db *gorm.DB, numberGuest int, partnerUid, courseUid, playerN
 Tạo row index cho booking
 */
 func generateRowIndex(rowsCurrent []int) int {
-	log.Printf("time %d: %v", time.Now().Unix(), rowsCurrent)
+	log.Printf("time %d: %v", utils.GetTimeNow().Unix(), rowsCurrent)
 	if !utils.Contains(rowsCurrent, 0) {
 		return 0
 	} else if !utils.Contains(rowsCurrent, 1) {
@@ -1525,8 +1525,12 @@ func removeRowIndexRedis(booking model_booking.Booking) {
 	newRowIndexsRedis := utils.ListInt{}
 
 	for _, item := range rowIndexsRedis {
-		if item != *booking.RowIndex {
-			newRowIndexsRedis = append(newRowIndexsRedis, item)
+		if booking.RowIndex != nil {
+			if item != *booking.RowIndex {
+				newRowIndexsRedis = append(newRowIndexsRedis, item)
+			}
+		} else {
+			log.Println("removeRowIndexRedis booking.RowIndex == nil")
 		}
 	}
 
@@ -1589,7 +1593,7 @@ func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 	var caddieSlotNew []string
 	var caddieSlotExist []string
 	// Format date
-	dateNow, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateNow, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 
 	caddieWS := models.CaddieWorkingSlot{}
 	caddieWS.PartnerUid = partnerUid

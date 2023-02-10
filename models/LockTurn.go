@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"start/constants"
 	"start/datasources"
+	"start/utils"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -43,7 +43,7 @@ func (item *LockTurn) IsDuplicated() bool {
 }
 
 func (item *LockTurn) Create() error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
@@ -56,7 +56,7 @@ func (item *LockTurn) Create() error {
 
 func (item *LockTurn) Update() error {
 	mydb := datasources.GetDatabase()
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := mydb.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

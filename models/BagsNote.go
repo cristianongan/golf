@@ -2,8 +2,8 @@ package models
 
 import (
 	"start/constants"
+	"start/utils"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -24,7 +24,7 @@ type BagsNote struct {
 
 // ======= CRUD ===========
 func (item *BagsNote) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
 
@@ -36,7 +36,7 @@ func (item *BagsNote) Create(db *gorm.DB) error {
 }
 
 func (item *BagsNote) Update(db *gorm.DB) error {
-	item.UpdatedAt = time.Now().Unix()
+	item.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

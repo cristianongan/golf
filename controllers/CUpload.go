@@ -29,7 +29,7 @@ func (_ *CUpload) UploadImage(c *gin.Context) {
 		return
 	}
 
-	// timeStamp := strconv.FormatInt(time.Now().Unix(), 10)
+	// timeStamp := strconv.FormatInt(utils.GetTimeNow().Unix(), 10)
 	// link, errUpdload := aws.UploadAvatar(&file, user.Model.Uid+"_"+timeStamp)
 	link, errUpdload := datasources.UploadFile(&file)
 	if errUpdload != nil {

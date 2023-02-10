@@ -50,7 +50,7 @@ type GuestStyle struct {
 }
 
 func (item *GolfFee) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
@@ -73,7 +73,7 @@ func (item *GolfFee) BatchInsert(database *gorm.DB, list []GolfFee) error {
 }
 
 func (item *GolfFee) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -143,7 +143,7 @@ func (item *GolfFee) GetGuestStyleOnDay(database *gorm.DB) (GolfFee, error) {
 		for i, gf := range list {
 			if gf.ApplyTime != "" {
 				if idxTemp < 0 {
-					if utils.CheckDow(gf.Dow, gf.ApplyTime, time.Now()) {
+					if utils.CheckDow(gf.Dow, gf.ApplyTime, utils.GetTimeNow()) {
 						idxTemp = i
 					}
 				}
@@ -160,7 +160,7 @@ func (item *GolfFee) GetGuestStyleOnDay(database *gorm.DB) (GolfFee, error) {
 
 	for i, golfFee_ := range list {
 		if idxTemp < 0 {
-			if utils.CheckDow(golfFee_.Dow, "", time.Now()) {
+			if utils.CheckDow(golfFee_.Dow, "", utils.GetTimeNow()) {
 				idxTemp = i
 			}
 		}

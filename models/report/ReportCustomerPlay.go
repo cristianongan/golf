@@ -4,8 +4,8 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -24,7 +24,7 @@ type ReportCustomerPlay struct {
 
 // ======= CRUD ===========
 func (item *ReportCustomerPlay) Create() error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.CreatedAt = now.Unix()
 	item.UpdatedAt = now.Unix()
 
@@ -38,7 +38,7 @@ func (item *ReportCustomerPlay) Create() error {
 
 func (item *ReportCustomerPlay) Update() error {
 	mydb := datasources.GetDatabase()
-	item.UpdatedAt = time.Now().Unix()
+	item.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := mydb.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	model_payment "start/models/payment"
 	model_report "start/models/report"
 	"start/utils/response_message"
 
@@ -281,4 +283,175 @@ func (_ *CRevenueReport) GetReportBuggyForGuestStyle(c *gin.Context, prof models
 	}
 
 	okResponse(c, res)
+}
+
+func (_ *CRevenueReport) GetReportSalePOS(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.ReportSalePOSForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	report := model_booking.BookingServiceItem{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		Type:       form.Type,
+	}
+
+	list, _ := report.FindReportSalePOS(db, form.Date)
+
+	res := response.PageResponse{
+		Data: list,
+	}
+
+	okResponse(c, res)
+}
+
+func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUser) {
+	body := request.FinishBookingBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
+
+	bookings := model_booking.BookingList{
+		BookingDate: body.BookingDate,
+	}
+
+	db, _, err := bookings.FindAllBookingList(db)
+	db = db.Where("check_in_time > 0")
+	db = db.Where("bag_status <> 'CANCEL'")
+	db = db.Where("init_type <> 'ROUND'")
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+
+	reportR := model_report.ReportRevenueDetail{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+	}
+
+	reportR.DeleteByBookingDate()
+
+	for _, booking := range list {
+		updatePriceForRevenue(booking, body.BillNo)
+	}
+
+	repotR := model_report.ReportRevenueDetail{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+	}
+
+	data, err := repotR.FindReportDayEnd(db)
+	if err != nil {
+		badRequest(c, err.Error())
+		return
+	}
+
+	singlePaymentItemR1 := model_payment.SinglePaymentItem{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+	}
+
+	db1 := datasources.GetDatabaseWithPartner(body.PartnerUid)
+	listTransfer, _ := singlePaymentItemR1.FindAllTransfer(db1)
+	listCards, _ := singlePaymentItemR1.FindAllCards(datasources.GetDatabaseWithPartner(body.PartnerUid))
+
+	vcb := int64(0)
+	bidv := int64(0)
+
+	for _, item := range listCards {
+		if item.BankType == "VCB" {
+			vcb += item.Paid
+		}
+		if item.BankType == "BIDV" {
+			bidv += item.Paid
+		}
+	}
+
+	res := map[string]interface{}{
+		"revenue": data,
+		"players": listTransfer,
+		"cards": map[string]interface{}{
+			"vcb":  vcb,
+			"bidv": bidv,
+		},
+	}
+
+	okResponse(c, res)
+}
+
+func (cBooking *CRevenueReport) GetBagDailyReport(c *gin.Context, prof models.CmsUser) {
+	form := request.ReportBagDaily{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	db := datasources.GetDatabaseWithPartner(form.PartnerUid)
+
+	repotR := model_report.ReportRevenueDetail{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: form.BookingDate,
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	list, total, _ := repotR.FindList(db, page)
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+	okResponse(c, res)
+}
+
+func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.CmsUser) {
+	body := request.FinishBookingBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
+
+	bookings := model_booking.BookingList{
+		BookingDate: body.BookingDate,
+	}
+
+	db, _, err := bookings.FindAllBookingList(db)
+	db = db.Where("check_in_time > 0")
+	db = db.Where("bag_status <> 'CANCEL'")
+	db = db.Where("init_type IN (?)", []string{constants.BOOKING_INIT_TYPE_BOOKING, constants.BOOKING_INIT_TYPE_CHECKIN})
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+
+	for _, booking := range list {
+		updatePriceForRevenue(booking, body.BillNo)
+	}
+
+	okRes(c)
 }

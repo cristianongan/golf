@@ -10,7 +10,6 @@ import (
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +25,7 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 		return
 	}
 
-	now := time.Now()
+	now := utils.GetTimeNow()
 
 	for _, v := range body.CaddieWorkingList {
 		caddieWC := models.CaddieWorkingCalendar{

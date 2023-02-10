@@ -240,6 +240,8 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		handleAgencyPayment(db, booking)
 	}
 
+	bookingAgencyPayment.FeeData = []utils.BookingAgencyPayForBagData{}
+
 	if feeInfo.GolfFee > 0 {
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
 			Fee:  feeInfo.GolfFee,
@@ -273,12 +275,11 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 
 	if feeInfo.BuggyFee > 0 || feeInfo.CaddieFee > 0 || feeInfo.GolfFee > 0 {
 		// Ghi nhận số tiền agency thanh toán của agency
-		if !isUpdate {
-			bookingAgencyPayment.CaddieId = fmt.Sprint(booking.CaddieId)
-			bookingAgencyPayment.Create(db)
-		} else {
-			bookingAgencyPayment.CaddieId = fmt.Sprint(booking.CaddieId)
+		bookingAgencyPayment.CaddieId = fmt.Sprint(booking.CaddieId)
+		if isUpdate {
 			bookingAgencyPayment.Update(db)
+		} else {
+			bookingAgencyPayment.Create(db)
 		}
 
 		go func() {

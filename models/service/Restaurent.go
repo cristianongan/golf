@@ -5,9 +5,9 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // Restaurent
@@ -48,7 +48,7 @@ func (item *Restaurent) IsValidated() bool {
 }
 
 func (item *Restaurent) Create() error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
@@ -61,7 +61,7 @@ func (item *Restaurent) Create() error {
 
 func (item *Restaurent) Update() error {
 	mydb := datasources.GetDatabase()
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := mydb.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

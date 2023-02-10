@@ -6,6 +6,7 @@ import (
 	"log"
 	"start/constants"
 	"start/models"
+	"start/utils"
 	"time"
 
 	"github.com/pkg/errors"
@@ -73,7 +74,7 @@ func (item *BookingServiceItem) IsDuplicated(db *gorm.DB) bool {
 }
 
 func (item *BookingServiceItem) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
@@ -84,7 +85,7 @@ func (item *BookingServiceItem) Create(db *gorm.DB) error {
 }
 
 func (item *BookingServiceItem) Update(db *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
@@ -150,6 +151,14 @@ func (item *BookingServiceItem) FindList(database *gorm.DB, page models.Page) ([
 	var list []map[string]interface{}
 	total := int64(0)
 
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
 	if item.GroupCode != "" {
 		db = db.Where("group_code = ?", item.GroupCode)
 	}
@@ -174,12 +183,70 @@ func (item *BookingServiceItem) FindList(database *gorm.DB, page models.Page) ([
 	return list, total, db.Error
 }
 
+func (item *BookingServiceItem) FindReportSalePOS(database *gorm.DB, date string) ([]map[string]interface{}, error) {
+	db := database.Table("booking_service_items")
+	var list []map[string]interface{}
+
+	db = db.Select(`
+		booking_service_items.item_id, booking_service_items.name, booking_service_items.eng_name,
+		booking_service_items.unit, booking_service_items.group_code, tb2.group_name,
+		SUM(if(tb3.bill_status <> 'CANCEL', booking_service_items.quality, 0)) AS export_sale,
+		SUM(if(tb3.bill_status = 'CANCEL', booking_service_items.quality, 0)) AS export_cancel
+	`)
+
+	if item.CourseUid != "" {
+		db = db.Where("booking_service_items.course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("booking_service_items.partner_uid = ?", item.PartnerUid)
+	}
+	if item.Type != "" {
+		db = db.Where("booking_service_items.type = ?", item.Type)
+	}
+
+	subQuery := database.Table("bookings")
+
+	if item.PartnerUid != "" {
+		subQuery = subQuery.Where("bookings.partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		subQuery = subQuery.Where("bookings.course_uid = ?", item.CourseUid)
+	}
+	if date != "" {
+		subQuery = subQuery.Where("bookings.booking_date = ?", date)
+	}
+
+	subQuery = subQuery.Where("bookings.check_in_time > 0")
+	// subQuery = subQuery.Where("bookings.check_out_time > 0")
+
+	db = db.Joins("LEFT JOIN (?) as tb1 on tb1.uid = booking_service_items.booking_uid", subQuery)
+
+	db = db.Joins("INNER JOIN group_services as tb2 on tb2.group_code = booking_service_items.group_code")
+
+	db = db.Joins("INNER JOIN service_carts as tb3 on tb3.id = booking_service_items.service_bill")
+
+	db.Group("booking_service_items.item_id")
+	db.Order("booking_service_items.group_code asc")
+
+	db = db.Find(&list)
+
+	return list, db.Error
+}
+
 func (item *BookingServiceItem) FindListWithStatus(database *gorm.DB, page models.Page) ([]map[string]interface{}, int64, error) {
 	db := database.Model(BookingServiceItem{})
 	var list []map[string]interface{}
 	total := int64(0)
 
 	db = db.Select("booking_service_items.*", "COUNT(tb1.item_id) as order_counts", "COUNT(tb2.item_id) as process_counts")
+
+	if item.CourseUid != "" {
+		db = db.Where("booking_service_items.course_uid = ?", item.CourseUid)
+	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("booking_service_items.partner_uid = ?", item.PartnerUid)
+	}
 
 	if item.GroupCode != "" {
 		db = db.Where("booking_service_items.group_code = ?", item.GroupCode)
@@ -318,7 +385,7 @@ func (item *BookingServiceItem) BatchUpdate(database *gorm.DB, list []BookingSer
 
 // ------ Find Best Item ------
 func (item *BookingServiceItem) FindBestCartItem(database *gorm.DB, page models.Page) ([]BookingServiceItem, int64, error) {
-	now := time.Now().Format("02/01/2006")
+	now := utils.GetTimeNow().Format("02/01/2006")
 
 	from, _ := time.Parse("02/01/2006 15:04:05", now+" 17:00:00")
 
@@ -356,7 +423,7 @@ func (item *BookingServiceItem) FindBestCartItem(database *gorm.DB, page models.
 
 // ------ Find Best Group ------
 func (item *BookingServiceItem) FindBestGroup(database *gorm.DB, page models.Page) ([]BookingServiceItem, int64, error) {
-	now := time.Now().Format("02/01/2006")
+	now := utils.GetTimeNow().Format("02/01/2006")
 
 	from, _ := time.Parse("02/01/2006 15:04:05", now+" 17:00:00")
 

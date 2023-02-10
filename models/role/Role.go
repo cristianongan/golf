@@ -6,7 +6,6 @@ import (
 	"start/models"
 	"start/utils"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -33,7 +32,7 @@ func (item *Role) Create() error {
 		item.Status = constants.STATUS_ENABLE
 	}
 
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 
@@ -42,7 +41,7 @@ func (item *Role) Create() error {
 
 func (item *Role) Update() error {
 	db := datasources.GetDatabaseAuth()
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

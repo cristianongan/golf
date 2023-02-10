@@ -5,7 +5,6 @@ import (
 	"start/models"
 	"start/utils"
 	"strings"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -37,7 +36,7 @@ func (item *BookingAgencyPayment) GetTotalFee() int64 {
 }
 
 func (item *BookingAgencyPayment) Create(db *gorm.DB) error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
@@ -48,7 +47,7 @@ func (item *BookingAgencyPayment) Create(db *gorm.DB) error {
 }
 
 func (item *BookingAgencyPayment) Update(mydb *gorm.DB) error {
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := mydb.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

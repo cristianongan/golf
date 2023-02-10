@@ -6,8 +6,8 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	"start/utils"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -69,7 +69,7 @@ type BookingForFlight struct {
 }
 
 func (item *Flight) Create() error {
-	now := time.Now()
+	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
 	item.ModelId.UpdatedAt = now.Unix()
 	if item.ModelId.Status == "" {
@@ -82,7 +82,7 @@ func (item *Flight) Create() error {
 
 func (item *Flight) Update() error {
 	mydb := datasources.GetDatabase()
-	item.ModelId.UpdatedAt = time.Now().Unix()
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := mydb.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate

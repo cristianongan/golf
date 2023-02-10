@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"start/constants"
 	"start/models"
+	"start/utils"
 	"strconv"
 	"strings"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -131,7 +131,7 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	if item.IsToday != "" {
 		isToday, _ := strconv.ParseInt(item.IsAgency, 10, 8)
 		if isToday == 1 {
-			currentTime := time.Now()
+			currentTime := utils.GetTimeNow()
 			db = db.Where("DATE_FORMAT(STR_TO_DATE(booking_date, '%d/%m/%Y'), '%Y-%m-%d') != ?", fmt.Sprintf("%d-%02d-%02d", currentTime.Year(), currentTime.Month(), currentTime.Day()))
 		}
 	}
