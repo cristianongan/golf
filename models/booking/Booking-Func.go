@@ -1311,6 +1311,16 @@ func (item *Booking) GetAgencyService() int64 {
 	return totalAgencyPaid
 }
 
+func (item *Booking) GetAgencyGolfFee() int64 {
+	totalAgencyPaid := int64(0)
+	for _, v := range item.AgencyPaid {
+		if v.Type == constants.BOOKING_AGENCY_GOLF_FEE {
+			totalAgencyPaid += v.Fee
+		}
+	}
+	return totalAgencyPaid
+}
+
 func (item *Booking) GetAgencyPaidBuggy() int64 {
 	totalAgencyPaid := int64(0)
 	for _, v := range item.AgencyPaid {

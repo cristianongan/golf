@@ -317,34 +317,34 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 
-	// bookings := model_booking.BookingList{
-	// 	BookingDate: body.BookingDate,
-	// }
+	bookings := model_booking.BookingList{
+		BookingDate: body.BookingDate,
+	}
 
-	// db, _, err := bookings.FindAllBookingList(db)
-	// db = db.Where("check_in_time > 0")
-	// db = db.Where("bag_status <> 'CANCEL'")
-	// db = db.Where("init_type <> 'ROUND'")
+	db, _, err := bookings.FindAllBookingList(db)
+	db = db.Where("check_in_time > 0")
+	db = db.Where("bag_status <> 'CANCEL'")
+	db = db.Where("init_type <> 'ROUND'")
 
-	// if err != nil {
-	// 	response_message.InternalServerError(c, err.Error())
-	// 	return
-	// }
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
 
-	// var list []model_booking.Booking
-	// db.Find(&list)
+	var list []model_booking.Booking
+	db.Find(&list)
 
-	// reportR := model_report.ReportRevenueDetail{
-	// 	PartnerUid:  body.PartnerUid,
-	// 	CourseUid:   body.CourseUid,
-	// 	BookingDate: body.BookingDate,
-	// }
+	reportR := model_report.ReportRevenueDetail{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+	}
 
-	// reportR.DeleteByBookingDate()
+	reportR.DeleteByBookingDate()
 
-	// for _, booking := range list {
-	// 	updatePriceForRevenue(booking, body.BillNo)
-	// }
+	for _, booking := range list {
+		updatePriceForRevenue(booking, body.BillNo)
+	}
 
 	repotR := model_report.ReportRevenueDetail{
 		PartnerUid:  body.PartnerUid,
@@ -389,6 +389,37 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 		},
 	}
 
+	okResponse(c, res)
+}
+
+func (cBooking *CRevenueReport) GetBagDailyReport(c *gin.Context, prof models.CmsUser) {
+	form := request.ReportBagDaily{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	db := datasources.GetDatabaseWithPartner(form.PartnerUid)
+
+	repotR := model_report.ReportRevenueDetail{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: form.BookingDate,
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	list, total, _ := repotR.FindList(db, page)
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
 	okResponse(c, res)
 }
 
