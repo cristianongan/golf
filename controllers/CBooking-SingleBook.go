@@ -210,6 +210,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 	}()
 	okRes(c)
 }
+
 func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) {
 	bodyRequest := request.CreateBatchBookingBody{}
 	if bindErr := c.ShouldBind(&bodyRequest); bindErr != nil {
@@ -223,52 +224,9 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		bodyRequest.BookingList[index].BookingTeeTime = true
 	}
 
-	list := []map[string]interface{}{}
-	bodyErroList := request.ListCreateBookingBody{}
-
-	for _, body := range bodyRequest.BookingList {
-		bUid := body.CourseUid + "-" + utils.HashCodeUuid(uuid.New().String())
-		booking, errCreate := cBooking.AssignBooking(body, bUid, c, prof)
-
-		// Đánh dấu lại body đã xử lý,
-		bodyErroList = append(bodyErroList, body)
-
-		if errCreate != nil {
-			for _, body := range bodyErroList {
-				removeRowIndexRedis(model_booking.Booking{
-					PartnerUid:  body.PartnerUid,
-					CourseUid:   body.CourseUid,
-					BookingDate: body.BookingDate,
-					TeeType:     body.TeeType,
-					TeeTime:     body.TeeTime,
-					CourseType:  body.CourseType,
-					RowIndex:    body.RowIndex,
-				})
-			}
-			log.Println("CreateBookingTee ", errCreate.Error())
-			return
-		}
-
-		if booking != nil {
-			item := map[string]interface{}{
-				"booking": booking,
-				"uid":     bUid,
-			}
-			list = append(list, item)
-		}
-	}
-
-	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	listBooking := []model_booking.Booking{}
-	for _, item := range list {
-		booking := item["booking"].(*model_booking.Booking)
-		errCreate := booking.Create(db, item["uid"].(string))
-
-		if errCreate != nil {
-			response_message.InternalServerError(c, errCreate.Error())
-			return
-		}
-		listBooking = append(listBooking, *booking)
+	listBooking, err := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	if err != nil {
+		return
 	}
 
 	// khi book restaurant enable thì auto tạo 1 book reservation trong restaurant
@@ -285,9 +243,137 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		cNotification := CNotification{}
 		cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, listBooking)
 	}()
-
 	okResponse(c, listBooking)
 }
+
+// func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) {
+// 	bodyRequest := request.CreateBatchBookingBody{}
+// 	if bindErr := c.ShouldBind(&bodyRequest); bindErr != nil {
+// 		badRequest(c, bindErr.Error())
+// 		return
+// 	}
+
+// 	if len(bodyRequest.BookingList) == 0 {
+// 		badRequest(c, "CreateBookingTee bindErr.Error()")
+// 		return
+// 	}
+
+// 	bookingCode := utils.HashCodeUuid(uuid.New().String())
+// 	for index := range bodyRequest.BookingList {
+// 		bodyRequest.BookingList[index].BookingCode = bookingCode
+// 		bodyRequest.BookingList[index].BookingTeeTime = true
+// 	}
+
+// 	list := []map[string]interface{}{}
+// 	bodyErroList := request.ListCreateBookingBody{}
+
+// 	for _, body := range bodyRequest.BookingList {
+// 		bUid := body.CourseUid + "-" + utils.HashCodeUuid(uuid.New().String())
+// 		booking, errCreate := cBooking.AssignBooking(body, bUid, c, prof)
+
+// 		// Đánh dấu lại body đã xử lý,
+// 		bodyErroList = append(bodyErroList, body)
+
+// 		if errCreate != nil {
+// 			for _, body := range bodyErroList {
+// 				removeRowIndexRedis(model_booking.Booking{
+// 					PartnerUid:  body.PartnerUid,
+// 					CourseUid:   body.CourseUid,
+// 					BookingDate: body.BookingDate,
+// 					TeeType:     body.TeeType,
+// 					TeeTime:     body.TeeTime,
+// 					CourseType:  body.CourseType,
+// 					RowIndex:    body.RowIndex,
+// 				})
+// 			}
+// 			log.Println("CreateBookingTee ", errCreate.Error())
+// 			return
+// 		}
+
+// 		if booking != nil {
+// 			item := map[string]interface{}{
+// 				"booking": booking,
+// 				"uid":     bUid,
+// 			}
+// 			list = append(list, item)
+// 		}
+// 	}
+
+// 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+// 	listBooking := []model_booking.Booking{}
+// 	for idx, item := range list {
+// 		booking := item["booking"].(*model_booking.Booking)
+// 		errCreate := booking.Create(db, item["uid"].(string))
+
+// 		if errCreate != nil {
+// 			response_message.InternalServerError(c, errCreate.Error())
+// 			return
+// 		}
+
+// 		if booking != nil {
+// 			response_message.InternalServerError(c, "CreateBookingTee booking nil")
+// 			return
+// 		}
+
+// 		listBooking = append(listBooking, *booking)
+
+// 		go func() {
+// 			if booking.InitType == constants.BOOKING_INIT_TYPE_CHECKIN && booking.CustomerUid != "" {
+// 				go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.CardId, booking.PartnerUid, booking.CourseUid)
+// 			}
+
+// 			// Create booking payment
+// 			if booking.AgencyId > 0 {
+// 				go handleAgencyPaid(*booking, bodyRequest.BookingList[idx].FeeInfo)
+// 			}
+
+// 			if booking.AgencyId > 0 && booking.MemberCardUid == "" {
+// 				go handleAgencyPayment(db, *booking)
+// 				// Tạo thêm single payment cho bag
+
+// 			} else {
+// 				if booking.BagStatus == constants.BAG_STATUS_WAITING {
+// 					// checkin mới tạo payment
+// 					go handleSinglePayment(db, *booking)
+// 				}
+// 			}
+// 		}()
+// 	}
+
+// 	bodyFirst := bodyRequest.BookingList[0]
+// 	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(bodyFirst.BookingDate, bodyFirst.CourseUid, bodyFirst.TeeTime, bodyFirst.TeeType+bodyFirst.CourseType)
+// 	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+// 	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+// 	if bodyFirst.TeeTime != "" && len(rowIndexsRedis) >= 3 {
+// 		cLockTeeTime := CLockTeeTime{}
+// 		lockTurn := request.CreateLockTurn{
+// 			BookingDate: bodyFirst.BookingDate,
+// 			CourseUid:   bodyFirst.CourseUid,
+// 			PartnerUid:  bodyFirst.PartnerUid,
+// 			TeeTime:     bodyFirst.TeeTime,
+// 			TeeType:     bodyFirst.TeeType,
+// 			CourseType:  bodyFirst.CourseType,
+// 		}
+// 		go cLockTeeTime.LockTurn(lockTurn, bodyFirst.Hole, c, prof)
+// 	}
+
+// 	// khi book restaurant enable thì auto tạo 1 book reservation trong restaurant
+// 	if len(bodyRequest.BookingList) > 0 {
+// 		item := bodyRequest.BookingList[0]
+// 		if item.BookingRestaurant.Enable {
+// 			db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+// 			go addServiceCart(db, len(bodyRequest.BookingList), item.PartnerUid, item.CourseUid, item.CustomerBookingName, item.CustomerBookingPhone, item.BookingDate, prof.FullName)
+// 		}
+// 	}
+
+// 	// Bắn socket để client update ui
+// 	go func() {
+// 		cNotification := CNotification{}
+// 		cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, listBooking)
+// 	}()
+
+// 	okResponse(c, listBooking)
+// }
 
 func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser) {
 	bodyRequest := request.CreateBatchBookingBody{}
