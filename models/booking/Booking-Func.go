@@ -669,6 +669,7 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 					}
 				}
 
+				// Nếu main bag đã check out thì ko tính vào main bag
 				if item.CheckOutTime > 0 && v1.CreatedAt > item.CheckOutTime {
 					isCanAdd = false
 				}
