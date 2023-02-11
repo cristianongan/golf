@@ -45,6 +45,7 @@ type ReportRevenueDetail struct {
 	MushPay          int64  `json:"mush_pay"`                                   // Tổng tiền phải trả
 	Paid             int64  `json:"paid"`                                       // Tổng tiền phải trả
 	Transfer         int64  `json:"transfer"`                                   // Số tiền chuyển khoản
+	PhiPhat          int64  `json:"phi_phat"`
 	Total            int64  `json:"total"`
 }
 
@@ -71,6 +72,7 @@ type DayEndRevenue struct {
 	MemberGuest      int64  `json:"member_guest"`
 	TotalFee         int64  `json:"total_fee"`
 	AllFee           int64  `json:"all_fee"`
+	PhiPhat          int64  `json:"phi_phat"`
 }
 
 // ======= CRUD ===========
@@ -168,11 +170,12 @@ func (item *ReportRevenueDetail) FindReportDayEnd(database *gorm.DB) (DayEndReve
 					SUM(other_fee) as other_fee,
 					SUM(fb_fee) as fb_fee,
 					SUM(total) as all_fee,
+					SUM(phi_phat) as phi_phat,
 					SUM(customer_type = 'MEMBER') AS member,
 					SUM(customer_type = 'GUEST') AS member_guest,
 					SUM(customer_type = 'VISITOR') AS visitor,
 					SUM(customer_type = 'FOC') AS foc,
-					SUM(green_fee + caddie_fee + buggy_fee + pratice_ball_fee + restaurant_fee + kiosk_fee + proshop_fee + minibar_fee + booking_caddie_fee + rental_fee + other_fee) AS total_fee,
+					SUM(green_fee + caddie_fee + buggy_fee + pratice_ball_fee + restaurant_fee + kiosk_fee + proshop_fee + minibar_fee + booking_caddie_fee + rental_fee + other_fee + phi_phat) AS total_fee,
 					SUM(customer_type = 'TRADITIONAL' || customer_type = 'OTA') AS tour`)
 
 	if item.PartnerUid != "" {
