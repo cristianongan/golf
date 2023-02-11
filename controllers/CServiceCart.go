@@ -245,7 +245,11 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 
 	// add infor cart item
 	serviceCartItem.Type = kiosk.KioskType
-	serviceCartItem.Location = kiosk.KioskName
+	if body.LocationType != "" {
+		serviceCartItem.Location = body.LocationType
+	} else {
+		serviceCartItem.Location = kiosk.KioskName
+	}
 	serviceCartItem.Name = body.Name
 	serviceCartItem.UnitPrice = body.Price
 
