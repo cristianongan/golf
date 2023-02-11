@@ -72,14 +72,6 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
-	name := "" // tên default của proshop
-
-	if body.EnglishName != "" {
-		name = body.EnglishName
-	} else {
-		name = body.VieName
-	}
-
 	service := model_service.FoodBeverage{
 		PartnerUid:    body.PartnerUid,
 		CourseUid:     body.CourseUid,
@@ -103,7 +95,7 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		IsInventory:   body.IsInventory,
 		InternalPrice: body.InternalPrice,
 		IsKitchen:     body.IsKitchen,
-		Name:          name,
+		Name:          body.VieName,
 		Type:          body.Type,
 		HotKitchen:    body.HotKitchen,
 		ColdKitchen:   body.ColdKitchen,

@@ -71,14 +71,6 @@ func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	name := "" // tên default của proshop
-
-	if body.EnglishName != "" {
-		name = body.EnglishName
-	} else {
-		name = body.VieName
-	}
-
 	service := model_service.Proshop{
 		ProShopId:     body.ProshopId,
 		PartnerUid:    body.PartnerUid,
@@ -98,7 +90,7 @@ func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
 		IsDeposit:     body.IsDeposit,
 		Brand:         body.Brand,
 		UserUpdate:    body.UserUpdate,
-		Name:          name,
+		Name:          body.VieName,
 		ProPrice:      body.ProPrice,
 		PeopleDeposit: body.PeopleDeposit,
 		Type:          body.Type,
