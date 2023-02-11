@@ -723,6 +723,10 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.SeparatePrice = false
 	}
 
+	if body.BookingCode != "" {
+		booking.BookingCode = body.BookingCode
+	}
+
 	//TODO: if body.MemberCardUid != "" && (body.MemberCardUid != booking.MemberCardUid ||
 	// 	body.AgencyId != booking.AgencyId) {
 	if body.MemberCardUid != "" {
