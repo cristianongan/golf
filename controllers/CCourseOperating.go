@@ -311,6 +311,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Udp flight for Booking
+	listBookingUpdated := []model_booking.Booking{}
 	for _, b := range listBooking {
 		b.FlightId = flight.Id
 		b.TeeOffTime = body.TeeOff
@@ -320,19 +321,20 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 			log.Println("CreateFlight err flight ", errUdp.Error())
 		}
 
+		listBookingUpdated = append(listBookingUpdated, b)
 		// Update lại thông tin booking
-		if booking := b.GetBooking(); booking != nil && booking.Uid != b.Uid {
-			booking.CaddieId = b.CaddieId
-			booking.CaddieInfo = b.CaddieInfo
-			go booking.Update(db)
-		}
+		// if booking := b.GetBooking(); booking != nil && booking.Uid != b.Uid {
+		// 	booking.CaddieId = b.CaddieId
+		// 	booking.CaddieInfo = b.CaddieInfo
+		// 	go booking.Update(db)
+		// }
 	}
 
 	// Tạo giá buggy cho bag
 	go func() {
-		for index, booking := range listBooking {
-			if utils.ContainString(constants.MEMBER_BUGGY_FEE_FREE_LIST, booking.CardId) == -1 {
-				bodyItem := body.ListData[index]
+		for index, booking := range listBookingUpdated {
+			bodyItem := body.ListData[index]
+			if utils.ContainString(constants.MEMBER_BUGGY_FEE_FREE_LIST, booking.CardId) == -1 && bodyItem.BuggyCode != "" {
 				buggyFee := getBuggyFeeSetting(body.PartnerUid, body.CourseUid, listBooking[index].GuestStyle, listBooking[index].Hole)
 				if bodyItem.BagShare != "" {
 					addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
@@ -340,10 +342,12 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 					if booking.IsPrivateBuggy != nil && *booking.IsPrivateBuggy == true {
 						addBuggyFee(booking, buggyFee.PrivateCarFee, "Thuê riêng xe")
 					} else {
+						addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
 						addBuggyFee(booking, buggyFee.OddCarFee, "Thuê lẻ xe")
 					}
 				}
 				updatePriceWithServiceItem(booking, prof)
+				log.Println("booking.FlightId", booking.FlightId)
 			}
 		}
 	}()
