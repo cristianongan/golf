@@ -215,7 +215,7 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay := "08/02/2023"
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid
@@ -740,7 +740,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay := "08/02/2023"
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 
 	booking := model_booking.Booking{}
 	booking.PartnerUid = serviceCartItem.PartnerUid

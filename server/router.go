@@ -773,6 +773,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Test ===================
 			cTest := new(controllers.CTest)
 			cmsApiAuthorized.GET("/test-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
+			cmsApiAuthorized.GET("/test-agency-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFeeAgency))
 			cmsApiAuthorized.POST("/test-func", middlewares.AuthorizedCmsUserHandler(cTest.TestFunc))
 			cmsApiAuthorized.GET("/test-fast-customer", middlewares.AuthorizedCmsUserHandler(cTest.TestFastCustomer))
 			cmsApiAuthorized.GET("/test-fast-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFastFee))
