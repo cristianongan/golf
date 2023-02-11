@@ -136,7 +136,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 
 					}
 
-					if isAgencyPaidBuggy && v1.Name == subDetail.GetAgencyBuggyName() && !hasBuggy {
+					if isAgencyPaidBuggy && v1.Name == subDetail.GetAgencyBuggyName() && !hasBuggy && isCanAdd {
 						hasBuggy = true
 						isCanAdd = false
 					}
@@ -658,7 +658,7 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 							}
 						}
 					}
-					if isAgencyPaidBuggy && v1.Name == subDetail.GetAgencyBuggyName() && !hasBuggy {
+					if isAgencyPaidBuggy && v1.Name == subDetail.GetAgencyBuggyName() && !hasBuggy && isCanAdd {
 						hasBuggy = true
 						isCanAdd = false
 					}
