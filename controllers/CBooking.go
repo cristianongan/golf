@@ -678,8 +678,11 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	if body.HoleBooking > 0 {
+		booking.HoleBooking = body.HoleBooking
+	}
+
 	if body.Hole > 0 {
-		booking.HoleBooking = body.Hole
 		booking.Hole = body.Hole
 	}
 
@@ -718,7 +721,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerBookingPhone = body.CustomerBookingPhone
 	}
 
-	if body.MemberCardUid != booking.MemberCardUid ||
+	if body.MemberCardUid != nil && *body.MemberCardUid != booking.MemberCardUid ||
 		body.AgencyId != booking.AgencyId {
 		booking.SeparatePrice = false
 	}
@@ -729,33 +732,33 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	//TODO: if body.MemberCardUid != "" && (body.MemberCardUid != booking.MemberCardUid ||
 	// 	body.AgencyId != booking.AgencyId) {
-	if body.MemberCardUid != "" {
-		memberCardBody := request.UpdateAgencyOrMemberCardToBooking{
-			PartnerUid:    body.PartnerUid,
-			CourseUid:     body.CourseUid,
-			AgencyId:      body.AgencyId,
-			BUid:          booking.Uid,
-			Bag:           booking.Bag,
-			CustomerName:  body.CustomerName,
-			Hole:          body.Hole,
-			MemberCardUid: body.MemberCardUid,
-		}
+	if body.MemberCardUid != nil {
+		if *body.MemberCardUid != "" {
+			memberCardBody := request.UpdateAgencyOrMemberCardToBooking{
+				PartnerUid:    body.PartnerUid,
+				CourseUid:     body.CourseUid,
+				AgencyId:      body.AgencyId,
+				BUid:          booking.Uid,
+				Bag:           booking.Bag,
+				CustomerName:  body.CustomerName,
+				Hole:          body.Hole,
+				MemberCardUid: *body.MemberCardUid,
+			}
+			memberCard := models.MemberCard{}
+			if errUpdate := cBooking.updateMemberCardToBooking(c, db, &booking, &memberCard, memberCardBody); errUpdate != nil {
+				return
+			}
+			guestStyle = memberCard.GetGuestStyle(db)
+		} else {
+			booking.MemberCardUid = ""
+			booking.CardId = ""
+			booking.CustomerUid = ""
+			booking.CustomerType = ""
+			booking.CustomerInfo = model_booking.CustomerInfo{}
 
-		memberCard := models.MemberCard{}
-		if errUpdate := cBooking.updateMemberCardToBooking(c, db, &booking, &memberCard, memberCardBody); errUpdate != nil {
-			return
-		}
-		guestStyle = memberCard.GetGuestStyle(db)
-	} else if body.MemberCardUid == "" {
-		// Update member card
-		booking.MemberCardUid = ""
-		booking.CardId = ""
-		booking.CustomerUid = ""
-		booking.CustomerType = ""
-		booking.CustomerInfo = model_booking.CustomerInfo{}
-
-		if body.CustomerName != "" {
-			booking.CustomerName = body.CustomerName
+			if body.CustomerName != "" {
+				booking.CustomerName = body.CustomerName
+			}
 		}
 	}
 
