@@ -7,6 +7,7 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
+	model_service "start/models/service"
 	"start/utils/response_message"
 	"strconv"
 
@@ -71,7 +72,7 @@ func (_ *CHelper) CreateAddCustomer(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, "ok")
 }
 
-/// Member card
+// / Member card
 type MemberCardT struct {
 	CardId    string `json:"card_id"`
 	ValidDate string `json:"valid_date"`
@@ -116,6 +117,108 @@ func (_ *CHelper) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 		}
 
 		memberCard.Create(db)
+	}
+
+	okResponse(c, "ok")
+}
+
+// Proshop
+type ProshopT struct {
+	ProshopId   string  `json:"proshop_id"`
+	AccountCode string  `json:"account_code"`
+	Name        string  `json:"name"`
+	Price       float64 `json:"exp_date"`
+	Unit        string  `json:"unit"`
+	Type        string  `json:"type"`
+	GroupCode   string  `json:"group_code"`
+}
+
+type ListProshopT []ProshopT
+
+func (item *ListProshopT) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListProshopT) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
+func (_ *CHelper) CreateProshop(c *gin.Context, prof models.CmsUser) {
+	body := ListProshopT{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	db := datasources.GetDatabase()
+
+	// note create_at > 1672735789
+
+	for _, v := range body {
+		proshop := model_service.Proshop{
+			PartnerUid:  "CHI-LINH",
+			CourseUid:   "CHI-LINH-01",
+			ProShopId:   v.ProshopId,
+			AccountCode: v.AccountCode,
+			Name:        v.Name,
+			Price:       v.Price,
+			Unit:        v.Unit,
+			Type:        v.Type,
+			GroupCode:   v.GroupCode,
+		}
+
+		proshop.Create(db)
+	}
+
+	okResponse(c, "ok")
+}
+
+// FB
+type FBT struct {
+	FBCode      string  `json:"fb_code"`
+	AccountCode string  `json:"account_code"`
+	Name        string  `json:"name"`
+	Price       float64 `json:"exp_date"`
+	Unit        string  `json:"unit"`
+	Type        string  `json:"type"`
+	GroupCode   string  `json:"group_code"`
+}
+
+type ListFBT []FBT
+
+func (item *ListFBT) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListFBT) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
+func (_ *CHelper) CreateFB(c *gin.Context, prof models.CmsUser) {
+	body := ListFBT{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	db := datasources.GetDatabase()
+
+	// note create_at > 1672735789
+
+	for _, v := range body {
+		fb := model_service.FoodBeverage{
+			PartnerUid:  "CHI-LINH",
+			CourseUid:   "CHI-LINH-01",
+			FBCode:      v.FBCode,
+			AccountCode: v.AccountCode,
+			Name:        v.Name,
+			Price:       v.Price,
+			Unit:        v.Unit,
+			Type:        v.Type,
+			GroupCode:   v.GroupCode,
+		}
+
+		fb.Create(db)
 	}
 
 	okResponse(c, "ok")
