@@ -487,9 +487,9 @@ func (_ *CCmsUser) ChangePassCmsUser(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	cmsUser := models.CmsUser{}
-	cmsUser.Uid = body.UserUid
-	errF := cmsUser.FindFirst()
+	user := models.CmsUser{}
+	user.Uid = body.UserUid
+	errF := user.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
@@ -531,12 +531,12 @@ func (_ *CCmsUser) ChangePassCmsUser(c *gin.Context, prof models.CmsUser) {
 	}
 	
 
-	errUdp := cmsUser.Update()
+	errUdp := user.Update()
 
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
 
-	okResponse(c, cmsUser)
+	okResponse(c, user)
 }
