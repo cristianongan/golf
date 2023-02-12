@@ -488,7 +488,7 @@ func (_ *CCmsUser) ChangePassCmsUser(c *gin.Context, prof models.CmsUser) {
 	}
 
 	user := models.CmsUser{}
-	user.Uid = prof.uid
+	user.Uid = prof.Uid
 	errF := user.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
