@@ -481,7 +481,7 @@ func (_ *CCmsUser) LogOut(c *gin.Context, prof models.CmsUser) {
 Change pass Cms User
 */
 func (_ *CCmsUser) ChangePassCmsUser(c *gin.Context, prof models.CmsUser) {
-	body := request.ChangePassCmsUser{}
+	body := request.ChangePassCmsUserBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return

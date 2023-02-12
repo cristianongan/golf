@@ -32,7 +32,7 @@ type GetListCmsUserForm struct {
 	Search     string `form:"search"`
 }
 
-type UdpCmsUserBody struct {
+type ChangePassCmsUserBody struct {
 	UserUid string `json:"user_uid"  binding:"required"`
 	OldPass string `json:"old_pass"  binding:"required"`
 	NewPass string `json:"new_pass"  binding:"required"`
