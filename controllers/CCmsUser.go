@@ -476,3 +476,67 @@ func (_ *CCmsUser) LogOut(c *gin.Context, prof models.CmsUser) {
 
 	okRes(c)
 }
+
+/*
+Change pass Cms User
+*/
+func (_ *CCmsUser) ChangePassCmsUser(c *gin.Context, prof models.CmsUser) {
+	body := request.ChangePassCmsUserBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	user := models.CmsUser{}
+	user.Uid = body.UserUid
+	errF := user.FindFirst()
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+
+	if body.OldPass != "" {
+		passw, errDec := utils.DecryptAES([]byte(config.GetPassSecretKey()), body.OldPass)
+		if errDec != nil {
+			response_message.BadRequest(c, errDec.Error())
+			return
+		}
+		errCheck := utils.ComparePassword(user.Password, passw)
+		if errCheck != nil {
+			response_message.BadRequest(c, "old pass is wrong")
+			return
+		}
+	} else {
+		response_message.BadRequest(c, "old pass is empty")
+		return
+	}
+
+	if body.NewPass != "" {
+		passw, errDec := utils.DecryptAES([]byte(config.GetPassSecretKey()), body.NewPass)
+		if errDec != nil {
+			response_message.BadRequest(c, errDec.Error())
+			return
+		}
+
+		hashPass, errHash := utils.GeneratePassword(passw)
+		if errHash != nil {
+			response_message.BadRequest(c, errHash.Error())
+			return
+		}
+		user.Password = hashPass
+	} else {
+		response_message.BadRequest(c, "new pass is empty")
+		return
+	}
+	
+
+	errUdp := user.Update()
+
+	if errUdp != nil {
+		response_message.InternalServerError(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, user)
+}

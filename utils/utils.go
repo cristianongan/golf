@@ -589,7 +589,7 @@ là cấu hình bảng giá theo thứ
 0/ Ngày lễ, ngày nghỉ
 */
 func GetCurrentDayStrWithMap() string {
-	day := strconv.FormatInt(int64(GetTimeNow().Weekday())+1, 10)
+	day := strconv.FormatInt(int64(GetLocalUnixTime().Weekday())+1, 10)
 	log.Println("GetCurrentDayStrWithMap ", day)
 	return day
 }
@@ -664,6 +664,10 @@ func ConvertStringToIntArray(data string) ListInt {
 	}
 
 	return ints
+}
+
+func RemoveIndex(s []int, index int) []int {
+	return append(s[:index], s[index+1:]...)
 }
 
 func GetTimeNow() time.Time {

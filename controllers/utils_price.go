@@ -548,6 +548,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 	restaurantFee := int64(0)
 	minibarFee := int64(0)
 	kioskFee := int64(0)
+	phiPhat := int64(0)
 
 	roundToFindList := models.Round{BillCode: item.BillCode}
 	listRoundOfCurrentBag, _ := roundToFindList.FindAll(db)
@@ -610,16 +611,22 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 					practiceBallFee += v.Amount
 				} else {
 					if v.ServiceType != constants.BUGGY_SETTING && v.ServiceType != constants.CADDIE_SETTING && !checkBuggy {
-						rentalFee += v.Amount
+						if v.ItemCode != "Tham quan" {
+							rentalFee += v.Amount
+						}
 					}
 				}
 			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP {
-				proshopFee += v.Amount
+				if v.ItemCode == "FS-8" {
+					phiPhat += v.Amount
+				} else {
+					proshopFee += v.Amount
+				}
 			} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE {
 				otherFee += v.Amount
 			}
 
-			if checkBuggy {
+			if checkBuggy || v.ItemCode == "Tham quan" {
 				buggyFee += v.Amount
 			}
 
@@ -703,6 +710,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		RestaurantFee:    restaurantFee,
 		MinibarFee:       minibarFee,
 		KioskFee:         kioskFee,
+		PhiPhat:          phiPhat,
 	}
 
 	m.Create(db)

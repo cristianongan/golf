@@ -118,6 +118,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/user/list", middlewares.AuthorizedCmsUserHandler(cCmsUser.GetList))
 			cmsApiAuthorized.POST("/user/add", middlewares.AuthorizedCmsUserHandler(cCmsUser.CreateCmsUser))
 			cmsApiAuthorized.PUT("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.UpdateCmsUser))
+			cmsApiAuthorized.POST("/user/change-pass", middlewares.AuthorizedCmsUserHandler(cCmsUser.ChangePassCmsUser))
 			cmsApiAuthorized.DELETE("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.DeleteCmsUser))
 			cmsApiAuthorized.POST("/user/logout", middlewares.AuthorizedCmsUserHandler(cCmsUser.LogOut))
 
@@ -773,6 +774,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Test ===================
 			cTest := new(controllers.CTest)
 			cmsApiAuthorized.GET("/test-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
+			cmsApiAuthorized.GET("/test-agency-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFeeAgency))
 			cmsApiAuthorized.POST("/test-func", middlewares.AuthorizedCmsUserHandler(cTest.TestFunc))
 			cmsApiAuthorized.GET("/test-fast-customer", middlewares.AuthorizedCmsUserHandler(cTest.TestFastCustomer))
 			cmsApiAuthorized.GET("/test-fast-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFastFee))

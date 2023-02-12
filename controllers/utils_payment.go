@@ -273,28 +273,26 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		})
 	}
 
-	if feeInfo.BuggyFee > 0 || feeInfo.CaddieFee > 0 || feeInfo.GolfFee > 0 {
-		// Ghi nhận số tiền agency thanh toán của agency
-		bookingAgencyPayment.CaddieId = fmt.Sprint(booking.CaddieId)
-		if isUpdate {
-			bookingAgencyPayment.Update(db)
-		} else {
-			bookingAgencyPayment.Create(db)
-		}
-
-		go func() {
-			// create bag payment
-			// Ghi nhận só tiền agency thanh toán cho bag đó
-			booking.AgencyPaid = bookingAgencyPayment.FeeData
-			booking.UpdatePriceDetailCurrentBag(db)
-			booking.UpdateMushPay(db)
-			booking.Update(db)
-
-			handleSinglePayment(db, booking)
-			//Upd lại số tiền thanh toán của agency
-			handleAgencyPayment(db, booking)
-		}()
+	// Ghi nhận số tiền agency thanh toán của agency
+	bookingAgencyPayment.CaddieId = fmt.Sprint(booking.CaddieId)
+	if isUpdate {
+		bookingAgencyPayment.Update(db)
+	} else {
+		bookingAgencyPayment.Create(db)
 	}
+
+	go func() {
+		// create bag payment
+		// Ghi nhận só tiền agency thanh toán cho bag đó
+		booking.AgencyPaid = bookingAgencyPayment.FeeData
+		booking.UpdatePriceDetailCurrentBag(db)
+		booking.UpdateMushPay(db)
+		booking.Update(db)
+
+		handleSinglePayment(db, booking)
+		//Upd lại số tiền thanh toán của agency
+		handleAgencyPayment(db, booking)
+	}()
 }
 
 func updateBookingAgencyPaymentForAllFee(booking model_booking.Booking) {

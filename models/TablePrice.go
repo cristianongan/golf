@@ -105,7 +105,7 @@ func (item *TablePrice) FindCurrentUse(database *gorm.DB) (TablePrice, error) {
 	maxFromDate := int64(0)
 	indexCurrent := -1
 
-	currentTime := utils.GetTimeNow().Unix()
+	currentTime := utils.GetLocalUnixTime().Unix()
 
 	// Lấy theo điều kiện
 	// TODO: điều kiện ap dụng bảng giá

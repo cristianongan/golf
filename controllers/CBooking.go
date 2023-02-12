@@ -1075,7 +1075,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 }
 
 func validateAgencyFeeBeforUpdate(booking model_booking.Booking, feeInfo request.AgencyFeeInfo) bool {
-	if len(booking.AgencyPaid) == 0 {
+	if feeInfo.BuggyFee == 0 && feeInfo.CaddieFee == 0 && feeInfo.GolfFee == 0 {
 		return true
 	}
 	if len(booking.AgencyPaid) > 0 && feeInfo.GolfFee > 0 && booking.AgencyPaid[0].Fee != feeInfo.GolfFee {
