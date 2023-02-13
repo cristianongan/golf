@@ -331,20 +331,20 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	// Tạo giá buggy cho bag
 	go func() {
 		for index, booking := range listBooking {
-			// if utils.ContainString(constants.MEMBER_BUGGY_FEE_FREE_LIST, booking.CardId) == -1 {
-			bodyItem := body.ListData[index]
-			buggyFee := getBuggyFeeSetting(body.PartnerUid, body.CourseUid, listBooking[index].GuestStyle, listBooking[index].Hole)
-			if bodyItem.BagShare != "" {
-				addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
-			} else {
-				if booking.IsPrivateBuggy != nil && *booking.IsPrivateBuggy == true {
-					addBuggyFee(booking, buggyFee.PrivateCarFee, "Thuê riêng xe")
+			if utils.ContainString(constants.MEMBER_BUGGY_FEE_FREE_LIST, booking.CardId) == -1 {
+				bodyItem := body.ListData[index]
+				buggyFee := getBuggyFeeSetting(body.PartnerUid, body.CourseUid, listBooking[index].GuestStyle, listBooking[index].Hole)
+				if bodyItem.BagShare != "" {
+					addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
 				} else {
-					addBuggyFee(booking, buggyFee.OddCarFee, "Thuê lẻ xe")
+					if booking.IsPrivateBuggy != nil && *booking.IsPrivateBuggy == true {
+						addBuggyFee(booking, buggyFee.PrivateCarFee, "Thuê riêng xe")
+					} else {
+						addBuggyFee(booking, buggyFee.OddCarFee, "Thuê lẻ xe")
+					}
 				}
+				updatePriceWithServiceItem(booking, prof)
 			}
-			updatePriceWithServiceItem(booking, prof)
-			// }
 		}
 	}()
 
