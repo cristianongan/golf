@@ -279,6 +279,99 @@ func (_ *CCaddieWorkingCalendar) GetCaddieWorkingCalendarListNormal(c *gin.Conte
 	okResponse(c, res)
 }
 
+func (_ *CCaddieWorkingCalendar) GetNoteCaddieSlotByDate(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	// Validate body
+	body := request.GetNoteCaddieSlotByDateForm{}
+	if err := c.Bind(&body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// Get note
+	caddieWCNote := models.CaddieWorkingCalendarNote{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		ApplyDate:  body.ApplyDate,
+	}
+
+	listNote, err := caddieWCNote.Find(db)
+	if err != nil {
+		response_message.BadRequest(c, "Find caddie working calendar note "+err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"data": listNote,
+	}
+
+	okResponse(c, res)
+}
+
+func (_ *CCaddieWorkingCalendar) AddNoteCaddieSlotByDate(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	// validate body
+	body := request.AddNoteCaddieSlotByDateForm{}
+	if err := c.Bind(&body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	//validate note
+	caddieWCNote := models.CaddieWorkingCalendarNote{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		ApplyDate:  body.ApplyDate,
+	}
+
+	if caddieWCNote.IsDuplicated(db) {
+		caddieWCNote.Note = body.Note
+
+		if err := caddieWCNote.Create(db); err != nil {
+			response_message.BadRequest(c, "Create caddie working calendar note "+err.Error())
+			return
+		}
+	}
+
+	okRes(c)
+}
+
+func (_ *CCaddieWorkingCalendar) UpdateNoteCaddieSlotByDate(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	// validate
+	caddeNoteIdStr := c.Param("id")
+	caddeWCId, err := strconv.ParseInt(caddeNoteIdStr, 10, 64)
+	if err != nil || caddeWCId <= 0 {
+		response_message.BadRequest(c, errors.New("Id not valid").Error())
+		return
+	}
+
+	var body request.UpdateNoteCaddieSlotByDateForm
+	if err := c.BindJSON(&body); err != nil {
+		log.Print("UpdateCaddieWorkingCalendar BindJSON error")
+		response_message.BadRequest(c, "")
+	}
+
+	//Find caddie note
+	// Update thông note theo ngày
+	caddieWCNote := models.CaddieWorkingCalendarNote{}
+
+	caddieWCNote.Id = caddeWCId
+
+	if err := caddieWCNote.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Find first caddie working calendar note "+err.Error())
+		return
+	}
+
+	caddieWCNote.Note = body.Note
+	if err := caddieWCNote.Update(db); err != nil {
+		response_message.BadRequest(c, "Update caddie working calendar note "+err.Error())
+		return
+	}
+
+	okRes(c)
+}
+
 func (_ *CCaddieWorkingCalendar) UpdateCaddieWorkingCalendar(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 

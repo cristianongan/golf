@@ -439,9 +439,12 @@ func NewRouter() *gin.Engine {
 			cCaddieWorkingCalendar := new(controllers.CCaddieWorkingCalendar)
 			cmsApiAuthorized.POST("/caddie-working-calendar", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.CreateCaddieWorkingCalendar))
 			cmsApiAuthorized.POST("/caddie-slot-auto/import", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.ImportCaddieSlotAuto))
+			cmsApiAuthorized.POST("/caddie-working-calendar/note", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.AddNoteCaddieSlotByDate))
 			cmsApiAuthorized.GET("/caddie-working-calendar/list", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetCaddieWorkingCalendarList))
 			cmsApiAuthorized.GET("/caddie-working-calendar/list-normal", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetCaddieWorkingCalendarListNormal))
+			cmsApiAuthorized.POST("/caddie-working-calendar/note/list", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetNoteCaddieSlotByDate))
 			cmsApiAuthorized.PUT("/caddie-working-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.UpdateCaddieWorkingCalendar))
+			cmsApiAuthorized.PUT("/caddie-working-calendar/note/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.UpdateNoteCaddieSlotByDate))
 			cmsApiAuthorized.POST("/caddie-working-calendar/update-slot-auto", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.UpdateCaddieSlotAuto))
 			cmsApiAuthorized.DELETE("/caddie-working-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.DeleteCaddieWorkingCalendar))
 

@@ -16,6 +16,19 @@ type CaddieWorkingCalendarNote struct {
 	Note       string `json:"note" gorm:"type:varchar(256)"`              // Note booking caddie
 }
 
+func (item *CaddieWorkingCalendarNote) IsDuplicated(db *gorm.DB) bool {
+	caddieNoteCheck := CaddieWorkingCalendarNote{
+		PartnerUid: item.PartnerUid,
+		CourseUid:  item.CourseUid,
+		ApplyDate:  item.ApplyDate,
+	}
+	errFind := caddieNoteCheck.FindFirst(db)
+	if errFind == nil || caddieNoteCheck.Id > 0 {
+		return true
+	}
+	return false
+}
+
 func (item *CaddieWorkingCalendarNote) Create(db *gorm.DB) error {
 	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()

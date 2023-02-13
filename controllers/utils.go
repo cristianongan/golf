@@ -1623,6 +1623,44 @@ func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 	return nil
 }
 
+func undoCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
+	var caddieSlotNew []string
+	var caddieSlotExist []string
+	// Format date
+	dateNow, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	caddieWS := models.CaddieWorkingSlot{}
+	caddieWS.PartnerUid = partnerUid
+	caddieWS.CourseUid = courseUid
+	caddieWS.ApplyDate = dateNow
+
+	db := datasources.GetDatabaseWithPartner(partnerUid)
+
+	err := caddieWS.FindFirst(db)
+	if err != nil {
+		return err
+	}
+
+	if len(caddieWS.CaddieSlot) > 0 {
+		caddieSlotNew = append(caddieSlotNew, caddieWS.CaddieSlot...)
+		for _, item := range caddies {
+			index := utils.StringInList(item, caddieSlotNew)
+			if index != -1 {
+				caddieSlotNew = utils.Remove(caddieSlotNew, index)
+				caddieSlotExist = append(caddieSlotExist, item)
+			}
+		}
+	}
+
+	caddieWS.CaddieSlot = append(caddieSlotExist, caddieSlotNew...)
+	err = caddieWS.Update(db)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func updateCaddieWorkingOnDay(caddieCodeList []string, partnerUid, courseUid string, isWorking bool) {
 	db := datasources.GetDatabaseWithPartner("CHI-LINH")
 	for _, code := range caddieCodeList {
