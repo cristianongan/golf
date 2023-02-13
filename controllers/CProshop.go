@@ -208,7 +208,7 @@ func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
 		proshop.AccountCode = *body.AccountCode
 	}
 	if body.Note != nil {
-		proshop.AccountCode = *body.Note
+		proshop.Note = *body.Note
 	}
 	if body.ForKiosk != nil {
 		proshop.ForKiosk = *body.ForKiosk
