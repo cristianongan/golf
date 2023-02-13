@@ -671,7 +671,9 @@ func RemoveIndex(s []int, index int) []int {
 }
 
 func GetTimeNow() time.Time {
-	hours, _ := GetDateFromTimestampWithFormat(time.Now().Unix(), constants.HOUR_FORMAT_1)
+	hours, _ := GetDateFromTimestampWithFormat(time.Now().Add(time.Hour*time.Duration(-7)+
+		time.Minute*time.Duration(0)+
+		time.Second*time.Duration(0)).Unix(), constants.HOUR_FORMAT_1)
 	time, _ := time.Parse(constants.DATE_FORMAT_4, "11/02/2023 "+hours)
 	return time
 }
