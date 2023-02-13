@@ -1778,3 +1778,44 @@ func getIdGroup(s []models.CaddieGroup, e string) int64 {
 	}
 	return 0
 }
+func getBuggyFeeSetting(PartnerUid, CourseUid, GuestStyle string, Hole int) models.BuggyFeeItemSettingResponse {
+	db := datasources.GetDatabaseWithPartner(PartnerUid)
+	buggyFeeSettingR := models.BuggyFeeSetting{
+		PartnerUid: PartnerUid,
+		CourseUid:  CourseUid,
+	}
+
+	listBuggySetting, _, _ := buggyFeeSettingR.FindAll(db)
+	buggyFeeSetting := models.BuggyFeeSetting{}
+	for _, item := range listBuggySetting {
+		if item.Status == constants.STATUS_ENABLE {
+			buggyFeeSetting = item
+			break
+		}
+	}
+
+	buggyFeeItemSettingR := models.BuggyFeeItemSetting{
+		PartnerUid: PartnerUid,
+		CourseUid:  CourseUid,
+		GuestStyle: GuestStyle,
+		SettingId:  buggyFeeSetting.Id,
+	}
+	listSetting, _, _ := buggyFeeItemSettingR.FindAll(db)
+	buggyFeeItemSetting := models.BuggyFeeItemSetting{}
+	for _, item := range listSetting {
+		if item.Status == constants.STATUS_ENABLE {
+			buggyFeeItemSetting = item
+			break
+		}
+	}
+
+	rentalFee := utils.GetFeeFromListFee(buggyFeeItemSetting.RentalFee, Hole)
+	privateCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.PrivateCarFee, Hole)
+	oddCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.OddCarFee, Hole)
+
+	return models.BuggyFeeItemSettingResponse{
+		RentalFee:     rentalFee,
+		PrivateCarFee: privateCarFee,
+		OddCarFee:     oddCarFee,
+	}
+}
