@@ -267,6 +267,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/booking/payment/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingPaymentDetail))        // Thêm Info...
 			cmsApiAuthorized.GET("/booking/by-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingByBag))                      // Get booking detail by Bag
 			cmsApiAuthorized.GET("/booking/fee-of-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingFeeOfBag))               // Get booking detail by Bag
+			cmsApiAuthorized.GET("/booking/fee-of-bag-bill", middlewares.AuthorizedCmsUserHandler(cBooking.GetFeeOfBagForBill))          // Get booking detail by Bag
 			cmsApiAuthorized.PUT("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.UpdateBooking))                          // Thêm Info...
 			cmsApiAuthorized.POST("/booking/sub-bag/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddSubBagToBooking))             // Add SubBag
 			cmsApiAuthorized.POST("/booking/sub-bag/edit", middlewares.AuthorizedCmsUserHandler(cBooking.EditSubBagToBooking))           // Edit SubBag                  // Add Round

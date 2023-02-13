@@ -357,7 +357,7 @@ func (_ *CBooking) GetFeeOfBagForBill(c *gin.Context, prof models.CmsUser) {
 	agencyPaidAll := int64(0)
 
 	if len(booking.SubBags) > 0 {
-		res := GetGolfFeeInfoOfBag(c, booking)
+		res := GetGolfFeeInfoOfBagForBill(c, booking)
 		listRoundOfSub = res.ListRoundOfSubBag
 		agencyPaidAll = res.AgencyPaidAll
 	} else {

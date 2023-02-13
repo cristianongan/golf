@@ -94,8 +94,8 @@ func GetGolfFeeInfoOfBagForBill(c *gin.Context, mainBooking model_booking.Bookin
 		AgencyPaidAll:     0,
 	}
 
-	checkIsFirstRound := utils.ContainString(mainBooking.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
-	checkIsNextRound := utils.ContainString(mainBooking.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
+	// checkIsFirstRound := utils.ContainString(mainBooking.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
+	// checkIsNextRound := utils.ContainString(mainBooking.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
 
 	golfFeeOfBag.AgencyPaidAll = mainBooking.GetAgencyPaid()
 
@@ -125,26 +125,22 @@ func GetGolfFeeInfoOfBagForBill(c *gin.Context, mainBooking model_booking.Bookin
 			Rounds:      []models.Round{},
 		}
 
-		if checkIsFirstRound > -1 && len(listRound) > 0 && !bookingR.CheckAgencyPaidRound1() {
-			round1 := models.Round{}
-			for _, item := range listRound {
-				if item.Index == 1 {
-					round1 = item
-				}
+		round1 := models.Round{}
+		for _, item := range listRound {
+			if item.Index == 1 {
+				round1 = item
 			}
-
-			roundOfBag.Rounds = append(roundOfBag.Rounds, round1)
 		}
 
-		if checkIsNextRound > -1 && len(listRound) > 1 {
-			round2 := models.Round{}
-			for _, item := range listRound {
-				if item.Index == 2 {
-					round2 = item
-				}
+		roundOfBag.Rounds = append(roundOfBag.Rounds, round1)
+
+		round2 := models.Round{}
+		for _, item := range listRound {
+			if item.Index == 2 {
+				round2 = item
 			}
-			roundOfBag.Rounds = append(roundOfBag.Rounds, round2)
 		}
+		roundOfBag.Rounds = append(roundOfBag.Rounds, round2)
 
 		if len(listRound) > 0 {
 			golfFeeOfBag.ListRoundOfSubBag = append(golfFeeOfBag.ListRoundOfSubBag, roundOfBag)
