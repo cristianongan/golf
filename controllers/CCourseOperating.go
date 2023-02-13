@@ -341,6 +341,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 				} else {
 					if booking.IsPrivateBuggy != nil && *booking.IsPrivateBuggy == true {
 						addBuggyFee(booking, buggyFee.PrivateCarFee, "Thuê riêng xe")
+						addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
 					} else {
 						addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
 						addBuggyFee(booking, buggyFee.OddCarFee, "Thuê lẻ xe")
