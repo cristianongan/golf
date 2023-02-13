@@ -201,16 +201,16 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 	if body.Unit != "" {
 		foodBeverage.Unit = body.Unit
 	}
-	if body.Price > 0 {
+	if body.Price >= 0 {
 		foodBeverage.Price = body.Price
 	}
-	if body.NetCost > 0 {
+	if body.NetCost >= 0 {
 		foodBeverage.NetCost = body.NetCost
 	}
-	if body.CostPrice > 0 {
+	if body.CostPrice >= 0 {
 		foodBeverage.CostPrice = body.CostPrice
 	}
-	if body.InternalPrice > 0 {
+	if body.InternalPrice >= 0 {
 		foodBeverage.InternalPrice = body.InternalPrice
 	}
 	if body.Barcode != "" {

@@ -118,6 +118,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/user/list", middlewares.AuthorizedCmsUserHandler(cCmsUser.GetList))
 			cmsApiAuthorized.POST("/user/add", middlewares.AuthorizedCmsUserHandler(cCmsUser.CreateCmsUser))
 			cmsApiAuthorized.PUT("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.UpdateCmsUser))
+			cmsApiAuthorized.POST("/user/change-pass", middlewares.AuthorizedCmsUserHandler(cCmsUser.ChangePassCmsUser))
 			cmsApiAuthorized.DELETE("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.DeleteCmsUser))
 			cmsApiAuthorized.POST("/user/logout", middlewares.AuthorizedCmsUserHandler(cCmsUser.LogOut))
 
@@ -764,6 +765,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/revenue/report-buggy-with-gs", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBuggyForGuestStyle))
 			cmsApiAuthorized.GET("/report/revenue/report-sale-pos", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportSalePOS))
 			cmsApiAuthorized.GET("/report/revenue/daily-report", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetDailyReport))
+			cmsApiAuthorized.GET("/report/revenue/bag-daily-report", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetBagDailyReport))
 			cmsApiAuthorized.POST("/report/revenue/update-daily-report", middlewares.AuthorizedCmsUserHandler(cRevenueReport.UpdateReportRevenue))
 
 			/// =================== Redis Settings ===================
@@ -775,6 +777,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Test ===================
 			cTest := new(controllers.CTest)
 			cmsApiAuthorized.GET("/test-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
+			cmsApiAuthorized.GET("/test-agency-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFeeAgency))
 			cmsApiAuthorized.POST("/test-func", middlewares.AuthorizedCmsUserHandler(cTest.TestFunc))
 			cmsApiAuthorized.GET("/test-fast-customer", middlewares.AuthorizedCmsUserHandler(cTest.TestFastCustomer))
 			cmsApiAuthorized.GET("/test-fast-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFastFee))
@@ -782,6 +785,7 @@ func NewRouter() *gin.Engine {
 
 			/// =================== Test ===================
 			cHelper := new(controllers.CHelper)
+			cmsApiAuthorized.POST("/helper/log/fe", middlewares.AuthorizedCmsUserHandler(cHelper.AppLog))
 			cmsApiAuthorized.POST("/helper/admin/add-customer-user", middlewares.AuthorizedCmsUserHandler(cHelper.CreateAddCustomer)) // chỉ dùng cho import data
 			cmsApiAuthorized.POST("/helper/admin/add-member-card", middlewares.AuthorizedCmsUserHandler(cHelper.CreateMemberCard))    // Chỉ dùng cho import data
 		}

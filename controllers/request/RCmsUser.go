@@ -31,3 +31,9 @@ type GetListCmsUserForm struct {
 	PartnerUid string `form:"partner_uid" binding:"required"`
 	Search     string `form:"search"`
 }
+
+type ChangePassCmsUserBody struct {
+	// UserUid string `json:"user_uid"  binding:"required"`
+	OldPass string `json:"old_pass"  binding:"required"`
+	NewPass string `json:"new_pass"  binding:"required"`
+}

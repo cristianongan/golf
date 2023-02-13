@@ -112,8 +112,11 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 
 						// Check trong MainBag có trả mới add
 						serviceTypV1 := v1.Type
-						if serviceTypV1 == constants.MINI_B_SETTING || serviceTypV1 == constants.MINI_R_SETTING {
+						if serviceTypV1 == constants.MINI_R_SETTING {
 							serviceTypV1 = constants.GOLF_SERVICE_RESTAURANT
+						}
+						if serviceTypV1 == constants.MINI_B_SETTING {
+							serviceTypV1 = constants.GOLF_SERVICE_KIOSK
 						}
 						if serviceTypV1 == constants.DRIVING_SETTING {
 							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
@@ -484,6 +487,7 @@ func (item *Booking) FindServiceItemsOfBag(db *gorm.DB) {
 				errSC := serviceCart.FindFirst(db)
 				if errSC != nil {
 					log.Println("FindFristServiceCart errSC", errSC.Error())
+					continue
 				}
 
 				if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
@@ -665,6 +669,7 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 					}
 				}
 
+				// Nếu main bag đã check out thì ko tính vào main bag
 				if item.CheckOutTime > 0 && v1.CreatedAt > item.CheckOutTime {
 					isCanAdd = false
 				}
@@ -883,12 +888,11 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP && !mainPaidProshop {
 					isNeedPay = true
 				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT ||
-					v.Type == constants.MINI_B_SETTING ||
 					v.Type == constants.MINI_R_SETTING) && !mainPaidRestaurant {
 					isNeedPay = true
 				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE && !mainPaidOtherFee {
 					isNeedPay = true
-				} else if (v.Type == constants.GOLF_SERVICE_KIOSK) && !mainPaidKiosk {
+				} else if (v.Type == constants.GOLF_SERVICE_KIOSK || v.Type == constants.MINI_B_SETTING) && !mainPaidKiosk {
 					isNeedPay = true
 				}
 			}
@@ -1302,6 +1306,16 @@ func (item *Booking) GetAgencyService() int64 {
 	totalAgencyPaid := int64(0)
 	for _, v := range item.AgencyPaid {
 		if v.Type != constants.BOOKING_AGENCY_GOLF_FEE {
+			totalAgencyPaid += v.Fee
+		}
+	}
+	return totalAgencyPaid
+}
+
+func (item *Booking) GetAgencyGolfFee() int64 {
+	totalAgencyPaid := int64(0)
+	for _, v := range item.AgencyPaid {
+		if v.Type == constants.BOOKING_AGENCY_GOLF_FEE {
 			totalAgencyPaid += v.Fee
 		}
 	}

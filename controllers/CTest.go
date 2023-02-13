@@ -37,17 +37,6 @@ func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 	booking.CourseUid = form.CourseUid
 	booking.Bag = form.Bag
 
-	// if form.BookingDate != "" {
-	// 	booking.BookingDate = form.BookingDate
-	// } else {
-	// 	toDayDate, errD := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
-	// 	if errD != nil {
-	// 		response_message.InternalServerError(c, errD.Error())
-	// 		return
-	// 	}
-	// 	booking.BookingDate = toDayDate
-	// }
-
 	errF := booking.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
@@ -57,22 +46,38 @@ func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 	booking.UpdatePriceDetailCurrentBag(db)
 	booking.UpdateMushPay(db)
 	booking.Update(db)
-	go handlePayment(db, booking)
+}
 
-	// notiData := map[string]interface{}{
-	// 	"type":  constants.NOTIFICATION_CADDIE_WORKING_STATUS_UPDATE,
-	// 	"title": "",
-	// }
+func (cBooking *CTest) TestFeeAgency(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
 
-	// newFsConfigBytes, _ := json.Marshal(notiData)
-	// // socket.GetHubSocket() = socket.NewHub()
-	// socket.GetHubSocket().Broadcast <- newFsConfigBytes
+	if form.Bag == "" {
+		response_message.BadRequest(c, errors.New("Bag invalid").Error())
+		return
+	}
 
-	// m := socket_room.Message{
-	// 	Data: newFsConfigBytes,
-	// 	Room: "1",
-	// }
-	// socket_room.Hub.Broadcast <- m
+	listBag := []string{"39152"}
+
+	for _, golfBag := range listBag {
+		booking := model_booking.Booking{}
+		booking.PartnerUid = form.PartnerUid
+		booking.CourseUid = form.CourseUid
+		booking.Bag = golfBag
+
+		errF := booking.FindFirst(db)
+		if errF != nil {
+			response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
+			return
+		}
+
+		feeInfo := request.AgencyFeeInfo{}
+		handleAgencyPaid(booking, feeInfo)
+	}
 }
 
 func (cBooking *CTest) TestFunc(c *gin.Context, prof models.CmsUser) {

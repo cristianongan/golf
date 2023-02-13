@@ -1075,7 +1075,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 }
 
 func validateAgencyFeeBeforUpdate(booking model_booking.Booking, feeInfo request.AgencyFeeInfo) bool {
-	if len(booking.AgencyPaid) == 0 {
+	if feeInfo.BuggyFee == 0 && feeInfo.CaddieFee == 0 && feeInfo.GolfFee == 0 {
 		return true
 	}
 	if len(booking.AgencyPaid) > 0 && feeInfo.GolfFee > 0 && booking.AgencyPaid[0].Fee != feeInfo.GolfFee {
@@ -1448,40 +1448,39 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 			response_message.BadRequest(c, err.Error())
 			return
 		}
-		return
+	} else {
+		roundR := models.Round{
+			BillCode: booking.BillCode,
+		}
+
+		listRound, _ := roundR.FindAll(db)
+		if len(listRound) > 1 {
+			response_message.InternalServerError(c, "Bag can not undo checkin")
+			return
+		}
+
+		bookingServiceItemsR := model_booking.BookingServiceItem{
+			BillCode: booking.BillCode,
+		}
+
+		listItems, _ := bookingServiceItemsR.FindAll(db)
+		if len(listItems) > 1 {
+			response_message.InternalServerError(c, "Bag can not undo checkin")
+			return
+		}
+
+		booking.Bag = ""
+		booking.CheckInTime = 0
+		booking.CmsUser = prof.UserName
+		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
+		booking.BagStatus = constants.BAG_STATUS_BOOKING
+
+		if err := booking.Update(db); err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
+		roundR.DeleteByBillCode(db)
 	}
 
-	roundR := models.Round{
-		BillCode: booking.BillCode,
-	}
-
-	listRound, _ := roundR.FindAll(db)
-	if len(listRound) > 1 {
-		response_message.InternalServerError(c, "Bag can not undo checkin")
-		return
-	}
-
-	bookingServiceItemsR := model_booking.BookingServiceItem{
-		BillCode: booking.BillCode,
-	}
-
-	listItems, _ := bookingServiceItemsR.FindAll(db)
-	if len(listItems) > 1 {
-		response_message.InternalServerError(c, "Bag can not undo checkin")
-		return
-	}
-
-	booking.Bag = ""
-	booking.CheckInTime = 0
-	booking.CmsUser = prof.UserName
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
-	booking.BagStatus = constants.BAG_STATUS_BOOKING
-
-	if err := booking.Update(db); err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
-
-	roundR.DeleteByBillCode(db)
 	okRes(c)
 }

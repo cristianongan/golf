@@ -8,8 +8,3 @@ func SliceIndex(limit int, predicate func(i int) bool) int {
 	}
 	return -1
 }
-
-func RemoveIndex(list interface{}, index int) {
-	//copy(list[index:], list[index+1:])
-	//list = list[:len(list)-1]
-}
