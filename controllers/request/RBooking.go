@@ -269,6 +269,7 @@ type CheckInBody struct {
 	AgencyId         int64         `json:"agency_id"`           // Agency id
 	MemberUidOfGuest string        `json:"member_uid_of_guest"` // Member của Guest đến chơi cùng
 	FeeInfo          AgencyFeeInfo `json:"fee_info"`            // Golf Fee cho case agency
+	AgencyPaidAll    *bool         `json:"agency_paid_all"`
 }
 
 //type AddRoundBody struct {
