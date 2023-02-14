@@ -335,7 +335,15 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		for index, booking := range listBookingUpdated {
 			bodyItem := body.ListData[index]
 			if utils.ContainString(constants.MEMBER_BUGGY_FEE_FREE_LIST, booking.CardId) == -1 && bodyItem.BuggyCode != "" {
-				buggyFee := getBuggyFeeSetting(body.PartnerUid, body.CourseUid, listBooking[index].GuestStyle, listBooking[index].Hole)
+				round := models.Round{
+					BillCode: booking.BillCode,
+				}
+
+				if errFindRound := round.LastRound(db); errFindRound != nil {
+					log.Println("Round not found")
+				}
+
+				buggyFee := getBuggyFeeSetting(body.PartnerUid, body.CourseUid, booking.GuestStyle, round.Hole)
 				if bodyItem.BagShare != "" {
 					addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
 				} else {
