@@ -111,3 +111,45 @@ func (item *InventoryItem) FindList(database *gorm.DB, page models.Page, param I
 
 	return list, total, db.Error
 }
+func (item *InventoryItem) FindAll(database *gorm.DB, param InventoryItemRequest) ([]InventoryItem, int64, error) {
+	db := database.Model(InventoryItem{})
+	list := []InventoryItem{}
+	total := int64(0)
+
+	if param.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", param.PartnerUid)
+	}
+
+	if param.CourseUid != "" {
+		db = db.Where("course_uid = ?", param.CourseUid)
+	}
+
+	if param.ServiceId > 0 {
+		db = db.Where("service_id = ?", param.ServiceId)
+	}
+
+	if param.ItemCode != "" || param.ProductName != "" {
+		db = db.Where("code COLLATE utf8mb4_general_ci LIKE ? OR item_info->'$.item_name' COLLATE utf8mb4_general_ci LIKE ?", "%"+param.ItemCode+"%", "%"+param.ProductName+"%")
+	}
+
+	if param.Type != "" {
+		if param.Type == constants.GROUP_FB_FOOD {
+			db = db.Where("item_info->'$.group_type' = ?", "G1")
+		} else if param.Type == constants.GROUP_FB_DRINK {
+			db = db.Where("item_info->'$.group_type' = ?", "G2")
+		}
+	}
+
+	if param.InStock != "" {
+		if param.InStock == "1" {
+			db.Where("quantity > 0")
+		} else {
+			db.Where("quantity = ?", 0)
+		}
+	}
+
+	db.Count(&total)
+	db.Find(&list)
+
+	return list, total, db.Error
+}
