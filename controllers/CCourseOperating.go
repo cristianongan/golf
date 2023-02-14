@@ -334,7 +334,9 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 	go func() {
 		for index, booking := range listBookingUpdated {
 			bodyItem := body.ListData[index]
-			if utils.ContainString(constants.MEMBER_BUGGY_FEE_FREE_LIST, booking.CardId) == -1 && bodyItem.BuggyCode != "" {
+
+			// utils.ContainString(constants.MEMBER_BUGGY_FEE_FREE_LIST, booking.CardId) == -1 &&
+			if bodyItem.BuggyCode != "" {
 				round := models.Round{
 					BillCode: booking.BillCode,
 				}
