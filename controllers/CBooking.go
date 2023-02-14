@@ -843,6 +843,11 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	// Create booking payment
 	if booking.AgencyId > 0 {
+
+		if body.AgencyPaidAll != nil {
+			booking.AgencyPaidAll = body.AgencyPaidAll
+		}
+
 		go handleAgencyPaid(booking, body.FeeInfo)
 		// if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
 		// }
@@ -1050,6 +1055,10 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	// Create booking payment
 	if booking.AgencyId > 0 {
+		if body.AgencyPaidAll != nil {
+			booking.AgencyPaidAll = body.AgencyPaidAll
+		}
+
 		if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
 			go handleAgencyPaid(booking, body.FeeInfo)
 		}
