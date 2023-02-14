@@ -59,6 +59,12 @@ func (item *InventoryInputItem) Create(db *gorm.DB) error {
 
 	return db.Create(item).Error
 }
+
+func (item *InventoryInputItem) Update(db *gorm.DB) error {
+	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
+	return db.Save(item).Error
+}
+
 func (item *InventoryInputItem) FindAllList(database *gorm.DB) ([]InventoryInputItem, int64, error) {
 	db := database.Model(InventoryInputItem{})
 	list := []InventoryInputItem{}

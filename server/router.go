@@ -630,6 +630,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Kiosk Inventory ===================
 			cKioskInventory := new(controllers.CKioskInventory)
 			cmsApiAuthorized.POST("/kiosk-inventory/create", middlewares.AuthorizedCmsUserHandler(cKioskInventory.AddItemToInventory))
+			cmsApiAuthorized.POST("/kiosk-inventory/update", middlewares.AuthorizedCmsUserHandler(cKioskInventory.UpdateInventory))
 			cmsApiAuthorized.GET("/kiosk-inventory/list", middlewares.AuthorizedCmsUserHandler(cKioskInventory.GetKioskInventory))
 
 			cKioskInputInventory := new(controllers.CKioskInputInventory)

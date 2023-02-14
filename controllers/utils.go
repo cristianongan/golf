@@ -1361,7 +1361,7 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 	if errFindProshop := proshop.FindFirst(db); errFindProshop == nil {
 		return kiosk_inventory.ItemInfo{
 			GroupCode: proshop.GroupCode,
-			ItemName:  proshop.Name,
+			ItemName:  proshop.VieName,
 			Unit:      proshop.Unit,
 			GroupType: proshop.Type,
 		}, nil
@@ -1374,7 +1374,7 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 	if err := fb.FindFirst(db); err == nil {
 		return kiosk_inventory.ItemInfo{
 			GroupCode: fb.GroupCode,
-			ItemName:  fb.Name,
+			ItemName:  fb.VieName,
 			Unit:      fb.Unit,
 			GroupType: fb.Type,
 		}, nil
@@ -1387,7 +1387,7 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 	if err := rental.FindFirst(db); err == nil {
 		return kiosk_inventory.ItemInfo{
 			GroupCode: rental.GroupCode,
-			ItemName:  rental.Name,
+			ItemName:  rental.VieName,
 			Unit:      rental.Unit,
 			GroupType: rental.Type,
 		}, nil
