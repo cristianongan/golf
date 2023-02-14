@@ -1352,10 +1352,11 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 		return kiosk_inventory.ItemInfo{}, errors.New("Item Code Empty!")
 	}
 
+	code := strings.ReplaceAll(itemCode, " ", "")
 	proshop := model_service.Proshop{
 		PartnerUid: partnerUid,
 		CourseUid:  courseUid,
-		ProShopId:  itemCode,
+		ProShopId:  code,
 	}
 
 	if errFindProshop := proshop.FindFirst(db); errFindProshop == nil {

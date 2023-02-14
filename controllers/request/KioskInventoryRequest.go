@@ -85,10 +85,10 @@ type KioskInventoryInsertBody struct {
 }
 
 type AddItemToInventoryBody struct {
-	ServiceId  int64        `json:"service_id" binding:"required"`
-	PartnerUid string       `json:"partner_uid" binding:"required"`
-	CourseUid  string       `json:"course_uid" binding:"required"`
-	ListItem   ListItemBody `json:"list_item" binding:"required"`
+	ServiceId  int64        `json:"service_id"`
+	PartnerUid string       `json:"partner_uid"`
+	CourseUid  string       `json:"course_uid"`
+	ListItem   ListItemBody `json:"list_item"`
 }
 
 type ListItemBody []ItemBody
