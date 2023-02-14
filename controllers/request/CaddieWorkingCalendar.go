@@ -20,6 +20,23 @@ type GetCaddieWorkingCalendarList struct {
 	ApplyDate  string `form:"apply_date" validate:"required"`
 }
 
+type GetNoteCaddieSlotByDateForm struct {
+	PartnerUid string `form:"partner_uid" validate:"required"`
+	CourseUid  string `form:"course_uid" validate:"required"`
+	ApplyDate  string `form:"apply_date" validate:"required"`
+}
+
+type AddNoteCaddieSlotByDateForm struct {
+	PartnerUid string `form:"partner_uid" validate:"required"`
+	CourseUid  string `form:"course_uid" validate:"required"`
+	ApplyDate  string `form:"apply_date" validate:"required"`
+	Note       string `form:"note"`
+}
+
+type UpdateNoteCaddieSlotByDateForm struct {
+	Note string `form:"note"`
+}
+
 type UpdateCaddieWorkingCalendarBody struct {
 	CaddieCode string `json:"caddie_code" validate:"required"`
 }

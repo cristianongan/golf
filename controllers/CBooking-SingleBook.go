@@ -219,9 +219,13 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 	}
 
 	bookingCode := utils.HashCodeUuid(uuid.New().String())
-	for index := range bodyRequest.BookingList {
-		bodyRequest.BookingList[index].BookingCode = bookingCode
-		bodyRequest.BookingList[index].BookingTeeTime = true
+	for index, body := range bodyRequest.BookingList {
+		if body.BookingCode == "" {
+			bodyRequest.BookingList[index].BookingCode = bookingCode
+			bodyRequest.BookingList[index].BookingTeeTime = true
+		} else {
+			bodyRequest.BookingList[index].BookingCode = body.BookingCode
+		}
 	}
 
 	listBooking, err := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)

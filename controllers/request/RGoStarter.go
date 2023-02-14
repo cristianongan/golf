@@ -68,6 +68,8 @@ type SimpleOutFlightBody struct {
 	Bag         string `json:"bag" binding:"required"`
 	CaddieHoles int    `json:"caddie_holes"`
 	GuestHoles  int    `json:"guest_holes"`
+	CaddieCode  string `json:"caddie_code"`
+	BuggyCode   string `json:"buggy_code"`
 	Note        string `json:"note"`
 }
 
