@@ -730,6 +730,22 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.BookingCode = body.BookingCode
 	}
 
+	// if body.Bag != "" && booking.Bag != body.Bag {
+	// 	booking.Bag = body.Bag
+	// 	//Check duplicated
+	// 	isDuplicated, errDupli := booking.IsDuplicated(db, false, true)
+	// 	if isDuplicated {
+	// 		if errDupli != nil {
+	// 			response_message.InternalServerErrorWithKey(c, errDupli.Error(), "DUPLICATE_BAG")
+	// 			return
+	// 		}
+	// 		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+	// 		return
+	// 	}
+	// 	// Cập nhật lại info Bag
+	// 	booking.UpdateBagGolfFee()
+	// }
+
 	//TODO: if body.MemberCardUid != "" && (body.MemberCardUid != booking.MemberCardUid ||
 	// 	body.AgencyId != booking.AgencyId) {
 	if body.MemberCardUid != nil {
@@ -847,17 +863,19 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		if body.AgencyPaidAll != nil {
 			booking.AgencyPaidAll = body.AgencyPaidAll
 		}
-
-		go handleAgencyPaid(booking, body.FeeInfo)
-		// if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
-		// }
 	}
-
 	// Update các thông tin khác trước
 	errUdpBook := booking.Update(db)
 	if errUdpBook != nil {
 		response_message.InternalServerError(c, errUdpBook.Error())
 		return
+	}
+
+	// Create booking payment
+	if booking.AgencyId > 0 {
+		go handleAgencyPaid(booking, body.FeeInfo)
+		// if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
+		// }
 	}
 
 	// udp ok -> Tính lại giá
@@ -950,40 +968,38 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.Hole = body.Hole
 	}
 
-	if body.MemberCardUid != booking.MemberCardUid ||
+	if body.MemberCardUid != nil && *body.MemberCardUid != booking.MemberCardUid ||
 		body.AgencyId != booking.AgencyId {
 		booking.SeparatePrice = false
 	}
 
-	if body.MemberCardUid != "" && (body.MemberCardUid != booking.MemberCardUid ||
-		body.AgencyId != booking.AgencyId || body.Hole != booking.Hole) {
-		// Get Member Card
-		memberCardBody := request.UpdateAgencyOrMemberCardToBooking{
-			PartnerUid:    booking.PartnerUid,
-			CourseUid:     booking.CourseUid,
-			AgencyId:      body.AgencyId,
-			BUid:          booking.Uid,
-			Bag:           booking.Bag,
-			CustomerName:  body.CustomerName,
-			Hole:          body.Hole,
-			MemberCardUid: body.MemberCardUid,
-		}
+	if body.MemberCardUid != nil {
+		if *body.MemberCardUid != "" {
+			memberCardBody := request.UpdateAgencyOrMemberCardToBooking{
+				PartnerUid:    booking.PartnerUid,
+				CourseUid:     booking.CourseUid,
+				AgencyId:      body.AgencyId,
+				BUid:          booking.Uid,
+				Bag:           booking.Bag,
+				CustomerName:  body.CustomerName,
+				Hole:          body.Hole,
+				MemberCardUid: *body.MemberCardUid,
+			}
+			memberCard := models.MemberCard{}
+			if errUpdate := cBooking.updateMemberCardToBooking(c, db, &booking, &memberCard, memberCardBody); errUpdate != nil {
+				return
+			}
+			guestStyle = memberCard.GetGuestStyle(db)
+		} else {
+			booking.MemberCardUid = ""
+			booking.CardId = ""
+			booking.CustomerUid = ""
+			booking.CustomerType = ""
+			booking.CustomerInfo = model_booking.CustomerInfo{}
 
-		memberCard := models.MemberCard{}
-		if errUpdate := cBooking.updateMemberCardToBooking(c, db, &booking, &memberCard, memberCardBody); errUpdate != nil {
-			return
-		}
-		guestStyle = memberCard.GetGuestStyle(db)
-	} else if body.MemberCardUid == "" {
-		// Update member card
-		booking.MemberCardUid = ""
-		booking.CardId = ""
-		booking.CustomerUid = ""
-		booking.CustomerType = ""
-		booking.CustomerInfo = model_booking.CustomerInfo{}
-
-		if body.CustomerName != "" {
-			booking.CustomerName = body.CustomerName
+			if body.CustomerName != "" {
+				booking.CustomerName = body.CustomerName
+			}
 		}
 	}
 
@@ -1053,21 +1069,15 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	booking.BagStatus = constants.BAG_STATUS_WAITING
 	booking.CourseType = body.CourseType
 
-	// Create booking payment
-	if booking.AgencyId > 0 {
-		if body.AgencyPaidAll != nil {
-			booking.AgencyPaidAll = body.AgencyPaidAll
-		}
-
-		if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
-			go handleAgencyPaid(booking, body.FeeInfo)
-		}
-	}
-
 	errUdp := booking.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
+	}
+
+	// Create booking payment
+	if booking.AgencyId > 0 {
+		go handleAgencyPaid(booking, body.FeeInfo)
 	}
 
 	if body.MemberUidOfGuest != "" && body.GuestStyle != "" && memberCard.Uid != "" {
