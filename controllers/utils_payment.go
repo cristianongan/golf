@@ -285,9 +285,9 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		// create bag payment
 		// Ghi nhận só tiền agency thanh toán cho bag đó
 		booking.AgencyPaid = bookingAgencyPayment.FeeData
-		booking.UpdatePriceDetailCurrentBag(db)
-		booking.UpdateMushPay(db)
-		booking.Update(db)
+
+		// update giá cho bag(main or sub nếu có)
+		updatePriceWithServiceItem(booking, models.CmsUser{})
 
 		handleSinglePayment(db, booking)
 		//Upd lại số tiền thanh toán của agency
