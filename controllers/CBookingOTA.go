@@ -205,7 +205,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			BookingCode:        bookingOta.BookingCode,
 			BookingSourceId:    bookSourceId,
 			BookFromOTA:        true,
-			FeeInfo: request.AgencyFeeInfo{
+			FeeInfo: &request.AgencyFeeInfo{
 				GolfFee:  body.GreenFee + body.CaddieFee,
 				BuggyFee: body.BuggyFee,
 			},
