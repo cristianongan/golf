@@ -164,7 +164,7 @@ type CreateBookingBody struct {
 	LockerNo           string                  `json:"locker_no"` // Locker mã số tủ gửi đồ
 	ReportNo           string                  `json:"report_no"` // Report No
 	IsPrivateBuggy     *bool                   `json:"is_private_buggy"`
-	FeeInfo            AgencyFeeInfo           `json:"fee_info"`
+	FeeInfo            *AgencyFeeInfo          `json:"fee_info"`
 	AgencyPaidAll      *bool                   `json:"agency_paid_all"`
 	BookMark           bool
 	BookFromOTA        bool
@@ -265,11 +265,11 @@ type CheckInBody struct {
 	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
 	CustomerName   string `json:"customer_name"`    // Player Name
 
-	MemberCardUid    *string       `json:"member_card_uid"`
-	AgencyId         int64         `json:"agency_id"`           // Agency id
-	MemberUidOfGuest string        `json:"member_uid_of_guest"` // Member của Guest đến chơi cùng
-	FeeInfo          AgencyFeeInfo `json:"fee_info"`            // Golf Fee cho case agency
-	AgencyPaidAll    *bool         `json:"agency_paid_all"`
+	MemberCardUid    *string        `json:"member_card_uid"`
+	AgencyId         int64          `json:"agency_id"`           // Agency id
+	MemberUidOfGuest string         `json:"member_uid_of_guest"` // Member của Guest đến chơi cùng
+	FeeInfo          *AgencyFeeInfo `json:"fee_info"`            // Golf Fee cho case agency
+	AgencyPaidAll    *bool          `json:"agency_paid_all"`
 }
 
 //type AddRoundBody struct {
@@ -344,7 +344,7 @@ type UpdateBooking struct {
 	LockerNo           string                  `json:"locker_no"` // Locker mã số tủ gửi đồ
 	ReportNo           string                  `json:"report_no"` // Report No
 	IsPrivateBuggy     *bool                   `json:"is_private_buggy"`
-	FeeInfo            AgencyFeeInfo           `json:"fee_info"`
+	FeeInfo            *AgencyFeeInfo          `json:"fee_info"`
 	AgencyPaidAll      *bool                   `json:"agency_paid_all"`
 	NoteOfBag          string                  `json:"note_of_bag" gorm:"type:varchar(500)"`    // Note of Bag
 	NoteOfGo           string                  `json:"note_of_go" gorm:"type:varchar(500)"`     // Note khi trong GO
