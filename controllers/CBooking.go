@@ -730,8 +730,20 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.BookingCode = body.BookingCode
 	}
 
-	if body.Bag != "" {
+	if body.Bag != "" && booking.Bag != body.Bag {
 		booking.Bag = body.Bag
+		//Check duplicated
+		isDuplicated, errDupli := booking.IsDuplicated(db, false, true)
+		if isDuplicated {
+			if errDupli != nil {
+				response_message.InternalServerErrorWithKey(c, errDupli.Error(), "DUPLICATE_BAG")
+				return
+			}
+			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+			return
+		}
+		// Cập nhật lại info Bag
+		booking.UpdateBagGolfFee()
 	}
 
 	//TODO: if body.MemberCardUid != "" && (body.MemberCardUid != booking.MemberCardUid ||
