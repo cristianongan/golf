@@ -857,21 +857,13 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerInfo.Name = body.CustomerName
 	}
 
-<<<<<<< HEAD
 	// Create booking payment
 	if booking.AgencyId > 0 {
 
 		if body.AgencyPaidAll != nil {
 			booking.AgencyPaidAll = body.AgencyPaidAll
 		}
-
-		go handleAgencyPaid(booking, body.FeeInfo)
-		// if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
-		// }
 	}
-
-=======
->>>>>>> dev
 	// Update các thông tin khác trước
 	errUdpBook := booking.Update(db)
 	if errUdpBook != nil {
