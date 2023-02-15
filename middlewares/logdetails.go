@@ -26,6 +26,7 @@ type logmsg struct {
 	Environment string    `json:"environment"`
 	Path        string    `json:"path"`
 	TimeStamp   time.Time `json:"@timestamp"`
+	LocalTime   time.Time `json:"local_time"`
 	CreatedAt   int64     `json:"created_at"`
 	RawPath     string    `json:"rawpath"`
 	Header      string    `json:"header"`
@@ -50,6 +51,7 @@ func GinBodyLogMiddleware(c *gin.Context) {
 	newlogmessage := logmsg{}
 	start := utils.GetTimeNow().UTC()
 	newlogmessage.TimeStamp = utils.GetTimeNow()
+	newlogmessage.LocalTime = utils.GetLocalUnixTime()
 	newlogmessage.CreatedAt = utils.TimeStampMilisecond(newlogmessage.TimeStamp.UnixNano())
 	buf, _ := ioutil.ReadAll(c.Request.Body)
 	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
@@ -100,7 +102,7 @@ func GinBodyLogMiddleware(c *gin.Context) {
 		}
 	}
 
-	newlog := "[REQ_LOG] " + utils.NumberToString(newlogmessage.TimeStamp) +
+	newlog := "[REQ_LOG] " + utils.NumberToString(newlogmessage.LocalTime) +
 		" |user_name:" + userName +
 		" |status:" + utils.NumberToString(newlogmessage.Status) +
 		" |duration:" + utils.NumberToString(newlogmessage.Duration) +

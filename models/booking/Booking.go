@@ -148,6 +148,7 @@ type BagRoundNote struct {
 type GolfFeeOfBag struct {
 	Booking
 	ListRoundOfSubBag []RoundOfBag `json:"list_round_of_sub_bag"`
+	AgencyPaidAll     int64        `json:"agency_paid_all"`
 }
 
 type PaymentOfBag struct {
@@ -522,6 +523,7 @@ type BookingFeeOfBag struct {
 	MushPayInfo       BookingMushPay                       `json:"mush_pay_info,omitempty"`
 	ListServiceItems  []BookingServiceItemWithPaidInfo     `json:"list_service_items"`
 	ListRoundOfSubBag []RoundOfBag                         `json:"list_round_of_sub_bag"`
+	AgencyPaidAll     int64                                `json:"agency_paid_all"`
 	Rounds            []models.RoundPaidByMainBag          `json:"rounds"`
 }
 
@@ -1287,4 +1289,19 @@ func (item *Booking) FindReportBuggyForGuestStyle(database *gorm.DB, page models
 	}
 
 	return list, total, db.Error
+}
+
+func (item *Booking) UpdateRoundForBooking(database *gorm.DB) {
+	bookingListRequest := BookingList{
+		BillCode: item.BillCode,
+	}
+	bookingList := []Booking{}
+	db, _, _ := bookingListRequest.FindAllBookingList(database)
+	db.Find(&bookingList)
+
+	db1 := datasources.GetDatabaseWithPartner(item.PartnerUid)
+	for _, booking := range bookingList {
+		booking.Bag = item.Bag
+		booking.Update(db1)
+	}
 }

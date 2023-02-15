@@ -38,7 +38,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid
@@ -215,7 +215,7 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid
@@ -245,7 +245,11 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 
 	// add infor cart item
 	serviceCartItem.Type = kiosk.KioskType
-	serviceCartItem.Location = kiosk.KioskName
+	if body.LocationType != "" {
+		serviceCartItem.Location = body.LocationType
+	} else {
+		serviceCartItem.Location = kiosk.KioskName
+	}
 	serviceCartItem.Name = body.Name
 	serviceCartItem.UnitPrice = body.Price
 
@@ -633,7 +637,7 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid
@@ -740,7 +744,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
 	booking := model_booking.Booking{}
 	booking.PartnerUid = serviceCartItem.PartnerUid
@@ -815,7 +819,7 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid

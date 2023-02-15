@@ -1352,16 +1352,17 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 		return kiosk_inventory.ItemInfo{}, errors.New("Item Code Empty!")
 	}
 
+	code := strings.ReplaceAll(itemCode, " ", "")
 	proshop := model_service.Proshop{
 		PartnerUid: partnerUid,
 		CourseUid:  courseUid,
-		ProShopId:  itemCode,
+		ProShopId:  code,
 	}
 
 	if errFindProshop := proshop.FindFirst(db); errFindProshop == nil {
 		return kiosk_inventory.ItemInfo{
 			GroupCode: proshop.GroupCode,
-			ItemName:  proshop.Name,
+			ItemName:  proshop.VieName,
 			Unit:      proshop.Unit,
 			GroupType: proshop.Type,
 		}, nil
@@ -1374,7 +1375,7 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 	if err := fb.FindFirst(db); err == nil {
 		return kiosk_inventory.ItemInfo{
 			GroupCode: fb.GroupCode,
-			ItemName:  fb.Name,
+			ItemName:  fb.VieName,
 			Unit:      fb.Unit,
 			GroupType: fb.Type,
 		}, nil
@@ -1387,7 +1388,7 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 	if err := rental.FindFirst(db); err == nil {
 		return kiosk_inventory.ItemInfo{
 			GroupCode: rental.GroupCode,
-			ItemName:  rental.Name,
+			ItemName:  rental.VieName,
 			Unit:      rental.Unit,
 			GroupType: rental.Type,
 		}, nil
@@ -1628,6 +1629,44 @@ func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 	return nil
 }
 
+func undoCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
+	var caddieSlotNew []string
+	var caddieSlotExist []string
+	// Format date
+	dateNow, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	caddieWS := models.CaddieWorkingSlot{}
+	caddieWS.PartnerUid = partnerUid
+	caddieWS.CourseUid = courseUid
+	caddieWS.ApplyDate = dateNow
+
+	db := datasources.GetDatabaseWithPartner(partnerUid)
+
+	err := caddieWS.FindFirst(db)
+	if err != nil {
+		return err
+	}
+
+	if len(caddieWS.CaddieSlot) > 0 {
+		caddieSlotNew = append(caddieSlotNew, caddieWS.CaddieSlot...)
+		for _, item := range caddies {
+			index := utils.StringInList(item, caddieSlotNew)
+			if index != -1 {
+				caddieSlotNew = utils.Remove(caddieSlotNew, index)
+				caddieSlotExist = append(caddieSlotExist, item)
+			}
+		}
+	}
+
+	caddieWS.CaddieSlot = append(caddieSlotExist, caddieSlotNew...)
+	err = caddieWS.Update(db)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func updateCaddieWorkingOnDay(caddieCodeList []string, partnerUid, courseUid string, isWorking bool) {
 	db := datasources.GetDatabaseWithPartner("CHI-LINH")
 	for _, code := range caddieCodeList {
@@ -1777,4 +1816,45 @@ func getIdGroup(s []models.CaddieGroup, e string) int64 {
 		}
 	}
 	return 0
+}
+func getBuggyFeeSetting(PartnerUid, CourseUid, GuestStyle string, Hole int) models.BuggyFeeItemSettingResponse {
+	db := datasources.GetDatabaseWithPartner(PartnerUid)
+	buggyFeeSettingR := models.BuggyFeeSetting{
+		PartnerUid: PartnerUid,
+		CourseUid:  CourseUid,
+	}
+
+	listBuggySetting, _, _ := buggyFeeSettingR.FindAll(db)
+	buggyFeeSetting := models.BuggyFeeSetting{}
+	for _, item := range listBuggySetting {
+		if item.Status == constants.STATUS_ENABLE {
+			buggyFeeSetting = item
+			break
+		}
+	}
+
+	buggyFeeItemSettingR := models.BuggyFeeItemSetting{
+		PartnerUid: PartnerUid,
+		CourseUid:  CourseUid,
+		GuestStyle: GuestStyle,
+		SettingId:  buggyFeeSetting.Id,
+	}
+	listSetting, _, _ := buggyFeeItemSettingR.FindAll(db)
+	buggyFeeItemSetting := models.BuggyFeeItemSetting{}
+	for _, item := range listSetting {
+		if item.Status == constants.STATUS_ENABLE {
+			buggyFeeItemSetting = item
+			break
+		}
+	}
+
+	rentalFee := utils.GetFeeFromListFee(buggyFeeItemSetting.RentalFee, Hole)
+	privateCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.PrivateCarFee, Hole)
+	oddCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.OddCarFee, Hole)
+
+	return models.BuggyFeeItemSettingResponse{
+		RentalFee:     rentalFee,
+		PrivateCarFee: privateCarFee,
+		OddCarFee:     oddCarFee,
+	}
 }

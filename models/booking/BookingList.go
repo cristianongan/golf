@@ -19,6 +19,7 @@ type BookingList struct {
 	CaddieUid             string
 	CaddieName            string
 	CaddieCode            string
+	CardId                string
 	InitType              string
 	AgencyId              int64
 	IsAgency              string
@@ -93,6 +94,10 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 
 	if item.CaddieCode != "" {
 		db = db.Where("caddie_info->'$.code' COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CaddieCode+"%")
+	}
+
+	if item.CardId != "" {
+		db = db.Where("card_id COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CardId+"%")
 	}
 
 	if item.CustomerUid != "" {
@@ -346,6 +351,8 @@ func (item *BookingList) FindListRoundOfBagPlaying(database *gorm.DB, page model
 
 	db = addFilter(db, item, false)
 	db = db.Where("added_round = ?", false)
+	db = db.Where("check_in_time > 0")
+	db = db.Where("bag_status <> ?", constants.BAG_STATUS_CHECK_OUT)
 
 	db.Count(&total)
 

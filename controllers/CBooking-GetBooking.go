@@ -252,9 +252,14 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 
 	// Get List Round Of Sub Bag
 	listRoundOfSub := []model_booking.RoundOfBag{}
+	agencyPaidAll := int64(0)
+
 	if len(booking.SubBags) > 0 {
 		res := GetGolfFeeInfoOfBag(c, booking)
 		listRoundOfSub = res.ListRoundOfSubBag
+		agencyPaidAll = res.AgencyPaidAll
+	} else {
+		agencyPaidAll = booking.GetAgencyPaid()
 	}
 
 	feeResponse := model_booking.BookingFeeOfBag{
@@ -264,6 +269,109 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 		ListServiceItems:  listServices,
 		ListRoundOfSubBag: listRoundOfSub,
 		Rounds:            listRoundOfMain,
+		AgencyPaidAll:     agencyPaidAll,
+	}
+
+	okResponse(c, feeResponse)
+}
+
+func (_ *CBooking) GetFeeOfBagForBill(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.Bag == "" {
+		response_message.BadRequest(c, errors.New("Bag invalid").Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.PartnerUid = form.PartnerUid
+	booking.CourseUid = form.CourseUid
+	booking.Bag = form.Bag
+
+	if form.BookingDate != "" {
+		booking.BookingDate = form.BookingDate
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+		booking.BookingDate = toDayDate
+	}
+
+	errF := booking.FindFirst(db)
+	if errF != nil {
+		response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
+		return
+	}
+
+	// Get List Round Of Main Bag
+	mainPaidRound1 := false
+	mainPaidRound2 := false
+	mainCheckOutTime := int64(0)
+
+	// Tính giá của khi có main bag
+	if len(booking.MainBags) > 0 {
+		mainBook := model_booking.Booking{
+			CourseUid:   booking.CourseUid,
+			PartnerUid:  booking.PartnerUid,
+			Bag:         booking.MainBags[0].GolfBag,
+			BookingDate: booking.BookingDate,
+		}
+		errFMB := mainBook.FindFirst(db)
+		if errFMB != nil {
+			log.Println("UpdateMushPay-"+booking.Bag+"-Find Main Bag", errFMB.Error())
+		}
+		mainCheckOutTime = mainBook.CheckOutTime
+		mainPaidRound1 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND) > -1
+		mainPaidRound2 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS) > -1
+	}
+	listRoundOfMain := []models.RoundPaidByMainBag{}
+	if booking.BillCode != "" {
+		round := models.Round{BillCode: booking.BillCode}
+		listRound, _ := round.FindAllRoundPaidByMain(db)
+		listRoundOfMain = listRound
+
+		if mainCheckOutTime > 0 {
+			for index, round := range listRoundOfMain {
+				if round.Index == 1 && mainPaidRound1 {
+					listRoundOfMain[index].IsPaid = true
+				}
+				if round.Index == 2 && mainPaidRound2 {
+					listRoundOfMain[index].IsPaid = true
+				}
+			}
+		}
+	}
+
+	// Get List Service Item
+	listServices := booking.FindServiceItemsWithPaidInfo(db)
+
+	// Get List Round Of Sub Bag
+	listRoundOfSub := []model_booking.RoundOfBag{}
+	agencyPaidAll := int64(0)
+
+	if len(booking.SubBags) > 0 {
+		res := GetGolfFeeInfoOfBagForBill(c, booking)
+		listRoundOfSub = res.ListRoundOfSubBag
+		agencyPaidAll = res.AgencyPaidAll
+	} else {
+		agencyPaidAll = booking.GetAgencyPaid()
+	}
+
+	feeResponse := model_booking.BookingFeeOfBag{
+		AgencyPaid:        booking.AgencyPaid,
+		SubBags:           booking.SubBags,
+		MushPayInfo:       booking.MushPayInfo,
+		ListServiceItems:  listServices,
+		ListRoundOfSubBag: listRoundOfSub,
+		Rounds:            listRoundOfMain,
+		AgencyPaidAll:     agencyPaidAll,
 	}
 
 	okResponse(c, feeResponse)

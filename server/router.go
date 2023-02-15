@@ -118,6 +118,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/user/list", middlewares.AuthorizedCmsUserHandler(cCmsUser.GetList))
 			cmsApiAuthorized.POST("/user/add", middlewares.AuthorizedCmsUserHandler(cCmsUser.CreateCmsUser))
 			cmsApiAuthorized.PUT("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.UpdateCmsUser))
+			cmsApiAuthorized.POST("/user/change-pass", middlewares.AuthorizedCmsUserHandler(cCmsUser.ChangePassCmsUser))
 			cmsApiAuthorized.DELETE("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.DeleteCmsUser))
 			cmsApiAuthorized.POST("/user/logout", middlewares.AuthorizedCmsUserHandler(cCmsUser.LogOut))
 
@@ -266,6 +267,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/booking/payment/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingPaymentDetail))        // Thêm Info...
 			cmsApiAuthorized.GET("/booking/by-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingByBag))                      // Get booking detail by Bag
 			cmsApiAuthorized.GET("/booking/fee-of-bag", middlewares.AuthorizedCmsUserHandler(cBooking.GetBookingFeeOfBag))               // Get booking detail by Bag
+			cmsApiAuthorized.GET("/booking/fee-of-bag-bill", middlewares.AuthorizedCmsUserHandler(cBooking.GetFeeOfBagForBill))          // Get booking detail by Bag
 			cmsApiAuthorized.PUT("/booking/:uid", middlewares.AuthorizedCmsUserHandler(cBooking.UpdateBooking))                          // Thêm Info...
 			cmsApiAuthorized.POST("/booking/sub-bag/add", middlewares.AuthorizedCmsUserHandler(cBooking.AddSubBagToBooking))             // Add SubBag
 			cmsApiAuthorized.POST("/booking/sub-bag/edit", middlewares.AuthorizedCmsUserHandler(cBooking.EditSubBagToBooking))           // Edit SubBag                  // Add Round
@@ -439,9 +441,12 @@ func NewRouter() *gin.Engine {
 			cCaddieWorkingCalendar := new(controllers.CCaddieWorkingCalendar)
 			cmsApiAuthorized.POST("/caddie-working-calendar", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.CreateCaddieWorkingCalendar))
 			cmsApiAuthorized.POST("/caddie-slot-auto/import", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.ImportCaddieSlotAuto))
+			cmsApiAuthorized.POST("/caddie-working-calendar/note", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.AddNoteCaddieSlotByDate))
 			cmsApiAuthorized.GET("/caddie-working-calendar/list", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetCaddieWorkingCalendarList))
 			cmsApiAuthorized.GET("/caddie-working-calendar/list-normal", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetCaddieWorkingCalendarListNormal))
+			cmsApiAuthorized.POST("/caddie-working-calendar/note/list", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.GetNoteCaddieSlotByDate))
 			cmsApiAuthorized.PUT("/caddie-working-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.UpdateCaddieWorkingCalendar))
+			cmsApiAuthorized.PUT("/caddie-working-calendar/note/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.UpdateNoteCaddieSlotByDate))
 			cmsApiAuthorized.POST("/caddie-working-calendar/update-slot-auto", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.UpdateCaddieSlotAuto))
 			cmsApiAuthorized.DELETE("/caddie-working-calendar/:id", middlewares.AuthorizedCmsUserHandler(cCaddieWorkingCalendar.DeleteCaddieWorkingCalendar))
 
@@ -625,6 +630,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Kiosk Inventory ===================
 			cKioskInventory := new(controllers.CKioskInventory)
 			cmsApiAuthorized.POST("/kiosk-inventory/create", middlewares.AuthorizedCmsUserHandler(cKioskInventory.AddItemToInventory))
+			cmsApiAuthorized.POST("/kiosk-inventory/update", middlewares.AuthorizedCmsUserHandler(cKioskInventory.UpdateInventory))
 			cmsApiAuthorized.GET("/kiosk-inventory/list", middlewares.AuthorizedCmsUserHandler(cKioskInventory.GetKioskInventory))
 
 			cKioskInputInventory := new(controllers.CKioskInputInventory)
@@ -773,6 +779,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Test ===================
 			cTest := new(controllers.CTest)
 			cmsApiAuthorized.GET("/test-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
+			cmsApiAuthorized.GET("/test-agency-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFeeAgency))
 			cmsApiAuthorized.POST("/test-func", middlewares.AuthorizedCmsUserHandler(cTest.TestFunc))
 			cmsApiAuthorized.GET("/test-fast-customer", middlewares.AuthorizedCmsUserHandler(cTest.TestFastCustomer))
 			cmsApiAuthorized.GET("/test-fast-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFastFee))
