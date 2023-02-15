@@ -393,7 +393,9 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	// Create booking payment
 	if booking.AgencyId > 0 {
-		go handleAgencyPaid(booking, body.FeeInfo)
+		if body.FeeInfo != nil {
+			go handleAgencyPaid(booking, *body.FeeInfo)
+		}
 	}
 
 	if booking.AgencyId > 0 && booking.MemberCardUid == "" {
@@ -730,22 +732,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.BookingCode = body.BookingCode
 	}
 
-	// if body.Bag != "" && booking.Bag != body.Bag {
-	// 	booking.Bag = body.Bag
-	// 	//Check duplicated
-	// 	isDuplicated, errDupli := booking.IsDuplicated(db, false, true)
-	// 	if isDuplicated {
-	// 		if errDupli != nil {
-	// 			response_message.InternalServerErrorWithKey(c, errDupli.Error(), "DUPLICATE_BAG")
-	// 			return
-	// 		}
-	// 		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-	// 		return
-	// 	}
-	// 	// Cập nhật lại info Bag
-	// 	booking.UpdateBagGolfFee()
-	// }
-
 	//TODO: if body.MemberCardUid != "" && (body.MemberCardUid != booking.MemberCardUid ||
 	// 	body.AgencyId != booking.AgencyId) {
 	if body.MemberCardUid != nil {
@@ -864,6 +850,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			booking.AgencyPaidAll = body.AgencyPaidAll
 		}
 	}
+
+	// updateBag(c, booking, body)
+
 	// Update các thông tin khác trước
 	errUdpBook := booking.Update(db)
 	if errUdpBook != nil {
@@ -873,7 +862,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	// Create booking payment
 	if booking.AgencyId > 0 {
-		go handleAgencyPaid(booking, body.FeeInfo)
+		if body.FeeInfo != nil {
+			go handleAgencyPaid(booking, *body.FeeInfo)
+		}
 		// if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
 		// }
 	}
@@ -891,6 +882,48 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	res := getBagDetailFromBooking(db, bookLast)
 
 	okResponse(c, res)
+}
+
+func updateBag(c *gin.Context, booking model_booking.Booking, body request.UpdateBooking) {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	if body.Bag != "" && booking.Bag != body.Bag {
+		booking.Bag = body.Bag
+		//Check duplicated
+		isDuplicated, errDupli := booking.IsDuplicated(db, false, true)
+		if isDuplicated {
+			if errDupli != nil {
+				response_message.InternalServerErrorWithKey(c, errDupli.Error(), "DUPLICATE_BAG")
+				return
+			}
+			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+			return
+		}
+
+		bookingServiceItemsR := model_booking.BookingServiceItem{
+			PartnerUid: booking.PartnerUid,
+			CourseUid:  booking.CourseUid,
+			BillCode:   booking.BillCode,
+		}
+		list, _ := bookingServiceItemsR.FindAll(db)
+
+		if len(list) > 0 {
+			response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
+			return
+		}
+
+		// Cập nhật lại info Bag
+		booking.UpdateBagGolfFee()
+		booking.Update(db)
+
+		roundR := models.Round{
+			BillCode: booking.BillCode,
+		}
+		listRound, _ := roundR.FindAll(db)
+		for _, round := range listRound {
+			round.Bag = booking.Bag
+			round.Update(db)
+		}
+	}
 }
 
 /*
@@ -1077,7 +1110,9 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	// Create booking payment
 	if booking.AgencyId > 0 {
-		go handleAgencyPaid(booking, body.FeeInfo)
+		if body.FeeInfo != nil {
+			go handleAgencyPaid(booking, *body.FeeInfo)
+		}
 	}
 
 	if body.MemberUidOfGuest != "" && body.GuestStyle != "" && memberCard.Uid != "" {
