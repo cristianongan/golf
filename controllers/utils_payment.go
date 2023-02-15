@@ -281,14 +281,14 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		bookingAgencyPayment.Create(db)
 	}
 
-	go func() {
-		// create bag payment
-		// Ghi nhận só tiền agency thanh toán cho bag đó
-		booking.AgencyPaid = bookingAgencyPayment.FeeData
+	// go func() {
+	// create bag payment
+	// Ghi nhận só tiền agency thanh toán cho bag đó
+	booking.AgencyPaid = bookingAgencyPayment.FeeData
 
-		// update giá cho bag(main or sub nếu có)
-		updatePriceWithServiceItem(booking, models.CmsUser{})
-	}()
+	// update giá cho bag(main or sub nếu có)
+	updatePriceWithServiceItem(booking, models.CmsUser{})
+	// }()
 }
 
 func addBuggyFee(booking model_booking.Booking, fee int64, name string) {

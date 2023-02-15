@@ -866,7 +866,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	// Create booking payment
 	if booking.AgencyId > 0 {
 		if body.FeeInfo != nil {
-			go handleAgencyPaid(booking, *body.FeeInfo)
+			handleAgencyPaid(booking, *body.FeeInfo)
 		}
 		// if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
 		// }
