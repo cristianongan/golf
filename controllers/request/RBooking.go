@@ -265,7 +265,7 @@ type CheckInBody struct {
 	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
 	CustomerName   string `json:"customer_name"`    // Player Name
 
-	MemberCardUid    string        `json:"member_card_uid"`     // Member Card
+	MemberCardUid    *string       `json:"member_card_uid"`
 	AgencyId         int64         `json:"agency_id"`           // Agency id
 	MemberUidOfGuest string        `json:"member_uid_of_guest"` // Member của Guest đến chơi cùng
 	FeeInfo          AgencyFeeInfo `json:"fee_info"`            // Golf Fee cho case agency
