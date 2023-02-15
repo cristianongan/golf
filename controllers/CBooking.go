@@ -393,7 +393,9 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	// Create booking payment
 	if booking.AgencyId > 0 {
-		go handleAgencyPaid(booking, body.FeeInfo)
+		if body.FeeInfo != nil {
+			go handleAgencyPaid(booking, *body.FeeInfo)
+		}
 	}
 
 	if booking.AgencyId > 0 && booking.MemberCardUid == "" {
@@ -860,7 +862,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	// Create booking payment
 	if booking.AgencyId > 0 {
-		go handleAgencyPaid(booking, body.FeeInfo)
+		if body.FeeInfo != nil {
+			go handleAgencyPaid(booking, *body.FeeInfo)
+		}
 		// if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
 		// }
 	}
@@ -1106,7 +1110,9 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	// Create booking payment
 	if booking.AgencyId > 0 {
-		go handleAgencyPaid(booking, body.FeeInfo)
+		if body.FeeInfo != nil {
+			go handleAgencyPaid(booking, *body.FeeInfo)
+		}
 	}
 
 	if body.MemberUidOfGuest != "" && body.GuestStyle != "" && memberCard.Uid != "" {
