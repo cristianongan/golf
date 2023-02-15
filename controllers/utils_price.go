@@ -305,8 +305,10 @@ sub bag nếu có
 func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUser) {
 
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	booking.CmsUser = prof.UserName
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
+	if prof.UserName != "" {
+		booking.CmsUser = prof.UserName
+		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
+	}
 
 	if booking.MainBags != nil && len(booking.MainBags) > 0 {
 		// Nếu bag có Main Bag
