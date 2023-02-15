@@ -288,10 +288,6 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 
 		// update giá cho bag(main or sub nếu có)
 		updatePriceWithServiceItem(booking, models.CmsUser{})
-
-		handleSinglePayment(db, booking)
-		//Upd lại số tiền thanh toán của agency
-		handleAgencyPayment(db, booking)
 	}()
 }
 
