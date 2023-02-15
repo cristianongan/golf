@@ -82,4 +82,6 @@ type UpdateCaddieBody struct {
 	Note           *string `json:"note"`
 	GroupId        int64   `json:"group_id"`
 	ContractStatus *string `json:"contract_status"`
+	CurrentStatus  *string `json:"current_status"`
+	IsWorking      *int    `json:"is_working"`
 }
