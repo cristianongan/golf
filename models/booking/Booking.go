@@ -1290,3 +1290,18 @@ func (item *Booking) FindReportBuggyForGuestStyle(database *gorm.DB, page models
 
 	return list, total, db.Error
 }
+
+func (item *Booking) UpdateRoundForBooking(database *gorm.DB) {
+	bookingListRequest := BookingList{
+		BillCode: item.BillCode,
+	}
+	bookingList := []Booking{}
+	db, _, _ := bookingListRequest.FindAllBookingList(database)
+	db.Find(&bookingList)
+
+	db1 := datasources.GetDatabaseWithPartner(item.PartnerUid)
+	for _, booking := range bookingList {
+		booking.Bag = item.Bag
+		booking.Update(db1)
+	}
+}

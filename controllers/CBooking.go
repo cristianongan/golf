@@ -857,6 +857,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerInfo.Name = body.CustomerName
 	}
 
+<<<<<<< HEAD
 	// Create booking payment
 	if booking.AgencyId > 0 {
 
@@ -869,11 +870,20 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		// }
 	}
 
+=======
+>>>>>>> dev
 	// Update các thông tin khác trước
 	errUdpBook := booking.Update(db)
 	if errUdpBook != nil {
 		response_message.InternalServerError(c, errUdpBook.Error())
 		return
+	}
+
+	// Create booking payment
+	if booking.AgencyId > 0 {
+		go handleAgencyPaid(booking, body.FeeInfo)
+		// if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
+		// }
 	}
 
 	// udp ok -> Tính lại giá
@@ -1067,21 +1077,15 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	booking.BagStatus = constants.BAG_STATUS_WAITING
 	booking.CourseType = body.CourseType
 
-	// Create booking payment
-	if booking.AgencyId > 0 {
-		if body.AgencyPaidAll != nil {
-			booking.AgencyPaidAll = body.AgencyPaidAll
-		}
-
-		if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
-			go handleAgencyPaid(booking, body.FeeInfo)
-		}
-	}
-
 	errUdp := booking.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
+	}
+
+	// Create booking payment
+	if booking.AgencyId > 0 {
+		go handleAgencyPaid(booking, body.FeeInfo)
 	}
 
 	if body.MemberUidOfGuest != "" && body.GuestStyle != "" && memberCard.Uid != "" {
