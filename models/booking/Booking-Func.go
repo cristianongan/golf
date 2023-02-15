@@ -830,9 +830,14 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 			roundToFindList := models.Round{BillCode: sub.BillCode}
 			listSubRound, _ := roundToFindList.FindAll(db)
 
+			subBookingR := Booking{
+				Model: models.Model{Uid: sub.BookingUid},
+			}
+			subBooking, _ := subBookingR.FindFirstByUId(db)
+
 			for _, round := range listSubRound {
 				if round.Index == 1 {
-					if !(len(sub.AgencyPaid) > 0 && sub.AgencyPaid[0].Fee > 0) && checkIsFirstRound > -1 {
+					if !subBooking.CheckAgencyPaidRound1() && checkIsFirstRound > -1 {
 						listRoundGolfFee = append(listRoundGolfFee, round)
 						subBagFee += round.GetAmountGolfFee()
 					}
@@ -1048,9 +1053,14 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 			roundToFindList := models.Round{BillCode: sub.BillCode}
 			listSubRound, _ := roundToFindList.FindAll(db)
 
+			subBookingR := Booking{
+				Model: models.Model{Uid: sub.BookingUid},
+			}
+			subBooking, _ := subBookingR.FindFirstByUId(db)
+
 			for _, round := range listSubRound {
 				if round.Index == 1 {
-					if !(len(sub.AgencyPaid) > 0 && sub.AgencyPaid[0].Fee > 0) && checkIsFirstRound > -1 {
+					if !subBooking.CheckAgencyPaidRound1() && checkIsFirstRound > -1 {
 						listRoundGolfFee = append(listRoundGolfFee, round)
 						subBagFee += round.GetAmountGolfFee()
 					}
