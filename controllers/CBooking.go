@@ -851,14 +851,15 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	updateBag(c, booking, body)
-
 	// Update các thông tin khác trước
 	errUdpBook := booking.Update(db)
 	if errUdpBook != nil {
 		response_message.InternalServerError(c, errUdpBook.Error())
 		return
 	}
+
+	// Update bag nếu có thay đổi
+	updateBag(c, booking, body)
 
 	// Create booking payment
 	if booking.AgencyId > 0 {
@@ -886,6 +887,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 func updateBag(c *gin.Context, booking model_booking.Booking, body request.UpdateBooking) {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+
 	if body.Bag != "" && booking.Bag != body.Bag {
 		booking.Bag = body.Bag
 		//Check duplicated
@@ -899,6 +901,16 @@ func updateBag(c *gin.Context, booking model_booking.Booking, body request.Updat
 			return
 		}
 
+		if len(booking.MainBags) > 0 {
+			response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
+			return
+		}
+
+		if len(booking.SubBags) > 0 {
+			response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
+			return
+		}
+
 		bookingServiceItemsR := model_booking.BookingServiceItem{
 			PartnerUid: booking.PartnerUid,
 			CourseUid:  booking.CourseUid,
@@ -906,23 +918,33 @@ func updateBag(c *gin.Context, booking model_booking.Booking, body request.Updat
 		}
 		list, _ := bookingServiceItemsR.FindAll(db)
 
-		if len(list) > 0 {
+		hasUpdateBag := true
+		for _, item := range list {
+			if item.ServiceType == constants.BUGGY_SETTING || item.ServiceType == constants.CADDIE_SETTING {
+
+			} else {
+				hasUpdateBag = false
+			}
+		}
+		if !hasUpdateBag {
 			response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
 			return
 		}
 
 		// Cập nhật lại info Bag
 		booking.UpdateBagGolfFee()
-		booking.Update(db)
+		booking.UpdateRoundForBooking(db)
 
-		roundR := models.Round{
-			BillCode: booking.BillCode,
-		}
-		listRound, _ := roundR.FindAll(db)
-		for _, round := range listRound {
-			round.Bag = booking.Bag
-			round.Update(db)
-		}
+		go func() {
+			roundR := models.Round{
+				BillCode: booking.BillCode,
+			}
+			listRound, _ := roundR.FindAll(db)
+			for _, round := range listRound {
+				round.Bag = booking.Bag
+				round.Update(db)
+			}
+		}()
 	}
 }
 
