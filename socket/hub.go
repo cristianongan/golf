@@ -56,7 +56,7 @@ func (h *Hub) Run() {
 				close(client.send)
 			}
 		case message := <-h.Broadcast:
-			log.Println("[SOCKET] Hub Run message := <-h.Broadcast len clients", len(h.Clients))
+			// log.Println("[SOCKET] Hub Run message := <-h.Broadcast len clients", len(h.Clients))
 			for client := range h.Clients {
 				select {
 				case client.send <- message:
