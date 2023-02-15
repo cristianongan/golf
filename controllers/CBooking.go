@@ -848,14 +848,15 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			booking.AgencyPaidAll = body.AgencyPaidAll
 		}
 	}
+
+	updateBag(c, booking, body)
+
 	// Update các thông tin khác trước
 	errUdpBook := booking.Update(db)
 	if errUdpBook != nil {
 		response_message.InternalServerError(c, errUdpBook.Error())
 		return
 	}
-
-	updateBag(c, booking, body)
 
 	// Create booking payment
 	if booking.AgencyId > 0 {
