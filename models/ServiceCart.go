@@ -109,12 +109,12 @@ func (item *ServiceCart) FindList(database *gorm.DB, page Page) ([]ServiceCart, 
 		db = db.Where("res_floor = ?", item.ResFloor)
 	}
 
-	if item.PlayerName != "" {
-		db = db.Where("player_name LIKE ?", "%"+item.PlayerName+"%")
-	}
+	// if item.PlayerName != "" {
+	// 	db = db.Where("player_name LIKE ?", "%"+item.PlayerName+"%")
+	// }
 
 	if item.GolfBag != "" {
-		db = db.Where("golf_bag LIKE ? OR bill_code LIKE ?", "%"+item.GolfBag+"%", "%"+item.GolfBag+"%")
+		db = db.Where("golf_bag LIKE ? OR bill_code LIKE ? OR player_name LIKE ?", "%"+item.GolfBag+"%", "%"+item.GolfBag+"%", "%"+item.GolfBag+"%")
 	}
 
 	if item.FromService != 0 {

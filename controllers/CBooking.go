@@ -851,7 +851,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	// updateBag(c, booking, body)
+	updateBag(c, booking, body)
 
 	// Update các thông tin khác trước
 	errUdpBook := booking.Update(db)
