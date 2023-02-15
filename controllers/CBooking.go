@@ -921,9 +921,10 @@ func updateBag(c *gin.Context, booking *model_booking.Booking, body request.Upda
 		list, _ := bookingServiceItemsR.FindAll(db)
 
 		hasUpdateBag := true
+		listItem := []model_booking.BookingServiceItem{}
 		for _, item := range list {
 			if item.ServiceType == constants.BUGGY_SETTING || item.ServiceType == constants.CADDIE_SETTING {
-
+				listItem = append(listItem, item)
 			} else {
 				hasUpdateBag = false
 			}
@@ -938,6 +939,10 @@ func updateBag(c *gin.Context, booking *model_booking.Booking, body request.Upda
 		booking.UpdateRoundForBooking(db)
 
 		go func() {
+			for _, item := range listItem {
+				item.Bag = booking.Bag
+				item.Update(db)
+			}
 			roundR := models.Round{
 				BillCode: booking.BillCode,
 			}
