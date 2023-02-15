@@ -851,15 +851,17 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	// Update bag nếu có thay đổi
+	if errUdpBag := updateBag(c, &booking, body); errUdpBag != nil {
+		return
+	}
+
 	// Update các thông tin khác trước
 	errUdpBook := booking.Update(db)
 	if errUdpBook != nil {
 		response_message.InternalServerError(c, errUdpBook.Error())
 		return
 	}
-
-	// Update bag nếu có thay đổi
-	updateBag(c, booking, body)
 
 	// Create booking payment
 	if booking.AgencyId > 0 {
@@ -885,7 +887,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, res)
 }
 
-func updateBag(c *gin.Context, booking model_booking.Booking, body request.UpdateBooking) {
+func updateBag(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking) error {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 
 	if body.Bag != "" && booking.Bag != body.Bag {
@@ -895,20 +897,20 @@ func updateBag(c *gin.Context, booking model_booking.Booking, body request.Updat
 		if isDuplicated {
 			if errDupli != nil {
 				response_message.InternalServerErrorWithKey(c, errDupli.Error(), "DUPLICATE_BAG")
-				return
+				return errDupli
 			}
 			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-			return
+			return errors.New("Update Bag Failed!")
 		}
 
 		if len(booking.MainBags) > 0 {
 			response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
-			return
+			return errors.New("Update Bag Failed!")
 		}
 
 		if len(booking.SubBags) > 0 {
 			response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
-			return
+			return errors.New("Update Bag Failed!")
 		}
 
 		bookingServiceItemsR := model_booking.BookingServiceItem{
@@ -928,7 +930,7 @@ func updateBag(c *gin.Context, booking model_booking.Booking, body request.Updat
 		}
 		if !hasUpdateBag {
 			response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
-			return
+			return errors.New("Update Bag Failed!")
 		}
 
 		// Cập nhật lại info Bag
@@ -946,6 +948,7 @@ func updateBag(c *gin.Context, booking model_booking.Booking, body request.Updat
 			}
 		}()
 	}
+	return nil
 }
 
 /*
