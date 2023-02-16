@@ -309,20 +309,20 @@ func addBuggyFee(booking model_booking.Booking, fee int64, name string) {
 }
 
 func addCaddieBookingFee(booking model_booking.Booking, fee int64, name string) {
-	// db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
-	// serviceItem := model_booking.BookingServiceItem{
-	// 	BillCode:   booking.BillCode,
-	// 	PlayerName: booking.CustomerName,
-	// 	BookingUid: booking.Uid,
-	// }
-	// serviceItem.Name = name
-	// serviceItem.UnitPrice = fee
-	// serviceItem.Quality = 1
-	// serviceItem.Amount = fee
-	// serviceItem.Type = constants.GOLF_SERVICE_RENTAL
-	// serviceItem.ServiceType = constants.CADDIE_SETTING
-	// serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
-	// serviceItem.Create(db)
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	serviceItem := model_booking.BookingServiceItem{
+		BillCode:   booking.BillCode,
+		PlayerName: booking.CustomerName,
+		BookingUid: booking.Uid,
+	}
+	serviceItem.Name = name
+	serviceItem.UnitPrice = fee
+	serviceItem.Quality = 1
+	serviceItem.Amount = fee
+	serviceItem.Type = constants.GOLF_SERVICE_RENTAL
+	serviceItem.ServiceType = constants.CADDIE_SETTING
+	serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
+	serviceItem.Create(db)
 }
 
 func updateBookingAgencyPaymentForAllFee(booking model_booking.Booking) {
