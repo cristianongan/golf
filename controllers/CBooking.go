@@ -860,7 +860,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if checkHoleChange {
-		updateHole(c, &booking, booking.Hole)
+		updateHole(c, &booking, body.Hole)
 	}
 
 	// Update các thông tin khác trước
