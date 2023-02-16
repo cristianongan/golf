@@ -102,23 +102,25 @@ func GinBodyLogMiddleware(c *gin.Context) {
 		}
 	}
 
-	newlog := "[REQ_LOG] " + utils.NumberToString(newlogmessage.LocalTime) +
-		" |user_name:" + userName +
-		" |status:" + utils.NumberToString(newlogmessage.Status) +
-		" |duration:" + utils.NumberToString(newlogmessage.Duration) +
-		" |client_ip:" + newlogmessage.ClientIP +
-		" |method:" + newlogmessage.Method +
-		" |path:" + newlogmessage.Path +
-		" |request:" + newlogmessage.Request +
-		" |response:" + newlogmessage.Response
+	if newlogmessage.Method != "OPTIONS" {
+		newlog := "[REQ_LOG] " + utils.NumberToString(newlogmessage.LocalTime) +
+			" |user_name:" + userName +
+			" |status:" + utils.NumberToString(newlogmessage.Status) +
+			" |duration:" + utils.NumberToString(newlogmessage.Duration) +
+			" |client_ip:" + newlogmessage.ClientIP +
+			" |method:" + newlogmessage.Method +
+			" |path:" + newlogmessage.Path +
+			" |request:" + newlogmessage.Request +
+			" |response:" + newlogmessage.Response
 
-	notShowrequests := []string{
-		"/golf-cms/metrics",
-	}
-	for _, item := range notShowrequests {
-		matched, _ := regexp.MatchString(item, c.Request.URL.Path)
-		if !matched {
-			fmt.Println(newlog)
+		notShowrequests := []string{
+			"/golf-cms/metrics",
+		}
+		for _, item := range notShowrequests {
+			matched, _ := regexp.MatchString(item, c.Request.URL.Path)
+			if !matched {
+				fmt.Println(newlog)
+			}
 		}
 	}
 
