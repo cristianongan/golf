@@ -590,7 +590,7 @@ là cấu hình bảng giá theo thứ
 */
 func GetCurrentDayStrWithMap() string {
 	day := strconv.FormatInt(int64(GetLocalUnixTime().Weekday())+1, 10)
-	log.Println("GetCurrentDayStrWithMap ", day)
+	// log.Println("GetCurrentDayStrWithMap ", day)
 	return day
 }
 
@@ -601,7 +601,7 @@ func GetDayOfWeek(strTime string) string {
 	}
 
 	day := strconv.FormatInt(int64(date.Weekday())+1, 10)
-	log.Println("GetCurrentDayStrWithMap ", day)
+	// log.Println("GetCurrentDayStrWithMap ", day)
 	return day
 }
 
