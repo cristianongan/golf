@@ -357,9 +357,8 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 						addBuggyFee(booking, buggyFee.OddCarFee, "Thuê lẻ xe")
 					}
 				}
-				updatePriceWithServiceItem(booking, prof)
-				log.Println("booking.FlightId", booking.FlightId)
 			}
+			updatePriceWithServiceItem(booking, prof)
 		}
 	}()
 
