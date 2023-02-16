@@ -369,6 +369,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/course-operating/caddie/need-more", middlewares.AuthorizedCmsUserHandler(cCourseOperating.NeedMoreCaddie))   // Đổi caddie
 			cmsApiAuthorized.POST("/course-operating/caddie/delete-attach", middlewares.AuthorizedCmsUserHandler(cCourseOperating.DeleteAttach)) // Xoá caddie, buggy, flight
 			cmsApiAuthorized.GET("/course-operating/starting-sheet", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetStartingSheet))    // Get for starting sheet
+			cmsApiAuthorized.POST("/course-operating/undo-timeout", middlewares.AuthorizedCmsUserHandler(cCourseOperating.UndoTimeOut))
 
 			/// =================== + More Course Operating ===================
 			cmsApiAuthorized.POST("/course-operating/change-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.ChangeCaddie))
@@ -781,7 +782,7 @@ func NewRouter() *gin.Engine {
 
 			/// =================== Test ===================
 			cTest := new(controllers.CTest)
-			cmsApiAuthorized.GET("/test-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
+			cmsApiAuthorized.GET("/reload-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
 			cmsApiAuthorized.GET("/test-agency-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFeeAgency))
 			cmsApiAuthorized.POST("/test-func", middlewares.AuthorizedCmsUserHandler(cTest.TestFunc))
 			cmsApiAuthorized.GET("/test-fast-customer", middlewares.AuthorizedCmsUserHandler(cTest.TestFastCustomer))

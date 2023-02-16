@@ -1508,5 +1508,39 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 }
 
 func (cCourseOperating CCourseOperating) UndoTimeOut(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.SimpleOutFlightBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
 
+	//Get booking trong Flight
+	bookingR := model_booking.Booking{
+		FlightId: body.FlightId,
+		Bag:      body.Bag,
+	}
+
+	bookingResponse, err := bookingR.FindListInFlight(db)
+	if err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	if len(bookingResponse) == 0 {
+		response_message.BadRequest(c, "Bag Not Found")
+		return
+	}
+
+	for _, booking := range bookingResponse {
+		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
+		booking.TimeOutFlight = 0
+		booking.BagStatus = constants.BAG_STATUS_IN_COURSE
+		errUdp := booking.Update(db)
+		if errUdp != nil {
+			log.Println("SimpleOutFlight err book udp ", errUdp.Error())
+		}
+	}
+
+	okRes(c)
 }
