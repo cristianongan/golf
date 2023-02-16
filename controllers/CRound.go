@@ -219,6 +219,7 @@ func (cRound CRound) UpdateListFeePriceInRound(c *gin.Context, db *gorm.DB, book
 		round.CaddieFee = caddieFee
 		round.BuggyFee = buggyFee
 		round.GreenFee = greenFee
+		round.Hole = hole
 
 		if errRoundUdp := round.Update(db); errRoundUdp != nil {
 			response_message.BadRequestDynamicKey(c, "UPDATE_ERROR", "")
@@ -227,7 +228,7 @@ func (cRound CRound) UpdateListFeePriceInRound(c *gin.Context, db *gorm.DB, book
 	}
 
 	if booking != nil {
-		cRound.UpdateGolfFeeInBooking(booking, db)
+		updatePriceWithServiceItem(*booking, models.CmsUser{})
 	}
 }
 
