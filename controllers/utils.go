@@ -1858,3 +1858,25 @@ func getBuggyFeeSetting(PartnerUid, CourseUid, GuestStyle string, Hole int) mode
 		OddCarFee:     oddCarFee,
 	}
 }
+
+func getBookingCadieFeeSetting(PartnerUid, CourseUid, GuestStyle string, Hole int) models.BookingCaddyFeeSettingRes {
+	db := datasources.GetDatabaseWithPartner(PartnerUid)
+	// Get Buggy Fee
+	bookingCaddieFeeSettingR := models.BookingCaddyFeeSetting{
+		PartnerUid: PartnerUid,
+		CourseUid:  CourseUid,
+	}
+
+	listBookingBuggyCaddySetting, _, _ := bookingCaddieFeeSettingR.FindList(db, models.Page{}, false)
+	bookingCaddieFeeSetting := models.BookingCaddyFeeSetting{}
+	for _, item := range listBookingBuggyCaddySetting {
+		if item.Status == constants.STATUS_ENABLE {
+			bookingCaddieFeeSetting = item
+		}
+	}
+
+	return models.BookingCaddyFeeSettingRes{
+		Fee:  bookingCaddieFeeSetting.Fee,
+		Name: bookingCaddieFeeSetting.Name,
+	}
+}
