@@ -43,9 +43,7 @@ func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking.UpdatePriceDetailCurrentBag(db)
-	booking.UpdateMushPay(db)
-	booking.Update(db)
+	updatePriceWithServiceItem(booking, prof)
 }
 
 func (cBooking *CTest) TestFeeAgency(c *gin.Context, prof models.CmsUser) {

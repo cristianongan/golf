@@ -670,6 +670,8 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	// validate caddie_code
 	guestStyle := ""
+	checkHoleChange := false
+
 	var caddie models.Caddie
 	var err error
 	if body.CaddieCode != "" {
@@ -684,8 +686,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.HoleBooking = body.HoleBooking
 	}
 
-	if body.Hole > 0 {
+	if body.Hole > 0 && body.Hole != booking.Hole {
 		booking.Hole = body.Hole
+		checkHoleChange = true
 	}
 
 	if body.CourseType != "" {
@@ -856,6 +859,10 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if checkHoleChange {
+		updateHole(c, &booking, booking.Hole)
+	}
+
 	// Update các thông tin khác trước
 	errUdpBook := booking.Update(db)
 	if errUdpBook != nil {
@@ -885,6 +892,20 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	res := getBagDetailFromBooking(db, bookLast)
 
 	okResponse(c, res)
+}
+
+func updateHole(c *gin.Context, booking *model_booking.Booking, hole int) {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	round := models.Round{
+		BillCode: booking.BillCode,
+	}
+
+	if errFindRound := round.LastRound(db); errFindRound != nil {
+		log.Println("Round not found")
+	}
+
+	cRound := CRound{}
+	cRound.UpdateListFeePriceInRound(c, db, booking, booking.GuestStyle, &round, hole)
 }
 
 func updateBag(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking) error {
