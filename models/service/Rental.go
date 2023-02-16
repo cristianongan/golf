@@ -118,7 +118,7 @@ func (item *RentalRequest) FindList(database *gorm.DB, page models.Page) ([]Rent
 		db = db.Where(query, "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%")
 	}
 
-	db = db.Joins("JOIN group_services ON rentals.group_code = group_services.group_code AND " +
+	db = db.Joins("LEFT JOIN group_services ON rentals.group_code = group_services.group_code AND " +
 		"rentals.partner_uid = group_services.partner_uid AND " +
 		"rentals.course_uid = group_services.course_uid")
 	db = db.Select("rentals.*, group_services.group_name")
