@@ -720,6 +720,12 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Update giá nếu bill active
+	if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
+		//Update lại giá trong booking
+		updatePriceWithServiceItem(booking, prof)
+	}
+
 	okRes(c)
 }
 
@@ -753,6 +759,11 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	booking.BookingDate = dateDisplay
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
 		return
 	}
 
@@ -798,6 +809,11 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	if err := serviceCartItem.Delete(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
+	}
+
+	if serviceCart.BillStatus == constants.RES_BILL_STATUS_ACTIVE {
+		//Update lại giá trong booking
+		updatePriceWithServiceItem(booking, prof)
 	}
 
 	okRes(c)

@@ -133,6 +133,11 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
 	if serviceCart.BillCode == constants.BILL_NONE {
 		serviceCart.BillCode = "OD-" + strconv.Itoa(int(body.BillId))
 		serviceCart.TimeProcess = utils.GetTimeNow().Unix()
@@ -634,6 +639,15 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if serviceCart.BillStatus != constants.RES_BILL_STATUS_ORDER &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_BOOKING &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_OUT &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_CANCEL {
+
+		//Update lại giá trong booking
+		updatePriceWithServiceItem(booking, prof)
+	}
+
 	okRes(c)
 }
 
@@ -682,6 +696,11 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
 	// validate res item
 	restaurantItem := models.RestaurantItem{}
 	restaurantItem.BillId = serviceCart.Id
@@ -726,6 +745,15 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 			}
 		}
 
+	}
+
+	if serviceCart.BillStatus != constants.RES_BILL_STATUS_ORDER &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_BOOKING &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_OUT &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_CANCEL {
+
+		//Update lại giá trong booking
+		updatePriceWithServiceItem(booking, prof)
 	}
 
 	okRes(c)
