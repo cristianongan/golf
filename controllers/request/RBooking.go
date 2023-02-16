@@ -154,7 +154,7 @@ type CreateBookingBody struct {
 	//Agency
 	AgencyId           int64                   `json:"agency_id"`
 	CustomerUid        string                  `json:"customer_uid"`
-	CaddieCode         string                  `json:"caddie_code"`
+	CaddieCode         *string                 `json:"caddie_code"`
 	BookingRestaurant  utils.BookingRestaurant `json:"booking_restaurant"`
 	BookingRetal       utils.BookingRental     `json:"booking_retal"`
 	BookingCode        string                  `json:"booking_code"`
@@ -334,7 +334,8 @@ type UpdateBooking struct {
 	//Agency
 	AgencyId           int64                   `json:"agency_id"`
 	CustomerUid        string                  `json:"customer_uid"`
-	CaddieCode         string                  `json:"caddie_code"`
+	CaddieCheckIn      *string                 `json:"caddie_checkin"`
+	CaddieCode         *string                 `json:"caddie_code"`
 	BookingRestaurant  utils.BookingRestaurant `json:"booking_restaurant"`
 	BookingRetal       utils.BookingRental     `json:"booking_retal"`
 	BookingCode        string                  `json:"booking_code"`

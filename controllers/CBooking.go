@@ -75,17 +75,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		return nil, nil
 	}
 
-	var caddie models.Caddie
-	var err error
-	if body.CaddieCode != "" {
-		caddie, err = cBooking.validateCaddie(db, prof.CourseUid, body.CaddieCode)
-		if err != nil {
-			response_message.InternalServerError(c, err.Error())
-			return nil, err
-		}
-
-	}
-
 	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(body.BookingDate, body.CourseUid, body.TeeTime, body.TeeType+body.CourseType)
 
 	rowIndexsRedisStr := ""
@@ -315,8 +304,21 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
 
 	// Update caddie
-	if body.CaddieCode != "" {
-		cBooking.UpdateBookingCaddieCommon(db, body.PartnerUid, body.CourseUid, &booking, caddie)
+	if body.CaddieCode != nil && *body.CaddieCode != "" {
+		caddieList := models.CaddieList{}
+		caddieList.CourseUid = body.CourseUid
+		caddieList.CaddieCode = *body.CaddieCode
+		caddieNew, err := caddieList.FindFirst(db)
+		if err != nil {
+			response_message.BadRequestFreeMessage(c, "Caddie "+err.Error())
+			return nil, err
+		}
+
+		booking.CaddieBooking = caddieNew.Code
+
+		booking.CaddieId = caddieNew.Id
+		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
+		booking.HasBookCaddie = true
 	}
 
 	if body.CustomerName != "" {
@@ -408,6 +410,13 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			go handleSinglePayment(db, booking)
 		}
 	}
+
+	go func() {
+		if body.CaddieCode != nil && *body.CaddieCode != "" {
+			caddieBookingFee := getBookingCadieFeeSetting(body.PartnerUid, body.CourseUid, booking.GuestStyle, body.Hole)
+			addCaddieBookingFee(booking, caddieBookingFee.Fee, "Booking Caddie")
+		}
+	}()
 
 	return &booking, nil
 }
@@ -672,16 +681,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	guestStyle := ""
 	checkHoleChange := false
 
-	var caddie models.Caddie
-	var err error
-	if body.CaddieCode != "" {
-		caddie, err = cBooking.validateCaddie(db, prof.CourseUid, body.CaddieCode)
-		if err != nil {
-			response_message.InternalServerError(c, err.Error())
-			return
-		}
-	}
-
 	if body.HoleBooking > 0 {
 		booking.HoleBooking = body.HoleBooking
 	}
@@ -829,18 +828,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.NoteOfGo = body.NoteOfGo
 	}
 
-	// Update caddie
-	if body.CaddieCode != "" && booking.CaddieInfo.Code != body.CaddieCode {
-		cBooking.UpdateBookingCaddieCommon(db, body.PartnerUid, body.CourseUid, &booking, caddie)
-	} else {
-		if booking.CaddieId > 0 && body.CaddieCode == "" {
-			booking.CaddieId = 0
-			booking.CaddieInfo = model_booking.BookingCaddie{}
-			booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
-			booking.HasBookCaddie = false
-		}
-	}
-
 	if body.CustomerName != "" {
 		booking.CustomerName = body.CustomerName
 		booking.CustomerInfo.Name = body.CustomerName
@@ -863,6 +850,18 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		updateHole(c, &booking, body.Hole)
 	}
 
+	if body.CaddieCode != nil {
+		if errUpd := updateCaddieBooking(c, &booking, body); errUpd != nil {
+			return
+		}
+	}
+
+	if body.CaddieCheckIn != nil {
+		if errUpd := updateCaddieCheckIn(c, &booking, body); errUpd != nil {
+			return
+		}
+	}
+
 	// Update các thông tin khác trước
 	errUdpBook := booking.Update(db)
 	if errUdpBook != nil {
@@ -875,8 +874,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		if body.FeeInfo != nil {
 			handleAgencyPaid(booking, *body.FeeInfo)
 		}
-		// if validateAgencyFeeBeforUpdate(booking, body.FeeInfo) {
-		// }
 	}
 
 	// udp ok -> Tính lại giá
@@ -892,6 +889,69 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	res := getBagDetailFromBooking(db, bookLast)
 
 	okResponse(c, res)
+}
+
+func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking) error {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	if body.CaddieCheckIn != nil {
+		if *body.CaddieCheckIn != "" && *body.CaddieCheckIn != booking.CaddieInfo.Code {
+			caddieList := models.CaddieList{}
+			caddieList.CourseUid = booking.CourseUid
+			caddieList.CaddieCode = *body.CaddieCheckIn
+			caddieNew, err := caddieList.FindFirst(db)
+
+			if err != nil {
+				response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
+				return errors.New("Update Bag Failed!")
+			}
+
+			booking.CaddieId = caddieNew.Id
+			booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
+		} else {
+			booking.CaddieId = 0
+			booking.CaddieInfo = model_booking.BookingCaddie{}
+		}
+	}
+	return nil
+}
+
+func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking) error {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	if body.CaddieCode != nil {
+		if *body.CaddieCode != "" && *body.CaddieCode != booking.CaddieBooking {
+			caddieList := models.CaddieList{}
+			caddieList.CourseUid = booking.CourseUid
+			caddieList.CaddieCode = *body.CaddieCode
+			caddieNew, err := caddieList.FindFirst(db)
+
+			if err != nil {
+				response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
+				return errors.New("Update Bag Failed!")
+			}
+
+			booking.CaddieBooking = caddieNew.Code
+
+			if booking != nil {
+				caddieBookingFee := getBookingCadieFeeSetting(body.PartnerUid, body.CourseUid, booking.GuestStyle, body.Hole)
+				addCaddieBookingFee(*booking, caddieBookingFee.Fee, "Booking Caddie")
+			}
+		} else {
+			booking.CaddieBooking = *body.CaddieCode
+			bookingServiceItemsR := model_booking.BookingServiceItem{
+				PartnerUid: booking.PartnerUid,
+				CourseUid:  booking.CourseUid,
+				BillCode:   booking.BillCode,
+			}
+			list, _ := bookingServiceItemsR.FindAll(db)
+			for _, item := range list {
+				if item.ServiceType == constants.CADDIE_SETTING {
+					item.Delete(db)
+					break
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func updateHole(c *gin.Context, booking *model_booking.Booking, hole int) {
@@ -975,25 +1035,6 @@ func updateBag(c *gin.Context, booking *model_booking.Booking, body request.Upda
 		}()
 	}
 	return nil
-}
-
-/*
-Update booking caddie when create booking or update
-*/
-func (_ *CBooking) UpdateBookingCaddieCommon(db *gorm.DB, PartnerUid string, CourseUid string, booking *model_booking.Booking, caddie models.Caddie) {
-	booking.CaddieId = caddie.Id
-
-	booking.CaddieInfo = cloneToCaddieBooking(caddie)
-	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_IN
-
-	// Set has_book_caddie
-	if booking.BagStatus == constants.BAG_STATUS_BOOKING {
-		booking.HasBookCaddie = true
-	}
-
-	if errCad := caddie.Update(db); errCad != nil {
-		log.Println("err udp caddie", errCad.Error())
-	}
 }
 
 /*
