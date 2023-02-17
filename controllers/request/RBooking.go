@@ -154,7 +154,7 @@ type CreateBookingBody struct {
 	//Agency
 	AgencyId           int64                   `json:"agency_id"`
 	CustomerUid        string                  `json:"customer_uid"`
-	CaddieCode         string                  `json:"caddie_code"`
+	CaddieCode         *string                 `json:"caddie_code"`
 	BookingRestaurant  utils.BookingRestaurant `json:"booking_restaurant"`
 	BookingRetal       utils.BookingRental     `json:"booking_retal"`
 	BookingCode        string                  `json:"booking_code"`
@@ -164,7 +164,7 @@ type CreateBookingBody struct {
 	LockerNo           string                  `json:"locker_no"` // Locker mã số tủ gửi đồ
 	ReportNo           string                  `json:"report_no"` // Report No
 	IsPrivateBuggy     *bool                   `json:"is_private_buggy"`
-	FeeInfo            AgencyFeeInfo           `json:"fee_info"`
+	FeeInfo            *AgencyFeeInfo          `json:"fee_info"`
 	AgencyPaidAll      *bool                   `json:"agency_paid_all"`
 	BookMark           bool
 	BookFromOTA        bool
@@ -265,11 +265,11 @@ type CheckInBody struct {
 	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
 	CustomerName   string `json:"customer_name"`    // Player Name
 
-	MemberCardUid    string        `json:"member_card_uid"`     // Member Card
-	AgencyId         int64         `json:"agency_id"`           // Agency id
-	MemberUidOfGuest string        `json:"member_uid_of_guest"` // Member của Guest đến chơi cùng
-	FeeInfo          AgencyFeeInfo `json:"fee_info"`            // Golf Fee cho case agency
-	AgencyPaidAll    *bool         `json:"agency_paid_all"`
+	MemberCardUid    *string        `json:"member_card_uid"`
+	AgencyId         int64          `json:"agency_id"`           // Agency id
+	MemberUidOfGuest string         `json:"member_uid_of_guest"` // Member của Guest đến chơi cùng
+	FeeInfo          *AgencyFeeInfo `json:"fee_info"`            // Golf Fee cho case agency
+	AgencyPaidAll    *bool          `json:"agency_paid_all"`
 }
 
 //type AddRoundBody struct {
@@ -300,19 +300,19 @@ type MovingBookingBody struct {
 }
 
 type UpdateBooking struct {
-	BookingDate string `json:"booking_date"`                   // dd/mm/yyyy
-	CmsUser     string `json:"cms_user"`                       // Acc Operator Tạo (Bỏ lấy theo token)
-	PartnerUid  string `json:"partner_uid" binding:"required"` // Hang Golf
-	CourseUid   string `json:"course_uid" binding:"required"`  // San Golf
-	CourseType  string `json:"course_type"`
-	Bag         string `json:"bag"`          // Golf Bag
-	Hole        int    `json:"hole"`         // Số hố
-	HoleBooking int    `json:"hole_booking"` // Số hố khi booking
-	TeeType     string `json:"tee_type"`     // 1, 1A, 1B, 1C, 10, 10A, 10B (k required cái này vì có case checking k qua booking)
-	TeePath     string `json:"tee_path"`     // MORNING, NOON, NIGHT (k required cái này vì có case checking k qua booking)
-	TurnTime    string `json:"turn_time"`    // Ex: 16:26 (k required cái này vì có case checking k qua booking)
-	TeeTime     string `json:"tee_time"`     // Ex: 16:26 Tee time là thời gian tee off dự kiến (k required cái này vì có case checking k qua booking)
-	RowIndex    *int   `json:"row_index"`    // index trong Flight
+	BookingDate string  `json:"booking_date"`                   // dd/mm/yyyy
+	CmsUser     string  `json:"cms_user"`                       // Acc Operator Tạo (Bỏ lấy theo token)
+	PartnerUid  string  `json:"partner_uid" binding:"required"` // Hang Golf
+	CourseUid   string  `json:"course_uid" binding:"required"`  // San Golf
+	CourseType  string  `json:"course_type"`
+	Bag         *string `json:"bag"`          // Golf Bag
+	Hole        int     `json:"hole"`         // Số hố
+	HoleBooking int     `json:"hole_booking"` // Số hố khi booking
+	TeeType     string  `json:"tee_type"`     // 1, 1A, 1B, 1C, 10, 10A, 10B (k required cái này vì có case checking k qua booking)
+	TeePath     string  `json:"tee_path"`     // MORNING, NOON, NIGHT (k required cái này vì có case checking k qua booking)
+	TurnTime    string  `json:"turn_time"`    // Ex: 16:26 (k required cái này vì có case checking k qua booking)
+	TeeTime     string  `json:"tee_time"`     // Ex: 16:26 Tee time là thời gian tee off dự kiến (k required cái này vì có case checking k qua booking)
+	RowIndex    *int    `json:"row_index"`    // index trong Flight
 
 	// Guest booking
 	GuestStyle           string `json:"guest_style"`            // Guest Style
@@ -334,17 +334,18 @@ type UpdateBooking struct {
 	//Agency
 	AgencyId           int64                   `json:"agency_id"`
 	CustomerUid        string                  `json:"customer_uid"`
-	CaddieCode         string                  `json:"caddie_code"`
+	CaddieCheckIn      *string                 `json:"caddie_checkin"`
+	CaddieCode         *string                 `json:"caddie_code"`
 	BookingRestaurant  utils.BookingRestaurant `json:"booking_restaurant"`
 	BookingRetal       utils.BookingRental     `json:"booking_retal"`
 	BookingCode        string                  `json:"booking_code"`
 	BookingCodePartner string                  `json:"booking_code_partner"`
 	BookingSourceId    string                  `json:"booking_source_id"`
 	BookingOtaId       int64                   `json:"booking_ota_id"`
-	LockerNo           string                  `json:"locker_no"` // Locker mã số tủ gửi đồ
-	ReportNo           string                  `json:"report_no"` // Report No
+	LockerNo           *string                 `json:"locker_no"` // Locker mã số tủ gửi đồ
+	ReportNo           *string                 `json:"report_no"` // Report No
 	IsPrivateBuggy     *bool                   `json:"is_private_buggy"`
-	FeeInfo            AgencyFeeInfo           `json:"fee_info"`
+	FeeInfo            *AgencyFeeInfo          `json:"fee_info"`
 	AgencyPaidAll      *bool                   `json:"agency_paid_all"`
 	NoteOfBag          string                  `json:"note_of_bag" gorm:"type:varchar(500)"`    // Note of Bag
 	NoteOfGo           string                  `json:"note_of_go" gorm:"type:varchar(500)"`     // Note khi trong GO

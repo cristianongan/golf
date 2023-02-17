@@ -37,3 +37,7 @@ type ChangePassCmsUserBody struct {
 	OldPass string `json:"old_pass"  binding:"required"`
 	NewPass string `json:"new_pass"  binding:"required"`
 }
+
+type ResetPassCmsUserBody struct {
+	UserUid string `json:"user_uid"  binding:"required"`
+}

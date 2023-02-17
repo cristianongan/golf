@@ -119,6 +119,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/user/add", middlewares.AuthorizedCmsUserHandler(cCmsUser.CreateCmsUser))
 			cmsApiAuthorized.PUT("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.UpdateCmsUser))
 			cmsApiAuthorized.POST("/user/change-pass", middlewares.AuthorizedCmsUserHandler(cCmsUser.ChangePassCmsUser))
+			cmsApiAuthorized.POST("/user/reset-pass", middlewares.AuthorizedCmsUserHandler(cCmsUser.ResetPassCmsUser))
 			cmsApiAuthorized.DELETE("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.DeleteCmsUser))
 			cmsApiAuthorized.POST("/user/logout", middlewares.AuthorizedCmsUserHandler(cCmsUser.LogOut))
 
@@ -286,6 +287,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/booking/finish-bill", middlewares.AuthorizedCmsUserHandler(cBooking.FinishBill))                     // Ghi nhận bước thanh toán cuối cùng
 			cmsApiAuthorized.POST("/booking/lock-bill", middlewares.AuthorizedCmsUserHandler(cBooking.LockBill))                         // Lễ tân lock bill chờ thanh toán
 			cmsApiAuthorized.POST("/booking/undo-check-in", middlewares.AuthorizedCmsUserHandler(cBooking.UndoCheckIn))                  // Undo CheckIn
+			cmsApiAuthorized.POST("/booking/update-caddie-checkin", middlewares.AuthorizedCmsUserHandler(cBooking.UndoCheckIn))          // Undo CheckIn
 			// cmsApiAuthorized.GET("/booking/golf-fee", middlewares.AuthorizedCmsUserHandler(cBooking.GetGolfFeeInfoOfBag))
 
 			/// =================== Caddie Buggy In Out Bag ===================
@@ -322,6 +324,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Rounds ===================
 			cRound := new(controllers.CRound)
 			cmsApiAuthorized.POST("/booking/rounds/add", middlewares.AuthorizedCmsUserHandler(cRound.AddRound))
+			cmsApiAuthorized.POST("/booking/rounds/remove", middlewares.AuthorizedCmsUserHandler(cRound.RemoveRound))
 			cmsApiAuthorized.POST("/booking/rounds/change-guest-style", middlewares.AuthorizedCmsUserHandler(cRound.ChangeGuestyleOfRound))
 			cmsApiAuthorized.POST("/booking/rounds/split", middlewares.AuthorizedCmsUserHandler(cRound.SplitRound))
 			cmsApiAuthorized.POST("/booking/rounds/merge-all", middlewares.AuthorizedCmsUserHandler(cRound.MergeRound))
@@ -366,6 +369,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/course-operating/caddie/need-more", middlewares.AuthorizedCmsUserHandler(cCourseOperating.NeedMoreCaddie))   // Đổi caddie
 			cmsApiAuthorized.POST("/course-operating/caddie/delete-attach", middlewares.AuthorizedCmsUserHandler(cCourseOperating.DeleteAttach)) // Xoá caddie, buggy, flight
 			cmsApiAuthorized.GET("/course-operating/starting-sheet", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetStartingSheet))    // Get for starting sheet
+			cmsApiAuthorized.POST("/course-operating/undo-timeout", middlewares.AuthorizedCmsUserHandler(cCourseOperating.UndoTimeOut))
 
 			/// =================== + More Course Operating ===================
 			cmsApiAuthorized.POST("/course-operating/change-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.ChangeCaddie))
@@ -779,7 +783,7 @@ func NewRouter() *gin.Engine {
 
 			/// =================== Test ===================
 			cTest := new(controllers.CTest)
-			cmsApiAuthorized.GET("/test-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
+			cmsApiAuthorized.GET("/reload-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
 			cmsApiAuthorized.GET("/test-agency-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFeeAgency))
 			cmsApiAuthorized.POST("/test-func", middlewares.AuthorizedCmsUserHandler(cTest.TestFunc))
 			cmsApiAuthorized.GET("/test-fast-customer", middlewares.AuthorizedCmsUserHandler(cTest.TestFastCustomer))
@@ -791,6 +795,8 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/helper/log/fe", middlewares.AuthorizedCmsUserHandler(cHelper.AppLog))
 			cmsApiAuthorized.POST("/helper/admin/add-customer-user", middlewares.AuthorizedCmsUserHandler(cHelper.CreateAddCustomer)) // chỉ dùng cho import data
 			cmsApiAuthorized.POST("/helper/admin/add-member-card", middlewares.AuthorizedCmsUserHandler(cHelper.CreateMemberCard))    // Chỉ dùng cho import data
+			cmsApiAuthorized.POST("/helper/admin/add-fb", middlewares.AuthorizedCmsUserHandler(cHelper.CreateFB))                     // Chỉ dùng cho import data fb
+			cmsApiAuthorized.POST("/helper/admin/add-proshop", middlewares.AuthorizedCmsUserHandler(cHelper.CreateProshop))           // Chỉ dùng cho import data fb
 		}
 
 		// ----------------------------------------------------------

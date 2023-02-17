@@ -118,7 +118,7 @@ func (item *ProshopRequest) FindList(database *gorm.DB, page models.Page) ([]Pro
 		db = db.Where(query, "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%")
 	}
 
-	db = db.Joins("JOIN group_services ON proshops.group_code = group_services.group_code AND " +
+	db = db.Joins("LEFT JOIN group_services ON proshops.group_code = group_services.group_code AND " +
 		"proshops.partner_uid = group_services.partner_uid AND " +
 		"proshops.course_uid = group_services.course_uid")
 	db = db.Select("proshops.*, group_services.group_name")

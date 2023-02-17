@@ -45,7 +45,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 	if len(listGolfService) > 0 {
 		for index, v := range listGolfService {
 			// Check trạng thái bill
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_MANUAL {
 				// Add từ lễ tân thì k cần check
 				listServiceItems = append(listServiceItems, v)
 			} else {
@@ -830,9 +830,14 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 			roundToFindList := models.Round{BillCode: sub.BillCode}
 			listSubRound, _ := roundToFindList.FindAll(db)
 
+			subBookingR := Booking{
+				Model: models.Model{Uid: sub.BookingUid},
+			}
+			subBooking, _ := subBookingR.FindFirstByUId(db)
+
 			for _, round := range listSubRound {
 				if round.Index == 1 {
-					if !(len(sub.AgencyPaid) > 0 && sub.AgencyPaid[0].Fee > 0) && checkIsFirstRound > -1 {
+					if !subBooking.CheckAgencyPaidRound1() && checkIsFirstRound > -1 {
 						listRoundGolfFee = append(listRoundGolfFee, round)
 						subBagFee += round.GetAmountGolfFee()
 					}
@@ -866,6 +871,8 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 	// Get item for current Bag
 	// update lại lấy service items mới
 	buggyCaddieRentalFee := int64(0)
+	buggyCaddieRentalFeeOfSub := int64(0)
+
 	item.FindServiceItems(db)
 	for _, v := range item.ListServiceItems {
 		isNeedPay := false
@@ -873,7 +880,12 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 
 		if v.ServiceType == constants.BUGGY_SETTING || v.ServiceType == constants.CADDIE_SETTING {
 			isBuggyCaddieRental = true
-			buggyCaddieRentalFee += v.Amount
+
+			if v.BillCode != item.BillCode {
+				buggyCaddieRentalFeeOfSub += v.Amount
+			} else {
+				buggyCaddieRentalFee += v.Amount
+			}
 		}
 
 		if len(item.MainBags) > 0 {
@@ -902,7 +914,7 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 			}
 
 		} else {
-			if v.Bag != item.Bag {
+			if v.BillCode != item.BillCode {
 				// Tính giá service của sub
 				subBagFee += v.Amount
 			}
@@ -930,7 +942,7 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 		mushPay.MushPay = subBagFee
 	}
 
-	total := mushPay.TotalGolfFee + mushPay.TotalServiceItem + buggyCaddieRentalMushPay
+	total := mushPay.TotalGolfFee + mushPay.TotalServiceItem + buggyCaddieRentalMushPay + buggyCaddieRentalFeeOfSub
 	if total < 0 {
 		mushPay.MushPay = 0
 	} else {
@@ -1048,9 +1060,14 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 			roundToFindList := models.Round{BillCode: sub.BillCode}
 			listSubRound, _ := roundToFindList.FindAll(db)
 
+			subBookingR := Booking{
+				Model: models.Model{Uid: sub.BookingUid},
+			}
+			subBooking, _ := subBookingR.FindFirstByUId(db)
+
 			for _, round := range listSubRound {
 				if round.Index == 1 {
-					if !(len(sub.AgencyPaid) > 0 && sub.AgencyPaid[0].Fee > 0) && checkIsFirstRound > -1 {
+					if !subBooking.CheckAgencyPaidRound1() && checkIsFirstRound > -1 {
 						listRoundGolfFee = append(listRoundGolfFee, round)
 						subBagFee += round.GetAmountGolfFee()
 					}

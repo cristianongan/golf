@@ -106,7 +106,7 @@ func (item *ServiceCart) FindList(database *gorm.DB, page Page) ([]ServiceCart, 
 	}
 
 	if item.BillStatus == constants.RES_BILL_STATUS_SHOW {
-		db = db.Where("bill_status IN ?", []string{constants.RES_STATUS_PROCESS, constants.RES_BILL_STATUS_TRANSFER, constants.RES_STATUS_ORDER, constants.RES_BILL_STATUS_FINISH})
+		db = db.Where("bill_status IN ?", []string{constants.RES_STATUS_PROCESS, constants.RES_BILL_STATUS_TRANSFER, constants.RES_STATUS_ORDER, constants.RES_BILL_STATUS_FINISH, constants.RES_BILL_STATUS_OUT})
 	} else if item.BillStatus == constants.RES_BILL_STATUS_ACTIVE {
 		db = db.Where("bill_status IN ?", []string{constants.RES_STATUS_PROCESS, constants.RES_STATUS_DONE})
 	} else if item.BillStatus != "" {
@@ -117,12 +117,12 @@ func (item *ServiceCart) FindList(database *gorm.DB, page Page) ([]ServiceCart, 
 		db = db.Where("res_floor = ?", item.ResFloor)
 	}
 
-	if item.PlayerName != "" {
-		db = db.Where("player_name LIKE ?", "%"+item.PlayerName+"%")
-	}
+	// if item.PlayerName != "" {
+	// 	db = db.Where("player_name LIKE ?", "%"+item.PlayerName+"%")
+	// }
 
 	if item.GolfBag != "" {
-		db = db.Where("golf_bag LIKE ? OR bill_code LIKE ?", "%"+item.GolfBag+"%", "%"+item.GolfBag+"%")
+		db = db.Where("golf_bag LIKE ? OR bill_code LIKE ? OR player_name LIKE ?", "%"+item.GolfBag+"%", "%"+item.GolfBag+"%", "%"+item.GolfBag+"%")
 	}
 
 	if item.FromService != 0 {

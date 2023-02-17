@@ -132,7 +132,7 @@ func (item *FoodBeverageRequest) FindList(database *gorm.DB, page models.Page) (
 		db = db.Where("food_beverages.fb_code IN (?)", item.FBCodeList)
 	}
 
-	db = db.Joins("JOIN group_services ON food_beverages.group_code = group_services.group_code AND " +
+	db = db.Joins("LEFT JOIN group_services ON food_beverages.group_code = group_services.group_code AND " +
 		"food_beverages.partner_uid = group_services.partner_uid AND " +
 		"food_beverages.course_uid = group_services.course_uid")
 	db = db.Select("food_beverages.*, group_services.group_name")

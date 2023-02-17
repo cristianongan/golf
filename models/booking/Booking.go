@@ -72,10 +72,11 @@ type Booking struct {
 	CmsUserLog string `json:"cms_user_log" gorm:"type:varchar(200)"` // Cms User Log
 
 	// Caddie Id
-	CaddieStatus string        `json:"caddie_status" gorm:"type:varchar(50);index"` // Caddie status: IN/OUT/INIT
-	CaddieId     int64         `json:"caddie_id" gorm:"index"`
-	CaddieInfo   BookingCaddie `json:"caddie_info,omitempty" gorm:"type:json"` // Caddie Info
-	CaddieHoles  int           `json:"caddie_holes"`                           // Lưu lại
+	CaddieStatus  string        `json:"caddie_status" gorm:"type:varchar(50);index"` // Caddie status: IN/OUT/INIT
+	CaddieBooking string        `json:"caddie_booking" gorm:"type:varchar(50)"`
+	CaddieId      int64         `json:"caddie_id" gorm:"index"`
+	CaddieInfo    BookingCaddie `json:"caddie_info,omitempty" gorm:"type:json"` // Caddie Info
+	CaddieHoles   int           `json:"caddie_holes"`                           // Lưu lại
 
 	// Buggy Id
 	BuggyId   int64        `json:"buggy_id" gorm:"index"`
@@ -1289,4 +1290,19 @@ func (item *Booking) FindReportBuggyForGuestStyle(database *gorm.DB, page models
 	}
 
 	return list, total, db.Error
+}
+
+func (item *Booking) UpdateRoundForBooking(database *gorm.DB) {
+	bookingListRequest := BookingList{
+		BillCode: item.BillCode,
+	}
+	bookingList := []Booking{}
+	db, _, _ := bookingListRequest.FindAllBookingList(database)
+	db.Find(&bookingList)
+
+	db1 := datasources.GetDatabaseWithPartner(item.PartnerUid)
+	for _, booking := range bookingList {
+		booking.Bag = item.Bag
+		booking.Update(db1)
+	}
 }
