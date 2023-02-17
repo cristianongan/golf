@@ -369,6 +369,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/course-operating/caddie/need-more", middlewares.AuthorizedCmsUserHandler(cCourseOperating.NeedMoreCaddie))   // Đổi caddie
 			cmsApiAuthorized.POST("/course-operating/caddie/delete-attach", middlewares.AuthorizedCmsUserHandler(cCourseOperating.DeleteAttach)) // Xoá caddie, buggy, flight
 			cmsApiAuthorized.GET("/course-operating/starting-sheet", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetStartingSheet))    // Get for starting sheet
+			cmsApiAuthorized.POST("/course-operating/undo-timeout", middlewares.AuthorizedCmsUserHandler(cCourseOperating.UndoTimeOut))
 
 			/// =================== + More Course Operating ===================
 			cmsApiAuthorized.POST("/course-operating/change-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.ChangeCaddie))
