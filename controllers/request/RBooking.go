@@ -342,8 +342,8 @@ type UpdateBooking struct {
 	BookingCodePartner string                  `json:"booking_code_partner"`
 	BookingSourceId    string                  `json:"booking_source_id"`
 	BookingOtaId       int64                   `json:"booking_ota_id"`
-	LockerNo           string                  `json:"locker_no"` // Locker mã số tủ gửi đồ
-	ReportNo           string                  `json:"report_no"` // Report No
+	LockerNo           *string                 `json:"locker_no"` // Locker mã số tủ gửi đồ
+	ReportNo           *string                 `json:"report_no"` // Report No
 	IsPrivateBuggy     *bool                   `json:"is_private_buggy"`
 	FeeInfo            *AgencyFeeInfo          `json:"fee_info"`
 	AgencyPaidAll      *bool                   `json:"agency_paid_all"`
