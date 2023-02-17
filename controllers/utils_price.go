@@ -305,8 +305,19 @@ sub bag nếu có
 func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUser) {
 
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	booking.CmsUser = prof.UserName
-	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
+	if prof.UserName != "" {
+		booking.CmsUser = prof.UserName
+		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
+	}
+
+	booking.UpdatePriceDetailCurrentBag(db)
+	booking.UpdateMushPay(db)
+	errUdp := booking.Update(db)
+	if errUdp != nil {
+		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
+	} else {
+		go handlePayment(db, booking)
+	}
 
 	if booking.MainBags != nil && len(booking.MainBags) > 0 {
 		// Nếu bag có Main Bag
@@ -329,49 +340,37 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 		} else {
 			go handlePayment(db, mainBook)
 		}
-	} else {
-		if booking.SubBags != nil && len(booking.SubBags) > 0 {
-			// Udp orther data
-			booking.Update(db)
-			// Udp lại giá sub bag mới nhất nếu có sub bag
-			// Udp cho case sửa main bag pay
-			for _, v := range booking.SubBags {
-				subBookR := model_booking.Booking{}
-				subBookR.Uid = v.BookingUid
-				subBook, errFSub := subBookR.FindFirstByUId(db)
-				if errFSub == nil {
-					// TODO: optimal và check xử lý udp cho subbag fail
-					subBook.UpdatePriceDetailCurrentBag(db)
-					subBook.UpdateMushPay(db)
-					errUdpSubBag := subBook.Update(db)
-					if errUdpSubBag != nil {
-						log.Println("updatePriceWithServiceItem errUdpSubBag", errUdpSubBag.Error())
-					} else {
-						go handlePayment(db, subBook)
-					}
-				} else {
-					log.Println("updatePriceWithServiceItem errFSub", errFSub.Error())
-				}
-			}
-
-			booking.UpdatePriceDetailCurrentBag(db)
-			booking.UpdateMushPay(db)
-			errFMB := booking.Update(db)
-
-			if errFMB == nil {
-				go handlePayment(db, booking)
-			}
-
-			return
-		}
 	}
-	booking.UpdatePriceDetailCurrentBag(db)
-	booking.UpdateMushPay(db)
-	errUdp := booking.Update(db)
-	if errUdp != nil {
-		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
-	} else {
-		go handlePayment(db, booking)
+
+	if booking.SubBags != nil && len(booking.SubBags) > 0 {
+		// Udp lại giá sub bag mới nhất nếu có sub bag
+		// Udp cho case sửa main bag pay
+		for _, v := range booking.SubBags {
+			subBookR := model_booking.Booking{}
+			subBookR.Uid = v.BookingUid
+			subBook, errFSub := subBookR.FindFirstByUId(db)
+			if errFSub == nil {
+				// TODO: optimal và check xử lý udp cho subbag fail
+				subBook.UpdatePriceDetailCurrentBag(db)
+				subBook.UpdateMushPay(db)
+				errUdpSubBag := subBook.Update(db)
+				if errUdpSubBag != nil {
+					log.Println("updatePriceWithServiceItem errUdpSubBag", errUdpSubBag.Error())
+				} else {
+					go handlePayment(db, subBook)
+				}
+			} else {
+				log.Println("updatePriceWithServiceItem errFSub", errFSub.Error())
+			}
+		}
+
+		booking.UpdatePriceDetailCurrentBag(db)
+		booking.UpdateMushPay(db)
+		errFMB := booking.Update(db)
+
+		if errFMB == nil {
+			go handlePayment(db, booking)
+		}
 	}
 }
 

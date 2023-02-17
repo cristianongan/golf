@@ -7,14 +7,13 @@ import (
 
 // -------- Booking Sub Bag ------
 type BookingSubBag struct {
-	GolfBag     string                         `json:"golf_bag"` // Có thể bỏ
-	BookingUid  string                         `json:"booking_uid"`
-	PlayerName  string                         `json:"player_name"`
-	BillCode    string                         `json:"bill_code"`
-	BookingCode string                         `json:"booking_code"`
-	CmsUser     string                         `json:"cms_user"`
-	CmsUserLog  string                         `json:"cms_user_log"`
-	AgencyPaid  ListBookingAgencyPayForBagData `json:"sub_agency_paid,omitempty"`
+	GolfBag     string `json:"golf_bag"` // Có thể bỏ
+	BookingUid  string `json:"booking_uid"`
+	PlayerName  string `json:"player_name"`
+	BillCode    string `json:"bill_code"`
+	BookingCode string `json:"booking_code"`
+	CmsUser     string `json:"cms_user"`
+	CmsUserLog  string `json:"cms_user_log"`
 }
 
 type GolfHoleFee struct {

@@ -118,6 +118,10 @@ func (item *BookingServiceItem) FindAll(database *gorm.DB) (ListBookingServiceIt
 		db = db.Where("service_bill = ?", item.ServiceBill)
 	}
 
+	if item.Type != "" {
+		db = db.Where("type = ?", item.Type)
+	}
+
 	db = db.Find(&list)
 	return list, db.Error
 }
@@ -356,6 +360,11 @@ func (item *BookingServiceItem) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")
 	}
+	return db.Delete(item).Error
+}
+
+func (item *BookingServiceItem) DeleteWhere(database *gorm.DB) error {
+	db := database.Model(BookingServiceItem{})
 	return db.Delete(item).Error
 }
 

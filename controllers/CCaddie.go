@@ -551,4 +551,10 @@ func assignCaddieUpdate(caddieRequest *models.Caddie, body request.UpdateCaddieB
 	if body.ContractStatus != nil {
 		caddieRequest.ContractStatus = *body.ContractStatus
 	}
+	if body.CurrentStatus != nil {
+		caddieRequest.CurrentStatus = *body.CurrentStatus
+	}
+	if body.IsWorking != nil {
+		caddieRequest.IsWorking = *body.IsWorking
+	}
 }

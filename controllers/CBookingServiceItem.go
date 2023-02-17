@@ -165,8 +165,6 @@ func (_ *CBookingServiceItem) DelBookingServiceItemToBag(c *gin.Context, prof mo
 
 	serviceItem := model_booking.BookingServiceItem{}
 	serviceItem.Id = bookingServiceId
-	serviceItem.PartnerUid = prof.PartnerUid
-	serviceItem.CourseUid = prof.CourseUid
 	errF := serviceItem.FindFirst(db)
 	if errF != nil {
 		response_message.BadRequest(c, errF.Error())

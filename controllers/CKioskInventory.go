@@ -160,3 +160,40 @@ func (_ CKioskInventory) AddItemToInventory(c *gin.Context, prof models.CmsUser)
 
 	okResponse(c, list)
 }
+
+func (_ CKioskInventory) UpdateInventory(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	var data request.AddItemToInventoryBody
+	if err := c.ShouldBind(&data); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	param := kiosk_inventory.InventoryItemRequest{
+		ServiceId: data.ServiceId,
+	}
+	inventory := kiosk_inventory.InventoryItem{}
+
+	list, _, _ := inventory.FindAll(db, param)
+
+	for _, item := range list {
+		// if index == 1 {
+		// 	break
+		// }
+		itemInfo, err := getItemInfoInService(db, item.PartnerUid, item.CourseUid, item.Code)
+
+		if err == nil {
+			goodsService := model_service.GroupServices{
+				GroupCode: item.ItemInfo.GroupCode,
+			}
+			errFindGoodsService := goodsService.FindFirst(db)
+			if errFindGoodsService != nil {
+				return
+			}
+			item.ItemInfo = itemInfo
+			item.ItemInfo.GroupName = goodsService.GroupName
+			item.Update(db)
+		}
+	}
+	okRes(c)
+}

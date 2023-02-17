@@ -590,7 +590,7 @@ là cấu hình bảng giá theo thứ
 */
 func GetCurrentDayStrWithMap() string {
 	day := strconv.FormatInt(int64(GetLocalUnixTime().Weekday())+1, 10)
-	log.Println("GetCurrentDayStrWithMap ", day)
+	// log.Println("GetCurrentDayStrWithMap ", day)
 	return day
 }
 
@@ -601,7 +601,7 @@ func GetDayOfWeek(strTime string) string {
 	}
 
 	day := strconv.FormatInt(int64(date.Weekday())+1, 10)
-	log.Println("GetCurrentDayStrWithMap ", day)
+	// log.Println("GetCurrentDayStrWithMap ", day)
 	return day
 }
 
@@ -671,8 +671,10 @@ func RemoveIndex(s []int, index int) []int {
 }
 
 func GetTimeNow() time.Time {
-	// hours, _ := GetDateFromTimestampWithFormat(time.Now().Unix(), constants.HOUR_FORMAT_1)
-	// time, _ := time.Parse(constants.DATE_FORMAT_4, "08/02/2023 "+hours)
+	// hours, _ := GetDateFromTimestampWithFormat(time.Now().Add(time.Hour*time.Duration(-7)+
+	// 	time.Minute*time.Duration(0)+
+	// 	time.Second*time.Duration(0)).Unix(), constants.HOUR_FORMAT_1)
+	// time, _ := time.Parse(constants.DATE_FORMAT_4, "11/02/2023 "+hours)
 	return time.Now()
 }
 

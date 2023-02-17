@@ -1352,16 +1352,17 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 		return kiosk_inventory.ItemInfo{}, errors.New("Item Code Empty!")
 	}
 
+	code := strings.ReplaceAll(itemCode, " ", "")
 	proshop := model_service.Proshop{
 		PartnerUid: partnerUid,
 		CourseUid:  courseUid,
-		ProShopId:  itemCode,
+		ProShopId:  code,
 	}
 
 	if errFindProshop := proshop.FindFirst(db); errFindProshop == nil {
 		return kiosk_inventory.ItemInfo{
 			GroupCode: proshop.GroupCode,
-			ItemName:  proshop.Name,
+			ItemName:  proshop.VieName,
 			Unit:      proshop.Unit,
 			GroupType: proshop.Type,
 		}, nil
@@ -1374,7 +1375,7 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 	if err := fb.FindFirst(db); err == nil {
 		return kiosk_inventory.ItemInfo{
 			GroupCode: fb.GroupCode,
-			ItemName:  fb.Name,
+			ItemName:  fb.VieName,
 			Unit:      fb.Unit,
 			GroupType: fb.Type,
 		}, nil
@@ -1387,7 +1388,7 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 	if err := rental.FindFirst(db); err == nil {
 		return kiosk_inventory.ItemInfo{
 			GroupCode: rental.GroupCode,
-			ItemName:  rental.Name,
+			ItemName:  rental.VieName,
 			Unit:      rental.Unit,
 			GroupType: rental.Type,
 		}, nil
@@ -1815,4 +1816,67 @@ func getIdGroup(s []models.CaddieGroup, e string) int64 {
 		}
 	}
 	return 0
+}
+func getBuggyFeeSetting(PartnerUid, CourseUid, GuestStyle string, Hole int) models.BuggyFeeItemSettingResponse {
+	db := datasources.GetDatabaseWithPartner(PartnerUid)
+	buggyFeeSettingR := models.BuggyFeeSetting{
+		PartnerUid: PartnerUid,
+		CourseUid:  CourseUid,
+	}
+
+	listBuggySetting, _, _ := buggyFeeSettingR.FindAll(db)
+	buggyFeeSetting := models.BuggyFeeSetting{}
+	for _, item := range listBuggySetting {
+		if item.Status == constants.STATUS_ENABLE {
+			buggyFeeSetting = item
+			break
+		}
+	}
+
+	buggyFeeItemSettingR := models.BuggyFeeItemSetting{
+		PartnerUid: PartnerUid,
+		CourseUid:  CourseUid,
+		GuestStyle: GuestStyle,
+		SettingId:  buggyFeeSetting.Id,
+	}
+	listSetting, _, _ := buggyFeeItemSettingR.FindAll(db)
+	buggyFeeItemSetting := models.BuggyFeeItemSetting{}
+	for _, item := range listSetting {
+		if item.Status == constants.STATUS_ENABLE {
+			buggyFeeItemSetting = item
+			break
+		}
+	}
+
+	rentalFee := utils.GetFeeFromListFee(buggyFeeItemSetting.RentalFee, Hole)
+	privateCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.PrivateCarFee, Hole)
+	oddCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.OddCarFee, Hole)
+
+	return models.BuggyFeeItemSettingResponse{
+		RentalFee:     rentalFee,
+		PrivateCarFee: privateCarFee,
+		OddCarFee:     oddCarFee,
+	}
+}
+
+func getBookingCadieFeeSetting(PartnerUid, CourseUid, GuestStyle string, Hole int) models.BookingCaddyFeeSettingRes {
+	db := datasources.GetDatabaseWithPartner(PartnerUid)
+	// Get Buggy Fee
+	bookingCaddieFeeSettingR := models.BookingCaddyFeeSetting{
+		PartnerUid: PartnerUid,
+		CourseUid:  CourseUid,
+	}
+
+	listBookingBuggyCaddySetting, _, _ := bookingCaddieFeeSettingR.FindList(db, models.Page{}, false)
+	bookingCaddieFeeSetting := models.BookingCaddyFeeSetting{}
+	for _, item := range listBookingBuggyCaddySetting {
+		if item.Status == constants.STATUS_ENABLE {
+			bookingCaddieFeeSetting = item
+		}
+	}
+
+	return models.BookingCaddyFeeSettingRes{
+		Fee:  bookingCaddieFeeSetting.Fee,
+		Name: bookingCaddieFeeSetting.Name,
+	}
 }

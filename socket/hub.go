@@ -47,7 +47,7 @@ func (h *Hub) Run() {
 		select {
 		case client := <-h.Register:
 			log.Println("[SOCKET] Hub Run Register")
-			log.Println("[SOCKET] len clients", len(h.Clients))
+			// log.Println("[SOCKET] len clients", len(h.Clients))
 			h.Clients[client] = true
 		case client := <-h.Unregister:
 			log.Println("[SOCKET] Hub Run Unregister")
@@ -56,7 +56,7 @@ func (h *Hub) Run() {
 				close(client.send)
 			}
 		case message := <-h.Broadcast:
-			log.Println("[SOCKET] Hub Run message := <-h.Broadcast len clients", len(h.Clients))
+			// log.Println("[SOCKET] Hub Run message := <-h.Broadcast len clients", len(h.Clients))
 			for client := range h.Clients {
 				select {
 				case client.send <- message:

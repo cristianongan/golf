@@ -19,6 +19,7 @@ type BookingList struct {
 	CaddieUid             string
 	CaddieName            string
 	CaddieCode            string
+	CardId                string
 	InitType              string
 	AgencyId              int64
 	IsAgency              string
@@ -93,6 +94,10 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 
 	if item.CaddieCode != "" {
 		db = db.Where("caddie_info->'$.code' COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CaddieCode+"%")
+	}
+
+	if item.CardId != "" {
+		db = db.Where("card_id COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CardId+"%")
 	}
 
 	if item.CustomerUid != "" {

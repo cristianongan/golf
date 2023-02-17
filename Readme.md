@@ -64,7 +64,7 @@ $ docker-compose --compatibility up
 git checkout master
 git pull
 git checkout -b feature/sync
-git push -f http://dungnt3:x4zxmsTfqUF7k624@gitsys.vnpay.local/cloud-vnpay-ci/dvtt/vndelivery/golf-cms.git feature/sync
+git push -f http://@gitsys.vnpay.local/cloud-vnpay-ci/dvtt/vndelivery/golf-cms.git feature/sync
 ```
 
 ## Deploy code on vnpay ()

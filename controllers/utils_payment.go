@@ -281,18 +281,48 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		bookingAgencyPayment.Create(db)
 	}
 
-	go func() {
-		// create bag payment
-		// Ghi nhận só tiền agency thanh toán cho bag đó
-		booking.AgencyPaid = bookingAgencyPayment.FeeData
-		booking.UpdatePriceDetailCurrentBag(db)
-		booking.UpdateMushPay(db)
-		booking.Update(db)
+	// go func() {
+	// create bag payment
+	// Ghi nhận só tiền agency thanh toán cho bag đó
+	booking.AgencyPaid = bookingAgencyPayment.FeeData
 
-		handleSinglePayment(db, booking)
-		//Upd lại số tiền thanh toán của agency
-		handleAgencyPayment(db, booking)
-	}()
+	// update giá cho bag(main or sub nếu có)
+	updatePriceWithServiceItem(booking, models.CmsUser{})
+	// }()
+}
+
+func addBuggyFee(booking model_booking.Booking, fee int64, name string) {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	serviceItem := model_booking.BookingServiceItem{
+		BillCode:   booking.BillCode,
+		PlayerName: booking.CustomerName,
+		BookingUid: booking.Uid,
+	}
+	serviceItem.Name = name
+	serviceItem.UnitPrice = fee
+	serviceItem.Quality = 1
+	serviceItem.Amount = fee
+	serviceItem.Type = constants.GOLF_SERVICE_RENTAL
+	serviceItem.ServiceType = constants.BUGGY_SETTING
+	serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
+	serviceItem.Create(db)
+}
+
+func addCaddieBookingFee(booking model_booking.Booking, fee int64, name string) {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	serviceItem := model_booking.BookingServiceItem{
+		BillCode:   booking.BillCode,
+		PlayerName: booking.CustomerName,
+		BookingUid: booking.Uid,
+	}
+	serviceItem.Name = name
+	serviceItem.UnitPrice = fee
+	serviceItem.Quality = 1
+	serviceItem.Amount = fee
+	serviceItem.Type = constants.GOLF_SERVICE_RENTAL
+	serviceItem.ServiceType = constants.CADDIE_SETTING
+	serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
+	serviceItem.Create(db)
 }
 
 func updateBookingAgencyPaymentForAllFee(booking model_booking.Booking) {
