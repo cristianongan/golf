@@ -51,10 +51,10 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 		return
 	}
 
-	// if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
-	// 	response_message.BadRequest(c, "Bag status invalid")
-	// 	return
-	// }
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
 
 	if *booking.LockBill {
 		response_message.BadRequest(c, "Bag lock")
@@ -209,6 +209,13 @@ func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsU
 		return
 	}
 
+	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
+
+		response_message.BadRequest(c, "Bill status invalid")
+		return
+	}
+
 	// validate golf bag
 	booking := model_booking.Booking{}
 	booking.Uid = serviceCart.BookingUid
@@ -360,6 +367,11 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 	booking.Uid = serviceCart.BookingUid
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
 		return
 	}
 
@@ -535,18 +547,23 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
-	// 	serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
+	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
 
-	// 	response_message.BadRequest(c, "Bill status invalid")
-	// 	return
-	// }
+		response_message.BadRequest(c, "Bill status invalid")
+		return
+	}
 
 	// validate golf bag
 	booking := model_booking.Booking{}
 	booking.Uid = serviceCart.BookingUid
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
 		return
 	}
 
@@ -640,6 +657,13 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 
 	if err := serviceCart.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find res order"+err.Error())
+		return
+	}
+
+	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
+
+		response_message.BadRequest(c, "Bill status invalid")
 		return
 	}
 
@@ -988,10 +1012,10 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 			return
 		}
 
-		// if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
-		// 	response_message.BadRequest(c, "Bag status invalid")
-		// 	return
-		// }
+		if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+			response_message.BadRequest(c, "Bag status invalid")
+			return
+		}
 
 		// add infor service cart
 		serviceCart.GolfBag = body.GolfBag
@@ -1334,10 +1358,10 @@ func (_ CRestaurantOrder) UpdateRestaurantBooking(c *gin.Context, prof models.Cm
 			return
 		}
 
-		// if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
-		// 	response_message.BadRequest(c, "Bag status invalid")
-		// 	return
-		// }
+		if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+			response_message.BadRequest(c, "Bag status invalid")
+			return
+		}
 
 		// add infor service cart
 		serviceCart.GolfBag = body.GolfBag
@@ -1544,10 +1568,10 @@ func (_ CRestaurantOrder) ConfrimRestaurantBooking(c *gin.Context, prof models.C
 			return
 		}
 
-		// if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
-		// 	response_message.BadRequest(c, "Bag status invalid")
-		// 	return
-		// }
+		if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+			response_message.BadRequest(c, "Bag status invalid")
+			return
+		}
 
 		// add infor service cart
 		serviceCart.GolfBag = body.GolfBag
@@ -1679,10 +1703,10 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-	// 	response_message.BadRequest(c, "Bag status invalid")
-	// 	return
-	// }
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
 
 	// validate cart code
 	sourceServiceCart := models.ServiceCart{}

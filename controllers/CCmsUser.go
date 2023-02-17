@@ -543,8 +543,14 @@ func (_ *CCmsUser) ChangePassCmsUser(c *gin.Context, prof models.CmsUser) {
 Reset pass Cms User
 */
 func (_ *CCmsUser) ResetPassCmsUser(c *gin.Context, prof models.CmsUser) {
+	body := request.ResetPassCmsUserBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
 	user := models.CmsUser{}
-	user.Uid = prof.Uid
+	user.Uid = body.UserUid
 	errF := user.FindFirst()
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
