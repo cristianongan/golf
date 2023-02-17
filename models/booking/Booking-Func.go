@@ -881,7 +881,7 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 		if v.ServiceType == constants.BUGGY_SETTING || v.ServiceType == constants.CADDIE_SETTING {
 			isBuggyCaddieRental = true
 
-			if v.Bag != item.Bag {
+			if v.BillCode != item.BillCode {
 				buggyCaddieRentalFeeOfSub += v.Amount
 			} else {
 				buggyCaddieRentalFee += v.Amount
@@ -914,7 +914,7 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 			}
 
 		} else {
-			if v.Bag != item.Bag {
+			if v.BillCode != item.BillCode {
 				// Tính giá service của sub
 				subBagFee += v.Amount
 			}
