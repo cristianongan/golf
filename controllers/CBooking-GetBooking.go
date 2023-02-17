@@ -709,6 +709,17 @@ func (cBooking *CBooking) GetBagNotCheckOut(c *gin.Context, prof models.CmsUser)
 
 	bookings := setParamGetBookingRequest(form)
 
+	if form.BookingDate != "" {
+		bookings.BookingDate = form.BookingDate
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+		bookings.BookingDate = toDayDate
+	}
+
 	db, total, err := bookings.FindListRoundOfBagPlaying(db, page)
 
 	if err != nil {
