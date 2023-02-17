@@ -894,19 +894,21 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking) error {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	if body.CaddieCheckIn != nil {
-		if *body.CaddieCheckIn != "" && *body.CaddieCheckIn != booking.CaddieInfo.Code {
-			caddieList := models.CaddieList{}
-			caddieList.CourseUid = booking.CourseUid
-			caddieList.CaddieCode = *body.CaddieCheckIn
-			caddieNew, err := caddieList.FindFirst(db)
+		if *body.CaddieCheckIn != "" {
+			if *body.CaddieCheckIn != booking.CaddieInfo.Code {
+				caddieList := models.CaddieList{}
+				caddieList.CourseUid = booking.CourseUid
+				caddieList.CaddieCode = *body.CaddieCheckIn
+				caddieNew, err := caddieList.FindFirst(db)
 
-			if err != nil {
-				response_message.BadRequestFreeMessage(c, "Caddie Not Found")
-				return errors.New("Caddie Not Found!")
+				if err != nil {
+					response_message.BadRequestFreeMessage(c, "Caddie Not Found")
+					return errors.New("Caddie Not Found!")
+				}
+
+				booking.CaddieId = caddieNew.Id
+				booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 			}
-
-			booking.CaddieId = caddieNew.Id
-			booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 		} else {
 			booking.CaddieId = 0
 			booking.CaddieInfo = model_booking.BookingCaddie{}
@@ -931,6 +933,10 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 				}
 
 				booking.CaddieBooking = caddieNew.Code
+				if booking.CheckInTime == 0 {
+					booking.CaddieId = caddieNew.Id
+					booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
+				}
 
 				if booking != nil {
 					caddieBookingFee := getBookingCadieFeeSetting(body.PartnerUid, body.CourseUid, booking.GuestStyle, body.Hole)
