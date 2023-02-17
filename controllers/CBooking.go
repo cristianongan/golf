@@ -901,8 +901,8 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 			caddieNew, err := caddieList.FindFirst(db)
 
 			if err != nil {
-				response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
-				return errors.New("Update Bag Failed!")
+				response_message.BadRequestFreeMessage(c, "Caddie Not Found")
+				return errors.New("Caddie Not Found!")
 			}
 
 			booking.CaddieId = caddieNew.Id
@@ -918,25 +918,24 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking) error {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	if body.CaddieCode != nil {
-		if *body.CaddieCode != "" && *body.CaddieCode != booking.CaddieBooking {
+		if *body.CaddieCode != "" {
+			if *body.CaddieCode != booking.CaddieBooking {
+				caddieList := models.CaddieList{}
+				caddieList.CourseUid = booking.CourseUid
+				caddieList.CaddieCode = *body.CaddieCode
+				caddieNew, err := caddieList.FindFirst(db)
 
-			addFee := booking.CaddieBooking == ""
+				if err != nil {
+					response_message.BadRequestFreeMessage(c, "Caddie Not Found")
+					return errors.New("Caddie Not Found!")
+				}
 
-			caddieList := models.CaddieList{}
-			caddieList.CourseUid = booking.CourseUid
-			caddieList.CaddieCode = *body.CaddieCode
-			caddieNew, err := caddieList.FindFirst(db)
+				booking.CaddieBooking = caddieNew.Code
 
-			if err != nil {
-				response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
-				return errors.New("Update Bag Failed!")
-			}
-
-			booking.CaddieBooking = caddieNew.Code
-
-			if booking != nil && addFee {
-				caddieBookingFee := getBookingCadieFeeSetting(body.PartnerUid, body.CourseUid, booking.GuestStyle, body.Hole)
-				addCaddieBookingFee(*booking, caddieBookingFee.Fee, "Booking Caddie")
+				if booking != nil {
+					caddieBookingFee := getBookingCadieFeeSetting(body.PartnerUid, body.CourseUid, booking.GuestStyle, body.Hole)
+					addCaddieBookingFee(*booking, caddieBookingFee.Fee, "Booking Caddie")
+				}
 			}
 		} else {
 			booking.CaddieBooking = *body.CaddieCode
