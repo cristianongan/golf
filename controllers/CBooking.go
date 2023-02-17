@@ -1276,6 +1276,18 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Xóa all trước khi add mới
+	serviceItemR := model_booking.BookingServiceItem{
+		Type:       constants.BOOKING_OTHER_FEE,
+		BillCode:   booking.BillCode,
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+	}
+	list, _ := serviceItemR.FindAll(db)
+	for _, item := range list {
+		item.Delete(db)
+	}
+
 	// add cái mới
 	for _, v := range body.OtherPaids {
 		serviceItem := model_booking.BookingServiceItem{
@@ -1311,8 +1323,6 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	updatePriceWithServiceItem(booking, prof)
-
 	booking.OtherPaids = body.OtherPaids
 
 	booking.CmsUser = prof.UserName
@@ -1324,6 +1334,7 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
+	updatePriceWithServiceItem(booking, prof)
 
 	res := getBagDetailFromBooking(db, booking)
 

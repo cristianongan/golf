@@ -844,6 +844,7 @@ func (_ *CCourseOperating) DeleteAttach(c *gin.Context, prof models.CmsUser) {
 		booking.FlightId = 0
 	}
 
+	booking.BagStatus = constants.BAG_STATUS_WAITING
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 	errUdp := booking.Update(db)
 	if errUdp != nil {
@@ -1504,4 +1505,8 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	}
 
 	okResponse(c, newBooking)
+}
+
+func (cCourseOperating CCourseOperating) UndoTimeOut(c *gin.Context, prof models.CmsUser) {
+
 }
