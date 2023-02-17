@@ -411,13 +411,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 	}
 
-	go func() {
-		if body.CaddieCode != nil && *body.CaddieCode != "" {
-			caddieBookingFee := getBookingCadieFeeSetting(body.PartnerUid, body.CourseUid, booking.GuestStyle, body.Hole)
-			addCaddieBookingFee(booking, caddieBookingFee.Fee, "Booking Caddie")
-		}
-	}()
-
 	return &booking, nil
 }
 
@@ -937,26 +930,9 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 					booking.CaddieId = caddieNew.Id
 					booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 				}
-
-				if booking != nil {
-					caddieBookingFee := getBookingCadieFeeSetting(body.PartnerUid, body.CourseUid, booking.GuestStyle, body.Hole)
-					addCaddieBookingFee(*booking, caddieBookingFee.Fee, "Booking Caddie")
-				}
 			}
 		} else {
 			booking.CaddieBooking = *body.CaddieCode
-			// bookingServiceItemsR := model_booking.BookingServiceItem{
-			// 	PartnerUid: booking.PartnerUid,
-			// 	CourseUid:  booking.CourseUid,
-			// 	BillCode:   booking.BillCode,
-			// }
-			// list, _ := bookingServiceItemsR.FindAll(db)
-			// for _, item := range list {
-			// 	if item.ServiceType == constants.CADDIE_SETTING {
-			// 		item.Delete(db)
-			// 		break
-			// 	}
-			// }
 		}
 	}
 	return nil
@@ -1233,6 +1209,13 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	// Create payment info
 	go handlePayment(db, booking)
+
+	go func() {
+		if booking.CaddieBooking != "" {
+			caddieBookingFee := getBookingCadieFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, body.Hole)
+			addCaddieBookingFee(booking, caddieBookingFee.Fee, "Booking Caddie")
+		}
+	}()
 
 	// Update lại round còn thiếu bag
 	cRound := CRound{}

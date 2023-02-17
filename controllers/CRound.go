@@ -505,3 +505,58 @@ func (cRound CRound) UpdateGolfFeeInBooking(booking *model_booking.Booking, db *
 		go handlePayment(db, bookingMain)
 	}
 }
+
+func (cRound CRound) RemoveRound(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	var body request.ChangeGuestyleRound
+
+	if err := c.BindJSON(&body); err != nil {
+		response_message.BadRequest(c, "Body format type error")
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.Uid = body.BookingUid
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
+		return
+	}
+
+	round := models.Round{}
+	round.Id = body.RoundId
+	round.BillCode = booking.BillCode
+
+	if errRound := round.FindFirst(db); errRound != nil {
+		response_message.BadRequestDynamicKey(c, "ROUND_NOT_FOUND", "")
+		return
+	}
+
+	if errDel := round.Delete(db); errDel != nil {
+		response_message.BadRequestDynamicKey(c, "ROUND_NOT_FOUND", "")
+		return
+	}
+
+	// Xóa booking đầu tiên
+	oldBooking := model_booking.Booking{}
+	oldBooking.Bag = booking.Bag
+	oldBooking.PartnerUid = booking.PartnerUid
+	oldBooking.CourseUid = booking.CourseUid
+	oldBooking.BookingDate = booking.BookingDate
+	oldBooking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
+
+	if err := oldBooking.FindFirst(db); err != nil {
+		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
+		return
+	}
+	oldBooking.Delete(db)
+
+	booking.AddedRound = setBoolForCursor(false)
+	booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
+
+	booking.Update(db)
+
+	updatePriceWithServiceItem(booking, prof)
+	res := getBagDetailFromBooking(db, booking)
+
+	okResponse(c, res)
+}
