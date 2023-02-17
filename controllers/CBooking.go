@@ -708,13 +708,13 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	if body.LockerNo != "" {
-		booking.LockerNo = body.LockerNo
+	if body.LockerNo != nil {
+		booking.LockerNo = *body.LockerNo
 		go createLocker(db, booking)
 	}
 
-	if body.ReportNo != "" {
-		booking.ReportNo = body.ReportNo
+	if body.ReportNo != nil {
+		booking.ReportNo = *body.ReportNo
 	}
 
 	if body.CustomerBookingName != "" {
