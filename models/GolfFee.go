@@ -143,7 +143,7 @@ func (item *GolfFee) GetGuestStyleOnDay(database *gorm.DB) (GolfFee, error) {
 		for i, gf := range list {
 			if gf.ApplyTime != "" {
 				if idxTemp < 0 {
-					if utils.CheckDow(gf.Dow, gf.ApplyTime, utils.GetTimeNow()) {
+					if utils.CheckDow(gf.Dow, gf.ApplyTime, utils.GetLocalUnixTime()) {
 						idxTemp = i
 					}
 				}
@@ -160,7 +160,7 @@ func (item *GolfFee) GetGuestStyleOnDay(database *gorm.DB) (GolfFee, error) {
 
 	for i, golfFee_ := range list {
 		if idxTemp < 0 {
-			if utils.CheckDow(golfFee_.Dow, "", utils.GetTimeNow()) {
+			if utils.CheckDow(golfFee_.Dow, "", utils.GetLocalUnixTime()) {
 				idxTemp = i
 			}
 		}

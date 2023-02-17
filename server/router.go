@@ -324,6 +324,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Rounds ===================
 			cRound := new(controllers.CRound)
 			cmsApiAuthorized.POST("/booking/rounds/add", middlewares.AuthorizedCmsUserHandler(cRound.AddRound))
+			cmsApiAuthorized.POST("/booking/rounds/remove", middlewares.AuthorizedCmsUserHandler(cRound.RemoveRound))
 			cmsApiAuthorized.POST("/booking/rounds/change-guest-style", middlewares.AuthorizedCmsUserHandler(cRound.ChangeGuestyleOfRound))
 			cmsApiAuthorized.POST("/booking/rounds/split", middlewares.AuthorizedCmsUserHandler(cRound.SplitRound))
 			cmsApiAuthorized.POST("/booking/rounds/merge-all", middlewares.AuthorizedCmsUserHandler(cRound.MergeRound))
@@ -368,6 +369,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/course-operating/caddie/need-more", middlewares.AuthorizedCmsUserHandler(cCourseOperating.NeedMoreCaddie))   // Đổi caddie
 			cmsApiAuthorized.POST("/course-operating/caddie/delete-attach", middlewares.AuthorizedCmsUserHandler(cCourseOperating.DeleteAttach)) // Xoá caddie, buggy, flight
 			cmsApiAuthorized.GET("/course-operating/starting-sheet", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetStartingSheet))    // Get for starting sheet
+			cmsApiAuthorized.POST("/course-operating/undo-timeout", middlewares.AuthorizedCmsUserHandler(cCourseOperating.UndoTimeOut))
 
 			/// =================== + More Course Operating ===================
 			cmsApiAuthorized.POST("/course-operating/change-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.ChangeCaddie))
@@ -694,6 +696,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/restaurant/confrim-booking/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.ConfrimRestaurantBooking))
 			cmsApiAuthorized.DELETE("/restaurant/item/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteItemOrder))
 			cmsApiAuthorized.DELETE("/restaurant/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteRestaurantOrder))
+			cmsApiAuthorized.DELETE("/restaurant/delete/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteOrder))
 
 			cRestaurantSetup := new(controllers.CRestaurantSetup)
 			cmsApiAuthorized.GET("/restaurant/set-up/list", middlewares.AuthorizedCmsUserHandler(cRestaurantSetup.GetRestaurantSetupList))
@@ -780,7 +783,7 @@ func NewRouter() *gin.Engine {
 
 			/// =================== Test ===================
 			cTest := new(controllers.CTest)
-			cmsApiAuthorized.GET("/test-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
+			cmsApiAuthorized.GET("/reload-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFee))
 			cmsApiAuthorized.GET("/test-agency-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFeeAgency))
 			cmsApiAuthorized.POST("/test-func", middlewares.AuthorizedCmsUserHandler(cTest.TestFunc))
 			cmsApiAuthorized.GET("/test-fast-customer", middlewares.AuthorizedCmsUserHandler(cTest.TestFastCustomer))

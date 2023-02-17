@@ -411,13 +411,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 	}
 
-	go func() {
-		if body.CaddieCode != nil && *body.CaddieCode != "" {
-			caddieBookingFee := getBookingCadieFeeSetting(body.PartnerUid, body.CourseUid, booking.GuestStyle, body.Hole)
-			addCaddieBookingFee(booking, caddieBookingFee.Fee, "Booking Caddie")
-		}
-	}()
-
 	return &booking, nil
 }
 
@@ -937,26 +930,9 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 					booking.CaddieId = caddieNew.Id
 					booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 				}
-
-				if booking != nil {
-					caddieBookingFee := getBookingCadieFeeSetting(body.PartnerUid, body.CourseUid, booking.GuestStyle, body.Hole)
-					addCaddieBookingFee(*booking, caddieBookingFee.Fee, "Booking Caddie")
-				}
 			}
 		} else {
 			booking.CaddieBooking = *body.CaddieCode
-			// bookingServiceItemsR := model_booking.BookingServiceItem{
-			// 	PartnerUid: booking.PartnerUid,
-			// 	CourseUid:  booking.CourseUid,
-			// 	BillCode:   booking.BillCode,
-			// }
-			// list, _ := bookingServiceItemsR.FindAll(db)
-			// for _, item := range list {
-			// 	if item.ServiceType == constants.CADDIE_SETTING {
-			// 		item.Delete(db)
-			// 		break
-			// 	}
-			// }
 		}
 	}
 	return nil
@@ -1234,6 +1210,14 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	// Create payment info
 	go handlePayment(db, booking)
 
+	go func() {
+		if booking.CaddieBooking != "" {
+			caddieBookingFee := getBookingCadieFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, body.Hole)
+			addCaddieBookingFee(booking, caddieBookingFee.Fee, "Booking Caddie")
+			updatePriceWithServiceItem(booking, prof)
+		}
+	}()
+
 	// Update lại round còn thiếu bag
 	cRound := CRound{}
 	go cRound.UpdateBag(booking, db)
@@ -1276,10 +1260,10 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.OtherPaids == nil || len(body.OtherPaids) == 0 {
-		response_message.BadRequest(c, errors.New("other paid empty").Error())
-		return
-	}
+	// if body.OtherPaids == nil || len(body.OtherPaids) == 0 {
+	// 	response_message.BadRequest(c, errors.New("other paid empty").Error())
+	// 	return
+	// }
 
 	booking := model_booking.Booking{}
 	booking.Uid = body.BookingUid
@@ -1390,6 +1374,61 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	isCanCheckOut := false
+	errMessage := "ok"
+
+	if booking.BagStatus == constants.BAG_STATUS_TIMEOUT || booking.BagStatus == constants.BAG_STATUS_WAITING {
+		isCanCheckOut = true
+
+		// Check service items
+		// Find bag detail
+		if isCanCheckOut {
+			// Check tiep service items
+			bagDetail := getBagDetailFromBooking(db, booking)
+			if bagDetail.ListServiceItems != nil && len(bagDetail.ListServiceItems) > 0 {
+				for _, v1 := range bagDetail.ListServiceItems {
+					serviceCart := models.ServiceCart{}
+					serviceCart.Id = v1.ServiceBill
+
+					errSC := serviceCart.FindFirst(db)
+					if errSC != nil {
+						log.Println("FindFristServiceCart errSC", errSC.Error())
+						return
+					}
+
+					// Check trong MainBag có trả mới add
+					if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+						// ok
+					} else {
+						if serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH ||
+							serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
+							serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS ||
+							serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
+							// ok
+						} else {
+							if v1.BillCode != booking.BillCode {
+								errMessage = "Dich vụ của sub-bag chưa đủ điều kiện được checkout"
+							} else {
+								errMessage = "Dich vụ của bag chưa đủ điều kiện được checkout"
+							}
+
+							isCanCheckOut = false
+							break
+						}
+					}
+				}
+			}
+		}
+	} else {
+		isCanCheckOut = false
+		errMessage = "Trạng thái bag không được checkout"
+	}
+
+	if !isCanCheckOut {
+		response_message.InternalServerError(c, errMessage)
+		return
+	}
+
 	booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
 	booking.CheckOutTime = utils.GetTimeNow().Unix()
 
@@ -1454,7 +1493,10 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 					if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
 						// ok
 					} else {
-						if serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH || serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
+						if serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH ||
+							serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
+							serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS ||
+							serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
 							// ok
 						} else {
 							if v1.BillCode != bag.BillCode {

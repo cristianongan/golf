@@ -36,6 +36,7 @@ func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 	booking.PartnerUid = form.PartnerUid
 	booking.CourseUid = form.CourseUid
 	booking.Bag = form.Bag
+	booking.BookingDate = form.BookingDate
 
 	errF := booking.FindFirst(db)
 	if errF != nil {
@@ -43,7 +44,15 @@ func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(booking, models.CmsUser{})
+	// Get lai booking mới nhất trong DB
+	bookLast := model_booking.Booking{}
+	bookLast.Uid = booking.Uid
+	bookLast.FindFirst(db)
+
+	res := getBagDetailFromBooking(db, bookLast)
+
+	okResponse(c, res)
 }
 
 func (cBooking *CTest) TestFeeAgency(c *gin.Context, prof models.CmsUser) {
