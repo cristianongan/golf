@@ -150,7 +150,15 @@ func runCreateCaddieWorkingSlot() {
 			log.Println("Find all caddie group err", err.Error())
 		}
 
-		caddieCodes := GetCaddieCode(listCaddies)
+		listCaddiesPart, err := caddies.FindAllCaddieGroup(db, constants.CADDIE_CONTRACT_STATUS_PARTTIME, dataGroupWorking)
+
+		if err != nil {
+			log.Println("Find all caddie group err", err.Error())
+		}
+
+		caddieMerges := append(listCaddies, listCaddiesPart...)
+
+		caddieCodes := GetCaddieCode(caddieMerges)
 
 		// Lấy data xếp nốt
 		var applyDate string
@@ -185,7 +193,15 @@ func runCreateCaddieWorkingSlot() {
 			log.Println("Find all caddie group err", err.Error())
 		}
 
-		caddieCodes := GetCaddieCode(listCaddies)
+		listCaddiesPart, err := caddies.FindAllCaddieGroup(db, constants.CADDIE_CONTRACT_STATUS_PARTTIME, dataGroupWorking)
+
+		if err != nil {
+			log.Println("Find all caddie group err", err.Error())
+		}
+
+		caddieMerges := append(listCaddies, listCaddiesPart...)
+
+		caddieCodes := GetCaddieCode(caddieMerges)
 
 		// Lấy data xếp nốt
 		var applyDate string
