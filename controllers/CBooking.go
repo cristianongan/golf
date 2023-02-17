@@ -1438,7 +1438,10 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 					if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
 						// ok
 					} else {
-						if serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH || serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
+						if serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH ||
+							serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
+							serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS ||
+							serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
 							// ok
 						} else {
 							if v1.BillCode != bag.BillCode {
