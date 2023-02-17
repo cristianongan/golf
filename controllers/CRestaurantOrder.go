@@ -562,6 +562,11 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
 	if body.Quantity > 0 {
 		// validate res item
 		restaurantItem := models.RestaurantItem{}
