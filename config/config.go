@@ -252,3 +252,10 @@ func GetIsOpenSocket() bool {
 func GetCcuServer() int {
 	return config.GetInt("ccu_server")
 }
+
+/*
+ P: Vnpay@123
+*/
+func GetResetP() string {
+	return config.GetString("reset_p")
+}
