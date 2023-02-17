@@ -945,18 +945,18 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 			}
 		} else {
 			booking.CaddieBooking = *body.CaddieCode
-			bookingServiceItemsR := model_booking.BookingServiceItem{
-				PartnerUid: booking.PartnerUid,
-				CourseUid:  booking.CourseUid,
-				BillCode:   booking.BillCode,
-			}
-			list, _ := bookingServiceItemsR.FindAll(db)
-			for _, item := range list {
-				if item.ServiceType == constants.CADDIE_SETTING {
-					item.Delete(db)
-					break
-				}
-			}
+			// bookingServiceItemsR := model_booking.BookingServiceItem{
+			// 	PartnerUid: booking.PartnerUid,
+			// 	CourseUid:  booking.CourseUid,
+			// 	BillCode:   booking.BillCode,
+			// }
+			// list, _ := bookingServiceItemsR.FindAll(db)
+			// for _, item := range list {
+			// 	if item.ServiceType == constants.CADDIE_SETTING {
+			// 		item.Delete(db)
+			// 		break
+			// 	}
+			// }
 		}
 	}
 	return nil
@@ -979,68 +979,76 @@ func updateHole(c *gin.Context, booking *model_booking.Booking, hole int) {
 func updateBag(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking) error {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 
-	if body.Bag != "" && booking.Bag != body.Bag {
-		booking.Bag = body.Bag
-		//Check duplicated
-		isDuplicated, errDupli := booking.IsDuplicated(db, false, true)
-		if isDuplicated {
-			if errDupli != nil {
-				response_message.InternalServerErrorWithKey(c, errDupli.Error(), "DUPLICATE_BAG")
-				return errDupli
+	if body.Bag != nil {
+		if *body.Bag != "" {
+			if booking.Bag != *body.Bag {
+				booking.Bag = *body.Bag
+				//Check duplicated
+				isDuplicated, errDupli := booking.IsDuplicated(db, false, true)
+				if isDuplicated {
+					if errDupli != nil {
+						response_message.InternalServerErrorWithKey(c, errDupli.Error(), "DUPLICATE_BAG")
+						return errDupli
+					}
+					response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+					return errors.New("Update Bag Failed!")
+				}
+
+				if len(booking.MainBags) > 0 {
+					response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
+					return errors.New("Update Bag Failed!")
+				}
+
+				if len(booking.SubBags) > 0 {
+					response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
+					return errors.New("Update Bag Failed!")
+				}
+
+				bookingServiceItemsR := model_booking.BookingServiceItem{
+					PartnerUid: booking.PartnerUid,
+					CourseUid:  booking.CourseUid,
+					BillCode:   booking.BillCode,
+				}
+				list, _ := bookingServiceItemsR.FindAll(db)
+
+				hasUpdateBag := true
+				listItem := []model_booking.BookingServiceItem{}
+				for _, item := range list {
+					if item.ServiceType == constants.BUGGY_SETTING || item.ServiceType == constants.CADDIE_SETTING {
+						listItem = append(listItem, item)
+					} else {
+						hasUpdateBag = false
+					}
+				}
+				if !hasUpdateBag {
+					response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
+					return errors.New("Update Bag Failed!")
+				}
+
+				// Cập nhật lại info Bag
+				booking.UpdateBagGolfFee()
+				booking.UpdateRoundForBooking(db)
+
+				go func() {
+					for _, item := range listItem {
+						item.Bag = booking.Bag
+						item.Update(db)
+					}
+					roundR := models.Round{
+						BillCode: booking.BillCode,
+					}
+					listRound, _ := roundR.FindAll(db)
+					for _, round := range listRound {
+						round.Bag = booking.Bag
+						round.Update(db)
+					}
+				}()
 			}
-			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-			return errors.New("Update Bag Failed!")
-		}
-
-		if len(booking.MainBags) > 0 {
-			response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
-			return errors.New("Update Bag Failed!")
-		}
-
-		if len(booking.SubBags) > 0 {
-			response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
-			return errors.New("Update Bag Failed!")
-		}
-
-		bookingServiceItemsR := model_booking.BookingServiceItem{
-			PartnerUid: booking.PartnerUid,
-			CourseUid:  booking.CourseUid,
-			BillCode:   booking.BillCode,
-		}
-		list, _ := bookingServiceItemsR.FindAll(db)
-
-		hasUpdateBag := true
-		listItem := []model_booking.BookingServiceItem{}
-		for _, item := range list {
-			if item.ServiceType == constants.BUGGY_SETTING || item.ServiceType == constants.CADDIE_SETTING {
-				listItem = append(listItem, item)
-			} else {
-				hasUpdateBag = false
+		} else {
+			if booking.CheckInTime == 0 {
+				booking.Bag = *body.Bag
 			}
 		}
-		if !hasUpdateBag {
-			response_message.BadRequestFreeMessage(c, "Update Bag Failed!")
-			return errors.New("Update Bag Failed!")
-		}
-
-		// Cập nhật lại info Bag
-		booking.UpdateBagGolfFee()
-		booking.UpdateRoundForBooking(db)
-
-		go func() {
-			for _, item := range listItem {
-				item.Bag = booking.Bag
-				item.Update(db)
-			}
-			roundR := models.Round{
-				BillCode: booking.BillCode,
-			}
-			listRound, _ := roundR.FindAll(db)
-			for _, round := range listRound {
-				round.Bag = booking.Bag
-				round.Update(db)
-			}
-		}()
 	}
 	return nil
 }
