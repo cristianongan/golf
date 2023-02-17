@@ -945,18 +945,18 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 			}
 		} else {
 			booking.CaddieBooking = *body.CaddieCode
-			bookingServiceItemsR := model_booking.BookingServiceItem{
-				PartnerUid: booking.PartnerUid,
-				CourseUid:  booking.CourseUid,
-				BillCode:   booking.BillCode,
-			}
-			list, _ := bookingServiceItemsR.FindAll(db)
-			for _, item := range list {
-				if item.ServiceType == constants.CADDIE_SETTING {
-					item.Delete(db)
-					break
-				}
-			}
+			// bookingServiceItemsR := model_booking.BookingServiceItem{
+			// 	PartnerUid: booking.PartnerUid,
+			// 	CourseUid:  booking.CourseUid,
+			// 	BillCode:   booking.BillCode,
+			// }
+			// list, _ := bookingServiceItemsR.FindAll(db)
+			// for _, item := range list {
+			// 	if item.ServiceType == constants.CADDIE_SETTING {
+			// 		item.Delete(db)
+			// 		break
+			// 	}
+			// }
 		}
 	}
 	return nil
