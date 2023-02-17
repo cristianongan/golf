@@ -119,6 +119,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/user/add", middlewares.AuthorizedCmsUserHandler(cCmsUser.CreateCmsUser))
 			cmsApiAuthorized.PUT("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.UpdateCmsUser))
 			cmsApiAuthorized.POST("/user/change-pass", middlewares.AuthorizedCmsUserHandler(cCmsUser.ChangePassCmsUser))
+			cmsApiAuthorized.POST("/user/reset-pass", middlewares.AuthorizedCmsUserHandler(cCmsUser.ResetPassCmsUser))
 			cmsApiAuthorized.DELETE("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.DeleteCmsUser))
 			cmsApiAuthorized.POST("/user/logout", middlewares.AuthorizedCmsUserHandler(cCmsUser.LogOut))
 
@@ -286,6 +287,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/booking/finish-bill", middlewares.AuthorizedCmsUserHandler(cBooking.FinishBill))                     // Ghi nhận bước thanh toán cuối cùng
 			cmsApiAuthorized.POST("/booking/lock-bill", middlewares.AuthorizedCmsUserHandler(cBooking.LockBill))                         // Lễ tân lock bill chờ thanh toán
 			cmsApiAuthorized.POST("/booking/undo-check-in", middlewares.AuthorizedCmsUserHandler(cBooking.UndoCheckIn))                  // Undo CheckIn
+			cmsApiAuthorized.POST("/booking/update-caddie-checkin", middlewares.AuthorizedCmsUserHandler(cBooking.UndoCheckIn))          // Undo CheckIn
 			// cmsApiAuthorized.GET("/booking/golf-fee", middlewares.AuthorizedCmsUserHandler(cBooking.GetGolfFeeInfoOfBag))
 
 			/// =================== Caddie Buggy In Out Bag ===================
