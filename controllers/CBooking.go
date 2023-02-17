@@ -1374,6 +1374,61 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	isCanCheckOut := false
+	errMessage := "ok"
+
+	if booking.BagStatus == constants.BAG_STATUS_TIMEOUT || booking.BagStatus == constants.BAG_STATUS_WAITING {
+		isCanCheckOut = true
+
+		// Check service items
+		// Find bag detail
+		if isCanCheckOut {
+			// Check tiep service items
+			bagDetail := getBagDetailFromBooking(db, booking)
+			if bagDetail.ListServiceItems != nil && len(bagDetail.ListServiceItems) > 0 {
+				for _, v1 := range bagDetail.ListServiceItems {
+					serviceCart := models.ServiceCart{}
+					serviceCart.Id = v1.ServiceBill
+
+					errSC := serviceCart.FindFirst(db)
+					if errSC != nil {
+						log.Println("FindFristServiceCart errSC", errSC.Error())
+						return
+					}
+
+					// Check trong MainBag có trả mới add
+					if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+						// ok
+					} else {
+						if serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH ||
+							serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
+							serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS ||
+							serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
+							// ok
+						} else {
+							if v1.BillCode != booking.BillCode {
+								errMessage = "Dich vụ của sub-bag chưa đủ điều kiện được checkout"
+							} else {
+								errMessage = "Dich vụ của bag chưa đủ điều kiện được checkout"
+							}
+
+							isCanCheckOut = false
+							break
+						}
+					}
+				}
+			}
+		}
+	} else {
+		isCanCheckOut = false
+		errMessage = "Trạng thái bag không được checkout"
+	}
+
+	if !isCanCheckOut {
+		response_message.InternalServerError(c, errMessage)
+		return
+	}
+
 	booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
 	booking.CheckOutTime = utils.GetTimeNow().Unix()
 
