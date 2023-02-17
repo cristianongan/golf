@@ -1259,10 +1259,10 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if body.OtherPaids == nil || len(body.OtherPaids) == 0 {
-		response_message.BadRequest(c, errors.New("other paid empty").Error())
-		return
-	}
+	// if body.OtherPaids == nil || len(body.OtherPaids) == 0 {
+	// 	response_message.BadRequest(c, errors.New("other paid empty").Error())
+	// 	return
+	// }
 
 	booking := model_booking.Booking{}
 	booking.Uid = body.BookingUid
