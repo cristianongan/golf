@@ -787,8 +787,9 @@ func NewRouter() *gin.Engine {
 			cHelper := new(controllers.CHelper)
 			cmsApiAuthorized.POST("/helper/log/fe", middlewares.AuthorizedCmsUserHandler(cHelper.AppLog))
 			cmsApiAuthorized.POST("/helper/admin/add-customer-user", middlewares.AuthorizedCmsUserHandler(cHelper.CreateAddCustomer)) // chỉ dùng cho import data
-			cmsApiAuthorized.POST("/helper/admin/add-member-card", middlewares.AuthorizedCmsUserHandler(cHelper.CreateMemberCard))    // Chỉ dùng cho import data proshop
+			cmsApiAuthorized.POST("/helper/admin/add-member-card", middlewares.AuthorizedCmsUserHandler(cHelper.CreateMemberCard))    // Chỉ dùng cho import data
 			cmsApiAuthorized.POST("/helper/admin/add-fb", middlewares.AuthorizedCmsUserHandler(cHelper.CreateFB))                     // Chỉ dùng cho import data fb
+			cmsApiAuthorized.POST("/helper/admin/add-proshop", middlewares.AuthorizedCmsUserHandler(cHelper.CreateProshop))           // Chỉ dùng cho import data fb
 		}
 
 		// ----------------------------------------------------------

@@ -127,10 +127,11 @@ type ProshopT struct {
 	ProshopId   string  `json:"proshop_id"`
 	AccountCode string  `json:"account_code"`
 	Name        string  `json:"name"`
-	Price       float64 `json:"exp_date"`
+	Price       float64 `json:"price"`
 	Unit        string  `json:"unit"`
 	Type        string  `json:"type"`
 	GroupCode   string  `json:"group_code"`
+	VieName     string  `json:"vie_name"`
 }
 
 type ListProshopT []ProshopT
@@ -161,6 +162,7 @@ func (_ *CHelper) CreateProshop(c *gin.Context, prof models.CmsUser) {
 			ProShopId:   v.ProshopId,
 			AccountCode: v.AccountCode,
 			Name:        v.Name,
+			VieName:     v.VieName,
 			Price:       v.Price,
 			Unit:        v.Unit,
 			Type:        v.Type,
@@ -178,7 +180,9 @@ type FBT struct {
 	FBCode      string  `json:"fb_code"`
 	AccountCode string  `json:"account_code"`
 	Name        string  `json:"name"`
-	Price       float64 `json:"exp_date"`
+	EnglishName string  `json:"english_name"`
+	VieName     string  `json:"vie_name"`
+	Price       float64 `json:"price"`
 	Unit        string  `json:"unit"`
 	Type        string  `json:"type"`
 	GroupCode   string  `json:"group_code"`
@@ -212,6 +216,8 @@ func (_ *CHelper) CreateFB(c *gin.Context, prof models.CmsUser) {
 			FBCode:      v.FBCode,
 			AccountCode: v.AccountCode,
 			Name:        v.Name,
+			EnglishName: v.EnglishName,
+			VieName:     v.VieName,
 			Price:       v.Price,
 			Unit:        v.Unit,
 			Type:        v.Type,
