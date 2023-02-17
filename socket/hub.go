@@ -60,7 +60,7 @@ func (h *Hub) Run() {
 			for client := range h.Clients {
 				select {
 				case client.send <- message:
-					log.Println("[SOCKET] Hub Run client.send <- message ", string(message))
+					// log.Println("[SOCKET] Hub Run client.send <- message ", string(message))
 				default:
 					log.Println("[SOCKET] Hub Run default")
 					close(client.send)

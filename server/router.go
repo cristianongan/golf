@@ -696,6 +696,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/restaurant/confrim-booking/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.ConfrimRestaurantBooking))
 			cmsApiAuthorized.DELETE("/restaurant/item/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteItemOrder))
 			cmsApiAuthorized.DELETE("/restaurant/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteRestaurantOrder))
+			cmsApiAuthorized.DELETE("/restaurant/delete/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteOrder))
 
 			cRestaurantSetup := new(controllers.CRestaurantSetup)
 			cmsApiAuthorized.GET("/restaurant/set-up/list", middlewares.AuthorizedCmsUserHandler(cRestaurantSetup.GetRestaurantSetupList))

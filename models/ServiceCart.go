@@ -4,6 +4,7 @@ import (
 	"start/constants"
 	"start/utils"
 
+	"github.com/pkg/errors"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -61,6 +62,13 @@ func (item *ServiceCart) FindFirst(db *gorm.DB) error {
 func (item *ServiceCart) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	return db.Save(item).Error
+}
+
+func (item *ServiceCart) Delete(db *gorm.DB) error {
+	if item.Id == 0 {
+		return errors.New("Primary key is undefined!")
+	}
+	return db.Delete(item).Error
 }
 
 func (item *ServiceCart) FindList(database *gorm.DB, page Page) ([]ServiceCart, int64, error) {
