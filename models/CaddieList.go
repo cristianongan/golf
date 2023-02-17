@@ -157,7 +157,7 @@ func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB) ([]Caddie
 	db.Not("status = ?", constants.STATUS_DELETED)
 	db.Where("is_working = 1")
 
-	db.Preload("GroupInfo").Debug().Find(&list)
+	db.Preload("GroupInfo").Find(&list)
 
 	return list, int64(len(list)), db.Error
 }
