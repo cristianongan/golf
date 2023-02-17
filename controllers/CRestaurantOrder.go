@@ -360,6 +360,13 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
+
+		response_message.BadRequest(c, "Bill status invalid")
+		return
+	}
+
 	// validate golf bag
 	booking := model_booking.Booking{}
 	booking.PartnerUid = body.PartnerUid
