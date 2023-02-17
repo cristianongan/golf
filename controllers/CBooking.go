@@ -919,6 +919,9 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	if body.CaddieCode != nil {
 		if *body.CaddieCode != "" && *body.CaddieCode != booking.CaddieBooking {
+
+			addFee := booking.CaddieBooking == ""
+
 			caddieList := models.CaddieList{}
 			caddieList.CourseUid = booking.CourseUid
 			caddieList.CaddieCode = *body.CaddieCode
@@ -931,7 +934,7 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 
 			booking.CaddieBooking = caddieNew.Code
 
-			if booking != nil {
+			if booking != nil && addFee {
 				caddieBookingFee := getBookingCadieFeeSetting(body.PartnerUid, body.CourseUid, booking.GuestStyle, body.Hole)
 				addCaddieBookingFee(*booking, caddieBookingFee.Fee, "Booking Caddie")
 			}
