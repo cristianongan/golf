@@ -135,7 +135,8 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, hole int, c *gin.Co
 		}
 	}
 
-	log.Println("LockTurn-weekday:", weekday)
+	log.Println("LockTurn-BookingDate: ", body.BookingDate, " LockTurn-weekday: ", weekday)
+	log.Println("LockTurn-listSettingDetail: ", len(listSettingDetail))
 	turnTimeH := 2
 	bookSetting := model_booking.BookingSetting{}
 
@@ -146,6 +147,7 @@ func (_ *CLockTeeTime) LockTurn(body request.CreateLockTurn, hole int, c *gin.Co
 		}
 	}
 
+	log.Println("LockTurn-bookSetting: ", bookSetting.TurnLength)
 	currentTeeTimeDate, _ := utils.ConvertHourToTime(body.TeeTime)
 	teeList := []string{}
 	teeType := fmt.Sprint(body.TeeType, body.CourseType)
