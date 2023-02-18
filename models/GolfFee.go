@@ -431,3 +431,18 @@ func (item *GolfFee) FindFirstWithCusType(database *gorm.DB) error {
 
 	return db.First(item).Error
 }
+
+func (item *GolfFee) FindAll(database *gorm.DB) ([]GolfFee, error) {
+	db := database.Model(GolfFee{})
+	list := []GolfFee{}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	err := db.Find(&list).Error
+	return list, err
+}

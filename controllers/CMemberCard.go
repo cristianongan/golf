@@ -149,6 +149,24 @@ func (_ *CMemberCard) GetListMemberCard(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Find list Golf Fee
+	golfFee := models.GolfFee{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+
+	listFee, errGF := golfFee.FindAll(db)
+	if errGF == nil && len(listFee) > 0 {
+		for i, v := range list {
+			for j := 0; j < len(listFee); j++ {
+				if listFee[j].GuestStyle == v["guest_style"] {
+					list[i]["guest_style_name"] = listFee[j].GuestStyleName
+					break
+				}
+			}
+		}
+	}
+
 	res := map[string]interface{}{
 		"total": total,
 		"data":  list,
