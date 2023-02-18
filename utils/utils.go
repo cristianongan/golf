@@ -316,7 +316,7 @@ func CheckDow(dow, hour string, timeCheck time.Time) bool {
 	}
 
 	list := strings.Split(dow, "")
-	log.Println("Check Dow ", list, len(list))
+	// log.Println("Check Dow ", list, len(list))
 
 	if len(list) == 0 {
 		return false
