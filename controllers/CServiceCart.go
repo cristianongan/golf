@@ -390,7 +390,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT || booking.BagStatus != constants.BAG_STATUS_CHECK_OUT {
+	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
 		response_message.BadRequest(c, "Bag status invalid")
 		return
 	}
