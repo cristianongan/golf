@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"math"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -655,8 +656,29 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
+		// Update amount
+		if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
+			amountDiscontOld := int64(math.Floor(float64((int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice) / 100)))
+			amountDiscontNew := int64(math.Floor(float64((int64(body.Quantity) * serviceCartItem.UnitPrice) / 100)))
+
+			serviceCart.Amount += amountDiscontOld - amountDiscontNew
+		} else if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
+			var amountDiscont int64
+
+			amountRaw := (int64(body.Quantity) * serviceCartItem.UnitPrice) - serviceCartItem.DiscountValue
+
+			if amountRaw > 0 {
+				serviceCart.Amount = serviceCart.Amount + serviceCartItem.DiscountValue - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+				amountDiscont = amountRaw
+			} else {
+				amountDiscont = 0
+			}
+			serviceCart.Amount += amountDiscont
+		} else {
+			serviceCart.Amount += (int64(body.Quantity) * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+		}
 		// update service cart
-		serviceCart.Amount += (int64(body.Quantity) * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+
 		if err := serviceCart.Update(db); err != nil {
 			response_message.BadRequest(c, err.Error())
 			return
@@ -687,6 +709,14 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		// update service item
 		serviceCartItem.Quality = int(body.Quantity)
 		serviceCartItem.Amount = int64(body.Quantity) * serviceCartItem.UnitPrice
+		// Update amount
+		if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
+			amountDiscont := int64(math.Floor(float64((serviceCartItem.Amount * serviceCartItem.DiscountValue) / 100)))
+
+			serviceCartItem.Amount = serviceCartItem.Amount - amountDiscont
+		} else if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
+			serviceCartItem.Amount = serviceCartItem.Amount - serviceCartItem.DiscountValue
+		}
 	}
 
 	if body.Note != "" {

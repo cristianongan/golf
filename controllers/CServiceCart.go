@@ -403,8 +403,18 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 		serviceCartItem.Amount = serviceCartItem.Amount - amountDiscont
 
 	} else if body.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
-		serviceCart.Amount = serviceCart.Amount - body.DiscountPrice
-		serviceCartItem.Amount = serviceCartItem.Amount - body.DiscountPrice
+		var amountDiscont int64
+
+		amountRaw := serviceCartItem.Amount - body.DiscountPrice
+
+		if amountRaw > 0 {
+			amountDiscont = amountRaw
+			serviceCart.Amount = serviceCart.Amount - body.DiscountPrice
+		} else {
+			serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount
+			amountDiscont = 0
+		}
+		serviceCartItem.Amount = amountDiscont
 	}
 
 	serviceCartItem.DiscountType = body.DiscountType
@@ -737,8 +747,28 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		// 	}
 		// }
 
-		// update service cart
-		serviceCart.Amount += (body.Quantity * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+		// Update amount
+		if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
+			amountDiscontOld := int64(math.Floor(float64((int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice) / 100)))
+			amountDiscontNew := int64(math.Floor(float64((body.Quantity * serviceCartItem.UnitPrice) / 100)))
+
+			serviceCart.Amount += amountDiscontOld - amountDiscontNew
+		} else if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
+			var amountDiscont int64
+
+			amountRaw := (body.Quantity * serviceCartItem.UnitPrice) - serviceCartItem.DiscountValue
+
+			if amountRaw > 0 {
+				serviceCart.Amount = serviceCart.Amount + serviceCartItem.DiscountValue - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+				amountDiscont = amountRaw
+			} else {
+				amountDiscont = 0
+			}
+			serviceCart.Amount += amountDiscont
+		} else {
+			serviceCart.Amount += (body.Quantity * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+		}
+
 		if err := serviceCart.Update(db); err != nil {
 			response_message.InternalServerError(c, err.Error())
 			return
@@ -747,6 +777,14 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		// update service item
 		serviceCartItem.Quality = int(body.Quantity)
 		serviceCartItem.Amount = body.Quantity * serviceCartItem.UnitPrice
+		// Update amount
+		if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
+			amountDiscont := int64(math.Floor(float64((serviceCartItem.Amount * serviceCartItem.DiscountValue) / 100)))
+
+			serviceCartItem.Amount = serviceCartItem.Amount - amountDiscont
+		} else if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
+			serviceCartItem.Amount = serviceCartItem.Amount - serviceCartItem.DiscountValue
+		}
 	}
 
 	if body.Note != "" {
