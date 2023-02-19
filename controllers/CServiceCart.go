@@ -397,19 +397,18 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 
 	// Update amount
 	if body.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
-		amountDiscont := int64(math.Floor(float64(((int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice) * body.DiscountPrice) / 100)))
+		amountDiscont := int64(math.Floor((float64((int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)) * (100 - body.DiscountPrice)) / 100))
 
 		serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount + amountDiscont
-		serviceCartItem.Amount = amountDiscont
 
 	} else if body.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
 		var amountDiscont int64
 
-		amountRaw := serviceCartItem.Amount - body.DiscountPrice
+		amountRaw := serviceCartItem.Amount - int64(body.DiscountPrice)
 
 		if amountRaw > 0 {
 			amountDiscont = amountRaw
-			serviceCart.Amount = serviceCart.Amount - body.DiscountPrice
+			serviceCart.Amount = serviceCart.Amount - int64(body.DiscountPrice)
 		} else {
 			serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount
 			amountDiscont = 0
@@ -418,7 +417,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	serviceCartItem.DiscountType = body.DiscountType
-	serviceCartItem.DiscountValue = body.DiscountPrice
+	serviceCartItem.DiscountValue = int64(body.DiscountPrice)
 	serviceCartItem.DiscountReason = body.DiscountReason
 
 	if err := serviceCartItem.Update(db); err != nil {
