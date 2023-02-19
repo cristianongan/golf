@@ -658,10 +658,9 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 
 		// Update amount
 		if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
-			amountDiscontOld := int64(math.Floor(float64((int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice) / 100)))
-			amountDiscontNew := int64(math.Floor(float64((int64(body.Quantity) * serviceCartItem.UnitPrice) / 100)))
+			amountDiscont := float64(((int64(body.Quantity) - int64(serviceCartItem.Quality)) * serviceCartItem.UnitPrice) * serviceCartItem.DiscountValue / 100)
 
-			serviceCart.Amount += amountDiscontOld - amountDiscontNew
+			serviceCart.Amount += int64(math.Floor(amountDiscont))
 		} else if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
 			var amountDiscont int64
 
