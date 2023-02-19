@@ -6,6 +6,7 @@ import (
 	"start/datasources"
 	"start/logger"
 	"start/socket"
+	"start/utils"
 
 	ccron "start/cron"
 	// "start/datasources/aws"
@@ -22,6 +23,10 @@ func Init() {
 	logger.InitLogger()
 
 	// go socket_room.Hub.Run()
+
+	//Test Time
+	log.Println("Time now server", utils.GetTimeNow())
+	log.Println("Time now local", utils.GetLocalUnixTime())
 
 	// --- Socket ---
 

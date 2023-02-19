@@ -165,10 +165,10 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		}
 	} else {
 		//Kiểm tra trạng thái bill
-		if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
-			response_message.BadRequest(c, "Bill status invalid")
-			return
-		}
+		// if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
+		// 	response_message.BadRequest(c, "Bill status invalid")
+		// 	return
+		// }
 		// update tổng giá bill
 		serviceCart.Amount += body.Quantity * serviceCartItem.UnitPrice
 		if err := serviceCart.Update(db); err != nil {
@@ -308,10 +308,10 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 		}
 	} else {
 		//Kiểm tra trạng thái bill
-		if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
-			response_message.BadRequest(c, "Bill status invalid")
-			return
-		}
+		// if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
+		// 	response_message.BadRequest(c, "Bill status invalid")
+		// 	return
+		// }
 		// update tổng giá bill
 		serviceCart.Amount += body.Quantity * serviceCartItem.UnitPrice
 		if err := serviceCart.Update(db); err != nil {
@@ -703,10 +703,10 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Kiểm tra trạng thái bill
-	if serviceCart.BillStatus != constants.POS_BILL_STATUS_PENDING {
-		response_message.BadRequest(c, "Bill status invalid")
-		return
-	}
+	// if serviceCart.BillStatus != constants.POS_BILL_STATUS_PENDING {
+	// 	response_message.BadRequest(c, "Bill status invalid")
+	// 	return
+	// }
 
 	if body.Quantity > 0 {
 		// if serviceCartItem.Type != constants.RENTAL_SETTING &&
@@ -899,10 +899,10 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Kiểm tra trạng thái bill
-	if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
-		response_message.BadRequest(c, "Bill status invalid")
-		return
-	}
+	// if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
+	// 	response_message.BadRequest(c, "Bill status invalid")
+	// 	return
+	// }
 
 	serviceCart.BillCode = utils.GetTimeNow().Format("20060102150405")
 
@@ -1278,10 +1278,10 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Kiểm tra trạng thái bill
-	if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
-		response_message.BadRequest(c, "Bill status invalid")
-		return
-	}
+	// if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
+	// 	response_message.BadRequest(c, "Bill status invalid")
+	// 	return
+	// }
 
 	// validate golf bag
 	bookingR := model_booking.Booking{}

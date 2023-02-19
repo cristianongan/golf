@@ -1345,6 +1345,7 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		return
 	}
 
+	listBookingUpdated := []model_booking.Booking{}
 	// Udp flight for Booking
 	for _, b := range listBooking {
 		b.FlightId = flight.Id
@@ -1353,6 +1354,7 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		if errUdp != nil {
 			log.Println("AddBagToFlight err flight ", errUdp.Error())
 		}
+		listBookingUpdated = append(listBookingUpdated, b)
 		// Update lại thông tin booking
 		if booking := b.GetBooking(); booking != nil && booking.Uid != b.Uid {
 			booking.CaddieId = b.CaddieId
@@ -1360,6 +1362,27 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 			go booking.Update(db)
 		}
 	}
+
+	// Tạo giá buggy cho bag
+	go func() {
+		for index, booking := range listBookingUpdated {
+			bodyItem := body.ListData[index]
+			// utils.ContainString(constants.MEMBER_BUGGY_FEE_FREE_LIST, booking.CardId) == -1 &&
+			if bodyItem.BuggyCode != "" {
+				round := models.Round{
+					BillCode: booking.BillCode,
+				}
+
+				if errFindRound := round.LastRound(db); errFindRound != nil {
+					log.Println("Round not found")
+				}
+
+				buggyFee := getBuggyFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, round.Hole)
+				addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
+			}
+			updatePriceWithServiceItem(booking, prof)
+		}
+	}()
 
 	// Update caddie status
 	for _, ca := range listCaddie {

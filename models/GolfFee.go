@@ -143,7 +143,7 @@ func (item *GolfFee) GetGuestStyleOnDay(database *gorm.DB) (GolfFee, error) {
 		for i, gf := range list {
 			if gf.ApplyTime != "" {
 				if idxTemp < 0 {
-					if utils.CheckDow(gf.Dow, gf.ApplyTime, utils.GetTimeNow()) {
+					if utils.CheckDow(gf.Dow, gf.ApplyTime, utils.GetLocalUnixTime()) {
 						idxTemp = i
 					}
 				}
@@ -160,7 +160,7 @@ func (item *GolfFee) GetGuestStyleOnDay(database *gorm.DB) (GolfFee, error) {
 
 	for i, golfFee_ := range list {
 		if idxTemp < 0 {
-			if utils.CheckDow(golfFee_.Dow, "", utils.GetTimeNow()) {
+			if utils.CheckDow(golfFee_.Dow, "", utils.GetLocalUnixTime()) {
 				idxTemp = i
 			}
 		}
@@ -430,4 +430,19 @@ func (item *GolfFee) FindFirstWithCusType(database *gorm.DB) error {
 	db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
 
 	return db.First(item).Error
+}
+
+func (item *GolfFee) FindAll(database *gorm.DB) ([]GolfFee, error) {
+	db := database.Model(GolfFee{})
+	list := []GolfFee{}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	err := db.Find(&list).Error
+	return list, err
 }

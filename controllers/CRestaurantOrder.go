@@ -214,12 +214,12 @@ func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsU
 		return
 	}
 
-	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
-		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
+	// if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+	// 	serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
 
-		response_message.BadRequest(c, "Bill status invalid")
-		return
-	}
+	// 	response_message.BadRequest(c, "Bill status invalid")
+	// 	return
+	// }
 
 	// validate golf bag
 	booking := model_booking.Booking{}
@@ -424,12 +424,12 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
-		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
+	// if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+	// 	serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
 
-		response_message.BadRequest(c, "Bill status invalid")
-		return
-	}
+	// 	response_message.BadRequest(c, "Bill status invalid")
+	// 	return
+	// }
 
 	// validate golf bag
 	booking := model_booking.Booking{}
@@ -618,12 +618,12 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
-		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
+	// if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+	// 	serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
 
-		response_message.BadRequest(c, "Bill status invalid")
-		return
-	}
+	// 	response_message.BadRequest(c, "Bill status invalid")
+	// 	return
+	// }
 
 	// validate golf bag
 	booking := model_booking.Booking{}
@@ -740,12 +740,12 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
-		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
+	// if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+	// 	serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
 
-		response_message.BadRequest(c, "Bill status invalid")
-		return
-	}
+	// 	response_message.BadRequest(c, "Bill status invalid")
+	// 	return
+	// }
 
 	// validate golf bag
 	booking := model_booking.Booking{}

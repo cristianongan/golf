@@ -687,9 +687,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CourseType = body.CourseType
 	}
 
-	if body.GuestStyle != "" {
-		booking.GuestStyle = body.GuestStyle
-	}
+	// if body.GuestStyle != "" {
+	// 	booking.GuestStyle = body.GuestStyle
+	// }
 
 	//Upd Main Pay for Sub
 	isMainBagPayChanged := false
