@@ -153,6 +153,14 @@ const (
 	KIOSK_BILL_INVENTORY_TRANSFER = "TRANSFER" // Đơn xuất đã xuất thành công
 )
 
+/*
+Loại giảm giá các sản phẩm
+*/
+const (
+	ITEM_BILL_DISCOUNT_BY_PRICE   = "PRICE"
+	ITEM_BILL_DISCOUNT_BY_PERCENT = "PERCENT"
+)
+
 const (
 	KIOSK_BILL_INVENTORY_IMPORT = "IMPORT"
 	KIOSK_BILL_INVENTORY_EXPORT = "EXPORT"

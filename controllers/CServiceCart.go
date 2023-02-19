@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"math"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -380,6 +381,32 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// validaet booking
+	booking := model_booking.Booking{}
+	booking.Uid = serviceCart.BookingUid
+
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
+	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	// Update amount
+	if body.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
+		amountDiscont := int64(math.Floor(float64((serviceCartItem.Amount * body.DiscountPrice) / 100)))
+
+		serviceCart.Amount = serviceCart.Amount - amountDiscont
+		serviceCartItem.Amount = serviceCartItem.Amount - amountDiscont
+
+	} else if body.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
+		serviceCart.Amount = serviceCart.Amount - body.DiscountPrice
+		serviceCartItem.Amount = serviceCartItem.Amount - body.DiscountPrice
+	}
+
 	serviceCartItem.DiscountType = body.DiscountType
 	serviceCartItem.DiscountValue = body.DiscountPrice
 	serviceCartItem.DiscountReason = body.DiscountReason
@@ -387,6 +414,17 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	if err := serviceCartItem.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
+	}
+
+	if err := serviceCart.Update(db); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	//Update giá nếu bill active
+	if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
+		//Update lại giá trong booking
+		updatePriceWithServiceItem(booking, prof)
 	}
 
 	okRes(c)
