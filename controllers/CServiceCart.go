@@ -400,6 +400,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 		amountDiscont := int64(math.Floor((float64((int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)) * (100 - body.DiscountPrice)) / 100))
 
 		serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount + amountDiscont
+		serviceCartItem.Amount = amountDiscont
 
 	} else if body.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
 		var amountDiscont int64
