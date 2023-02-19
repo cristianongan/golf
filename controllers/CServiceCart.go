@@ -365,7 +365,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 
 	// validate cart item
 	serviceCartItem := model_booking.BookingServiceItem{}
-	serviceCartItem.Id = body.CartItemId
+	serviceCartItem.Id = body.ItemId
 
 	if err := serviceCartItem.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
