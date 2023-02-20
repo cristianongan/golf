@@ -129,6 +129,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	updatePriceWithServiceItem(newBooking, models.CmsUser{})
 	res := getBagDetailFromBooking(db, newBooking)
 
 	okResponse(c, res)
@@ -515,24 +516,27 @@ func (cRound CRound) RemoveRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking := model_booking.Booking{}
-	booking.Uid = body.BookingUid
-	if err := booking.FindFirst(db); err != nil {
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = body.BookingUid
+
+	booking, err := bookingR.FindFirstByUId(db)
+	if err != nil {
 		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
 		return
 	}
 
-	round := models.Round{}
-	round.Id = body.RoundId
-	round.BillCode = booking.BillCode
-
-	if errRound := round.FindFirst(db); errRound != nil {
-		response_message.BadRequestDynamicKey(c, "ROUND_NOT_FOUND", "")
+	if booking.BagStatus == constants.BAG_STATUS_IN_COURSE {
+		response_message.BadRequestFreeMessage(c, "Bag Status not valid!")
 		return
 	}
 
-	if errDel := round.Delete(db); errDel != nil {
-		response_message.BadRequestDynamicKey(c, "ROUND_NOT_FOUND", "")
+	roundR := models.Round{}
+	// round.Id = body.RoundId
+	roundR.BillCode = booking.BillCode
+	listRound, _ := roundR.FindAll(db)
+
+	if len(listRound) == 1 {
+		response_message.BadRequestFreeMessage(c, "Delete Round Error!!")
 		return
 	}
 
@@ -542,21 +546,24 @@ func (cRound CRound) RemoveRound(c *gin.Context, prof models.CmsUser) {
 	oldBooking.PartnerUid = booking.PartnerUid
 	oldBooking.CourseUid = booking.CourseUid
 	oldBooking.BookingDate = booking.BookingDate
-	oldBooking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
+	oldBooking.AddedRound = setBoolForCursor(true)
 
 	if err := oldBooking.FindFirst(db); err != nil {
 		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
 		return
 	}
-	oldBooking.Delete(db)
 
-	booking.AddedRound = setBoolForCursor(false)
-	booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
+	oldBooking.AddedRound = setBoolForCursor(false)
+	oldBooking.BagStatus = constants.BAG_STATUS_TIMEOUT
+	oldBooking.Update(db)
 
-	booking.Update(db)
+	roundR.LastRound(db)
+	roundR.Delete(db)
 
-	updatePriceWithServiceItem(booking, prof)
-	res := getBagDetailFromBooking(db, booking)
+	booking.Delete(db)
+
+	updatePriceWithServiceItem(oldBooking, prof)
+	res := getBagDetailFromBooking(db, oldBooking)
 
 	okResponse(c, res)
 }

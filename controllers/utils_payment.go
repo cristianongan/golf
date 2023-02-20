@@ -291,7 +291,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 	// }()
 }
 
-func addBuggyFee(booking model_booking.Booking, fee int64, name string) {
+func addBuggyFee(booking model_booking.Booking, fee int64, name string, hole int) {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	serviceItem := model_booking.BookingServiceItem{
 		BillCode:   booking.BillCode,
@@ -302,13 +302,14 @@ func addBuggyFee(booking model_booking.Booking, fee int64, name string) {
 	serviceItem.UnitPrice = fee
 	serviceItem.Quality = 1
 	serviceItem.Amount = fee
+	serviceItem.Hole = hole
 	serviceItem.Type = constants.GOLF_SERVICE_RENTAL
 	serviceItem.ServiceType = constants.BUGGY_SETTING
 	serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
 	serviceItem.Create(db)
 }
 
-func addCaddieBookingFee(booking model_booking.Booking, fee int64, name string) {
+func addCaddieBookingFee(booking model_booking.Booking, fee int64, name string, hole int) {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	serviceItem := model_booking.BookingServiceItem{
 		BillCode:   booking.BillCode,
@@ -319,6 +320,7 @@ func addCaddieBookingFee(booking model_booking.Booking, fee int64, name string) 
 	serviceItem.UnitPrice = fee
 	serviceItem.Quality = 1
 	serviceItem.Amount = fee
+	serviceItem.Hole = hole
 	serviceItem.Type = constants.GOLF_SERVICE_RENTAL
 	serviceItem.ServiceType = constants.CADDIE_SETTING
 	serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION

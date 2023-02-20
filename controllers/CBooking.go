@@ -1213,7 +1213,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	go func() {
 		if booking.CaddieBooking != "" {
 			caddieBookingFee := getBookingCadieFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, body.Hole)
-			addCaddieBookingFee(booking, caddieBookingFee.Fee, "Booking Caddie")
+			addCaddieBookingFee(booking, caddieBookingFee.Fee, "Booking Caddie", body.Hole)
 			updatePriceWithServiceItem(booking, prof)
 		}
 	}()

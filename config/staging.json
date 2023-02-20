@@ -10,6 +10,7 @@
     "cron_backup_order_is_running": false,
     "cronjob_secret_key": "rdhrXPLttwCCrVubT76wdaMSCIu78xL1",
     "cronjob_page_limit": 20,
+    "is_use_redis_permission_role": false,
     "mysql": {
         "db_name": "golf_cms",
         "user": "caro",

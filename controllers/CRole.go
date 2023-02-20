@@ -198,6 +198,9 @@ func (_ *CRole) UpdateRole(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	// TODO: push theo account
+	go pushSocketUdpRole(role.Id)
+
 	okResponse(c, role)
 }
 
