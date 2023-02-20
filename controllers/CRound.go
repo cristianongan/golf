@@ -515,22 +515,28 @@ func (cRound CRound) RemoveRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking := model_booking.Booking{}
-	booking.Uid = body.BookingUid
-	if err := booking.FindFirst(db); err != nil {
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = body.BookingUid
+
+	booking, err := bookingR.FindFirstByUId(db)
+	if err != nil {
 		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
 		return
 	}
 
-	round := models.Round{}
-	// round.Id = body.RoundId
-	round.BillCode = booking.BillCode
+	if booking.BagStatus == constants.BAG_STATUS_IN_COURSE {
+		response_message.BadRequestFreeMessage(c, "Bag Status not valid!")
+		return
+	}
 
-	if errRound := round.LastRound(db); errRound != nil {
-		if errDel := round.Delete(db); errDel != nil {
-			response_message.BadRequestFreeMessage(c, "Delete Error!")
-			return
-		}
+	roundR := models.Round{}
+	// round.Id = body.RoundId
+	roundR.BillCode = booking.BillCode
+	listRound, _ := roundR.FindAll(db)
+
+	if len(listRound) == 1 {
+		response_message.BadRequestFreeMessage(c, "Delete Round Error!!")
+		return
 	}
 
 	// Xóa booking đầu tiên
