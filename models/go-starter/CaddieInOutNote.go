@@ -13,12 +13,12 @@ import (
 
 type CaddieBuggyInOut struct {
 	models.ModelId
-	PartnerUid string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid  string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	BookingUid string `json:"booking_uid" gorm:"type:varchar(50);index"`  // Ex: Booking Uid
-	// BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
-	// Bag            string `json:"bag" gorm:"type:varchar(100);index"`         // Golf Bag
-	CaddieId        int64  `json:"caddie_id" gorm:"index"` // Caddie Id
+	PartnerUid      string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid       string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	BookingUid      string `json:"booking_uid" gorm:"type:varchar(50);index"`  // Ex: Booking Uid
+	BookingDate     string `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
+	Bag             string `json:"bag" gorm:"type:varchar(100);index"`         // Golf Bag
+	CaddieId        int64  `json:"caddie_id" gorm:"index"`                     // Caddie Id
 	CaddieCode      string `json:"caddie_code" gorm:"type:varchar(256)"`
 	BuggyId         int64  `json:"buggy_id"`                            // Buggy Id
 	BuggyCode       string `json:"buggy_code" gorm:"type:varchar(100)"` // Buggy Code
@@ -26,6 +26,7 @@ type CaddieBuggyInOut struct {
 	CaddieType      string `json:"caddie_type"`                         // Type: IN(undo), OUT, CHANGE
 	BuggyType       string `json:"buggy_type"`                          // Type: IN(undo), OUT, CHANGE
 	Hole            int    `json:"hole"`
+	HoleBuggy       int    `json:"hole_buggy"`
 	BagShareBuggy   string `json:"bag_share_buggy" gorm:"type:varchar(100)"`   // Bag đi chung với buggy
 	IsPrivateBuggy  *bool  `json:"is_private_buggy" gorm:"default:0"`          // Bag có dùng buggy riêng không
 	BuggyCommonCode string `json:"buggy_common_code" gorm:"type:varchar(100)"` // Đánh dấu record có chung buggy
@@ -38,6 +39,15 @@ type CaddieBuggyInOutWithBooking struct {
 	IsPrivateBuggy bool   `json:"is_private_buggy"`
 	GuestStyle     string `json:"guest_style"`
 	GuestStyleName string `json:"guest_style_name"`
+}
+
+type ReportBuggy struct {
+	H_9         int    `json:"h_9"`
+	H_18        int    `json:"h_18"`
+	H_36        int    `json:"h_36"`
+	H_45        int    `json:"h_45"`
+	H_54        int    `json:"h_54"`
+	BookingDate string `json:"booking_date"`
 }
 
 type CaddieBuggyInOutRequest struct {
@@ -206,6 +216,36 @@ func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB,
 		db = page.Setup(db).Find(&list)
 	}
 	return list, total, db.Error
+}
+
+func (item *CaddieBuggyInOut) FindReportBuggyUsing(database *gorm.DB, month, year string) ([]ReportBuggy, error) {
+	db := database.Model(CaddieBuggyInOut{})
+	list := []ReportBuggy{}
+
+	if item.PartnerUid != "" {
+		db = db.Where("caddie_buggy_in_outs.partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("caddie_buggy_in_outs.course_uid = ?", item.CourseUid)
+	}
+
+	if year != "" {
+		db = db.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y') = ?", year)
+	}
+
+	if month != "" {
+		db = db.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y-%m') = ?", year, month)
+	}
+
+	db = db.Where("caddie_buggy_in_outs.buggy_type = ?", constants.STATUS_OUT)
+	db = db.Select(`SUM(if(caddie_buggy_in_outs.hole = 18, 1, 0)) AS , bookings.booking_date`)
+	db = db.Joins("JOIN bookings ON bookings.uid = caddie_buggy_in_outs.booking_uid")
+
+	db = db.Group("bookings.booking_date")
+	db.Find(&list)
+
+	return list, db.Error
 }
 
 func (item *CaddieBuggyInOut) Delete(db *gorm.DB) error {
