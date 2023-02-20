@@ -358,7 +358,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 					}
 				}
 			}
-			updatePriceWithServiceItem(booking, prof)
+			updatePriceWithServiceItem(&booking, prof)
 		}
 	}()
 
@@ -1380,7 +1380,7 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 				buggyFee := getBuggyFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, round.Hole)
 				addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
 			}
-			updatePriceWithServiceItem(booking, prof)
+			updatePriceWithServiceItem(&booking, prof)
 		}
 	}()
 

@@ -871,7 +871,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	// udp ok -> Tính lại giá
 	if isMainBagPayChanged {
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	// Get lai booking mới nhất trong DB
@@ -1214,7 +1214,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		if booking.CaddieBooking != "" {
 			caddieBookingFee := getBookingCadieFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, body.Hole)
 			addCaddieBookingFee(booking, caddieBookingFee.Fee, "Booking Caddie", body.Hole)
-			updatePriceWithServiceItem(booking, prof)
+			updatePriceWithServiceItem(&booking, prof)
 		}
 	}()
 
@@ -1331,7 +1331,7 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 
 	res := getBagDetailFromBooking(db, booking)
 

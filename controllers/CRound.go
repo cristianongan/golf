@@ -129,7 +129,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	updatePriceWithServiceItem(newBooking, models.CmsUser{})
+	updatePriceWithServiceItem(&newBooking, models.CmsUser{})
 	res := getBagDetailFromBooking(db, newBooking)
 
 	okResponse(c, res)
@@ -229,7 +229,7 @@ func (cRound CRound) UpdateListFeePriceInRound(c *gin.Context, db *gorm.DB, book
 	}
 
 	if booking != nil {
-		updatePriceWithServiceItem(*booking, models.CmsUser{})
+		updatePriceWithServiceItem(booking, models.CmsUser{})
 	}
 }
 
@@ -562,7 +562,7 @@ func (cRound CRound) RemoveRound(c *gin.Context, prof models.CmsUser) {
 
 	booking.Delete(db)
 
-	updatePriceWithServiceItem(oldBooking, prof)
+	updatePriceWithServiceItem(&oldBooking, prof)
 	res := getBagDetailFromBooking(db, oldBooking)
 
 	okResponse(c, res)
