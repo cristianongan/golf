@@ -749,7 +749,7 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 
 		// Update amount
 		if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
-			amountDiscont := (((body.Quantity - int64(serviceCartItem.Quality)) * serviceCartItem.UnitPrice) * serviceCartItem.DiscountValue) / 100
+			amountDiscont := (((body.Quantity - int64(serviceCartItem.Quality)) * serviceCartItem.UnitPrice) * (100 - serviceCartItem.DiscountValue)) / 100
 
 			serviceCart.Amount = serviceCart.Amount + amountDiscont
 		} else if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
