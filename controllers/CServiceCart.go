@@ -144,7 +144,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	serviceCart.PartnerUid = body.PartnerUid
 	serviceCart.CourseUid = body.CourseUid
 
-	applyDate, _ := time.Parse("2006-01-02", dateDisplay)
+	applyDate, _ := time.Parse(constants.DATE_FORMAT_1, dateDisplay)
 
 	if body.BillId != 0 {
 		serviceCart.Id = body.BillId
