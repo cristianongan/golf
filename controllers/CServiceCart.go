@@ -55,6 +55,11 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
 	// validate kiosk
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = body.ServiceId
@@ -232,6 +237,11 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
 	// validate kiosk
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = body.ServiceId
@@ -394,6 +404,11 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
 	// Update amount
 	if body.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
 		amountDiscont := (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice) * (100 - body.DiscountPrice) / 100
@@ -437,7 +452,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 		serviceCart.BillStatus != constants.RES_BILL_STATUS_BOOKING &&
 		serviceCart.BillStatus != constants.RES_BILL_STATUS_CANCEL {
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	okRes(c)
@@ -801,7 +816,7 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	//Update giá nếu bill active
 	if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	okRes(c)
@@ -842,6 +857,11 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
 		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
 		return
 	}
 
@@ -891,7 +911,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 
 	if serviceCart.BillStatus == constants.RES_BILL_STATUS_ACTIVE {
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	okRes(c)
@@ -938,11 +958,15 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	//Kiểm tra trạng thái bill
-	// if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
-	// 	response_message.BadRequest(c, "Bill status invalid")
-	// 	return
-	// }
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
 
 	serviceCart.BillCode = utils.GetTimeNow().Format("20060102150405")
 
@@ -982,10 +1006,15 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-	// 	response_message.BadRequest(c, "Bag status invalid")
-	// 	return
-	// }
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
 
 	// validate cart code
 	sourceServiceCart := models.ServiceCart{}
@@ -1069,7 +1098,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if targetServiceCart.BillStatus == constants.POS_BILL_STATUS_TRANSFER {
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	// Update amount target bill
@@ -1078,7 +1107,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	if sourceServiceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
 
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(bookingSource, prof)
+		updatePriceWithServiceItem(&bookingSource, prof)
 	}
 
 	//
@@ -1149,7 +1178,7 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 
 	okRes(c)
 }
@@ -1343,7 +1372,7 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 
 	okRes(c)
 }
@@ -1393,7 +1422,7 @@ func (_ CServiceCart) UndoStatus(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 
 	okRes(c)
 }

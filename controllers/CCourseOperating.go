@@ -349,18 +349,18 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 
 				buggyFee := getBuggyFeeSetting(body.PartnerUid, body.CourseUid, booking.GuestStyle, round.Hole)
 				if bodyItem.BagShare != "" {
-					addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
+					addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
 				} else {
 					if booking.IsPrivateBuggy != nil && *booking.IsPrivateBuggy == true {
-						addBuggyFee(booking, buggyFee.PrivateCarFee, "Thuê riêng xe")
-						addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
+						addBuggyFee(booking, buggyFee.PrivateCarFee, "Thuê riêng xe", round.Hole)
+						addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
 					} else {
-						addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
-						addBuggyFee(booking, buggyFee.OddCarFee, "Thuê lẻ xe")
+						addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
+						addBuggyFee(booking, buggyFee.OddCarFee, "Thuê lẻ xe", round.Hole)
 					}
 				}
 			}
-			updatePriceWithServiceItem(booking, prof)
+			updatePriceWithServiceItem(&booking, prof)
 		}
 	}()
 
@@ -1395,9 +1395,9 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 				}
 
 				buggyFee := getBuggyFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, round.Hole)
-				addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
+				addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
 			}
-			updatePriceWithServiceItem(booking, prof)
+			updatePriceWithServiceItem(&booking, prof)
 		}
 	}()
 
