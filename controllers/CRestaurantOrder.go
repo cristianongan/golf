@@ -192,7 +192,7 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 	createExportBillInventory(c, prof, serviceCart, serviceCart.BillCode)
 
 	c.JSON(200, serviceCart)
@@ -261,7 +261,7 @@ func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsU
 	}
 
 	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 
 	okRes(c)
 }
@@ -320,7 +320,7 @@ func (_ CRestaurantOrder) DeleteOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 
 	okRes(c)
 }
@@ -747,7 +747,7 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		serviceCart.BillStatus != constants.RES_BILL_STATUS_CANCEL {
 
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	okRes(c)
@@ -860,7 +860,7 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 		serviceCart.BillStatus != constants.RES_BILL_STATUS_CANCEL {
 
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	okRes(c)
@@ -1443,7 +1443,7 @@ func (_ CRestaurantOrder) FinishRestaurantOrder(c *gin.Context, prof models.CmsU
 	}
 
 	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 
 	okRes(c)
 }
@@ -1967,7 +1967,7 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 		targetServiceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
 
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	// Update amount target bill
@@ -1979,7 +1979,7 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 		sourceServiceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
 
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(bookingSource, prof)
+		updatePriceWithServiceItem(&bookingSource, prof)
 	}
 
 	//

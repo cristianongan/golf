@@ -302,7 +302,7 @@ Bag hiện tại
 main bag nếu có
 sub bag nếu có
 */
-func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUser) {
+func updatePriceWithServiceItem(booking *model_booking.Booking, prof models.CmsUser) {
 
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	if prof.UserName != "" {
@@ -316,7 +316,7 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 	if errUdp != nil {
 		log.Println("updatePriceWithServiceItem errUdp", errUdp.Error())
 	} else {
-		go handlePayment(db, booking)
+		go handlePayment(db, *booking)
 	}
 
 	if booking.MainBags != nil && len(booking.MainBags) > 0 {
@@ -369,7 +369,7 @@ func updatePriceWithServiceItem(booking model_booking.Booking, prof models.CmsUs
 		errFMB := booking.Update(db)
 
 		if errFMB == nil {
-			go handlePayment(db, booking)
+			go handlePayment(db, *booking)
 		}
 	}
 }
