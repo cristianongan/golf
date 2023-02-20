@@ -111,7 +111,9 @@ func GinBodyLogMiddleware(c *gin.Context) {
 			" |method:" + newlogmessage.Method +
 			" |path:" + newlogmessage.Path +
 			" |request:" + newlogmessage.Request +
-			" |response:" + newlogmessage.Response
+			" |response:" + newlogmessage.Response +
+			" |header:" + newlogmessage.Header +
+			" |raw_path:" + newlogmessage.RawPath
 
 		notShowrequests := []string{
 			"/golf-cms/metrics",
