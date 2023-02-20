@@ -20,13 +20,13 @@ type CaddieBuggyInOut struct {
 	Bag             string `json:"bag" gorm:"type:varchar(100);index"`         // Golf Bag
 	CaddieId        int64  `json:"caddie_id" gorm:"index"`                     // Caddie Id
 	CaddieCode      string `json:"caddie_code" gorm:"type:varchar(256)"`
-	BuggyId         int64  `json:"buggy_id"`                            // Buggy Id
-	BuggyCode       string `json:"buggy_code" gorm:"type:varchar(100)"` // Buggy Code
-	Note            string `json:"note" gorm:"type:varchar(500)"`       // note
-	CaddieType      string `json:"caddie_type"`                         // Type: IN(undo), OUT, CHANGE
-	BuggyType       string `json:"buggy_type"`                          // Type: IN(undo), OUT, CHANGE
-	Hole            int    `json:"hole"`
-	HoleBuggy       int    `json:"hole_buggy"`
+	BuggyId         int64  `json:"buggy_id"`                                   // Buggy Id
+	BuggyCode       string `json:"buggy_code" gorm:"type:varchar(100)"`        // Buggy Code
+	Note            string `json:"note" gorm:"type:varchar(500)"`              // note
+	CaddieType      string `json:"caddie_type"`                                // Type: IN(undo), OUT, CHANGE
+	BuggyType       string `json:"buggy_type"`                                 // Type: IN(undo), OUT, CHANGE
+	Hole            int    `json:"hole"`                                       // hole caddie
+	HoleBuggy       int    `json:"hole_buggy"`                                 // hole buggy
 	BagShareBuggy   string `json:"bag_share_buggy" gorm:"type:varchar(100)"`   // Bag đi chung với buggy
 	IsPrivateBuggy  *bool  `json:"is_private_buggy" gorm:"default:0"`          // Bag có dùng buggy riêng không
 	BuggyCommonCode string `json:"buggy_common_code" gorm:"type:varchar(100)"` // Đánh dấu record có chung buggy
@@ -56,6 +56,7 @@ type CaddieBuggyInOutRequest struct {
 	Date           string
 	ShareBuggy     *bool
 	BagOrBuggyCode string
+	BookingDate    string `json:"booking_date"`
 }
 
 func (item *CaddieBuggyInOut) Create(db *gorm.DB) error {
@@ -239,9 +240,14 @@ func (item *CaddieBuggyInOut) FindReportBuggyUsing(database *gorm.DB, month, yea
 	}
 
 	db = db.Where("caddie_buggy_in_outs.buggy_type = ?", constants.STATUS_OUT)
-	db = db.Select(`SUM(if(caddie_buggy_in_outs.hole = 18, 1, 0)) AS , bookings.booking_date`)
+	db = db.Select(`SUM(if(caddie_buggy_in_outs.hole_buggy = 9, 1, 0)) AS h_9,
+					SUM(if(caddie_buggy_in_outs.hole_buggy = 18, 1, 0)) AS h_18,
+					SUM(if(caddie_buggy_in_outs.hole_buggy = 36, 1, 0)) AS h_36,
+					SUM(if(caddie_buggy_in_outs.hole_buggy = 45, 1, 0)) AS h_45,
+					SUM(if(caddie_buggy_in_outs.hole_buggy = 54, 1, 0)) AS h_54,
+					bookings.booking_date`)
 	db = db.Joins("JOIN bookings ON bookings.uid = caddie_buggy_in_outs.booking_uid")
-
+	db = db.Group("caddie_buggy_in_outs.buggy_code")
 	db = db.Group("bookings.booking_date")
 	db.Find(&list)
 
