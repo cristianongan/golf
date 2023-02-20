@@ -229,6 +229,10 @@ func GetCronJobPageLimit() int {
 	return config.GetInt("cronjob_page_limit")
 }
 
+func GetUseRedisPermissionRole() bool {
+	return config.GetBool("is_use_redis_permission_role")
+}
+
 // =============== Get Payment SecretKey ========================
 func GetPaymentSecretKey() string {
 	return config.GetString("payment_secret_key")
