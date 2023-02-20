@@ -7,7 +7,7 @@ import (
 )
 
 /*
- Push socket khi user dc udp permission, để FE handle forse logout
+Push socket khi user dc udp permission, để FE handle force logout
 */
 func pushSocketUdpRole(roleId int64) {
 	notiData := map[string]interface{}{
