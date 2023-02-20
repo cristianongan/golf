@@ -703,13 +703,13 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	// dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
 	booking := model_booking.Booking{}
-	booking.PartnerUid = body.PartnerUid
-	booking.CourseUid = body.CourseUid
-	booking.Bag = serviceCartItem.Bag
-	booking.BookingDate = dateDisplay
+	booking.Uid = serviceCartItem.BookingUid
+	// booking.CourseUid = body.CourseUid
+	// booking.Bag = serviceCartItem.Bag
+	// booking.BookingDate = dateDisplay
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
 		return
@@ -848,13 +848,13 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	// dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
 	booking := model_booking.Booking{}
-	booking.PartnerUid = serviceCartItem.PartnerUid
-	booking.CourseUid = serviceCartItem.CourseUid
-	booking.Bag = serviceCartItem.Bag
-	booking.BookingDate = dateDisplay
+	booking.Uid = serviceCartItem.BookingUid
+	// booking.CourseUid = serviceCartItem.CourseUid
+	// booking.Bag = serviceCartItem.Bag
+	// booking.BookingDate = dateDisplay
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
 		return
@@ -937,19 +937,6 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-
-	booking := model_booking.Booking{}
-	booking.PartnerUid = body.PartnerUid
-	booking.CourseUid = body.CourseUid
-	booking.Bag = body.GolfBag
-	booking.BookingDate = dateDisplay
-	if err := booking.FindFirst(db); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
-
 	serviceCart := models.ServiceCart{}
 	serviceCart.PartnerUid = body.PartnerUid
 	serviceCart.CourseUid = body.CourseUid
@@ -959,6 +946,19 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 	serviceCart.BillCode = constants.BILL_NONE
 
 	if err := serviceCart.FindFirst(db); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate golf bag
+	// dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
+	booking := model_booking.Booking{}
+	booking.Uid = serviceCart.BookingUid
+	// booking.CourseUid = body.CourseUid
+	// booking.Bag = body.GolfBag
+	// booking.BookingDate = dateDisplay
+	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
