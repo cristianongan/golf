@@ -116,6 +116,7 @@ func NewRouter() *gin.Engine {
 
 			//  =================== Cms User ====================
 			cmsApiAuthorized.GET("/user/list", middlewares.AuthorizedCmsUserHandler(cCmsUser.GetList))
+			cmsApiAuthorized.GET("/user/permission/list", middlewares.AuthorizedCmsUserHandler(cCmsUser.GetPermissionCmsUser))
 			cmsApiAuthorized.POST("/user/add", middlewares.AuthorizedCmsUserHandler(cCmsUser.CreateCmsUser))
 			cmsApiAuthorized.PUT("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.UpdateCmsUser))
 			cmsApiAuthorized.POST("/user/change-pass", middlewares.AuthorizedCmsUserHandler(cCmsUser.ChangePassCmsUser))
