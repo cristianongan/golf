@@ -523,17 +523,14 @@ func (cRound CRound) RemoveRound(c *gin.Context, prof models.CmsUser) {
 	}
 
 	round := models.Round{}
-	round.Id = body.RoundId
+	// round.Id = body.RoundId
 	round.BillCode = booking.BillCode
 
-	if errRound := round.FindFirst(db); errRound != nil {
-		response_message.BadRequestDynamicKey(c, "ROUND_NOT_FOUND", "")
-		return
-	}
-
-	if errDel := round.Delete(db); errDel != nil {
-		response_message.BadRequestDynamicKey(c, "ROUND_NOT_FOUND", "")
-		return
+	if errRound := round.LastRound(db); errRound != nil {
+		if errDel := round.Delete(db); errDel != nil {
+			response_message.BadRequestFreeMessage(c, "Delete Error!")
+			return
+		}
 	}
 
 	// Xóa booking đầu tiên
@@ -548,15 +545,15 @@ func (cRound CRound) RemoveRound(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
 		return
 	}
-	oldBooking.Delete(db)
 
-	booking.AddedRound = setBoolForCursor(false)
-	booking.InitType = constants.BOOKING_INIT_TYPE_BOOKING
+	oldBooking.AddedRound = setBoolForCursor(false)
+	oldBooking.BagStatus = constants.BAG_STATUS_TIMEOUT
+	oldBooking.Update(db)
 
-	booking.Update(db)
+	booking.Delete(db)
 
-	updatePriceWithServiceItem(booking, prof)
-	res := getBagDetailFromBooking(db, booking)
+	updatePriceWithServiceItem(oldBooking, prof)
+	res := getBagDetailFromBooking(db, oldBooking)
 
 	okResponse(c, res)
 }
