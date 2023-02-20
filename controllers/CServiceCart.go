@@ -409,7 +409,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 
 		if amountRaw > 0 {
 			amountDiscont = amountRaw
-			serviceCart.Amount = serviceCart.Amount - int64(body.DiscountPrice)
+			serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount + amountRaw
 		} else {
 			serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount
 			amountDiscont = 0
