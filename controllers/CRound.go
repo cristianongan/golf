@@ -129,6 +129,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	updatePriceWithServiceItem(newBooking, models.CmsUser{})
 	res := getBagDetailFromBooking(db, newBooking)
 
 	okResponse(c, res)
