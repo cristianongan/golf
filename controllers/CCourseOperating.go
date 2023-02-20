@@ -1495,6 +1495,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	newBooking.TimeOutFlight = 0
 	newBooking.BuggyId = 0
 	newBooking.BuggyInfo = model_booking.BookingBuggy{}
+	newBooking.InitType = constants.BOOKING_INIT_MOVE_FLGIHT
 
 	bUid := booking.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
 	errCreateBooking := newBooking.Create(db, bUid)

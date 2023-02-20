@@ -137,9 +137,10 @@ const (
 Để phân biệt bag booking được tạo từ single book, hay từ check in lễ tân tạo booking luôn
 */
 const (
-	BOOKING_INIT_TYPE_BOOKING = "BOOKING" // được tạo từ booking single book
-	BOOKING_INIT_TYPE_CHECKIN = "CHECKIN" // Tạo từ check in lễ tân
-	BOOKING_INIT_ROUND        = "ROUND"   // Tạo khi add round
+	BOOKING_INIT_TYPE_BOOKING = "BOOKING"    // được tạo từ booking single book
+	BOOKING_INIT_TYPE_CHECKIN = "CHECKIN"    // Tạo từ check in lễ tân
+	BOOKING_INIT_ROUND        = "ROUND"      // Tạo khi add round
+	BOOKING_INIT_MOVE_FLGIHT  = "MOVEFLGIHT" // Tạo khi move flight
 )
 
 /*
