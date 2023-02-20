@@ -55,6 +55,11 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
 	// validate kiosk
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = body.ServiceId
@@ -232,6 +237,11 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
 	// validate kiosk
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = body.ServiceId
@@ -364,7 +374,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 
 	// validate cart item
 	serviceCartItem := model_booking.BookingServiceItem{}
-	serviceCartItem.Id = body.CartItemId
+	serviceCartItem.Id = body.ItemId
 
 	if err := serviceCartItem.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
@@ -380,6 +390,48 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// validaet booking
+	booking := model_booking.Booking{}
+	booking.Uid = serviceCart.BookingUid
+
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
+	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
+	// Update amount
+	if body.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
+		amountDiscont := (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice) * (100 - body.DiscountPrice) / 100
+
+		serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount + amountDiscont
+		serviceCartItem.Amount = amountDiscont
+
+	} else if body.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
+		var amountDiscont int64
+
+		totalPrice := serviceCartItem.Quality * int(serviceCartItem.UnitPrice)
+		amountRaw := int64(totalPrice) - body.DiscountPrice
+
+		if amountRaw > 0 {
+			amountDiscont = amountRaw
+			serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount + amountRaw
+		} else {
+			serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount
+			amountDiscont = 0
+		}
+		serviceCartItem.Amount = amountDiscont
+	}
+
 	serviceCartItem.DiscountType = body.DiscountType
 	serviceCartItem.DiscountValue = body.DiscountPrice
 	serviceCartItem.DiscountReason = body.DiscountReason
@@ -387,6 +439,17 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	if err := serviceCartItem.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
+	}
+
+	if err := serviceCart.Update(db); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	//Update giá nếu bill active
+	if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
+		//Update lại giá trong booking
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	okRes(c)
@@ -655,6 +718,11 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
 	// validate cart
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = serviceCartItem.ServiceBill
@@ -699,8 +767,27 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		// 	}
 		// }
 
-		// update service cart
-		serviceCart.Amount += (body.Quantity * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+		// Update amount
+		if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
+			amountDiscont := (((body.Quantity - int64(serviceCartItem.Quality)) * serviceCartItem.UnitPrice) * (100 - serviceCartItem.DiscountValue)) / 100
+
+			serviceCart.Amount = serviceCart.Amount + amountDiscont
+		} else if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
+			var amountDiscont int64
+
+			amountRaw := (body.Quantity * serviceCartItem.UnitPrice) - serviceCartItem.DiscountValue
+
+			if amountRaw > 0 {
+				serviceCart.Amount = serviceCart.Amount + serviceCartItem.DiscountValue - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+				amountDiscont = amountRaw
+			} else {
+				amountDiscont = 0
+			}
+			serviceCart.Amount += amountDiscont
+		} else {
+			serviceCart.Amount += (body.Quantity * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+		}
+
 		if err := serviceCart.Update(db); err != nil {
 			response_message.InternalServerError(c, err.Error())
 			return
@@ -709,6 +796,14 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		// update service item
 		serviceCartItem.Quality = int(body.Quantity)
 		serviceCartItem.Amount = body.Quantity * serviceCartItem.UnitPrice
+		// Update amount
+		if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
+			amountDiscont := (serviceCartItem.Amount * serviceCartItem.DiscountValue) / 100
+
+			serviceCartItem.Amount = serviceCartItem.Amount - amountDiscont
+		} else if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
+			serviceCartItem.Amount = serviceCartItem.Amount - serviceCartItem.DiscountValue
+		}
 	}
 
 	if body.Note != "" {
@@ -723,7 +818,7 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	//Update giá nếu bill active
 	if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	okRes(c)
@@ -764,6 +859,11 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
 		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
 		return
 	}
 
@@ -813,7 +913,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 
 	if serviceCart.BillStatus == constants.RES_BILL_STATUS_ACTIVE {
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	okRes(c)
@@ -860,11 +960,15 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	//Kiểm tra trạng thái bill
-	// if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
-	// 	response_message.BadRequest(c, "Bill status invalid")
-	// 	return
-	// }
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
 
 	serviceCart.BillCode = utils.GetTimeNow().Format("20060102150405")
 
@@ -904,10 +1008,15 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-	// 	response_message.BadRequest(c, "Bag status invalid")
-	// 	return
-	// }
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
 
 	// validate cart code
 	sourceServiceCart := models.ServiceCart{}
@@ -991,7 +1100,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if targetServiceCart.BillStatus == constants.POS_BILL_STATUS_TRANSFER {
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	// Update amount target bill
@@ -1000,7 +1109,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	if sourceServiceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
 
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(bookingSource, prof)
+		updatePriceWithServiceItem(&bookingSource, prof)
 	}
 
 	//
@@ -1055,6 +1164,17 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Check bag status
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag check out")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
 	serviceCart.BillStatus = constants.POS_BILL_STATUS_OUT
 
 	if serviceCart.BillCode == constants.BILL_NONE {
@@ -1071,7 +1191,7 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 
 	okRes(c)
 }
@@ -1257,6 +1377,17 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Check bag status
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag check out")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
 	// Update trạng thái
 	serviceCart.BillStatus = constants.POS_BILL_STATUS_ACTIVE
 	if err := serviceCart.Update(db); err != nil {
@@ -1265,7 +1396,7 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 
 	okRes(c)
 }
@@ -1315,7 +1446,7 @@ func (_ CServiceCart) UndoStatus(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 
 	okRes(c)
 }

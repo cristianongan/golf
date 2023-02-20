@@ -137,9 +137,10 @@ const (
 Để phân biệt bag booking được tạo từ single book, hay từ check in lễ tân tạo booking luôn
 */
 const (
-	BOOKING_INIT_TYPE_BOOKING = "BOOKING" // được tạo từ booking single book
-	BOOKING_INIT_TYPE_CHECKIN = "CHECKIN" // Tạo từ check in lễ tân
-	BOOKING_INIT_ROUND        = "ROUND"   // Tạo khi add round
+	BOOKING_INIT_TYPE_BOOKING = "BOOKING"    // được tạo từ booking single book
+	BOOKING_INIT_TYPE_CHECKIN = "CHECKIN"    // Tạo từ check in lễ tân
+	BOOKING_INIT_ROUND        = "ROUND"      // Tạo khi add round
+	BOOKING_INIT_MOVE_FLGIHT  = "MOVEFLGIHT" // Tạo khi move flight
 )
 
 /*
@@ -151,6 +152,14 @@ const (
 	KIOSK_BILL_INVENTORY_RETURN   = "RETURN"   // Đơn nhập bị trả lại
 	KIOSK_BILL_INVENTORY_SELL     = "SELL"     // Đơn xuất đang chờ bán
 	KIOSK_BILL_INVENTORY_TRANSFER = "TRANSFER" // Đơn xuất đã xuất thành công
+)
+
+/*
+Loại giảm giá các sản phẩm
+*/
+const (
+	ITEM_BILL_DISCOUNT_BY_PRICE   = "PRICE"
+	ITEM_BILL_DISCOUNT_BY_PERCENT = "PERCENT"
 )
 
 const (

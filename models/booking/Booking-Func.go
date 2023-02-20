@@ -175,7 +175,8 @@ func (item *Booking) FindServiceItemsForHandleFee(db *gorm.DB) {
 	if len(listGolfService) > 0 {
 		for index, v := range listGolfService {
 			// Check trạng thái bill
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_MANUAL {
+			// if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_MANUAL {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
 				// Add từ lễ tân thì k cần check
 				listServiceItems = append(listServiceItems, v)
 			} else {
@@ -1102,6 +1103,7 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 	// update lại lấy service items mới
 	buggyCaddieRentalFee := int64(0)
 	buggyCaddieAgencyPaidAllFee := int64(0)
+	buggyCaddieRentalFeeOfSub := int64(0)
 
 	item.FindServiceItemsForHandleFee(db)
 	for _, v := range item.ListServiceItems {
@@ -1110,7 +1112,12 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 
 		if v.ServiceType == constants.BUGGY_SETTING || v.ServiceType == constants.CADDIE_SETTING {
 			isBuggyCaddieRental = true
-			buggyCaddieRentalFee += v.Amount
+
+			if v.BillCode != item.BillCode {
+				buggyCaddieRentalFeeOfSub += v.Amount
+			} else {
+				buggyCaddieRentalFee += v.Amount
+			}
 		}
 
 		if len(item.MainBags) > 0 {
@@ -1162,7 +1169,7 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 		}
 	}
 
-	buggyCaddieRentalMushPay := buggyCaddieRentalFee - buggyCaddieAgencyPaid
+	buggyCaddieRentalMushPay := buggyCaddieRentalFee - buggyCaddieAgencyPaid + buggyCaddieRentalFeeOfSub
 
 	if mainPaidRental {
 		feePaid += buggyCaddieRentalMushPay

@@ -871,7 +871,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	// udp ok -> Tính lại giá
 	if isMainBagPayChanged {
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	// Get lai booking mới nhất trong DB
@@ -1213,8 +1213,8 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	go func() {
 		if booking.CaddieBooking != "" {
 			caddieBookingFee := getBookingCadieFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, body.Hole)
-			addCaddieBookingFee(booking, caddieBookingFee.Fee, "Booking Caddie")
-			updatePriceWithServiceItem(booking, prof)
+			addCaddieBookingFee(booking, caddieBookingFee.Fee, "Booking Caddie", body.Hole)
+			updatePriceWithServiceItem(&booking, prof)
 		}
 	}()
 
@@ -1331,7 +1331,7 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 
 	res := getBagDetailFromBooking(db, booking)
 
@@ -1665,6 +1665,28 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if len(booking.MainBags) > 0 {
+		response_message.InternalServerError(c, "Bag can not undo checkin")
+		return
+	}
+
+	if len(booking.SubBags) > 0 {
+		response_message.InternalServerError(c, "Bag can not undo checkin")
+		return
+	}
+
+	bookingServiceItemsR := model_booking.BookingServiceItem{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		BillCode:   booking.BillCode,
+	}
+	list, _ := bookingServiceItemsR.FindAll(db)
+
+	if len(list) > 0 {
+		response_message.InternalServerError(c, "Bag can not undo checkin")
+		return
+	}
+
 	if booking.InitType == constants.BOOKING_INIT_TYPE_CHECKIN {
 		if err := booking.Delete(db); err != nil {
 			response_message.BadRequest(c, err.Error())
@@ -1677,16 +1699,6 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 
 		listRound, _ := roundR.FindAll(db)
 		if len(listRound) > 1 {
-			response_message.InternalServerError(c, "Bag can not undo checkin")
-			return
-		}
-
-		bookingServiceItemsR := model_booking.BookingServiceItem{
-			BillCode: booking.BillCode,
-		}
-
-		listItems, _ := bookingServiceItemsR.FindAll(db)
-		if len(listItems) > 1 {
 			response_message.InternalServerError(c, "Bag can not undo checkin")
 			return
 		}

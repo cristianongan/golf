@@ -347,18 +347,18 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 
 				buggyFee := getBuggyFeeSetting(body.PartnerUid, body.CourseUid, booking.GuestStyle, round.Hole)
 				if bodyItem.BagShare != "" {
-					addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
+					addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
 				} else {
 					if booking.IsPrivateBuggy != nil && *booking.IsPrivateBuggy == true {
-						addBuggyFee(booking, buggyFee.PrivateCarFee, "Thuê riêng xe")
-						addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
+						addBuggyFee(booking, buggyFee.PrivateCarFee, "Thuê riêng xe", round.Hole)
+						addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
 					} else {
-						addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
-						addBuggyFee(booking, buggyFee.OddCarFee, "Thuê lẻ xe")
+						addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
+						addBuggyFee(booking, buggyFee.OddCarFee, "Thuê lẻ xe", round.Hole)
 					}
 				}
 			}
-			updatePriceWithServiceItem(booking, prof)
+			updatePriceWithServiceItem(&booking, prof)
 		}
 	}()
 
@@ -1367,7 +1367,6 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 	go func() {
 		for index, booking := range listBookingUpdated {
 			bodyItem := body.ListData[index]
-
 			// utils.ContainString(constants.MEMBER_BUGGY_FEE_FREE_LIST, booking.CardId) == -1 &&
 			if bodyItem.BuggyCode != "" {
 				round := models.Round{
@@ -1379,39 +1378,9 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 				}
 
 				buggyFee := getBuggyFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, round.Hole)
-				if bodyItem.BagShare != "" {
-					addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
-				} else {
-					if booking.IsPrivateBuggy != nil && *booking.IsPrivateBuggy == true {
-						addBuggyFee(booking, buggyFee.PrivateCarFee, "Thuê riêng xe")
-						addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
-					} else {
-						bookingR := model_booking.BookingList{
-							BookingDate: booking.BookingDate,
-							BuggyId:     booking.BuggyId,
-							BagStatus:   constants.BAG_STATUS_IN_COURSE,
-							PartnerUid:  booking.PartnerUid,
-							CourseUid:   booking.CourseUid,
-						}
-
-						// Tìm kiếm booking đang sử dụng buggy
-						db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-						db1, _, _ := bookingR.FindAllBookingList(db)
-						db1 = db1.Where("bag <> ?", booking.Bag)
-						bookingList := []model_booking.Booking{}
-						db1.Find(&bookingList)
-
-						if len(bookingList) > 0 {
-							addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
-						} else {
-							addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)")
-							addBuggyFee(booking, buggyFee.OddCarFee, "Thuê lẻ xe")
-						}
-
-					}
-				}
+				addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
 			}
-			updatePriceWithServiceItem(booking, prof)
+			updatePriceWithServiceItem(&booking, prof)
 		}
 	}()
 
@@ -1549,6 +1518,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	newBooking.TimeOutFlight = 0
 	newBooking.BuggyId = 0
 	newBooking.BuggyInfo = model_booking.BookingBuggy{}
+	newBooking.InitType = constants.BOOKING_INIT_MOVE_FLGIHT
 
 	bUid := booking.CourseUid + "-" + utils.HashCodeUuid(bookingUid.String())
 	errCreateBooking := newBooking.Create(db, bUid)
