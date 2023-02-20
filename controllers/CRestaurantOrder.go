@@ -80,11 +80,13 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 		serviceCart.ResFloor = body.Floor
 	}
 
+	applyDate, _ := time.Parse("2006-01-02", dateDisplay)
+
 	serviceCart.PartnerUid = body.PartnerUid
 	serviceCart.CourseUid = body.CourseUid
 	serviceCart.GolfBag = body.GolfBag
 	serviceCart.BookingUid = booking.Uid
-	serviceCart.BookingDate = datatypes.Date(utils.GetTimeNow().Local())
+	serviceCart.BookingDate = datatypes.Date(applyDate)
 	serviceCart.ServiceId = body.ServiceId
 	serviceCart.ServiceType = kiosk.KioskType
 	serviceCart.BillCode = constants.BILL_NONE
