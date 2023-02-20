@@ -211,7 +211,7 @@ func (cRound CRound) UpdateListFeePriceInRound(c *gin.Context, db *gorm.DB, book
 	caddieFee, buggyFee, greenFee, err := cRound.GetFeeOfRound(c, db, booking, guestStyle, hole)
 
 	if err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.InternalServerError(c, "Fee Not Found")
 		return
 	}
 

@@ -133,6 +133,11 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
 	if serviceCart.BillCode == constants.BILL_NONE {
 		serviceCart.BillCode = "OD-" + strconv.Itoa(int(body.BillId))
 		serviceCart.TimeProcess = utils.GetTimeNow().Unix()
@@ -209,12 +214,12 @@ func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsU
 		return
 	}
 
-	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
-		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
+	// if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+	// 	serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
 
-		response_message.BadRequest(c, "Bill status invalid")
-		return
-	}
+	// 	response_message.BadRequest(c, "Bill status invalid")
+	// 	return
+	// }
 
 	// validate golf bag
 	booking := model_booking.Booking{}
@@ -228,6 +233,65 @@ func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsU
 	serviceCart.BillStatus = constants.RES_BILL_STATUS_CANCEL
 
 	if err := serviceCart.Update(db); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	//find all item in bill
+	restaurantItem := models.RestaurantItem{}
+	restaurantItem.BillId = serviceCart.Id
+
+	list, err := restaurantItem.FindAll(db)
+
+	if err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	for _, item := range list {
+		if err := item.Delete(db); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+	}
+
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(booking, prof)
+
+	okRes(c)
+}
+
+// Xoa don
+func (_ CRestaurantOrder) DeleteOrder(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	idRequest := c.Param("id")
+	id, errId := strconv.ParseInt(idRequest, 10, 64)
+	if errId != nil {
+		response_message.BadRequest(c, errId.Error())
+		return
+	}
+
+	// validate cart
+	serviceCart := models.ServiceCart{}
+	serviceCart.Id = id
+	serviceCart.PartnerUid = prof.PartnerUid
+	serviceCart.CourseUid = prof.CourseUid
+
+	if err := serviceCart.FindFirst(db); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate golf bag
+	booking := model_booking.Booking{}
+	booking.Uid = serviceCart.BookingUid
+
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
+	if err := serviceCart.Delete(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
@@ -360,12 +424,12 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
-		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
+	// if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+	// 	serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
 
-		response_message.BadRequest(c, "Bill status invalid")
-		return
-	}
+	// 	response_message.BadRequest(c, "Bill status invalid")
+	// 	return
+	// }
 
 	// validate golf bag
 	booking := model_booking.Booking{}
@@ -554,12 +618,12 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
-		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
+	// if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+	// 	serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
 
-		response_message.BadRequest(c, "Bill status invalid")
-		return
-	}
+	// 	response_message.BadRequest(c, "Bill status invalid")
+	// 	return
+	// }
 
 	// validate golf bag
 	booking := model_booking.Booking{}
@@ -591,8 +655,28 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
+		// Update amount
+		if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
+			amountDiscont := ((int64(body.Quantity-serviceCartItem.Quality) * serviceCartItem.UnitPrice) * (100 - serviceCartItem.DiscountValue)) / 100
+
+			serviceCart.Amount = serviceCart.Amount + amountDiscont
+		} else if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
+			var amountDiscont int64
+
+			amountRaw := (int64(body.Quantity) * serviceCartItem.UnitPrice) - serviceCartItem.DiscountValue
+
+			if amountRaw > 0 {
+				serviceCart.Amount = serviceCart.Amount + serviceCartItem.DiscountValue - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+				amountDiscont = amountRaw
+			} else {
+				amountDiscont = 0
+			}
+			serviceCart.Amount += amountDiscont
+		} else {
+			serviceCart.Amount += (int64(body.Quantity) * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+		}
 		// update service cart
-		serviceCart.Amount += (int64(body.Quantity) * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+
 		if err := serviceCart.Update(db); err != nil {
 			response_message.BadRequest(c, err.Error())
 			return
@@ -623,6 +707,14 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		// update service item
 		serviceCartItem.Quality = int(body.Quantity)
 		serviceCartItem.Amount = int64(body.Quantity) * serviceCartItem.UnitPrice
+		// Update amount
+		if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
+			amountDiscont := (serviceCartItem.Amount * serviceCartItem.DiscountValue) / 100
+
+			serviceCartItem.Amount = serviceCartItem.Amount - amountDiscont
+		} else if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
+			serviceCartItem.Amount = serviceCartItem.Amount - serviceCartItem.DiscountValue
+		}
 	}
 
 	if body.Note != "" {
@@ -632,6 +724,15 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 	if err := serviceCartItem.Update(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
+	}
+
+	if serviceCart.BillStatus != constants.RES_BILL_STATUS_ORDER &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_BOOKING &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_OUT &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_CANCEL {
+
+		//Update lại giá trong booking
+		updatePriceWithServiceItem(booking, prof)
 	}
 
 	okRes(c)
@@ -667,18 +768,23 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
-		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
+	// if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
+	// 	serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
 
-		response_message.BadRequest(c, "Bill status invalid")
-		return
-	}
+	// 	response_message.BadRequest(c, "Bill status invalid")
+	// 	return
+	// }
 
 	// validate golf bag
 	booking := model_booking.Booking{}
 	booking.Uid = serviceCart.BookingUid
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
 		return
 	}
 
@@ -726,6 +832,15 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 			}
 		}
 
+	}
+
+	if serviceCart.BillStatus != constants.RES_BILL_STATUS_ORDER &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_BOOKING &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_OUT &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_CANCEL {
+
+		//Update lại giá trong booking
+		updatePriceWithServiceItem(booking, prof)
 	}
 
 	okRes(c)
