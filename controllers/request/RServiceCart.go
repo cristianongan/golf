@@ -27,10 +27,10 @@ type AddItemRentalCartBody struct {
 }
 
 type AddDiscountServiceItemBody struct {
-	ItemId         int64   `json:"item_id"`
-	DiscountType   string  `json:"discount_type"`
-	DiscountPrice  float64 `json:"discount_price"`
-	DiscountReason string  `json:"discount_reason"`
+	ItemId         int64  `json:"item_id"`
+	DiscountType   string `json:"discount_type"`
+	DiscountPrice  int64  `json:"discount_price"`
+	DiscountReason string `json:"discount_reason"`
 }
 
 type GetItemServiceCartBody struct {

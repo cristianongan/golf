@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"math"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -658,9 +657,9 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 
 		// Update amount
 		if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
-			amountDiscont := float64(((int64(body.Quantity) - int64(serviceCartItem.Quality)) * serviceCartItem.UnitPrice) * (100 - serviceCartItem.DiscountValue) / 100)
+			amountDiscont := ((int64(body.Quantity-serviceCartItem.Quality) * serviceCartItem.UnitPrice) * (100 - serviceCartItem.DiscountValue)) / 100
 
-			serviceCart.Amount += int64(math.Floor(amountDiscont))
+			serviceCart.Amount = serviceCart.Amount + amountDiscont
 		} else if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
 			var amountDiscont int64
 
@@ -710,7 +709,7 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		serviceCartItem.Amount = int64(body.Quantity) * serviceCartItem.UnitPrice
 		// Update amount
 		if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
-			amountDiscont := int64(math.Floor(float64((serviceCartItem.Amount * serviceCartItem.DiscountValue) / 100)))
+			amountDiscont := (serviceCartItem.Amount * serviceCartItem.DiscountValue) / 100
 
 			serviceCartItem.Amount = serviceCartItem.Amount - amountDiscont
 		} else if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {

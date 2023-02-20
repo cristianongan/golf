@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"math"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -397,7 +396,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 
 	// Update amount
 	if body.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
-		amountDiscont := int64(math.Floor((float64((int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)) * (100 - body.DiscountPrice)) / 100))
+		amountDiscont := (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice) * (100 - body.DiscountPrice) / 100
 
 		serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount + amountDiscont
 		serviceCartItem.Amount = amountDiscont
@@ -405,7 +404,8 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	} else if body.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
 		var amountDiscont int64
 
-		amountRaw := serviceCartItem.Amount - int64(body.DiscountPrice)
+		totalPrice := serviceCartItem.Quality * int(serviceCartItem.UnitPrice)
+		amountRaw := int64(totalPrice) - body.DiscountPrice
 
 		if amountRaw > 0 {
 			amountDiscont = amountRaw
@@ -418,7 +418,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	serviceCartItem.DiscountType = body.DiscountType
-	serviceCartItem.DiscountValue = int64(body.DiscountPrice)
+	serviceCartItem.DiscountValue = body.DiscountPrice
 	serviceCartItem.DiscountReason = body.DiscountReason
 
 	if err := serviceCartItem.Update(db); err != nil {
@@ -778,7 +778,7 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		serviceCartItem.Amount = body.Quantity * serviceCartItem.UnitPrice
 		// Update amount
 		if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
-			amountDiscont := int64(math.Floor(float64((serviceCartItem.Amount * serviceCartItem.DiscountValue) / 100)))
+			amountDiscont := (serviceCartItem.Amount * serviceCartItem.DiscountValue) / 100
 
 			serviceCartItem.Amount = serviceCartItem.Amount - amountDiscont
 		} else if serviceCartItem.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PRICE {
