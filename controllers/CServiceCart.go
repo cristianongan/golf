@@ -958,11 +958,15 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	//Kiểm tra trạng thái bill
-	// if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
-	// 	response_message.BadRequest(c, "Bill status invalid")
-	// 	return
-	// }
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
 
 	serviceCart.BillCode = utils.GetTimeNow().Format("20060102150405")
 
