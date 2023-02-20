@@ -52,3 +52,9 @@ type ReportSalePOSForm struct {
 	Date       string `form:"date" binding:"required"`
 	Type       string `form:"type" binding:"required"`
 }
+type ReportBuggyGoForm struct {
+	PartnerUid string `form:"partner_uid" binding:"required"`
+	CourseUid  string `form:"course_uid" binding:"required"`
+	Month      string `form:"month" binding:"required"`
+	Year       string `form:"year" binding:"required"`
+}

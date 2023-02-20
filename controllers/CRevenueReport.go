@@ -7,6 +7,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	model_gostarter "start/models/go-starter"
 	model_payment "start/models/payment"
 	model_report "start/models/report"
 	"start/utils/response_message"
@@ -325,6 +326,7 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 	db = db.Where("check_in_time > 0")
 	db = db.Where("bag_status <> 'CANCEL'")
 	db = db.Where("init_type <> 'ROUND'")
+	db = db.Where("init_type <> 'MOVEFLGIHT'")
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -454,4 +456,22 @@ func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.
 	}
 
 	okRes(c)
+}
+
+func (_ *CRevenueReport) GetReportUsingBuggyInGo(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.ReportBuggyGoForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	caddieBuggyInOut := model_gostarter.CaddieBuggyInOut{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+
+	report, _ := caddieBuggyInOut.FindReportBuggyUsing(db, form.Month, form.Year)
+
+	okResponse(c, report)
 }
