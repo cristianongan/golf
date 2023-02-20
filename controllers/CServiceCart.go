@@ -721,6 +721,11 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
 	// validate cart
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = serviceCartItem.ServiceBill
@@ -1162,6 +1167,17 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Check bag status
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag check out")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
 	serviceCart.BillStatus = constants.POS_BILL_STATUS_OUT
 
 	if serviceCart.BillCode == constants.BILL_NONE {
@@ -1361,6 +1377,17 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 
 	if err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
+	// Check bag status
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag check out")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
 		return
 	}
 
