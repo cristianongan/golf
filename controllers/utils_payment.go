@@ -238,6 +238,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		handleSinglePayment(db, booking)
 		//Upd lại số tiền thanh toán của agency
 		handleAgencyPayment(db, booking)
+		return
 	}
 
 	bookingAgencyPayment.FeeData = []utils.BookingAgencyPayForBagData{}
