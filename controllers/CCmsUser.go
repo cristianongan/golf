@@ -194,6 +194,10 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 		key := user.GetKeyRedisPermission()
 		listPer, _ := datasources.GetCache(key)
 
+		if !config.GetUseRedisPermissionRole() {
+			listPer = ""
+		}
+
 		if len(listPer) > 0 {
 			_ = json.Unmarshal([]byte(listPer), &listPerMis)
 		} else {
