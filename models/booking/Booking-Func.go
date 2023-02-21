@@ -45,7 +45,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 	if len(listGolfService) > 0 {
 		for index, v := range listGolfService {
 			// Check trạng thái bill
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_MANUAL {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
 				// Add từ lễ tân thì k cần check
 				listServiceItems = append(listServiceItems, v)
 			} else {
