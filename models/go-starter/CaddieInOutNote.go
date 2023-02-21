@@ -1,6 +1,7 @@
 package model_gostarter
 
 import (
+	"fmt"
 	"start/constants"
 	"start/models"
 	"start/utils"
@@ -220,38 +221,36 @@ func (item *CaddieBuggyInOut) FindCaddieBuggyInOutWithBooking(database *gorm.DB,
 }
 
 func (item *CaddieBuggyInOut) FindReportBuggyUsing(database *gorm.DB, month, year string) ([]ReportBuggy, error) {
-	db := database.Model(CaddieBuggyInOut{})
+	subQuery1 := database.Model(CaddieBuggyInOut{})
 	list := []ReportBuggy{}
 
 	if item.PartnerUid != "" {
-		db = db.Where("caddie_buggy_in_outs.partner_uid = ?", item.PartnerUid)
+		subQuery1 = subQuery1.Where("caddie_buggy_in_outs.partner_uid = ?", item.PartnerUid)
 	}
 
 	if item.CourseUid != "" {
-		db = db.Where("caddie_buggy_in_outs.course_uid = ?", item.CourseUid)
+		subQuery1 = subQuery1.Where("caddie_buggy_in_outs.course_uid = ?", item.CourseUid)
 	}
 
-	if year != "" {
-		db = db.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y') = ?", year)
-	}
+	subQuery1 = subQuery1.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y-%m') = ?", fmt.Sprintf("%s-%s", year, month))
+	subQuery1 = subQuery1.Where("caddie_buggy_in_outs.buggy_type = ?", constants.STATUS_OUT)
+	subQuery1 = subQuery1.Joins("JOIN bookings ON bookings.uid = caddie_buggy_in_outs.booking_uid")
+	subQuery1 = subQuery1.Group("caddie_buggy_in_outs.buggy_code")
+	subQuery1 = subQuery1.Group("bookings.booking_date")
+	subQuery1 = subQuery1.Select("SUM(caddie_buggy_in_outs.hole_buggy) as hole_buggy, bookings.booking_date as booking_date")
 
-	if month != "" {
-		db = db.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y-%m') = ?", year, month)
-	}
+	subQuery2 := database.Table("(?) as tb1", subQuery1)
+	subQuery2 = subQuery2.Select(`
+					SUM(if(tb1.hole_buggy = 9, 1, 0)) AS h_9,
+					SUM(if(tb1.hole_buggy = 18, 1, 0)) AS h_18,
+					SUM(if(tb1.hole_buggy = 36, 1, 0)) AS h_36,
+					SUM(if(tb1.hole_buggy = 45, 1, 0)) AS h_45,
+					SUM(if(tb1.hole_buggy = 54, 1, 0)) AS h_54,
+					tb1.booking_date`)
+	subQuery2 = subQuery2.Group("tb1.booking_date")
 
-	db = db.Where("caddie_buggy_in_outs.buggy_type = ?", constants.STATUS_OUT)
-	db = db.Select(`SUM(if(caddie_buggy_in_outs.hole_buggy = 9, 1, 0)) AS h_9,
-					SUM(if(caddie_buggy_in_outs.hole_buggy = 18, 1, 0)) AS h_18,
-					SUM(if(caddie_buggy_in_outs.hole_buggy = 36, 1, 0)) AS h_36,
-					SUM(if(caddie_buggy_in_outs.hole_buggy = 45, 1, 0)) AS h_45,
-					SUM(if(caddie_buggy_in_outs.hole_buggy = 54, 1, 0)) AS h_54,
-					bookings.booking_date`)
-	db = db.Joins("JOIN bookings ON bookings.uid = caddie_buggy_in_outs.booking_uid")
-	db = db.Group("caddie_buggy_in_outs.buggy_code")
-	db = db.Group("bookings.booking_date")
-	db.Find(&list)
-
-	return list, db.Error
+	subQuery2.Debug().Find(&list)
+	return list, subQuery1.Error
 }
 
 func (item *CaddieBuggyInOut) Delete(db *gorm.DB) error {

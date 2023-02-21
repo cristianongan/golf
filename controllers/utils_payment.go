@@ -268,7 +268,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 	if feeInfo.CaddieFee > 0 {
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
 			Fee:  feeInfo.CaddieFee,
-			Name: "Booking Caddie",
+			Name: "booking caddie",
 			Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
 			Hole: booking.Hole,
 		})
