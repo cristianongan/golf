@@ -25,6 +25,12 @@ import (
 	"github.com/ttacon/libphonenumber"
 )
 
+func GetDateLocal() time.Time {
+	dateDisplay, _ := GetBookingDateFromTimestamp(time.Now().Unix())
+	applyDate, _ := time.Parse(constants.DATE_FORMAT_1, dateDisplay)
+	return applyDate
+}
+
 func GetCurrentYear() string {
 	currentYearStr, _ := GetDateFromTimestampWithFormat(GetTimeNow().Unix(), constants.YEAR_FORMAT)
 	return currentYearStr

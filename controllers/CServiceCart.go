@@ -944,7 +944,8 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 	serviceCart.CourseUid = body.CourseUid
 	serviceCart.ServiceId = body.ServiceId
 	serviceCart.GolfBag = body.GolfBag
-	serviceCart.BookingDate = datatypes.Date(utils.GetTimeNow().UTC())
+	dateDisplay := utils.GetDateLocal()
+	serviceCart.BookingDate = datatypes.Date(dateDisplay)
 	serviceCart.BillCode = constants.BILL_NONE
 
 	if err := serviceCart.FindFirst(db); err != nil {
@@ -1046,7 +1047,8 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	targetServiceCart.PartnerUid = body.PartnerUid
 	targetServiceCart.CourseUid = body.CourseUid
 	targetServiceCart.GolfBag = body.GolfBag
-	targetServiceCart.BookingDate = datatypes.Date(utils.GetTimeNow().UTC())
+	dateDisplay1 := utils.GetDateLocal()
+	targetServiceCart.BookingDate = datatypes.Date(dateDisplay1)
 	targetServiceCart.ServiceId = sourceServiceCart.ServiceId
 	targetServiceCart.ServiceType = sourceServiceCart.ServiceType
 	targetServiceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
