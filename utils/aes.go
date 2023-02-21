@@ -3,7 +3,6 @@ package utils
 import (
 	"crypto/aes"
 	base64 "encoding/base64"
-	"fmt"
 )
 
 func EncryptAES(key []byte, plaintext string) (string, error) {
@@ -37,7 +36,7 @@ func DecryptAES(key []byte, ct string) (string, error) {
 	c.Decrypt(pt, ciphertext)
 	ptUnPadding := pkcs7Unpadding(pt)
 	s := string(ptUnPadding[:])
-	fmt.Println("DECRYPTED:", s)
+	// fmt.Println("DECRYPTED:", s)
 	return s, nil
 }
 
