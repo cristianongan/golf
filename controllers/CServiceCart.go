@@ -55,6 +55,11 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
 	// validate kiosk
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = body.ServiceId
@@ -139,12 +144,14 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	serviceCart.PartnerUid = body.PartnerUid
 	serviceCart.CourseUid = body.CourseUid
 
+	applyDate, _ := time.Parse(constants.DATE_FORMAT_1, dateDisplay)
+
 	if body.BillId != 0 {
 		serviceCart.Id = body.BillId
 	} else {
 		serviceCart.GolfBag = body.GolfBag
 		serviceCart.BookingUid = booking.Uid
-		serviceCart.BookingDate = datatypes.Date(utils.GetTimeNow().UTC())
+		serviceCart.BookingDate = datatypes.Date(applyDate)
 		serviceCart.ServiceId = body.ServiceId
 		serviceCart.BillCode = constants.BILL_NONE
 		serviceCart.StaffOrder = prof.FullName
@@ -229,6 +236,11 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 
 	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
 		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
 		return
 	}
 
@@ -394,6 +406,11 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
 	// Update amount
 	if body.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
 		amountDiscont := (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice) * (100 - body.DiscountPrice) / 100
@@ -432,9 +449,12 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Update giá nếu bill active
-	if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
+	if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_ORDER &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_BOOKING &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_CANCEL {
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	okRes(c)
@@ -685,13 +705,13 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	// dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
 	booking := model_booking.Booking{}
-	booking.PartnerUid = body.PartnerUid
-	booking.CourseUid = body.CourseUid
-	booking.Bag = serviceCartItem.Bag
-	booking.BookingDate = dateDisplay
+	booking.Uid = serviceCartItem.BookingUid
+	// booking.CourseUid = body.CourseUid
+	// booking.Bag = serviceCartItem.Bag
+	// booking.BookingDate = dateDisplay
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
 		return
@@ -700,6 +720,11 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	// Check bag status
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
 		response_message.BadRequest(c, "Bag check out")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
 		return
 	}
 
@@ -798,7 +823,7 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	//Update giá nếu bill active
 	if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	okRes(c)
@@ -825,13 +850,13 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	// dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
 	booking := model_booking.Booking{}
-	booking.PartnerUid = serviceCartItem.PartnerUid
-	booking.CourseUid = serviceCartItem.CourseUid
-	booking.Bag = serviceCartItem.Bag
-	booking.BookingDate = dateDisplay
+	booking.Uid = serviceCartItem.BookingUid
+	// booking.CourseUid = serviceCartItem.CourseUid
+	// booking.Bag = serviceCartItem.Bag
+	// booking.BookingDate = dateDisplay
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
 		return
@@ -839,6 +864,11 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
 		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
 		return
 	}
 
@@ -888,7 +918,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 
 	if serviceCart.BillStatus == constants.RES_BILL_STATUS_ACTIVE {
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	okRes(c)
@@ -909,19 +939,6 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// validate golf bag
-	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-
-	booking := model_booking.Booking{}
-	booking.PartnerUid = body.PartnerUid
-	booking.CourseUid = body.CourseUid
-	booking.Bag = body.GolfBag
-	booking.BookingDate = dateDisplay
-	if err := booking.FindFirst(db); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
-
 	serviceCart := models.ServiceCart{}
 	serviceCart.PartnerUid = body.PartnerUid
 	serviceCart.CourseUid = body.CourseUid
@@ -935,11 +952,28 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	//Kiểm tra trạng thái bill
-	// if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
-	// 	response_message.BadRequest(c, "Bill status invalid")
-	// 	return
-	// }
+	// validate golf bag
+	// dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
+	booking := model_booking.Booking{}
+	booking.Uid = serviceCart.BookingUid
+	// booking.CourseUid = body.CourseUid
+	// booking.Bag = body.GolfBag
+	// booking.BookingDate = dateDisplay
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
 
 	serviceCart.BillCode = utils.GetTimeNow().Format("20060102150405")
 
@@ -979,10 +1013,15 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-	// 	response_message.BadRequest(c, "Bag status invalid")
-	// 	return
-	// }
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
 
 	// validate cart code
 	sourceServiceCart := models.ServiceCart{}
@@ -1066,7 +1105,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if targetServiceCart.BillStatus == constants.POS_BILL_STATUS_TRANSFER {
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	// Update amount target bill
@@ -1075,7 +1114,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	if sourceServiceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
 
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(bookingSource, prof)
+		updatePriceWithServiceItem(&bookingSource, prof)
 	}
 
 	//
@@ -1130,6 +1169,17 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Check bag status
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag check out")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
 	serviceCart.BillStatus = constants.POS_BILL_STATUS_OUT
 
 	if serviceCart.BillCode == constants.BILL_NONE {
@@ -1146,7 +1196,7 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 
 	okRes(c)
 }
@@ -1332,6 +1382,17 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Check bag status
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag check out")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
 	// Update trạng thái
 	serviceCart.BillStatus = constants.POS_BILL_STATUS_ACTIVE
 	if err := serviceCart.Update(db); err != nil {
@@ -1340,7 +1401,7 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 
 	okRes(c)
 }
@@ -1390,7 +1451,7 @@ func (_ CServiceCart) UndoStatus(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 
 	okRes(c)
 }

@@ -58,3 +58,11 @@ type ReportBuggyGoForm struct {
 	Month      string `form:"month" binding:"required"`
 	Year       string `form:"year" binding:"required"`
 }
+
+type RevenueReportPOSForm struct {
+	PartnerUid string `form:"partner_uid"`
+	CourseUid  string `form:"course_uid"`
+	FromDate   string `form:"from_date"`
+	ToDate     string `form:"to_date"`
+	ServiceId  int64  `form:"service_id"`
+}

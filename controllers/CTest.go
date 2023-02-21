@@ -44,7 +44,7 @@ func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	updatePriceWithServiceItem(booking, models.CmsUser{})
+	updatePriceWithServiceItem(&booking, models.CmsUser{})
 	// Get lai booking mới nhất trong DB
 	bookLast := model_booking.Booking{}
 	bookLast.Uid = booking.Uid

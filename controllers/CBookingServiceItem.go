@@ -110,7 +110,7 @@ func (_ *CBookingServiceItem) AddBookingServiceItemToBag(c *gin.Context, prof mo
 	}
 
 	//Update lại giá trong booking
-	updatePriceWithServiceItem(booking, prof)
+	updatePriceWithServiceItem(&booking, prof)
 
 	okResponse(c, serviceItem)
 }
@@ -187,7 +187,7 @@ func (_ *CBookingServiceItem) DelBookingServiceItemToBag(c *gin.Context, prof mo
 		log.Println("DelBookingServiceItemToBag", errFB.Error())
 	} else {
 		//Update lại giá trong booking
-		updatePriceWithServiceItem(booking, prof)
+		updatePriceWithServiceItem(&booking, prof)
 	}
 
 	okRes(c)
