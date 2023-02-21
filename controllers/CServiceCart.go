@@ -505,7 +505,7 @@ func (_ CServiceCart) AddDiscountToBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	// Update amount
+	// Update service cart
 	serviceCart.DiscountType = body.DiscountType
 	serviceCart.DiscountValue = body.DiscountPrice
 	serviceCart.DiscountReason = body.DiscountReason
