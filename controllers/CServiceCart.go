@@ -462,6 +462,71 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
+func (_ CServiceCart) AddDiscountToBill(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.AddDiscountBillBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	validate := validator.New()
+
+	if err := validate.Struct(body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate cart
+	serviceCart := models.ServiceCart{}
+	serviceCart.Id = body.BillId
+
+	if err := serviceCart.FindFirst(db); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validaet booking
+	booking := model_booking.Booking{}
+	booking.Uid = serviceCart.BookingUid
+
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
+	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequest(c, "Bag lock")
+		return
+	}
+
+	// Update amount
+	serviceCart.DiscountType = body.DiscountType
+	serviceCart.DiscountValue = body.DiscountPrice
+	serviceCart.DiscountReason = body.DiscountReason
+
+	if err := serviceCart.Update(db); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	//Update giá nếu bill active
+	if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_ORDER &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_BOOKING &&
+		serviceCart.BillStatus != constants.RES_BILL_STATUS_CANCEL {
+		//Update lại giá trong booking
+		updatePriceWithServiceItem(&booking, prof)
+	}
+
+	okRes(c)
+}
+
 func (_ CServiceCart) GetItemInCart(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	query := request.GetItemServiceCartBody{}
