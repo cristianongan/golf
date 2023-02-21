@@ -274,6 +274,15 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		})
 	}
 
+	if feeInfo.OddCarFee > 0 {
+		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
+			Fee:  feeInfo.OddCarFee,
+			Name: "Thuê lẻ xe",
+			Type: constants.BOOKING_AGENCY_BUGGY_ODD_FEE,
+			Hole: booking.Hole,
+		})
+	}
+
 	// Ghi nhận số tiền agency thanh toán của agency
 	bookingAgencyPayment.CaddieId = fmt.Sprint(booking.CaddieId)
 	if isUpdate {

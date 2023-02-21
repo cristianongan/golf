@@ -45,7 +45,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 	if len(listGolfService) > 0 {
 		for index, v := range listGolfService {
 			// Check trạng thái bill
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_MANUAL {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
 				// Add từ lễ tân thì k cần check
 				listServiceItems = append(listServiceItems, v)
 			} else {
@@ -88,7 +88,6 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 
 			subDetail, _ := RsubDetail.FindFirstByUId(db)
 			isAgencyPaidBookingCaddie := subDetail.GetAgencyPaidBookingCaddie() > 0
-			isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
 
 			if subDetail.CheckAgencyPaidAll() {
 				break
@@ -136,10 +135,20 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 
 					}
 
-					if isAgencyPaidBuggy && v1.Name == subDetail.GetAgencyBuggyName() && !hasBuggy && isCanAdd {
-						hasBuggy = true
-						isCanAdd = false
+					if isCanAdd {
+						for _, itemPaid := range subDetail.AgencyPaid {
+							if v1.Name == itemPaid.Name && v1.ServiceType == constants.BUGGY_SETTING && !hasBuggy && itemPaid.Fee > 0 {
+								hasBuggy = true
+								isCanAdd = false
+								break
+							}
+						}
 					}
+
+					// if isAgencyPaidBuggy && v1.Name == subDetail.GetAgencyBuggyName() && !hasBuggy && isCanAdd {
+					// 	hasBuggy = true
+					// 	isCanAdd = false
+					// }
 
 					if v1.ServiceType == constants.CADDIE_SETTING && isAgencyPaidBookingCaddie && !hasCaddie {
 						hasCaddie = true
@@ -220,7 +229,7 @@ func (item *Booking) FindServiceItemsForHandleFee(db *gorm.DB) {
 
 			subDetail, _ := RsubDetail.FindFirstByUId(db)
 			isAgencyPaidBookingCaddie := subDetail.GetAgencyPaidBookingCaddie() > 0
-			isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
+			// isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
 
 			if subDetail.CheckAgencyPaidAll() {
 				break
@@ -259,9 +268,19 @@ func (item *Booking) FindServiceItemsForHandleFee(db *gorm.DB) {
 								}
 							}
 						}
-						if v1.ServiceType == constants.BUGGY_SETTING && isAgencyPaidBuggy {
-							isCanAdd = false
+
+						if isCanAdd {
+							for _, itemPaid := range subDetail.AgencyPaid {
+								if v1.Name == itemPaid.Name && v1.ServiceType == constants.BUGGY_SETTING && itemPaid.Fee > 0 {
+									isCanAdd = false
+									break
+								}
+							}
 						}
+
+						// if v1.ServiceType == constants.BUGGY_SETTING && isAgencyPaidBuggy {
+						// 	isCanAdd = false
+						// }
 						if v1.ServiceType == constants.CADDIE_SETTING && isAgencyPaidBookingCaddie {
 							isCanAdd = false
 						}
@@ -402,7 +421,7 @@ func (item *Booking) FindServiceItemsInPayment(db *gorm.DB) {
 
 			subDetail, _ := RsubDetail.FindFirstByUId(db)
 			isAgencyPaidBookingCaddie := subDetail.GetAgencyPaidBookingCaddie() > 0
-			isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
+			// isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
 
 			if subDetail.CheckAgencyPaidAll() {
 				break
@@ -441,9 +460,19 @@ func (item *Booking) FindServiceItemsInPayment(db *gorm.DB) {
 								}
 							}
 						}
-						if v1.ServiceType == constants.BUGGY_SETTING && isAgencyPaidBuggy {
-							isCanAdd = false
+
+						if isCanAdd {
+							for _, itemPaid := range subDetail.AgencyPaid {
+								if v1.Name == itemPaid.Name && v1.ServiceType == constants.BUGGY_SETTING && itemPaid.Fee > 0 {
+									isCanAdd = false
+									break
+								}
+							}
 						}
+
+						// if v1.ServiceType == constants.BUGGY_SETTING && isAgencyPaidBuggy {
+						// 	isCanAdd = false
+						// }
 						if v1.ServiceType == constants.CADDIE_SETTING && isAgencyPaidBookingCaddie {
 							isCanAdd = false
 						}
@@ -550,10 +579,24 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 						if mainPaidRental {
 							v.IsPaid = true
 						}
-						if v.ServiceType == constants.BUGGY_SETTING || v.ServiceType == constants.CADDIE_SETTING {
-							if item.GetAgencyPaidBuggy() > 0 {
+
+						for _, itemPaid := range item.AgencyPaid {
+							if v.Name == itemPaid.Name && v.ServiceType == constants.BUGGY_SETTING && itemPaid.Fee > 0 {
 								v.IsPaid = true
+								break
 							}
+						}
+
+						// if v.ServiceType == constants.BUGGY_SETTING || v.ServiceType == constants.CADDIE_SETTING {
+						// 	if item.GetAgencyPaidBuggy() > 0 {
+						// 		v.IsPaid = true
+						// 	}
+						// 	if item.GetAgencyPaidBookingCaddie() > 0 {
+						// 		v.IsPaid = true
+						// 	}
+						// }
+
+						if v.ServiceType == constants.CADDIE_SETTING {
 							if item.GetAgencyPaidBookingCaddie() > 0 {
 								v.IsPaid = true
 							}
@@ -615,7 +658,7 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 			}
 			subDetail, _ := RsubDetail.FindFirstByUId(db)
 			isAgencyPaidBookingCaddie := subDetail.GetAgencyPaidBookingCaddie() > 0
-			isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
+			// isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
 
 			// agency paid all
 			if subDetail.CheckAgencyPaidAll() {
@@ -659,9 +702,15 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 							}
 						}
 					}
-					if isAgencyPaidBuggy && v1.Name == subDetail.GetAgencyBuggyName() && !hasBuggy && isCanAdd {
-						hasBuggy = true
-						isCanAdd = false
+
+					if isCanAdd {
+						for _, itemPaid := range subDetail.AgencyPaid {
+							if v1.Name == itemPaid.Name && v1.ServiceType == constants.BUGGY_SETTING && !hasBuggy && itemPaid.Fee > 0 {
+								hasBuggy = true
+								isCanAdd = false
+								break
+							}
+						}
 					}
 
 					if v1.ServiceType == constants.CADDIE_SETTING && isAgencyPaidBookingCaddie && !hasCaddie {
@@ -1185,7 +1234,7 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 	}
 
 	if item.CheckAgencyPaidAll() {
-		agencyPaidAll -= buggyCaddieRentalFee
+		// agencyPaidAll -= buggyCaddieRentalFee
 		feePaid = agencyPaidAll
 
 		mushPay.MushPay = subBagFee
