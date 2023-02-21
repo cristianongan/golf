@@ -64,5 +64,5 @@ type RevenueReportPOSForm struct {
 	CourseUid  string `form:"course_uid"`
 	FromDate   string `form:"from_date"`
 	ToDate     string `form:"to_date"`
-	ServiceId  int64  `form:"service_id"`
+	ServiceId  string `form:"service_id"`
 }

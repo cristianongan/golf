@@ -477,29 +477,28 @@ func (_ *CRevenueReport) GetReportUsingBuggyInGo(c *gin.Context, prof models.Cms
 }
 
 func (_ *CRevenueReport) GetReportRevenuePointOfSale(c *gin.Context, prof models.CmsUser) {
-	// db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	// form := request.RevenueReportPOSForm{}
-	// if bindErr := c.ShouldBind(&form); bindErr != nil {
-	// 	response_message.BadRequest(c, bindErr.Error())
-	// 	return
-	// }
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.RevenueReportPOSForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
 
-	// serviceCart := models.ServiceCart{
-	// 	PartnerUid: form.PartnerUid,
-	// 	CourseUid:  form.CourseUid,
-	// 	ServiceId:  form.ServiceId,
-	// }
+	serviceItem := model_booking.BookingServiceItem{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		ServiceId:  form.ServiceId,
+	}
 
-	// list, total, err := serviceCart.FindList(db, '', form.FromDate, form.ToDate, '')
-	// if err != nil {
-	// 	response_message.InternalServerError(c, err.Error())
-	// 	return
-	// }
+	list, err := serviceItem.FindReportRevenuePOS(db, form.FromDate, form.ToDate)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
 
-	// res := map[string]interface{}{
-	// 	"total": total,
-	// 	"data":  list,
-	// }
+	res := map[string]interface{}{
+		"data": list,
+	}
 
-	// okResponse(c, res)
+	okResponse(c, res)
 }
