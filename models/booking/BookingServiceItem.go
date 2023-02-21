@@ -55,6 +55,7 @@ type BookingServiceItemResponse struct {
 type BookingServiceItemWithPaidInfo struct {
 	BookingServiceItem
 	IsPaid bool `json:"is_paid"`
+	// IsAgencyPaid bool `json:"is_agency_paid"`
 }
 
 // ------- List Booking service ---------

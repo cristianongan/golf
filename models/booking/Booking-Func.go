@@ -788,6 +788,7 @@ func (item *Booking) FindServiceItemsForBill(db *gorm.DB) []BookingServiceItemWi
 						for _, itemPaid := range item.AgencyPaid {
 							if v.Name == itemPaid.Name && v.ServiceType == constants.BUGGY_SETTING && itemPaid.Fee > 0 {
 								v.IsPaid = true
+								// v.IsAgencyPaid = true
 								break
 							}
 						}
@@ -911,6 +912,7 @@ func (item *Booking) FindServiceItemsForBill(db *gorm.DB) []BookingServiceItemWi
 					// if isCanAdd {
 					// 	for _, itemPaid := range subDetail.AgencyPaid {
 					// 		if v1.Name == itemPaid.Name && v1.ServiceType == constants.BUGGY_SETTING && !hasBuggy && itemPaid.Fee > 0 {
+					// 			v1.IsAgencyPaid = true
 					// 			hasBuggy = true
 					// 			isCanAdd = false
 					// 			break
@@ -919,6 +921,7 @@ func (item *Booking) FindServiceItemsForBill(db *gorm.DB) []BookingServiceItemWi
 					// }
 
 					// if v1.ServiceType == constants.CADDIE_SETTING && isAgencyPaidBookingCaddie && !hasCaddie {
+					// 	v1.IsAgencyPaid = true
 					// 	hasCaddie = true
 					// 	isCanAdd = false
 					// }
