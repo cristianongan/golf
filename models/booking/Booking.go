@@ -158,10 +158,11 @@ type PaymentOfBag struct {
 }
 
 type RoundOfBag struct {
-	Bag         string           `json:"bag"`
-	BookingCode string           `json:"booking_code"`
-	PlayerName  string           `json:"player_name"`
-	Rounds      models.ListRound `json:"rounds"`
+	Bag         string                               `json:"bag"`
+	BookingCode string                               `json:"booking_code"`
+	PlayerName  string                               `json:"player_name"`
+	Rounds      models.ListRound                     `json:"rounds"`
+	AgencyPaid  utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty"`
 }
 
 type BookingForListServiceIems struct {

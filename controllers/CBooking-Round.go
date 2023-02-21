@@ -123,6 +123,7 @@ func GetGolfFeeInfoOfBagForBill(c *gin.Context, mainBooking model_booking.Bookin
 			BookingCode: subBooking.BookingCode,
 			PlayerName:  subBooking.PlayerName,
 			Rounds:      []models.Round{},
+			AgencyPaid:  bookingR.AgencyPaid,
 		}
 
 		for _, item := range listRound {
