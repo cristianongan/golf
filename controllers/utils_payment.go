@@ -253,7 +253,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 	}
 	if feeInfo.PrivateCarFee > 0 {
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
-			Fee:  feeInfo.GolfFee,
+			Fee:  feeInfo.PrivateCarFee,
 			Name: "Thuê riêng xe",
 			Type: constants.BOOKING_AGENCY_PRIVATE_CAR_FEE,
 			Hole: booking.Hole,
