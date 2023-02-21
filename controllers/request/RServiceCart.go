@@ -33,6 +33,13 @@ type AddDiscountServiceItemBody struct {
 	DiscountReason string `json:"discount_reason"`
 }
 
+type AddDiscountBillBody struct {
+	BillId         int64  `json:"bill_id"`
+	DiscountType   string `json:"discount_type"`
+	DiscountPrice  int64  `json:"discount_price"`
+	DiscountReason string `json:"discount_reason"`
+}
+
 type GetItemServiceCartBody struct {
 	PageRequest
 	PartnerUid  string `form:"partner_uid"`

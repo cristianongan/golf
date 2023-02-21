@@ -55,6 +55,7 @@ type BookingServiceItemResponse struct {
 type BookingServiceItemWithPaidInfo struct {
 	BookingServiceItem
 	IsPaid bool `json:"is_paid"`
+	// IsAgencyPaid bool `json:"is_agency_paid"`
 }
 
 // ------- List Booking service ---------
@@ -463,4 +464,54 @@ func (item *BookingServiceItem) FindBestGroup(database *gorm.DB, page models.Pag
 	}
 
 	return list, total, db.Error
+}
+
+func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate, toDate string) ([]map[string]interface{}, error) {
+	db := database.Table("booking_service_items")
+	var list []map[string]interface{}
+
+	db.Select("booking_service_items.name, booking_service_items.unit, tb3.group_name, sum(booking_service_items.quality) as quantity, booking_service_items.unit_price")
+
+	if item.CourseUid != "" {
+		db = db.Where("booking_service_items.course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("booking_service_items.partner_uid = ?", item.PartnerUid)
+	}
+	if item.ServiceId != "" {
+		db = db.Where("booking_service_items.service_id = ?", item.ServiceId)
+	}
+
+	// sub query
+	subQuery := database.Table("bookings")
+
+	if item.CourseUid != "" {
+		subQuery = subQuery.Where("bookings.course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		subQuery = subQuery.Where("bookings.partner_uid = ?", item.PartnerUid)
+	}
+	if formDate != "" {
+		subQuery = subQuery.Where("STR_TO_DATE(bookings.booking_date, '%d/%m/%Y') >= STR_TO_DATE(?, '%d/%m/%Y')", formDate)
+	}
+	if toDate != "" {
+		subQuery = subQuery.Where("STR_TO_DATE(bookings.booking_date, '%d/%m/%Y') <= STR_TO_DATE(?, '%d/%m/%Y')", toDate)
+	}
+
+	db = db.Joins(`INNER JOIN (?) as tb1 on booking_service_items.booking_uid = tb1.uid`, subQuery)
+	db = db.Joins(`INNER JOIN service_carts as tb2 on booking_service_items.service_bill = tb2.id`)
+	db = db.Joins(`INNER JOIN group_services as tb3 on booking_service_items.group_code = tb3.group_code`)
+
+	db = db.Where("tb1.check_in_time > 0")
+	db = db.Where("tb1.bag_status <> 'CANCEL'")
+	db = db.Where("tb1.init_type <> 'ROUND'")
+	db = db.Where("tb1.init_type <> 'MOVEFLGIHT'")
+	db = db.Where("tb2.bill_status <> 'CANCEL'")
+
+	db.Order("tb3.group_code")
+	db.Group("item_code")
+
+	db = db.Find(&list)
+
+	return list, db.Error
 }

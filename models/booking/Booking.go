@@ -158,10 +158,11 @@ type PaymentOfBag struct {
 }
 
 type RoundOfBag struct {
-	Bag         string           `json:"bag"`
-	BookingCode string           `json:"booking_code"`
-	PlayerName  string           `json:"player_name"`
-	Rounds      models.ListRound `json:"rounds"`
+	Bag         string                               `json:"bag"`
+	BookingCode string                               `json:"booking_code"`
+	PlayerName  string                               `json:"player_name"`
+	Rounds      models.ListRound                     `json:"rounds"`
+	AgencyPaid  utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty"`
 }
 
 type BookingForListServiceIems struct {
@@ -882,7 +883,7 @@ func (item *Booking) FindForCaddieOnCourse(database *gorm.DB, InFlight string) [
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
 	if item.CustomerName != "" {
-		db = db.Where("customer_name COLLATE utf8mb4_general_ci LIKE LIKE ?", "%"+item.CustomerName+"%")
+		db = db.Where("customer_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CustomerName+"%")
 	}
 	db = db.Where("bag_status = ?", constants.BAG_STATUS_WAITING)
 	db = db.Not("caddie_status = ?", constants.BOOKING_CADDIE_STATUS_OUT)

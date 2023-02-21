@@ -61,7 +61,7 @@ func addFilter(db *gorm.DB, item *ReportRevenueDetailList) *gorm.DB {
 	}
 
 	if item.GuestStyle != "" {
-		db = db.Where("guest_style = ?", item.GuestStyle)
+		db = db.Where("guest_style COLLATE utf8mb4_general_ci LIKE ?", "%"+item.GuestStyle+"%")
 	}
 
 	return db
