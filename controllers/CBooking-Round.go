@@ -125,22 +125,9 @@ func GetGolfFeeInfoOfBagForBill(c *gin.Context, mainBooking model_booking.Bookin
 			Rounds:      []models.Round{},
 		}
 
-		round1 := models.Round{}
 		for _, item := range listRound {
-			if item.Index == 1 {
-				round1 = item
-			}
+			roundOfBag.Rounds = append(roundOfBag.Rounds, item)
 		}
-
-		roundOfBag.Rounds = append(roundOfBag.Rounds, round1)
-
-		round2 := models.Round{}
-		for _, item := range listRound {
-			if item.Index == 2 {
-				round2 = item
-			}
-		}
-		roundOfBag.Rounds = append(roundOfBag.Rounds, round2)
 
 		if len(listRound) > 0 {
 			golfFeeOfBag.ListRoundOfSubBag = append(golfFeeOfBag.ListRoundOfSubBag, roundOfBag)
