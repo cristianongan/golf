@@ -251,6 +251,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 				caddieBuggyInNote.CaddieId = caddieTemp.Id
 				caddieBuggyInNote.CaddieCode = caddieTemp.Code
 				caddieBuggyInNote.CaddieType = constants.STATUS_IN
+				caddieBuggyInNote.Hole = bookingTemp.Hole
 				listCaddie = append(listCaddie, caddieTemp)
 			}
 		}
@@ -264,6 +265,7 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 			caddieBuggyInNote.BuggyCode = buggyTemp.Code
 			caddieBuggyInNote.BuggyType = constants.STATUS_IN
 			caddieBuggyInNote.BagShareBuggy = v.BagShare
+			caddieBuggyInNote.HoleBuggy = bookingTemp.Hole
 
 			listBuggy = append(listBuggy, buggyTemp)
 		}
@@ -1096,12 +1098,12 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		return
 	}
 
-	go updateBagShareWhenChangeBuggy(booking, prof, body.IsPrivateBuggy)
+	go updateBagShareWhenChangeBuggy(booking, body.Hole, body.IsPrivateBuggy)
 
 	okResponse(c, booking)
 }
 
-func updateBagShareWhenChangeBuggy(booking model_booking.Booking, prof models.CmsUser, IsPrivateBuggy bool) {
+func updateBagShareWhenChangeBuggy(booking model_booking.Booking, holeChange int, IsPrivateBuggy bool) {
 	var bagShare = ""
 	buggyCommonCode := fmt.Sprint(utils.GetTimeNow().UnixNano())
 
@@ -1112,7 +1114,7 @@ func updateBagShareWhenChangeBuggy(booking model_booking.Booking, prof models.Cm
 	}
 
 	// Tìm kiếm booking đang sử dụng buggy
-	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	db1, _, _ := bookingR.FindAllBookingList(db)
 	db1 = db1.Where("bag <> ?", booking.Bag)
 
@@ -1137,10 +1139,12 @@ func updateBagShareWhenChangeBuggy(booking model_booking.Booking, prof models.Cm
 			}
 		}
 	}
+
+	holeDiff := utils.RoundHole(booking.Hole - holeChange)
 	// Udp Note
 	caddieBuggyInNote := model_gostarter.CaddieBuggyInOut{
-		PartnerUid:      prof.PartnerUid,
-		CourseUid:       prof.CourseUid,
+		PartnerUid:      booking.PartnerUid,
+		CourseUid:       booking.CourseUid,
 		BookingUid:      booking.Uid,
 		BuggyId:         booking.BuggyId,
 		BuggyCode:       booking.BuggyInfo.Code,
@@ -1150,6 +1154,7 @@ func updateBagShareWhenChangeBuggy(booking model_booking.Booking, prof models.Cm
 		BuggyCommonCode: buggyCommonCode,
 		Bag:             booking.Bag,
 		BookingDate:     booking.BookingDate,
+		HoleBuggy:       holeDiff,
 	}
 
 	addBuggyCaddieInOutNote(db, caddieBuggyInNote)

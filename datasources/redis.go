@@ -158,6 +158,10 @@ func GetRedisKeySystemLogout() string {
 	return config.GetEnvironmentName() + "_" + "tuandd_redis_key_system_log_out"
 }
 
+func GetRedisKeySystemReportRevenue() string {
+	return config.GetEnvironmentName() + "_" + "tuandd_redis_key_system_report_revenue"
+}
+
 func GetRedisKeyLockerCreateGuestName() string {
 	return config.GetEnvironmentName() + "_" + "redis_locker_create_guest_name"
 }

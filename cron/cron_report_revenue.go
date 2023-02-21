@@ -3,7 +3,9 @@ package cron
 import (
 	"log"
 	"start/datasources"
-	"start/models"
+	model_booking "start/models/booking"
+	model_report "start/models/report"
+	"start/utils"
 )
 
 func runReportDailyRevenueJob() {
@@ -14,28 +16,41 @@ func runReportDailyRevenueJob() {
 		return
 	}
 	// Logic chạy cron bên dưới
-	resetDataMemberCard()
+	runReportDailyRevenue()
 }
 
 // Reset số guest của member trong ngày
 func runReportDailyRevenue() {
-	db := datasources.GetDatabase()
-	//Lấy list member Card
-	memberCardR := models.MemberCard{}
-	// TODO: Udp theo lấy theo Page, sau lượng membercard lên nhiều
-	err, list := memberCardR.FindAll(db)
-	if err != nil {
-		log.Println("resetDataMemberCard err or empty", err.Error())
-		return
+	db := datasources.GetDatabaseWithPartner("CHI-LINH")
+
+	toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	bookings := model_booking.BookingList{
+		BookingDate: toDayDate,
 	}
 
-	for _, v := range list {
-		if v.TotalGuestOfDay > 0 {
-			v.TotalGuestOfDay = 0
-			errU := v.Update(db)
-			if errU != nil {
-				log.Println("resetDataMemberCard errU", errU.Error())
-			}
-		}
+	db, _, err := bookings.FindAllBookingList(db)
+	db = db.Where("check_in_time > 0")
+	db = db.Where("bag_status <> 'CANCEL'")
+	db = db.Where("init_type <> 'ROUND'")
+	db = db.Where("init_type <> 'MOVEFLGIHT'")
+
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+
+	reportR := model_report.ReportRevenueDetail{
+		PartnerUid:  "CHI-LINH",
+		CourseUid:   "CHI-LINH-01",
+		BookingDate: toDayDate,
+	}
+
+	reportR.DeleteByBookingDate()
+
+	for _, booking := range list {
+		updatePriceForRevenue(booking, "")
 	}
 }
