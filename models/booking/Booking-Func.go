@@ -1234,7 +1234,7 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 	}
 
 	if item.CheckAgencyPaidAll() {
-		agencyPaidAll -= buggyCaddieRentalFee
+		// agencyPaidAll -= buggyCaddieRentalFee
 		feePaid = agencyPaidAll
 
 		mushPay.MushPay = subBagFee
