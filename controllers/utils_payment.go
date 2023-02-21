@@ -251,16 +251,18 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 			Hole: booking.Hole,
 		})
 	}
+	if feeInfo.PrivateCarFee > 0 {
+		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
+			Fee:  feeInfo.GolfFee,
+			Name: "Thuê riêng xe",
+			Type: constants.BOOKING_AGENCY_GOLF_FEE,
+			Hole: booking.Hole,
+		})
+	}
 	if feeInfo.BuggyFee > 0 {
-		name := ""
-		if *booking.IsPrivateBuggy {
-			name = "Thuê riêng xe"
-		} else {
-			name = "Thuê xe (1/2 xe)"
-		}
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
 			Fee:  feeInfo.BuggyFee,
-			Name: name,
+			Name: "Thuê xe (1/2 xe)",
 			Type: constants.BOOKING_AGENCY_BUGGY_FEE,
 			Hole: booking.Hole,
 		})
@@ -273,7 +275,6 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 			Hole: booking.Hole,
 		})
 	}
-
 	if feeInfo.OddCarFee > 0 {
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
 			Fee:  feeInfo.OddCarFee,
