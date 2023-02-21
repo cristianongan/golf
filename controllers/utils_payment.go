@@ -255,7 +255,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
 			Fee:  feeInfo.GolfFee,
 			Name: "Thuê riêng xe",
-			Type: constants.BOOKING_AGENCY_GOLF_FEE,
+			Type: constants.BOOKING_AGENCY_PRIVATE_CAR_FEE,
 			Hole: booking.Hole,
 		})
 	}
