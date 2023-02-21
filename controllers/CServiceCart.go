@@ -144,7 +144,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	serviceCart.PartnerUid = body.PartnerUid
 	serviceCart.CourseUid = body.CourseUid
 
-	applyDate, _ := time.Parse(constants.DATE_FORMAT_1, dateDisplay)
+	applyDate := utils.GetDateLocal()
 
 	if body.BillId != 0 {
 		serviceCart.Id = body.BillId
@@ -294,9 +294,11 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 	if body.BillId != 0 {
 		serviceCart.Id = body.BillId
 	} else {
+		applyDate := utils.GetDateLocal()
+
 		serviceCart.GolfBag = body.GolfBag
 		serviceCart.BookingUid = booking.Uid
-		serviceCart.BookingDate = datatypes.Date(utils.GetTimeNow().UTC())
+		serviceCart.BookingDate = datatypes.Date(applyDate)
 		serviceCart.ServiceId = body.ServiceId
 		serviceCart.BillCode = constants.BILL_NONE
 		serviceCart.StaffOrder = prof.FullName
@@ -705,13 +707,13 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	// dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
 	booking := model_booking.Booking{}
-	booking.Uid = serviceCartItem.BookingUid
-	// booking.CourseUid = body.CourseUid
-	// booking.Bag = serviceCartItem.Bag
-	// booking.BookingDate = dateDisplay
+	booking.PartnerUid = body.PartnerUid
+	booking.CourseUid = body.CourseUid
+	booking.Bag = serviceCartItem.Bag
+	booking.BookingDate = dateDisplay
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
 		return
@@ -720,11 +722,6 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	// Check bag status
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
 		response_message.BadRequest(c, "Bag check out")
-		return
-	}
-
-	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
 		return
 	}
 
@@ -850,13 +847,13 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	// dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
 	booking := model_booking.Booking{}
-	booking.Uid = serviceCartItem.BookingUid
-	// booking.CourseUid = serviceCartItem.CourseUid
-	// booking.Bag = serviceCartItem.Bag
-	// booking.BookingDate = dateDisplay
+	booking.PartnerUid = serviceCartItem.PartnerUid
+	booking.CourseUid = serviceCartItem.CourseUid
+	booking.Bag = serviceCartItem.Bag
+	booking.BookingDate = dateDisplay
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
 		return
@@ -939,29 +936,29 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// validate golf bag
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
+	booking := model_booking.Booking{}
+	booking.PartnerUid = body.PartnerUid
+	booking.CourseUid = body.CourseUid
+	booking.Bag = body.GolfBag
+	booking.BookingDate = dateDisplay
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	applyDate := utils.GetDateLocal()
 	serviceCart := models.ServiceCart{}
 	serviceCart.PartnerUid = body.PartnerUid
 	serviceCart.CourseUid = body.CourseUid
 	serviceCart.ServiceId = body.ServiceId
 	serviceCart.GolfBag = body.GolfBag
-	dateDisplay := utils.GetDateLocal()
-	serviceCart.BookingDate = datatypes.Date(dateDisplay)
+	serviceCart.BookingDate = datatypes.Date(applyDate)
 	serviceCart.BillCode = constants.BILL_NONE
 
 	if err := serviceCart.FindFirst(db); err != nil {
-		response_message.BadRequest(c, err.Error())
-		return
-	}
-
-	// validate golf bag
-	// dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
-
-	booking := model_booking.Booking{}
-	booking.Uid = serviceCart.BookingUid
-	// booking.CourseUid = body.CourseUid
-	// booking.Bag = body.GolfBag
-	// booking.BookingDate = dateDisplay
-	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
 	}
@@ -1043,12 +1040,13 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate cart by golf bag
+	applyDate := utils.GetDateLocal()
+
 	targetServiceCart := models.ServiceCart{}
 	targetServiceCart.PartnerUid = body.PartnerUid
 	targetServiceCart.CourseUid = body.CourseUid
 	targetServiceCart.GolfBag = body.GolfBag
-	dateDisplay1 := utils.GetDateLocal()
-	targetServiceCart.BookingDate = datatypes.Date(dateDisplay1)
+	targetServiceCart.BookingDate = datatypes.Date(applyDate)
 	targetServiceCart.ServiceId = sourceServiceCart.ServiceId
 	targetServiceCart.ServiceType = sourceServiceCart.ServiceType
 	targetServiceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
@@ -1168,17 +1166,6 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
-		return
-	}
-
-	// Check bag status
-	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-		response_message.BadRequest(c, "Bag check out")
-		return
-	}
-
-	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
 		return
 	}
 
@@ -1381,17 +1368,6 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 
 	if err != nil {
 		response_message.BadRequest(c, "Booking "+err.Error())
-		return
-	}
-
-	// Check bag status
-	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-		response_message.BadRequest(c, "Bag check out")
-		return
-	}
-
-	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
 		return
 	}
 
