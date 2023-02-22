@@ -32,10 +32,10 @@ type RevenueBookingReportDetail struct {
 
 type ReportBuggyForGuestStyleForm struct {
 	PageRequest
-	PartnerUid string `form:"partner_uid"`
-	CourseUid  string `form:"course_uid"`
-	Month      string `form:"month"`
-	Year       string `form:"year"`
+	PartnerUid string `form:"partner_uid" binding:"required"`
+	CourseUid  string `form:"course_uid" binding:"required"`
+	Month      string `form:"month" binding:"required"`
+	Year       string `form:"year" binding:"required"`
 }
 
 type ReportBagDaily struct {

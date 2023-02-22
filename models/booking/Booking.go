@@ -1263,12 +1263,7 @@ func (item *Booking) FindReportBuggyForGuestStyle(database *gorm.DB, page models
 		db = db.Where("bookings.course_uid = ?", item.CourseUid)
 	}
 
-	// if year != "" {
-	// 	db = db.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y') = ?", year)
-	// } else if month != "" {
-	// 	db = db.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y-%m') = ?", month)
-	// }
-	db = db.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y-%m') = ?", fmt.Sprintf("%d-%02d", 2023, 02))
+	db = db.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y-%m') = ?", fmt.Sprintf("%s-%s", year, month))
 	// sub query
 	subQuery := database.Table("caddie_buggy_in_outs")
 
@@ -1280,6 +1275,7 @@ func (item *Booking) FindReportBuggyForGuestStyle(database *gorm.DB, page models
 	}
 
 	subQuery = subQuery.Where("caddie_buggy_in_outs.buggy_id > 0")
+	subQuery.Group("caddie_buggy_in_outs.booking_uid")
 
 	db = db.Joins("INNER JOIN (?) as tb1 ON tb1.booking_uid = bookings.uid", subQuery)
 
@@ -1288,7 +1284,7 @@ func (item *Booking) FindReportBuggyForGuestStyle(database *gorm.DB, page models
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Debug().Find(&list)
+		db = page.Setup(db).Find(&list)
 	}
 
 	return list, total, db.Error
