@@ -1194,6 +1194,11 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	// Create booking payment
 	if booking.AgencyId > 0 {
+
+		if body.AgencyPaidAll != nil {
+			booking.AgencyPaidAll = body.AgencyPaidAll
+		}
+
 		if body.FeeInfo != nil {
 			go handleAgencyPaid(booking, *body.FeeInfo)
 		}
@@ -1374,55 +1379,7 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	isCanCheckOut := false
-	errMessage := "ok"
-
-	if booking.BagStatus == constants.BAG_STATUS_TIMEOUT || booking.BagStatus == constants.BAG_STATUS_WAITING {
-		isCanCheckOut = true
-
-		// Check service items
-		// Find bag detail
-		if isCanCheckOut {
-			// Check tiep service items
-			bagDetail := getBagDetailFromBooking(db, booking)
-			if bagDetail.ListServiceItems != nil && len(bagDetail.ListServiceItems) > 0 {
-				for _, v1 := range bagDetail.ListServiceItems {
-					serviceCart := models.ServiceCart{}
-					serviceCart.Id = v1.ServiceBill
-
-					errSC := serviceCart.FindFirst(db)
-					if errSC != nil {
-						log.Println("FindFristServiceCart errSC", errSC.Error())
-						return
-					}
-
-					// Check trong MainBag có trả mới add
-					if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
-						// ok
-					} else {
-						if serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH ||
-							serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
-							serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS ||
-							serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
-							// ok
-						} else {
-							if v1.BillCode != booking.BillCode {
-								errMessage = "Dich vụ của sub-bag chưa đủ điều kiện được checkout"
-							} else {
-								errMessage = "Dich vụ của bag chưa đủ điều kiện được checkout"
-							}
-
-							isCanCheckOut = false
-							break
-						}
-					}
-				}
-			}
-		}
-	} else {
-		isCanCheckOut = false
-		errMessage = "Trạng thái bag không được checkout"
-	}
+	isCanCheckOut, errMessage := checkForCheckOut(booking)
 
 	if !isCanCheckOut {
 		response_message.InternalServerError(c, errMessage)
@@ -1467,55 +1424,7 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 		return
 	}
 
-	isCanCheckOut := false
-	errMessage := "ok"
-
-	if bag.BagStatus == constants.BAG_STATUS_TIMEOUT || bag.BagStatus == constants.BAG_STATUS_WAITING {
-		isCanCheckOut = true
-
-		// Check service items
-		// Find bag detail
-		if isCanCheckOut {
-			// Check tiep service items
-			bagDetail := getBagDetailFromBooking(db, bag)
-			if bagDetail.ListServiceItems != nil && len(bagDetail.ListServiceItems) > 0 {
-				for _, v1 := range bagDetail.ListServiceItems {
-					serviceCart := models.ServiceCart{}
-					serviceCart.Id = v1.ServiceBill
-
-					errSC := serviceCart.FindFirst(db)
-					if errSC != nil {
-						log.Println("FindFristServiceCart errSC", errSC.Error())
-						return
-					}
-
-					// Check trong MainBag có trả mới add
-					if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
-						// ok
-					} else {
-						if serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH ||
-							serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
-							serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS ||
-							serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
-							// ok
-						} else {
-							if v1.BillCode != bag.BillCode {
-								errMessage = "Dich vụ của sub-bag chưa đủ điều kiện được checkout"
-							} else {
-								errMessage = "Dich vụ của bag chưa đủ điều kiện được checkout"
-							}
-
-							isCanCheckOut = false
-							break
-						}
-					}
-				}
-			}
-		}
-	} else {
-		isCanCheckOut = false
-		errMessage = "Trạng thái bag không được checkout"
-	}
+	isCanCheckOut, errMessage := checkForCheckOut(bag)
 
 	res := map[string]interface{}{
 		"is_can_check_out": isCanCheckOut,
@@ -1640,6 +1549,23 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Check sub bag
+	if booking.SubBags != nil && len(booking.SubBags) > 0 {
+		for _, v := range booking.SubBags {
+			subBag := model_booking.Booking{}
+			subBag.Uid = v.BookingUid
+			subBooking, errF := subBag.FindFirstByUId(db)
+
+			if errF == nil {
+				subBooking.LockBill = setBoolForCursor(*body.LockBill)
+				if err := subBooking.Update(db); err != nil {
+					response_message.InternalServerError(c, err.Error())
+					return
+				}
+			}
+		}
+	}
+
 	okRes(c)
 }
 
@@ -1716,5 +1642,94 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 		roundR.DeleteByBillCode(db)
 	}
 
+	okRes(c)
+}
+
+func (cBooking *CBooking) ResetBag(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.Bag == "" {
+		response_message.BadRequest(c, errors.New("Bag invalid").Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.PartnerUid = form.PartnerUid
+	booking.CourseUid = form.CourseUid
+	booking.Bag = form.Bag
+
+	if form.BookingDate != "" {
+		booking.BookingDate = form.BookingDate
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+		booking.BookingDate = toDayDate
+	}
+
+	errF := booking.FindFirst(db)
+	if errF != nil {
+		response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
+		return
+	}
+
+	if form.BagStatus != "" {
+		booking.BagStatus = form.BagStatus
+	}
+
+	if form.Bag == "" {
+		booking.Bag = form.Bag
+	}
+
+	booking.Update(db)
+	okRes(c)
+}
+
+func (cBooking *CBooking) UndoCheckOut(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.Bag == "" {
+		response_message.BadRequest(c, errors.New("Bag invalid").Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+	booking.PartnerUid = form.PartnerUid
+	booking.CourseUid = form.CourseUid
+	booking.Bag = form.Bag
+
+	if form.BookingDate != "" {
+		booking.BookingDate = form.BookingDate
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+		booking.BookingDate = toDayDate
+	}
+
+	errF := booking.FindFirst(db)
+	if errF != nil {
+		response_message.InternalServerErrorWithKey(c, errF.Error(), "BAG_NOT_FOUND")
+		return
+	}
+
+	booking.BagStatus = constants.BAG_STATUS_WAITING
+	booking.CheckOutTime = 0
+
+	booking.Update(db)
 	okRes(c)
 }

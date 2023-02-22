@@ -123,7 +123,7 @@ func (item *CmsUser) FindList(page Page, search string, subRoles []int) ([]CmsUs
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 	if search != "" {
-		db = db.Where("user_name LIKE ?", "%"+search+"%").Or("full_name LIKE ?", "%"+search+"%")
+		db = db.Where("(user_name LIKE ? OR full_name LIKE ?)", "%"+search+"%", "%"+search+"%")
 	}
 
 	db.Count(&total)

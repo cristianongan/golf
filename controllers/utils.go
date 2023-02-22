@@ -1667,6 +1667,38 @@ func undoCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 	return nil
 }
 
+func removeCaddieOutSlotOnDate(partnerUid, courseUid, date string, caddieCode string) error {
+	var caddieSlotNew []string
+
+	caddieWS := models.CaddieWorkingSlot{}
+	caddieWS.PartnerUid = partnerUid
+	caddieWS.CourseUid = courseUid
+	caddieWS.ApplyDate = date
+
+	db := datasources.GetDatabaseWithPartner(partnerUid)
+
+	err := caddieWS.FindFirst(db)
+	if err != nil {
+		return err
+	}
+
+	if len(caddieWS.CaddieSlot) > 0 {
+		caddieSlotNew = append(caddieSlotNew, caddieWS.CaddieSlot...)
+		index := utils.StringInList(caddieCode, caddieSlotNew)
+		if index != -1 {
+			caddieSlotNew = utils.Remove(caddieSlotNew, index)
+		}
+	}
+
+	caddieWS.CaddieSlot = caddieSlotNew
+	err = caddieWS.Update(db)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func updateCaddieWorkingOnDay(caddieCodeList []string, partnerUid, courseUid string, isWorking bool) {
 	db := datasources.GetDatabaseWithPartner("CHI-LINH")
 	for _, code := range caddieCodeList {
@@ -1879,4 +1911,77 @@ func getBookingCadieFeeSetting(PartnerUid, CourseUid, GuestStyle string, Hole in
 		Fee:  bookingCaddieFeeSetting.Fee,
 		Name: bookingCaddieFeeSetting.Name,
 	}
+}
+
+func checkForCheckOut(bag model_booking.Booking) (bool, string) {
+	db := datasources.GetDatabaseWithPartner(bag.PartnerUid)
+	isCanCheckOut := false
+	errMessage := "ok"
+
+	if bag.BagStatus == constants.BAG_STATUS_TIMEOUT || bag.BagStatus == constants.BAG_STATUS_WAITING {
+		isCanCheckOut = true
+
+		// Check service items
+		// Find bag detail
+		if isCanCheckOut {
+			// Check tiep service items
+			bagDetail := getBagDetailFromBooking(db, bag)
+			if bagDetail.ListServiceItems != nil && len(bagDetail.ListServiceItems) > 0 {
+				for _, v1 := range bagDetail.ListServiceItems {
+					serviceCart := models.ServiceCart{}
+					serviceCart.Id = v1.ServiceBill
+
+					errSC := serviceCart.FindFirst(db)
+					if errSC != nil {
+						log.Println("FindFristServiceCart errSC", errSC.Error())
+						return false, "FindFristServiceCart errSC"
+					}
+
+					// Check trong MainBag có trả mới add
+					if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+						// ok
+					} else {
+						if serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH ||
+							serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE ||
+							serviceCart.BillStatus == constants.RES_BILL_STATUS_PROCESS ||
+							serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT {
+							// ok
+						} else {
+							if v1.BillCode != bag.BillCode {
+								errMessage = "Dich vụ của sub-bag chưa đủ điều kiện được checkout"
+							} else {
+								errMessage = "Dich vụ của bag chưa đủ điều kiện được checkout"
+							}
+
+							isCanCheckOut = false
+							break
+						}
+					}
+				}
+			}
+		}
+	} else {
+		isCanCheckOut = false
+		errMessage = "Trạng thái bag không được checkout"
+	}
+
+	//Check sub bag
+	if bag.SubBags != nil && len(bag.SubBags) > 0 && isCanCheckOut {
+		for _, v := range bag.SubBags {
+			subBag := model_booking.Booking{}
+			subBag.Uid = v.BookingUid
+			errF := subBag.FindFirst(db)
+
+			if errF == nil {
+				if subBag.BagStatus == constants.BAG_STATUS_CHECK_OUT || subBag.BagStatus == constants.BAG_STATUS_CANCEL {
+				} else {
+					errMessage = "Sub-bag chưa check checkout"
+					isCanCheckOut = false
+					break
+				}
+			}
+		}
+	}
+
+	return isCanCheckOut, errMessage
 }

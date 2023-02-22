@@ -194,6 +194,10 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 		key := user.GetKeyRedisPermission()
 		listPer, _ := datasources.GetCache(key)
 
+		if !config.GetUseRedisPermissionRole() {
+			listPer = ""
+		}
+
 		if len(listPer) > 0 {
 			_ = json.Unmarshal([]byte(listPer), &listPerMis)
 		} else {
@@ -578,4 +582,72 @@ func (_ *CCmsUser) ResetPassCmsUser(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, user)
+}
+
+/*
+ Get permission user
+*/
+func (_ *CCmsUser) GetPermissionCmsUser(c *gin.Context, prof models.CmsUser) {
+
+	user := models.CmsUser{}
+	user.Uid = prof.Uid
+	errF := user.FindFirst()
+	if errF != nil {
+		response_message.BadRequest(c, errF.Error())
+		return
+	}
+
+	// Find Role
+	// Find Permission
+	listPerMis := utils.ListString{}
+	role := model_role.Role{}
+	if user.RoleId > 0 {
+		role.Id = user.RoleId
+
+		key := user.GetKeyRedisPermission()
+		listPer, _ := datasources.GetCache(key)
+
+		if !config.GetUseRedisPermissionRole() {
+			listPer = ""
+		}
+
+		if len(listPer) > 0 {
+			_ = json.Unmarshal([]byte(listPer), &listPerMis)
+		} else {
+			errFR := role.FindFirst()
+			if errFR == nil {
+				rolePR := model_role.RolePermission{
+					RoleId: role.Id,
+				}
+				listPermission, errRolePR := rolePR.FindAll()
+				if errRolePR == nil {
+					for _, v := range listPermission {
+						listPerMis = append(listPerMis, v.PermissionUid)
+					}
+				}
+			}
+			user.SaveKeyRedisPermission(listPerMis)
+		}
+	} else {
+		if user.RoleId == -1 {
+			// Root Account
+			role.Id = user.RoleId
+			errFR := role.FindFirst()
+			if errFR == nil {
+				permis := model_role.Permission{}
+				listP, errLP := permis.FindAll()
+				if errLP == nil {
+					for _, v := range listP {
+						listPerMis = append(listPerMis, v.Uid)
+					}
+				}
+			}
+		}
+	}
+
+	res := map[string]interface{}{
+		"permissions": listPerMis,
+	}
+
+	okResponse(c, res)
 }

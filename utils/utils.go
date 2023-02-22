@@ -25,6 +25,12 @@ import (
 	"github.com/ttacon/libphonenumber"
 )
 
+func GetDateLocal() time.Time {
+	dateDisplay, _ := GetBookingDateFromTimestamp(time.Now().Unix())
+	applyDate, _ := time.Parse(constants.DATE_FORMAT_1, dateDisplay)
+	return applyDate
+}
+
 func GetCurrentYear() string {
 	currentYearStr, _ := GetDateFromTimestampWithFormat(GetTimeNow().Unix(), constants.YEAR_FORMAT)
 	return currentYearStr
@@ -406,7 +412,7 @@ func CheckHour(hour string, timeCheck time.Time) bool {
 func GetFeeFromListFee(feeList ListGolfHoleFee, hole int) int64 {
 	fee := int64(0)
 
-	roundedHole := roundHole(hole)
+	roundedHole := RoundHole(hole)
 	for _, feeModel := range feeList {
 		if feeModel.Hole == roundedHole {
 			fee = feeModel.Fee
@@ -416,7 +422,7 @@ func GetFeeFromListFee(feeList ListGolfHoleFee, hole int) int64 {
 	return fee
 }
 
-func roundHole(hole int) int {
+func RoundHole(hole int) int {
 	if hole > 0 && hole <= 2 {
 		return 0
 	} else if hole > 2 && hole <= 9 {
@@ -479,6 +485,20 @@ func Remove[T comparable](slice []T, s int) []T {
 	return append(slice[:s], slice[s+1:]...)
 }
 
+func CheckDupArray[T comparable](arr []T) []T {
+	visited := make(map[T]bool, 0)
+	var listDup []T
+
+	for i := 0; i < len(arr); i++ {
+		if visited[arr[i]] {
+			listDup = append(listDup, arr[i])
+		} else {
+			visited[arr[i]] = true
+		}
+	}
+	return listDup
+}
+
 func SwapValue[T comparable](s []T, o, n T) []T {
 	indexOld := IndexOf(s, o)
 	indexNew := IndexOf(s, n)
@@ -535,7 +555,7 @@ func GetFeeWidthHolePrice(feeList ListGolfHoleFee, hole int, formula string) int
 
 func CalculateFeeByHole(hole int, fee int64, rateRaw string) int64 {
 	re := regexp.MustCompile(`(\d[.]\d)|(\d)+`)
-	roundedHole := roundHole(hole)
+	roundedHole := RoundHole(hole)
 
 	index := (roundedHole / 9) - 1
 	listRate := re.FindAllString(rateRaw, -1)

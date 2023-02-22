@@ -189,6 +189,6 @@ func (item *SinglePaymentItem) FindAllCards(database *gorm.DB) ([]BookingSingleP
 
 	db = db.Where("payment_type = 'CARDS'")
 	db = db.Where("status <> 'DELETE'")
-	db.Debug().Find(&list)
+	db.Find(&list)
 	return list, db.Error
 }

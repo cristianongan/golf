@@ -3,6 +3,7 @@ package model_booking
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"log"
 	"start/constants"
 	"start/datasources"
@@ -158,10 +159,11 @@ type PaymentOfBag struct {
 }
 
 type RoundOfBag struct {
-	Bag         string           `json:"bag"`
-	BookingCode string           `json:"booking_code"`
-	PlayerName  string           `json:"player_name"`
-	Rounds      models.ListRound `json:"rounds"`
+	Bag         string                               `json:"bag"`
+	BookingCode string                               `json:"booking_code"`
+	PlayerName  string                               `json:"player_name"`
+	Rounds      models.ListRound                     `json:"rounds"`
+	AgencyPaid  utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty"`
 }
 
 type BookingForListServiceIems struct {
@@ -882,7 +884,7 @@ func (item *Booking) FindForCaddieOnCourse(database *gorm.DB, InFlight string) [
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
 	if item.CustomerName != "" {
-		db = db.Where("customer_name COLLATE utf8mb4_general_ci LIKE LIKE ?", "%"+item.CustomerName+"%")
+		db = db.Where("customer_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CustomerName+"%")
 	}
 	db = db.Where("bag_status = ?", constants.BAG_STATUS_WAITING)
 	db = db.Not("caddie_status = ?", constants.BOOKING_CADDIE_STATUS_OUT)
@@ -1261,12 +1263,7 @@ func (item *Booking) FindReportBuggyForGuestStyle(database *gorm.DB, page models
 		db = db.Where("bookings.course_uid = ?", item.CourseUid)
 	}
 
-	if year != "" {
-		db = db.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y') = ?", year)
-	} else if month != "" {
-		db = db.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y-%m') = ?", month)
-	}
-
+	db = db.Where("DATE_FORMAT(STR_TO_DATE(bookings.booking_date, '%d/%m/%Y'), '%Y-%m') = ?", fmt.Sprintf("%s-%s", year, month))
 	// sub query
 	subQuery := database.Table("caddie_buggy_in_outs")
 
@@ -1278,6 +1275,8 @@ func (item *Booking) FindReportBuggyForGuestStyle(database *gorm.DB, page models
 	}
 
 	subQuery = subQuery.Where("caddie_buggy_in_outs.buggy_id > 0")
+	subQuery.Group("caddie_buggy_in_outs.booking_uid")
+	subQuery.Group("caddie_buggy_in_outs.buggy_code")
 
 	db = db.Joins("INNER JOIN (?) as tb1 ON tb1.booking_uid = bookings.uid", subQuery)
 

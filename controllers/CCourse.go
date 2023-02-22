@@ -97,6 +97,11 @@ func (_ *CCourse) GetListCourse(c *gin.Context, prof models.CmsUser) {
 		courseR.Status = form.Status
 	}
 
+	if prof.RoleId != -1 {
+		// not root
+		courseR.Uid = prof.CourseUid
+	}
+
 	list, total, err := courseR.FindList(page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

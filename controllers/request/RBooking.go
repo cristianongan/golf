@@ -48,6 +48,7 @@ type GetListBookingWithSelectForm struct {
 	BookingCode     string  `form:"booking_code"`
 	InitType        string  `form:"init_type"`
 	AgencyId        int64   `form:"agency_id"`
+	AgencyName      string  `form:"agency_name"`
 	IsAgency        string  `form:"is_agency"`
 	Status          string  `form:"status"`
 	FromDate        string  `form:"from_date"`
@@ -208,9 +209,11 @@ func (item ListCreateBookingBody) Value() (driver.Value, error) {
 }
 
 type AgencyFeeInfo struct {
-	GolfFee   int64 `json:"golf_fee"`
-	BuggyFee  int64 `json:"buggy_fee"`
-	CaddieFee int64 `json:"caddie_fee"`
+	GolfFee       int64 `json:"golf_fee"`
+	BuggyFee      int64 `json:"buggy_fee"`
+	CaddieFee     int64 `json:"caddie_fee"`
+	OddCarFee     int64 `json:"odd_car_fee"`
+	PrivateCarFee int64 `json:"private_car_fee"`
 }
 type BookingBaseBody struct {
 	BookingUid string `json:"booking_uid"`

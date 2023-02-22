@@ -22,6 +22,7 @@ type BookingList struct {
 	CardId                string
 	InitType              string
 	AgencyId              int64
+	AgencyName            string
 	IsAgency              string
 	Status                string
 	FromDate              string
@@ -58,6 +59,14 @@ type BookingList struct {
 	IsGroupBookingCode    bool
 	NotNoneGolfAndWalking bool
 	BillCode              string
+	CommonFilter          string
+}
+
+type BookingStarter struct {
+	Booking
+	HolePlayed     string `json:"hole_played"`
+	BuggyCodeList  string `json:"buggy_code_list"`
+	CaddieCodeList string `json:"caddie_code_list"`
 }
 
 type ResBookingWithBuggyFeeInfo struct {
@@ -66,7 +75,7 @@ type ResBookingWithBuggyFeeInfo struct {
 	BuggyType   string `json:"buggy_type"`
 	Bag         string `json:"bag"`
 	TeeOff      string `json:"tee_off"`
-	GuestName   string `json:"guest_name"`
+	GuestName   string `json:"guest_style_name"`
 	GuestStyle  string `json:"guest_style"`
 	CardId      string `json:"card_id"`
 	AgencyName  string `json:"agency_name"`
@@ -244,7 +253,8 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	}
 
 	if item.PlayerOrBag != "" {
-		db = db.Where("bag COLLATE utf8mb4_general_ci LIKE ? OR customer_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.PlayerOrBag+"%", "%"+item.PlayerOrBag+"%")
+		db = db.Where("bag COLLATE utf8mb4_general_ci LIKE ? OR customer_name COLLATE utf8mb4_general_ci LIKE ? OR booking_code COLLATE utf8mb4_general_ci LIKE ?",
+			"%"+item.PlayerOrBag+"%", "%"+item.PlayerOrBag+"%", "%"+item.PlayerOrBag+"%")
 	}
 
 	if item.IsCheckIn != "" {
@@ -353,6 +363,7 @@ func (item *BookingList) FindListRoundOfBagPlaying(database *gorm.DB, page model
 	db = db.Where("added_round = ?", false)
 	db = db.Where("check_in_time > 0")
 	db = db.Where("bag_status <> ?", constants.BAG_STATUS_CHECK_OUT)
+	db = db.Where("bag_status <> ?", constants.BAG_STATUS_CANCEL)
 
 	db.Count(&total)
 
@@ -432,13 +443,13 @@ func (item *BookingList) FindListBookingWithBuggy(database *gorm.DB, page models
 
 	db = db.Where("bookings.buggy_info->'$.code' <> ''")
 	db = db.Where("booking_service_items.service_type = ?", constants.BUGGY_SETTING)
-	db = db.Joins("JOIN booking_service_items ON booking_service_items.bill_code = bookings.bill_code")
+	db = db.Joins("JOIN booking_service_items ON booking_service_items.booking_uid = bookings.uid")
 	db = db.Select("bookings.booking_date, JSON_VALUE(bookings.buggy_info,'$.code') as buggy_code, booking_service_items.name as buggy_type, bookings.bag, bookings.tee_off_time as tee_off, bookings.guest_style_name, bookings.guest_style, bookings.card_id, JSON_VALUE(bookings.agency_info,'$.name') as agency_name, bookings.hole, bookings.caddie_id, booking_service_items.amount as fee")
 
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Find(&list)
+		db = page.Setup(db).Debug().Find(&list)
 	}
 
 	return list, total, db.Error
@@ -460,4 +471,90 @@ func (item *BookingList) FindReportBookingList(database *gorm.DB, page models.Pa
 	}
 
 	return list, total, db.Error
+}
+
+func (item *BookingList) FindReportAgencyPayment(database *gorm.DB) ([]map[string]interface{}, error) {
+	list := []map[string]interface{}{}
+
+	// subquery 1
+	subQuery1 := database.Table(`bookings as b, JSON_TABLE(b.agency_paid , '$[*]' COLUMNS (fee INTEGER PATH '$.fee')) as t`)
+
+	subQuery1 = subQuery1.Select("b.agency_id, SUM(t.fee) as total_fee")
+
+	if item.PartnerUid != "" {
+		subQuery1 = subQuery1.Where("b.partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		subQuery1 = subQuery1.Where("b.course_uid = ?", item.CourseUid)
+	}
+	if item.FromDate != "" {
+		subQuery1 = subQuery1.Where("STR_TO_DATE(b.booking_date, '%d/%m/%Y') >= STR_TO_DATE(?, '%d/%m/%Y')", item.FromDate)
+	}
+	if item.ToDate != "" {
+		subQuery1 = subQuery1.Where("STR_TO_DATE(b.booking_date, '%d/%m/%Y') <= STR_TO_DATE(?, '%d/%m/%Y')", item.ToDate)
+	}
+
+	subQuery1 = subQuery1.Where("b.agency_id > 0")
+	subQuery1 = subQuery1.Where("b.check_in_time > 0")
+	subQuery1 = subQuery1.Where("b.bag_status <> 'CANCEL'")
+	// subQuery1 = subQuery1.Where("b.init_type <> 'ROUND'")
+	subQuery1 = subQuery1.Where("b.added_round = 0")
+
+	subQuery1.Group("b.agency_id")
+
+	// subquery 2
+	subQuery2 := database.Table(`bookings as b`)
+
+	subQuery2 = subQuery2.Select("b.agency_id, JSON_UNQUOTE(b.agency_info->'$.short_name') as agency_name, COUNT(*) as bag")
+
+	if item.PartnerUid != "" {
+		subQuery2 = subQuery2.Where("b.partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		subQuery2 = subQuery2.Where("b.course_uid = ?", item.CourseUid)
+	}
+	if item.FromDate != "" {
+		subQuery2 = subQuery2.Where("STR_TO_DATE(b.booking_date, '%d/%m/%Y') >= STR_TO_DATE(?, '%d/%m/%Y')", item.FromDate)
+	}
+	if item.ToDate != "" {
+		subQuery2 = subQuery2.Where("STR_TO_DATE(b.booking_date, '%d/%m/%Y') <= STR_TO_DATE(?, '%d/%m/%Y')", item.ToDate)
+	}
+
+	subQuery2 = subQuery2.Where("b.agency_id > 0")
+	subQuery2 = subQuery2.Where("b.check_in_time > 0")
+	subQuery2 = subQuery2.Where("b.bag_status <> 'CANCEL'")
+	// subQuery2 = subQuery2.Where("b.init_type <> 'ROUND'")
+	subQuery2 = subQuery2.Where("b.added_round = 0")
+
+	subQuery2.Group("b.booking_code")
+
+	db := database.Table("(?) as tb1", subQuery2)
+
+	db = db.Select(`tb1.agency_id, tb1.agency_name, COUNT(*) as total_booking, SUM(tb1.bag) as total_bag, tb2.total_fee`)
+
+	db = db.Joins("INNER JOIN (?) as tb2 ON tb2.agency_id = tb1.agency_id", subQuery1)
+
+	db.Group("tb1.agency_id")
+
+	db = db.Find(&list)
+
+	return list, db.Error
+}
+
+func (item *BookingList) FindReportStarter(database *gorm.DB, page models.Page) ([]BookingStarter, error) {
+	total := int64(0)
+	list := []BookingStarter{}
+
+	db := database.Model(Booking{})
+
+	db = addFilter(db, item, false)
+	db = db.Where("flight_id > 0")
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, db.Error
 }

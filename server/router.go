@@ -116,6 +116,7 @@ func NewRouter() *gin.Engine {
 
 			//  =================== Cms User ====================
 			cmsApiAuthorized.GET("/user/list", middlewares.AuthorizedCmsUserHandler(cCmsUser.GetList))
+			cmsApiAuthorized.GET("/user/permission/list", middlewares.AuthorizedCmsUserHandler(cCmsUser.GetPermissionCmsUser))
 			cmsApiAuthorized.POST("/user/add", middlewares.AuthorizedCmsUserHandler(cCmsUser.CreateCmsUser))
 			cmsApiAuthorized.PUT("/user/:uid", middlewares.AuthorizedCmsUserHandler(cCmsUser.UpdateCmsUser))
 			cmsApiAuthorized.POST("/user/change-pass", middlewares.AuthorizedCmsUserHandler(cCmsUser.ChangePassCmsUser))
@@ -288,6 +289,9 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/booking/lock-bill", middlewares.AuthorizedCmsUserHandler(cBooking.LockBill))                         // Lễ tân lock bill chờ thanh toán
 			cmsApiAuthorized.POST("/booking/undo-check-in", middlewares.AuthorizedCmsUserHandler(cBooking.UndoCheckIn))                  // Undo CheckIn
 			cmsApiAuthorized.POST("/booking/update-caddie-checkin", middlewares.AuthorizedCmsUserHandler(cBooking.UndoCheckIn))          // Undo CheckIn
+			cmsApiAuthorized.POST("/booking/reset-bag", middlewares.AuthorizedCmsUserHandler(cBooking.ResetBag))
+			cmsApiAuthorized.POST("/booking/undo-checkout", middlewares.AuthorizedCmsUserHandler(cBooking.UndoCheckOut))
+			cmsApiAuthorized.GET("/booking/get-list-bag-detail", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBagDetail))
 			// cmsApiAuthorized.GET("/booking/golf-fee", middlewares.AuthorizedCmsUserHandler(cBooking.GetGolfFeeInfoOfBag))
 
 			/// =================== Caddie Buggy In Out Bag ===================
@@ -667,6 +671,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddItemServiceToCart))
 			cmsApiAuthorized.POST("/service-cart/rental", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddItemRentalToCart))
 			cmsApiAuthorized.POST("/service-cart/add-discount", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddDiscountToItem))
+			cmsApiAuthorized.POST("/service-cart/discount-bill", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddDiscountToBill))
 			cmsApiAuthorized.POST("/service-cart/create-billing", middlewares.AuthorizedCmsUserHandler(cServiceCart.CreateBill))
 			cmsApiAuthorized.POST("/service-cart/move-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.MoveItemToOtherCart))
 			cmsApiAuthorized.POST("/service-cart/create-new-guest", middlewares.AuthorizedCmsUserHandler(cServiceCart.CreateNewGuest))
@@ -773,7 +778,11 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/revenue/report-sale-pos", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportSalePOS))
 			cmsApiAuthorized.GET("/report/revenue/daily-report", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetDailyReport))
 			cmsApiAuthorized.GET("/report/revenue/bag-daily-report", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetBagDailyReport))
+			cmsApiAuthorized.GET("/report/using-buggy", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportUsingBuggyInGo))
+			cmsApiAuthorized.GET("/report/agency-payment", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportAgencyPayment))
 			cmsApiAuthorized.POST("/report/revenue/update-daily-report", middlewares.AuthorizedCmsUserHandler(cRevenueReport.UpdateReportRevenue))
+			cmsApiAuthorized.GET("/report/revenue/report-point-of-sale", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportRevenuePointOfSale))
+			cmsApiAuthorized.GET("/report/starter", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportStarter))
 
 			/// =================== Redis Settings ===================
 			cRedis := new(controllers.CRedis)

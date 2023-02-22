@@ -1,12 +1,14 @@
 package controllers
 
 import (
+	"errors"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	model_gostarter "start/models/go-starter"
 	model_payment "start/models/payment"
 	model_report "start/models/report"
 	"start/utils/response_message"
@@ -455,4 +457,98 @@ func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.
 	}
 
 	okRes(c)
+}
+
+func (_ *CRevenueReport) GetReportUsingBuggyInGo(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.ReportBuggyGoForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	caddieBuggyInOut := model_gostarter.CaddieBuggyInOut{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+
+	report, _ := caddieBuggyInOut.FindReportBuggyUsing(db, form.Month, form.Year)
+
+	okResponse(c, report)
+}
+
+func (_ *CRevenueReport) GetReportRevenuePointOfSale(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.RevenueReportPOSForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	serviceItem := model_booking.BookingServiceItem{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		ServiceId:  form.ServiceId,
+		Type:       form.Type,
+	}
+
+	list, err := serviceItem.FindReportRevenuePOS(db, form.FromDate, form.ToDate)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"data": list,
+	}
+
+	okResponse(c, res)
+}
+
+func (_ *CRevenueReport) GetReportAgencyPayment(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	bookingList := model_booking.BookingList{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		FromDate:   form.FromDate,
+		ToDate:     form.ToDate,
+		// AgencyName: form.AgencyName,
+	}
+
+	list, _ := bookingList.FindReportAgencyPayment(db)
+
+	okResponse(c, list)
+}
+
+func (_ *CRevenueReport) GetReportStarter(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.BookingDate == "" {
+		response_message.BadRequest(c, errors.New("Chưa chọn ngày").Error())
+		return
+	}
+
+	bookings := SetParamGetBookingRequest(form)
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	list, _ := bookings.FindReportStarter(db, page)
+
+	okResponse(c, list)
 }

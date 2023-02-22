@@ -10,6 +10,7 @@ import (
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -120,6 +121,14 @@ func (_ *CCaddieWorkingCalendar) ImportCaddieSlotAuto(c *gin.Context, prof model
 	if err := c.BindJSON(&body); err != nil {
 		log.Print("ImportCaddieSlotAuto BindJSON error", err)
 		response_message.BadRequest(c, "")
+		return
+	}
+
+	//Validate caddie slot
+	listDup := utils.CheckDupArray(body.CaddieSlot)
+
+	if len(listDup) > 0 {
+		response_message.BadRequest(c, "Duplicate caddie: "+strings.Join(listDup, ", "))
 		return
 	}
 

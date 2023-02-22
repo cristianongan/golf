@@ -350,7 +350,7 @@ func (_ *CBooking) GetFeeOfBagForBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Get List Service Item
-	listServices := booking.FindServiceItemsWithPaidInfo(db)
+	listServices := booking.FindServiceItemsForBill(db)
 
 	// Get List Round Of Sub Bag
 	listRoundOfSub := []model_booking.RoundOfBag{}
@@ -439,7 +439,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	bookings := setParamGetBookingRequest(form)
+	bookings := SetParamGetBookingRequest(form)
 
 	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
 
@@ -464,7 +464,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	okResponse(c, res)
 }
 
-func setParamGetBookingRequest(form request.GetListBookingWithSelectForm) model_booking.BookingList {
+func SetParamGetBookingRequest(form request.GetListBookingWithSelectForm) model_booking.BookingList {
 	bookings := model_booking.BookingList{}
 	bookings.PartnerUid = form.PartnerUid
 	bookings.CourseUid = form.CourseUid
@@ -707,7 +707,7 @@ func (cBooking *CBooking) GetBagNotCheckOut(c *gin.Context, prof models.CmsUser)
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	bookings := setParamGetBookingRequest(form)
+	bookings := SetParamGetBookingRequest(form)
 
 	if form.BookingDate != "" {
 		bookings.BookingDate = form.BookingDate
@@ -792,6 +792,54 @@ func (_ *CRevenueReport) GetReportBookingList(c *gin.Context, prof models.CmsUse
 	res := response.PageResponse{
 		Total: total,
 		Data:  list,
+	}
+
+	okResponse(c, res)
+}
+
+/*
+Get Bag Not Check Out
+*/
+func (cBooking *CBooking) GetListBagDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	bookings := SetParamGetBookingRequest(form)
+
+	if form.BookingDate != "" {
+		bookings.BookingDate = form.BookingDate
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+		bookings.BookingDate = toDayDate
+	}
+
+	db, total, err := bookings.FindListRoundOfBagPlaying(db, page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
 	}
 
 	okResponse(c, res)

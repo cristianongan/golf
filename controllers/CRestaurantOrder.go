@@ -80,11 +80,13 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 		serviceCart.ResFloor = body.Floor
 	}
 
+	applyDate, _ := time.Parse(constants.DATE_FORMAT_1, dateDisplay)
+
 	serviceCart.PartnerUid = body.PartnerUid
 	serviceCart.CourseUid = body.CourseUid
 	serviceCart.GolfBag = body.GolfBag
 	serviceCart.BookingUid = booking.Uid
-	serviceCart.BookingDate = datatypes.Date(utils.GetTimeNow().Local())
+	serviceCart.BookingDate = datatypes.Date(applyDate)
 	serviceCart.ServiceId = body.ServiceId
 	serviceCart.ServiceType = kiosk.KioskType
 	serviceCart.BillCode = constants.BILL_NONE
@@ -1235,9 +1237,11 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 	}
 
 	// create service cart
+	applyDate := utils.GetDateLocal()
+
 	serviceCart.PartnerUid = body.PartnerUid
 	serviceCart.CourseUid = body.CourseUid
-	serviceCart.BookingDate = datatypes.Date(utils.GetTimeNow().Local())
+	serviceCart.BookingDate = datatypes.Date(applyDate)
 	serviceCart.ServiceId = body.ServiceId
 	serviceCart.ServiceType = kiosk.KioskType
 	serviceCart.BillCode = constants.BILL_NONE
@@ -1889,11 +1893,12 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate cart by golf bag
+	applyDate := utils.GetDateLocal()
 	targetServiceCart := models.ServiceCart{}
 	targetServiceCart.PartnerUid = body.PartnerUid
 	targetServiceCart.CourseUid = body.CourseUid
 	targetServiceCart.GolfBag = body.GolfBag
-	targetServiceCart.BookingDate = datatypes.Date(utils.GetTimeNow().UTC())
+	targetServiceCart.BookingDate = datatypes.Date(applyDate)
 	targetServiceCart.ServiceId = sourceServiceCart.ServiceId
 	targetServiceCart.ServiceType = sourceServiceCart.ServiceType
 	targetServiceCart.BillStatus = sourceServiceCart.BillStatus
