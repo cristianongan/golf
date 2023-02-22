@@ -514,19 +514,14 @@ func (_ *CRevenueReport) GetReportAgencyPayment(c *gin.Context, prof models.CmsU
 	}
 
 	bookingList := model_booking.BookingList{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
 		FromDate:   form.FromDate,
 		ToDate:     form.ToDate,
-		AgencyName: form.AgencyName,
+		// AgencyName: form.AgencyName,
 	}
 
-	page := models.Page{
-		Limit:   form.PageRequest.Limit,
-		Page:    form.PageRequest.Page,
-		SortBy:  form.PageRequest.SortBy,
-		SortDir: form.PageRequest.SortDir,
-	}
-
-	list, _ := bookingList.FindReportAgencyPayment(db, page)
+	list, _ := bookingList.FindReportAgencyPayment(db)
 
 	okResponse(c, list)
 }
