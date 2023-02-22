@@ -1276,6 +1276,7 @@ func (item *Booking) FindReportBuggyForGuestStyle(database *gorm.DB, page models
 
 	subQuery = subQuery.Where("caddie_buggy_in_outs.buggy_id > 0")
 	subQuery.Group("caddie_buggy_in_outs.booking_uid")
+	subQuery.Group("caddie_buggy_in_outs.buggy_code")
 
 	db = db.Joins("INNER JOIN (?) as tb1 ON tb1.booking_uid = bookings.uid", subQuery)
 
