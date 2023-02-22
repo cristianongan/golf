@@ -70,18 +70,18 @@ type BookingStarter struct {
 }
 
 type ResBookingWithBuggyFeeInfo struct {
-	BookingDate string `json:"booking_date"`
-	BuggyCode   string `json:"buggy_code"`
-	BuggyType   string `json:"buggy_type"`
-	Bag         string `json:"bag"`
-	TeeOff      string `json:"tee_off"`
-	GuestName   string `json:"guest_style_name"`
-	GuestStyle  string `json:"guest_style"`
-	CardId      string `json:"card_id"`
-	AgencyName  string `json:"agency_name"`
-	Hole        string `json:"hole"`
-	CaddieId    int64  `json:"caddie_id"`
-	Fee         int64  `json:"fee"`
+	BookingDate    string `json:"booking_date"`
+	BuggyCode      string `json:"buggy_code"`
+	BuggyType      string `json:"buggy_type"`
+	Bag            string `json:"bag"`
+	TeeOff         string `json:"tee_off"`
+	GuestStyleName string `json:"guest_style_name"`
+	GuestStyle     string `json:"guest_style"`
+	CardId         string `json:"card_id"`
+	AgencyName     string `json:"agency_name"`
+	Hole           string `json:"hole"`
+	CaddieId       int64  `json:"caddie_id"`
+	Fee            int64  `json:"fee"`
 }
 
 func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
