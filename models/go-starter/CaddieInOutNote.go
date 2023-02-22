@@ -249,7 +249,7 @@ func (item *CaddieBuggyInOut) FindReportBuggyUsing(database *gorm.DB, month, yea
 					tb1.booking_date`)
 	subQuery2 = subQuery2.Group("tb1.booking_date")
 
-	subQuery2.Debug().Find(&list)
+	subQuery2.Find(&list)
 	return list, subQuery1.Error
 }
 

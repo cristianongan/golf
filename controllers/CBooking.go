@@ -1429,6 +1429,24 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		errMessage = "Trạng thái bag không được checkout"
 	}
 
+	//Check sub bag
+	if booking.SubBags != nil && len(booking.SubBags) > 0 && isCanCheckOut {
+		for _, v := range booking.SubBags {
+			subBag := model_booking.Booking{}
+			subBag.Uid = v.BookingUid
+			errF := subBag.FindFirst(db)
+
+			if errF == nil {
+				if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT || booking.BagStatus == constants.BAG_STATUS_CANCEL {
+				} else {
+					errMessage = "Sub-bag chưa check checkout"
+					isCanCheckOut = false
+					break
+				}
+			}
+		}
+	}
+
 	if !isCanCheckOut {
 		response_message.InternalServerError(c, errMessage)
 		return
@@ -1520,6 +1538,24 @@ func (cBooking *CBooking) CheckBagCanCheckout(c *gin.Context, prof models.CmsUse
 	} else {
 		isCanCheckOut = false
 		errMessage = "Trạng thái bag không được checkout"
+	}
+
+	//Check sub bag
+	if bag.SubBags != nil && len(bag.SubBags) > 0 && isCanCheckOut {
+		for _, v := range bag.SubBags {
+			subBag := model_booking.Booking{}
+			subBag.Uid = v.BookingUid
+			errF := subBag.FindFirst(db)
+
+			if errF == nil {
+				if bag.BagStatus == constants.BAG_STATUS_CHECK_OUT || bag.BagStatus == constants.BAG_STATUS_CANCEL {
+				} else {
+					errMessage = "Sub-bag chưa check checkout"
+					isCanCheckOut = false
+					break
+				}
+			}
+		}
 	}
 
 	res := map[string]interface{}{
@@ -1643,6 +1679,23 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 	if err := booking.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
+	}
+
+	//Check sub bag
+	if booking.SubBags != nil && len(booking.SubBags) > 0 {
+		for _, v := range booking.SubBags {
+			subBag := model_booking.Booking{}
+			subBag.Uid = v.BookingUid
+			subBooking, errF := subBag.FindFirstByUId(db)
+
+			if errF == nil {
+				subBooking.LockBill = setBoolForCursor(*body.LockBill)
+				if err := subBooking.Update(db); err != nil {
+					response_message.InternalServerError(c, err.Error())
+					return
+				}
+			}
+		}
 	}
 
 	okRes(c)
