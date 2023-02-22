@@ -65,4 +65,5 @@ type RevenueReportPOSForm struct {
 	FromDate   string `form:"from_date"`
 	ToDate     string `form:"to_date"`
 	ServiceId  string `form:"service_id"`
+	Type       string `form:"service_id"`
 }
