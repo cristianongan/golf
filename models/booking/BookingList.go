@@ -464,36 +464,70 @@ func (item *BookingList) FindReportBookingList(database *gorm.DB, page models.Pa
 	return list, total, db.Error
 }
 
-func (item *BookingList) FindReportAgencyPayment(database *gorm.DB, page models.Page) ([]map[string]interface{}, error) {
-	db := database.Table(`bookings, JSON_TABLE(bookings.agency_paid , '$[*]' COLUMNS (fee INTEGER PATH '$.fee')) t`)
+func (item *BookingList) FindReportAgencyPayment(database *gorm.DB) ([]map[string]interface{}, error) {
 	list := []map[string]interface{}{}
-	total := int64(0)
 
-	db = db.Select("bookings.agency_info as agency_info, COUNT(bookings.bag) as total_people, SUM(t.fee) as total_fee")
+	// subquery 1
+	subQuery1 := database.Table(`bookings as b, JSON_TABLE(b.agency_paid , '$[*]' COLUMNS (fee INTEGER PATH '$.fee')) as t`)
 
+	subQuery1 = subQuery1.Select("b.agency_id, SUM(t.fee) as total_fee")
+
+	if item.PartnerUid != "" {
+		subQuery1 = subQuery1.Where("b.partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		subQuery1 = subQuery1.Where("b.course_uid = ?", item.CourseUid)
+	}
 	if item.FromDate != "" {
-		db = db.Where("STR_TO_DATE(bookings.booking_date, '%d/%m/%Y') >= STR_TO_DATE(?, '%d/%m/%Y')", item.FromDate)
+		subQuery1 = subQuery1.Where("STR_TO_DATE(b.booking_date, '%d/%m/%Y') >= STR_TO_DATE(?, '%d/%m/%Y')", item.FromDate)
 	}
-
 	if item.ToDate != "" {
-		db = db.Where("STR_TO_DATE(bookings.booking_date, '%d/%m/%Y') <= STR_TO_DATE(?, '%d/%m/%Y')", item.ToDate)
+		subQuery1 = subQuery1.Where("STR_TO_DATE(b.booking_date, '%d/%m/%Y') <= STR_TO_DATE(?, '%d/%m/%Y')", item.ToDate)
 	}
 
-	if item.AgencyName != "" {
-		db = db.Where("bookings.agency_info->'$.name' LIKE ?", "%"+item.AgencyName+"%")
+	subQuery1 = subQuery1.Where("b.agency_id > 0")
+	subQuery1 = subQuery1.Where("b.check_in_time > 0")
+	subQuery1 = subQuery1.Where("b.bag_status <> 'CANCEL'")
+	subQuery1 = subQuery1.Where("b.init_type <> 'ROUND'")
+	subQuery1 = subQuery1.Where("b.added_round = 0")
+
+	subQuery1.Group("b.agency_id")
+
+	// subquery 2
+	subQuery2 := database.Table(`bookings as b`)
+
+	subQuery2 = subQuery2.Select("b.agency_id, JSON_UNQUOTE(b.agency_info->'$.short_name') as agency_name, COUNT(*) as bag")
+
+	if item.PartnerUid != "" {
+		subQuery2 = subQuery2.Where("b.partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		subQuery2 = subQuery2.Where("b.course_uid = ?", item.CourseUid)
+	}
+	if item.FromDate != "" {
+		subQuery2 = subQuery2.Where("STR_TO_DATE(b.booking_date, '%d/%m/%Y') >= STR_TO_DATE(?, '%d/%m/%Y')", item.FromDate)
+	}
+	if item.ToDate != "" {
+		subQuery2 = subQuery2.Where("STR_TO_DATE(b.booking_date, '%d/%m/%Y') <= STR_TO_DATE(?, '%d/%m/%Y')", item.ToDate)
 	}
 
-	db = db.Where("bookings.check_in_time > 0")
-	db = db.Where("bookings.bag_status <> 'CANCEL'")
-	db = db.Where("bookings.init_type <> 'ROUND'")
-	db = db.Where("bookings.init_type <> 'MOVEFLGIHT'")
-	db.Group("bookings.agency_id")
+	subQuery2 = subQuery2.Where("b.agency_id > 0")
+	subQuery2 = subQuery2.Where("b.check_in_time > 0")
+	subQuery2 = subQuery2.Where("b.bag_status <> 'CANCEL'")
+	subQuery2 = subQuery2.Where("b.init_type <> 'ROUND'")
+	subQuery2 = subQuery2.Where("b.added_round = 0")
 
-	db.Count(&total)
+	subQuery2.Group("b.booking_code")
 
-	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Find(&list)
-	}
+	db := database.Table("(?) as tb1", subQuery2)
+
+	db = db.Select(`tb1.agency_id, tb1.agency_name, COUNT(*) as total_booking, SUM(tb1.bag) as total_bag, tb2.total_fee`)
+
+	db = db.Joins("INNER JOIN (?) as tb2 ON tb2.agency_id = tb1.agency_id", subQuery1)
+
+	db.Group("tb1.agency_id")
+
+	db = db.Find(&list)
 
 	return list, db.Error
 }
