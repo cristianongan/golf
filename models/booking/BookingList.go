@@ -64,9 +64,6 @@ type BookingList struct {
 
 type BookingStarter struct {
 	Booking
-	HolePlayed     string `json:"hole_played"`
-	BuggyCodeList  string `json:"buggy_code_list"`
-	CaddieCodeList string `json:"caddie_code_list"`
 }
 
 type ResBookingWithBuggyFeeInfo struct {
