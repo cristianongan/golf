@@ -1667,6 +1667,38 @@ func undoCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
 	return nil
 }
 
+func removeCaddieOutSlotOnDate(partnerUid, courseUid, date string, caddieCode string) error {
+	var caddieSlotNew []string
+
+	caddieWS := models.CaddieWorkingSlot{}
+	caddieWS.PartnerUid = partnerUid
+	caddieWS.CourseUid = courseUid
+	caddieWS.ApplyDate = date
+
+	db := datasources.GetDatabaseWithPartner(partnerUid)
+
+	err := caddieWS.FindFirst(db)
+	if err != nil {
+		return err
+	}
+
+	if len(caddieWS.CaddieSlot) > 0 {
+		caddieSlotNew = append(caddieSlotNew, caddieWS.CaddieSlot...)
+		index := utils.StringInList(caddieCode, caddieSlotNew)
+		if index != -1 {
+			caddieSlotNew = utils.Remove(caddieSlotNew, index)
+		}
+	}
+
+	caddieWS.CaddieSlot = caddieSlotNew
+	err = caddieWS.Update(db)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func updateCaddieWorkingOnDay(caddieCodeList []string, partnerUid, courseUid string, isWorking bool) {
 	db := datasources.GetDatabaseWithPartner("CHI-LINH")
 	for _, code := range caddieCodeList {
