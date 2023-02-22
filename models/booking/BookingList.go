@@ -354,6 +354,7 @@ func (item *BookingList) FindListRoundOfBagPlaying(database *gorm.DB, page model
 	db = db.Where("added_round = ?", false)
 	db = db.Where("check_in_time > 0")
 	db = db.Where("bag_status <> ?", constants.BAG_STATUS_CHECK_OUT)
+	db = db.Where("bag_status <> ?", constants.BAG_STATUS_CANCEL)
 
 	db.Count(&total)
 

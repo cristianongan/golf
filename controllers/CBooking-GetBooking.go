@@ -796,3 +796,51 @@ func (_ *CRevenueReport) GetReportBookingList(c *gin.Context, prof models.CmsUse
 
 	okResponse(c, res)
 }
+
+/*
+Get Bag Not Check Out
+*/
+func (cBooking *CBooking) GetListBagDetail(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	bookings := setParamGetBookingRequest(form)
+
+	if form.BookingDate != "" {
+		bookings.BookingDate = form.BookingDate
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+		bookings.BookingDate = toDayDate
+	}
+
+	db, total, err := bookings.FindListRoundOfBagPlaying(db, page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
