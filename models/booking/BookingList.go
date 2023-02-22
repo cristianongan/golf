@@ -59,11 +59,14 @@ type BookingList struct {
 	IsGroupBookingCode    bool
 	NotNoneGolfAndWalking bool
 	BillCode              string
+	CommonFilter          string
 }
 
 type BookingStarter struct {
 	Booking
-	HolePlayed string `json:"hole_played"`
+	HolePlayed     string `json:"hole_played"`
+	BuggyCodeList  string `json:"buggy_code_list"`
+	CaddieCodeList string `json:"caddie_code_list"`
 }
 
 type ResBookingWithBuggyFeeInfo struct {
@@ -72,7 +75,7 @@ type ResBookingWithBuggyFeeInfo struct {
 	BuggyType   string `json:"buggy_type"`
 	Bag         string `json:"bag"`
 	TeeOff      string `json:"tee_off"`
-	GuestName   string `json:"guest_name"`
+	GuestName   string `json:"guest_style_name"`
 	GuestStyle  string `json:"guest_style"`
 	CardId      string `json:"card_id"`
 	AgencyName  string `json:"agency_name"`
@@ -250,7 +253,8 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	}
 
 	if item.PlayerOrBag != "" {
-		db = db.Where("bag COLLATE utf8mb4_general_ci LIKE ? OR customer_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.PlayerOrBag+"%", "%"+item.PlayerOrBag+"%")
+		db = db.Where("bag COLLATE utf8mb4_general_ci LIKE ? OR customer_name COLLATE utf8mb4_general_ci LIKE ? OR booking_code COLLATE utf8mb4_general_ci LIKE ?",
+			"%"+item.PlayerOrBag+"%", "%"+item.PlayerOrBag+"%", "%"+item.PlayerOrBag+"%")
 	}
 
 	if item.IsCheckIn != "" {
@@ -545,8 +549,6 @@ func (item *BookingList) FindReportStarter(database *gorm.DB, page models.Page) 
 
 	db = addFilter(db, item, false)
 	db = db.Where("flight_id > 0")
-	db = db.Group("bag")
-	db.Select("*, SUM(hole_time_out) as hole_played")
 
 	db.Count(&total)
 
