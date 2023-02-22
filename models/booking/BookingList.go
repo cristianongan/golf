@@ -495,7 +495,7 @@ func (item *BookingList) FindReportAgencyPayment(database *gorm.DB) ([]map[strin
 	subQuery1 = subQuery1.Where("b.agency_id > 0")
 	subQuery1 = subQuery1.Where("b.check_in_time > 0")
 	subQuery1 = subQuery1.Where("b.bag_status <> 'CANCEL'")
-	subQuery1 = subQuery1.Where("b.init_type <> 'ROUND'")
+	// subQuery1 = subQuery1.Where("b.init_type <> 'ROUND'")
 	subQuery1 = subQuery1.Where("b.added_round = 0")
 
 	subQuery1.Group("b.agency_id")
@@ -521,7 +521,7 @@ func (item *BookingList) FindReportAgencyPayment(database *gorm.DB) ([]map[strin
 	subQuery2 = subQuery2.Where("b.agency_id > 0")
 	subQuery2 = subQuery2.Where("b.check_in_time > 0")
 	subQuery2 = subQuery2.Where("b.bag_status <> 'CANCEL'")
-	subQuery2 = subQuery2.Where("b.init_type <> 'ROUND'")
+	// subQuery2 = subQuery2.Where("b.init_type <> 'ROUND'")
 	subQuery2 = subQuery2.Where("b.added_round = 0")
 
 	subQuery2.Group("b.booking_code")

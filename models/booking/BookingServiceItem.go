@@ -507,8 +507,8 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 
 	db = db.Where("tb1.check_in_time > 0")
 	db = db.Where("tb1.bag_status <> 'CANCEL'")
-	db = db.Where("tb1.init_type <> 'ROUND'")
-	db = db.Where("tb1.init_type <> 'MOVEFLGIHT'")
+	// db = db.Where("tb1.init_type <> 'ROUND'")
+	// db = db.Where("tb1.init_type <> 'MOVEFLGIHT'")
 	db = db.Where("tb2.bill_status <> 'CANCEL'")
 
 	db.Order("tb3.group_code")
