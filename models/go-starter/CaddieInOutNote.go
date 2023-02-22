@@ -237,7 +237,7 @@ func (item *CaddieBuggyInOut) FindReportBuggyUsing(database *gorm.DB, month, yea
 	subQuery1 = subQuery1.Joins("JOIN bookings ON bookings.uid = caddie_buggy_in_outs.booking_uid")
 	subQuery1 = subQuery1.Group("caddie_buggy_in_outs.buggy_code")
 	subQuery1 = subQuery1.Group("bookings.booking_date")
-	subQuery1 = subQuery1.Select("SUM(caddie_buggy_in_outs.hole_buggy) as hole_buggy, bookings.booking_date as booking_date")
+	subQuery1 = subQuery1.Select("SUM(caddie_buggy_in_outs.hole) as hole_buggy, bookings.booking_date as booking_date")
 
 	subQuery2 := database.Table("(?) as tb1", subQuery1)
 	subQuery2 = subQuery2.Select(`

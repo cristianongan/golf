@@ -503,3 +503,29 @@ func (_ *CRevenueReport) GetReportRevenuePointOfSale(c *gin.Context, prof models
 
 	okResponse(c, res)
 }
+
+func (_ *CRevenueReport) GetReportAgencyPayment(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	bookingList := model_booking.BookingList{
+		FromDate:   form.FromDate,
+		ToDate:     form.ToDate,
+		AgencyName: form.AgencyName,
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	list, _ := bookingList.FindReportAgencyPayment(db, page)
+
+	okResponse(c, list)
+}

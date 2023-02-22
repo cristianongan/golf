@@ -67,3 +67,13 @@ type RevenueReportPOSForm struct {
 	ServiceId  string `form:"service_id"`
 	Type       string `form:"type"`
 }
+
+type AgencyPaymentReportForm struct {
+	PageRequest
+	PartnerUid  string `form:"partner_uid" binding:"required"`
+	CourseUid   string `form:"course_uid" binding:"required"`
+	BookingDate string `form:"booking_date"`
+	FromDate    string `form:"from_date"`
+	ToDate      string `form:"to_date"`
+	AgencyName  string `form:"agency_name"`
+}

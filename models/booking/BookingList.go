@@ -22,6 +22,7 @@ type BookingList struct {
 	CardId                string
 	InitType              string
 	AgencyId              int64
+	AgencyName            string
 	IsAgency              string
 	Status                string
 	FromDate              string
@@ -460,4 +461,38 @@ func (item *BookingList) FindReportBookingList(database *gorm.DB, page models.Pa
 	}
 
 	return list, total, db.Error
+}
+
+func (item *BookingList) FindReportAgencyPayment(database *gorm.DB, page models.Page) ([]map[string]interface{}, error) {
+	db := database.Table(`bookings, JSON_TABLE(bookings.agency_paid , '$[*]' COLUMNS (fee INTEGER PATH '$.fee')) t`)
+	list := []map[string]interface{}{}
+	total := int64(0)
+
+	db = db.Select("bookings.agency_info as agency_info, COUNT(bookings.bag) as total_people, SUM(t.fee) as total_fee")
+
+	if item.FromDate != "" {
+		db = db.Where("STR_TO_DATE(bookings.booking_date, '%d/%m/%Y') >= STR_TO_DATE(?, '%d/%m/%Y')", item.FromDate)
+	}
+
+	if item.ToDate != "" {
+		db = db.Where("STR_TO_DATE(bookings.booking_date, '%d/%m/%Y') <= STR_TO_DATE(?, '%d/%m/%Y')", item.ToDate)
+	}
+
+	if item.AgencyName != "" {
+		db = db.Where("bookings.agency_info->'$.name' LIKE ?", "%"+item.AgencyName+"%")
+	}
+
+	db = db.Where("bookings.check_in_time > 0")
+	db = db.Where("bookings.bag_status <> 'CANCEL'")
+	db = db.Where("bookings.init_type <> 'ROUND'")
+	db = db.Where("bookings.init_type <> 'MOVEFLGIHT'")
+	db.Group("bookings.agency_id")
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, db.Error
 }

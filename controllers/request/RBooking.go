@@ -48,6 +48,7 @@ type GetListBookingWithSelectForm struct {
 	BookingCode     string  `form:"booking_code"`
 	InitType        string  `form:"init_type"`
 	AgencyId        int64   `form:"agency_id"`
+	AgencyName      string  `form:"agency_name"`
 	IsAgency        string  `form:"is_agency"`
 	Status          string  `form:"status"`
 	FromDate        string  `form:"from_date"`
