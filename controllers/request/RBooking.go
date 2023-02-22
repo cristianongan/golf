@@ -208,10 +208,11 @@ func (item ListCreateBookingBody) Value() (driver.Value, error) {
 }
 
 type AgencyFeeInfo struct {
-	GolfFee   int64 `json:"golf_fee"`
-	BuggyFee  int64 `json:"buggy_fee"`
-	CaddieFee int64 `json:"caddie_fee"`
-	OddCarFee int64 `json:"odd_car_fee"`
+	GolfFee       int64 `json:"golf_fee"`
+	BuggyFee      int64 `json:"buggy_fee"`
+	CaddieFee     int64 `json:"caddie_fee"`
+	OddCarFee     int64 `json:"odd_car_fee"`
+	PrivateCarFee int64 `json:"private_car_fee"`
 }
 type BookingBaseBody struct {
 	BookingUid string `json:"booking_uid"`

@@ -350,7 +350,7 @@ func (_ *CBooking) GetFeeOfBagForBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Get List Service Item
-	listServices := booking.FindServiceItemsWithPaidInfo(db)
+	listServices := booking.FindServiceItemsForBill(db)
 
 	// Get List Round Of Sub Bag
 	listRoundOfSub := []model_booking.RoundOfBag{}

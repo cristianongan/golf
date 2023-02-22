@@ -15,13 +15,13 @@ import (
 
 func runReportRevenueDailyJob() {
 	// Để xử lý cho chạy nhiều instance Server
-	isObtain := datasources.GetLockerRedisObtainWith(datasources.GetRedisKeySystemLogout(), 60)
+	isObtain := datasources.GetLockerRedisObtainWith(datasources.GetRedisKeySystemReportRevenue(), 60)
 	// Ko lấy được lock, return luôn
 	if !isObtain {
 		return
 	}
 	// Logic chạy cron bên dưới
-	runBookingLogout()
+	runReportRevenueDaily()
 }
 
 func runReportRevenueDaily() {
