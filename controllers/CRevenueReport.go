@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -526,6 +527,33 @@ func (_ *CRevenueReport) GetReportAgencyPayment(c *gin.Context, prof models.CmsU
 	}
 
 	list, _ := bookingList.FindReportAgencyPayment(db, page)
+
+	okResponse(c, list)
+}
+
+func (_ *CRevenueReport) GetReportStarter(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if form.BookingDate == "" {
+		response_message.BadRequest(c, errors.New("Chưa chọn ngày").Error())
+		return
+	}
+
+	bookings := SetParamGetBookingRequest(form)
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	list, _ := bookings.FindReportStarter(db, page)
 
 	okResponse(c, list)
 }

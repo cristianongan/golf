@@ -439,7 +439,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	bookings := setParamGetBookingRequest(form)
+	bookings := SetParamGetBookingRequest(form)
 
 	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
 
@@ -464,7 +464,7 @@ func (_ *CBooking) GetListBookingWithSelect(c *gin.Context, prof models.CmsUser)
 	okResponse(c, res)
 }
 
-func setParamGetBookingRequest(form request.GetListBookingWithSelectForm) model_booking.BookingList {
+func SetParamGetBookingRequest(form request.GetListBookingWithSelectForm) model_booking.BookingList {
 	bookings := model_booking.BookingList{}
 	bookings.PartnerUid = form.PartnerUid
 	bookings.CourseUid = form.CourseUid
@@ -707,7 +707,7 @@ func (cBooking *CBooking) GetBagNotCheckOut(c *gin.Context, prof models.CmsUser)
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	bookings := setParamGetBookingRequest(form)
+	bookings := SetParamGetBookingRequest(form)
 
 	if form.BookingDate != "" {
 		bookings.BookingDate = form.BookingDate
@@ -815,7 +815,7 @@ func (cBooking *CBooking) GetListBagDetail(c *gin.Context, prof models.CmsUser) 
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	bookings := setParamGetBookingRequest(form)
+	bookings := SetParamGetBookingRequest(form)
 
 	if form.BookingDate != "" {
 		bookings.BookingDate = form.BookingDate

@@ -61,6 +61,11 @@ type BookingList struct {
 	BillCode              string
 }
 
+type BookingStarter struct {
+	Booking
+	HolePlayed string `json:"hole_played"`
+}
+
 type ResBookingWithBuggyFeeInfo struct {
 	BookingDate string `json:"booking_date"`
 	BuggyCode   string `json:"buggy_code"`
@@ -488,6 +493,25 @@ func (item *BookingList) FindReportAgencyPayment(database *gorm.DB, page models.
 	db = db.Where("bookings.init_type <> 'ROUND'")
 	db = db.Where("bookings.init_type <> 'MOVEFLGIHT'")
 	db.Group("bookings.agency_id")
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, db.Error
+}
+
+func (item *BookingList) FindReportStarter(database *gorm.DB, page models.Page) ([]BookingStarter, error) {
+	total := int64(0)
+	list := []BookingStarter{}
+
+	db := database.Model(Booking{})
+
+	db = addFilter(db, item, false)
+	db.Group("bag")
+	db.Select("*, SUM(hole_time_out) as hole_played")
 
 	db.Count(&total)
 
