@@ -544,8 +544,7 @@ func (item *BookingList) FindReportStarter(database *gorm.DB, page models.Page) 
 	db := database.Model(Booking{})
 
 	db = addFilter(db, item, false)
-	db = db.Where("customer_type <> ?", constants.CUSTOMER_TYPE_NONE_GOLF)
-	db = db.Where("check_in_time > 0")
+	db = db.Where("flight_id > 0")
 	db = db.Group("bag")
 	db.Select("*, SUM(hole_time_out) as hole_played")
 
