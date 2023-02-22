@@ -470,7 +470,7 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 	db := database.Table("booking_service_items")
 	var list []map[string]interface{}
 
-	db.Select("booking_service_items.name, booking_service_items.unit, tb3.group_name, sum(booking_service_items.quality) as quantity, booking_service_items.unit_price")
+	db.Select("booking_service_items.name, booking_service_items.unit, tb3.group_name, sum(booking_service_items.quality) as quantity, booking_service_items.unit_price, sum(booking_service_items.amount) as amount")
 
 	if item.CourseUid != "" {
 		db = db.Where("booking_service_items.course_uid = ?", item.CourseUid)
