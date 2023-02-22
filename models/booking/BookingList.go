@@ -75,7 +75,7 @@ type ResBookingWithBuggyFeeInfo struct {
 	BuggyType   string `json:"buggy_type"`
 	Bag         string `json:"bag"`
 	TeeOff      string `json:"tee_off"`
-	GuestName   string `json:"guest_name"`
+	GuestName   string `json:"guest_style_name"`
 	GuestStyle  string `json:"guest_style"`
 	CardId      string `json:"card_id"`
 	AgencyName  string `json:"agency_name"`
