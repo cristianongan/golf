@@ -67,18 +67,18 @@ type BookingStarter struct {
 }
 
 type ResBookingWithBuggyFeeInfo struct {
-	BookingDate    string `json:"booking_date"`
-	BuggyCode      string `json:"buggy_code"`
-	BuggyType      string `json:"buggy_type"`
-	Bag            string `json:"bag"`
-	TeeOff         string `json:"tee_off"`
-	GuestStyleName string `json:"guest_style_name"`
-	GuestStyle     string `json:"guest_style"`
-	CardId         string `json:"card_id"`
-	AgencyName     string `json:"agency_name"`
-	Hole           string `json:"hole"`
-	CaddieId       int64  `json:"caddie_id"`
-	Fee            int64  `json:"fee"`
+	BookingDate  string `json:"booking_date"`
+	BuggyCode    string `json:"buggy_code"`
+	BuggyType    string `json:"buggy_type"`
+	Bag          string `json:"bag"`
+	TeeOff       string `json:"tee_off"`
+	CustomerName string `json:"customer_name"`
+	GuestStyle   string `json:"guest_style"`
+	CardId       string `json:"card_id"`
+	AgencyName   string `json:"agency_name"`
+	Hole         string `json:"hole"`
+	CaddieId     int64  `json:"caddie_id"`
+	Fee          int64  `json:"fee"`
 }
 
 func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
@@ -441,7 +441,7 @@ func (item *BookingList) FindListBookingWithBuggy(database *gorm.DB, page models
 	db = db.Where("bookings.buggy_info->'$.code' <> ''")
 	db = db.Where("booking_service_items.service_type = ?", constants.BUGGY_SETTING)
 	db = db.Joins("JOIN booking_service_items ON booking_service_items.booking_uid = bookings.uid")
-	db = db.Select("bookings.booking_date, JSON_VALUE(bookings.buggy_info,'$.code') as buggy_code, booking_service_items.name as buggy_type, bookings.bag, bookings.tee_off_time as tee_off, bookings.guest_style_name, bookings.guest_style, bookings.card_id, JSON_VALUE(bookings.agency_info,'$.name') as agency_name, bookings.hole, bookings.caddie_id, booking_service_items.amount as fee")
+	db = db.Select("bookings.booking_date, JSON_VALUE(bookings.buggy_info,'$.code') as buggy_code, booking_service_items.name as buggy_type, bookings.bag, bookings.tee_off_time as tee_off, bookings.customer_name, bookings.guest_style, bookings.card_id, JSON_VALUE(bookings.agency_info,'$.name') as agency_name, bookings.hole, bookings.caddie_id, booking_service_items.amount as fee")
 
 	db.Count(&total)
 
