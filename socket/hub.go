@@ -62,7 +62,7 @@ func (h *Hub) Run() {
 				case client.send <- message:
 					// log.Println("[SOCKET] Hub Run client.send <- message ", string(message))
 				default:
-					log.Println("[SOCKET] Hub Run default")
+					// log.Println("[SOCKET] Hub Run default")
 					close(client.send)
 					delete(h.Clients, client)
 				}

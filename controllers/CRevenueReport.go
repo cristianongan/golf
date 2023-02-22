@@ -488,6 +488,7 @@ func (_ *CRevenueReport) GetReportRevenuePointOfSale(c *gin.Context, prof models
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 		ServiceId:  form.ServiceId,
+		Type:       form.Type,
 	}
 
 	list, err := serviceItem.FindReportRevenuePOS(db, form.FromDate, form.ToDate)

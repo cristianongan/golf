@@ -189,7 +189,7 @@ func (item *ReportRevenueDetail) FindReportDayEnd(database *gorm.DB) (DayEndReve
 	}
 
 	dayEnd := DayEndRevenue{}
-	db.Debug().Find(&dayEnd)
+	db.Find(&dayEnd)
 
 	return dayEnd, db.Error
 }

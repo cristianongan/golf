@@ -481,6 +481,9 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 	if item.ServiceId != "" {
 		db = db.Where("booking_service_items.service_id = ?", item.ServiceId)
 	}
+	if item.Type != "" {
+		db = db.Where("booking_service_items.type = ?", item.Type)
+	}
 
 	// sub query
 	subQuery := database.Table("bookings")

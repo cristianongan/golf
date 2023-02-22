@@ -75,7 +75,7 @@ func (item *RolePermission) FindAllPermission() ([]Permission, error) {
 	db = db.Joins("JOIN permissions ON role_permissions.permission_uid = permissions.uid")
 	db = db.Select("permissions.uid, permissions.status,permissions.category,permissions.description,permissions.resources")
 
-	db.Debug().Find(&list)
+	db.Find(&list)
 	return list, db.Error
 }
 
