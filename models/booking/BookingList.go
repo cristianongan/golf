@@ -63,7 +63,9 @@ type BookingList struct {
 
 type BookingStarter struct {
 	Booking
-	HolePlayed string `json:"hole_played"`
+	HolePlayed     string `json:"hole_played"`
+	BuggyCodeList  string `json:"buggy_code_list"`
+	CaddieCodeList string `json:"caddie_code_list"`
 }
 
 type ResBookingWithBuggyFeeInfo struct {
@@ -545,8 +547,6 @@ func (item *BookingList) FindReportStarter(database *gorm.DB, page models.Page) 
 
 	db = addFilter(db, item, false)
 	db = db.Where("flight_id > 0")
-	db = db.Group("bag")
-	db.Select("*, SUM(hole_time_out) as hole_played")
 
 	db.Count(&total)
 
