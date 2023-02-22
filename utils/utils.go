@@ -485,6 +485,20 @@ func Remove[T comparable](slice []T, s int) []T {
 	return append(slice[:s], slice[s+1:]...)
 }
 
+func CheckDupArray[T comparable](arr []T) []T {
+	visited := make(map[T]bool, 0)
+	var listDup []T
+
+	for i := 0; i < len(arr); i++ {
+		if visited[arr[i]] {
+			listDup = append(listDup, arr[i])
+		} else {
+			visited[arr[i]] = true
+		}
+	}
+	return listDup
+}
+
 func SwapValue[T comparable](s []T, o, n T) []T {
 	indexOld := IndexOf(s, o)
 	indexNew := IndexOf(s, n)
