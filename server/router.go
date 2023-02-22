@@ -291,7 +291,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/booking/update-caddie-checkin", middlewares.AuthorizedCmsUserHandler(cBooking.UndoCheckIn))          // Undo CheckIn
 			cmsApiAuthorized.POST("/booking/reset-bag", middlewares.AuthorizedCmsUserHandler(cBooking.ResetBag))
 			cmsApiAuthorized.POST("/booking/undo-checkout", middlewares.AuthorizedCmsUserHandler(cBooking.UndoCheckOut))
-			cmsApiAuthorized.GET("/booking/get-bag-detail", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBagDetail))
+			cmsApiAuthorized.GET("/booking/get-list-bag-detail", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBagDetail))
 			// cmsApiAuthorized.GET("/booking/golf-fee", middlewares.AuthorizedCmsUserHandler(cBooking.GetGolfFeeInfoOfBag))
 
 			/// =================== Caddie Buggy In Out Bag ===================
