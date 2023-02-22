@@ -1435,10 +1435,10 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Kiểm tra trạng thái bill
-	// if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
-	// 	response_message.BadRequest(c, "Bill status invalid")
-	// 	return
-	// }
+	if serviceCart.BillStatus == constants.POS_BILL_STATUS_OUT {
+		response_message.BadRequest(c, "Bill status invalid")
+		return
+	}
 
 	// validate golf bag
 	bookingR := model_booking.Booking{}

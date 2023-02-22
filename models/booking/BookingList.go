@@ -59,6 +59,7 @@ type BookingList struct {
 	IsGroupBookingCode    bool
 	NotNoneGolfAndWalking bool
 	BillCode              string
+	CommonFilter          string
 }
 
 type BookingStarter struct {
@@ -252,7 +253,8 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	}
 
 	if item.PlayerOrBag != "" {
-		db = db.Where("bag COLLATE utf8mb4_general_ci LIKE ? OR customer_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.PlayerOrBag+"%", "%"+item.PlayerOrBag+"%")
+		db = db.Where("bag COLLATE utf8mb4_general_ci LIKE ? OR customer_name COLLATE utf8mb4_general_ci LIKE ? OR booking_code COLLATE utf8mb4_general_ci LIKE ?",
+			"%"+item.PlayerOrBag+"%", "%"+item.PlayerOrBag+"%", "%"+item.PlayerOrBag+"%")
 	}
 
 	if item.IsCheckIn != "" {
