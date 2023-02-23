@@ -46,7 +46,7 @@ func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.Register:
-			log.Println("[SOCKET] Hub Run Register")
+			// log.Println("[SOCKET] Hub Run Register")
 			// log.Println("[SOCKET] len clients", len(h.Clients))
 			h.Clients[client] = true
 		case client := <-h.Unregister:
