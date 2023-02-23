@@ -141,22 +141,23 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 
 					if isCanAdd {
 						for _, itemPaid := range subDetail.AgencyPaid {
-							if v1.Name == constants.THUE_RIENG_XE && !hasPrivateBuggy && itemPaid.Fee > 0 {
+							if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy && itemPaid.Fee > 0 {
 								hasPrivateBuggy = true
 								isCanAdd = false
+								break
 							}
 
-							if v1.Name == constants.THUE_LE_XE && !hasOddBuggy && itemPaid.Fee > 0 {
+							if v1.Name == constants.THUE_LE_XE && v1.Name == itemPaid.Name && !hasOddBuggy && itemPaid.Fee > 0 {
 								hasOddBuggy = true
 								isCanAdd = false
+								break
 							}
 
-							if v1.Name == constants.THUE_NUA_XE && !hasBuggy && itemPaid.Fee > 0 {
+							if v1.Name == constants.THUE_NUA_XE && v1.Name == itemPaid.Name && !hasBuggy && itemPaid.Fee > 0 {
 								hasBuggy = true
 								isCanAdd = false
+								break
 							}
-
-							break
 						}
 					}
 
@@ -719,22 +720,23 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 
 					if isCanAdd {
 						for _, itemPaid := range subDetail.AgencyPaid {
-							if v1.Name == constants.THUE_RIENG_XE && !hasPrivateBuggy && itemPaid.Fee > 0 {
+							if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy && itemPaid.Fee > 0 {
 								hasPrivateBuggy = true
 								isCanAdd = false
+								break
 							}
 
-							if v1.Name == constants.THUE_LE_XE && !hasOddBuggy && itemPaid.Fee > 0 {
+							if v1.Name == constants.THUE_LE_XE && v1.Name == itemPaid.Name && !hasOddBuggy && itemPaid.Fee > 0 {
 								hasOddBuggy = true
 								isCanAdd = false
+								break
 							}
 
-							if v1.Name == constants.THUE_NUA_XE && !hasBuggy && itemPaid.Fee > 0 {
+							if v1.Name == constants.THUE_NUA_XE && v1.Name == itemPaid.Name && !hasBuggy && itemPaid.Fee > 0 {
 								hasBuggy = true
 								isCanAdd = false
+								break
 							}
-
-							break
 						}
 					}
 
