@@ -1985,3 +1985,36 @@ func checkForCheckOut(bag model_booking.Booking) (bool, string) {
 
 	return isCanCheckOut, errMessage
 }
+
+func deleteBuggyFee(booking model_booking.Booking) {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	bookingServiceItemsR := model_booking.BookingServiceItem{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		BillCode:   booking.BillCode,
+	}
+
+	list, _ := bookingServiceItemsR.FindAll(db)
+	name1 := "Thuê xe (1/2 xe)"
+	name2 := "Thuê lẻ xe"
+	name3 := "Thuê riêng xe"
+
+	for _, item := range list {
+		if item.Name == constants.BUGGY_SETTING {
+			if item.Name == name1 {
+				item.Delete(db)
+				name1 = ""
+			}
+
+			if item.Name == name2 {
+				item.Delete(db)
+				name2 = ""
+			}
+
+			if item.Name == name3 {
+				item.Delete(db)
+				name3 = ""
+			}
+		}
+	}
+}
