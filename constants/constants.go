@@ -125,6 +125,9 @@ const (
 
 const (
 	GORM_API_LOG_RECORD_NOT_FOUND = "record not found"
+	THUE_NUA_XE                   = "Thuê xe (1/2 xe)"
+	THUE_RIENG_XE                 = "Thuê riêng xe"
+	THUE_LE_XE                    = "Thuê lẻ xe"
 )
 
 /*
