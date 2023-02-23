@@ -93,11 +93,12 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 				break
 			}
 
-			hasBuggy := false
-			hasCaddie := false
-
 			for _, v1 := range listGolfServiceTemp {
+
 				isCanAdd := false
+				hasBuggy := false
+				hasCaddie := false
+
 				if item.MainBagPay != nil && len(item.MainBagPay) > 0 {
 					for _, v2 := range item.MainBagPay {
 						// Check trạng thái bill
@@ -665,11 +666,12 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 				break
 			}
 
-			hasBuggy := false
-			hasCaddie := false
-
 			for _, v1 := range listGolfServiceTemp {
+
 				isCanAdd := false
+				hasBuggy := false
+				hasCaddie := false
+
 				if item.MainBagPay != nil && len(item.MainBagPay) > 0 {
 					for _, v2 := range item.MainBagPay {
 						// Check trạng thái bill
