@@ -446,7 +446,7 @@ func (item *BookingList) FindListBookingWithBuggy(database *gorm.DB, page models
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Debug().Find(&list)
+		db = page.Setup(db).Find(&list)
 	}
 
 	return list, total, db.Error
