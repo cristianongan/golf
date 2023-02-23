@@ -7,7 +7,7 @@ import (
 type HealCheck struct{}
 
 func (_ *HealCheck) HealCheck(c *gin.Context) {
-	okResponse(c, gin.H{"message": "0.01"})
+	okResponse(c, gin.H{"message": "0.02"})
 }
 
 func (_ *HealCheck) CheckIp(c *gin.Context) {
