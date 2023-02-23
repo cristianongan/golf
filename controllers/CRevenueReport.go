@@ -361,15 +361,6 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 		return
 	}
 
-	// Get All Bag
-	listBagPrice, _, _ := reportR.FindAll(db)
-
-	// Tiền mặt
-	cashTotal := int64(0)
-	for _, item := range listBagPrice {
-		cashTotal += item.Cash
-	}
-
 	singlePaymentItemR1 := model_payment.SinglePaymentItem{
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,
@@ -399,7 +390,6 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 			"vcb":  vcb,
 			"bidv": bidv,
 		},
-		"cash": cashTotal,
 	}
 
 	okResponse(c, res)

@@ -695,6 +695,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		GuestStyleName:   item.GuestStyleName,
 		BookingDate:      item.BookingDate,
 		CustomerId:       item.CustomerUid,
+		CustomerName:     item.CustomerName,
 		MembershipNo:     item.CardId,
 		CustomerType:     item.CustomerType,
 		Hole:             hole,
