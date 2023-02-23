@@ -819,7 +819,7 @@ func (cBooking *CBooking) GetListBagDetail(c *gin.Context, prof models.CmsUser) 
 
 	if form.BookingDate != "" {
 		bookings.BookingDate = form.BookingDate
-	} else {
+	} else if form.FromDate == "" && form.ToDate == "" {
 		toDayDate, errD := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 		if errD != nil {
 			response_message.InternalServerError(c, errD.Error())
@@ -836,7 +836,7 @@ func (cBooking *CBooking) GetListBagDetail(c *gin.Context, prof models.CmsUser) 
 	}
 
 	var list []model_booking.Booking
-	db.Find(&list)
+	db.Debug().Find(&list)
 	res := map[string]interface{}{
 		"total": total,
 		"data":  list,
