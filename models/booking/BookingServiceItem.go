@@ -501,9 +501,18 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 		subQuery = subQuery.Where("STR_TO_DATE(bookings.booking_date, '%d/%m/%Y') <= STR_TO_DATE(?, '%d/%m/%Y')", toDate)
 	}
 
-	db = db.Joins(`LEFT JOIN (?) as tb1 on booking_service_items.booking_uid = tb1.uid`, subQuery)
-	db = db.Joins(`LEFT JOIN service_carts as tb2 on booking_service_items.service_bill = tb2.id`)
-	db = db.Joins(`LEFT JOIN group_services as tb3 on booking_service_items.group_code = tb3.group_code`)
+	subQuery1 := database.Table("group_services")
+
+	if item.CourseUid != "" {
+		subQuery1 = subQuery1.Where("group_services.course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		subQuery1 = subQuery1.Where("group_services.partner_uid = ?", item.PartnerUid)
+	}
+
+	db = db.Joins(`INNER JOIN (?) as tb1 on booking_service_items.booking_uid = tb1.uid`, subQuery)
+	db = db.Joins(`INNER JOIN service_carts as tb2 on booking_service_items.service_bill = tb2.id`)
+	db = db.Joins(`LEFT JOIN (?) as tb3 on booking_service_items.group_code = tb3.group_code`, subQuery1)
 
 	db = db.Where("tb1.check_in_time > 0")
 	db = db.Where("tb1.bag_status <> 'CANCEL'")
