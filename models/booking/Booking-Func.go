@@ -859,17 +859,17 @@ func (item *Booking) FindServiceItemsForBill(db *gorm.DB) []BookingServiceItemWi
 			}
 			listGolfServiceTemp, _ := serviceGolfsTemp.FindAllWithPaidInfo(db)
 
-			RsubDetail := Booking{
-				Bag: v.GolfBag,
-			}
-			subDetail, _ := RsubDetail.FindFirstByUId(db)
+			// RsubDetail := Booking{
+			// 	Bag: v.GolfBag,
+			// }
+			// subDetail, _ := RsubDetail.FindFirstByUId(db)
 			// isAgencyPaidBookingCaddie := subDetail.GetAgencyPaidBookingCaddie() > 0
 			// isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
 
 			// agency paid all
-			if subDetail.CheckAgencyPaidAll() {
-				break
-			}
+			// if subDetail.CheckAgencyPaidAll() {
+			// 	break
+			// }
 
 			// hasBuggy := false
 			// hasCaddie := false
@@ -1358,91 +1358,65 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 	// Sub Service Item của current Bag
 	// Get item for current Bag
 	// update lại lấy service items mới
-	buggyCaddieRentalFee := int64(0)
-	buggyCaddieAgencyPaidAllFee := int64(0)
-	buggyCaddieRentalFeeOfSub := int64(0)
 
 	item.FindServiceItemsForHandleFee(db)
 	for _, v := range item.ListServiceItems {
 		isNeedPay := false
-		isBuggyCaddieRental := false
-
-		if v.ServiceType == constants.BUGGY_SETTING || v.ServiceType == constants.CADDIE_SETTING {
-			isBuggyCaddieRental = true
-
-			if v.BillCode != item.BillCode {
-				buggyCaddieRentalFeeOfSub += v.Amount
-			} else {
-				buggyCaddieRentalFee += v.Amount
-			}
-		}
 
 		if len(item.MainBags) > 0 {
-			// Nếu có main bag
-			if mainCheckOutTime > 0 && v.CreatedAt > mainCheckOutTime {
-				// main bag đã check out đi về, sub bag dùng tiếp service thì phải trả v
-				isNeedPay = true
+
+			// Tính giá service của bag cho case agency paid all
+			if item.CheckAgencyPaidAll() {
+				agencyPaidAll += v.Amount
+				isNeedPay = false
 			} else {
-				if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL ||
-					v.Type == constants.DRIVING_SETTING) && !mainPaidRental {
+				// Nếu có main bag
+				if mainCheckOutTime > 0 && v.CreatedAt > mainCheckOutTime {
+					// main bag đã check out đi về, sub bag dùng tiếp service thì phải trả v
 					isNeedPay = true
-				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP && !mainPaidProshop {
-					isNeedPay = true
-				} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT ||
-					v.Type == constants.MINI_B_SETTING ||
-					v.Type == constants.MINI_R_SETTING) && !mainPaidRestaurant {
-					isNeedPay = true
-				} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE && !mainPaidOtherFee {
-					isNeedPay = true
-				} else if (v.Type == constants.GOLF_SERVICE_KIOSK) && !mainPaidKiosk {
-					isNeedPay = true
+				} else {
+					if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL ||
+						v.Type == constants.DRIVING_SETTING) && !mainPaidRental {
+						isNeedPay = true
+					} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_PROSHOP && !mainPaidProshop {
+						isNeedPay = true
+					} else if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RESTAURANT ||
+						v.Type == constants.MINI_B_SETTING ||
+						v.Type == constants.MINI_R_SETTING) && !mainPaidRestaurant {
+						isNeedPay = true
+					} else if v.Type == constants.MAIN_BAG_FOR_PAY_SUB_OTHER_FEE && !mainPaidOtherFee {
+						isNeedPay = true
+					} else if (v.Type == constants.GOLF_SERVICE_KIOSK) && !mainPaidKiosk {
+						isNeedPay = true
+					}
 				}
 			}
 
-			if !isNeedPay && !isBuggyCaddieRental {
+			if !isNeedPay {
 				feePaid += v.Amount
 			}
 
 		} else {
-			if v.Bag != "" && v.Bag != item.Bag {
+			if v.BillCode != item.BillCode {
 				// Tính giá service của sub
 				subBagFee += v.Amount
+				isNeedPay = true
+			} else {
+				if item.CheckAgencyPaidAll() {
+					agencyPaidAll += v.Amount
+					isNeedPay = false
+				} else {
+					isNeedPay = true
+				}
 			}
-			isNeedPay = true
 		}
 
-		// Tính giá service của bag cho case agency paid all
-		if item.CheckAgencyPaidAll() {
-			agencyPaidAll += v.Amount
-		}
-
-		if item.CheckAgencyPaidAll() && (v.Type == constants.AGENCY_PAID_ALL_BUGGY || v.Type == constants.AGENCY_PAID_ALL_CADDIE) {
-			isNeedPay = false
-			buggyCaddieAgencyPaidAllFee += v.Amount
-		}
-
-		if isNeedPay && !isBuggyCaddieRental {
+		if isNeedPay {
 			mushPay.TotalServiceItem += v.Amount
 		}
 	}
 
-	buggyCaddieRentalMushPay := buggyCaddieRentalFee - buggyCaddieAgencyPaid + buggyCaddieRentalFeeOfSub
-
-	if mainPaidRental {
-		feePaid += buggyCaddieRentalMushPay
-		buggyCaddieRentalMushPay = 0
-	}
-
-	if buggyCaddieRentalMushPay < 0 {
-		buggyCaddieRentalMushPay = 0
-	}
-
-	if item.CustomerType == constants.BOOKING_CUSTOMER_TYPE_FOC {
-		mushPay.MushPay = subBagFee
-	}
-
 	if item.CheckAgencyPaidAll() {
-		// agencyPaidAll -= buggyCaddieRentalFee
 		feePaid = agencyPaidAll
 
 		mushPay.MushPay = subBagFee
