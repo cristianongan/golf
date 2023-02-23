@@ -857,6 +857,7 @@ func (_ *CCourseOperating) DeleteAttach(c *gin.Context, prof models.CmsUser) {
 		booking.FlightId = 0
 	}
 
+	booking.TeeOffTime = ""
 	booking.BagStatus = constants.BAG_STATUS_WAITING
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 	errUdp := booking.Update(db)
@@ -864,6 +865,9 @@ func (_ *CCourseOperating) DeleteAttach(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
+
+	// auto delete buggy fee
+	deleteBuggyFee(booking)
 
 	okResponse(c, booking)
 }
@@ -1030,6 +1034,13 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		return
 	}
 
+	hole, errCast := strconv.Atoi(body.Hole)
+
+	if errCast != nil {
+		response_message.BadRequestFreeMessage(c, "Cast Error!")
+		return
+	}
+
 	booking, err := cCourseOperating.validateBooking(db, body.BookingUid)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -1073,7 +1084,7 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 			BuggyType:   constants.STATUS_OUT,
 			Bag:         booking.Bag,
 			BookingDate: booking.BookingDate,
-			HoleBuggy:   body.Hole,
+			HoleBuggy:   hole,
 		}
 
 		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
@@ -1098,7 +1109,7 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		return
 	}
 
-	go updateBagShareWhenChangeBuggy(booking, body.Hole, body.IsPrivateBuggy)
+	go updateBagShareWhenChangeBuggy(booking, hole, body.IsPrivateBuggy)
 
 	okResponse(c, booking)
 }
