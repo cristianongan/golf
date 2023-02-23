@@ -403,8 +403,9 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 			"bidv": bidv,
 		},
 		"transfer": map[string]interface{}{
-			"vcb":  vcbTransfer,
-			"bidv": bidvTransfer,
+			"vcb":   vcbTransfer,
+			"bidv":  bidvTransfer + data.AgencyPaid,
+			"total": vcbTransfer + bidvTransfer + data.AgencyPaid,
 		},
 	}
 
