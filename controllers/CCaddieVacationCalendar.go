@@ -225,9 +225,9 @@ func (_ *CCaddieVacationCalendar) UpdateCaddieVacationStatus(id int64, isApprove
 
 	if err := RCaddieVacation.FindFirst(db); err == nil {
 		if isApprove {
-			_, _, day := utils.GetLocalUnixTime().Date()
+			day := utils.GetLocalUnixTime().Unix()
 
-			if day >= int(RCaddieVacation.DateFrom) && day <= int(RCaddieVacation.DateTo) {
+			if day >= RCaddieVacation.DateFrom && day <= RCaddieVacation.DateTo {
 				date, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 				removeCaddieOutSlotOnDate(RCaddieVacation.PartnerUid, RCaddieVacation.CourseUid, date, RCaddieVacation.CaddieCode)
 			}

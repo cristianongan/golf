@@ -45,8 +45,10 @@ const (
 Get base price cho type agency họăc member card
 */
 const (
-	PAYMENT_TYPE_CASH = "CASH"
-	PAYMENT_TYPE_VISA = "VISA"
+	PAYMENT_TYPE_CASH     = "CASH"
+	PAYMENT_TYPE_VISA     = "VISA"
+	PAYMENT_TYPE_CARDS    = "CARDS"
+	PAYMENT_TYPE_TRANSFER = "TRANSFER"
 )
 
 /*

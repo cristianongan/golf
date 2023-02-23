@@ -1966,22 +1966,22 @@ func checkForCheckOut(bag model_booking.Booking) (bool, string) {
 	}
 
 	//Check sub bag
-	if bag.SubBags != nil && len(bag.SubBags) > 0 && isCanCheckOut {
-		for _, v := range bag.SubBags {
-			subBag := model_booking.Booking{}
-			subBag.Uid = v.BookingUid
-			errF := subBag.FindFirst(db)
+	// if bag.SubBags != nil && len(bag.SubBags) > 0 && isCanCheckOut {
+	// 	for _, v := range bag.SubBags {
+	// 		subBag := model_booking.Booking{}
+	// 		subBag.Uid = v.BookingUid
+	// 		errF := subBag.FindFirst(db)
 
-			if errF == nil {
-				if subBag.BagStatus == constants.BAG_STATUS_CHECK_OUT || subBag.BagStatus == constants.BAG_STATUS_CANCEL {
-				} else {
-					errMessage = "Sub-bag chưa check checkout"
-					isCanCheckOut = false
-					break
-				}
-			}
-		}
-	}
+	// 		if errF == nil {
+	// 			if subBag.BagStatus == constants.BAG_STATUS_CHECK_OUT || subBag.BagStatus == constants.BAG_STATUS_CANCEL {
+	// 			} else {
+	// 				errMessage = "Sub-bag chưa check checkout"
+	// 				isCanCheckOut = false
+	// 				break
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	return isCanCheckOut, errMessage
 }

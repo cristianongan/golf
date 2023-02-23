@@ -136,6 +136,27 @@ func (item *ReportRevenueDetail) FindList(dbase *gorm.DB, page models.Page) ([]R
 	return list, total, db.Error
 }
 
+func (item *ReportRevenueDetail) FindAll(dbase *gorm.DB) ([]ReportRevenueDetail, int64, error) {
+	db := dbase.Model(ReportRevenueDetail{})
+	list := []ReportRevenueDetail{}
+	total := int64(0)
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+
+	db.Count(&total)
+	db.Find(&list)
+
+	return list, total, db.Error
+}
+
 func (item *ReportRevenueDetail) Delete() error {
 	if item.Id < 0 {
 		return errors.New("Primary key is undefined!")
@@ -171,6 +192,7 @@ func (item *ReportRevenueDetail) FindReportDayEnd(database *gorm.DB) (DayEndReve
 					SUM(fb_fee) as fb_fee,
 					SUM(total) as all_fee,
 					SUM(phi_phat) as phi_phat,
+					SUM(cash) as cash,
 					SUM(customer_type = 'MEMBER') AS member,
 					SUM(customer_type = 'GUEST') AS member_guest,
 					SUM(customer_type = 'VISITOR') AS visitor,

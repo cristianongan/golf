@@ -647,14 +647,17 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 	cashList := []model_payment.SinglePaymentItem{}
 	debtList := []model_payment.SinglePaymentItem{}
 	cardList := []model_payment.SinglePaymentItem{}
+	transferList := []model_payment.SinglePaymentItem{}
 
 	for _, item := range list {
 		if item.PaymentType == constants.PAYMENT_TYPE_CASH {
 			cashList = append(cashList, item)
 		} else if item.PaymentType == constants.PAYMENT_STATUS_DEBT {
 			debtList = append(debtList, item)
-		} else {
+		} else if item.PaymentType == constants.PAYMENT_TYPE_CARDS {
 			cardList = append(cardList, item)
+		} else if item.PaymentType == constants.PAYMENT_TYPE_TRANSFER {
+			transferList = append(transferList, item)
 		}
 	}
 
@@ -667,6 +670,10 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 	})
 
 	cardTotal := slices.Reduce(cardList, func(prev int64, item model_payment.SinglePaymentItem) int64 {
+		return prev + item.Paid
+	})
+
+	transferTotal := slices.Reduce(transferList, func(prev int64, item model_payment.SinglePaymentItem) int64 {
 		return prev + item.Paid
 	})
 
@@ -688,6 +695,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		GuestStyleName:   item.GuestStyleName,
 		BookingDate:      item.BookingDate,
 		CustomerId:       item.CustomerUid,
+		CustomerName:     item.CustomerName,
 		MembershipNo:     item.CardId,
 		CustomerType:     item.CustomerType,
 		Hole:             hole,
@@ -710,6 +718,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		MinibarFee:       minibarFee,
 		KioskFee:         kioskFee,
 		PhiPhat:          phiPhat,
+		Transfer:         transferTotal,
 	}
 
 	m.Create(db)
