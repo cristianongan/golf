@@ -2000,7 +2000,7 @@ func deleteBuggyFee(booking model_booking.Booking) {
 	name3 := "Thuê riêng xe"
 
 	for _, item := range list {
-		if item.Name == constants.BUGGY_SETTING {
+		if item.ServiceType == constants.BUGGY_SETTING {
 			if item.Name == name1 {
 				item.Delete(db)
 				name1 = ""
