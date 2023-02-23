@@ -93,11 +93,14 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 				break
 			}
 
+			hasBuggy := false
+			hasOddBuggy := false
+			hasPrivateBuggy := false
+			hasCaddie := false
+
 			for _, v1 := range listGolfServiceTemp {
 
 				isCanAdd := false
-				hasBuggy := false
-				hasCaddie := false
 
 				if item.MainBagPay != nil && len(item.MainBagPay) > 0 {
 					for _, v2 := range item.MainBagPay {
@@ -138,18 +141,24 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 
 					if isCanAdd {
 						for _, itemPaid := range subDetail.AgencyPaid {
-							if v1.Name == itemPaid.Name && v1.ServiceType == constants.BUGGY_SETTING && !hasBuggy && itemPaid.Fee > 0 {
+							if v1.Name == constants.THUE_RIENG_XE && !hasPrivateBuggy && itemPaid.Fee > 0 {
+								hasPrivateBuggy = true
+								isCanAdd = false
+							}
+
+							if v1.Name == constants.THUE_LE_XE && !hasOddBuggy && itemPaid.Fee > 0 {
+								hasOddBuggy = true
+								isCanAdd = false
+							}
+
+							if v1.Name == constants.THUE_NUA_XE && !hasBuggy && itemPaid.Fee > 0 {
 								hasBuggy = true
 								isCanAdd = false
-								break
 							}
+
+							break
 						}
 					}
-
-					// if isAgencyPaidBuggy && v1.Name == subDetail.GetAgencyBuggyName() && !hasBuggy && isCanAdd {
-					// 	hasBuggy = true
-					// 	isCanAdd = false
-					// }
 
 					if v1.ServiceType == constants.CADDIE_SETTING && isAgencyPaidBookingCaddie && !hasCaddie {
 						hasCaddie = true
@@ -666,11 +675,14 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 				break
 			}
 
+			hasBuggy := false
+			hasOddBuggy := false
+			hasPrivateBuggy := false
+			hasCaddie := false
+
 			for _, v1 := range listGolfServiceTemp {
 
 				isCanAdd := false
-				hasBuggy := false
-				hasCaddie := false
 
 				if item.MainBagPay != nil && len(item.MainBagPay) > 0 {
 					for _, v2 := range item.MainBagPay {
@@ -707,11 +719,22 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 
 					if isCanAdd {
 						for _, itemPaid := range subDetail.AgencyPaid {
-							if v1.Name == itemPaid.Name && v1.ServiceType == constants.BUGGY_SETTING && !hasBuggy && itemPaid.Fee > 0 {
+							if v1.Name == constants.THUE_RIENG_XE && !hasPrivateBuggy && itemPaid.Fee > 0 {
+								hasPrivateBuggy = true
+								isCanAdd = false
+							}
+
+							if v1.Name == constants.THUE_LE_XE && !hasOddBuggy && itemPaid.Fee > 0 {
+								hasOddBuggy = true
+								isCanAdd = false
+							}
+
+							if v1.Name == constants.THUE_NUA_XE && !hasBuggy && itemPaid.Fee > 0 {
 								hasBuggy = true
 								isCanAdd = false
-								break
 							}
+
+							break
 						}
 					}
 
