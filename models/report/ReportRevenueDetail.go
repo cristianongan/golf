@@ -69,6 +69,7 @@ type DayEndRevenue struct {
 	Visitor          int64  `json:"visitor"`
 	Foc              int64  `json:"foc"`
 	Tour             int64  `json:"tour"`
+	Cash             int64  `json:"cash"`
 	MemberGuest      int64  `json:"member_guest"`
 	TotalFee         int64  `json:"total_fee"`
 	AllFee           int64  `json:"all_fee"`
