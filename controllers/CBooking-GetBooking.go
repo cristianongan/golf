@@ -314,6 +314,7 @@ func (_ *CBooking) GetFeeOfBagForBill(c *gin.Context, prof models.CmsUser) {
 	mainPaidRound1 := false
 	mainPaidRound2 := false
 	mainCheckOutTime := int64(0)
+	mainBagPay := []string{}
 
 	// Tính giá của khi có main bag
 	if len(booking.MainBags) > 0 {
@@ -327,6 +328,8 @@ func (_ *CBooking) GetFeeOfBagForBill(c *gin.Context, prof models.CmsUser) {
 		if errFMB != nil {
 			log.Println("UpdateMushPay-"+booking.Bag+"-Find Main Bag", errFMB.Error())
 		}
+
+		mainBagPay = mainBook.MainBagPay
 		mainCheckOutTime = mainBook.CheckOutTime
 		mainPaidRound1 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND) > -1
 		mainPaidRound2 = utils.ContainString(mainBook.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS) > -1
@@ -372,6 +375,7 @@ func (_ *CBooking) GetFeeOfBagForBill(c *gin.Context, prof models.CmsUser) {
 		ListRoundOfSubBag: listRoundOfSub,
 		Rounds:            listRoundOfMain,
 		AgencyPaidAll:     agencyPaidAll,
+		MainBagPay:        mainBagPay,
 	}
 
 	okResponse(c, feeResponse)
