@@ -568,11 +568,22 @@ func (_ CBooking) updateGuestStyleToBooking(c *gin.Context, guestStyle string,
 	booking.CustomerType = golfFeeModel.CustomerType
 
 	// Lấy phí bởi Guest style với ngày tạo
-	timeDate, _ := time.Parse(constants.DATE_FORMAT_1, booking.BookingDate)
-	golfFee, errFindGF := golfFeeModel.GetGuestStyleOnTime(db, timeDate)
-	if errFindGF != nil {
-		response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+	golfFee := models.GolfFee{}
+	var errFindGF error
+
+	if booking.BookingDate != "" {
+		timeDate, _ := time.Parse(constants.DATE_FORMAT_1, booking.BookingDate)
+		golfFee, errFindGF = golfFeeModel.GetGuestStyleOnTime(db, timeDate)
+		if errFindGF != nil {
+			response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+		}
+	} else {
+		golfFee, errFindGF = golfFeeModel.GetGuestStyleOnDay(db)
+		if errFindGF != nil {
+			response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+		}
 	}
+
 	booking.GuestStyle = guestStyle
 	booking.GuestStyleName = golfFee.GuestStyleName
 
