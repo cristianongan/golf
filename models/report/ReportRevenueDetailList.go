@@ -97,6 +97,8 @@ func (item *ReportRevenueDetailList) FindReportDayEnd(database *gorm.DB) (DayEnd
 					SUM(phi_phat) as phi_phat,
 					SUM(cash) as cash,
 					SUM(transfer) as transfer,
+					SUM(card) as card,
+					SUM(debit) as debit,
 					SUM(customer_type = 'MEMBER') AS member,
 					SUM(customer_type = 'GUEST') AS member_guest,
 					SUM(customer_type = 'VISITOR') AS visitor,

@@ -75,6 +75,8 @@ type DayEndRevenue struct {
 	AllFee           int64  `json:"all_fee"`
 	PhiPhat          int64  `json:"phi_phat"`
 	Transfer         int64  `json:"transfer"` // Số tiền chuyển khoản
+	Debit            int64  `json:"debit"`    // Số tiền nợ
+	Card             int64  `json:"card"`     // Số tiền cà thẻ
 }
 
 // ======= CRUD ===========
