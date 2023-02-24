@@ -1414,7 +1414,8 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	go updateSinglePaymentOfSubBag(booking, prof)
+	//TODO: check lại logic này
+	// go updateSinglePaymentOfSubBag(booking, prof)
 
 	okResponse(c, booking)
 }

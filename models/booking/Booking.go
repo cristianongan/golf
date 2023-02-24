@@ -530,6 +530,7 @@ type BookingFeeOfBag struct {
 	ListRoundOfSubBag []RoundOfBag                         `json:"list_round_of_sub_bag"`
 	AgencyPaidAll     int64                                `json:"agency_paid_all"`
 	Rounds            []models.RoundPaidByMainBag          `json:"rounds"`
+	MainBagPay        []string                             `json:"main_bag_pay"`
 }
 
 type AgencyCancelBookingList struct {

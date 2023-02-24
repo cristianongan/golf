@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
@@ -323,11 +322,14 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 
 	bookings := model_booking.BookingList{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
 		BookingDate: body.BookingDate,
 	}
 
 	db, _, err := bookings.FindAllBookingList(db)
 	db = db.Where("check_in_time > 0")
+	db = db.Where("check_out_time > 0")
 	db = db.Where("bag_status <> 'CANCEL'")
 	db = db.Where("init_type <> 'ROUND'")
 	db = db.Where("init_type <> 'MOVEFLGIHT'")
@@ -346,7 +348,10 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 		BookingDate: body.BookingDate,
 	}
 
-	reportR.DeleteByBookingDate()
+	if err := reportR.DeleteByBookingDate(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
 
 	for _, booking := range list {
 		updatePriceForRevenue(booking, body.BillNo)
@@ -447,15 +452,28 @@ func (cBooking *CRevenueReport) GetBagDailyReport(c *gin.Context, prof models.Cm
 }
 
 func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.CmsUser) {
-	body := request.FinishBookingBody{}
+	body := request.UpdateReportBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
+		return
+	}
+
+	reportR := model_report.ReportRevenueDetail{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+	}
+
+	if err := reportR.DeleteByBookingDate(); err != nil {
+		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 
 	bookings := model_booking.BookingList{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
 		BookingDate: body.BookingDate,
 	}
 
@@ -463,7 +481,8 @@ func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.
 	db = db.Where("check_in_time > 0")
 	db = db.Where("check_out_time > 0")
 	db = db.Where("bag_status <> 'CANCEL'")
-	db = db.Where("init_type IN (?)", []string{constants.BOOKING_INIT_TYPE_BOOKING, constants.BOOKING_INIT_TYPE_CHECKIN})
+	db = db.Where("init_type <> 'ROUND'")
+	db = db.Where("init_type <> 'MOVEFLGIHT'")
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

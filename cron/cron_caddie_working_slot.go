@@ -287,20 +287,21 @@ func runCreateCaddieWorkingSlot() {
 		if err != nil {
 			log.Println("Create report caddie err", err.Error())
 		}
+
+		for _, caddieCode := range slotCaddie {
+			caddie := models.Caddie{
+				PartnerUid: "CHI-LINH",
+				CourseUid:  "CHI-LINH-01",
+				Code:       caddieCode,
+			}
+
+			if err = caddie.FindFirst(db); err == nil {
+				caddie.IsWorking = 1
+				caddie.Update(db)
+			}
+		}
 	}
 
-	for _, caddieCode := range slotCaddie {
-		caddie := models.Caddie{
-			PartnerUid: "CHI-LINH",
-			CourseUid:  "CHI-LINH-01",
-			Code:       caddieCode,
-		}
-
-		if err = caddie.FindFirst(db); err == nil {
-			caddie.IsWorking = 1
-			caddie.Update(db)
-		}
-	}
 }
 
 func ContainsCaddie(s []models.CaddieWorkingSchedule, e string) bool {

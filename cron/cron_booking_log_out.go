@@ -22,6 +22,7 @@ func runBookingLogutJob() {
 func runBookingLogout() {
 	dbBooking1 := datasources.GetDatabase()
 	localTime, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, utils.GetTimeNow().Unix())
+	localTimeTomorow, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, utils.GetTimeNow().AddDate(0, 0, 1).Unix())
 	bookingList := model_booking.BookingList{
 		BookingDate: localTime,
 		IsCheckIn:   "1",
@@ -43,11 +44,42 @@ func runBookingLogout() {
 
 	caddie := models.CaddieList{}
 	dbCaddie := datasources.GetDatabase()
-	listCaddie, _, _ := caddie.FindAllCaddieReadyOnDayList(dbCaddie)
+	listCaddie, _, _ := caddie.FindAllCaddieReadyOnDayList(dbCaddie) // Lấy ra caddie trong ngày làm việc
+	/*
+		Reset het trang thai cua nhung thang do
+	*/
 	for _, v := range listCaddie {
+		checkSlot := false
+		//
+		caddieWS := models.CaddieWorkingSlot{}
+		caddieWS.PartnerUid = v.PartnerUid
+		caddieWS.CourseUid = v.CourseUid
+		caddieWS.ApplyDate = localTimeTomorow
+
+		_ = caddieWS.FindFirst(dbCaddie)
+
+		if len(caddieWS.CaddieSlot) > 0 {
+			checkSlot = utils.Contains(caddieWS.CaddieSlot, v.Code)
+		}
+
+		caddieWC := models.CaddieWorkingCalendar{}
+		caddieWC.PartnerUid = v.PartnerUid
+		caddieWC.CourseUid = v.CourseUid
+		caddieWC.ApplyDate = localTimeTomorow
+		caddieWC.CaddieCode = v.Code
+
+		_ = caddieWC.FindFirst(dbCaddie)
+
+		if caddieWC.NumberOrder > 0 {
+			checkSlot = true
+		}
+
 		v.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
 		v.CurrentRound = 0
-		v.IsWorking = 0
+
+		if !checkSlot {
+			v.IsWorking = 0
+		}
 		v.Update(dbCaddie)
 		updateCaddieOutSlot(v.PartnerUid, v.CourseUid, []string{v.Code})
 	}
