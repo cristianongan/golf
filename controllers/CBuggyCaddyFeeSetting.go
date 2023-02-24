@@ -7,6 +7,7 @@ import (
 	"start/models"
 	"start/utils"
 	"start/utils/response_message"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,12 +29,13 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 	guestStyle := ""
 
 	handleGolfFeeOnDay := func(gs string) {
+		bookingDate, _ := time.Parse(constants.DATE_FORMAT_1, form.BookingDate)
 		golfFee := models.GolfFee{
 			GuestStyle: gs,
 			CourseUid:  form.CourseUid,
 			PartnerUid: form.PartnerUid,
 		}
-		fee, _ := golfFee.GetGuestStyleOnDay(db)
+		fee, _ := golfFee.GetGuestStyleOnTime(db, bookingDate)
 
 		caddieFee = utils.GetFeeFromListFee(fee.CaddieFee, form.Hole)
 		buggyFee = utils.GetFeeFromListFee(fee.BuggyFee, form.Hole)
