@@ -1747,7 +1747,7 @@ func (cBooking *CBooking) UndoCheckOut(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking.BagStatus = constants.BAG_STATUS_WAITING
+	booking.BagStatus = booking.LastBookingStatus
 	booking.CheckOutTime = 0
 
 	booking.Update(db)
