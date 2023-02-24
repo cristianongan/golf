@@ -1714,7 +1714,7 @@ func (cBooking *CBooking) ResetBag(c *gin.Context, prof models.CmsUser) {
 
 func (cBooking *CBooking) UndoCheckOut(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	form := request.GetListBookingForm{}
+	form := request.UndoCheckOut{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return

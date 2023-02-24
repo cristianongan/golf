@@ -377,3 +377,10 @@ type LockBill struct {
 	Bag        string `json:"bag" binding:"required"`
 	LockBill   *bool  `json:"lock_bill" binding:"required"`
 }
+
+type UndoCheckOut struct {
+	PartnerUid  string `form:"partner_uid" binding:"required"`
+	CourseUid   string `form:"course_uid" binding:"required"`
+	Bag         string `form:"bag" binding:"required"`
+	BookingDate string `form:"booking_date" binding:"required"`
+}
