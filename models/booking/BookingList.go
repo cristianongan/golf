@@ -221,12 +221,7 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	}
 
 	if item.HasCaddie != "" {
-		hasCaddie, _ := strconv.ParseInt(item.HasCaddie, 10, 64)
-		if hasCaddie == 1 {
-			db = db.Where("caddie_id <> ?", 0)
-		} else if hasCaddie == 0 {
-			db = db.Where("caddie_id = ?", 0)
-		}
+		db = db.Where("caddie_booking <> ?", "")
 	}
 
 	if item.CustomerName != "" {
