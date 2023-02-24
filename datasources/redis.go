@@ -54,6 +54,10 @@ func GetLockerRedis() *redislock.Client {
 	return redisLocker
 }
 
+func GetCtxRedis() context.Context {
+	return ctx
+}
+
 // / Check đạt được lock mới xử lý tiếp
 func GetLockerRedisObtainWith(key string, timeSecond time.Duration) bool {
 	lock, err := redisLocker.Obtain(ctx, key, timeSecond*time.Second, nil)

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"log"
 	"start/constants"
-	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils"
@@ -185,11 +184,11 @@ func (item *AgencyPayment) Create(db *gorm.DB) error {
 
 	errC := db.Create(item).Error
 
-	if errC == nil {
-		//Add vào redis để check
-		redisKey := utils.GetRedisKeyAgencyPaymentCreated(item.PartnerUid, item.CourseUid, item.BookingCode)
-		datasources.SetCache(redisKey, "1", 10) // expried 10s
-	}
+	// if errC == nil {
+	// 	//Add vào redis để check
+	// 	redisKey := utils.GetRedisKeyAgencyPaymentCreated(item.PartnerUid, item.CourseUid, item.BookingCode)
+	// 	datasources.SetCache(redisKey, "1", 10) // expried 10s
+	// }
 
 	return errC
 }
@@ -206,14 +205,14 @@ func (item *AgencyPayment) Update(mydb *gorm.DB) error {
 func (item *AgencyPayment) FindFirst(db *gorm.DB) error {
 	errF := db.Where(item).First(item).Error
 
-	if errF != nil {
-		redisKey := utils.GetRedisKeyAgencyPaymentCreated(item.PartnerUid, item.CourseUid, item.BookingCode)
-		strValue, redisErr := datasources.GetCache(redisKey)
-		if redisErr == nil && strValue != "" {
-			log.Println("[PAYMENT] agency redis", redisKey)
-			return nil
-		}
-	}
+	// if errF != nil {
+	// 	redisKey := utils.GetRedisKeyAgencyPaymentCreated(item.PartnerUid, item.CourseUid, item.BookingCode)
+	// 	strValue, redisErr := datasources.GetCache(redisKey)
+	// 	if redisErr == nil && strValue != "" {
+	// 		log.Println("[PAYMENT] agency redis", redisKey)
+	// 		return nil
+	// 	}
+	// }
 
 	return errF
 }
