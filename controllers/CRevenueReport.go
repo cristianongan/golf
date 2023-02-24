@@ -348,7 +348,10 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 		BookingDate: body.BookingDate,
 	}
 
-	reportR.DeleteByBookingDate()
+	if err := reportR.DeleteByBookingDate(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
 
 	for _, booking := range list {
 		updatePriceForRevenue(booking, body.BillNo)
@@ -461,7 +464,10 @@ func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.
 		BookingDate: body.BookingDate,
 	}
 
-	reportR.DeleteByBookingDate()
+	if err := reportR.DeleteByBookingDate(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
 
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 

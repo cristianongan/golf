@@ -48,7 +48,9 @@ func runReportDailyRevenue() {
 		BookingDate: toDayDate,
 	}
 
-	reportR.DeleteByBookingDate()
+	if err := reportR.DeleteByBookingDate(); err != nil {
+		return
+	}
 
 	for _, booking := range list {
 		updatePriceForRevenue(booking, "")
