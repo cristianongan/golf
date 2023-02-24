@@ -43,7 +43,10 @@ func runBookingLogout() {
 
 	caddie := models.CaddieList{}
 	dbCaddie := datasources.GetDatabase()
-	listCaddie, _, _ := caddie.FindAllCaddieReadyOnDayList(dbCaddie)
+	listCaddie, _, _ := caddie.FindAllCaddieReadyOnDayList(dbCaddie) // Lấy ra caddie trong ngày làm việc
+	/*
+		Reset het trang thai cua nhung thang do
+	*/
 	for _, v := range listCaddie {
 		v.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
 		v.CurrentRound = 0
