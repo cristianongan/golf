@@ -62,7 +62,7 @@ const (
 	//Thanh toán 1 phần hiển thị thông tin khi khách thanh toán 1 phần tiền
 	//và chưa thanh toán tiền còn lại (MISS),
 	//Hoặc thanh toán 1 phần bằng hình thức thanh toán tiền + hình thức ghi nợ
-	PAYMENT_STATUS_DEBT = "DEBT" // là trạng thái sẽ ghi nhận ghi nợ toàn bộ số tiền cần thanh toán.
+	PAYMENT_STATUS_DEBIT = "DEBIT" // là trạng thái sẽ ghi nhận ghi nợ toàn bộ số tiền cần thanh toán.
 )
 
 /*

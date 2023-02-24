@@ -82,13 +82,13 @@ func (item *SinglePayment) UpdatePaymentStatus(bagStatus string, db *gorm.DB) {
 	}
 
 	for _, v := range listItem {
-		if v.PaymentType != constants.PAYMENT_STATUS_DEBT {
+		if v.PaymentType != constants.PAYMENT_STATUS_DEBIT {
 			isDebt = false
 		}
 	}
 
 	if isDebt {
-		item.PaymentStatus = constants.PAYMENT_STATUS_DEBT
+		item.PaymentStatus = constants.PAYMENT_STATUS_DEBIT
 		return
 	}
 
