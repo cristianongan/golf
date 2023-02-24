@@ -831,7 +831,6 @@ func (_ *CCourseOperating) DeleteAttach(c *gin.Context, prof models.CmsUser) {
 
 	if body.IsOutCaddie != nil && *body.IsOutCaddie == true {
 		// out caddie
-		udpCaddieOut(db, caddieId)
 
 		//Caddie
 		booking.CaddieId = 0
@@ -868,6 +867,13 @@ func (_ *CCourseOperating) DeleteAttach(c *gin.Context, prof models.CmsUser) {
 
 	// auto delete buggy fee
 	deleteBuggyFee(booking)
+	udpCaddieOut(db, caddieId)
+
+	caddie := models.Caddie{}
+	caddie.Id = caddieId
+	if errC := caddie.FindFirst(db); errC == nil {
+		go updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, []string{caddie.Code})
+	}
 
 	okResponse(c, booking)
 }
