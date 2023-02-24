@@ -537,7 +537,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 			ShortName:   item.AgencyInfo.ShortName,
 			Category:    item.AgencyInfo.Category,
 			Name:        item.AgencyInfo.Name,
-			BookingCode: item.BookingCode,
+			BookingCode: item.NoteOfBooking,
 		}
 	}
 
