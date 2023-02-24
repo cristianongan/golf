@@ -43,6 +43,11 @@ type GolfService struct {
 	BuggyFee  int64 `json:"buggy_fee"`
 }
 
+type ReportBagRevenue struct {
+	Data    []ReportRevenueDetail `json:"data"`
+	Revenue DayEndRevenue         `json:"revenue"`
+}
+
 func addFilter(db *gorm.DB, item *ReportRevenueDetailList) *gorm.DB {
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
@@ -65,6 +70,46 @@ func addFilter(db *gorm.DB, item *ReportRevenueDetailList) *gorm.DB {
 	}
 
 	return db
+}
+
+func (item *ReportRevenueDetailList) FindReportDayEnd(database *gorm.DB) (DayEndRevenue, error) {
+	db := database.Model(ReportRevenueDetail{})
+
+	db = addFilter(db, item)
+
+	db = db.Select(`partner_uid,
+					course_uid,
+					SUM(paid) AS agency_paid, 
+					SUM(green_fee) AS green_fee, 
+					SUM(caddie_fee) AS caddie_fee,
+					SUM(buggy_fee) AS buggy_fee,
+					SUM(pratice_ball_fee) AS pratice_ball_fee,
+					SUM(restaurant_fee) AS restaurant_fee,
+					SUM(kiosk_fee) AS kiosk_fee,
+					SUM(proshop_fee) AS proshop_fee,
+					SUM(minibar_fee) AS minibar_fee,
+					SUM(booking_caddie_fee) AS booking_caddie_fee,
+					SUM(mush_pay) as mush_pay,
+					SUM(rental_fee) as rental_fee,
+					SUM(other_fee) as other_fee,
+					SUM(fb_fee) as fb_fee,
+					SUM(total) as all_fee,
+					SUM(phi_phat) as phi_phat,
+					SUM(cash) as cash,
+					SUM(transfer) as transfer,
+					SUM(card) as card,
+					SUM(debit) as debit,
+					SUM(customer_type = 'MEMBER') AS member,
+					SUM(customer_type = 'GUEST') AS member_guest,
+					SUM(customer_type = 'VISITOR') AS visitor,
+					SUM(customer_type = 'FOC') AS foc,
+					SUM(green_fee + caddie_fee + buggy_fee + pratice_ball_fee + restaurant_fee + kiosk_fee + proshop_fee + minibar_fee + booking_caddie_fee + rental_fee + other_fee + phi_phat) AS total_fee,
+					SUM(customer_type = 'TRADITIONAL' || customer_type = 'OTA') AS tour`)
+
+	dayEnd := DayEndRevenue{}
+	db.Find(&dayEnd)
+
+	return dayEnd, db.Error
 }
 
 func (item *ReportRevenueDetailList) FindBookingRevenueList(database *gorm.DB, page models.Page) ([]ReportRevenueDetail, int64, error) {

@@ -147,9 +147,12 @@ func (_ *CRevenueReport) GetBookingReportRevenueDetail(c *gin.Context, prof mode
 
 	list, total, _ := reportRevenue.FindBookingRevenueList(db, page)
 
-	res := response.PageResponse{
-		Total: total,
-		Data:  list,
+	report, _ := reportRevenue.FindReportDayEnd(db)
+
+	res := map[string]interface{}{
+		"total":  total,
+		"data":   list,
+		"report": report,
 	}
 
 	okResponse(c, res)
