@@ -1231,14 +1231,14 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.CardId, booking.PartnerUid, booking.CourseUid)
 	}
 
-	// Create payment info
-	go handlePayment(db, booking)
-
 	go func() {
 		if booking.CaddieBooking != "" {
 			caddieBookingFee := getBookingCadieFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, body.Hole)
 			addCaddieBookingFee(booking, caddieBookingFee.Fee, "Booking Caddie", body.Hole)
 			updatePriceWithServiceItem(&booking, prof)
+		} else {
+			// Create payment info
+			handlePayment(db, booking)
 		}
 	}()
 

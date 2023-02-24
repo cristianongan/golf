@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"start/constants"
+	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils"
@@ -169,7 +170,14 @@ func (item *SinglePayment) Create(db *gorm.DB) error {
 
 	item.Invoice = constants.CONS_INVOICE + "-" + utils.HashCodeUuid(item.Uid)
 
-	return db.Create(item).Error
+	errC := db.Create(item).Error
+	if errC == nil {
+		//Add vào redis để check
+		redisKey := utils.GetRedisKeySinglePaymentCreated(item.PartnerUid, item.CourseUid, item.BillCode)
+		datasources.SetCache(redisKey, "1", 10) // expried 10s
+	}
+
+	return errC
 }
 
 func (item *SinglePayment) Update(mydb *gorm.DB) error {
@@ -182,6 +190,16 @@ func (item *SinglePayment) Update(mydb *gorm.DB) error {
 }
 
 func (item *SinglePayment) FindFirst(db *gorm.DB) error {
+	errF := db.Where(item).First(item).Error
+	if errF != nil {
+		redisKey := utils.GetRedisKeySinglePaymentCreated(item.PartnerUid, item.CourseUid, item.BillCode)
+		strValue, redisErr := datasources.GetCache(redisKey)
+		if redisErr == nil && strValue != "" {
+			log.Println("[PAYMENT] single redis", redisKey)
+			return nil
+		}
+	}
+
 	return db.Where(item).First(item).Error
 }
 

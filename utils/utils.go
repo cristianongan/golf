@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"regexp"
 	"sort"
+	"start/config"
 	"start/constants"
 	"strconv"
 	"strings"
@@ -24,6 +25,24 @@ import (
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/ttacon/libphonenumber"
 )
+
+/*
+  dùng redis để check single payment đã dc tạo chưa(Check ở sql chưa đủ realtime)
+*/
+func GetRedisKeySinglePaymentCreated(partnerUid, courseUid, billCode string) string {
+	singlePaymentRedisKey := config.GetEnvironmentName() + ":" + "single_payment:" + "_" + partnerUid + "_" + courseUid + "_" + billCode
+
+	return singlePaymentRedisKey
+}
+
+/*
+  dùng redis để check agency payment đã dc tạo chưa(Check ở sql chưa đủ realtime)
+*/
+func GetRedisKeyAgencyPaymentCreated(partnerUid, courseUid, bookCode string) string {
+	agencyPaymentRedisKey := config.GetEnvironmentName() + ":" + "agency_payment:" + "_" + partnerUid + "_" + courseUid + "_" + bookCode
+
+	return agencyPaymentRedisKey
+}
 
 func GetDateLocal() time.Time {
 	dateDisplay, _ := GetBookingDateFromTimestamp(time.Now().Unix())
