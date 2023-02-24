@@ -177,3 +177,13 @@ func getGolfFeeService(year int, month int, database *gorm.DB) GolfService {
 		BuggyFee:  buggyFee,
 	}
 }
+
+func (item *ReportRevenueDetailList) DeleteByBookingDate(database *gorm.DB) error {
+	var list []ReportRevenueDetail
+
+	db := database.Model(ReportRevenueDetail{})
+	db = addFilter(db, item)
+	db.Find(&list)
+
+	return db.Delete(item).Error
+}

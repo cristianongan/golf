@@ -1,6 +1,8 @@
 package mdoel_report
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"start/constants"
 	"start/datasources"
 	"start/models"
@@ -13,40 +15,41 @@ import (
 
 type ReportRevenueDetail struct {
 	models.ModelId
-	PartnerUid       string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid        string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	BillNo           string `json:"bill_no" gorm:"type:varchar(50);index"`      // Mã bill
-	BookingDate      string `json:"booking_date" gorm:"type:varchar(50);index"` // Ngày chơi
-	Bag              string `json:"bag" gorm:"type:varchar(50);index"`          // Mã KH
-	CustomerId       string `json:"customer_id" gorm:"type:varchar(50);index"`  // Mã KH
-	CustomerName     string `json:"customer_name"`                              // Tên KH
-	MembershipNo     string `json:"member_ship_no" gorm:"type:varchar(50)"`     // Mã thẻ thành viên
-	CustomerType     string `json:"customer_type" gorm:"type:varchar(50)"`      // Loại KH
-	GuestStyle       string `json:"guest_style" gorm:"type:varchar(50);index"`  // Guest Style
-	GuestStyleName   string `json:"guest_style_name" gorm:"type:varchar(100)"`  // Guest Style Name
-	Hole             int    `json:"hole" gorm:"type:varchar(50)"`               // Số Hole
-	GreenFee         int64  `json:"green_fee"`                                  // Phí sân cỏ
-	CaddieFee        int64  `json:"caddie_fee"`                                 // Phí caddie
-	SubBagFee        int64  `json:"sub_bag_fee"`                                // Phí trả cho sub bag
-	FBFee            int64  `json:"fb_fee"`                                     // Phí ăn uống
-	RentalFee        int64  `json:"rental_fee"`                                 // Phí thuê đồ
-	BuggyFee         int64  `json:"buggy_fee"`                                  // Phí thuê xe
-	BookingCaddieFee int64  `json:"booking_caddie_fee"`                         // Phí booking caddie
-	ProshopFee       int64  `json:"proshop_fee"`                                // Phí đồ ở Proshop
-	RestaurantFee    int64  `json:"restaurant_fee"`                             // Phí nhà hàng
-	KioskFee         int64  `json:"kiosk_fee"`                                  // Phí kiosk
-	MinibarFee       int64  `json:"minibar_fee"`                                // Phí minibar
-	PraticeBallFee   int64  `json:"pratice_ball_fee"`                           // Phí bóng tập
-	OtherFee         int64  `json:"other_fee"`                                  // Phí khác
-	Cash             int64  `json:"cash"`                                       // Số tiền mặt
-	Card             int64  `json:"card"`                                       // Số tiền cà thẻ
-	Voucher          int64  `json:"voucher"`                                    // Số tiền Voucher
-	Debit            int64  `json:"debit"`                                      // Số tiền nợ
-	MushPay          int64  `json:"mush_pay"`                                   // Tổng tiền phải trả
-	Paid             int64  `json:"paid"`                                       // Tổng tiền phải trả
-	Transfer         int64  `json:"transfer"`                                   // Số tiền chuyển khoản
-	PhiPhat          int64  `json:"phi_phat"`
-	Total            int64  `json:"total"`
+	PartnerUid       string        `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid        string        `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	BillNo           string        `json:"bill_no" gorm:"type:varchar(50);index"`      // Mã bill
+	BookingDate      string        `json:"booking_date" gorm:"type:varchar(50);index"` // Ngày chơi
+	Bag              string        `json:"bag" gorm:"type:varchar(50);index"`          // Mã KH
+	AgencyInfo       BookingAgency `json:"agency_info" gorm:"type:json"`
+	CustomerId       string        `json:"customer_id" gorm:"type:varchar(50);index"` // Mã KH
+	CustomerName     string        `json:"customer_name"`                             // Tên KH
+	MembershipNo     string        `json:"member_ship_no" gorm:"type:varchar(50)"`    // Mã thẻ thành viên
+	CustomerType     string        `json:"customer_type" gorm:"type:varchar(50)"`     // Loại KH
+	GuestStyle       string        `json:"guest_style" gorm:"type:varchar(50);index"` // Guest Style
+	GuestStyleName   string        `json:"guest_style_name" gorm:"type:varchar(100)"` // Guest Style Name
+	Hole             int           `json:"hole" gorm:"type:varchar(50)"`              // Số Hole
+	GreenFee         int64         `json:"green_fee"`                                 // Phí sân cỏ
+	CaddieFee        int64         `json:"caddie_fee"`                                // Phí caddie
+	SubBagFee        int64         `json:"sub_bag_fee"`                               // Phí trả cho sub bag
+	FBFee            int64         `json:"fb_fee"`                                    // Phí ăn uống
+	RentalFee        int64         `json:"rental_fee"`                                // Phí thuê đồ
+	BuggyFee         int64         `json:"buggy_fee"`                                 // Phí thuê xe
+	BookingCaddieFee int64         `json:"booking_caddie_fee"`                        // Phí booking caddie
+	ProshopFee       int64         `json:"proshop_fee"`                               // Phí đồ ở Proshop
+	RestaurantFee    int64         `json:"restaurant_fee"`                            // Phí nhà hàng
+	KioskFee         int64         `json:"kiosk_fee"`                                 // Phí kiosk
+	MinibarFee       int64         `json:"minibar_fee"`                               // Phí minibar
+	PraticeBallFee   int64         `json:"pratice_ball_fee"`                          // Phí bóng tập
+	OtherFee         int64         `json:"other_fee"`                                 // Phí khác
+	Cash             int64         `json:"cash"`                                      // Số tiền mặt
+	Card             int64         `json:"card"`                                      // Số tiền cà thẻ
+	Voucher          int64         `json:"voucher"`                                   // Số tiền Voucher
+	Debit            int64         `json:"debit"`                                     // Số tiền nợ
+	MushPay          int64         `json:"mush_pay"`                                  // Tổng tiền phải trả
+	Paid             int64         `json:"paid"`                                      // Tổng tiền phải trả
+	Transfer         int64         `json:"transfer"`                                  // Số tiền chuyển khoản
+	PhiPhat          int64         `json:"phi_phat"`
+	Total            int64         `json:"total"`
 }
 
 type DayEndRevenue struct {
@@ -69,6 +72,7 @@ type DayEndRevenue struct {
 	Visitor          int64  `json:"visitor"`
 	Foc              int64  `json:"foc"`
 	Tour             int64  `json:"tour"`
+	HK               int64  `json:"hk"`
 	Cash             int64  `json:"cash"`
 	MemberGuest      int64  `json:"member_guest"`
 	TotalFee         int64  `json:"total_fee"`
@@ -77,6 +81,21 @@ type DayEndRevenue struct {
 	Transfer         int64  `json:"transfer"` // Số tiền chuyển khoản
 	Debit            int64  `json:"debit"`    // Số tiền nợ
 	Card             int64  `json:"card"`     // Số tiền cà thẻ
+}
+
+type BookingAgency struct {
+	AgencyId  string `json:"agency_id"`  // Id Agency
+	ShortName string `json:"short_name"` // Ten ngắn Dai ly
+	Category  string `json:"category"`   // Category
+	Name      string `json:"name"`       // Ten Dai ly
+}
+
+func (item *BookingAgency) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item BookingAgency) Value() (driver.Value, error) {
+	return json.Marshal(&item)
 }
 
 // ======= CRUD ===========
@@ -198,10 +217,11 @@ func (item *ReportRevenueDetail) FindReportDayEnd(database *gorm.DB) (DayEndReve
 					SUM(phi_phat) as phi_phat,
 					SUM(cash) as cash,
 					SUM(transfer) as transfer,
-					SUM(customer_type = 'MEMBER') AS member,
 					SUM(customer_type = 'GUEST') AS member_guest,
 					SUM(customer_type = 'VISITOR') AS visitor,
 					SUM(customer_type = 'FOC') AS foc,
+					SUM(guest_style = '2D'|| guest_style = '2E') AS hk,
+					SUM(customer_type = 'MEMBER') - SUM(guest_style = '2D'|| guest_style = '2E') AS member,
 					SUM(green_fee + caddie_fee + buggy_fee + pratice_ball_fee + restaurant_fee + kiosk_fee + proshop_fee + minibar_fee + booking_caddie_fee + rental_fee + other_fee + phi_phat) AS total_fee,
 					SUM(customer_type = 'TRADITIONAL' || customer_type = 'OTA') AS tour`)
 

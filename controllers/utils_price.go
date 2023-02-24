@@ -686,6 +686,13 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 
 	bookingR.FindFirst(db)
 
+	agencyInfo := model_report.BookingAgency{
+		AgencyId:  item.AgencyInfo.AgencyId,
+		ShortName: item.AgencyInfo.ShortName,
+		Category:  item.AgencyInfo.Category,
+		Name:      item.AgencyInfo.Name,
+	}
+
 	m := model_report.ReportRevenueDetail{
 		PartnerUid:       item.PartnerUid,
 		CourseUid:        item.CourseUid,
@@ -719,6 +726,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		KioskFee:         kioskFee,
 		PhiPhat:          phiPhat,
 		Transfer:         transferTotal,
+		AgencyInfo:       agencyInfo,
 	}
 
 	m.Create(db)
