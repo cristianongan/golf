@@ -889,6 +889,8 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 	if body.CaddieCheckIn != nil {
 		if *body.CaddieCheckIn != "" {
 			if *body.CaddieCheckIn != booking.CaddieInfo.Code {
+				oldCaddie := booking.CaddieInfo
+
 				caddieList := models.CaddieList{}
 				caddieList.CourseUid = booking.CourseUid
 				caddieList.CaddieCode = *body.CaddieCheckIn
@@ -901,6 +903,23 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 
 				booking.CaddieId = caddieNew.Id
 				booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
+
+				//Update lại trạng thái caddie
+				caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+				if err := caddieNew.Update(db); err != nil {
+
+				}
+
+				go func() {
+					udpCaddieOut(db, oldCaddie.Id)
+					caddie := models.Caddie{}
+					caddie.Id = oldCaddie.Id
+					if err := caddie.FindFirst(db); err != nil {
+						if !(utils.ContainString(constants.LIST_CADDIE_READY_JOIN, caddie.CurrentStatus) > -1) {
+							updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, []string{booking.CaddieInfo.Code})
+						}
+					}
+				}()
 			}
 		} else {
 			booking.CaddieId = 0
