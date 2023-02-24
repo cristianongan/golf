@@ -10,14 +10,15 @@ import (
 )
 
 type ReportRevenueDetailList struct {
-	PartnerUid string
-	CourseUid  string
-	FromDate   string
-	ToDate     string
-	GuestStyle string
-	Month      int
-	Year       int
-	Zone       string
+	PartnerUid  string
+	CourseUid   string
+	FromDate    string
+	ToDate      string
+	BookingDate string
+	GuestStyle  string
+	Month       int
+	Year        int
+	Zone        string
 }
 
 type ResReportCashierAudit struct {
@@ -67,6 +68,10 @@ func addFilter(db *gorm.DB, item *ReportRevenueDetailList) *gorm.DB {
 
 	if item.GuestStyle != "" {
 		db = db.Where("guest_style COLLATE utf8mb4_general_ci LIKE ?", "%"+item.GuestStyle+"%")
+	}
+
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
 	}
 
 	return db

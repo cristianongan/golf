@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
@@ -129,37 +128,6 @@ func (_ *CRevenueReport) GetBookingReportRevenueDetail(c *gin.Context, prof mode
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
-
-	// bookings := model_booking.BookingList{
-	// 	FromDate: form.FromDate,
-	// 	ToDate:   form.ToDate,
-	// }
-
-	// db, _, err := bookings.FindAllBookingList(db)
-	// db = db.Where("check_in_time > 0")
-	// db = db.Where("bag_status <> 'CANCEL'")
-	// db = db.Where("init_type <> 'ROUND'")
-	// db = db.Where("init_type <> 'MOVEFLGIHT'")
-
-	// if err != nil {
-	// 	response_message.InternalServerError(c, err.Error())
-	// 	return
-	// }
-
-	// var list []model_booking.Booking
-	// db.Find(&list)
-
-	// reportR := model_report.ReportRevenueDetail{
-	// 	PartnerUid:  body.PartnerUid,
-	// 	CourseUid:   body.CourseUid,
-	// 	BookingDate: body.BookingDate,
-	// }
-
-	// reportR.DeleteByBookingDate()
-
-	// for _, booking := range list {
-	// 	updatePriceForRevenue(booking, body.BillNo)
-	// }
 
 	page := models.Page{
 		Limit:   form.PageRequest.Limit,
@@ -359,6 +327,7 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 
 	db, _, err := bookings.FindAllBookingList(db)
 	db = db.Where("check_in_time > 0")
+	db = db.Where("check_out_time > 0")
 	db = db.Where("bag_status <> 'CANCEL'")
 	db = db.Where("init_type <> 'ROUND'")
 	db = db.Where("init_type <> 'MOVEFLGIHT'")
@@ -494,7 +463,8 @@ func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.
 	db = db.Where("check_in_time > 0")
 	db = db.Where("check_out_time > 0")
 	db = db.Where("bag_status <> 'CANCEL'")
-	db = db.Where("init_type IN (?)", []string{constants.BOOKING_INIT_TYPE_BOOKING, constants.BOOKING_INIT_TYPE_CHECKIN})
+	db = db.Where("init_type <> 'ROUND'")
+	db = db.Where("init_type <> 'MOVEFLGIHT'")
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())

@@ -84,10 +84,11 @@ type DayEndRevenue struct {
 }
 
 type BookingAgency struct {
-	AgencyId  string `json:"agency_id"`  // Id Agency
-	ShortName string `json:"short_name"` // Ten ngắn Dai ly
-	Category  string `json:"category"`   // Category
-	Name      string `json:"name"`       // Ten Dai ly
+	AgencyId    string `json:"agency_id"`    // Id Agency
+	ShortName   string `json:"short_name"`   // Ten ngắn Dai ly
+	Category    string `json:"category"`     // Category
+	Name        string `json:"name"`         // Ten Dai ly
+	BookingCode string `json:"booking_code"` // Ten Dai ly
 }
 
 func (item *BookingAgency) Scan(v interface{}) error {
