@@ -928,7 +928,7 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 					caddie.Id = oldCaddie.Id
 					if err := caddie.FindFirst(db); err != nil {
 						if !(utils.ContainString(constants.LIST_CADDIE_READY_JOIN, caddie.CurrentStatus) > -1) {
-							updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, []string{booking.CaddieInfo.Code})
+							updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, []string{oldCaddie.Code})
 						}
 					}
 				}()
