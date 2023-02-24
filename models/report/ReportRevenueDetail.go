@@ -74,6 +74,7 @@ type DayEndRevenue struct {
 	TotalFee         int64  `json:"total_fee"`
 	AllFee           int64  `json:"all_fee"`
 	PhiPhat          int64  `json:"phi_phat"`
+	Transfer         int64  `json:"transfer"` // Số tiền chuyển khoản
 }
 
 // ======= CRUD ===========
@@ -194,6 +195,7 @@ func (item *ReportRevenueDetail) FindReportDayEnd(database *gorm.DB) (DayEndReve
 					SUM(total) as all_fee,
 					SUM(phi_phat) as phi_phat,
 					SUM(cash) as cash,
+					SUM(transfer) as transfer,
 					SUM(customer_type = 'MEMBER') AS member,
 					SUM(customer_type = 'GUEST') AS member_guest,
 					SUM(customer_type = 'VISITOR') AS visitor,
