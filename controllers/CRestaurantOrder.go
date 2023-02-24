@@ -127,11 +127,11 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	booking := model_booking.Booking{}
-	booking.Uid = serviceCart.BookingUid
-
-	if err := booking.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Booking "+err.Error())
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = serviceCart.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
@@ -229,11 +229,11 @@ func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsU
 	// }
 
 	// validate golf bag
-	booking := model_booking.Booking{}
-	booking.Uid = serviceCart.BookingUid
-
-	if err := booking.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Booking "+err.Error())
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = serviceCart.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
@@ -290,11 +290,11 @@ func (_ CRestaurantOrder) DeleteOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	booking := model_booking.Booking{}
-	booking.Uid = serviceCart.BookingUid
-
-	if err := booking.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Booking "+err.Error())
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = serviceCart.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
@@ -439,12 +439,11 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 	// }
 
 	// validate golf bag
-	booking := model_booking.Booking{}
-	booking.PartnerUid = body.PartnerUid
-	booking.CourseUid = body.CourseUid
-	booking.Uid = serviceCart.BookingUid
-	if err := booking.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Booking "+err.Error())
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = serviceCart.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
@@ -638,10 +637,11 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 	// }
 
 	// validate golf bag
-	booking := model_booking.Booking{}
-	booking.Uid = serviceCart.BookingUid
-	if err := booking.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Booking "+err.Error())
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = serviceCart.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
@@ -793,10 +793,11 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 	// }
 
 	// validate golf bag
-	booking := model_booking.Booking{}
-	booking.Uid = serviceCart.BookingUid
-	if err := booking.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Booking "+err.Error())
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = serviceCart.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
@@ -1437,12 +1438,11 @@ func (_ CRestaurantOrder) FinishRestaurantOrder(c *gin.Context, prof models.CmsU
 	}
 
 	// validate golf bag
-	booking := model_booking.Booking{}
-	booking.PartnerUid = serviceCart.PartnerUid
-	booking.CourseUid = serviceCart.CourseUid
-	booking.Uid = serviceCart.BookingUid
-	if err := booking.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Booking "+err.Error())
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = serviceCart.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
