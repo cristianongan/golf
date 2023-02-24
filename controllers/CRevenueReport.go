@@ -322,6 +322,8 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 
 	bookings := model_booking.BookingList{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
 		BookingDate: body.BookingDate,
 	}
 
@@ -447,15 +449,25 @@ func (cBooking *CRevenueReport) GetBagDailyReport(c *gin.Context, prof models.Cm
 }
 
 func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.CmsUser) {
-	body := request.FinishBookingBody{}
+	body := request.UpdateReportBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
 	}
 
+	reportR := model_report.ReportRevenueDetail{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+	}
+
+	reportR.DeleteByBookingDate()
+
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 
 	bookings := model_booking.BookingList{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
 		BookingDate: body.BookingDate,
 	}
 
