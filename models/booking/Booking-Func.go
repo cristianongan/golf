@@ -1521,6 +1521,9 @@ func (item *Booking) UpdatePriceDetailCurrentBag(db *gorm.DB) {
 				serviceItem.Type == constants.MINI_B_SETTING {
 				priceDetail.Kiosk += serviceItem.Amount
 			}
+			if serviceItem.Type == constants.BOOKING_OTHER_FEE {
+				priceDetail.OtherFee += serviceItem.Amount
+			}
 		}
 	}
 

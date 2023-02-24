@@ -421,6 +421,7 @@ type BookingCurrentBagPriceDetail struct {
 	Amount      int64 `json:"amount"`
 	AmountUsd   int64 `json:"amount_usd"`
 	MainBagPaid int64 `json:"main_bag_paid"`
+	OtherFee    int64 `json:"other_fee"`
 }
 
 func (item *BookingCurrentBagPriceDetail) Scan(v interface{}) error {
@@ -432,7 +433,7 @@ func (item BookingCurrentBagPriceDetail) Value() (driver.Value, error) {
 }
 
 func (item *BookingCurrentBagPriceDetail) UpdateAmount() {
-	item.Amount = item.Transfer + item.Debit + item.GolfFee + item.Restaurant + item.Kiosk + item.Rental + item.Proshop + item.Promotion
+	item.Amount = item.Transfer + item.Debit + item.GolfFee + item.Restaurant + item.Kiosk + item.Rental + item.Proshop + item.Promotion + item.OtherFee
 }
 
 // Booking Round
