@@ -529,6 +529,8 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 		db.Group("booking_service_items.item_code")
 	}
 
+	db.Order("booking_service_items.name")
+
 	db = db.Find(&list)
 
 	return list, db.Error
