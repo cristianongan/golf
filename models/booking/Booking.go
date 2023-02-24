@@ -119,14 +119,15 @@ type Booking struct {
 	BillCode      string `json:"bill_code" gorm:"type:varchar(100);index"` // hỗ trợ query tính giá
 	SeparatePrice bool   `json:"separate_price" gorm:"default:0"`          // Giá riêng
 
-	ListServiceItems []BookingServiceItem                 `json:"list_service_items,omitempty" gorm:"-:migration"` // List service item: rental, proshop, restaurant, kiosk
-	ShowCaddieBuggy  *bool                                `json:"show_caddie_buggy" gorm:"default:1"`              // Sau add round thì không hiển thị caddie buggy
-	IsPrivateBuggy   *bool                                `json:"is_private_buggy" gorm:"default:0"`               // Bag có dùng buggy riêng không
-	MovedFlight      *bool                                `json:"moved_flight" gorm:"default:0"`                   // Đánh dấu booking đã move flight chưa
-	AddedRound       *bool                                `json:"added_flight" gorm:"default:0"`                   // Đánh dấu booking đã add chưa
-	AgencyPaid       utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty" gorm:"type:json"`
-	LockBill         *bool                                `json:"lock_bill" gorm:"default:0"`       // lễ tân lock bill cho kh để restaurant ko thao tác đc nữa
-	AgencyPaidAll    *bool                                `json:"agency_paid_all" gorm:"default:0"` // Đánh dấu agency trả all fee cho kh
+	ListServiceItems  []BookingServiceItem                 `json:"list_service_items,omitempty" gorm:"-:migration"` // List service item: rental, proshop, restaurant, kiosk
+	ShowCaddieBuggy   *bool                                `json:"show_caddie_buggy" gorm:"default:1"`              // Sau add round thì không hiển thị caddie buggy
+	IsPrivateBuggy    *bool                                `json:"is_private_buggy" gorm:"default:0"`               // Bag có dùng buggy riêng không
+	MovedFlight       *bool                                `json:"moved_flight" gorm:"default:0"`                   // Đánh dấu booking đã move flight chưa
+	AddedRound        *bool                                `json:"added_flight" gorm:"default:0"`                   // Đánh dấu booking đã add chưa
+	AgencyPaid        utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty" gorm:"type:json"`
+	LockBill          *bool                                `json:"lock_bill" gorm:"default:0"`                  // lễ tân lock bill cho kh để restaurant ko thao tác đc nữa
+	AgencyPaidAll     *bool                                `json:"agency_paid_all" gorm:"default:0"`            // Đánh dấu agency trả all fee cho kh
+	LastBookingStatus string                               `json:"last_booking_status" gorm:"type:varchar(50)"` // Đánh dấu trạng thái cuối cùng của booking
 }
 
 type FlyInfoResponse struct {
@@ -421,6 +422,7 @@ type BookingCurrentBagPriceDetail struct {
 	Amount      int64 `json:"amount"`
 	AmountUsd   int64 `json:"amount_usd"`
 	MainBagPaid int64 `json:"main_bag_paid"`
+	OtherFee    int64 `json:"other_fee"`
 }
 
 func (item *BookingCurrentBagPriceDetail) Scan(v interface{}) error {
@@ -432,7 +434,7 @@ func (item BookingCurrentBagPriceDetail) Value() (driver.Value, error) {
 }
 
 func (item *BookingCurrentBagPriceDetail) UpdateAmount() {
-	item.Amount = item.Transfer + item.Debit + item.GolfFee + item.Restaurant + item.Kiosk + item.Rental + item.Proshop + item.Promotion
+	item.Amount = item.Transfer + item.Debit + item.GolfFee + item.Restaurant + item.Kiosk + item.Rental + item.Proshop + item.Promotion + item.OtherFee
 }
 
 // Booking Round
@@ -571,11 +573,16 @@ func (item *Booking) Create(db *gorm.DB, uid string) error {
 }
 
 func (item *Booking) Update(db *gorm.DB) error {
+	if item.BagStatus != constants.BAG_STATUS_CHECK_OUT {
+		item.LastBookingStatus = item.BagStatus
+	}
+
 	item.Model.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
+
 	return nil
 }
 

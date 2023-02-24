@@ -182,7 +182,15 @@ func (item *AgencyPayment) Create(db *gorm.DB) error {
 
 	item.Invoice = constants.CONS_INVOICE + "-" + utils.HashCodeUuid(item.Uid)
 
-	return db.Create(item).Error
+	errC := db.Create(item).Error
+
+	// if errC == nil {
+	// 	//Add vào redis để check
+	// 	redisKey := utils.GetRedisKeyAgencyPaymentCreated(item.PartnerUid, item.CourseUid, item.BookingCode)
+	// 	datasources.SetCache(redisKey, "1", 10) // expried 10s
+	// }
+
+	return errC
 }
 
 func (item *AgencyPayment) Update(mydb *gorm.DB) error {
@@ -195,7 +203,18 @@ func (item *AgencyPayment) Update(mydb *gorm.DB) error {
 }
 
 func (item *AgencyPayment) FindFirst(db *gorm.DB) error {
-	return db.Where(item).First(item).Error
+	errF := db.Where(item).First(item).Error
+
+	// if errF != nil {
+	// 	redisKey := utils.GetRedisKeyAgencyPaymentCreated(item.PartnerUid, item.CourseUid, item.BookingCode)
+	// 	strValue, redisErr := datasources.GetCache(redisKey)
+	// 	if redisErr == nil && strValue != "" {
+	// 		log.Println("[PAYMENT] agency redis", redisKey)
+	// 		return nil
+	// 	}
+	// }
+
+	return errF
 }
 
 func (item *AgencyPayment) Count(db *gorm.DB) (int64, error) {

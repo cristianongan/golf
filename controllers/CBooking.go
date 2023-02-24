@@ -568,7 +568,8 @@ func (_ CBooking) updateGuestStyleToBooking(c *gin.Context, guestStyle string,
 	booking.CustomerType = golfFeeModel.CustomerType
 
 	// Lấy phí bởi Guest style với ngày tạo
-	golfFee, errFindGF := golfFeeModel.GetGuestStyleOnDay(db)
+	timeDate, _ := time.Parse(constants.DATE_FORMAT_1, booking.BookingDate)
+	golfFee, errFindGF := golfFeeModel.GetGuestStyleOnTime(db, timeDate)
 	if errFindGF != nil {
 		response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
 	}
@@ -1231,14 +1232,14 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.CardId, booking.PartnerUid, booking.CourseUid)
 	}
 
-	// Create payment info
-	go handlePayment(db, booking)
-
 	go func() {
 		if booking.CaddieBooking != "" {
 			caddieBookingFee := getBookingCadieFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, body.Hole)
 			addCaddieBookingFee(booking, caddieBookingFee.Fee, "Booking Caddie", body.Hole)
 			updatePriceWithServiceItem(&booking, prof)
+		} else {
+			// Create payment info
+			handlePayment(db, booking)
 		}
 	}()
 
@@ -1713,7 +1714,7 @@ func (cBooking *CBooking) ResetBag(c *gin.Context, prof models.CmsUser) {
 
 func (cBooking *CBooking) UndoCheckOut(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	form := request.GetListBookingForm{}
+	form := request.UndoCheckOut{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
@@ -1746,7 +1747,7 @@ func (cBooking *CBooking) UndoCheckOut(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking.BagStatus = constants.BAG_STATUS_WAITING
+	booking.BagStatus = booking.LastBookingStatus
 	booking.CheckOutTime = 0
 
 	booking.Update(db)

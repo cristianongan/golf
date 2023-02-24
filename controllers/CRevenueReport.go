@@ -407,7 +407,7 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 		},
 		"transfer": map[string]interface{}{
 			"vcb":   vcbTransfer,
-			"bidv":  bidvTransfer + data.AgencyPaid,
+			"bidv":  bidvTransfer,
 			"total": vcbTransfer + bidvTransfer + data.AgencyPaid,
 		},
 	}
@@ -461,6 +461,7 @@ func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.
 
 	db, _, err := bookings.FindAllBookingList(db)
 	db = db.Where("check_in_time > 0")
+	db = db.Where("check_out_time > 0")
 	db = db.Where("bag_status <> 'CANCEL'")
 	db = db.Where("init_type IN (?)", []string{constants.BOOKING_INIT_TYPE_BOOKING, constants.BOOKING_INIT_TYPE_CHECKIN})
 

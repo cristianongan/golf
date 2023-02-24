@@ -11,7 +11,9 @@ import (
 	model_booking "start/models/booking"
 	model_payment "start/models/payment"
 	"start/utils"
+	"time"
 
+	"github.com/bsm/redislock"
 	"gorm.io/gorm"
 )
 
@@ -19,6 +21,16 @@ import (
 Create Single Payment
 */
 func handleSinglePayment(db *gorm.DB, booking model_booking.Booking) {
+	redisKey := utils.GetRedisKeySinglePaymentCreated(booking.PartnerUid, booking.CourseUid, booking.BillCode)
+	lock, err := datasources.GetLockerRedis().Obtain(datasources.GetCtxRedis(), redisKey, 10*time.Second, nil)
+	// Ko lấy được lock, return luôn
+	if err == redislock.ErrNotObtained || err != nil {
+		log.Println("[PAYMENT] handleSinglePayment Could not obtain lock", redisKey)
+		return
+	}
+
+	defer lock.Release(datasources.GetCtxRedis())
+
 	bagInfo := model_payment.PaymentBagInfo{}
 	bagByte, errM := json.Marshal(booking)
 	if errM != nil {
@@ -124,6 +136,16 @@ func handleSinglePayment(db *gorm.DB, booking model_booking.Booking) {
 Create Agency Payment
 */
 func handleAgencyPayment(db *gorm.DB, booking model_booking.Booking) {
+	redisKey := utils.GetRedisKeyAgencyPaymentCreated(booking.PartnerUid, booking.CourseUid, booking.BookingCode)
+	lock, err := datasources.GetLockerRedis().Obtain(datasources.GetCtxRedis(), redisKey, 10*time.Second, nil)
+	// Ko lấy được lock, return luôn
+	if err == redislock.ErrNotObtained || err != nil {
+		log.Println("[PAYMENT] handleAgencyPayment Could not obtain lock", redisKey)
+		return
+	}
+
+	defer lock.Release(datasources.GetCtxRedis())
+
 	agencyInfo := model_payment.PaymentAgencyInfo{
 		Name:           booking.AgencyInfo.Name,
 		GuestStyle:     booking.GuestStyle,

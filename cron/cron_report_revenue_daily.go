@@ -170,7 +170,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 	for _, item := range list {
 		if item.PaymentType == constants.PAYMENT_TYPE_CASH {
 			cashList = append(cashList, item)
-		} else if item.PaymentType == constants.PAYMENT_STATUS_DEBT {
+		} else if item.PaymentType == constants.PAYMENT_STATUS_DEBIT {
 			debtList = append(debtList, item)
 		} else {
 			cardList = append(cardList, item)

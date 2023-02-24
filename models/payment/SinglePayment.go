@@ -82,13 +82,13 @@ func (item *SinglePayment) UpdatePaymentStatus(bagStatus string, db *gorm.DB) {
 	}
 
 	for _, v := range listItem {
-		if v.PaymentType != constants.PAYMENT_STATUS_DEBT {
+		if v.PaymentType != constants.PAYMENT_STATUS_DEBIT {
 			isDebt = false
 		}
 	}
 
 	if isDebt {
-		item.PaymentStatus = constants.PAYMENT_STATUS_DEBT
+		item.PaymentStatus = constants.PAYMENT_STATUS_DEBIT
 		return
 	}
 
@@ -169,7 +169,14 @@ func (item *SinglePayment) Create(db *gorm.DB) error {
 
 	item.Invoice = constants.CONS_INVOICE + "-" + utils.HashCodeUuid(item.Uid)
 
-	return db.Create(item).Error
+	errC := db.Create(item).Error
+	// if errC == nil {
+	// 	//Add vào redis để check
+	// 	redisKey := utils.GetRedisKeySinglePaymentCreated(item.PartnerUid, item.CourseUid, item.BillCode)
+	// 	datasources.SetCache(redisKey, "1", 10) // expried 10s
+	// }
+
+	return errC
 }
 
 func (item *SinglePayment) Update(mydb *gorm.DB) error {
@@ -182,7 +189,17 @@ func (item *SinglePayment) Update(mydb *gorm.DB) error {
 }
 
 func (item *SinglePayment) FindFirst(db *gorm.DB) error {
-	return db.Where(item).First(item).Error
+	errF := db.Where(item).First(item).Error
+	// if errF != nil {
+	// 	redisKey := utils.GetRedisKeySinglePaymentCreated(item.PartnerUid, item.CourseUid, item.BillCode)
+	// 	strValue, redisErr := datasources.GetCache(redisKey)
+	// 	if redisErr == nil && strValue != "" {
+	// 		log.Println("[PAYMENT] single redis", redisKey)
+	// 		return nil
+	// 	}
+	// }
+
+	return errF
 }
 
 func (item *SinglePayment) Count(db *gorm.DB) (int64, error) {
