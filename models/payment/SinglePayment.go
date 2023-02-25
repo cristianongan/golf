@@ -170,11 +170,6 @@ func (item *SinglePayment) Create(db *gorm.DB) error {
 	item.Invoice = constants.CONS_INVOICE + "-" + utils.HashCodeUuid(item.Uid)
 
 	errC := db.Create(item).Error
-	// if errC == nil {
-	// 	//Add vào redis để check
-	// 	redisKey := utils.GetRedisKeySinglePaymentCreated(item.PartnerUid, item.CourseUid, item.BillCode)
-	// 	datasources.SetCache(redisKey, "1", 10) // expried 10s
-	// }
 
 	return errC
 }
@@ -190,15 +185,6 @@ func (item *SinglePayment) Update(mydb *gorm.DB) error {
 
 func (item *SinglePayment) FindFirst(db *gorm.DB) error {
 	errF := db.Where(item).First(item).Error
-	// if errF != nil {
-	// 	redisKey := utils.GetRedisKeySinglePaymentCreated(item.PartnerUid, item.CourseUid, item.BillCode)
-	// 	strValue, redisErr := datasources.GetCache(redisKey)
-	// 	if redisErr == nil && strValue != "" {
-	// 		log.Println("[PAYMENT] single redis", redisKey)
-	// 		return nil
-	// 	}
-	// }
-
 	return errF
 }
 
@@ -213,6 +199,13 @@ func (item *SinglePayment) Count(db *gorm.DB) (int64, error) {
 func (item *SinglePayment) FindAllForAgency(db *gorm.DB) ([]SinglePayment, error) {
 	db = db.Model(SinglePayment{})
 	list := []SinglePayment{}
+
+	status := constants.STATUS_ENABLE
+	item.Model.Status = ""
+
+	if status != "" {
+		db = db.Where("status in (?)", strings.Split(status, ","))
+	}
 
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
@@ -234,7 +227,7 @@ func (item *SinglePayment) FindList(db *gorm.DB, page models.Page, playerName st
 	db = db.Model(SinglePayment{})
 	list := []SinglePayment{}
 	total := int64(0)
-	status := item.Model.Status
+	status := constants.STATUS_ENABLE
 	item.Model.Status = ""
 
 	if status != "" {
@@ -283,7 +276,7 @@ func (item *SinglePayment) FindListWithJoin(db *gorm.DB, page models.Page, playe
 	db = db.Model(SinglePayment{})
 	list := []SinglePaymentWithDebt{}
 	total := int64(0)
-	status := item.Model.Status
+	status := constants.STATUS_ENABLE
 	item.Model.Status = ""
 
 	if status != "" {
