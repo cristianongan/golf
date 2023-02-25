@@ -568,11 +568,22 @@ func (_ CBooking) updateGuestStyleToBooking(c *gin.Context, guestStyle string,
 	booking.CustomerType = golfFeeModel.CustomerType
 
 	// Lấy phí bởi Guest style với ngày tạo
-	timeDate, _ := time.Parse(constants.DATE_FORMAT_1, booking.BookingDate)
-	golfFee, errFindGF := golfFeeModel.GetGuestStyleOnTime(db, timeDate)
-	if errFindGF != nil {
-		response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+	golfFee := models.GolfFee{}
+	var errFindGF error
+
+	if booking.BookingDate != "" {
+		timeDate, _ := time.Parse(constants.DATE_FORMAT_1, booking.BookingDate)
+		golfFee, errFindGF = golfFeeModel.GetGuestStyleOnTime(db, timeDate)
+		if errFindGF != nil {
+			response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+		}
+	} else {
+		golfFee, errFindGF = golfFeeModel.GetGuestStyleOnDay(db)
+		if errFindGF != nil {
+			response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+		}
 	}
+
 	booking.GuestStyle = guestStyle
 	booking.GuestStyleName = golfFee.GuestStyleName
 
@@ -917,7 +928,7 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 					caddie.Id = oldCaddie.Id
 					if err := caddie.FindFirst(db); err != nil {
 						if !(utils.ContainString(constants.LIST_CADDIE_READY_JOIN, caddie.CurrentStatus) > -1) {
-							updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, []string{booking.CaddieInfo.Code})
+							updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, []string{oldCaddie.Code})
 						}
 					}
 				}()
