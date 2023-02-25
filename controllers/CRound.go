@@ -553,13 +553,21 @@ func (cRound CRound) RemoveRound(c *gin.Context, prof models.CmsUser) {
 		oldBooking.BagStatus = constants.BAG_STATUS_TIMEOUT
 		oldBooking.Update(db)
 		booking.Delete(db)
+
+		//Xóa round
+		roundR.LastRound(db)
+		roundR.Delete(db)
+
+		updatePriceWithServiceItem(&oldBooking, prof)
+		res := getBagDetailFromBooking(db, oldBooking)
+		okResponse(c, res)
+	} else {
+		//Xóa round
+		roundR.LastRound(db)
+		roundR.Delete(db)
+
+		updatePriceWithServiceItem(&booking, prof)
+		res := getBagDetailFromBooking(db, booking)
+		okResponse(c, res)
 	}
-
-	roundR.LastRound(db)
-	roundR.Delete(db)
-
-	updatePriceWithServiceItem(&oldBooking, prof)
-	res := getBagDetailFromBooking(db, oldBooking)
-
-	okResponse(c, res)
 }
