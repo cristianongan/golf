@@ -680,6 +680,11 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequestFreeMessage(c, "Bag đã CheckOut!")
+		return
+	}
+
 	body := request.UpdateBooking{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
