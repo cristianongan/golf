@@ -162,3 +162,8 @@ type CheckBagCanCheckoutBody struct {
 	BookingDate string `json:"booking_date" validate:"required"`
 	GolfBag     string `json:"golf_bag" validate:"required"`
 }
+
+type UndoTimeOutBody struct {
+	FlightId int64  `json:"flight_id" binding:"required"`
+	Bag      string `json:"bag"`
+}

@@ -1572,7 +1572,7 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 
 func (cCourseOperating CCourseOperating) UndoTimeOut(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	body := request.SimpleOutFlightBody{}
+	body := request.UndoTimeOutBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
