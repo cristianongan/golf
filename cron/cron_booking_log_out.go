@@ -1,6 +1,7 @@
 package cron
 
 import (
+	"log"
 	"start/constants"
 	"start/datasources"
 	"start/models"
@@ -23,24 +24,24 @@ func runBookingLogout() {
 	dbBooking1 := datasources.GetDatabase()
 	localTime, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, utils.GetTimeNow().Unix())
 	localTimeTomorow, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, utils.GetTimeNow().AddDate(0, 0, 1).Unix())
+
 	bookingList := model_booking.BookingList{
 		BookingDate: localTime,
-		IsCheckIn:   "1",
 	}
 
-	dbBooking1, _, _ = bookingList.FindAllBookingList(dbBooking1)
+	dbBooking1, _ = bookingList.FindListBookingNotCheckOut(dbBooking1)
 
 	list := []model_booking.Booking{}
 	dbBooking1.Find(&list)
 
-	// dbBooking2 := datasources.GetDatabase()
-	// for _, booking := range list {
-	// 	booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
-	// 	booking.CheckOutTime = utils.GetTimeNow().Unix()
-	// 	if err := booking.Update(dbBooking2); err != nil {
-	// 		log.Print(err.Error())
-	// 	}
-	// }
+	dbBooking2 := datasources.GetDatabase()
+	for _, booking := range list {
+		booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
+		booking.CheckOutTime = utils.GetTimeNow().Unix()
+		if err := booking.Update(dbBooking2); err != nil {
+			log.Print(err.Error())
+		}
+	}
 
 	caddie := models.CaddieList{}
 	dbCaddie := datasources.GetDatabase()
