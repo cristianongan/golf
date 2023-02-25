@@ -8,7 +8,6 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils"
-	"strings"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -204,7 +203,8 @@ func (item *SinglePayment) FindAllForAgency(db *gorm.DB) ([]SinglePayment, error
 	item.Model.Status = ""
 
 	if status != "" {
-		db = db.Where("status in (?)", strings.Split(status, ","))
+		// db = db.Where("status in (?)", strings.Split(status, ","))
+		db = db.Where("status = ?", status)
 	}
 
 	if item.PartnerUid != "" {
@@ -231,7 +231,8 @@ func (item *SinglePayment) FindList(db *gorm.DB, page models.Page, playerName st
 	item.Model.Status = ""
 
 	if status != "" {
-		db = db.Where("status in (?)", strings.Split(status, ","))
+		// db = db.Where("status in (?)", strings.Split(status, ","))
+		db = db.Where("status = ?", status)
 	}
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
@@ -280,7 +281,8 @@ func (item *SinglePayment) FindListWithJoin(db *gorm.DB, page models.Page, playe
 	item.Model.Status = ""
 
 	if status != "" {
-		db = db.Where("status in (?)", strings.Split(status, ","))
+		// db = db.Where("status in (?)", strings.Split(status, ","))
+		db = db.Where("status = ?", status)
 	}
 	if item.PartnerUid != "" {
 		db = db.Where("single_payments.partner_uid = ?", item.PartnerUid)
