@@ -1596,6 +1596,13 @@ func (cCourseOperating CCourseOperating) UndoTimeOut(c *gin.Context, prof models
 	}
 
 	for _, booking := range bookingResponse {
+		if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+			response_message.BadRequest(c, "Bag đã check out!")
+			return
+		}
+	}
+
+	for _, booking := range bookingResponse {
 		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 		booking.TimeOutFlight = 0
 		booking.BagStatus = constants.BAG_STATUS_IN_COURSE
