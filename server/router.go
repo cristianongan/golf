@@ -22,7 +22,7 @@ import (
 	"github.com/ulule/limiter/v3/drivers/store/memory"
 )
 
-var versionCheck = "v1.1"
+var versionCheck = "v1.2"
 
 func healthcheck(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "success: " + versionCheck})
