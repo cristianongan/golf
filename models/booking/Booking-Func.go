@@ -1576,7 +1576,13 @@ func (item *Booking) IsDuplicated(db *gorm.DB, checkTeeTime, checkBag bool) (boo
 }
 
 func (item *Booking) CheckAgencyPaidRound1() bool {
-	return len(item.AgencyPaid) > 0 && item.AgencyPaid[0].Fee > 0
+	totalAgencyPaid := int64(0)
+	for _, v := range item.AgencyPaid {
+		if v.Type == constants.BOOKING_AGENCY_GOLF_FEE {
+			totalAgencyPaid += v.Fee
+		}
+	}
+	return totalAgencyPaid > 0
 }
 
 func (item *Booking) GetAgencyPaid() int64 {
