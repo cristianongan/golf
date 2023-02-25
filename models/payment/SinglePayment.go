@@ -3,11 +3,13 @@ package model_payment
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"log"
 	"start/constants"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/utils"
+	"strings"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -199,14 +201,6 @@ func (item *SinglePayment) FindAllForAgency(db *gorm.DB) ([]SinglePayment, error
 	db = db.Model(SinglePayment{})
 	list := []SinglePayment{}
 
-	status := constants.STATUS_ENABLE
-	item.Model.Status = ""
-
-	if status != "" {
-		// db = db.Where("status in (?)", strings.Split(status, ","))
-		db = db.Where("status = ?", status)
-	}
-
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
@@ -227,12 +221,11 @@ func (item *SinglePayment) FindList(db *gorm.DB, page models.Page, playerName st
 	db = db.Model(SinglePayment{})
 	list := []SinglePayment{}
 	total := int64(0)
-	status := constants.STATUS_ENABLE
+	status := item.Model.Status
 	item.Model.Status = ""
 
 	if status != "" {
-		// db = db.Where("status in (?)", strings.Split(status, ","))
-		db = db.Where("status = ?", status)
+		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
@@ -277,12 +270,11 @@ func (item *SinglePayment) FindListWithJoin(db *gorm.DB, page models.Page, playe
 	db = db.Model(SinglePayment{})
 	list := []SinglePaymentWithDebt{}
 	total := int64(0)
-	status := constants.STATUS_ENABLE
+	status := item.Model.Status
 	item.Model.Status = ""
 
 	if status != "" {
-		// db = db.Where("status in (?)", strings.Split(status, ","))
-		db = db.Where("status = ?", status)
+		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
 	if item.PartnerUid != "" {
 		db = db.Where("single_payments.partner_uid = ?", item.PartnerUid)
@@ -320,4 +312,11 @@ func (item *SinglePayment) FindListWithJoin(db *gorm.DB, page models.Page, playe
 		db = page.Setup(db).Find(&list)
 	}
 	return list, total, db.Error
+}
+
+func (item *SinglePayment) Delete(db *gorm.DB) error {
+	if item.Model.Uid == "" {
+		return errors.New("Primary key is undefined!")
+	}
+	return db.Delete(item).Error
 }

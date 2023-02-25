@@ -439,8 +439,9 @@ func deleteSinglePayment(pUid, cUid, billCode string) {
 
 	errFP := singlePayment.FindFirst(db)
 	if errFP == nil {
-		singlePayment.Status = constants.STATUS_DELETE
-		errUdpP := singlePayment.Update(db)
+		// singlePayment.Status = constants.STATUS_DELETE
+		errUdpP := singlePayment.Delete(db)
+		log.Println("deleteSinglePayment uid", singlePayment.Bag, singlePayment.BookingDate, singlePayment.BookingUid)
 		if errUdpP != nil {
 			log.Println("deleteSinglePayment errUdpP", errUdpP)
 		}
