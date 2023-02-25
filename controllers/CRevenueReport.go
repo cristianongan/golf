@@ -312,6 +312,7 @@ func (_ *CRevenueReport) GetReportSalePOS(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, res)
 }
 
+// Báo cáo DT tổng hợp với đk đã check-in
 func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUser) {
 	body := request.FinishBookingBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -451,6 +452,7 @@ func (cBooking *CRevenueReport) GetBagDailyReport(c *gin.Context, prof models.Cm
 	okResponse(c, res)
 }
 
+// Update BC DT với đk đã check-in và check-out
 func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.CmsUser) {
 	body := request.UpdateReportBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -479,7 +481,7 @@ func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.
 
 	db, _, err := bookings.FindAllBookingList(db)
 	db = db.Where("check_in_time > 0")
-	// db = db.Where("check_out_time > 0")
+	db = db.Where("check_out_time > 0")
 	db = db.Where("bag_status <> 'CANCEL'")
 	db = db.Where("init_type <> 'ROUND'")
 	db = db.Where("init_type <> 'MOVEFLGIHT'")
