@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
@@ -10,6 +11,7 @@ import (
 	model_gostarter "start/models/go-starter"
 	model_payment "start/models/payment"
 	model_report "start/models/report"
+	"start/utils"
 	"start/utils/response_message"
 
 	"github.com/gin-gonic/gin"
@@ -593,4 +595,85 @@ func (_ *CRevenueReport) GetReportStarter(c *gin.Context, prof models.CmsUser) {
 	list, _ := bookings.FindReportStarter(db, page)
 
 	okResponse(c, list)
+}
+
+func (_ *CRevenueReport) GetReportPayment(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.ReportPaymentBagStatus{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	bookingDate := ""
+	if form.BookingDate == "" {
+		bookingDate = form.BookingDate
+	} else {
+		toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		bookingDate = toDayDate
+	}
+
+	bookingList := model_booking.BookingList{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: bookingDate,
+	}
+
+	listBooking, total, _ := bookingList.FindReportPayment(db, form.PaymentStatus)
+
+	res := map[string]interface{}{
+		"data":  listBooking,
+		"total": total,
+	}
+
+	okResponse(c, res)
+}
+
+func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	reportPlayers := int64(0)
+	nonPlayers := int64(0)
+
+	bookingDate := ""
+	if form.BookingDate == "" {
+		bookingDate = form.BookingDate
+	} else {
+		toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		bookingDate = toDayDate
+	}
+
+	bookingList := model_booking.BookingList{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: bookingDate,
+	}
+
+	report, _ := bookingList.ReportAllBooking(db)
+
+	db1, _ := bookingList.FindAllLastBooking(db)
+	db1.Where("customer_type <> ''")
+	db1.Count(&reportPlayers)
+
+	db2, _ := bookingList.FindAllLastBooking(db)
+	db2.Where("customer_type = ?", constants.CUSTOMER_TYPE_NONE_GOLF)
+	db1.Count(&reportPlayers)
+
+	inCompleteTotal := bookingList.CountReportPayment(db, constants.PAYMENT_IN_COMPLETE)
+	completeTotal := bookingList.CountReportPayment(db, constants.PAYMENT_COMPLETE)
+
+	res := map[string]interface{}{
+		"players":             reportPlayers,
+		"non_players":         nonPlayers,
+		"report_detail":       report,
+		"payment_complete":    completeTotal,
+		"payment_in_complete": inCompleteTotal,
+	}
+
+	okResponse(c, res)
 }
