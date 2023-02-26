@@ -391,3 +391,9 @@ type ReportPaymentBagStatus struct {
 	BookingDate   string `form:"booking_date"`
 	PaymentStatus string `form:"payment_status"`
 }
+
+type ReportBookingPlayers struct {
+	PartnerUid  string `json:"partner_uid" binding:"required"`
+	CourseUid   string `json:"course_uid" binding:"required"`
+	BookingDate string `json:"booking_date"`
+}

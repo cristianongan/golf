@@ -631,7 +631,7 @@ func (_ *CRevenueReport) GetReportPayment(c *gin.Context, prof models.CmsUser) {
 
 func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	form := request.GetListBookingWithSelectForm{}
+	form := request.ReportBookingPlayers{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
@@ -662,10 +662,11 @@ func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.Cms
 
 	db2, _ := bookingList.FindAllLastBooking(db)
 	db2.Where("customer_type = ?", constants.CUSTOMER_TYPE_NONE_GOLF)
-	db1.Count(&reportPlayers)
+	db1.Count(&nonPlayers)
 
 	inCompleteTotal := bookingList.CountReportPayment(db, constants.PAYMENT_IN_COMPLETE)
 	completeTotal := bookingList.CountReportPayment(db, constants.PAYMENT_COMPLETE)
+	mushPayTotal := bookingList.CountReportPayment(db, constants.PAYMENT_MUSH_PAY)
 
 	res := map[string]interface{}{
 		"players":             reportPlayers,
@@ -673,6 +674,7 @@ func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.Cms
 		"report_detail":       report,
 		"payment_complete":    completeTotal,
 		"payment_in_complete": inCompleteTotal,
+		"payment_mush_pay":    mushPayTotal,
 	}
 
 	okResponse(c, res)
