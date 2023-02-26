@@ -451,7 +451,8 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Update giá nếu bill active
-	if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE &&
+	if serviceCart.BillStatus != constants.POS_BILL_STATUS_PENDING &&
+		serviceCart.BillStatus != constants.POS_BILL_STATUS_OUT &&
 		serviceCart.BillStatus != constants.RES_BILL_STATUS_ORDER &&
 		serviceCart.BillStatus != constants.RES_BILL_STATUS_BOOKING &&
 		serviceCart.BillStatus != constants.RES_BILL_STATUS_CANCEL {

@@ -548,22 +548,26 @@ func (cRound CRound) RemoveRound(c *gin.Context, prof models.CmsUser) {
 	oldBooking.BookingDate = booking.BookingDate
 	oldBooking.AddedRound = setBoolForCursor(true)
 
-	if err := oldBooking.FindFirst(db); err != nil {
-		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
-		return
+	if err := oldBooking.FindFirst(db); err == nil {
+		oldBooking.AddedRound = setBoolForCursor(false)
+		oldBooking.BagStatus = constants.BAG_STATUS_TIMEOUT
+		oldBooking.Update(db)
+		booking.Delete(db)
+
+		//Xóa round
+		roundR.LastRound(db)
+		roundR.Delete(db)
+
+		updatePriceWithServiceItem(&oldBooking, prof)
+		res := getBagDetailFromBooking(db, oldBooking)
+		okResponse(c, res)
+	} else {
+		//Xóa round
+		roundR.LastRound(db)
+		roundR.Delete(db)
+
+		updatePriceWithServiceItem(&booking, prof)
+		res := getBagDetailFromBooking(db, booking)
+		okResponse(c, res)
 	}
-
-	oldBooking.AddedRound = setBoolForCursor(false)
-	oldBooking.BagStatus = constants.BAG_STATUS_TIMEOUT
-	oldBooking.Update(db)
-
-	roundR.LastRound(db)
-	roundR.Delete(db)
-
-	booking.Delete(db)
-
-	updatePriceWithServiceItem(&oldBooking, prof)
-	res := getBagDetailFromBooking(db, oldBooking)
-
-	okResponse(c, res)
 }

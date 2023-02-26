@@ -653,6 +653,19 @@ func (item *Booking) FindAllBookingOTA(database *gorm.DB) ([]Booking, error) {
 	return list, db.Error
 }
 
+func (item *Booking) FindAllBookingForAgencyPayment(database *gorm.DB) ([]Booking, error) {
+	db := database.Model(Booking{})
+	list := []Booking{}
+
+	db = db.Where("partner_uid = ?", item.PartnerUid)
+	db = db.Where("booking_code = ?", item.BookingCode)
+	db = db.Where("check_in_time > 0")
+	db = db.Group("bill_code")
+
+	db.Find(&list)
+	return list, db.Error
+}
+
 func (item *Booking) FindAgencyCancelBooking(database *gorm.DB, page models.Page) ([]AgencyCancelBookingList, int64, error) {
 	db := database.Model(Booking{})
 	list := []AgencyCancelBookingList{}

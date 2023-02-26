@@ -3,6 +3,7 @@ package model_payment
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"log"
 	"start/constants"
 	"start/models"
@@ -170,11 +171,6 @@ func (item *SinglePayment) Create(db *gorm.DB) error {
 	item.Invoice = constants.CONS_INVOICE + "-" + utils.HashCodeUuid(item.Uid)
 
 	errC := db.Create(item).Error
-	// if errC == nil {
-	// 	//Add vào redis để check
-	// 	redisKey := utils.GetRedisKeySinglePaymentCreated(item.PartnerUid, item.CourseUid, item.BillCode)
-	// 	datasources.SetCache(redisKey, "1", 10) // expried 10s
-	// }
 
 	return errC
 }
@@ -190,15 +186,6 @@ func (item *SinglePayment) Update(mydb *gorm.DB) error {
 
 func (item *SinglePayment) FindFirst(db *gorm.DB) error {
 	errF := db.Where(item).First(item).Error
-	// if errF != nil {
-	// 	redisKey := utils.GetRedisKeySinglePaymentCreated(item.PartnerUid, item.CourseUid, item.BillCode)
-	// 	strValue, redisErr := datasources.GetCache(redisKey)
-	// 	if redisErr == nil && strValue != "" {
-	// 		log.Println("[PAYMENT] single redis", redisKey)
-	// 		return nil
-	// 	}
-	// }
-
 	return errF
 }
 
@@ -325,4 +312,11 @@ func (item *SinglePayment) FindListWithJoin(db *gorm.DB, page models.Page, playe
 		db = page.Setup(db).Find(&list)
 	}
 	return list, total, db.Error
+}
+
+func (item *SinglePayment) Delete(db *gorm.DB) error {
+	if item.Model.Uid == "" {
+		return errors.New("Primary key is undefined!")
+	}
+	return db.Delete(item).Error
 }

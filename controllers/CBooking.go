@@ -1601,6 +1601,9 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
+/*
+ Undo check thi thif check xoá payment đi
+*/
 func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	// Body request
@@ -1645,6 +1648,10 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// pUid := booking.PartnerUid
+	// cUid := booking.CourseUid
+	// billCode := booking.BillCode
+
 	if booking.InitType == constants.BOOKING_INIT_TYPE_CHECKIN {
 		if err := booking.Delete(db); err != nil {
 			response_message.BadRequest(c, err.Error())
@@ -1673,6 +1680,9 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 		}
 		roundR.DeleteByBillCode(db)
 	}
+
+	// Xoa payment
+	// deleteSinglePayment(pUid, cUid, billCode)
 
 	okRes(c)
 }
