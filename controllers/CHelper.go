@@ -488,10 +488,10 @@ func (_ *CHelper) CreateCaddieSlotByDate(c *gin.Context, prof models.CmsUser) {
 	if !caddieSlot.IsDuplicated(db) {
 		caddieSlot.CaddieSlot = slotCaddie
 
-		// err = caddieSlot.Create(db)
-		// if err != nil {
-		// 	log.Println("Create report caddie err", err.Error())
-		// }
+		err = caddieSlot.Create(db)
+		if err != nil {
+			log.Println("Create report caddie err", err.Error())
+		}
 
 		// for _, caddieCode := range slotCaddie {
 		// 	caddie := models.Caddie{

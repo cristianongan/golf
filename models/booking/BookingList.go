@@ -81,6 +81,14 @@ type ResBookingWithBuggyFeeInfo struct {
 	Fee          int64  `json:"fee"`
 }
 
+type ReportBooking struct {
+	TimeOut  int64 `json:"time_out"`
+	CheckIn  int64 `json:"check_in"`
+	CheckOut int64 `json:"check_out"`
+	Waiting  int64 `json:"waiting"`
+	InCourse int64 `json:"in_course"`
+}
+
 func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	if item.PartnerUid != "" {
 		db = db.Where("bookings.partner_uid = ?", item.PartnerUid)
@@ -563,4 +571,98 @@ func (item *BookingList) FindReportStarter(database *gorm.DB, page models.Page) 
 	}
 
 	return list, db.Error
+}
+
+func (item *BookingList) ReportAllBooking(database *gorm.DB) (ReportBooking, error) {
+
+	db := database.Model(Booking{})
+	var res ReportBooking
+
+	db = addFilter(db, item, false)
+	db = db.Where("added_round = ?", false)
+
+	db = db.Select(`
+					SUM(bag_status = 'WAITING') AS waiting,
+					SUM(bag_status = 'TIMEOUT') AS time_out,
+					SUM(bag_status = 'INCOURSE') AS in_course,
+					SUM(bag_status = 'CHECK_OUT') AS check_out,
+					SUM(check_in_time > 0) AS check_in`)
+
+	db.Find(&res)
+
+	return res, db.Error
+}
+
+func (item *BookingList) FindAllLastBooking(database *gorm.DB) (*gorm.DB, error) {
+	db := database.Model(Booking{})
+	db = addFilter(db, item, false)
+	db = db.Where("added_round = ?", false)
+	return db, db.Error
+}
+
+func (item *BookingList) FindReportPayment(database *gorm.DB, paymentStatus string) ([]Booking, int64, error) {
+	list := []Booking{}
+	total := int64(0)
+
+	subQuery := database.Model(Booking{})
+
+	subQuery = addFilter(subQuery, item, false)
+	subQuery = subQuery.Where("bookings.added_round = ?", false)
+	subQuery = subQuery.Joins("LEFT JOIN single_payment_items ON bookings.bill_code = single_payment_items.bill_code")
+	subQuery = subQuery.Group("single_payment_items.bag")
+	subQuery = subQuery.Where("single_payment_items.payment_type IN (?)", []string{"CASH", "CARDS", "TRANSFER"})
+
+	if paymentStatus == constants.PAYMENT_COMPLETE {
+		subQuery = subQuery.Select("bookings.*, bookings.mush_pay_info->'$.mush_pay' - SUM(single_payment_items.paid) as total")
+		db := database.Table("(?) as tb1", subQuery)
+		db = db.Where("tb1.total <= 0")
+		db.Count(&total)
+		db.Debug().Find(&list)
+	}
+
+	if paymentStatus == constants.PAYMENT_IN_COMPLETE {
+		subQuery = subQuery.Select("bookings.*, bookings.mush_pay_info->'$.mush_pay' - SUM(single_payment_items.paid) as total")
+		db := database.Table("(?) as tb1", subQuery)
+		db = db.Where("tb1.total > 0")
+		db.Count(&total)
+		db.Find(&list)
+	}
+
+	if paymentStatus == constants.PAYMENT_MUSH_PAY {
+		subQuery = subQuery.Select("bookings.*")
+		subQuery = subQuery.Where("bookings.mush_pay_info->'$.mush_pay' > 0")
+		subQuery.Count(&total)
+		subQuery.Find(&list)
+	}
+
+	return list, total, subQuery.Error
+}
+
+func (item *BookingList) CountReportPayment(database *gorm.DB, paymentStatus string) int64 {
+	total := int64(0)
+
+	subQuery := database.Model(Booking{})
+
+	subQuery = addFilter(subQuery, item, false)
+	subQuery = subQuery.Where("bookings.added_round = ?", false)
+	subQuery = subQuery.Joins("RIGHT JOIN single_payment_items ON bookings.bill_code = single_payment_items.bill_code")
+	subQuery = subQuery.Group("single_payment_items.bag")
+	subQuery = subQuery.Where("single_payment_items.payment_type IN (?)", []string{"CASH", "CARDS", "TRANSFER"})
+
+	if paymentStatus == constants.PAYMENT_COMPLETE {
+		subQuery = subQuery.Select("bookings.*, bookings.mush_pay_info->'$.mush_pay' - SUM(single_payment_items.paid) as total")
+
+		db := database.Table("(?) as tb1", subQuery)
+		db = db.Where("tb1.total <= 0")
+		db.Count(&total)
+	}
+
+	if paymentStatus == constants.PAYMENT_IN_COMPLETE {
+		subQuery = subQuery.Select("bookings.*, bookings.mush_pay_info->'$.mush_pay' - SUM(single_payment_items.paid) as total")
+		db := database.Table("(?) as tb1", subQuery)
+		db = db.Where("tb1.total > 0")
+		db.Count(&total)
+	}
+
+	return total
 }
