@@ -601,6 +601,10 @@ func (item *BookingList) FindAllLastBooking(database *gorm.DB) (*gorm.DB, error)
 	db := database.Model(Booking{})
 	db = addFilter(db, item, false)
 	db = db.Where("added_round = ?", false)
+	db = db.Where("bookings.bag_status <> 'CANCEL'")
+	db = db.Where("bookings.check_in_time > 0")
+	db = db.Where("bookings.added_round = ?", false)
+	db = db.Where("bookings.moved_flight = ?", false)
 	return db, db.Error
 }
 
@@ -613,19 +617,20 @@ func (item *BookingList) FindReportPayment(database *gorm.DB, paymentStatus stri
 	subQuery = addFilter(subQuery, item, false)
 	subQuery = subQuery.Where("bookings.check_in_time > 0")
 	subQuery = subQuery.Where("bookings.bag_status <> 'CANCEL'")
-	subQuery = subQuery.Where("bookings.init_type <> 'ROUND'")
-	subQuery = subQuery.Where("bookings.init_type <> 'MOVEFLGIHT'")
 	subQuery = subQuery.Where("bookings.added_round = ?", false)
-	subQuery = subQuery.Where("bookings.added_round = ?", false)
+	subQuery = subQuery.Where("bookings.moved_flight = ?", false)
 	subQuery = subQuery.Joins("LEFT JOIN single_payment_items ON bookings.bill_code = single_payment_items.bill_code")
-	subQuery = subQuery.Select("bookings.*, single_payment_items.payment_type , CAST(IFNULL(single_payment_items.paid, 0) AS SIGNED INTEGER) as paid")
+	subQuery = subQuery.Select("bookings.*, IFNULL(single_payment_items.payment_type, '') as payment_type , SUM(CAST(IFNULL(single_payment_items.paid, 0) AS SIGNED INTEGER)) as paid")
+	subQuery = subQuery.Group("bookings.bag")
 
 	db := database.Table("(?) as tb1", subQuery)
+	db = db.Where("tb1.payment_type NOT IN ('PREPAID', 'DEBIT')")
 	db = db.Select("tb1.*, (tb1.mush_pay_info->'$.mush_pay' - tb1.paid) as total")
+	db = db.Group("tb1.bag")
 
 	if paymentStatus == constants.PAYMENT_COMPLETE {
 		db = db.Having("total <= 0")
-		db.Debug().Find(&list)
+		db.Find(&list)
 	}
 
 	if paymentStatus == constants.PAYMENT_IN_COMPLETE {
@@ -634,7 +639,7 @@ func (item *BookingList) FindReportPayment(database *gorm.DB, paymentStatus stri
 	}
 
 	if paymentStatus == constants.PAYMENT_MUSH_PAY {
-		db = db.Where("bookings.mush_pay_info->'$.mush_pay' > 0")
+		db = db.Where("tb1.mush_pay_info->'$.mush_pay' > 0")
 		db.Find(&list)
 	}
 
@@ -649,31 +654,33 @@ func (item *BookingList) CountReportPayment(database *gorm.DB, paymentStatus str
 	subQuery = addFilter(subQuery, item, false)
 	subQuery = subQuery.Where("bookings.check_in_time > 0")
 	subQuery = subQuery.Where("bookings.bag_status <> 'CANCEL'")
-	subQuery = subQuery.Where("bookings.init_type <> 'ROUND'")
-	subQuery = subQuery.Where("bookings.init_type <> 'MOVEFLGIHT'")
 	subQuery = subQuery.Where("bookings.added_round = ?", false)
+	subQuery = subQuery.Where("bookings.moved_flight = ?", false)
 	subQuery = subQuery.Joins("LEFT JOIN single_payment_items ON bookings.bill_code = single_payment_items.bill_code")
-	subQuery = subQuery.Select("bookings.*, single_payment_items.payment_type , CAST(IFNULL(single_payment_items.paid, 0) AS SIGNED INTEGER) as paid")
+	subQuery = subQuery.Select("bookings.*, IFNULL(single_payment_items.payment_type, '') as payment_type , SUM(CAST(IFNULL(single_payment_items.paid, 0) AS SIGNED INTEGER)) as paid")
+	subQuery = subQuery.Group("bookings.bag")
 
 	subQuery1 := database.Table("(?) as tb1", subQuery)
+	subQuery1 = subQuery1.Where("tb1.payment_type NOT IN ('PREPAID', 'DEBIT')")
 	subQuery1 = subQuery1.Select("tb1.*, (tb1.mush_pay_info->'$.mush_pay' - tb1.paid) as total")
+	subQuery1 = subQuery1.Group("tb1.bag")
 
 	if paymentStatus == constants.PAYMENT_COMPLETE {
 		subQuery2 := database.Table("(?) as tb2", subQuery1)
 		subQuery2 = subQuery2.Where("tb2.total <= 0")
-		subQuery2.Debug().Count(&total)
+		subQuery2.Count(&total)
 	}
 
 	if paymentStatus == constants.PAYMENT_IN_COMPLETE {
 		subQuery2 := database.Table("(?) as tb2", subQuery1)
 		subQuery2 = subQuery2.Where("tb2.total > 0")
-		subQuery2.Debug().Count(&total)
+		subQuery2.Count(&total)
 	}
 
 	if paymentStatus == constants.PAYMENT_MUSH_PAY {
 		subQuery2 := database.Table("(?) as tb2", subQuery1)
 		subQuery2 = subQuery2.Where("tb2.mush_pay_info->'$.mush_pay' > 0")
-		subQuery2.Debug().Count(&total)
+		subQuery2.Count(&total)
 	}
 
 	return total

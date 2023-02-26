@@ -662,7 +662,7 @@ func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.Cms
 
 	db2, _ := bookingList.FindAllLastBooking(db)
 	db2.Where("customer_type = ?", constants.CUSTOMER_TYPE_NONE_GOLF)
-	db1.Count(&nonPlayers)
+	db2.Count(&nonPlayers)
 
 	inCompleteTotal := bookingList.CountReportPayment(db, constants.PAYMENT_IN_COMPLETE)
 	completeTotal := bookingList.CountReportPayment(db, constants.PAYMENT_COMPLETE)
