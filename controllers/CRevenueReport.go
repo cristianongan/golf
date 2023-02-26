@@ -631,7 +631,7 @@ func (_ *CRevenueReport) GetReportPayment(c *gin.Context, prof models.CmsUser) {
 
 func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	form := request.GetListBookingWithSelectForm{}
+	form := request.ReportBookingPlayers{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return

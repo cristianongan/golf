@@ -386,8 +386,14 @@ type UndoCheckOut struct {
 }
 
 type ReportPaymentBagStatus struct {
-	PartnerUid    string `form:"partner_uid" binding:"required"`
-	CourseUid     string `form:"course_uid" binding:"required"`
-	BookingDate   string `form:"booking_date"`
-	PaymentStatus string `form:"payment_status"`
+	PartnerUid    string `json:"partner_uid" binding:"required"`
+	CourseUid     string `json:"course_uid" binding:"required"`
+	BookingDate   string `json:"booking_date"`
+	PaymentStatus string `json:"payment_status"`
+}
+
+type ReportBookingPlayers struct {
+	PartnerUid  string `json:"partner_uid" binding:"required"`
+	CourseUid   string `json:"course_uid" binding:"required"`
+	BookingDate string `json:"booking_date"`
 }

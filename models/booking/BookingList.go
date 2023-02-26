@@ -652,19 +652,19 @@ func (item *BookingList) CountReportPayment(database *gorm.DB, paymentStatus str
 	if paymentStatus == constants.PAYMENT_COMPLETE {
 		subQuery2 := database.Table("(?) as tb2", subQuery1)
 		subQuery2 = subQuery2.Where("tb2.total <= 0")
-		subQuery2.Count(&total)
+		subQuery2.Debug().Count(&total)
 	}
 
 	if paymentStatus == constants.PAYMENT_IN_COMPLETE {
 		subQuery2 := database.Table("(?) as tb2", subQuery1)
 		subQuery2 = subQuery2.Where("tb2.total > 0")
-		subQuery2.Count(&total)
+		subQuery2.Debug().Count(&total)
 	}
 
 	if paymentStatus == constants.PAYMENT_MUSH_PAY {
 		subQuery2 := database.Table("(?) as tb2", subQuery1)
 		subQuery2 = subQuery2.Where("bookings.mush_pay_info->'$.mush_pay' > 0")
-		subQuery2.Count(&total)
+		subQuery2.Debug().Count(&total)
 	}
 
 	return total
