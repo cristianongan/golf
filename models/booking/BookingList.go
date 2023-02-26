@@ -611,6 +611,11 @@ func (item *BookingList) FindReportPayment(database *gorm.DB, paymentStatus stri
 	subQuery := database.Model(Booking{})
 
 	subQuery = addFilter(subQuery, item, false)
+	subQuery = subQuery.Where("bookings.check_in_time > 0")
+	subQuery = subQuery.Where("bookings.bag_status <> 'CANCEL'")
+	subQuery = subQuery.Where("bookings.init_type <> 'ROUND'")
+	subQuery = subQuery.Where("bookings.init_type <> 'MOVEFLGIHT'")
+	subQuery = subQuery.Where("bookings.added_round = ?", false)
 	subQuery = subQuery.Where("bookings.added_round = ?", false)
 	subQuery = subQuery.Joins("LEFT JOIN single_payment_items ON bookings.bill_code = single_payment_items.bill_code")
 	subQuery = subQuery.Select("bookings.*, single_payment_items.payment_type , CAST(IFNULL(single_payment_items.paid, 0) AS SIGNED INTEGER) as paid")
@@ -642,6 +647,10 @@ func (item *BookingList) CountReportPayment(database *gorm.DB, paymentStatus str
 	subQuery := database.Model(Booking{})
 
 	subQuery = addFilter(subQuery, item, false)
+	subQuery = subQuery.Where("bookings.check_in_time > 0")
+	subQuery = subQuery.Where("bookings.bag_status <> 'CANCEL'")
+	subQuery = subQuery.Where("bookings.init_type <> 'ROUND'")
+	subQuery = subQuery.Where("bookings.init_type <> 'MOVEFLGIHT'")
 	subQuery = subQuery.Where("bookings.added_round = ?", false)
 	subQuery = subQuery.Joins("LEFT JOIN single_payment_items ON bookings.bill_code = single_payment_items.bill_code")
 	subQuery = subQuery.Select("bookings.*, single_payment_items.payment_type , CAST(IFNULL(single_payment_items.paid, 0) AS SIGNED INTEGER) as paid")
@@ -663,7 +672,7 @@ func (item *BookingList) CountReportPayment(database *gorm.DB, paymentStatus str
 
 	if paymentStatus == constants.PAYMENT_MUSH_PAY {
 		subQuery2 := database.Table("(?) as tb2", subQuery1)
-		subQuery2 = subQuery2.Where("bookings.mush_pay_info->'$.mush_pay' > 0")
+		subQuery2 = subQuery2.Where("tb2.mush_pay_info->'$.mush_pay' > 0")
 		subQuery2.Debug().Count(&total)
 	}
 
