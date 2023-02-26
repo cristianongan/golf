@@ -662,10 +662,11 @@ func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.Cms
 
 	db2, _ := bookingList.FindAllLastBooking(db)
 	db2.Where("customer_type = ?", constants.CUSTOMER_TYPE_NONE_GOLF)
-	db1.Count(&reportPlayers)
+	db1.Count(&nonPlayers)
 
 	inCompleteTotal := bookingList.CountReportPayment(db, constants.PAYMENT_IN_COMPLETE)
 	completeTotal := bookingList.CountReportPayment(db, constants.PAYMENT_COMPLETE)
+	mushPayTotal := bookingList.CountReportPayment(db, constants.PAYMENT_MUSH_PAY)
 
 	res := map[string]interface{}{
 		"players":             reportPlayers,
@@ -673,6 +674,7 @@ func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.Cms
 		"report_detail":       report,
 		"payment_complete":    completeTotal,
 		"payment_in_complete": inCompleteTotal,
+		"mush_pay":            mushPayTotal,
 	}
 
 	okResponse(c, res)
