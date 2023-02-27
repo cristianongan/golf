@@ -130,8 +130,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		TurnTime:           body.TurnTime,
 		RowIndex:           body.RowIndex,
 		CmsUser:            prof.UserName,
-		Hole:               body.HoleBooking,
-		HoleBooking:        body.HoleBooking,
+		Hole:               body.Hole,
+		HoleBooking:        body.Hole,
 		BookingRestaurant:  body.BookingRestaurant,
 		BookingRetal:       body.BookingRetal,
 		BookingCode:        body.BookingCode,
@@ -140,10 +140,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		BookingCodePartner: body.BookingCodePartner,
 		BookingSourceId:    body.BookingSourceId,
 		AgencyPaidAll:      body.AgencyPaidAll,
-	}
-
-	if body.IsCheckIn {
-		booking.Hole = body.Hole
 	}
 
 	// Check Guest of member, check member có còn slot đi cùng không
@@ -218,7 +214,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			AgencyId:      body.AgencyId,
 			BUid:          bUid,
 			CustomerName:  body.CustomerName,
-			Hole:          booking.Hole,
+			Hole:          body.Hole,
 			MemberCardUid: body.MemberCardUid,
 		}
 
@@ -239,7 +235,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			AgencyId:     body.AgencyId,
 			BUid:         bUid,
 			CustomerName: body.CustomerName,
-			Hole:         booking.Hole,
+			Hole:         body.Hole,
 		}
 		agency := models.Agency{}
 		if errAgency := cBooking.updateAgencyForBooking(db, &booking, &agency, agencyBody); errAgency != nil {
@@ -285,7 +281,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			AgencyId:     body.AgencyId,
 			BUid:         bUid,
 			CustomerName: body.CustomerName,
-			Hole:         booking.Hole,
+			Hole:         body.Hole,
 		}
 
 		if errUpdGs := cBooking.updateGuestStyleToBooking(c, guestStyle, db, &booking, guestBody); errUpdGs != nil {
@@ -390,7 +386,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			TeeType:     body.TeeType,
 			CourseType:  body.CourseType,
 		}
-		go cLockTeeTime.LockTurn(lockTurn, body.HoleBooking, c, prof)
+		go cLockTeeTime.LockTurn(lockTurn, body.Hole, c, prof)
 	}
 
 	if body.IsCheckIn && booking.CustomerUid != "" {
