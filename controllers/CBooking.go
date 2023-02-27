@@ -142,6 +142,10 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		AgencyPaidAll:      body.AgencyPaidAll,
 	}
 
+	if body.IsCheckIn {
+		booking.Hole = body.Hole
+	}
+
 	// Check Guest of member, check member có còn slot đi cùng không
 	var memberCard models.MemberCard
 	guestStyle := ""
@@ -214,7 +218,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			AgencyId:      body.AgencyId,
 			BUid:          bUid,
 			CustomerName:  body.CustomerName,
-			Hole:          body.HoleBooking,
+			Hole:          booking.Hole,
 			MemberCardUid: body.MemberCardUid,
 		}
 
@@ -235,7 +239,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			AgencyId:     body.AgencyId,
 			BUid:         bUid,
 			CustomerName: body.CustomerName,
-			Hole:         body.HoleBooking,
+			Hole:         booking.Hole,
 		}
 		agency := models.Agency{}
 		if errAgency := cBooking.updateAgencyForBooking(db, &booking, &agency, agencyBody); errAgency != nil {
@@ -281,7 +285,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			AgencyId:     body.AgencyId,
 			BUid:         bUid,
 			CustomerName: body.CustomerName,
-			Hole:         body.HoleBooking,
+			Hole:         booking.Hole,
 		}
 
 		if errUpdGs := cBooking.updateGuestStyleToBooking(c, guestStyle, db, &booking, guestBody); errUpdGs != nil {

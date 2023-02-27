@@ -129,6 +129,7 @@ type CreateBookingBody struct {
 	CourseType  string `json:"course_type"`
 	Bag         string `json:"bag"`          // Golf Bag
 	HoleBooking int    `json:"hole_booking"` // Số hố
+	Hole        int    `json:"hole"`         // Số hố check
 	TeeType     string `json:"tee_type"`     // 1, 1A, 1B, 1C, 10, 10A, 10B (k required cái này vì có case checking k qua booking)
 	TeePath     string `json:"tee_path"`     // MORNING, NOON, NIGHT (k required cái này vì có case checking k qua booking)
 	TurnTime    string `json:"turn_time"`    // Ex: 16:26 (k required cái này vì có case checking k qua booking)
