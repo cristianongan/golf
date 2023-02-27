@@ -840,7 +840,7 @@ func (cBooking *CBooking) GetListBagDetail(c *gin.Context, prof models.CmsUser) 
 	}
 
 	var list []model_booking.Booking
-	db.Debug().Find(&list)
+	db.Find(&list)
 	res := map[string]interface{}{
 		"total": total,
 		"data":  list,
