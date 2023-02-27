@@ -76,3 +76,11 @@ type AgencyPaymentReportForm struct {
 	ToDate      string `form:"to_date"`
 	AgencyName  string `form:"agency_name"`
 }
+
+type UpdateReportBody struct {
+	PartnerUid  string `form:"partner_uid" json:"partner_uid" binding:"required"` // Hang Golf
+	CourseUid   string `form:"course_uid" json:"course_uid" binding:"required"`   // San Golf
+	Bag         string `form:"bag" json:"bag"`
+	BillNo      string `form:"bill_no" json:"bill_no"`
+	BookingDate string `form:"booking_date" json:"booking_date"`
+}

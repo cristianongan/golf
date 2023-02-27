@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
@@ -10,6 +11,7 @@ import (
 	model_gostarter "start/models/go-starter"
 	model_payment "start/models/payment"
 	model_report "start/models/report"
+	"start/utils"
 	"start/utils/response_message"
 
 	"github.com/gin-gonic/gin"
@@ -304,6 +306,7 @@ func (_ *CRevenueReport) GetReportSalePOS(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, res)
 }
 
+// Báo cáo DT tổng hợp với đk đã check-in
 func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUser) {
 	body := request.FinishBookingBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -314,12 +317,14 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 
 	bookings := model_booking.BookingList{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
 		BookingDate: body.BookingDate,
 	}
 
 	db, _, err := bookings.FindAllBookingList(db)
 	db = db.Where("check_in_time > 0")
-	db = db.Where("check_out_time > 0")
+	// db = db.Where("check_out_time > 0")
 	db = db.Where("bag_status <> 'CANCEL'")
 	db = db.Where("init_type <> 'ROUND'")
 	db = db.Where("init_type <> 'MOVEFLGIHT'")
@@ -338,7 +343,10 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 		BookingDate: body.BookingDate,
 	}
 
-	reportR.DeleteByBookingDate()
+	if err := reportR.DeleteByBookingDate(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
 
 	for _, booking := range list {
 		updatePriceForRevenue(booking, body.BillNo)
@@ -438,22 +446,36 @@ func (cBooking *CRevenueReport) GetBagDailyReport(c *gin.Context, prof models.Cm
 	okResponse(c, res)
 }
 
+// Update BC DT với đk đã check-in và check-out
 func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.CmsUser) {
-	body := request.FinishBookingBody{}
+	body := request.UpdateReportBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
+		return
+	}
+
+	reportR := model_report.ReportRevenueDetail{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+	}
+
+	if err := reportR.DeleteByBookingDate(); err != nil {
+		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 
 	bookings := model_booking.BookingList{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
 		BookingDate: body.BookingDate,
 	}
 
 	db, _, err := bookings.FindAllBookingList(db)
 	db = db.Where("check_in_time > 0")
-	db = db.Where("check_out_time > 0")
+	// db = db.Where("check_out_time > 0")
 	db = db.Where("bag_status <> 'CANCEL'")
 	db = db.Where("init_type <> 'ROUND'")
 	db = db.Where("init_type <> 'MOVEFLGIHT'")
@@ -565,4 +587,87 @@ func (_ *CRevenueReport) GetReportStarter(c *gin.Context, prof models.CmsUser) {
 	list, _ := bookings.FindReportStarter(db, page)
 
 	okResponse(c, list)
+}
+
+func (_ *CRevenueReport) GetReportPayment(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.ReportPaymentBagStatus{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	bookingDate := ""
+	if form.BookingDate == "" {
+		bookingDate = form.BookingDate
+	} else {
+		toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		bookingDate = toDayDate
+	}
+
+	bookingList := model_booking.BookingList{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: bookingDate,
+	}
+
+	listBooking, total, _ := bookingList.FindReportPayment(db, form.PaymentStatus)
+
+	res := map[string]interface{}{
+		"data":  listBooking,
+		"total": total,
+	}
+
+	okResponse(c, res)
+}
+
+func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.ReportBookingPlayers{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	reportPlayers := int64(0)
+	nonPlayers := int64(0)
+
+	bookingDate := ""
+	if form.BookingDate == "" {
+		bookingDate = form.BookingDate
+	} else {
+		toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		bookingDate = toDayDate
+	}
+
+	bookingList := model_booking.BookingList{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: bookingDate,
+	}
+
+	report, _ := bookingList.ReportAllBooking(db)
+
+	db1, _ := bookingList.FindAllLastBooking(db)
+	db1.Where("customer_type <> ''")
+	db1.Count(&reportPlayers)
+
+	db2, _ := bookingList.FindAllLastBooking(db)
+	db2.Where("customer_type = ?", constants.CUSTOMER_TYPE_NONE_GOLF)
+	db2.Count(&nonPlayers)
+
+	inCompleteTotal := bookingList.CountReportPayment(db, constants.PAYMENT_IN_COMPLETE)
+	completeTotal := bookingList.CountReportPayment(db, constants.PAYMENT_COMPLETE)
+	mushPayTotal := bookingList.CountReportPayment(db, constants.PAYMENT_MUSH_PAY)
+
+	res := map[string]interface{}{
+		"players":             reportPlayers,
+		"non_players":         nonPlayers,
+		"report_detail":       report,
+		"payment_complete":    completeTotal,
+		"payment_in_complete": inCompleteTotal,
+		"payment_mush_pay":    mushPayTotal,
+	}
+
+	okResponse(c, res)
 }

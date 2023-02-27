@@ -395,11 +395,11 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validaet booking
-	booking := model_booking.Booking{}
-	booking.Uid = serviceCart.BookingUid
-
-	if err := booking.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Booking "+err.Error())
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = serviceCart.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
+	if errF != nil {
+		response_message.InternalServerError(c, "Booking "+errF.Error())
 		return
 	}
 
@@ -451,7 +451,8 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Update giá nếu bill active
-	if serviceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE &&
+	if serviceCart.BillStatus != constants.POS_BILL_STATUS_PENDING &&
+		serviceCart.BillStatus != constants.POS_BILL_STATUS_OUT &&
 		serviceCart.BillStatus != constants.RES_BILL_STATUS_ORDER &&
 		serviceCart.BillStatus != constants.RES_BILL_STATUS_BOOKING &&
 		serviceCart.BillStatus != constants.RES_BILL_STATUS_CANCEL {
@@ -487,11 +488,11 @@ func (_ CServiceCart) AddDiscountToBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validaet booking
-	booking := model_booking.Booking{}
-	booking.Uid = serviceCart.BookingUid
-
-	if err := booking.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Booking "+err.Error())
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = serviceCart.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
+	if errF != nil {
+		response_message.InternalServerError(c, "Booking "+errF.Error())
 		return
 	}
 
@@ -1231,11 +1232,11 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	booking := model_booking.Booking{}
-	booking.Uid = serviceCart.BookingUid
-
-	if err := booking.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Booking "+err.Error())
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = serviceCart.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
+	if errF != nil {
+		response_message.InternalServerError(c, "Booking "+errF.Error())
 		return
 	}
 
@@ -1504,12 +1505,11 @@ func (_ CServiceCart) UndoStatus(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate golf bag
-	booking := model_booking.Booking{}
-	booking.PartnerUid = serviceCart.PartnerUid
-	booking.CourseUid = serviceCart.CourseUid
-	booking.Uid = serviceCart.BookingUid
-	if err := booking.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Booking "+err.Error())
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = serviceCart.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
+	if errF != nil {
+		response_message.InternalServerError(c, "Booking "+errF.Error())
 		return
 	}
 

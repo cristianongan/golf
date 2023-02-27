@@ -130,8 +130,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		TurnTime:           body.TurnTime,
 		RowIndex:           body.RowIndex,
 		CmsUser:            prof.UserName,
-		Hole:               body.Hole,
-		HoleBooking:        body.Hole,
+		Hole:               body.HoleBooking,
+		HoleBooking:        body.HoleBooking,
 		BookingRestaurant:  body.BookingRestaurant,
 		BookingRetal:       body.BookingRetal,
 		BookingCode:        body.BookingCode,
@@ -214,7 +214,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			AgencyId:      body.AgencyId,
 			BUid:          bUid,
 			CustomerName:  body.CustomerName,
-			Hole:          body.Hole,
+			Hole:          body.HoleBooking,
 			MemberCardUid: body.MemberCardUid,
 		}
 
@@ -235,7 +235,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			AgencyId:     body.AgencyId,
 			BUid:         bUid,
 			CustomerName: body.CustomerName,
-			Hole:         body.Hole,
+			Hole:         body.HoleBooking,
 		}
 		agency := models.Agency{}
 		if errAgency := cBooking.updateAgencyForBooking(db, &booking, &agency, agencyBody); errAgency != nil {
@@ -281,7 +281,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			AgencyId:     body.AgencyId,
 			BUid:         bUid,
 			CustomerName: body.CustomerName,
-			Hole:         body.Hole,
+			Hole:         body.HoleBooking,
 		}
 
 		if errUpdGs := cBooking.updateGuestStyleToBooking(c, guestStyle, db, &booking, guestBody); errUpdGs != nil {
@@ -386,7 +386,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			TeeType:     body.TeeType,
 			CourseType:  body.CourseType,
 		}
-		go cLockTeeTime.LockTurn(lockTurn, body.Hole, c, prof)
+		go cLockTeeTime.LockTurn(lockTurn, body.HoleBooking, c, prof)
 	}
 
 	if body.IsCheckIn && booking.CustomerUid != "" {
@@ -568,11 +568,22 @@ func (_ CBooking) updateGuestStyleToBooking(c *gin.Context, guestStyle string,
 	booking.CustomerType = golfFeeModel.CustomerType
 
 	// Lấy phí bởi Guest style với ngày tạo
-	timeDate, _ := time.Parse(constants.DATE_FORMAT_1, booking.BookingDate)
-	golfFee, errFindGF := golfFeeModel.GetGuestStyleOnTime(db, timeDate)
-	if errFindGF != nil {
-		response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+	golfFee := models.GolfFee{}
+	var errFindGF error
+
+	if booking.BookingDate != "" {
+		timeDate, _ := time.Parse(constants.DATE_FORMAT_1, booking.BookingDate)
+		golfFee, errFindGF = golfFeeModel.GetGuestStyleOnTime(db, timeDate)
+		if errFindGF != nil {
+			response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+		}
+	} else {
+		golfFee, errFindGF = golfFeeModel.GetGuestStyleOnDay(db)
+		if errFindGF != nil {
+			response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+		}
 	}
+
 	booking.GuestStyle = guestStyle
 	booking.GuestStyleName = golfFee.GuestStyleName
 
@@ -917,7 +928,7 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 					caddie.Id = oldCaddie.Id
 					if err := caddie.FindFirst(db); err != nil {
 						if !(utils.ContainString(constants.LIST_CADDIE_READY_JOIN, caddie.CurrentStatus) > -1) {
-							updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, []string{booking.CaddieInfo.Code})
+							updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, []string{oldCaddie.Code})
 						}
 					}
 				}()
@@ -1590,6 +1601,9 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
+/*
+ Undo check thi thif check xoá payment đi
+*/
 func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	// Body request
@@ -1634,6 +1648,10 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// pUid := booking.PartnerUid
+	// cUid := booking.CourseUid
+	// billCode := booking.BillCode
+
 	if booking.InitType == constants.BOOKING_INIT_TYPE_CHECKIN {
 		if err := booking.Delete(db); err != nil {
 			response_message.BadRequest(c, err.Error())
@@ -1662,6 +1680,9 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 		}
 		roundR.DeleteByBillCode(db)
 	}
+
+	// Xoa payment
+	// deleteSinglePayment(pUid, cUid, billCode)
 
 	okRes(c)
 }

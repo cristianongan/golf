@@ -22,7 +22,7 @@ import (
 	"github.com/ulule/limiter/v3/drivers/store/memory"
 )
 
-var versionCheck = "v1.1"
+var versionCheck = "v1.3"
 
 func healthcheck(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "success: " + versionCheck})
@@ -783,6 +783,8 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/report/revenue/update-daily-report", middlewares.AuthorizedCmsUserHandler(cRevenueReport.UpdateReportRevenue))
 			cmsApiAuthorized.GET("/report/revenue/report-point-of-sale", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportRevenuePointOfSale))
 			cmsApiAuthorized.GET("/report/starter", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportStarter))
+			cmsApiAuthorized.GET("/report/payment/bag-status", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportPayment))
+			cmsApiAuthorized.POST("/report/booking/players", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBookingPlayers))
 
 			/// =================== Redis Settings ===================
 			cRedis := new(controllers.CRedis)
@@ -805,7 +807,8 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/helper/admin/add-customer-user", middlewares.AuthorizedCmsUserHandler(cHelper.CreateAddCustomer)) // chỉ dùng cho import data
 			cmsApiAuthorized.POST("/helper/admin/add-member-card", middlewares.AuthorizedCmsUserHandler(cHelper.CreateMemberCard))    // Chỉ dùng cho import data
 			cmsApiAuthorized.POST("/helper/admin/add-fb", middlewares.AuthorizedCmsUserHandler(cHelper.CreateFB))                     // Chỉ dùng cho import data fb
-			cmsApiAuthorized.POST("/helper/admin/add-proshop", middlewares.AuthorizedCmsUserHandler(cHelper.CreateProshop))           // Chỉ dùng cho import data fb
+			cmsApiAuthorized.POST("/helper/admin/add-proshop", middlewares.AuthorizedCmsUserHandler(cHelper.CreateProshop))
+			cmsApiAuthorized.POST("/helper/admin/create-caddie-slot", middlewares.AuthorizedCmsUserHandler(cHelper.CreateCaddieSlotByDate)) // Chỉ dùng cho import data fb
 		}
 
 		// ----------------------------------------------------------

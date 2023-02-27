@@ -81,6 +81,16 @@ type ResBookingWithBuggyFeeInfo struct {
 	Fee          int64  `json:"fee"`
 }
 
+type ReportBooking struct {
+	TimeOut     int64 `json:"time_out"`
+	CheckIn     int64 `json:"check_in"`
+	CheckOut    int64 `json:"check_out"`
+	NonCheckIn  int64 `json:"non_check_in"`
+	NonCheckOut int64 `json:"non_check_out"`
+	Waiting     int64 `json:"waiting"`
+	InCourse    int64 `json:"in_course"`
+}
+
 func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	if item.PartnerUid != "" {
 		db = db.Where("bookings.partner_uid = ?", item.PartnerUid)
@@ -366,6 +376,20 @@ func (item *BookingList) FindListRoundOfBagPlaying(database *gorm.DB, page model
 	return db, total, db.Error
 }
 
+func (item *BookingList) FindListBookingNotCheckOut(database *gorm.DB) (*gorm.DB, error) {
+	var list []Booking
+
+	db := database.Model(Booking{})
+
+	db = addFilter(db, item, false)
+	db = db.Where("check_in_time > 0")
+	db = db.Where("check_out_time = 0")
+
+	db.Find(&list)
+
+	return db, db.Error
+}
+
 func (item *BookingList) FindAllBookingNotCancelList(database *gorm.DB) (*gorm.DB, int64, error) {
 	total := int64(0)
 	db := database.Model(Booking{})
@@ -549,4 +573,115 @@ func (item *BookingList) FindReportStarter(database *gorm.DB, page models.Page) 
 	}
 
 	return list, db.Error
+}
+
+func (item *BookingList) ReportAllBooking(database *gorm.DB) (ReportBooking, error) {
+
+	db := database.Model(Booking{})
+	var res ReportBooking
+
+	db = addFilter(db, item, false)
+	db = db.Where("added_round = ?", false)
+
+	db = db.Select(`
+					SUM(bag_status = 'WAITING') AS waiting,
+					SUM(bag_status = 'TIMEOUT') AS time_out,
+					SUM(bag_status = 'IN_COURSE') AS in_course,
+					SUM(check_in_time > 0 AND customer_type <> 'NONE_GOLF') AS check_in,
+					SUM(check_out_time > 0 AND customer_type <> 'NONE_GOLF') AS check_out,
+					SUM(check_in_time > 0 AND customer_type = 'NONE_GOLF') AS non_check_in,
+					SUM(check_out_time > 0 AND customer_type = 'NONE_GOLF') AS non_check_out`)
+
+	db.Find(&res)
+
+	return res, db.Error
+}
+
+func (item *BookingList) FindAllLastBooking(database *gorm.DB) (*gorm.DB, error) {
+	db := database.Model(Booking{})
+	db = addFilter(db, item, false)
+	db = db.Where("added_round = ?", false)
+	db = db.Where("bookings.bag_status <> 'CANCEL'")
+	db = db.Where("bookings.check_in_time > 0")
+	db = db.Where("bookings.added_round = ?", false)
+	db = db.Where("bookings.moved_flight = ?", false)
+	return db, db.Error
+}
+
+func (item *BookingList) FindReportPayment(database *gorm.DB, paymentStatus string) ([]Booking, int64, error) {
+	list := []Booking{}
+	total := int64(0)
+
+	subQuery := database.Model(Booking{})
+
+	subQuery = addFilter(subQuery, item, false)
+	subQuery = subQuery.Where("bookings.check_in_time > 0")
+	subQuery = subQuery.Where("bookings.bag_status <> 'CANCEL'")
+	subQuery = subQuery.Where("bookings.added_round = ?", false)
+	subQuery = subQuery.Where("bookings.moved_flight = ?", false)
+	subQuery = subQuery.Joins("LEFT JOIN single_payment_items ON bookings.bill_code = single_payment_items.bill_code")
+	subQuery = subQuery.Select("bookings.*, IFNULL(single_payment_items.payment_type, '') as payment_type , SUM(CAST(IFNULL(single_payment_items.paid, 0) AS SIGNED INTEGER)) as paid")
+	subQuery = subQuery.Group("bookings.bag")
+
+	db := database.Table("(?) as tb1", subQuery)
+	db = db.Where("tb1.payment_type NOT IN ('PREPAID', 'DEBIT')")
+	db = db.Select("tb1.*, (tb1.mush_pay_info->'$.mush_pay' - tb1.paid) as total")
+	db = db.Group("tb1.bag")
+
+	if paymentStatus == constants.PAYMENT_COMPLETE {
+		db = db.Having("total <= 0")
+		db.Find(&list)
+	}
+
+	if paymentStatus == constants.PAYMENT_IN_COMPLETE {
+		db = db.Having("total > 0")
+		db.Find(&list)
+	}
+
+	if paymentStatus == constants.PAYMENT_MUSH_PAY {
+		db = db.Where("tb1.mush_pay_info->'$.mush_pay' > 0")
+		db.Find(&list)
+	}
+
+	return list, total, subQuery.Error
+}
+
+func (item *BookingList) CountReportPayment(database *gorm.DB, paymentStatus string) int64 {
+	total := int64(0)
+
+	subQuery := database.Model(Booking{})
+
+	subQuery = addFilter(subQuery, item, false)
+	subQuery = subQuery.Where("bookings.check_in_time > 0")
+	subQuery = subQuery.Where("bookings.bag_status <> 'CANCEL'")
+	subQuery = subQuery.Where("bookings.added_round = ?", false)
+	subQuery = subQuery.Where("bookings.moved_flight = ?", false)
+	subQuery = subQuery.Joins("LEFT JOIN single_payment_items ON bookings.bill_code = single_payment_items.bill_code")
+	subQuery = subQuery.Select("bookings.*, IFNULL(single_payment_items.payment_type, '') as payment_type , SUM(CAST(IFNULL(single_payment_items.paid, 0) AS SIGNED INTEGER)) as paid")
+	subQuery = subQuery.Group("bookings.bag")
+
+	subQuery1 := database.Table("(?) as tb1", subQuery)
+	subQuery1 = subQuery1.Where("tb1.payment_type NOT IN ('PREPAID', 'DEBIT')")
+	subQuery1 = subQuery1.Select("tb1.*, (tb1.mush_pay_info->'$.mush_pay' - tb1.paid) as total")
+	subQuery1 = subQuery1.Group("tb1.bag")
+
+	if paymentStatus == constants.PAYMENT_COMPLETE {
+		subQuery2 := database.Table("(?) as tb2", subQuery1)
+		subQuery2 = subQuery2.Where("tb2.total <= 0")
+		subQuery2.Count(&total)
+	}
+
+	if paymentStatus == constants.PAYMENT_IN_COMPLETE {
+		subQuery2 := database.Table("(?) as tb2", subQuery1)
+		subQuery2 = subQuery2.Where("tb2.total > 0")
+		subQuery2.Count(&total)
+	}
+
+	if paymentStatus == constants.PAYMENT_MUSH_PAY {
+		subQuery2 := database.Table("(?) as tb2", subQuery1)
+		subQuery2 = subQuery2.Where("tb2.mush_pay_info->'$.mush_pay' > 0")
+		subQuery2.Count(&total)
+	}
+
+	return total
 }

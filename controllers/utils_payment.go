@@ -424,3 +424,26 @@ func updateSinglePaymentOfSubBag(mainBag model_booking.Booking, prof models.CmsU
 		}
 	}
 }
+
+/*
+  Xoa single payment -> udp status = delete
+*/
+func deleteSinglePayment(pUid, cUid, billCode string) {
+	db := datasources.GetDatabaseWithPartner(pUid)
+	// Xoa payment
+	singlePayment := model_payment.SinglePayment{
+		PartnerUid: pUid,
+		CourseUid:  cUid,
+		BillCode:   billCode,
+	}
+
+	errFP := singlePayment.FindFirst(db)
+	if errFP == nil {
+		// singlePayment.Status = constants.STATUS_DELETE
+		errUdpP := singlePayment.Delete(db)
+		log.Println("deleteSinglePayment uid", singlePayment.Bag, singlePayment.BookingDate, singlePayment.BookingUid)
+		if errUdpP != nil {
+			log.Println("deleteSinglePayment errUdpP", errUdpP)
+		}
+	}
+}

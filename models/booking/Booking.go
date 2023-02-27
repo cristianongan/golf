@@ -530,6 +530,7 @@ type BookingFeeOfBag struct {
 	ListRoundOfSubBag []RoundOfBag                         `json:"list_round_of_sub_bag"`
 	AgencyPaidAll     int64                                `json:"agency_paid_all"`
 	Rounds            []models.RoundPaidByMainBag          `json:"rounds"`
+	MainBagPay        []string                             `json:"main_bag_pay"`
 }
 
 type AgencyCancelBookingList struct {
@@ -646,6 +647,19 @@ func (item *Booking) FindAllBookingOTA(database *gorm.DB) ([]Booking, error) {
 
 	db = db.Where("partner_uid = ?", item.PartnerUid)
 	db = db.Where("booking_code = ?", item.BookingCode)
+	db = db.Group("bill_code")
+
+	db.Find(&list)
+	return list, db.Error
+}
+
+func (item *Booking) FindAllBookingForAgencyPayment(database *gorm.DB) ([]Booking, error) {
+	db := database.Model(Booking{})
+	list := []Booking{}
+
+	db = db.Where("partner_uid = ?", item.PartnerUid)
+	db = db.Where("booking_code = ?", item.BookingCode)
+	db = db.Where("check_in_time > 0")
 	db = db.Group("bill_code")
 
 	db.Find(&list)
