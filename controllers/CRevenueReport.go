@@ -598,7 +598,7 @@ func (_ *CRevenueReport) GetReportPayment(c *gin.Context, prof models.CmsUser) {
 	}
 
 	bookingDate := ""
-	if form.BookingDate == "" {
+	if form.BookingDate != "" {
 		bookingDate = form.BookingDate
 	} else {
 		toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
