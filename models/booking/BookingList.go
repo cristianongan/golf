@@ -585,10 +585,9 @@ func (item *BookingList) ReportAllBooking(database *gorm.DB) (ReportBooking, err
 	db = db.Where("bookings.moved_flight = ?", false)
 	db = db.Where("bookings.bag_status <> 'CANCEL'")
 
-	db = db.Select(`
-					SUM(bag_status = 'WAITING') AS waiting,
-					SUM(bag_status = 'TIMEOUT') AS time_out,
+	db = db.Select(`SUM(bag_status = 'TIMEOUT') AS time_out,
 					SUM(bag_status = 'IN_COURSE') AS in_course,
+					SUM(bag_status = 'WAITING' AND customer_type <> 'NONE_GOLF') AS waiting,
 					SUM(check_in_time > 0 AND customer_type <> 'NONE_GOLF') AS check_in,
 					SUM(check_out_time > 0 AND customer_type <> 'NONE_GOLF') AS check_out,
 					SUM(check_in_time > 0 AND customer_type = 'NONE_GOLF') AS non_check_in,
