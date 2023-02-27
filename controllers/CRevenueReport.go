@@ -665,7 +665,7 @@ func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.Cms
 		"report_detail":       report,
 		"payment_complete":    completeTotal,
 		"payment_in_complete": inCompleteTotal,
-		"payment_mush_pay":    mushPayTotal,
+		"payment_mushpay":     mushPayTotal,
 	}
 
 	okResponse(c, res)
