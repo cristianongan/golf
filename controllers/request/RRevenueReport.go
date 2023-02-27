@@ -10,12 +10,10 @@ type RevenueReportFBForm struct {
 }
 
 type RevenueReportDetailFBForm struct {
-	PageRequest
 	PartnerUid string `form:"partner_uid"`
 	CourseUid  string `form:"course_uid"`
-	FromDate   string `form:"from_date"`
-	ToDate     string `form:"to_date"`
-	Service    string `form:"service"`
+	Date       string `form:"date"`
+	Type       string `form:"type"`
 	Name       string `form:"name"`
 }
 

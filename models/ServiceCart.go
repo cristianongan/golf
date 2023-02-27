@@ -404,50 +404,47 @@ func (item *ServiceCart) FindReport(database *gorm.DB, page Page, fromDate, toDa
 	return list, total, db.Error
 }
 
-func (item *ServiceCart) FindReportDetailFB(database *gorm.DB, page Page, fromDate, toDate, name string) ([]map[string]interface{}, int64, error) {
+func (item *ServiceCart) FindReportDetailFB(database *gorm.DB, date, name string) ([]map[string]interface{}, error) {
 	var list []map[string]interface{}
-	total := int64(0)
-	db := database.Table("service_carts")
+	db := database.Table("booking_service_items")
 
-	db = db.Select("service_carts.booking_date, tb1.*")
+	db = db.Select("booking_service_items.*")
 
 	if item.CourseUid != "" {
-		db = db.Where("service_carts.course_uid = ?", item.CourseUid)
+		db = db.Where("booking_service_items.course_uid = ?", item.CourseUid)
 	}
 	if item.PartnerUid != "" {
-		db = db.Where("service_carts.partner_uid = ?", item.PartnerUid)
-	}
-
-	if fromDate != "" {
-		db = db.Where("service_carts.booking_date >= STR_TO_DATE(?, '%Y-%m-%d')", fromDate)
-	}
-
-	if toDate != "" {
-		db = db.Where("service_carts.booking_date <= STR_TO_DATE(?, '%Y-%m-%d')", toDate)
+		db = db.Where("booking_service_items.partner_uid = ?", item.PartnerUid)
 	}
 
 	if item.ServiceType != "" {
-		db = db.Where("service_carts.service_type = ?", item.ServiceType)
+		db = db.Where("booking_service_items.service_type = ?", item.ServiceType)
 	} else {
-		db = db.Where("service_carts.service_type IN ?", []string{constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.RESTAURANT_SETTING})
+		db = db.Where("booking_service_items.service_type IN ?", []string{constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.RESTAURANT_SETTING})
 	}
-
-	db = db.Where("service_carts.bill_status IN ?", []string{constants.RES_BILL_STATUS_FINISH, constants.RES_BILL_STATUS_OUT, constants.POS_BILL_STATUS_ACTIVE})
 
 	// sub query
-	subQuery := database.Table("booking_service_items")
+	subQuery := database.Table("bookings")
 
-	if name != "" {
-		subQuery = subQuery.Where("name LIKE ?", "%"+name+"%")
+	if item.CourseUid != "" {
+		subQuery = db.Where("bookings.course_uid = ?", item.CourseUid)
 	}
-
-	db = db.Joins(`INNER JOIN (?) as tb1 on service_carts.id = tb1.service_bill`, subQuery)
-
-	db.Count(&total)
-
-	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Find(&list)
+	if item.PartnerUid != "" {
+		subQuery = db.Where("bookings.partner_uid = ?", item.PartnerUid)
 	}
+	if date != "" {
+		subQuery = subQuery.Where("bookings.booking_date = ?", date)
+	}
+	subQuery = subQuery.Where("bookings.added_round = 0")
 
-	return list, total, db.Error
+	db = db.Joins(`LEFT JOIN (?) as tb1 on booking_service_items.bill_code = tb1.bill_code`, subQuery)
+	db = db.Joins(`INNER JOIN service_carts as tb2 on booking_service_items.bill_code = tb2.id`)
+
+	db = db.Where("tb1.check_in_time > 0")
+	db = db.Where("tb1.bag_status <> 'CANCEL'")
+	db = db.Where("tb2.bill_status <> 'CANCEL'")
+
+	db = db.Find(&list)
+
+	return list, db.Error
 }

@@ -96,28 +96,20 @@ func (_ *CRevenueReport) GetReportRevenueDetailFB(c *gin.Context, prof models.Cm
 		return
 	}
 
-	page := models.Page{
-		Limit:   form.PageRequest.Limit,
-		Page:    form.PageRequest.Page,
-		SortBy:  form.PageRequest.SortBy,
-		SortDir: form.PageRequest.SortDir,
-	}
-
 	serviceCart := models.ServiceCart{
 		PartnerUid:  form.PartnerUid,
 		CourseUid:   form.CourseUid,
-		ServiceType: form.Service,
+		ServiceType: form.Type,
 	}
 
-	list, total, err := serviceCart.FindReportDetailFB(db, page, form.FromDate, form.ToDate, form.Name)
+	list, err := serviceCart.FindReportDetailFB(db, form.Date, form.Name)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
 	res := map[string]interface{}{
-		"total": total,
-		"data":  list,
+		"data": list,
 	}
 
 	okResponse(c, res)
@@ -641,7 +633,7 @@ func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.Cms
 	nonPlayers := int64(0)
 
 	bookingDate := ""
-	if form.BookingDate == "" {
+	if form.BookingDate != "" {
 		bookingDate = form.BookingDate
 	} else {
 		toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
@@ -657,12 +649,11 @@ func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.Cms
 	report, _ := bookingList.ReportAllBooking(db)
 
 	db1, _ := bookingList.FindAllLastBooking(db)
-	db1.Where("customer_type <> ''")
 	db1.Count(&reportPlayers)
 
 	db2, _ := bookingList.FindAllLastBooking(db)
 	db2.Where("customer_type = ?", constants.CUSTOMER_TYPE_NONE_GOLF)
-	db1.Count(&nonPlayers)
+	db2.Count(&nonPlayers)
 
 	inCompleteTotal := bookingList.CountReportPayment(db, constants.PAYMENT_IN_COMPLETE)
 	completeTotal := bookingList.CountReportPayment(db, constants.PAYMENT_COMPLETE)
@@ -674,7 +665,7 @@ func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.Cms
 		"report_detail":       report,
 		"payment_complete":    completeTotal,
 		"payment_in_complete": inCompleteTotal,
-		"payment_mush_pay":    mushPayTotal,
+		"payment_mushpay":     mushPayTotal,
 	}
 
 	okResponse(c, res)

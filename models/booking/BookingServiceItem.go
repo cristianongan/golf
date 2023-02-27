@@ -524,7 +524,6 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 
 	if item.Type == "KIOSK" {
 		db.Group("booking_service_items.service_id, booking_service_items.item_code")
-		// db.Group("booking_service_items.item_code")
 	} else {
 		db.Group("booking_service_items.item_code")
 	}
