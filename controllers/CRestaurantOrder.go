@@ -372,29 +372,35 @@ func (_ CRestaurantOrder) GetListBill(c *gin.Context, prof models.CmsUser) {
 		serviceCartItem := model_booking.BookingServiceItem{}
 		serviceCartItem.ServiceBill = data.Id
 
-		listItem, err := serviceCartItem.FindAll(db)
+		listItem, _ := serviceCartItem.FindAll(db)
 
-		if err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
-		}
+		// if err != nil {
+		// 	response_message.BadRequest(c, err.Error())
+		// 	return
+		// }
 
 		//find all res item in bill
 		restaurantItem := models.RestaurantItem{}
 		restaurantItem.BillId = data.Id
 
-		listResItem, err := restaurantItem.FindAll(db)
+		listResItem, _ := restaurantItem.FindAll(db)
 
-		if err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
-		}
+		// if err != nil {
+		// 	response_message.BadRequest(c, err.Error())
+		// 	return
+		// }
+
+		// validate golf bag
+		bookingR := model_booking.Booking{}
+		bookingR.Uid = serviceCart.BookingUid
+		booking, _ := bookingR.FindFirstByUId(db)
 
 		// Add infor to response
 		listData[i] = map[string]interface{}{
-			"bill_infor": data,
-			"list_item":  listItem,
-			"menu":       listResItem,
+			"booking_infor": booking,
+			"bill_infor":    data,
+			"list_item":     listItem,
+			"menu":          listResItem,
 		}
 	}
 
