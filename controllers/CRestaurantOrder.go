@@ -392,7 +392,7 @@ func (_ CRestaurantOrder) GetListBill(c *gin.Context, prof models.CmsUser) {
 
 		// validate golf bag
 		bookingR := model_booking.Booking{}
-		bookingR.Uid = serviceCart.BookingUid
+		bookingR.Uid = data.BookingUid
 		booking, _ := bookingR.FindFirstByUId(db)
 
 		// Add infor to response
