@@ -630,7 +630,7 @@ func (item *BookingList) FindReportPayment(database *gorm.DB, paymentStatus stri
 	db = db.Group("tb1.bag")
 
 	if paymentStatus == constants.PAYMENT_COMPLETE {
-		db = db.Having("total <= 0")
+		db = db.Having("total <= 0 && tb1.mush_pay_info->'$.mush_pay' > 0")
 		db.Find(&list)
 	}
 
@@ -668,7 +668,7 @@ func (item *BookingList) CountReportPayment(database *gorm.DB, paymentStatus str
 
 	if paymentStatus == constants.PAYMENT_COMPLETE {
 		subQuery2 := database.Table("(?) as tb2", subQuery1)
-		subQuery2 = subQuery2.Where("tb2.total <= 0")
+		subQuery2 = subQuery2.Where("tb2.total <= 0 && tb2.mush_pay_info->'$.mush_pay' > 0")
 		subQuery2.Count(&total)
 	}
 
