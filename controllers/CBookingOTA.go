@@ -190,7 +190,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			PartnerUid:           prof.PartnerUid,
 			CourseUid:            prof.CourseUid,
 			BookingDate:          bookDate,
-			Hole:                 body.Holes,
+			HoleBooking:          body.Holes,
 			CustomerName:         body.PlayerName,
 			CustomerBookingName:  body.PlayerName,
 			CustomerBookingPhone: body.Contact,
