@@ -166,6 +166,14 @@ func GetRedisKeySystemReportRevenue() string {
 	return config.GetEnvironmentName() + "_" + "tuandd_redis_key_system_report_revenue"
 }
 
+func GetRedisKeySystemResetCaddieStatus() string {
+	return config.GetEnvironmentName() + "_" + "tuandd_redis_key_system_reset_caddie_status"
+}
+
+func GetRedisKeySystemResetBuggyStatus() string {
+	return config.GetEnvironmentName() + "_" + "tuandd_redis_key_system_reset_buggy_status"
+}
+
 func GetRedisKeyLockerCreateGuestName() string {
 	return config.GetEnvironmentName() + "_" + "redis_locker_create_guest_name"
 }
