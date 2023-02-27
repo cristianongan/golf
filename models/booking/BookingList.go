@@ -589,10 +589,10 @@ func (item *BookingList) ReportAllBooking(database *gorm.DB) (ReportBooking, err
 					SUM(bag_status = 'WAITING') AS waiting,
 					SUM(bag_status = 'TIMEOUT') AS time_out,
 					SUM(bag_status = 'IN_COURSE') AS in_course,
-					SUM(check_in_time > 0) AS check_in,
-					SUM(check_out_time > 0) AS check_out,
-					SUM(check_in_time = 0) AS non_check_in,
-					SUM(check_in_time > 0 && check_out_time = 0) AS non_check_out`)
+					SUM(check_in_time > 0 AND customer_type <> 'NONE_GOLF') AS check_in,
+					SUM(check_out_time > 0 AND customer_type <> 'NONE_GOLF') AS check_out,
+					SUM(check_in_time > 0 AND customer_type = 'NONE_GOLF') AS non_check_in,
+					SUM(check_out_time > 0 AND customer_type = 'NONE_GOLF') AS non_check_out`)
 
 	db.Find(&res)
 
