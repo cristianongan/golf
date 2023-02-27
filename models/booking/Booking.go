@@ -146,6 +146,7 @@ type BagDetail struct {
 type BagRoundNote struct {
 	Booking
 	RoundsWithNote []models.RoundWithNote `json:"rounds,omitempty"`
+	MemberCardInfo *models.MemberCard     `json:"member_card_info,omitempty"`
 }
 
 type GolfFeeOfBag struct {

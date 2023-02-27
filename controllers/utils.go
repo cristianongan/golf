@@ -974,6 +974,15 @@ func getBagWithRoundDetail(db *gorm.DB, booking model_booking.Booking) model_boo
 		Booking: booking,
 	}
 
+	// GetMemberCardInfo
+	if booking.MemberCardUid != "" {
+		memberCard := models.MemberCard{}
+		memberCard.Uid = booking.MemberCardUid
+		if errFindMB := memberCard.FindFirst(db); errFindMB == nil {
+			bagDetail.MemberCardInfo = &memberCard
+		}
+	}
+
 	// Get Rounds
 	if booking.BillCode != "" {
 		round := models.Round{BillCode: booking.BillCode}
