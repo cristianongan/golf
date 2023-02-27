@@ -4,7 +4,6 @@ import (
 	"log"
 	"start/constants"
 	"start/datasources"
-	"start/models"
 	model_booking "start/models/booking"
 	"start/utils"
 )
@@ -23,7 +22,6 @@ func runBookingLogutJob() {
 func runBookingLogout() {
 	dbBooking1 := datasources.GetDatabase()
 	localTime, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, utils.GetTimeNow().Unix())
-	localTimeTomorow, _ := utils.GetLocalTimeFromTimeStamp(constants.LOCATION_DEFAULT, constants.DATE_FORMAT_1, utils.GetTimeNow().AddDate(0, 0, 1).Unix())
 
 	bookingList := model_booking.BookingList{
 		BookingDate: localTime,
@@ -42,92 +40,4 @@ func runBookingLogout() {
 			log.Print(err.Error())
 		}
 	}
-
-	caddie := models.CaddieList{}
-	dbCaddie := datasources.GetDatabase()
-	listCaddie, _, _ := caddie.FindAllCaddieReadyOnDayList(dbCaddie) // Lấy ra caddie trong ngày làm việc
-	/*
-		Reset het trang thai cua nhung thang do
-	*/
-	for _, v := range listCaddie {
-		checkSlot := false
-		//
-		caddieWS := models.CaddieWorkingSlot{}
-		caddieWS.PartnerUid = v.PartnerUid
-		caddieWS.CourseUid = v.CourseUid
-		caddieWS.ApplyDate = localTimeTomorow
-
-		_ = caddieWS.FindFirst(dbCaddie)
-
-		if len(caddieWS.CaddieSlot) > 0 {
-			checkSlot = utils.Contains(caddieWS.CaddieSlot, v.Code)
-		}
-
-		caddieWC := models.CaddieWorkingCalendar{}
-		caddieWC.PartnerUid = v.PartnerUid
-		caddieWC.CourseUid = v.CourseUid
-		caddieWC.ApplyDate = localTimeTomorow
-		caddieWC.CaddieCode = v.Code
-
-		_ = caddieWC.FindFirst(dbCaddie)
-
-		if caddieWC.NumberOrder > 0 {
-			checkSlot = true
-		}
-
-		v.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
-		v.CurrentRound = 0
-
-		if !checkSlot {
-			v.IsWorking = 0
-		}
-		v.Update(dbCaddie)
-		updateCaddieOutSlot(v.PartnerUid, v.CourseUid, []string{v.Code})
-	}
-
-	buggy := models.Buggy{}
-	dbBuggy := datasources.GetDatabase()
-	listBuggy, _, _ := buggy.FindListBuggyNotReady(dbBuggy)
-	for _, v := range listBuggy {
-		v.BuggyStatus = constants.BUGGY_CURRENT_STATUS_ACTIVE
-		v.Update(dbBuggy)
-	}
-}
-
-func updateCaddieOutSlot(partnerUid, courseUid string, caddies []string) error {
-	var caddieSlotNew []string
-	var caddieSlotExist []string
-	// Format date
-	dateNow, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
-
-	caddieWS := models.CaddieWorkingSlot{}
-	caddieWS.PartnerUid = partnerUid
-	caddieWS.CourseUid = courseUid
-	caddieWS.ApplyDate = dateNow
-
-	db := datasources.GetDatabaseWithPartner(partnerUid)
-
-	err := caddieWS.FindFirst(db)
-	if err != nil {
-		return err
-	}
-
-	if len(caddieWS.CaddieSlot) > 0 {
-		caddieSlotNew = append(caddieSlotNew, caddieWS.CaddieSlot...)
-		for _, item := range caddies {
-			index := utils.StringInList(item, caddieSlotNew)
-			if index != -1 {
-				caddieSlotNew = utils.Remove(caddieSlotNew, index)
-				caddieSlotExist = append(caddieSlotExist, item)
-			}
-		}
-	}
-
-	caddieWS.CaddieSlot = append(caddieSlotNew, caddieSlotExist...)
-	err = caddieWS.Update(db)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
