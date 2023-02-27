@@ -96,28 +96,20 @@ func (_ *CRevenueReport) GetReportRevenueDetailFB(c *gin.Context, prof models.Cm
 		return
 	}
 
-	page := models.Page{
-		Limit:   form.PageRequest.Limit,
-		Page:    form.PageRequest.Page,
-		SortBy:  form.PageRequest.SortBy,
-		SortDir: form.PageRequest.SortDir,
-	}
-
 	serviceCart := models.ServiceCart{
 		PartnerUid:  form.PartnerUid,
 		CourseUid:   form.CourseUid,
-		ServiceType: form.Service,
+		ServiceType: form.Type,
 	}
 
-	list, total, err := serviceCart.FindReportDetailFB(db, page, form.FromDate, form.ToDate, form.Name)
+	list, err := serviceCart.FindReportDetailFB(db, form.Date, form.Name)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
 	res := map[string]interface{}{
-		"total": total,
-		"data":  list,
+		"data": list,
 	}
 
 	okResponse(c, res)
