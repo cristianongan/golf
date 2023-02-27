@@ -649,6 +649,7 @@ func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.Cms
 	report, _ := bookingList.ReportAllBooking(db)
 
 	db1, _ := bookingList.FindAllLastBooking(db)
+	db1.Where("customer_type <> ?", constants.CUSTOMER_TYPE_NONE_GOLF)
 	db1.Count(&reportPlayers)
 
 	db2, _ := bookingList.FindAllLastBooking(db)
