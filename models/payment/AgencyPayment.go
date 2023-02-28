@@ -109,7 +109,11 @@ func (item *AgencyPayment) UpdateTotalAmount(db *gorm.DB, isUdp bool) {
 
 	if errF == nil {
 		for _, v := range listBook {
-			totalAmount += v.MushPayInfo.MushPay
+			if v.BagStatus == constants.BAG_STATUS_BOOKING && v.UndoCheckInTime > 0 {
+				//undo check in khong add vao
+			} else {
+				totalAmount += v.MushPayInfo.MushPay
+			}
 		}
 	} else {
 		log.Println("AgencyPayment UpdateTotalAmount errF", errF.Error())
