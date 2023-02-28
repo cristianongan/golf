@@ -573,7 +573,7 @@ func (item *BookingServiceItem) FindReportDetailFB(database *gorm.DB, date strin
 
 	// subQuery = subQuery.Where("bookings.added_round = 0")
 
-	db = db.Joins(`LEFT JOIN (?) as tb1 on booking_service_items.bill_code = tb1.bill_code`, subQuery)
+	db = db.Joins(`LEFT JOIN (?) as tb1 on booking_service_items.booking_uid = tb1.uid`, subQuery)
 	db = db.Joins(`INNER JOIN service_carts as tb2 on booking_service_items.service_bill = tb2.id`)
 
 	db = db.Where("tb1.check_in_time > 0")

@@ -1328,3 +1328,48 @@ func (item *Booking) UpdateRoundForBooking(database *gorm.DB) {
 		booking.Update(db1)
 	}
 }
+
+func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]interface{}, error) {
+	var list []map[string]interface{}
+
+	db := database.Table("booking_service_items as tb1")
+
+	db = db.Select(`tb2.bag, tb2.customer_name,
+		SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_res,
+		SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_kiosk,
+		SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_bar
+	`, constants.RESTAURANT_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING)
+
+	// sub query
+	subQuery := database.Table("bookings")
+
+	if item.CourseUid != "" {
+		subQuery = subQuery.Where("bookings.course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		subQuery = subQuery.Where("bookings.partner_uid = ?", item.PartnerUid)
+	}
+	if item.BookingDate != "" {
+		subQuery = subQuery.Where("bookings.booking_date = ?", item.BookingDate)
+	}
+
+	db = db.Joins(`INNER JOIN (?) as tb2 on tb1.booking_uid = tb2.uid`, subQuery)
+	db = db.Joins(`INNER JOIN service_carts as tb3 on tb1.service_bill = tb3.id`)
+
+	if item.CourseUid != "" {
+		db = db.Where("tb1.course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("tb1.partner_uid = ?", item.PartnerUid)
+	}
+
+	db = db.Where("tb2.check_in_time > 0")
+	db = db.Where("tb2.bag_status <> 'CANCEL'")
+	db = db.Where("tb3.bill_status <> 'CANCEL'")
+
+	db.Group("tb2.bag")
+
+	db = db.Find(&list)
+
+	return list, db.Error
+}
