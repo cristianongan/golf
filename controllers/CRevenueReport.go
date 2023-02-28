@@ -399,6 +399,8 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 		}
 	}
 
+	data.TotalPlayer = data.Member + data.MemberGuest + data.Visitor + data.Foc + data.HK + data.Tour
+
 	res := map[string]interface{}{
 		"revenue": data,
 		"players": listTransfer,

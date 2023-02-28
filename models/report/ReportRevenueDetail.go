@@ -81,6 +81,7 @@ type DayEndRevenue struct {
 	Transfer         int64  `json:"transfer"` // Số tiền chuyển khoản
 	Debit            int64  `json:"debit"`    // Số tiền nợ
 	Card             int64  `json:"card"`     // Số tiền cà thẻ
+	TotalPlayer      int64  `json:"total_player"`
 }
 
 type BookingAgency struct {
