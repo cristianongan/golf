@@ -46,7 +46,7 @@
         "bucket": "golf-staging",
         "access_key": "vnpay",
         "secret_key": "vnpay@123",
-        "ssl": false,
+        "ssl": true,
         "get_data_host": "10.22.7.35:9000"
     },
     "golf_partner": {
