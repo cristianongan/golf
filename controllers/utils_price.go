@@ -554,7 +554,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		MembershipNo:     item.CardId,
 		CustomerType:     item.CustomerType,
 		Hole:             hole,
-		Paid:             item.GetAgencyPaid(),
+		Paid:             bookingR.GetAgencyPaid(),
 		GreenFee:         bookingGreenFee,
 		CaddieFee:        caddieFee,
 		FBFee:            fbFee,
