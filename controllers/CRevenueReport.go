@@ -100,9 +100,10 @@ func (_ *CRevenueReport) GetReportRevenueDetailFB(c *gin.Context, prof models.Cm
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 		Type:       form.Type,
+		GroupCode:  form.GroupCode,
 	}
 
-	list, err := bookSI.FindReportDetailFB(db, form.Date, form.Name)
+	list, err := bookSI.FindReportDetailFB(db, form.Date)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

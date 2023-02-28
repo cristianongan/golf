@@ -14,7 +14,7 @@ type RevenueReportDetailFBForm struct {
 	CourseUid  string `form:"course_uid"`
 	Date       string `form:"date"`
 	Type       string `form:"type"`
-	Name       string `form:"name"`
+	GroupCode  string `form:"group_code"`
 }
 
 type RevenueBookingReportDetail struct {
