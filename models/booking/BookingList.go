@@ -608,13 +608,14 @@ func (item *BookingList) FindAllLastBooking(database *gorm.DB) (*gorm.DB, error)
 	return db, db.Error
 }
 
-func (item *BookingList) FindAllLastBookingWithPage(database *gorm.DB, page models.Page) ([]Booking, int64, error) {
+func (item *BookingList) FindAllForReportBooking(database *gorm.DB, page models.Page) ([]Booking, int64, error) {
 	list := []Booking{}
 	total := int64(0)
 
 	db := database.Model(Booking{})
 	db = addFilter(db, item, false)
 	db = db.Where("bookings.bag_status <> 'CANCEL'")
+	db = db.Where("bookings.check_in_time > 0")
 	db = db.Where("bookings.added_round = ?", false)
 	db = db.Where("bookings.moved_flight = ?", false)
 

@@ -873,7 +873,7 @@ func (cBooking *CBooking) GetListLastBooking(c *gin.Context, prof models.CmsUser
 	}
 
 	bookings := SetParamGetBookingRequest(form)
-	list, total, err := bookings.FindAllLastBookingWithPage(db, page)
+	list, total, err := bookings.FindAllForReportBooking(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
