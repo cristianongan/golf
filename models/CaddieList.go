@@ -230,6 +230,10 @@ func (item CaddieList) FindListWithoutPage(database *gorm.DB) ([]Caddie, error) 
 		db = db.Order("group_index desc")
 	}
 
+	if len(item.GroupList) > 0 {
+		db = db.Where("group_id IN ?", item.GroupList)
+	}
+
 	err := db.Find(&list).Error
 
 	if err != nil {
