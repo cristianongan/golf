@@ -262,6 +262,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/booking/copy-booking", middlewares.AuthorizedCmsUserHandler(cBooking.CreateCopyBooking)) // Copy booking
 			cmsApiAuthorized.POST("/booking/check-in", middlewares.AuthorizedCmsUserHandler(cBooking.CheckIn))
 			cmsApiAuthorized.GET("/booking/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBooking))
+			cmsApiAuthorized.GET("/booking/list/last-booking", middlewares.AuthorizedCmsUserHandler(cBooking.GetListLastBooking))
 			cmsApiAuthorized.GET("/booking/list/select", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingWithSelect))
 			cmsApiAuthorized.GET("/booking/list/flight", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingWithFightInfo))
 			cmsApiAuthorized.GET("/booking/list-service-item", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingWithListServiceItems))
