@@ -96,13 +96,13 @@ func (_ *CRevenueReport) GetReportRevenueDetailFB(c *gin.Context, prof models.Cm
 		return
 	}
 
-	serviceCart := models.ServiceCart{
-		PartnerUid:  form.PartnerUid,
-		CourseUid:   form.CourseUid,
-		ServiceType: form.Type,
+	bookSI := model_booking.BookingServiceItem{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		Type:       form.Type,
 	}
 
-	list, err := serviceCart.FindReportDetailFB(db, form.Date, form.Name)
+	list, err := bookSI.FindReportDetailFB(db, form.Date, form.Name)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
