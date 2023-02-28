@@ -585,10 +585,9 @@ func (item *BookingList) ReportAllBooking(database *gorm.DB) (ReportBooking, err
 	db = db.Where("bookings.moved_flight = ?", false)
 	db = db.Where("bookings.bag_status <> 'CANCEL'")
 
-	db = db.Select(`
-					SUM(bag_status = 'WAITING') AS waiting,
-					SUM(bag_status = 'TIMEOUT') AS time_out,
+	db = db.Select(`SUM(bag_status = 'TIMEOUT') AS time_out,
 					SUM(bag_status = 'IN_COURSE') AS in_course,
+					SUM(bag_status = 'WAITING' AND customer_type <> 'NONE_GOLF') AS waiting,
 					SUM(check_in_time > 0 AND customer_type <> 'NONE_GOLF') AS check_in,
 					SUM(check_out_time > 0 AND customer_type <> 'NONE_GOLF') AS check_out,
 					SUM(check_in_time > 0 AND customer_type = 'NONE_GOLF') AS non_check_in,
@@ -631,7 +630,7 @@ func (item *BookingList) FindReportPayment(database *gorm.DB, paymentStatus stri
 	db = db.Group("tb1.bag")
 
 	if paymentStatus == constants.PAYMENT_COMPLETE {
-		db = db.Having("total <= 0")
+		db = db.Having("total <= 0 && tb1.mush_pay_info->'$.mush_pay' > 0")
 		db.Find(&list)
 	}
 
@@ -669,7 +668,7 @@ func (item *BookingList) CountReportPayment(database *gorm.DB, paymentStatus str
 
 	if paymentStatus == constants.PAYMENT_COMPLETE {
 		subQuery2 := database.Table("(?) as tb2", subQuery1)
-		subQuery2 = subQuery2.Where("tb2.total <= 0")
+		subQuery2 = subQuery2.Where("tb2.total <= 0 && tb2.mush_pay_info->'$.mush_pay' > 0")
 		subQuery2.Count(&total)
 	}
 

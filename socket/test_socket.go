@@ -137,7 +137,7 @@ func (c *Client) WritePump() {
 			// }
 
 			if err := w.Close(); err != nil {
-				log.Println("[SOCKET] WritePump err 1", err)
+				// log.Println("[SOCKET] WritePump err 1", err)
 				return
 			}
 		case <-ticker.C:
