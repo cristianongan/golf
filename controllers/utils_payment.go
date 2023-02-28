@@ -439,11 +439,25 @@ func deleteSinglePayment(pUid, cUid, billCode string) {
 
 	errFP := singlePayment.FindFirst(db)
 	if errFP == nil {
-		// singlePayment.Status = constants.STATUS_DELETE
-		errUdpP := singlePayment.Delete(db)
-		log.Println("deleteSinglePayment uid", singlePayment.Bag, singlePayment.BookingDate, singlePayment.BookingUid)
-		if errUdpP != nil {
-			log.Println("deleteSinglePayment errUdpP", errUdpP)
+		payDel := model_payment.SinglePaymentDel{
+			SinglePayment: singlePayment,
 		}
+		errUdpP := singlePayment.Delete(db)
+		log.Println("[PAYMENT] deleteSinglePayment uid", singlePayment.Bag, singlePayment.BookingDate, singlePayment.BookingUid)
+		if errUdpP != nil {
+			log.Println("[PAYMENT] deleteSinglePayment errUdpP", errUdpP)
+		} else {
+			go createSinglePaymentDel(payDel, db)
+		}
+	}
+}
+
+/*
+ Tạo các single payment để trace khi bị xoá
+*/
+func createSinglePaymentDel(singlePaymentDel model_payment.SinglePaymentDel, db *gorm.DB) {
+	err := singlePaymentDel.Create(db)
+	if err != nil {
+		log.Println("[PAYMENT] createSinglePaymentDel err", err.Error())
 	}
 }

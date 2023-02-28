@@ -81,6 +81,7 @@ func MigrateDbCms(db *gorm.DB) {
 
 	// ----- Payment -------
 	db.AutoMigrate(&model_payment.SinglePayment{})
+	db.AutoMigrate(&model_payment.SinglePaymentDel{})
 	db.AutoMigrate(&model_payment.SinglePaymentItem{})
 	db.AutoMigrate(&model_payment.AgencyPayment{})
 	db.AutoMigrate(&model_payment.AgencyPaymentItem{})
