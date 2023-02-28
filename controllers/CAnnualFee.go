@@ -56,6 +56,7 @@ func (_ *CAnnualFee) CreateAnnualFee(c *gin.Context, prof models.CmsUser) {
 		LastYearDebit:     body.LastYearDebit,
 		TotalPaid:         body.TotalPaid,
 		DaysPaid:          body.DaysPaid,
+		PaidReduce:        body.PaidReduce,
 	}
 
 	errC := annualFee.Create(db)

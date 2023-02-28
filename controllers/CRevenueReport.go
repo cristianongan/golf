@@ -56,33 +56,26 @@ func (_ *CRevenueReport) GetReportRevenueFoodBeverage(c *gin.Context, prof model
 
 func (_ *CRevenueReport) GetReportRevenueDetailFBBag(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	form := request.RevenueReportFBForm{}
+	form := request.RevenueReportDetailFBBagForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
-	page := models.Page{
-		Limit:   form.PageRequest.Limit,
-		Page:    form.PageRequest.Page,
-		SortBy:  form.PageRequest.SortBy,
-		SortDir: form.PageRequest.SortDir,
+	serviceCart := model_booking.Booking{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: form.Date,
 	}
 
-	serviceCart := models.ServiceCart{
-		PartnerUid: form.PartnerUid,
-		CourseUid:  form.CourseUid,
-	}
-
-	list, total, err := serviceCart.FindReportDetailFBBag(db, page, form.FromDate, form.ToDate, form.TypeService)
+	list, err := serviceCart.FindReportDetailFBBag(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
 	res := map[string]interface{}{
-		"total": total,
-		"data":  list,
+		"data": list,
 	}
 
 	okResponse(c, res)
@@ -100,9 +93,10 @@ func (_ *CRevenueReport) GetReportRevenueDetailFB(c *gin.Context, prof models.Cm
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 		Type:       form.Type,
+		GroupCode:  form.GroupCode,
 	}
 
-	list, err := bookSI.FindReportDetailFB(db, form.Date, form.Name)
+	list, err := bookSI.FindReportDetailFB(db, form.Date)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
