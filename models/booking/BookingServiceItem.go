@@ -549,7 +549,7 @@ func (item *BookingServiceItem) FindReportDetailFB(database *gorm.DB, date strin
 	}
 
 	if item.Type != "" {
-		db = db.Where("booking_service_items.type = ?", item.ServiceType)
+		db = db.Where("booking_service_items.type = ?", item.Type)
 	} else {
 		db = db.Where("booking_service_items.type IN ?", []string{constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.RESTAURANT_SETTING})
 	}
