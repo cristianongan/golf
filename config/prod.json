@@ -47,7 +47,7 @@
         "access_key": "vnpay",
         "secret_key": "U24zeTVxUGkxcEwwNTVFUWREV20=",
         "ssl": false,
-        "get_data_host": "10.20.22.96:9000/"
+        "get_data_host": "https://minio-vngolf-platform.vnpay.vn/"
     },
     "golf_partner": {
         "url": "http://golf-partner:4000/golf-partner/"
