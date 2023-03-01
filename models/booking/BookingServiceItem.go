@@ -534,9 +534,9 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 	db = db.Where("tb2.bill_status <> 'CANCEL'")
 
 	if item.Type == "KIOSK" {
-		db.Group("booking_service_items.service_id, booking_service_items.item_code, booking_service_items.discount_type, booking_service_items.discount_value")
+		db.Group("booking_service_items.service_id, booking_service_items.item_code, booking_service_items.unit_price, booking_service_items.discount_type, booking_service_items.discount_value")
 	} else {
-		db.Group("booking_service_items.item_code, booking_service_items.discount_type, booking_service_items.discount_value")
+		db.Group("booking_service_items.item_code, booking_service_items.unit_price,  booking_service_items.discount_type, booking_service_items.discount_value")
 	}
 
 	db.Order("booking_service_items.name")
@@ -590,6 +590,8 @@ func (item *BookingServiceItem) FindReportDetailFB(database *gorm.DB, date strin
 	db = db.Where("tb1.check_in_time > 0")
 	db = db.Where("tb1.bag_status <> 'CANCEL'")
 	db = db.Where("tb2.bill_status <> 'CANCEL'")
+
+	db = db.Group("booking_service_items.item_code, booking_service_items.unit_price,  booking_service_items.discount_type, booking_service_items.discount_value")
 
 	db = db.Find(&list)
 
