@@ -781,6 +781,7 @@ func createLocker(db *gorm.DB, booking model_booking.Booking) {
 	if booking.LockerNo != "" && locker.Locker != booking.LockerNo {
 		locker.PlayerName = booking.CustomerName
 		locker.Locker = booking.LockerNo
+		locker.GolfBag = booking.Bag
 		errU := locker.Update(db)
 		if errU != nil {
 			log.Println("createLocker errU", errU.Error())
