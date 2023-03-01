@@ -45,7 +45,7 @@
         "endpoint": "10.20.22.96:9000",
         "bucket": "golf-prod",
         "access_key": "vnpay",
-        "secret_key": "Vnpay@123",
+        "secret_key": "U24zeTVxUGkxcEwwNTVFUWREV20=",
         "ssl": false,
         "get_data_host": "10.20.22.96:9000/"
     },
