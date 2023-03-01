@@ -43,7 +43,7 @@
     },
     "minio": {
         "endpoint": "10.22.7.35:9000",
-        "bucket": "test",
+        "bucket": "golf-staging",
         "access_key": "vnpay",
         "secret_key": "aJRyazVK8pbjDAjLj2Og",
         "ssl": false,
