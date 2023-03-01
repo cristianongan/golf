@@ -59,6 +59,8 @@ func runResetCaddieStatus() {
 
 		if !checkSlot {
 			v.IsWorking = 0
+		} else {
+			v.IsWorking = 1
 		}
 		v.Update(dbCaddie)
 		updateCaddieOutSlot(v.PartnerUid, v.CourseUid, []string{v.Code})

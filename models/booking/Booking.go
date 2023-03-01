@@ -48,6 +48,7 @@ type Booking struct {
 	BagStatus         string `json:"bag_status" gorm:"type:varchar(50);index"` // Bag status
 	CheckInTime       int64  `json:"check_in_time"`                            // Time Check In
 	CheckOutTime      int64  `json:"check_out_time"`                           // Time Check Out
+	UndoCheckInTime   int64  `json:"undo_check_in_time"`                       // Time Undo Check In
 	CancelBookingTime int64  `json:"cancel_booking_time"`                      // Time cancel booking
 	TeeType           string `json:"tee_type" gorm:"type:varchar(50);index"`   // 1, 1A, 1B, 1C, 10, 10A, 10B
 	TeePath           string `json:"tee_path" gorm:"type:varchar(50);index"`   // MORNING, NOON, NIGHT

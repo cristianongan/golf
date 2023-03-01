@@ -169,6 +169,11 @@ func (_ *CBooking) GetBookingByBag(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if booking.CheckInTime == 0 {
+		response_message.BadRequestFreeMessage(c, "Bag chưa check in")
+		return
+	}
+
 	bagDetail := getBagWithRoundDetail(db, booking)
 	okResponse(c, bagDetail)
 }
@@ -841,6 +846,40 @@ func (cBooking *CBooking) GetListBagDetail(c *gin.Context, prof models.CmsUser) 
 
 	var list []model_booking.Booking
 	db.Find(&list)
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
+/*
+Get Last Booking (Nếu Booking có Round thì lấy Booking round cuối cùng)
+*/
+func (cBooking *CBooking) GetListLastBooking(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	bookings := SetParamGetBookingRequest(form)
+	list, total, err := bookings.FindAllForReportBooking(db, page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
 	res := map[string]interface{}{
 		"total": total,
 		"data":  list,
