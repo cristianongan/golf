@@ -8,6 +8,7 @@ import (
 	"start/controllers/response"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 	"time"
@@ -275,26 +276,83 @@ func (_ *CCaddie) GetCaddieReadyOnDay(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	caddie := models.CaddieList{}
-
-	if form.PartnerUid != "" {
-		caddie.PartnerUid = form.PartnerUid
+	toDayDate := ""
+	if form.DateTime != "" {
+		toDayDate = form.DateTime
+	} else {
+		toDay, errD := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+		toDayDate = toDay
 	}
 
-	if form.CourseId != "" {
-		caddie.CourseUid = form.CourseId
-	}
+	//get caddie working slot today
+	caddieWorkingCalendar := models.CaddieWorkingSlot{}
+	caddieWorkingCalendar.CourseUid = form.CourseId
+	caddieWorkingCalendar.PartnerUid = form.PartnerUid
+	caddieWorkingCalendar.ApplyDate = toDayDate
 
-	caddie.IsReadyForJoin = "1"
-	list, _, err := caddie.FindAllCaddieReadyOnDayList(db)
+	list, err := caddieWorkingCalendar.Find(db)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
+	//get caddie increase
+	caddieWCI := models.CaddieWorkingCalendar{}
+	caddieWCI.CourseUid = form.CourseId
+	caddieWCI.PartnerUid = form.PartnerUid
+	caddieWCI.ApplyDate = toDayDate
+	caddieWCI.CaddieIncrease = true
+
+	listIncrease, _, err := caddieWCI.FindAllByDate(db)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	dataCaddieSlot := models.CaddieWorkingSlot{}
+
+	if len(list) > 0 {
+		dataCaddieSlot = list[0]
+	}
+
+	listCaddieWorking := []string{}
+	for _, item := range listIncrease {
+		listCaddieWorking = append(listCaddieWorking, item["caddie_code"].(string))
+	}
+
+	for _, item := range dataCaddieSlot.CaddieSlot {
+		listCaddieWorking = append(listCaddieWorking, item)
+	}
+
+	caddieList := models.CaddieList{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseId,
+	}
+
+	listCaddie, _, err := caddieList.FindAllCaddieList(db)
+
+	caddieStatus := []string{
+		constants.CADDIE_CURRENT_STATUS_READY,
+		constants.CADDIE_CURRENT_STATUS_FINISH,
+		constants.CADDIE_CURRENT_STATUS_FINISH_R2,
+		constants.CADDIE_CURRENT_STATUS_FINISH_R3,
+	}
+
+	listCaddieReady := []models.Caddie{}
+	for _, caddie := range listCaddie {
+		if utils.ContainString(listCaddieWorking, caddie.Code) > -1 && utils.ContainString(caddieStatus, caddie.CurrentStatus) > -1 {
+			listCaddieReady = append(listCaddieReady, caddie)
+		}
+	}
+
 	res := map[string]interface{}{
-		"data": list,
+		"data": listCaddieReady,
 	}
 
 	c.JSON(200, res)
