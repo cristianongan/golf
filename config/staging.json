@@ -45,7 +45,7 @@
         "endpoint": "10.22.7.35:9000",
         "bucket": "golf-staging",
         "access_key": "vnpay",
-        "secret_key": "vnpay@123",
+        "secret_key": "aJRyazVK8pbjDAjLj2Og",
         "ssl": false,
         "get_data_host": "10.22.7.35:9000"
     },
