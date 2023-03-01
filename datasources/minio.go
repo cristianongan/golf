@@ -83,7 +83,7 @@ func minioUploadFile(bucketname, path string, file *multipart.File) (string, err
 	userMetaData := map[string]string{"x-amz-acl": "public-read"}
 	// contentTypeFile := http.DetectContentType(bFile)
 
-	uploadInfo, errUpload := minioClient.PutObject(
+	_, errUpload := minioClient.PutObject(
 		context.Background(),
 		bucketname,
 		path, bytes.NewReader(bFile),
@@ -93,7 +93,7 @@ func minioUploadFile(bucketname, path string, file *multipart.File) (string, err
 		log.Println("minio err ERROR_UPLOAD:", errUpload)
 		return "", errUpload
 	}
-	fmt.Println("minio Successfully uploaded bytes: ", utils.StructToJson(uploadInfo))
+	// fmt.Println("minio Successfully uploaded bytes: ", utils.StructToJson(uploadInfo))
 
 	return config.GetMinioGetDataHost() + config.GetMinioBucket() + path, nil
 }
