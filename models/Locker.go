@@ -5,6 +5,7 @@ import (
 	"start/datasources"
 	"start/utils"
 	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -69,7 +70,7 @@ func (item *Locker) FindList(database *gorm.DB, page Page, from, to int64, isFul
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 	if item.GolfBag != "" {
-		db = db.Where("golf_bag = ?", item.GolfBag)
+		db = db.Where("golf_bag in (?)", strings.Split(item.GolfBag, ","))
 	}
 	if item.Locker != "" {
 		db = db.Where("locker COLLATE utf8mb4_general_ci LIKE ?", "%"+item.Locker+"%")

@@ -46,7 +46,7 @@
         "bucket": "golf-prod",
         "access_key": "vnpay",
         "secret_key": "Vnpay@123",
-        "ssl": true,
+        "ssl": false,
         "get_data_host": "10.20.22.96:9000"
     },
     "golf_partner": {

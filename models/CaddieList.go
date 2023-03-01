@@ -162,6 +162,19 @@ func (item *CaddieList) FindAllCaddieReadyOnDayList(database *gorm.DB) ([]Caddie
 	return list, int64(len(list)), db.Error
 }
 
+func (item *CaddieList) FindAllCaddieList(database *gorm.DB) ([]Caddie, int64, error) {
+	var list []Caddie
+
+	db := database.Model(Caddie{})
+
+	db = addFilter(db, item)
+	db.Not("status = ?", constants.STATUS_DELETED)
+
+	db.Find(&list)
+
+	return list, int64(len(list)), db.Error
+}
+
 func (item *CaddieList) FindAllCaddieReadyOnDayListOTA(database *gorm.DB, date string) ([]CaddieRes, int64, error) {
 	var list []Caddie
 
@@ -228,6 +241,10 @@ func (item CaddieList) FindListWithoutPage(database *gorm.DB) ([]Caddie, error) 
 
 	if item.OrderByGroupIndexDesc {
 		db = db.Order("group_index desc")
+	}
+
+	if len(item.GroupList) > 0 {
+		db = db.Where("group_id IN ?", item.GroupList)
 	}
 
 	err := db.Find(&list).Error

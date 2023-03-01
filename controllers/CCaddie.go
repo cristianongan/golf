@@ -315,8 +315,8 @@ func (_ *CCaddie) GetCaddiGroupDayOffByDate(c *gin.Context, prof models.CmsUser)
 
 	// get caddie work sechedule
 	caddieWCN := models.CaddieWorkingSchedule{
-		PartnerUid: "CHI-LINH",
-		CourseUid:  "CHI-LINH-01",
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseId,
 		ApplyDate:  &(applyDate1),
 		IsDayOff:   &idDayOff1,
 	}
@@ -328,8 +328,8 @@ func (_ *CCaddie) GetCaddiGroupDayOffByDate(c *gin.Context, prof models.CmsUser)
 
 	//get all group
 	caddieGroup := models.CaddieGroup{
-		PartnerUid: "CHI-LINH",
-		CourseUid:  "CHI-LINH-01",
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseId,
 	}
 
 	listCaddieGroup, err := caddieGroup.FindListWithoutPage(db)
@@ -390,6 +390,92 @@ func (_ *CCaddie) GetCaddiGroupDayOffByDate(c *gin.Context, prof models.CmsUser)
 	res := response.PageResponse{
 		Total: total,
 		Data:  list,
+	}
+
+	c.JSON(200, res)
+}
+
+func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetCaddiGroupWorkByDateForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// Get group caddie work today
+	dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, form.Date)
+	applyDate1 := datatypes.Date(dateConvert)
+	idDayOff1 := false
+
+	// get caddie work sechedule
+	caddieWCN := models.CaddieWorkingSchedule{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseId,
+		ApplyDate:  &(applyDate1),
+		IsDayOff:   &idDayOff1,
+	}
+
+	listCWS, err := caddieWCN.FindListWithoutPage(db)
+	if err != nil {
+		log.Println("Find list caddie working schedule today", err.Error())
+	}
+
+	//get all group
+	caddieGroup := models.CaddieGroup{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseId,
+	}
+
+	listCaddieGroup, err := caddieGroup.FindListWithoutPage(db)
+	if err != nil {
+		log.Println("Find frist caddie working schedule", err.Error())
+	}
+
+	var groupDayOff []int64
+
+	//add group caddie
+	for _, item := range listCWS {
+		id := getIdGroup(listCaddieGroup, item.CaddieGroupCode)
+
+		groupDayOff = append(groupDayOff, id)
+	}
+
+	caddie := models.CaddieList{}
+
+	if form.PartnerUid != "" {
+		caddie.PartnerUid = form.PartnerUid
+	}
+
+	if form.CourseId != "" {
+		caddie.CourseUid = form.CourseId
+	}
+
+	if len(groupDayOff) > 0 {
+		caddie.GroupList = groupDayOff
+	} else {
+		res := response.PageResponse{
+			Data: nil,
+		}
+
+		c.JSON(200, res)
+		return
+	}
+
+	list, err := caddie.FindListWithoutPage(db)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var caddies []string
+	for _, v := range list {
+		caddies = append(caddies, v.Code)
+	}
+
+	res := response.PageResponse{
+		Data: caddies,
 	}
 
 	c.JSON(200, res)

@@ -56,33 +56,26 @@ func (_ *CRevenueReport) GetReportRevenueFoodBeverage(c *gin.Context, prof model
 
 func (_ *CRevenueReport) GetReportRevenueDetailFBBag(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	form := request.RevenueReportFBForm{}
+	form := request.RevenueReportDetailFBBagForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
-	page := models.Page{
-		Limit:   form.PageRequest.Limit,
-		Page:    form.PageRequest.Page,
-		SortBy:  form.PageRequest.SortBy,
-		SortDir: form.PageRequest.SortDir,
+	serviceCart := model_booking.Booking{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: form.Date,
 	}
 
-	serviceCart := models.ServiceCart{
-		PartnerUid: form.PartnerUid,
-		CourseUid:  form.CourseUid,
-	}
-
-	list, total, err := serviceCart.FindReportDetailFBBag(db, page, form.FromDate, form.ToDate, form.TypeService)
+	list, err := serviceCart.FindReportDetailFBBag(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
 	res := map[string]interface{}{
-		"total": total,
-		"data":  list,
+		"data": list,
 	}
 
 	okResponse(c, res)
@@ -96,13 +89,14 @@ func (_ *CRevenueReport) GetReportRevenueDetailFB(c *gin.Context, prof models.Cm
 		return
 	}
 
-	serviceCart := models.ServiceCart{
-		PartnerUid:  form.PartnerUid,
-		CourseUid:   form.CourseUid,
-		ServiceType: form.Type,
+	bookSI := model_booking.BookingServiceItem{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		Type:       form.Type,
+		GroupCode:  form.GroupCode,
 	}
 
-	list, err := serviceCart.FindReportDetailFB(db, form.Date, form.Name)
+	list, err := bookSI.FindReportDetailFB(db, form.Date)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -398,17 +392,20 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 		}
 	}
 
+	data.TotalPlayer = data.Member + data.MemberGuest + data.Visitor + data.Foc + data.HK + data.Tour
+
 	res := map[string]interface{}{
 		"revenue": data,
 		"players": listTransfer,
 		"cards": map[string]interface{}{
-			"vcb":  vcb,
-			"bidv": bidv,
+			"vcb":   vcb,
+			"bidv":  bidv,
+			"total": data.Card,
 		},
 		"transfer": map[string]interface{}{
 			"vcb":   vcbTransfer,
 			"bidv":  bidvTransfer,
-			"total": vcbTransfer + bidvTransfer + data.AgencyPaid,
+			"total": data.Transfer,
 		},
 	}
 
@@ -598,7 +595,7 @@ func (_ *CRevenueReport) GetReportPayment(c *gin.Context, prof models.CmsUser) {
 	}
 
 	bookingDate := ""
-	if form.BookingDate == "" {
+	if form.BookingDate != "" {
 		bookingDate = form.BookingDate
 	} else {
 		toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())

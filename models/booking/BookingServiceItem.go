@@ -534,3 +534,53 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 
 	return list, db.Error
 }
+
+func (item *BookingServiceItem) FindReportDetailFB(database *gorm.DB, date string) ([]map[string]interface{}, error) {
+	var list []map[string]interface{}
+	db := database.Table("booking_service_items")
+
+	db = db.Select("booking_service_items.*")
+
+	if item.CourseUid != "" {
+		db = db.Where("booking_service_items.course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("booking_service_items.partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.Type != "" {
+		db = db.Where("booking_service_items.type = ?", item.Type)
+	} else {
+		db = db.Where("booking_service_items.type IN ?", []string{constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.RESTAURANT_SETTING})
+	}
+
+	if item.GroupCode != "" {
+		db = db.Where("booking_service_items.group_code = ?", item.GroupCode)
+	}
+
+	// sub query
+	subQuery := database.Table("bookings")
+
+	if item.CourseUid != "" {
+		subQuery = subQuery.Where("bookings.course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		subQuery = subQuery.Where("bookings.partner_uid = ?", item.PartnerUid)
+	}
+	if date != "" {
+		subQuery = subQuery.Where("bookings.booking_date = ?", date)
+	}
+
+	// subQuery = subQuery.Where("bookings.added_round = 0")
+
+	db = db.Joins(`LEFT JOIN (?) as tb1 on booking_service_items.booking_uid = tb1.uid`, subQuery)
+	db = db.Joins(`INNER JOIN service_carts as tb2 on booking_service_items.service_bill = tb2.id`)
+
+	db = db.Where("tb1.check_in_time > 0")
+	db = db.Where("tb1.bag_status <> 'CANCEL'")
+	db = db.Where("tb2.bill_status <> 'CANCEL'")
+
+	db = db.Find(&list)
+
+	return list, db.Error
+}

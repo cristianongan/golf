@@ -2,25 +2,31 @@ package request
 
 type RevenueReportFBForm struct {
 	PageRequest
-	PartnerUid  string `form:"partner_uid"`
-	CourseUid   string `form:"course_uid"`
+	PartnerUid  string `form:"partner_uid" binding:"required"`
+	CourseUid   string `form:"course_uid" binding:"required"`
 	FromDate    string `form:"from_date"`
 	ToDate      string `form:"to_date"`
 	TypeService string `form:"type_service"`
 }
 
+type RevenueReportDetailFBBagForm struct {
+	PartnerUid string `form:"partner_uid" binding:"required"`
+	CourseUid  string `form:"course_uid" binding:"required"`
+	Date       string `form:"date" binding:"required"`
+}
+
 type RevenueReportDetailFBForm struct {
-	PartnerUid string `form:"partner_uid"`
-	CourseUid  string `form:"course_uid"`
-	Date       string `form:"date"`
+	PartnerUid string `form:"partner_uid" binding:"required"`
+	CourseUid  string `form:"course_uid" binding:"required"`
+	Date       string `form:"date" binding:"required"`
 	Type       string `form:"type"`
-	Name       string `form:"name"`
+	GroupCode  string `form:"group_code"`
 }
 
 type RevenueBookingReportDetail struct {
 	PageRequest
-	PartnerUid  string `form:"partner_uid"`
-	CourseUid   string `form:"course_uid"`
+	PartnerUid  string `form:"partner_uid" binding:"required"`
+	CourseUid   string `form:"course_uid" binding:"required"`
 	FromDate    string `form:"from_date"`
 	ToDate      string `form:"to_date"`
 	GuestStyle  string `form:"guest_style"`
@@ -39,8 +45,8 @@ type ReportBuggyForGuestStyleForm struct {
 
 type ReportBagDaily struct {
 	PageRequest
-	PartnerUid  string `form:"partner_uid"`
-	CourseUid   string `form:"course_uid"`
+	PartnerUid  string `form:"partner_uid" binding:"required"`
+	CourseUid   string `form:"course_uid" binding:"required"`
 	BookingDate string `form:"booking_date"`
 }
 
@@ -59,8 +65,8 @@ type ReportBuggyGoForm struct {
 }
 
 type RevenueReportPOSForm struct {
-	PartnerUid string `form:"partner_uid"`
-	CourseUid  string `form:"course_uid"`
+	PartnerUid string `form:"partner_uid" binding:"required"`
+	CourseUid  string `form:"course_uid" binding:"required"`
 	FromDate   string `form:"from_date"`
 	ToDate     string `form:"to_date"`
 	ServiceId  string `form:"service_id"`
