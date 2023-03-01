@@ -531,7 +531,7 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 
 	db = db.Where("tb1.check_in_time > 0")
 	db = db.Where("tb1.bag_status <> 'CANCEL'")
-	db = db.Where("tb2.bill_status <> 'CANCEL'")
+	db = db.Where("tb2.bill_status NOT IN ?", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
 
 	if item.Type == "KIOSK" {
 		db.Group("booking_service_items.service_id, booking_service_items.item_code, booking_service_items.unit_price, booking_service_items.discount_type, booking_service_items.discount_value")
@@ -589,7 +589,7 @@ func (item *BookingServiceItem) FindReportDetailFB(database *gorm.DB, date strin
 
 	db = db.Where("tb1.check_in_time > 0")
 	db = db.Where("tb1.bag_status <> 'CANCEL'")
-	db = db.Where("tb2.bill_status <> 'CANCEL'")
+	db = db.Where("tb2.bill_status NOT IN ?", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
 
 	db = db.Group("booking_service_items.item_code, booking_service_items.unit_price,  booking_service_items.discount_type, booking_service_items.discount_value")
 
