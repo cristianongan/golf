@@ -1363,6 +1363,7 @@ func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]inte
 		db = db.Where("tb1.partner_uid = ?", item.PartnerUid)
 	}
 
+	db = db.Where("tb1.type IN ?", []string{constants.RESTAURANT_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING})
 	db = db.Where("tb2.check_in_time > 0")
 	db = db.Where("tb2.bag_status <> 'CANCEL'")
 	db = db.Where("tb3.bill_status <> 'CANCEL'")

@@ -471,9 +471,20 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 	var list []map[string]interface{}
 
 	if item.Type == "KIOSK" {
-		db.Select("booking_service_items.name, booking_service_items.unit, booking_service_items.location as group_name, sum(booking_service_items.quality) as quantity, booking_service_items.unit_price, sum(booking_service_items.amount) as amount")
+		db.Select(`booking_service_items.name, booking_service_items.unit, booking_service_items.location as group_name, 
+			sum(booking_service_items.quality) as quantity, 
+			booking_service_items.unit_price, sum(booking_service_items.amount) as amount,
+			booking_service_items.discount_type,
+			booking_service_items.discount_value
+		`)
 	} else {
-		db.Select("booking_service_items.name, booking_service_items.unit, tb3.group_name, sum(booking_service_items.quality) as quantity, booking_service_items.unit_price, sum(booking_service_items.amount) as amount")
+		db.Select(`booking_service_items.name, 
+			booking_service_items.unit, tb3.group_name, 
+			sum(booking_service_items.quality) as quantity, 
+			booking_service_items.unit_price, sum(booking_service_items.amount) as amount,
+			booking_service_items.discount_type,
+			booking_service_items.discount_value
+		`)
 	}
 
 	if item.CourseUid != "" {
@@ -523,9 +534,9 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 	db = db.Where("tb2.bill_status <> 'CANCEL'")
 
 	if item.Type == "KIOSK" {
-		db.Group("booking_service_items.service_id, booking_service_items.item_code")
+		db.Group("booking_service_items.service_id, booking_service_items.item_code, booking_service_items.discount_type, booking_service_items.discount_value")
 	} else {
-		db.Group("booking_service_items.item_code")
+		db.Group("booking_service_items.item_code, booking_service_items.discount_type, booking_service_items.discount_value")
 	}
 
 	db.Order("booking_service_items.name")
