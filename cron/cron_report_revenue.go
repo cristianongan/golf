@@ -37,7 +37,7 @@ func runReportDailyRevenue() {
 
 	db, _, err := bookings.FindAllBookingList(db)
 	db = db.Where("check_in_time > 0")
-	db = db.Where("check_out_time > 0")
+	// db = db.Where("check_out_time > 0")
 	db = db.Where("bag_status <> 'CANCEL'")
 	db = db.Where("init_type <> 'ROUND'")
 	db = db.Where("init_type <> 'MOVEFLGIHT'")

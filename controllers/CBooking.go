@@ -493,12 +493,12 @@ func (_ CBooking) updateMemberCardToBooking(c *gin.Context,
 
 	if memberCard.Status == constants.STATUS_DISABLE {
 		response_message.BadRequestDynamicKey(c, "MEMBER_CARD_INACTIVE", "")
-		return nil
+		return errors.New("Error!")
 	}
 
 	if memberCard.AnnualType == constants.ANNUAL_TYPE_SLEEP {
 		response_message.BadRequestDynamicKey(c, "ANNUAL_TYPE_SLEEP_NOT_CHECKIN", "")
-		return nil
+		return errors.New("Error!")
 	}
 
 	// Get Owner
