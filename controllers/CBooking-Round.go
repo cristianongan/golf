@@ -105,11 +105,12 @@ func GetGolfFeeInfoOfBagForBill(c *gin.Context, mainBooking model_booking.Bookin
 			Model: models.Model{Uid: subBooking.BookingUid},
 		}
 
-		if eBookingR := bookingR.FindFirst(db); eBookingR != nil {
+		booking, eBookingR := bookingR.FindFirstByUId(db)
+		if eBookingR != nil {
 			log.Println(eBookingR.Error())
 		}
 
-		golfFeeOfBag.AgencyPaidAll += bookingR.GetAgencyPaid()
+		golfFeeOfBag.AgencyPaidAll += booking.GetAgencyPaid()
 
 		// if bookingR.CheckAgencyPaidAll() {
 		// 	break
@@ -123,7 +124,7 @@ func GetGolfFeeInfoOfBagForBill(c *gin.Context, mainBooking model_booking.Bookin
 			BookingCode: subBooking.BookingCode,
 			PlayerName:  subBooking.PlayerName,
 			Rounds:      []models.Round{},
-			AgencyPaid:  bookingR.AgencyPaid,
+			AgencyPaid:  booking.AgencyPaid,
 		}
 
 		for _, item := range listRound {
