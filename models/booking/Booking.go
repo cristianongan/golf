@@ -1334,7 +1334,7 @@ func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]inte
 
 	db := database.Table("booking_service_items as tb1")
 
-	db = db.Select(`tb2.bag, tb2.customer_name,
+	db = db.Select(`tb1.bag, tb2.customer_name,
 		SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_res,
 		SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_kiosk,
 		SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_bar
@@ -1368,7 +1368,7 @@ func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]inte
 	db = db.Where("tb2.bag_status <> 'CANCEL'")
 	db = db.Where("tb3.bill_status NOT IN ?", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
 
-	db.Group("tb2.bag")
+	db.Group("tb1.bag")
 
 	db = db.Find(&list)
 
