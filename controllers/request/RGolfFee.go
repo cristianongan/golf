@@ -12,6 +12,7 @@ type GetListGolfFeeForm struct {
 	GuestStyle       string `form:"guest_style"`
 	GuestStyleName   string `form:"guest_style_name"`
 	IsToday          string `form:"is_today"`
+	DOW              string `form:"dow"`
 	Time             string `form:"time"`
 }
 

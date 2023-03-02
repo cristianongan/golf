@@ -47,7 +47,7 @@
         "access_key": "vnpay",
         "secret_key": "aJRyazVK8pbjDAjLj2Og",
         "ssl": false,
-        "get_data_host": "10.22.7.35:9000"
+        "get_data_host": "https://vnticket.vnpaytest.vn/"
     },
     "golf_partner": {
         "url": "http://golf-partner:4000/golf-partner/"
