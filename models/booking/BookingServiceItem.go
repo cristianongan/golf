@@ -551,7 +551,7 @@ func (item *BookingServiceItem) FindReportDetailFB(database *gorm.DB, date strin
 	db := database.Table("booking_service_items as tb1")
 
 	db = db.Select(`tb1.bag, tb1.player_name, tb1.name, tb1.location, tb1.unit,
-		tb1.quality, tb1.unit_price, tb1.discount_type, tb1.discount_value,
+		SUM(tb1.quality) as quality, tb1.unit_price, tb1.discount_type, tb1.discount_value,
 		SUM(tb1.amount) as amount
 	`)
 
