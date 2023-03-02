@@ -435,7 +435,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 	item.FindServiceItemsOfBag(db)
 	for _, v := range item.ListServiceItems {
 		totalServiceItems += v.Amount
-		checkBuggy := strings.Contains(v.Name, "xe")
+		checkBuggy := strings.Contains(v.Unit, "xe")
 
 		if v.BillCode == item.BillCode {
 			if v.Type == constants.MINI_B_SETTING {
@@ -454,7 +454,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 					practiceBallFee += v.Amount
 				} else {
 					if v.ServiceType != constants.BUGGY_SETTING && v.ServiceType != constants.CADDIE_SETTING && !checkBuggy {
-						if v.ItemCode != "Tham quan" {
+						if v.ItemCode != constants.THAM_QUAN {
 							rentalFee += v.Amount
 						}
 					}
@@ -469,7 +469,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 				otherFee += v.Amount
 			}
 
-			if checkBuggy || v.ItemCode == "Tham quan" {
+			if checkBuggy || v.ItemCode == constants.THAM_QUAN {
 				buggyFee += v.Amount
 			}
 
