@@ -594,7 +594,7 @@ func (item *BookingServiceItem) FindReportDetailFB(database *gorm.DB, date strin
 	db = db.Where("tb1.bag_status <> 'CANCEL'")
 	db = db.Where("tb2.bill_status NOT IN ?", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
 
-	db = db.Group("tb.item_code, tb.location, tb.unit_price,  tb.discount_type, tb.discount_value")
+	db = db.Group("tb.bag, tb.item_code, tb.location, tb.unit_price,  tb.discount_type, tb.discount_value")
 
 	db = db.Debug().Find(&list)
 
