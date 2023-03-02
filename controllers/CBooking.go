@@ -493,12 +493,12 @@ func (_ CBooking) updateMemberCardToBooking(c *gin.Context,
 
 	if memberCard.Status == constants.STATUS_DISABLE {
 		response_message.BadRequestDynamicKey(c, "MEMBER_CARD_INACTIVE", "")
-		return nil
+		return errors.New("Error!")
 	}
 
 	if memberCard.AnnualType == constants.ANNUAL_TYPE_SLEEP {
 		response_message.BadRequestDynamicKey(c, "ANNUAL_TYPE_SLEEP_NOT_CHECKIN", "")
-		return nil
+		return errors.New("Error!")
 	}
 
 	// Get Owner
@@ -677,6 +677,11 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	booking, errF := bookingR.FindFirstByUId(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequestFreeMessage(c, "Bag đã CheckOut!")
 		return
 	}
 

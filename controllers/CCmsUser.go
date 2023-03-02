@@ -272,7 +272,12 @@ func (_ *CCmsUser) GetList(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	list, total, err := cmsUserR.FindList(page, form.Search, subRoles)
+	isRootUser := false
+	if prof.RoleId == -1 {
+		isRootUser = true
+	}
+
+	list, total, err := cmsUserR.FindList(page, form.Search, subRoles, isRootUser)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
