@@ -778,7 +778,7 @@ func createLocker(db *gorm.DB, booking model_booking.Booking) {
 		return
 	}
 
-	if booking.LockerNo != "" && locker.Locker != booking.LockerNo {
+	if booking.LockerNo != "" {
 		locker.PlayerName = booking.CustomerName
 		locker.Locker = booking.LockerNo
 		locker.GolfBag = booking.Bag

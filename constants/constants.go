@@ -128,6 +128,7 @@ const (
 	THUE_NUA_XE                   = "Thuê xe (1/2 xe)"
 	THUE_RIENG_XE                 = "Thuê riêng xe"
 	THUE_LE_XE                    = "Thuê lẻ xe"
+	THAM_QUAN                     = "Tham quan"
 )
 
 /*
