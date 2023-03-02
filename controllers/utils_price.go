@@ -435,7 +435,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 	item.FindServiceItemsOfBag(db)
 	for _, v := range item.ListServiceItems {
 		totalServiceItems += v.Amount
-		checkBuggy := strings.Contains(v.ServiceType, constants.BUGGY_SETTING) || strings.Contains(v.Unit, "xe")
+		checkBuggy := strings.Contains(v.Name, "xe") && v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL
 
 		if v.BillCode == item.BillCode {
 			if v.Type == constants.MINI_B_SETTING {
