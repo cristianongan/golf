@@ -73,11 +73,17 @@ func (_ *CBookingServiceItem) AddBookingServiceItemToBag(c *gin.Context, prof mo
 	}
 
 	//Find booking
-	booking := model_booking.Booking{}
-	booking.Uid = body.BookingUid
-	errFB := booking.FindFirst(db)
-	if errFB != nil {
-		response_message.InternalServerError(c, errFB.Error())
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = body.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
+
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequestFreeMessage(c, "Bag đã CheckOut!")
 		return
 	}
 
@@ -171,6 +177,20 @@ func (_ *CBookingServiceItem) DelBookingServiceItemToBag(c *gin.Context, prof mo
 		return
 	}
 
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = serviceItem.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
+
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequestFreeMessage(c, "Bag đã CheckOut!")
+		return
+	}
+
 	errDel := serviceItem.Delete(db)
 
 	if errDel != nil {
@@ -178,17 +198,8 @@ func (_ *CBookingServiceItem) DelBookingServiceItemToBag(c *gin.Context, prof mo
 		return
 	}
 
-	//Find Booking
-	booking := model_booking.Booking{}
-	booking.Uid = serviceItem.BookingUid
-
-	errFB := booking.FindFirst(db)
-	if errFB != nil {
-		log.Println("DelBookingServiceItemToBag", errFB.Error())
-	} else {
-		//Update lại giá trong booking
-		updatePriceWithServiceItem(&booking, prof)
-	}
+	//Update lại giá trong booking
+	updatePriceWithServiceItem(&booking, prof)
 
 	okRes(c)
 }

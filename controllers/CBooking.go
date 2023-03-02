@@ -1305,11 +1305,17 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 	// 	return
 	// }
 
-	booking := model_booking.Booking{}
-	booking.Uid = body.BookingUid
-	errF := booking.FindFirst(db)
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = body.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
+
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequestFreeMessage(c, "Bag đã CheckOut!")
 		return
 	}
 
