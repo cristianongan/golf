@@ -252,7 +252,7 @@ func (item *GolfFee) GetGuestStyleOnTime(database *gorm.DB, time time.Time) (Gol
 	return golfFee, errors.New("No guest style on day")
 }
 
-func (item *GolfFee) FindList(database *gorm.DB, page Page, isToday string) ([]GolfFee, int64, error) {
+func (item *GolfFee) FindList(database *gorm.DB, page Page, isToday, dow string) ([]GolfFee, int64, error) {
 	db := database.Model(GolfFee{})
 	list := []GolfFee{}
 	total := int64(0)
@@ -295,6 +295,22 @@ func (item *GolfFee) FindList(database *gorm.DB, page Page, isToday string) ([]G
 			}
 		}
 		db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+	}
+
+	if dow != "" {
+		// Lấy table Price hiện tại
+		db1 := datasources.GetDatabaseWithPartner(item.PartnerUid)
+		tablePriceR := TablePrice{
+			PartnerUid: item.PartnerUid,
+			CourseUid:  item.CourseUid,
+		}
+		currentTablePrice, errTB := tablePriceR.FindCurrentUse(db1)
+		if errTB == nil {
+			if currentTablePrice.Id > 0 {
+				db = db.Where("table_price_id = ?", currentTablePrice.Id)
+			}
+		}
+		db = db.Where("dow LIKE ?", "%"+dow+"%")
 	}
 
 	db.Count(&total)
