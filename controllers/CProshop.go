@@ -180,6 +180,12 @@ func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
 	}
 	if body.Price != nil {
 		proshop.Price = *body.Price
+
+		// Update lại giá trong Kho
+		go func() {
+			cKioskInventory := CKioskInventory{}
+			cKioskInventory.UpdatePriceForItem(db, prof.PartnerUid, prof.CourseUid, proshop.ProShopId, proshop.Price)
+		}()
 	}
 	if body.NetCost != nil {
 		proshop.NetCost = *body.NetCost
