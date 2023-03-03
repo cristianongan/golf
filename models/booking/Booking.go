@@ -129,6 +129,7 @@ type Booking struct {
 	LockBill          *bool                                `json:"lock_bill" gorm:"default:0"`                  // lễ tân lock bill cho kh để restaurant ko thao tác đc nữa
 	AgencyPaidAll     *bool                                `json:"agency_paid_all" gorm:"default:0"`            // Đánh dấu agency trả all fee cho kh
 	LastBookingStatus string                               `json:"last_booking_status" gorm:"type:varchar(50)"` // Đánh dấu trạng thái cuối cùng của booking
+	MemberCard        *models.MemberCard                   `json:"member_card_info,omitempty" gorm:"foreignKey:MemberCardUid"`
 }
 
 type FlyInfoResponse struct {
