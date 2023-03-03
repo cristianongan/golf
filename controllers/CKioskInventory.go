@@ -11,6 +11,7 @@ import (
 	"start/utils/response_message"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type CKioskInventory struct{}
@@ -196,4 +197,15 @@ func (_ CKioskInventory) UpdateInventory(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 	okRes(c)
+}
+func (_ CKioskInventory) UpdatePriceForItem(db *gorm.DB, partnerUid, courseUid, itemCode string, price float64) {
+	inventoryItem := kiosk_inventory.InventoryItem{
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+		Code:       itemCode,
+	}
+	if errFind := inventoryItem.FindFirst(db); errFind == nil {
+		inventoryItem.ItemInfo.Price = price
+		inventoryItem.Update(db)
+	}
 }

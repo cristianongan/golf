@@ -103,14 +103,15 @@ func (item *CmsUser) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *CmsUser) FindList(page Page, search string, subRoles []int) ([]CmsUser, int64, error) {
+func (item *CmsUser) FindList(page Page, search string, subRoles []int, isRootUser bool) ([]CmsUser, int64, error) {
 	db := datasources.GetDatabaseAuth().Model(CmsUser{})
 	list := []CmsUser{}
 	total := int64(0)
 	status := item.Model.Status
 	item.Model.Status = ""
 	db = db.Where(item)
-	if len(subRoles) > 0 {
+
+	if !isRootUser {
 		db = db.Where("role_id IN (?)", subRoles)
 	}
 	if status != "" {

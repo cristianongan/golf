@@ -493,12 +493,12 @@ func (_ CBooking) updateMemberCardToBooking(c *gin.Context,
 
 	if memberCard.Status == constants.STATUS_DISABLE {
 		response_message.BadRequestDynamicKey(c, "MEMBER_CARD_INACTIVE", "")
-		return nil
+		return errors.New("Error!")
 	}
 
 	if memberCard.AnnualType == constants.ANNUAL_TYPE_SLEEP {
 		response_message.BadRequestDynamicKey(c, "ANNUAL_TYPE_SLEEP_NOT_CHECKIN", "")
-		return nil
+		return errors.New("Error!")
 	}
 
 	// Get Owner
@@ -1090,6 +1090,12 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Checkin rồi thì k check in lại dc nữa
+	if booking.BagStatus == constants.BAG_STATUS_WAITING && booking.CheckInTime > 0 {
+		response_message.BadRequest(c, "da checkin roi")
+		return
+	}
+
 	// Check Guest of member, check member có còn slot đi cùng không
 	var memberCard models.MemberCard
 	if body.MemberUidOfGuest != "" && body.GuestStyle != "" {
@@ -1668,6 +1674,7 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 	billCode := booking.BillCode
 	bUid := booking.Uid
 	agencyId := booking.AgencyId
+	bookingCode := booking.BookingCode
 
 	if booking.InitType == constants.BOOKING_INIT_TYPE_CHECKIN {
 		if err := booking.Delete(db); err != nil {
@@ -1700,7 +1707,7 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Xoa payment
-	deleteSinglePayment(pUid, cUid, billCode, bUid, agencyId)
+	deleteSinglePayment(pUid, cUid, billCode, bUid, agencyId, bookingCode)
 
 	okRes(c)
 }

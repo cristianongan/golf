@@ -1543,7 +1543,7 @@ func (item *Booking) IsDuplicated(db *gorm.DB, checkTeeTime, checkBag bool) (boo
 				BookingDate: item.BookingDate,
 				Bag:         item.Bag,
 			}
-			errBagFind := booking.FindFirst(db)
+			errBagFind := booking.FindFirstNotCancel(db)
 			if errBagFind == nil || booking.Uid != "" {
 				return true, errors.New("Duplicated Bag")
 			}

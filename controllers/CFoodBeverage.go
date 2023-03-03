@@ -195,6 +195,11 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 	}
 	if body.Price >= 0 {
 		foodBeverage.Price = body.Price
+		// Update lại giá trong Kho
+		go func() {
+			cKioskInventory := CKioskInventory{}
+			cKioskInventory.UpdatePriceForItem(db, prof.PartnerUid, prof.CourseUid, foodBeverage.FBCode, foodBeverage.Price)
+		}()
 	}
 	if body.NetCost >= 0 {
 		foodBeverage.NetCost = body.NetCost
