@@ -334,6 +334,8 @@ func (item *BookingList) FindBookingListWithSelect(database *gorm.DB, page model
 
 	db = addFilter(db, item, isGroupBillCode)
 	db = db.Where("init_type IN (?)", []string{constants.BOOKING_INIT_TYPE_BOOKING, constants.BOOKING_INIT_TYPE_CHECKIN})
+	db = db.Preload("MemberCard").Joins("LEFT JOIN member_cards as tb1 ON bookings.member_card_uid = tb1.uid")
+	db = db.Preload("MemberCardOfGuest").Joins("LEFT JOIN member_cards as tb2 ON bookings.member_uid_of_guest = tb2.uid")
 
 	db.Count(&total)
 
