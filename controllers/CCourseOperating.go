@@ -587,7 +587,7 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 
 	if len(caddieList) > 0 {
 		// Update node caddie
-		go updateCaddieOutSlot(partnerUid, courseUid, caddieList)
+		updateCaddieOutSlot(partnerUid, courseUid, caddieList)
 	}
 
 	go func() {
@@ -685,7 +685,7 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 	if booking.CaddieId > 0 {
 		// Update node caddie
 		caddieList := []string{booking.CaddieInfo.Code}
-		go updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
+		updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
 	}
 
 	okRes(c)
@@ -737,7 +737,7 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 
 		// Update node caddie
 		caddieList := []string{oldCaddie.Code}
-		go updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
+		updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
 
 		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
 	}
@@ -872,7 +872,7 @@ func (_ *CCourseOperating) DeleteAttach(c *gin.Context, prof models.CmsUser) {
 	caddie := models.Caddie{}
 	caddie.Id = caddieId
 	if errC := caddie.FindFirst(db); errC == nil {
-		go updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, []string{caddie.Code})
+		updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, []string{caddie.Code})
 	}
 
 	okResponse(c, booking)
@@ -969,7 +969,7 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 
 		// Update node caddie
 		caddieList := []string{oldCaddie.Code}
-		go updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
+		updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
 
 		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
 	}
