@@ -428,7 +428,7 @@ func updateSinglePaymentOfSubBag(mainBag model_booking.Booking, prof models.CmsU
 /*
   Xoa single payment -> udp status = delete
 */
-func deleteSinglePayment(pUid, cUid, billCode, bookUid string, agencyId int64) {
+func deleteSinglePayment(pUid, cUid, billCode, bookUid string, agencyId int64, bookingCode string) {
 	db := datasources.GetDatabaseWithPartner(pUid)
 	// Xoa payment
 	singlePayment := model_payment.SinglePayment{
@@ -438,7 +438,6 @@ func deleteSinglePayment(pUid, cUid, billCode, bookUid string, agencyId int64) {
 	}
 
 	errFP := singlePayment.FindFirst(db)
-	bookingCode := singlePayment.BookingCode
 	if errFP == nil {
 		payDel := model_payment.SinglePaymentDel{
 			SinglePayment: singlePayment,
