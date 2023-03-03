@@ -130,6 +130,7 @@ type Booking struct {
 	AgencyPaidAll     *bool                                `json:"agency_paid_all" gorm:"default:0"`            // Đánh dấu agency trả all fee cho kh
 	LastBookingStatus string                               `json:"last_booking_status" gorm:"type:varchar(50)"` // Đánh dấu trạng thái cuối cùng của booking
 	MemberCard        *models.MemberCard                   `json:"member_card_info,omitempty" gorm:"foreignKey:MemberCardUid"`
+	MemberCardOfGuest *models.MemberCard                   `json:"member_card_of_guest,omitempty" gorm:"foreignKey:MemberUidOfGuest"`
 }
 
 type FlyInfoResponse struct {
