@@ -1674,6 +1674,7 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 	billCode := booking.BillCode
 	bUid := booking.Uid
 	agencyId := booking.AgencyId
+	bookingCode := booking.BookingCode
 
 	if booking.InitType == constants.BOOKING_INIT_TYPE_CHECKIN {
 		if err := booking.Delete(db); err != nil {
@@ -1706,7 +1707,7 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Xoa payment
-	deleteSinglePayment(pUid, cUid, billCode, bUid, agencyId)
+	deleteSinglePayment(pUid, cUid, billCode, bUid, agencyId, bookingCode)
 
 	okRes(c)
 }
