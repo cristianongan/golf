@@ -187,6 +187,12 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 	}
 	if body.Price != nil {
 		rental.Price = *body.Price
+
+		// Update lại giá trong Kho
+		go func() {
+			cKioskInventory := CKioskInventory{}
+			cKioskInventory.UpdatePriceForItem(db, prof.PartnerUid, prof.CourseUid, rental.RentalId, rental.Price)
+		}()
 	}
 	if body.ByHoles != nil {
 		rental.ByHoles = *body.ByHoles
