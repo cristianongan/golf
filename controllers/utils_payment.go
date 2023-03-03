@@ -438,6 +438,7 @@ func deleteSinglePayment(pUid, cUid, billCode, bookUid string, agencyId int64) {
 	}
 
 	errFP := singlePayment.FindFirst(db)
+	bookingCode := singlePayment.BookingCode
 	if errFP == nil {
 		payDel := model_payment.SinglePaymentDel{
 			SinglePayment: singlePayment,
@@ -458,6 +459,18 @@ func deleteSinglePayment(pUid, cUid, billCode, bookUid string, agencyId int64) {
 		errFB := booking.FindFirst(db)
 		if errFB != nil {
 			log.Println("[PAYMENT] deleteSinglePayment err find booking", errFB.Error())
+			agencyPayment := model_payment.AgencyPayment{
+				PartnerUid:  pUid,
+				CourseUid:   cUid,
+				BookingCode: bookingCode,
+			}
+			agencyPayment.Status = constants.STATUS_ENABLE
+
+			errFind := agencyPayment.FindFirst(db)
+			if errFind == nil {
+				agencyPayment.UpdateTotalAmount(db, true)
+			}
+			return
 		}
 		// Agency payment
 		if booking.CheckAgencyPaidAll() {
