@@ -442,7 +442,7 @@ func GetFeeFromListFee(feeList ListGolfHoleFee, hole int) int64 {
 }
 
 func RoundHole(hole int) int {
-	if hole > 0 && hole <= 2 {
+	if hole >= 0 && hole <= 2 {
 		return 0
 	} else if hole > 2 && hole <= 9 {
 		return 9
