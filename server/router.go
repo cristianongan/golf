@@ -735,6 +735,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Notification ===================
 			cNotification := new(controllers.CNotification)
 			cmsApiAuthorized.GET("/notification/list", middlewares.AuthorizedCmsUserHandler(cNotification.GetListNotification))
+			cmsApiAuthorized.GET("/notification/create-caddie", middlewares.AuthorizedCmsUserHandler(cNotification.CreateCaddieVacation))
 			cmsApiAuthorized.POST("/notification/caddie-calendar/approve/:id", middlewares.AuthorizedCmsUserHandler(cNotification.ApproveCaddieCalendarNotification))
 			cmsApiAuthorized.POST("/notification/seen", middlewares.AuthorizedCmsUserHandler(cNotification.SeenNotification))
 
