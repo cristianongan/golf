@@ -1293,13 +1293,13 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		return
 	}
 
-	if body.FlightId == 0 {
+	if body.FlightId == nil {
 		response_message.BadRequestFreeMessage(c, "Not Found Flight Id")
 		return
 	}
 
 	// validate flight_id
-	flight, err := cCourseOperating.validateFlight(prof.CourseUid, body.FlightId)
+	flight, err := cCourseOperating.validateFlight(prof.CourseUid, *body.FlightId)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

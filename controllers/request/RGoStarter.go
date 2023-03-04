@@ -127,7 +127,7 @@ type EditHolesOfCaddiesBody struct {
 
 type AddBagToFlightBody struct {
 	BookingDate string                 `json:"booking_date"`
-	FlightId    int64                  `json:"flight_id"`
+	FlightId    *int64                 `json:"flight_id"`
 	ListData    []CaddieBuggyToBooking `json:"list_data"`
 }
 
