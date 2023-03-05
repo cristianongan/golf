@@ -495,6 +495,54 @@ func (cBooking *CRevenueReport) UpdateReportRevenue(c *gin.Context, prof models.
 	okRes(c)
 }
 
+// Update BC DT với đk đã check-in và check-out
+func (cBooking *CRevenueReport) UpdateReportRevenueOnlyCheckIn(c *gin.Context, prof models.CmsUser) {
+	body := request.UpdateReportBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	reportR := model_report.ReportRevenueDetail{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+	}
+
+	if err := reportR.DeleteByBookingDate(); err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
+
+	bookings := model_booking.BookingList{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+	}
+
+	db, _, err := bookings.FindAllBookingList(db)
+	db = db.Where("check_in_time > 0")
+	db = db.Where("bag_status <> 'CANCEL'")
+	db = db.Where("init_type <> 'ROUND'")
+	db = db.Where("init_type <> 'MOVEFLGIHT'")
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []model_booking.Booking
+	db.Find(&list)
+
+	for _, booking := range list {
+		updatePriceForRevenue(booking, body.BillNo)
+	}
+
+	okRes(c)
+}
+
 func (_ *CRevenueReport) GetReportUsingBuggyInGo(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.ReportBuggyGoForm{}
