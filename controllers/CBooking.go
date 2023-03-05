@@ -17,6 +17,7 @@ import (
 	model_report "start/models/report"
 	"start/utils"
 	"start/utils/response_message"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -932,13 +933,12 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 				}
 
 				go func() {
-					udpCaddieOut(db, oldCaddie.Id)
 					caddie := models.Caddie{}
 					caddie.Id = oldCaddie.Id
-					if err := caddie.FindFirst(db); err != nil {
-						// if !(utils.ContainString(constants.LIST_CADDIE_READY_JOIN, caddie.CurrentStatus) > -1) {
-						// 	updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, []string{oldCaddie.Code})
-						// }
+					if err := caddie.FindFirst(db); err == nil {
+						if strings.Contains(caddie.CurrentStatus, constants.CADDIE_CURRENT_STATUS_IN_COURSE) {
+							udpCaddieOut(db, oldCaddie.Id)
+						}
 					}
 				}()
 			}
