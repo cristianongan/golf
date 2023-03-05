@@ -1293,8 +1293,13 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		return
 	}
 
+	if body.FlightId == nil {
+		response_message.BadRequestFreeMessage(c, "Not Found Flight Id")
+		return
+	}
+
 	// validate flight_id
-	flight, err := cCourseOperating.validateFlight(prof.CourseUid, body.FlightId)
+	flight, err := cCourseOperating.validateFlight(prof.CourseUid, *body.FlightId)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -1418,8 +1423,10 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 					log.Println("Round not found")
 				}
 
-				buggyFee := getBuggyFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, round.Hole)
-				addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
+				if round.Hole > 0 {
+					buggyFee := getBuggyFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, round.Hole)
+					addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
+				}
 			}
 			updatePriceWithServiceItem(&booking, prof)
 		}

@@ -783,6 +783,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/using-buggy", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportUsingBuggyInGo))
 			cmsApiAuthorized.GET("/report/agency-payment", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportAgencyPayment))
 			cmsApiAuthorized.POST("/report/revenue/update-daily-report", middlewares.AuthorizedCmsUserHandler(cRevenueReport.UpdateReportRevenue))
+			cmsApiAuthorized.POST("/report/revenue/update-daily-report-only-check-in", middlewares.AuthorizedCmsUserHandler(cRevenueReport.UpdateReportRevenueOnlyCheckIn))
 			cmsApiAuthorized.GET("/report/revenue/report-point-of-sale", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportRevenuePointOfSale))
 			cmsApiAuthorized.GET("/report/starter", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportStarter))
 			cmsApiAuthorized.GET("/report/payment/bag-status", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportPayment))

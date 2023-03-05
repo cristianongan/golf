@@ -46,6 +46,11 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if body.Hole != nil && *body.Hole == 0 {
+		response_message.BadRequest(c, "Hole invalid!")
+		return
+	}
+
 	hole := 0
 	if body.Hole == nil {
 		hole = 18
