@@ -30,6 +30,62 @@ func (_ *CHelper) AppLog(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, "ok")
 }
 
+type ResetCaddieBody struct {
+	PartnerUid    string `json:"partner_uid" binding:"required"` // Hang Golf
+	CourseUid     string `json:"course_uid" binding:"required"`  // San Golf
+	Code          string `json:"code" binding:"required"`        // Id Caddie vận hành
+	CurrentStatus string `json:"current_status"`
+	CurrentRound  int    `json:"current_round"`
+	IsWorking     int    `json:"is_working"`
+}
+
+/*
+Reset caddie để chọn dc cho ghép flight
+*/
+func (_ *CHelper) ResetCaddie(c *gin.Context, prof models.CmsUser) {
+	body := ResetCaddieBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	db := datasources.GetDatabase()
+
+	caddie := models.Caddie{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		Code:       body.Code,
+	}
+
+	errF := caddie.FindFirst(db)
+	if errF != nil {
+		badRequest(c, errF.Error())
+		return
+	}
+
+	if body.CurrentStatus != "" {
+		caddie.ContractStatus = body.CurrentStatus
+	} else {
+		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
+	}
+
+	if body.CurrentRound > 0 {
+		caddie.CurrentRound = body.CurrentRound
+	} else {
+		caddie.CurrentRound = 0
+	}
+
+	caddie.IsWorking = 1
+
+	errUdp := caddie.Update(db)
+	if errUdp != nil {
+		badRequest(c, errUdp.Error())
+		return
+	}
+
+	okResponse(c, caddie)
+}
+
 type CustomerT struct {
 	Name string `json:"name"`
 	Dob  string `json:"dob"`
