@@ -780,7 +780,8 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 			caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
 			caddieNew.CurrentRound = caddieNew.CurrentRound + 1
 		} else {
-			caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+			//HAICV: disable bug
+			// caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
 		}
 
 		if err := caddieNew.Update(db); err != nil {
