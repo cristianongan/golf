@@ -386,6 +386,8 @@ func (item *BookingList) FindListBookingNotCheckOut(database *gorm.DB) (*gorm.DB
 	db = addFilter(db, item, false)
 	db = db.Where("check_in_time > 0")
 	db = db.Where("check_out_time = 0")
+	db = db.Where("added_round = ?", false)
+	db = db.Where("bookings.moved_flight = ?", false)
 
 	db.Find(&list)
 
