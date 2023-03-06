@@ -214,6 +214,11 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
+		if *bookingTemp.LockBill {
+			response_message.BadRequestFreeMessage(c, "Bag "+bookingTemp.Bag+" đã lock")
+			return
+		}
+
 		if bookingTemp.Uid != "" && bookingTemp.BagStatus != constants.BAG_STATUS_WAITING {
 			response_message.BadRequestFreeMessage(c, fmt.Sprintln("Bag", bookingTemp.Bag, bookingTemp.BagStatus))
 			return
@@ -918,9 +923,10 @@ func (_ *CCourseOperating) GetStartingSheet(c *gin.Context, prof models.CmsUser)
 }
 
 func (_ CCourseOperating) validateBooking(db *gorm.DB, bookindUid string) (model_booking.Booking, error) {
-	booking := model_booking.Booking{}
-	booking.Uid = bookindUid
-	if err := booking.FindFirst(db); err != nil {
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = bookindUid
+	booking, err := bookingR.FindFirstByUId(db)
+	if err != nil {
 		return booking, err
 	}
 
@@ -1336,6 +1342,11 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		caddieTemp := response.NewCaddie
 		buggyTemp := response.NewBuggy
 
+		if *bookingTemp.LockBill {
+			response_message.BadRequestFreeMessage(c, "Bag "+bookingTemp.Bag+" đã lock")
+			return
+		}
+
 		if bookingTemp.BagStatus != constants.BAG_STATUS_WAITING {
 			response_message.BadRequest(c, "BAG STATUS "+bookingTemp.BagStatus)
 			return
@@ -1539,6 +1550,16 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	// validate golf_bag
 	if booking.Bag != body.GolfBag {
 		response_message.InternalServerError(c, "Booking uid and golf bag do not match")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequestFreeMessage(c, "Bag "+booking.Bag+" đã lock")
+		return
+	}
+
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequestFreeMessage(c, "Bag "+booking.Bag+" đã check out!")
 		return
 	}
 

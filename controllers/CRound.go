@@ -477,11 +477,14 @@ func (cRound CRound) ResetRoundPaidByMain(billCode string, db *gorm.DB) {
 
 // Update lại bag cho round 1 khi check in
 func (cRound CRound) UpdateBag(booking model_booking.Booking, db *gorm.DB) {
-	round1 := models.Round{BillCode: booking.BillCode, Index: 1}
-	if errRound1 := round1.FindFirst(db); errRound1 == nil {
-		if round1.Bag == "" {
-			round1.Bag = booking.Bag
-			round1.Update(db)
+	roundR := models.Round{
+		BillCode: booking.BillCode,
+	}
+	listRound, _ := roundR.FindAll(db)
+	for _, round := range listRound {
+		if booking.Bag != round.Bag {
+			round.Bag = booking.Bag
+			round.Update(db)
 		}
 	}
 }
