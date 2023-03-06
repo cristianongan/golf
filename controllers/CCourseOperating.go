@@ -349,16 +349,18 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 					log.Println("Round not found")
 				}
 
-				buggyFee := getBuggyFeeSetting(body.PartnerUid, body.CourseUid, booking.GuestStyle, round.Hole)
-				if bodyItem.BagShare != "" {
-					addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
-				} else {
-					if booking.IsPrivateBuggy != nil && *booking.IsPrivateBuggy == true {
-						addBuggyFee(booking, buggyFee.PrivateCarFee, "Thuê riêng xe", round.Hole)
+				if round.Hole > 0 {
+					buggyFee := getBuggyFeeSetting(body.PartnerUid, body.CourseUid, booking.GuestStyle, round.Hole)
+					if bodyItem.BagShare != "" {
 						addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
 					} else {
-						addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
-						addBuggyFee(booking, buggyFee.OddCarFee, "Thuê lẻ xe", round.Hole)
+						if booking.IsPrivateBuggy != nil && *booking.IsPrivateBuggy == true {
+							addBuggyFee(booking, buggyFee.PrivateCarFee, "Thuê riêng xe", round.Hole)
+							addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
+						} else {
+							addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
+							addBuggyFee(booking, buggyFee.OddCarFee, "Thuê lẻ xe", round.Hole)
+						}
 					}
 				}
 			}
@@ -778,7 +780,8 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 			caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_IN_COURSE
 			caddieNew.CurrentRound = caddieNew.CurrentRound + 1
 		} else {
-			caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+			//HAICV: disable bug
+			// caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
 		}
 
 		if err := caddieNew.Update(db); err != nil {
@@ -1291,8 +1294,13 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		return
 	}
 
+	if body.FlightId == nil {
+		response_message.BadRequestFreeMessage(c, "Not Found Flight Id")
+		return
+	}
+
 	// validate flight_id
-	flight, err := cCourseOperating.validateFlight(prof.CourseUid, body.FlightId)
+	flight, err := cCourseOperating.validateFlight(prof.CourseUid, *body.FlightId)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -1416,8 +1424,10 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 					log.Println("Round not found")
 				}
 
-				buggyFee := getBuggyFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, round.Hole)
-				addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
+				if round.Hole > 0 {
+					buggyFee := getBuggyFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, round.Hole)
+					addBuggyFee(booking, buggyFee.RentalFee, "Thuê xe (1/2 xe)", round.Hole)
+				}
 			}
 			updatePriceWithServiceItem(&booking, prof)
 		}

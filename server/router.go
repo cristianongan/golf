@@ -783,6 +783,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/using-buggy", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportUsingBuggyInGo))
 			cmsApiAuthorized.GET("/report/agency-payment", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportAgencyPayment))
 			cmsApiAuthorized.POST("/report/revenue/update-daily-report", middlewares.AuthorizedCmsUserHandler(cRevenueReport.UpdateReportRevenue))
+			cmsApiAuthorized.POST("/report/revenue/update-daily-report-only-check-in", middlewares.AuthorizedCmsUserHandler(cRevenueReport.UpdateReportRevenueOnlyCheckIn))
 			cmsApiAuthorized.GET("/report/revenue/report-point-of-sale", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportRevenuePointOfSale))
 			cmsApiAuthorized.GET("/report/starter", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportStarter))
 			cmsApiAuthorized.GET("/report/payment/bag-status", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportPayment))
@@ -811,6 +812,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/helper/admin/add-fb", middlewares.AuthorizedCmsUserHandler(cHelper.CreateFB))                     // Chỉ dùng cho import data fb
 			cmsApiAuthorized.POST("/helper/admin/add-proshop", middlewares.AuthorizedCmsUserHandler(cHelper.CreateProshop))
 			cmsApiAuthorized.POST("/helper/admin/create-caddie-slot", middlewares.AuthorizedCmsUserHandler(cHelper.CreateCaddieSlotByDate)) // Chỉ dùng cho import data fb
+			cmsApiAuthorized.POST("/helper/admin/reset-caddie", middlewares.AuthorizedCmsUserHandler(cHelper.ResetCaddie))                  // Reset Caddie -> cho di lam và có thể chọn
 		}
 
 		// ----------------------------------------------------------
