@@ -837,7 +837,7 @@ Delete Attach caddie
 (Khách không bị cho vào danh sách out mà trở về trạng thái trước khi ghép)
 - Trường hợp chưa ghép Flight (Đã gán Caddie và Buugy) --> Delete Attach Caddie sẽ xóa caddie và buggy đã gán với khách
 */
-func (_ *CCourseOperating) DeleteAttach(c *gin.Context, prof models.CmsUser) {
+func (cCourseOperating *CCourseOperating) DeleteAttach(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.DeleteAttachBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -846,11 +846,10 @@ func (_ *CCourseOperating) DeleteAttach(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Check booking
-	booking := model_booking.Booking{}
-	booking.Uid = body.BookingUid
-	errF := booking.FindFirst(db)
-	if errF != nil {
-		response_message.InternalServerError(c, errF.Error())
+	// validate booking_uid
+	booking, err := cCourseOperating.validateBooking(db, body.BookingUid)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
