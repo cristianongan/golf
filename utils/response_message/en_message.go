@@ -46,4 +46,9 @@ var EnLanguage = map[string]string{
 	"OUT_CADDIE_ERROR":              "Booking have not caddie",
 	"INVENTORY_NOT_FOUND":           "Inventory not found",
 	"TEE_TIME_SLOT_FULL":            "Tee Time is full 4 slot",
+	"BAG_BE_LOCK":                   "Bag bị lock",
+
+	//Agency
+	"AGENCY_DUPLI_CONTRACT_NO": "Bị trùng contract no",
+	"AGENCY_DUPLI_AGENCY_ID":   "Bị trùng agency id",
 }

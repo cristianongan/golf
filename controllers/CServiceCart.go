@@ -56,7 +56,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
@@ -240,7 +240,7 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
@@ -409,7 +409,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
@@ -502,7 +502,7 @@ func (_ CServiceCart) AddDiscountToBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
@@ -792,7 +792,7 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
@@ -936,7 +936,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
@@ -1040,7 +1040,7 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
@@ -1088,7 +1088,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
@@ -1247,7 +1247,7 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
@@ -1460,7 +1460,7 @@ func (_ CServiceCart) FinishOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
