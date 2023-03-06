@@ -33,6 +33,7 @@ type RevenueBookingReportDetail struct {
 	Month       int    `form:"month"`
 	Year        int    `form:"year"`
 	BookingDate string `form:"booking_date"`
+	Bag         string `form:"bag"`
 }
 
 type ReportBuggyForGuestStyleForm struct {

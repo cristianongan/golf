@@ -131,6 +131,7 @@ func (cRevenueReport *CRevenueReport) GetBookingReportRevenueDetail(c *gin.Conte
 		CourseUid:   form.CourseUid,
 		GuestStyle:  form.GuestStyle,
 		BookingDate: form.BookingDate,
+		Bag:         form.Bag,
 	}
 
 	list, total, _ := reportRevenue.FindBookingRevenueList(db, page)

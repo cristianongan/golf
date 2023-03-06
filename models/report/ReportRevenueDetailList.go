@@ -19,6 +19,7 @@ type ReportRevenueDetailList struct {
 	Month       int
 	Year        int
 	Zone        string
+	Bag         string
 }
 
 type ResReportCashierAudit struct {
@@ -72,6 +73,10 @@ func addFilter(db *gorm.DB, item *ReportRevenueDetailList) *gorm.DB {
 
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+
+	if item.Bag != "" {
+		db = db.Where("bag COLLATE utf8mb4_general_ci LIKE ?", "%"+item.Bag+"%")
 	}
 
 	return db
