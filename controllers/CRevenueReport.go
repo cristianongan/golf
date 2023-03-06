@@ -109,13 +109,15 @@ func (_ *CRevenueReport) GetReportRevenueDetailFB(c *gin.Context, prof models.Cm
 	okResponse(c, res)
 }
 
-func (_ *CRevenueReport) GetBookingReportRevenueDetail(c *gin.Context, prof models.CmsUser) {
+func (cRevenueReport *CRevenueReport) GetBookingReportRevenueDetail(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.RevenueBookingReportDetail{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
+
+	cRevenueReport.updateRevenueReport(c, form.PartnerUid, form.CourseUid, form.BookingDate)
 
 	page := models.Page{
 		Limit:   form.PageRequest.Limit,
@@ -125,11 +127,11 @@ func (_ *CRevenueReport) GetBookingReportRevenueDetail(c *gin.Context, prof mode
 	}
 
 	reportRevenue := model_report.ReportRevenueDetailList{
-		PartnerUid: form.PartnerUid,
-		CourseUid:  form.CourseUid,
-		GuestStyle: form.GuestStyle,
-		FromDate:   form.FromDate,
-		ToDate:     form.ToDate,
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		GuestStyle:  form.GuestStyle,
+		BookingDate: form.BookingDate,
+		Bag:         form.Bag,
 	}
 
 	list, total, _ := reportRevenue.FindBookingRevenueList(db, page)
