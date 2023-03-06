@@ -29,13 +29,15 @@ func (_ *CAgency) CreateAgency(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.IsDuplicated(db) {
-		response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
+		response_message.BadRequestDynamicKey(c, "AGENCY_DUPLI_AGENCY_ID", constants.API_ERR_DUPLICATED_RECORD)
 		return
 	}
 
-	if errContractNo := body.IsDuplicatedContract(db, body.ContractDetail.ContractNo); errContractNo == nil {
-		response_message.BadRequest(c, "Contract No đã tồn tại!")
-		return
+	if body.ContractDetail.ContractNo != "" {
+		if errContractNo := body.IsDuplicatedContract(db, body.ContractDetail.ContractNo); errContractNo == nil {
+			response_message.BadRequestDynamicKey(c, "AGENCY_DUPLI_CONTRACT_NO", "Contract No đã tồn tại!")
+			return
+		}
 	}
 
 	errC := body.Create(db)
@@ -110,7 +112,7 @@ func (_ *CAgency) UpdateAgency(c *gin.Context, prof models.CmsUser) {
 
 	if agency.AgencyId != body.AgencyId || agency.ShortName != body.ShortName {
 		if body.IsDuplicated(db) {
-			response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
+			response_message.BadRequestDynamicKey(c, "AGENCY_DUPLI_AGENCY_ID", constants.API_ERR_DUPLICATED_RECORD)
 			return
 		}
 	}
