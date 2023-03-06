@@ -46,6 +46,7 @@ var ViLanguage = map[string]string{
 	"OUT_CADDIE_ERROR":              "Booking chưa ghép caddie",
 	"INVENTORY_NOT_FOUND":           "Không tìm thấy kho",
 	"TEE_TIME_SLOT_FULL":            "Tee Time đã đủ 4 slot",
+	"BAG_BE_LOCK":                   "Bag bị lock",
 
 	//Agency
 	"AGENCY_DUPLI_CONTRACT_NO": "Bị trùng contract no",
