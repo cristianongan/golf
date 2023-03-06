@@ -310,6 +310,8 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 
+	cBooking.updateRevenueReport(c, body.PartnerUid, body.CourseUid, body.BookingDate)
+
 	repotR := model_report.ReportRevenueDetail{
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,
@@ -376,20 +378,14 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 	okResponse(c, res)
 }
 
-func (cBooking *CRevenueReport) GetBagDailyReport(c *gin.Context, prof models.CmsUser) {
-	form := request.ReportBagDaily{}
-	if bindErr := c.ShouldBind(&form); bindErr != nil {
-		badRequest(c, bindErr.Error())
-		return
-	}
-
-	db := datasources.GetDatabaseWithPartner(form.PartnerUid)
+func (cBooking *CRevenueReport) updateRevenueReport(c *gin.Context, partnerUid, courseUid string, bookingDate string) {
+	db := datasources.GetDatabaseWithPartner(partnerUid)
 	toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
-	if form.BookingDate == toDayDate {
+	if bookingDate == toDayDate {
 		bookings := model_booking.BookingList{
-			PartnerUid:  form.PartnerUid,
-			CourseUid:   form.CourseUid,
-			BookingDate: form.BookingDate,
+			PartnerUid:  partnerUid,
+			CourseUid:   courseUid,
+			BookingDate: bookingDate,
 		}
 
 		db, _, err := bookings.FindAllBookingList(db)
@@ -408,9 +404,9 @@ func (cBooking *CRevenueReport) GetBagDailyReport(c *gin.Context, prof models.Cm
 		db.Find(&list)
 
 		reportR := model_report.ReportRevenueDetail{
-			PartnerUid:  form.PartnerUid,
-			CourseUid:   form.CourseUid,
-			BookingDate: form.BookingDate,
+			PartnerUid:  partnerUid,
+			CourseUid:   courseUid,
+			BookingDate: bookingDate,
 		}
 
 		if err := reportR.DeleteByBookingDate(); err != nil {
@@ -422,6 +418,18 @@ func (cBooking *CRevenueReport) GetBagDailyReport(c *gin.Context, prof models.Cm
 			updatePriceForRevenue(booking, "")
 		}
 	}
+}
+
+func (cBooking *CRevenueReport) GetBagDailyReport(c *gin.Context, prof models.CmsUser) {
+	form := request.ReportBagDaily{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	db := datasources.GetDatabaseWithPartner(form.PartnerUid)
+
+	cBooking.updateRevenueReport(c, form.PartnerUid, form.CourseUid, form.BookingDate)
 
 	repotR := model_report.ReportRevenueDetail{
 		PartnerUid:  form.PartnerUid,
