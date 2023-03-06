@@ -127,10 +127,11 @@ func (cRevenueReport *CRevenueReport) GetBookingReportRevenueDetail(c *gin.Conte
 	}
 
 	reportRevenue := model_report.ReportRevenueDetailList{
-		PartnerUid:  form.PartnerUid,
-		CourseUid:   form.CourseUid,
-		GuestStyle:  form.GuestStyle,
-		BookingDate: form.BookingDate,
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		GuestStyle: form.GuestStyle,
+		FromDate:   form.FromDate,
+		ToDate:     form.ToDate,
 	}
 
 	list, total, _ := reportRevenue.FindBookingRevenueList(db, page)
