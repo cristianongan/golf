@@ -545,10 +545,17 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 
 		if booking.BagStatus != constants.BAG_STATUS_TIMEOUT &&
 			booking.BagStatus != constants.BAG_STATUS_CHECK_OUT {
+
+			if *booking.LockBill {
+				response_message.BadRequestFreeMessage(c, "Bag "+booking.Bag+" đã lock")
+				return
+			}
+
 			udpCaddieOut(db, booking.CaddieId)
 			if errBuggy := udpOutBuggy(db, &booking, false); errBuggy != nil {
 				log.Println("OutAllFlight err book udp ", errBuggy.Error())
 			}
+
 			booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 			booking.CaddieHoles = body.CaddieHoles
 			booking.TimeOutFlight = timeOutFlight
@@ -613,7 +620,7 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 /*
 Simple Out Caddie In a Flight
 */
-func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) {
+func (cCourseOperating *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.SimpleOutFlightBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -637,7 +644,14 @@ func (_ *CCourseOperating) SimpleOutFlight(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
-	booking := bookingResponse[0]
+	bookingFirst := bookingResponse[0]
+
+	// validate booking_uid
+	booking, err := cCourseOperating.validateBooking(db, bookingFirst.Uid)
+	if err != nil {
+		response_message.BadRequestFreeMessage(c, err.Error())
+		return
+	}
 
 	if booking.BagStatus != constants.BAG_STATUS_IN_COURSE {
 		response_message.BadRequestDynamicKey(c, "BAG_NOT_IN_COURSE", "")
@@ -928,6 +942,14 @@ func (_ CCourseOperating) validateBooking(db *gorm.DB, bookindUid string) (model
 	booking, err := bookingR.FindFirstByUId(db)
 	if err != nil {
 		return booking, err
+	}
+
+	if *booking.LockBill {
+		return booking, errors.New("Bag " + booking.Bag + " đã lock")
+	}
+
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		return booking, errors.New("Bag " + booking.Bag + " đã check out!")
 	}
 
 	return booking, nil
