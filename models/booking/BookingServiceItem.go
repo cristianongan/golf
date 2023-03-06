@@ -496,7 +496,7 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 	if item.ServiceId != "" {
 		db = db.Where("booking_service_items.service_id = ?", item.ServiceId)
 	}
-	if item.Type != constants.RESTAURANT_SETTING {
+	if item.Type == constants.RESTAURANT_SETTING {
 		db = db.Where("booking_service_items.type IN ?", []string{constants.RESTAURANT_SETTING, constants.MINI_R_SETTING})
 	} else if item.Type != "" {
 		db = db.Where("booking_service_items.type = ?", item.Type)
@@ -564,7 +564,7 @@ func (item *BookingServiceItem) FindReportDetailFB(database *gorm.DB, date strin
 		db = db.Where("tb.partner_uid = ?", item.PartnerUid)
 	}
 
-	if item.Type != constants.RESTAURANT_SETTING {
+	if item.Type == constants.RESTAURANT_SETTING {
 		db = db.Where("booking_service_items.type IN ?", []string{constants.RESTAURANT_SETTING, constants.MINI_R_SETTING})
 	} else if item.Type != "" {
 		db = db.Where("booking_service_items.type = ?", item.Type)
