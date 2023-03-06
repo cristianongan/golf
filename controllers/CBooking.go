@@ -319,6 +319,14 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			return nil, err
 		}
 
+		// check caddie booking
+		cCaddie := CCaddie{}
+		listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
+		if utils.ContainString(listCaddieWorkingByBookingDate, caddieNew.Code) == -1 {
+			response_message.BadRequestFreeMessage(c, "Caddie "+caddieNew.Code+" không có lịch làm việc!")
+			return nil, err
+		}
+
 		booking.CaddieBooking = caddieNew.Code
 
 		booking.CaddieId = caddieNew.Id
@@ -867,12 +875,14 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	if body.CaddieCode != nil {
 		if errUpd := updateCaddieBooking(c, &booking, body); errUpd != nil {
+			response_message.BadRequestFreeMessage(c, errUpd.Error())
 			return
 		}
 	}
 
 	if body.CaddieCheckIn != nil {
 		if errUpd := updateCaddieCheckIn(c, &booking, body); errUpd != nil {
+			response_message.BadRequestFreeMessage(c, errUpd.Error())
 			return
 		}
 	}
@@ -919,8 +929,13 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 				caddieNew, err := caddieList.FindFirst(db)
 
 				if err != nil {
-					response_message.BadRequestFreeMessage(c, "Caddie Not Found")
 					return errors.New("Caddie Not Found!")
+				}
+
+				cCaddie := CCaddie{}
+				listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
+				if utils.ContainString(listCaddieWorkingByBookingDate, caddieNew.Code) == -1 {
+					return errors.New("Caddie " + caddieNew.Code + " không có lịch làm việc!")
 				}
 
 				booking.CaddieId = caddieNew.Id
@@ -932,6 +947,7 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 
 				}
 
+				// Out Caddie, nếu caddie trong in course
 				go func() {
 					caddie := models.Caddie{}
 					caddie.Id = oldCaddie.Id
@@ -961,8 +977,14 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 				caddieNew, err := caddieList.FindFirst(db)
 
 				if err != nil {
-					response_message.BadRequestFreeMessage(c, "Caddie Not Found")
 					return errors.New("Caddie Not Found!")
+				}
+
+				// check caddie booking
+				cCaddie := CCaddie{}
+				listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
+				if utils.ContainString(listCaddieWorkingByBookingDate, caddieNew.Code) == -1 {
+					return errors.New("Caddie " + caddieNew.Code + " không có lịch làm việc!")
 				}
 
 				booking.CaddieBooking = caddieNew.Code
