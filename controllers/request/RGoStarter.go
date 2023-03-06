@@ -127,7 +127,7 @@ type EditHolesOfCaddiesBody struct {
 
 type AddBagToFlightBody struct {
 	BookingDate string                 `json:"booking_date"`
-	FlightId    *int64                 `json:"flight_id"`
+	FlightId    *int64                 `json:"flight_id" binding:"required"`
 	ListData    []CaddieBuggyToBooking `json:"list_data"`
 }
 
@@ -146,7 +146,7 @@ type GetFlightList struct {
 type MoveBagToFlightBody struct {
 	BookingUid     string `json:"booking_uid"`
 	GolfBag        string `json:"golf_bag"`
-	FlightId       int64  `json:"flight_id"`
+	FlightId       int64  `json:"flight_id" binding:"required"`
 	HolePlayed     int    `json:"hole_played"`
 	HoleMoveFlight int    `json:"hole_move_flight"`
 }

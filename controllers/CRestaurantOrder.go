@@ -57,7 +57,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
@@ -141,7 +141,7 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
@@ -459,7 +459,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
@@ -657,7 +657,7 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
@@ -813,7 +813,7 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
@@ -1169,7 +1169,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 		}
 
 		if *booking.LockBill {
-			response_message.BadRequest(c, "Bag lock")
+			response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 			return
 		}
 
@@ -1521,7 +1521,7 @@ func (_ CRestaurantOrder) UpdateRestaurantBooking(c *gin.Context, prof models.Cm
 		}
 
 		if *booking.LockBill {
-			response_message.BadRequest(c, "Bag lock")
+			response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 			return
 		}
 
@@ -1736,7 +1736,7 @@ func (_ CRestaurantOrder) ConfrimRestaurantBooking(c *gin.Context, prof models.C
 		}
 
 		if *booking.LockBill {
-			response_message.BadRequest(c, "Bag lock")
+			response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 			return
 		}
 
@@ -1876,7 +1876,7 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if *booking.LockBill {
-		response_message.BadRequest(c, "Bag lock")
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
