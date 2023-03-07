@@ -2028,3 +2028,21 @@ func deleteBuggyFee(booking model_booking.Booking) {
 		}
 	}
 }
+func validateBooking(db *gorm.DB, bookindUid string) (model_booking.Booking, error) {
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = bookindUid
+	booking, err := bookingR.FindFirstByUId(db)
+	if err != nil {
+		return booking, err
+	}
+
+	if *booking.LockBill {
+		return booking, errors.New("Bag " + booking.Bag + " đã lock")
+	}
+
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		return booking, errors.New("Bag " + booking.Bag + " đã check out!")
+	}
+
+	return booking, nil
+}

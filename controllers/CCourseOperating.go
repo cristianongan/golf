@@ -846,7 +846,6 @@ func (cCourseOperating *CCourseOperating) DeleteAttach(c *gin.Context, prof mode
 	}
 
 	// Check booking
-	// validate booking_uid
 	booking, err := cCourseOperating.validateBooking(db, body.BookingUid)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
