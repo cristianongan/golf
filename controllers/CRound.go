@@ -21,10 +21,9 @@ import (
 type CRound struct{}
 
 func (_ CRound) validateBooking(db *gorm.DB, bookindUid string) (model_booking.Booking, error) {
-	booking := model_booking.Booking{}
-	booking.Uid = bookindUid
-	if err := booking.FindFirst(db); err != nil {
-		return booking, err
+	booking, err := validateBooking(db, bookindUid)
+	if err != nil {
+		return booking, errors.New(err.Error())
 	}
 
 	if booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
