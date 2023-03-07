@@ -320,11 +320,15 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 
 		// check caddie booking
-		// cCaddie := CCaddie{}
-		// listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
-		// if utils.ContainString(listCaddieWorkingByBookingDate, caddieNew.Code) > -1 {
-		// }
+		cCaddie := CCaddie{}
+		listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
+		if utils.ContainString(listCaddieWorkingByBookingDate, caddieNew.Code) == -1 {
+			response_message.BadRequestFreeMessage(c, "Caddie "+caddieNew.Code+" không có lịch làm việc!")
+			return nil, err
+		}
+
 		booking.CaddieBooking = caddieNew.Code
+
 		booking.CaddieId = caddieNew.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 		booking.HasBookCaddie = true
@@ -925,8 +929,13 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 				caddieNew, err := caddieList.FindFirst(db)
 
 				if err != nil {
-					response_message.BadRequestFreeMessage(c, "Caddie Not Found")
 					return errors.New("Caddie Not Found!")
+				}
+
+				cCaddie := CCaddie{}
+				listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
+				if utils.ContainString(listCaddieWorkingByBookingDate, caddieNew.Code) == -1 {
+					return errors.New("Caddie " + caddieNew.Code + " không có lịch làm việc!")
 				}
 
 				booking.CaddieId = caddieNew.Id
@@ -968,8 +977,14 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 				caddieNew, err := caddieList.FindFirst(db)
 
 				if err != nil {
-					response_message.BadRequestFreeMessage(c, "Caddie Not Found")
 					return errors.New("Caddie Not Found!")
+				}
+
+				// check caddie booking
+				cCaddie := CCaddie{}
+				listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
+				if utils.ContainString(listCaddieWorkingByBookingDate, caddieNew.Code) == -1 {
+					return errors.New("Caddie " + caddieNew.Code + " không có lịch làm việc!")
 				}
 
 				booking.CaddieBooking = caddieNew.Code
@@ -977,7 +992,6 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 					booking.CaddieId = caddieNew.Id
 					booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 				}
-
 			}
 		} else {
 			booking.CaddieBooking = *body.CaddieCode
