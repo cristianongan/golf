@@ -1721,6 +1721,11 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.BagStatus = constants.BAG_STATUS_BOOKING
 		booking.UndoCheckInTime = utils.GetTimeNow().Unix()
 
+		// reset caddie status
+		if booking.CaddieId > 0 {
+			udpCaddieOut(db, booking.CaddieId)
+		}
+
 		if err := booking.Update(db); err != nil {
 			response_message.InternalServerError(c, err.Error())
 			return
