@@ -13,27 +13,34 @@ import (
 // Hãng Golf
 type Notification struct {
 	ModelId
-	PartnerUid         string    `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
-	CourseUid          string    `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
-	Type               string    `json:"type" gorm:"type:varchar(100)"`              // Loại noti
-	Title              string    `json:"title" gorm:"type:varchar(256)"`
-	NotificationStatus string    `json:"noti_status" gorm:"type:varchar(50)"`  // Trạng thái của noti
-	UserCreate         string    `json:"user_create" gorm:"type:varchar(100)"` // Người tạo noti
-	UserApprove        string    `json:"user_update" gorm:"type:varchar(100)"` // Người duyệt noti
-	IsRead             *bool     `json:"is_read" gorm:"default:0"`             // Trạng thái đã xem của noti
-	Note               string    `json:"note" gorm:"type:varchar(500)"`
-	ExtraInfo          ExtraInfo `json:"extra_info" gorm:"type:json"`
+	PartnerUid         string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid          string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	Type               string `json:"type" gorm:"type:varchar(100)"`              // Loại noti
+	Title              string `json:"title" gorm:"type:varchar(256)"`
+	NotificationStatus string `json:"noti_status" gorm:"type:varchar(50)"`  // Trạng thái của noti
+	UserCreate         string `json:"user_create" gorm:"type:varchar(100)"` // Người tạo noti
+	UserApprove        string `json:"user_update" gorm:"type:varchar(100)"` // Người duyệt noti
+	IsRead             *bool  `json:"is_read" gorm:"default:0"`             // Trạng thái đã xem của noti
+	Note               string `json:"note" gorm:"type:varchar(500)"`
+	Content            []byte `json:"content" gorm:"type:json"`
+	DateApproved       int64  `json:"date_approved"`
 }
 
-type ExtraInfo struct {
-	Id int64 `json:"id"` // id của object tạo noti
+type CaddieContentNoti struct {
+	Id           int64  `json:"id"`   // id của object tạo noti
+	Code         string `json:"code"` //  caddie code
+	Type         string `json:"type"`
+	NumberDayOff int    `json:"number_day_off"`
+	FromDay      string `json:"from_day"`
+	ToDay        string `json:"to_day"`
+	Hour         string `json:"hour"`
 }
 
-func (item *ExtraInfo) Scan(v interface{}) error {
+func (item *CaddieContentNoti) Scan(v interface{}) error {
 	return json.Unmarshal(v.([]byte), item)
 }
 
-func (item ExtraInfo) Value() (driver.Value, error) {
+func (item CaddieContentNoti) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
