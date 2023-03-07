@@ -27,12 +27,12 @@ type RevenueBookingReportDetail struct {
 	PageRequest
 	PartnerUid  string `form:"partner_uid" binding:"required"`
 	CourseUid   string `form:"course_uid" binding:"required"`
-	FromDate    string `form:"from_date"`
-	ToDate      string `form:"to_date"`
+	FromDate    string `form:"from_date" binding:"required"`
+	ToDate      string `form:"to_date" binding:"required"`
 	GuestStyle  string `form:"guest_style"`
-	Month       int    `form:"month"`
-	Year        int    `form:"year"`
-	BookingDate string `form:"booking_date"`
+	Month       int    `form:"month" binding:"required"`
+	Year        int    `form:"year" binding:"required"`
+	BookingDate string `form:"booking_date" binding:"required"`
 	Bag         string `form:"bag"`
 }
 
