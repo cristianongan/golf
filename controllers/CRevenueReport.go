@@ -111,7 +111,7 @@ func (_ *CRevenueReport) GetReportRevenueDetailFB(c *gin.Context, prof models.Cm
 
 func (cRevenueReport *CRevenueReport) GetBookingReportRevenueDetail(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	form := request.RevenueBookingReportDetail{}
+	form := request.GetBookingReportRevenueDetail{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
