@@ -109,9 +109,6 @@ func (_ *CRevenueReport) GetReportRevenueDetailFB(c *gin.Context, prof models.Cm
 	okResponse(c, res)
 }
 
-/*
- Test
-*/
 func (cRevenueReport *CRevenueReport) GetBookingReportRevenueDetail(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.RevenueBookingReportDetail{}
@@ -129,7 +126,6 @@ func (cRevenueReport *CRevenueReport) GetBookingReportRevenueDetail(c *gin.Conte
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	//udp
 	reportRevenue := model_report.ReportRevenueDetailList{
 		PartnerUid:  form.PartnerUid,
 		CourseUid:   form.CourseUid,
