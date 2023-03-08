@@ -658,13 +658,16 @@ func (item *Booking) UpdateAgencyForBooking(database *gorm.DB) {
 	var list []Booking
 	db.Find(&list)
 
+	db2 := datasources.GetDatabaseWithPartner(item.PartnerUid)
 	if err == nil {
 		for _, bookingBag := range list {
-			if item.Bag != bookingBag.Bag {
+			if item.AgencyId != bookingBag.AgencyId {
 				bookingBag.AgencyId = item.AgencyId
 				bookingBag.AgencyInfo = item.AgencyInfo
 				bookingBag.CustomerType = item.CustomerType
-				bookingBag.Update(db)
+				if err := bookingBag.Update(db2); err != nil {
+					log.Print(err.Error())
+				}
 			}
 		}
 	}
