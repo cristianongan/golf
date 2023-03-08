@@ -68,7 +68,7 @@ func addFilter(db *gorm.DB, item *ReportRevenueDetailList) *gorm.DB {
 	}
 
 	if item.GuestStyle != "" {
-		db = db.Where("guest_style COLLATE utf8mb4_general_ci LIKE ?", "%"+item.GuestStyle+"%")
+		db = db.Where("guest_style LIKE ?", "%"+item.GuestStyle+"%")
 	}
 
 	if item.BookingDate != "" {
@@ -76,7 +76,7 @@ func addFilter(db *gorm.DB, item *ReportRevenueDetailList) *gorm.DB {
 	}
 
 	if item.Bag != "" {
-		db = db.Where("bag COLLATE utf8mb4_general_ci LIKE ?", "%"+item.Bag+"%")
+		db = db.Where("bag LIKE ?", "%"+item.Bag+"%")
 	}
 
 	return db
