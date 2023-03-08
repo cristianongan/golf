@@ -788,6 +788,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Agency id
+	isAgencyChanged := false
 	if body.AgencyId > 0 && body.AgencyId != booking.AgencyId {
 		agencyBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   body.PartnerUid,
@@ -803,6 +804,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.BadRequest(c, errAgency.Error())
 		}
 		guestStyle = agency.GuestStyle
+		isAgencyChanged = true
 	}
 
 	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
@@ -896,6 +898,27 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	if booking.AgencyId > 0 {
 		if body.FeeInfo != nil {
 			handleAgencyPaid(booking, *body.FeeInfo)
+		}
+	}
+
+	// Update lại thông tin agency cho các round, move flight
+	if isAgencyChanged {
+		booking.UpdateAgencyForBooking(db)
+
+		agency := model_payment.AgencyPayment{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			BookingCode: booking.BookingCode,
+		}
+
+		if errFindAgency := agency.FindFirst(db); errFindAgency == nil {
+			agency.AgencyId = booking.AgencyId
+			agency.AgencyInfo = model_payment.PaymentAgencyInfo{
+				Name:           booking.AgencyInfo.Name,
+				GuestStyle:     booking.GuestStyle,
+				GuestStyleName: booking.GuestStyleName,
+			}
+			agency.Update(db)
 		}
 	}
 
