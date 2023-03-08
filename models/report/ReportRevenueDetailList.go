@@ -85,7 +85,17 @@ func addFilter(db *gorm.DB, item *ReportRevenueDetailList) *gorm.DB {
 func (item *ReportRevenueDetailList) FindReportDayEnd(database *gorm.DB) (DayEndRevenue, error) {
 	db := database.Model(ReportRevenueDetail{})
 
-	db = addFilter(db, item)
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
 
 	db = db.Select(`partner_uid,
 					course_uid,
