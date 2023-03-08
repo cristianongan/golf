@@ -533,26 +533,26 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 	agencyInfo := model_report.BookingAgency{}
 	if item.AgencyId > 0 {
 		agencyInfo = model_report.BookingAgency{
-			AgencyId:    item.AgencyInfo.AgencyId,
-			ShortName:   item.AgencyInfo.ShortName,
-			Category:    item.AgencyInfo.Category,
-			Name:        item.AgencyInfo.Name,
-			BookingCode: item.NoteOfBooking,
+			AgencyId:    bookingR.AgencyInfo.AgencyId,
+			ShortName:   bookingR.AgencyInfo.ShortName,
+			Category:    bookingR.AgencyInfo.Category,
+			Name:        bookingR.AgencyInfo.Name,
+			BookingCode: bookingR.NoteOfBooking,
 		}
 	}
 
 	m := model_report.ReportRevenueDetail{
-		PartnerUid:       item.PartnerUid,
-		CourseUid:        item.CourseUid,
+		PartnerUid:       bookingR.PartnerUid,
+		CourseUid:        bookingR.CourseUid,
 		BillNo:           billNo,
-		Bag:              item.Bag,
-		GuestStyle:       item.GuestStyle,
-		GuestStyleName:   item.GuestStyleName,
-		BookingDate:      item.BookingDate,
-		CustomerId:       item.CustomerUid,
-		CustomerName:     item.CustomerName,
-		MembershipNo:     item.CardId,
-		CustomerType:     item.CustomerType,
+		Bag:              bookingR.Bag,
+		GuestStyle:       bookingR.GuestStyle,
+		GuestStyleName:   bookingR.GuestStyleName,
+		BookingDate:      bookingR.BookingDate,
+		CustomerId:       bookingR.CustomerUid,
+		CustomerName:     bookingR.CustomerName,
+		MembershipNo:     bookingR.CardId,
+		CustomerType:     bookingR.CustomerType,
 		Hole:             hole,
 		Paid:             bookingR.GetAgencyPaid(),
 		GreenFee:         bookingGreenFee,
