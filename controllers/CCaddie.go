@@ -592,6 +592,8 @@ func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+	removeCaddieOutSlotOnDate(caddieRequest.PartnerUid, caddieRequest.CourseUid, toDayDate, caddieRequest.Code)
 	okRes(c)
 }
 
@@ -701,67 +703,4 @@ func assignCaddieUpdate(caddieRequest *models.Caddie, body request.UpdateCaddieB
 	if body.IsWorking != nil {
 		caddieRequest.IsWorking = *body.IsWorking
 	}
-}
-
-func (_ *CCaddie) GetCaddieWorkingByDate(partnerUid, courseUid, bookingDate string) []string {
-	db := datasources.GetDatabaseWithPartner(partnerUid)
-	// Get group caddie work today
-	dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, bookingDate)
-	applyDate1 := datatypes.Date(dateConvert)
-	idDayOff1 := false
-
-	// get caddie work sechedule
-	caddieWCN := models.CaddieWorkingSchedule{
-		PartnerUid: partnerUid,
-		CourseUid:  courseUid,
-		ApplyDate:  &(applyDate1),
-		IsDayOff:   &idDayOff1,
-	}
-
-	listCWS, err := caddieWCN.FindListWithoutPage(db)
-	if err != nil {
-		log.Println("Find list caddie working schedule today", err.Error())
-	}
-
-	//get all group
-	caddieGroup := models.CaddieGroup{
-		PartnerUid: partnerUid,
-		CourseUid:  courseUid,
-	}
-
-	listCaddieGroup, err := caddieGroup.FindListWithoutPage(db)
-	if err != nil {
-		log.Println("Find frist caddie working schedule", err.Error())
-	}
-
-	var groupDayOff []int64
-
-	//add group caddie
-	for _, item := range listCWS {
-		id := getIdGroup(listCaddieGroup, item.CaddieGroupCode)
-
-		groupDayOff = append(groupDayOff, id)
-	}
-
-	caddie := models.CaddieList{}
-
-	caddie.PartnerUid = partnerUid
-	caddie.CourseUid = courseUid
-
-	if len(groupDayOff) > 0 {
-		caddie.GroupList = groupDayOff
-		list, err := caddie.FindListWithoutPage(db)
-
-		if err != nil {
-			return []string{}
-		}
-
-		var caddies []string
-		for _, v := range list {
-			caddies = append(caddies, v.Code)
-		}
-
-		return caddies
-	}
-	return []string{}
 }
