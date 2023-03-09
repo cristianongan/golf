@@ -528,7 +528,7 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 	}
 
 	db = db.Joins(`INNER JOIN (?) as tb1 on booking_service_items.booking_uid = tb1.uid`, subQuery)
-	db = db.Joins(`INNER JOIN service_carts as tb2 on booking_service_items.service_bill = tb2.id`)
+	db = db.Joins(`LEFT JOIN service_carts as tb2 on booking_service_items.service_bill = tb2.id`)
 	db = db.Joins(`LEFT JOIN (?) as tb3 on booking_service_items.group_code = tb3.group_code`, subQuery1)
 
 	db = db.Where("tb1.check_in_time > 0")
@@ -592,7 +592,7 @@ func (item *BookingServiceItem) FindReportDetailFB(database *gorm.DB, date strin
 	// subQuery = subQuery.Where("bookings.added_round = 0")
 
 	db = db.Joins(`LEFT JOIN (?) as tb1 on tb.booking_uid = tb1.uid`, subQuery)
-	db = db.Joins(`INNER JOIN service_carts as tb2 on tb.service_bill = tb2.id`)
+	db = db.Joins(`LEFT JOIN service_carts as tb2 on tb.service_bill = tb2.id`)
 
 	db = db.Where("tb1.check_in_time > 0")
 	db = db.Where("tb1.bag_status <> 'CANCEL'")
