@@ -1,6 +1,7 @@
 package model_booking
 
 import (
+	"encoding/json"
 	"log"
 	"start/constants"
 	"start/datasources"
@@ -13,6 +14,20 @@ import (
 )
 
 // -------- Booking Logic --------
+
+func (item *Booking) CloneBooking() Booking {
+	copyBooking := Booking{}
+	bData, errM := json.Marshal(&item)
+	if errM != nil {
+		log.Println("CloneBooking errM", errM.Error())
+	}
+	errUnM := json.Unmarshal(bData, &copyBooking)
+	if errUnM != nil {
+		log.Println("CloneBooking errUnM", errUnM.Error())
+	}
+
+	return copyBooking
+}
 
 func (item *Booking) CheckDuplicatedCaddieInTeeTime(db *gorm.DB) bool {
 	if item.TeeTime == "" {
