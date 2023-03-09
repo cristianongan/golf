@@ -922,15 +922,17 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	// Update lại thông tin agency cho các round, move flight
-	if isAgencyChanged {
-		booking.UpdateAgencyForBooking(db)
-		updateAgencyInfoInPayment(db, booking)
-	}
-
 	// udp ok -> Tính lại giá
 	if isMainBagPayChanged {
 		updatePriceWithServiceItem(&booking, prof)
+	}
+
+	// Update lại thông tin agency cho các round, move flight
+	if isAgencyChanged {
+		go func() {
+			booking.UpdateAgencyForBooking(db)
+			updateAgencyInfoInPayment(db, booking)
+		}()
 	}
 
 	// Get lai booking mới nhất trong DB
@@ -1142,10 +1144,10 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	oldBooking := booking.CloneBooking()
 
 	//Checkin rồi thì k check in lại dc nữa
-	if booking.BagStatus == constants.BAG_STATUS_WAITING && booking.CheckInTime > 0 {
-		response_message.BadRequest(c, "da checkin roi")
-		return
-	}
+	// if booking.BagStatus == constants.BAG_STATUS_WAITING && booking.CheckInTime > 0 {
+	// 	response_message.BadRequest(c, "da checkin roi")
+	// 	return
+	// }
 
 	// Check Guest of member, check member có còn slot đi cùng không
 	var memberCard models.MemberCard
@@ -1311,11 +1313,6 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.CardId, booking.PartnerUid, booking.CourseUid)
 	}
 
-	// Update lại thông tin agency cho các round, move flight
-	if isAgencyChanged {
-		updateAgencyInfoInPayment(db, booking)
-	}
-
 	go func() {
 		if booking.CaddieBooking != "" {
 			caddieBookingFee := getBookingCadieFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, body.Hole)
@@ -1326,6 +1323,11 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			handlePayment(db, booking)
 		}
 	}()
+
+	// Update lại thông tin agency cho các round, move flight
+	if isAgencyChanged {
+		updateAgencyInfoInPayment(db, booking)
+	}
 
 	// Update lại round còn thiếu bag
 	cRound := CRound{}

@@ -25,6 +25,10 @@ func (_ *CGolfLog) GetGolfLogList(c *gin.Context, prof models.CmsUser) {
 		SortDir: form.PageRequest.SortDir,
 	}
 
+	if page.Limit <= 0 || page.Limit > 20 {
+		page.Limit = 20
+	}
+
 	opLog := models.OperationLog{}
 	opLog.CourseUid = form.CourseUid
 	opLog.PartnerUid = form.PartnerUid
@@ -33,7 +37,7 @@ func (_ *CGolfLog) GetGolfLogList(c *gin.Context, prof models.CmsUser) {
 	opLog.Function = form.Function
 	opLog.Module = form.Module
 
-	list, total, err := opLog.FindList(page, "")
+	list, total, err := opLog.FindList(page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

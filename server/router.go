@@ -792,6 +792,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/payment/bag-status", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportPayment))
 			cmsApiAuthorized.POST("/report/booking/players", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBookingPlayers))
 
+			/// =================== Golf Log ===================
+			cGolfLog := new(controllers.CGolfLog)
+			cmsApiAuthorized.GET("/op-log/list", middlewares.AuthorizedCmsUserHandler(cGolfLog.GetGolfLogList))
+
 			/// =================== Redis Settings ===================
 			cRedis := new(controllers.CRedis)
 			cmsApiAuthorized.POST("/redis/tee-time/reset-all", middlewares.AuthorizedCmsUserHandler(cRedis.DeleteAllRedisTeeTime))
