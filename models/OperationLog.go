@@ -1,6 +1,8 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"start/constants"
 	"start/datasources"
@@ -10,6 +12,14 @@ import (
 
 type JsonDataLog struct {
 	Data interface{} `json:"data"`
+}
+
+func (item *JsonDataLog) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item JsonDataLog) Value() (driver.Value, error) {
+	return json.Marshal(&item)
 }
 
 type OperationLog struct {
