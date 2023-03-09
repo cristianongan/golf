@@ -1936,7 +1936,7 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 		serviceCartItem.BillCode = booking.BillCode
 		serviceCartItem.BookingUid = booking.Uid
 		serviceCartItem.PlayerName = booking.CustomerName
-		totalAmount += (serviceCartItem.Amount - serviceCartItem.DiscountValue)
+		totalAmount += serviceCartItem.Amount
 
 		if errFor = serviceCartItem.Update(db); errFor != nil {
 			hasError = true

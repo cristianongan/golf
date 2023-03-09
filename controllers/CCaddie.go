@@ -592,6 +592,8 @@ func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+	removeCaddieOutSlotOnDate(caddieRequest.PartnerUid, caddieRequest.CourseUid, toDayDate, caddieRequest.Code)
 	okRes(c)
 }
 

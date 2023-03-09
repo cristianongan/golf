@@ -11,7 +11,6 @@ import (
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -124,48 +123,69 @@ func (_ *CNotification) ApproveCaddieCalendarNotification(c *gin.Context, prof m
 		return
 	}
 
-	extraTitle := ""
+	caddieEx := models.CaddieContentNoti{}
+	if err := json.Unmarshal(notification.Content, &caddieEx); err != nil {
+		return
+	}
+
 	approvedTitle := ""
 	if notification.Type == constants.NOTIFICATION_CADDIE_VACATION_SICK_OFF {
-		extraTitle = "xin nghỉ phép ốm"
-		if form.IsApprove {
+		if *form.IsApprove {
 			approvedTitle = "được duyệt nghỉ phép ốm"
 		} else {
 			approvedTitle = "không được duyệt nghỉ phép ốm"
 		}
 	} else if notification.Type == constants.NOTIFICATION_CADDIE_VACATION_UNPAID {
-		extraTitle = "xin nghỉ phép không lương"
-		if form.IsApprove {
+		if *form.IsApprove {
 			approvedTitle = "được duyệt nghỉ phép không lương"
 		} else {
 			approvedTitle = "không được duyệt nghỉ phép không lương"
 		}
+	} else if notification.Type == constants.NOTIFICATION_CADDIE_VACATION_MATERNITY_LEAD {
+		if *form.IsApprove {
+			approvedTitle = "được duyệt nghỉ thai sản"
+		} else {
+			approvedTitle = "không được duyệt nghỉ thai sản"
+		}
+	} else if notification.Type == constants.NOTIFICATION_CADDIE_VACATION_JOB {
+		if *form.IsApprove {
+			approvedTitle = "được duyệt nghỉ đi công tác"
+		} else {
+			approvedTitle = "không được duyệt nghỉ đi công tác"
+		}
+	} else if notification.Type == constants.NOTIFICATION_CADDIE_VACATION_ANNUAL_LEAVE {
+		if *form.IsApprove {
+			approvedTitle = "được duyệt nghỉ thường niên"
+		} else {
+			approvedTitle = "không được duyệt nghỉ thường niên"
+		}
 	}
 
 	newNotification := models.Notification{}
-	newNotification.Title = strings.Replace(notification.Title, extraTitle, approvedTitle, 1)
+	newNotification.Title = fmt.Sprintln("Caddie", caddieEx.Code, approvedTitle, caddieEx.NumberDayOff, "ngày", "từ", caddieEx.FromDay, "đến", caddieEx.ToDay)
 	newNotification.UserCreate = prof.UserName
 	newNotification.Note = form.Note
-	newNotification.Type = notification.Type
+	newNotification.Type = constants.NOTIFICATION_CADDIE_VACATION_CONFIRM
 
 	if errNotification := newNotification.Create(db); errNotification != nil {
 		response_message.InternalServerError(c, errNotification.Error())
 		return
 	}
 
-	if form.IsApprove {
+	if *form.IsApprove {
 		notification.NotificationStatus = constants.NOTIFICATION_APPROVED
 	} else {
 		notification.NotificationStatus = constants.NOTIFICATION_REJECTED
 	}
 	notification.UserApprove = prof.UserName
+	notification.DateApproved = utils.GetTimeNow().Unix()
 	if errUpdNotification := notification.Update(db); errUpdNotification != nil {
 		response_message.InternalServerError(c, errUpdNotification.Error())
 		return
 	}
 
 	cCaddieVacation := CCaddieVacationCalendar{}
-	go cCaddieVacation.UpdateCaddieVacationStatus(notification.ExtraInfo.Id, form.IsApprove, notification.PartnerUid, prof)
+	go cCaddieVacation.UpdateCaddieVacationStatus(notification.Content, *form.IsApprove, notification.PartnerUid, prof)
 
 	newFsConfigBytes, _ := json.Marshal(newNotification)
 	socket.GetHubSocket().Broadcast <- newFsConfigBytes
@@ -181,16 +201,30 @@ func (_ *CNotification) CreateCaddieVacationNotification(db *gorm.DB, body reque
 	} else if body.Title == constants.CADDIE_VACATION_UNPAID {
 		notiType = constants.NOTIFICATION_CADDIE_VACATION_UNPAID
 		extraTitle = "xin nghỉ phép không lương"
+	} else if body.Title == constants.NOTIFICATION_CADDIE_VACATION_MATERNITY_LEAD {
+		notiType = constants.NOTIFICATION_CADDIE_VACATION_MATERNITY_LEAD
+		extraTitle = "xin nghỉ thai sản"
+	} else if body.Title == constants.CADDIE_VACATION_JOB {
+		notiType = constants.CADDIE_VACATION_JOB
+		extraTitle = "xin nghỉ đi công tác"
+	} else if body.Title == constants.NOTIFICATION_CADDIE_VACATION_ANNUAL_LEAVE {
+		notiType = constants.NOTIFICATION_CADDIE_VACATION_ANNUAL_LEAVE
+		extraTitle = "xin nghỉ nghỉ thường niên"
 	}
 
 	fromDay, _ := utils.GetDateFromTimestampWithFormat(body.DateFrom, constants.DATE_FORMAT_1)
 	toDay, _ := utils.GetDateFromTimestampWithFormat(body.DateTo, constants.DATE_FORMAT_1)
-	hourStr, _ := utils.GetDateFromTimestampWithFormat(body.CreateAt, constants.HOUR_FORMAT)
-	title := fmt.Sprintln("Caddie", body.Caddie.Code, extraTitle, body.NumberDayOff, "ngày", "từ", fromDay, "đến", toDay, ",", hourStr)
-	extraInfo := models.ExtraInfo{
-		Id: body.Id,
+	title := fmt.Sprintln("Caddie", body.Caddie.Code, extraTitle, body.NumberDayOff, "ngày", "từ", fromDay, "đến", toDay)
+	extraInfo := models.CaddieContentNoti{
+		Id:           body.Id,
+		Code:         body.Caddie.Code,
+		Type:         constants.NOTIFICATION_CADDIE_VACATION,
+		NumberDayOff: body.NumberDayOff,
+		FromDay:      fromDay,
+		ToDay:        toDay,
 	}
 
+	datas, _ := json.Marshal(extraInfo)
 	notiData := models.Notification{
 		PartnerUid:         body.PartnerUid,
 		CourseUid:          body.CourseUid,
@@ -198,7 +232,7 @@ func (_ *CNotification) CreateCaddieVacationNotification(db *gorm.DB, body reque
 		Title:              title,
 		NotificationStatus: constants.NOTIFICATION_PENDIND,
 		UserCreate:         body.UserName,
-		ExtraInfo:          extraInfo,
+		Content:            datas,
 	}
 
 	notiData.Create(db)
@@ -242,4 +276,28 @@ func (_ *CNotification) PushNotificationLockTee(lockType string) {
 
 	newFsConfigBytes, _ := json.Marshal(notiData)
 	socket.GetHubSocket().Broadcast <- newFsConfigBytes
+}
+
+func (_ *CNotification) CreateCaddieVacation(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	caddie := models.Caddie{}
+
+	caddie.Id = 20
+	if err := caddie.FindFirst(db); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+	cNotification := CNotification{}
+	cNotification.CreateCaddieVacationNotification(db, request.GetCaddieVacationNotification{
+		Caddie:       caddie,
+		DateFrom:     1677920680,
+		DateTo:       1678093480,
+		NumberDayOff: 2,
+		Title:        constants.NOTIFICATION_CADDIE_VACATION_ANNUAL_LEAVE,
+		CreateAt:     1678093480,
+		UserName:     prof.UserName,
+		Id:           caddie.Id,
+	})
+
+	okRes(c)
 }

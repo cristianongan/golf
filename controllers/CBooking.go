@@ -805,6 +805,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Agency id
+	isAgencyChanged := false
 	if body.AgencyId > 0 && body.AgencyId != booking.AgencyId {
 		agencyBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   body.PartnerUid,
@@ -820,6 +821,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.BadRequest(c, errAgency.Error())
 		}
 		guestStyle = agency.GuestStyle
+		isAgencyChanged = true
 	}
 
 	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
@@ -914,6 +916,12 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		if body.FeeInfo != nil {
 			handleAgencyPaid(booking, *body.FeeInfo)
 		}
+	}
+
+	// Update lại thông tin agency cho các round, move flight
+	if isAgencyChanged {
+		booking.UpdateAgencyForBooking(db)
+		updateAgencyInfoInPayment(db, booking)
 	}
 
 	// udp ok -> Tính lại giá
@@ -1204,6 +1212,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Agency id
+	isAgencyChanged := false
 	if body.AgencyId > 0 && (body.AgencyId != booking.AgencyId || body.Hole != booking.Hole) {
 		agencyBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   booking.PartnerUid,
@@ -1219,6 +1228,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			response_message.BadRequest(c, errAgency.Error())
 		}
 		guestStyle = agency.GuestStyle
+		isAgencyChanged = true
 	}
 
 	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
@@ -1293,6 +1303,11 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	if booking.CustomerUid != "" {
 		go updateReportTotalPlayCountForCustomerUser(booking.CustomerUid, booking.CardId, booking.PartnerUid, booking.CourseUid)
+	}
+
+	// Update lại thông tin agency cho các round, move flight
+	if isAgencyChanged {
+		updateAgencyInfoInPayment(db, booking)
 	}
 
 	go func() {
