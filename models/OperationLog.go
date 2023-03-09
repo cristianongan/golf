@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+type JsonDataLog struct {
+	Data interface{} `json:"data"`
+}
+
 type OperationLog struct {
 	ModelId
 	PartnerUid  string      `json:"partner_uid" gorm:"type:varchar(100);index"`
@@ -23,9 +27,9 @@ type OperationLog struct {
 	Module      string      `json:"module" gorm:"type:varchar(100);index"`      // GO, RECEPTION
 	Method      string      `json:"method" gorm:"type:varchar(30);index"`       // create, update, delete
 	Path        string      `json:"path" gorm:"type:varchar(100)"`              // Path Api
-	Body        interface{} `json:"body" gorm:"type:JSON"`                      // Body Api
-	ValueOld    interface{} `json:"value_old" gorm:"type:JSON"`                 // Value Old Object
-	ValueNew    interface{} `json:"value_new" gorm:"type:JSON"`                 // Value New Object
+	Body        JsonDataLog `json:"body" gorm:"type:json"`                      // Body Api
+	ValueOld    JsonDataLog `json:"value_old" gorm:"type:json"`                 // Value Old Object
+	ValueNew    JsonDataLog `json:"value_new" gorm:"type:json"`                 // Value New Object
 }
 
 func (item *OperationLog) Create() error {
