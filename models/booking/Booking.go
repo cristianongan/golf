@@ -686,6 +686,7 @@ func (item *Booking) UpdateMemberCardForBooking(database *gorm.DB) {
 	var list []Booking
 	db.Find(&list)
 
+	db2 := datasources.GetDatabaseWithPartner(item.PartnerUid)
 	if err == nil {
 		for _, bookingBag := range list {
 			if item.Bag != bookingBag.Bag {
@@ -695,7 +696,7 @@ func (item *Booking) UpdateMemberCardForBooking(database *gorm.DB) {
 				bookingBag.CustomerUid = item.CustomerUid
 				bookingBag.CustomerType = item.CustomerType
 				bookingBag.CustomerInfo = item.CustomerInfo
-				bookingBag.Update(db)
+				bookingBag.Update(db2)
 			}
 		}
 	}
@@ -714,11 +715,12 @@ func (item *Booking) UpdateSubBagForBooking(database *gorm.DB) {
 	var list []Booking
 	db.Find(&list)
 
+	db2 := datasources.GetDatabaseWithPartner(item.PartnerUid)
 	if err == nil {
 		for _, bookingBag := range list {
 			if item.Uid != bookingBag.Uid {
 				bookingBag.SubBags = item.SubBags
-				bookingBag.Update(db)
+				bookingBag.Update(db2)
 			}
 		}
 	}
