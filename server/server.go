@@ -4,7 +4,6 @@ import (
 	"log"
 	"start/config"
 	"start/datasources"
-	"start/logger"
 	"start/socket"
 	"start/utils"
 
@@ -20,7 +19,7 @@ func Init() {
 	config := config.GetConfig()
 
 	// Init Logger
-	logger.InitLogger()
+	// logger.InitLogger()
 
 	// go socket_room.Hub.Run()
 

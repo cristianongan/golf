@@ -55,6 +55,23 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		UserName:   prof.UserName,
+		UserUid:    prof.Uid,
+		Module:     constants.OP_LOG_MODULE_RECEPTION,
+		Function:   constants.OP_LOG_FUNCTION_BOOKING,
+		Action:     constants.OP_LOG_ACTION_CREATE,
+		Body:       body,
+		ValueOld:   map[string]interface{}{},
+		ValueNew:   booking,
+		Path:       c.Request.URL.Path,
+		Method:     c.Request.Method,
+	}
+	go createOperationLog(opLog)
+
 	// Bắn socket để client update ui
 	cNotification := CNotification{}
 	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, booking)
