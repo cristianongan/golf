@@ -910,7 +910,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	if isAgencyChanged {
 		go func() {
 			booking.UpdateAgencyForBooking(db)
-			updateAgencyInfoInPayment(db, booking)
+			updateAgencyInfoInPayment(booking)
 		}()
 	}
 
@@ -1299,12 +1299,12 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			// Create payment info
 			handlePayment(db, booking)
 		}
+		if isAgencyChanged {
+			updateAgencyInfoInPayment(booking)
+		}
 	}()
 
 	// Update lại thông tin agency cho các round, move flight
-	if isAgencyChanged {
-		updateAgencyInfoInPayment(db, booking)
-	}
 
 	// Update lại round còn thiếu bag
 	cRound := CRound{}
