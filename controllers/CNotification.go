@@ -7,7 +7,7 @@ import (
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
-	"start/socket"
+	socket_room "start/socket_room"
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
@@ -188,7 +188,10 @@ func (_ *CNotification) ApproveCaddieCalendarNotification(c *gin.Context, prof m
 	go cCaddieVacation.UpdateCaddieVacationStatus(notification.Content, *form.IsApprove, notification.PartnerUid, prof)
 
 	newFsConfigBytes, _ := json.Marshal(newNotification)
-	socket.GetHubSocket().Broadcast <- newFsConfigBytes
+	socket_room.Hub.Broadcast <- socket_room.Message{
+		Data: newFsConfigBytes,
+		Room: constants.NOTIFICATION_CHANNEL_ADMIN_1,
+	}
 	okRes(c)
 }
 
@@ -238,7 +241,10 @@ func (_ *CNotification) CreateCaddieVacationNotification(db *gorm.DB, body reque
 	notiData.Create(db)
 
 	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket.GetHubSocket().Broadcast <- newFsConfigBytes
+	socket_room.Hub.Broadcast <- socket_room.Message{
+		Data: newFsConfigBytes,
+		Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
+	}
 }
 
 func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
@@ -248,7 +254,10 @@ func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
 	}
 
 	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket.GetHubSocket().Broadcast <- newFsConfigBytes
+	socket_room.Hub.Broadcast <- socket_room.Message{
+		Data: newFsConfigBytes,
+		Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
+	}
 }
 
 func (_ *CNotification) PushNotificationCreateBooking(bookType string, booking any) {
@@ -259,13 +268,10 @@ func (_ *CNotification) PushNotificationCreateBooking(bookType string, booking a
 	}
 
 	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket.GetHubSocket().Broadcast <- newFsConfigBytes
-
-	// m := socket_room.Message{
-	// 	Data: newFsConfigBytes,
-	// 	Room: "1",
-	// }
-	// socket_room.Hub.Broadcast <- m
+	socket_room.Hub.Broadcast <- socket_room.Message{
+		Data: newFsConfigBytes,
+		Room: constants.NOTIFICATION_CHANNEL_BOOKING,
+	}
 }
 
 func (_ *CNotification) PushNotificationLockTee(lockType string) {
@@ -275,7 +281,10 @@ func (_ *CNotification) PushNotificationLockTee(lockType string) {
 	}
 
 	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket.GetHubSocket().Broadcast <- newFsConfigBytes
+	socket_room.Hub.Broadcast <- socket_room.Message{
+		Data: newFsConfigBytes,
+		Room: constants.NOTIFICATION_CHANNEL_BOOKING,
+	}
 }
 
 func (_ *CNotification) CreateCaddieVacation(c *gin.Context, prof models.CmsUser) {

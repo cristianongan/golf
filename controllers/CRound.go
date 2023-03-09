@@ -57,6 +57,8 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		hole = *body.Hole
 	}
 
+	oldBooking := model_booking.Booking{}
+
 	for _, data := range body.BookUidList {
 		// validate booking_uid
 		booking, err = cRound.validateBooking(db, data)
@@ -64,6 +66,8 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 			response_message.BadRequest(c, err.Error())
 			return
 		}
+
+		oldBooking = booking.CloneBooking()
 
 		// Tạo uid cho booking mới
 		bookingUid := uuid.New()
@@ -135,6 +139,27 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 
 	updatePriceWithServiceItem(&newBooking, models.CmsUser{})
 	res := getBagDetailFromBooking(db, newBooking)
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_ADD_ROUND,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: res},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+	go createOperationLog(opLog)
 
 	okResponse(c, res)
 }
@@ -261,6 +286,8 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	oldBooking := booking.CloneBooking()
+
 	currentRound := models.Round{}
 	currentRound.Id = body.RoundId
 	errRound := currentRound.FindFirst(db)
@@ -300,6 +327,28 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 	// Update lại giá cho main bag
 
 	res := getBagDetailFromBooking(db, booking)
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_SPLIT_ROUND,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: res},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+	go createOperationLog(opLog)
+
 	okResponse(c, res)
 }
 
@@ -326,6 +375,8 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
 		return
 	}
+
+	oldBooking := booking.CloneBooking()
 
 	roundR := models.Round{BillCode: booking.BillCode}
 	listRound, _ := roundR.FindAll(db)
@@ -373,6 +424,28 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 	// update fee booking
 	cRound.UpdateGolfFeeInBooking(&booking, db)
 	res := getBagDetailFromBooking(db, booking)
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_MERGE_ROUND,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: res},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+	go createOperationLog(opLog)
+
 	okResponse(c, res)
 }
 
@@ -391,6 +464,8 @@ func (cRound CRound) ChangeGuestyleOfRound(c *gin.Context, prof models.CmsUser) 
 		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
 		return
 	}
+
+	oldBooking := booking.CloneBooking()
 
 	round := models.Round{}
 	round.Id = body.RoundId
@@ -436,6 +511,27 @@ func (cRound CRound) ChangeGuestyleOfRound(c *gin.Context, prof models.CmsUser) 
 	}()
 	// Update giá
 	cRound.UpdateListFeePriceInRound(c, db, &booking, body.GuestStyle, &round, round.Hole)
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_CHANGE_GUEST_STYLE,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+	go createOperationLog(opLog)
 
 	okResponse(c, round)
 }
@@ -532,6 +628,8 @@ func (cRound CRound) RemoveRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	oldB := booking.CloneBooking()
+
 	if booking.BagStatus == constants.BAG_STATUS_IN_COURSE {
 		response_message.BadRequestFreeMessage(c, "Bag Status not valid!")
 		return
@@ -567,6 +665,28 @@ func (cRound CRound) RemoveRound(c *gin.Context, prof models.CmsUser) {
 
 		updatePriceWithServiceItem(&oldBooking, prof)
 		res := getBagDetailFromBooking(db, oldBooking)
+
+		//Add log
+		opLog := models.OperationLog{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			UserName:    prof.UserName,
+			UserUid:     prof.Uid,
+			Module:      constants.OP_LOG_MODULE_RECEPTION,
+			Function:    constants.OP_LOG_FUNCTION_DEL_ROUND,
+			Action:      constants.OP_LOG_ACTION_DELETE,
+			Body:        models.JsonDataLog{Data: body},
+			ValueOld:    models.JsonDataLog{Data: oldB},
+			ValueNew:    models.JsonDataLog{Data: res},
+			Path:        c.Request.URL.Path,
+			Method:      c.Request.Method,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
+			BillCode:    booking.BillCode,
+			BookingUid:  booking.Uid,
+		}
+		go createOperationLog(opLog)
+
 		okResponse(c, res)
 	} else {
 		//Xóa round
@@ -575,6 +695,28 @@ func (cRound CRound) RemoveRound(c *gin.Context, prof models.CmsUser) {
 
 		updatePriceWithServiceItem(&booking, prof)
 		res := getBagDetailFromBooking(db, booking)
+
+		//Add log
+		opLog := models.OperationLog{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			UserName:    prof.UserName,
+			UserUid:     prof.Uid,
+			Module:      constants.OP_LOG_MODULE_RECEPTION,
+			Function:    constants.OP_LOG_FUNCTION_DEL_ROUND,
+			Action:      constants.OP_LOG_ACTION_DELETE,
+			Body:        models.JsonDataLog{Data: body},
+			ValueOld:    models.JsonDataLog{Data: oldB},
+			ValueNew:    models.JsonDataLog{Data: res},
+			Path:        c.Request.URL.Path,
+			Method:      c.Request.Method,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
+			BillCode:    booking.BillCode,
+			BookingUid:  booking.Uid,
+		}
+		go createOperationLog(opLog)
+
 		okResponse(c, res)
 	}
 }
