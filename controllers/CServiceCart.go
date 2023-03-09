@@ -1130,6 +1130,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		targetServiceCart.BookingUid = booking.Uid
 		targetServiceCart.StaffOrder = prof.FullName
 		targetServiceCart.BillCode = constants.BILL_NONE
+		targetServiceCart.BillCode = utils.GetTimeNow().Format("20060102150405")
 
 		if err := targetServiceCart.Create(db); err != nil {
 			response_message.InternalServerError(c, err.Error())
@@ -1170,12 +1171,13 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 
 	// Update amount target bill
 	targetServiceCart.Amount += totalAmount
+	targetServiceCart.BillStatus = constants.POS_BILL_STATUS_ACTIVE
 	if err := targetServiceCart.Update(db); err != nil {
 		response_message.InternalServerError(c, "Update target cart "+err.Error())
 		return
 	}
 
-	if targetServiceCart.BillStatus == constants.POS_BILL_STATUS_TRANSFER {
+	if targetServiceCart.BillStatus == constants.POS_BILL_STATUS_ACTIVE {
 		updatePriceWithServiceItem(&booking, prof)
 	}
 
