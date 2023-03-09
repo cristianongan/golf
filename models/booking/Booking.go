@@ -701,6 +701,29 @@ func (item *Booking) UpdateMemberCardForBooking(database *gorm.DB) {
 	}
 }
 
+//MAIN-SUB Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
+func (item *Booking) UpdateSubBagForBooking(database *gorm.DB) {
+	db := database.Model(Booking{})
+	bookingR := BookingList{}
+	bookingR.PartnerUid = item.PartnerUid
+	bookingR.CourseUid = item.CourseUid
+	bookingR.GolfBag = item.Bag
+	bookingR.BookingDate = item.BookingDate
+
+	db, _, err := bookingR.FindAllBookingList(db)
+	var list []Booking
+	db.Find(&list)
+
+	if err == nil {
+		for _, bookingBag := range list {
+			if item.Uid != bookingBag.Uid {
+				bookingBag.SubBags = item.SubBags
+				bookingBag.Update(db)
+			}
+		}
+	}
+}
+
 func (item *Booking) FindAllBookingOTA(database *gorm.DB) ([]Booking, error) {
 	db := database.Model(Booking{})
 	list := []Booking{}
@@ -1414,21 +1437,21 @@ func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]inte
 	db = db.Joins(`INNER JOIN (?) as tb2 on tb1.booking_uid = tb2.uid`, subQuery)
 	db = db.Joins(`LEFT JOIN service_carts as tb3 on tb1.service_bill = tb3.id`)
 
-	// if item.CourseUid != "" {
-	// 	db = db.Where("tb1.course_uid = ?", item.CourseUid)
-	// }
-	// if item.PartnerUid != "" {
-	// 	db = db.Where("tb1.partner_uid = ?", item.PartnerUid)
-	// }
+	if item.CourseUid != "" {
+		db = db.Where("tb1.course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("tb1.partner_uid = ?", item.PartnerUid)
+	}
 
 	db = db.Where("tb1.type IN ?", []string{constants.RESTAURANT_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.MINI_R_SETTING})
 	db = db.Where("tb2.check_in_time > 0")
 	db = db.Where("tb2.bag_status <> 'CANCEL'")
-	db = db.Where("(tb3.bill_status NOT IN ? OR tb3.bill_status IS NULL)", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
+	db = db.Where("tb3.bill_status NOT IN ?", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
 
 	db.Group("tb1.bag")
 
-	db = db.Debug().Find(&list)
+	db = db.Find(&list)
 
 	return list, db.Error
 }
