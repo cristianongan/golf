@@ -1135,6 +1135,8 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	oldBooking := booking.CloneBooking()
+
 	//Checkin rồi thì k check in lại dc nữa
 	if booking.BagStatus == constants.BAG_STATUS_WAITING && booking.CheckInTime > 0 {
 		response_message.BadRequest(c, "da checkin roi")
@@ -1327,6 +1329,23 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	res := getBagDetailFromBooking(db, booking)
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		UserName:   prof.UserName,
+		UserUid:    prof.Uid,
+		Module:     constants.OP_LOG_MODULE_RECEPTION,
+		Function:   constants.OP_LOG_FUNCTION_CHECKIN,
+		Action:     constants.OP_LOG_ACTION_CREATE,
+		Body:       body,
+		ValueOld:   oldBooking,
+		ValueNew:   res,
+		Path:       c.Request.URL.Path,
+		Method:     c.Request.Method,
+	}
+	go createOperationLog(opLog)
+
 	okResponse(c, res)
 }
 
@@ -1490,6 +1509,8 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	oldBooking := booking.CloneBooking()
+
 	booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
 	booking.CheckOutTime = utils.GetTimeNow().Unix()
 
@@ -1500,6 +1521,23 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 
 	//TODO: check lại logic này
 	// go updateSinglePaymentOfSubBag(booking, prof)
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid: booking.PartnerUid,
+		CourseUid:  booking.CourseUid,
+		UserName:   prof.UserName,
+		UserUid:    prof.Uid,
+		Module:     constants.OP_LOG_MODULE_RECEPTION,
+		Function:   constants.OP_LOG_FUNCTION_CHECK_OUT,
+		Action:     constants.OP_LOG_ACTION_CREATE,
+		Body:       body,
+		ValueOld:   oldBooking,
+		ValueNew:   booking,
+		Path:       c.Request.URL.Path,
+		Method:     c.Request.Method,
+	}
+	go createOperationLog(opLog)
 
 	okResponse(c, booking)
 }
