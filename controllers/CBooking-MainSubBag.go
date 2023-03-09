@@ -397,6 +397,9 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 	go handlePayment(db, booking)
 
 	go func() {
+		// Nếu case có Round, MoveFlight
+		mainBag.UpdateSubBagForBooking(db)
+
 		cRound := CRound{}
 		cRound.ResetRoundPaidByMain(booking.BillCode, db)
 	}()
