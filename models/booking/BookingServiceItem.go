@@ -487,12 +487,12 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 		`)
 	}
 
-	if item.CourseUid != "" {
-		db = db.Where("booking_service_items.course_uid = ?", item.CourseUid)
-	}
-	if item.PartnerUid != "" {
-		db = db.Where("booking_service_items.partner_uid = ?", item.PartnerUid)
-	}
+	// if item.CourseUid != "" {
+	// 	db = db.Where("booking_service_items.course_uid = ?", item.CourseUid)
+	// }
+	// if item.PartnerUid != "" {
+	// 	db = db.Where("booking_service_items.partner_uid = ?", item.PartnerUid)
+	// }
 	if item.ServiceId != "" {
 		db = db.Where("booking_service_items.service_id = ?", item.ServiceId)
 	}
@@ -557,12 +557,12 @@ func (item *BookingServiceItem) FindReportDetailFB(database *gorm.DB, date strin
 		SUM(tb.amount) as amount
 	`)
 
-	if item.CourseUid != "" {
-		db = db.Where("tb.course_uid = ?", item.CourseUid)
-	}
-	if item.PartnerUid != "" {
-		db = db.Where("tb.partner_uid = ?", item.PartnerUid)
-	}
+	// if item.CourseUid != "" {
+	// 	db = db.Where("tb.course_uid = ?", item.CourseUid)
+	// }
+	// if item.PartnerUid != "" {
+	// 	db = db.Where("tb.partner_uid = ?", item.PartnerUid)
+	// }
 
 	if item.Type == constants.RESTAURANT_SETTING {
 		db = db.Where("tb.type IN ?", []string{constants.RESTAURANT_SETTING, constants.MINI_R_SETTING})
