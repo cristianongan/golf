@@ -57,18 +57,22 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 
 	//Add log
 	opLog := models.OperationLog{
-		PartnerUid: booking.PartnerUid,
-		CourseUid:  booking.CourseUid,
-		UserName:   prof.UserName,
-		UserUid:    prof.Uid,
-		Module:     constants.OP_LOG_MODULE_RECEPTION,
-		Function:   constants.OP_LOG_FUNCTION_BOOKING,
-		Action:     constants.OP_LOG_ACTION_CREATE,
-		Body:       models.JsonDataLog{Data: body},
-		ValueOld:   models.JsonDataLog{},
-		ValueNew:   models.JsonDataLog{Data: booking},
-		Path:       c.Request.URL.Path,
-		Method:     c.Request.Method,
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_BOOKING,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
 	}
 	go createOperationLog(opLog)
 
@@ -1331,18 +1335,22 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	//Add log
 	opLog := models.OperationLog{
-		PartnerUid: booking.PartnerUid,
-		CourseUid:  booking.CourseUid,
-		UserName:   prof.UserName,
-		UserUid:    prof.Uid,
-		Module:     constants.OP_LOG_MODULE_RECEPTION,
-		Function:   constants.OP_LOG_FUNCTION_CHECKIN,
-		Action:     constants.OP_LOG_ACTION_CREATE,
-		Body:       models.JsonDataLog{Data: body},
-		ValueOld:   models.JsonDataLog{Data: oldBooking},
-		ValueNew:   models.JsonDataLog{Data: res},
-		Path:       c.Request.URL.Path,
-		Method:     c.Request.Method,
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_CHECKIN,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: res},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         res.Bag,
+		BookingDate: res.BookingDate,
+		BillCode:    res.BillCode,
+		BookingUid:  res.Uid,
 	}
 	go createOperationLog(opLog)
 
@@ -1524,18 +1532,22 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 
 	//Add log
 	opLog := models.OperationLog{
-		PartnerUid: booking.PartnerUid,
-		CourseUid:  booking.CourseUid,
-		UserName:   prof.UserName,
-		UserUid:    prof.Uid,
-		Module:     constants.OP_LOG_MODULE_RECEPTION,
-		Function:   constants.OP_LOG_FUNCTION_CHECK_OUT,
-		Action:     constants.OP_LOG_ACTION_CREATE,
-		Body:       models.JsonDataLog{Data: body},
-		ValueOld:   models.JsonDataLog{Data: oldBooking},
-		ValueNew:   models.JsonDataLog{Data: booking},
-		Path:       c.Request.URL.Path,
-		Method:     c.Request.Method,
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_CHECK_OUT,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
 	}
 	go createOperationLog(opLog)
 
