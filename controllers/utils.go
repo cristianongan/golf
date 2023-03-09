@@ -2048,7 +2048,8 @@ func validateBooking(db *gorm.DB, bookindUid string) (model_booking.Booking, err
 	return booking, nil
 }
 
-func updateAgencyInfoInPayment(db *gorm.DB, booking model_booking.Booking) {
+func updateAgencyInfoInPayment(booking model_booking.Booking) {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	agency := model_payment.AgencyPayment{
 		PartnerUid:  booking.PartnerUid,
 		CourseUid:   booking.CourseUid,
@@ -2063,6 +2064,7 @@ func updateAgencyInfoInPayment(db *gorm.DB, booking model_booking.Booking) {
 			GuestStyle:     booking.GuestStyle,
 			GuestStyleName: booking.GuestStyleName,
 		}
+
 		if err := agency.Update(db); err != nil {
 			log.Print("afsdfasdfasdf")
 		}
