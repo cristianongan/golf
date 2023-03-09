@@ -76,7 +76,7 @@ func (item *OperationLog) Count() (int64, error) {
 	return total, db.Error
 }
 
-func (item *OperationLog) FindList(page Page, search string) ([]OperationLog, int64, error) {
+func (item *OperationLog) FindList(page Page) ([]OperationLog, int64, error) {
 	db := datasources.GetDatabaseAuth().Model(OperationLog{})
 	list := []OperationLog{}
 	total := int64(0)
@@ -93,8 +93,21 @@ func (item *OperationLog) FindList(page Page, search string) ([]OperationLog, in
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
-	if search != "" {
-		db = db.Where("(user_name LIKE ? OR full_name LIKE ?)", "%"+search+"%", "%"+search+"%")
+
+	if item.Bag != "" {
+		db = db.Where("bag = ?", item.Bag)
+	}
+
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+
+	if item.Module != "" {
+		db = db.Where("module = ?", item.Module)
+	}
+
+	if item.Function != "" {
+		db = db.Where("function = ?", item.Function)
 	}
 
 	db.Count(&total)
