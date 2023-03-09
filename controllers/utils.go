@@ -2055,10 +2055,6 @@ func updateAgencyInfoInPayment(db *gorm.DB, booking model_booking.Booking) {
 		BookingCode: booking.BookingCode,
 	}
 
-	if agency.AgencyId == booking.AgencyId {
-		return
-	}
-
 	if errFindAgency := agency.FindFirst(db); errFindAgency == nil {
 		agency.AgencyId = booking.AgencyId
 		agency.PlayerBook = booking.AgencyInfo.ShortName
