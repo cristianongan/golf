@@ -9,6 +9,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	socket_room "start/socket_room"
 	"start/utils"
 	"start/utils/response_message"
 	"strings"
@@ -136,4 +137,11 @@ func (cBooking *CTest) TestFastFee(c *gin.Context, prof models.CmsUser) {
 		"customer": customer,
 	}
 	okResponse(c, res)
+}
+
+func (cTest *CTest) TestNotification(c *gin.Context, prof models.CmsUser) {
+	socket_room.Hub.Broadcast <- socket_room.Message{
+		Data: []byte{1, 2, 3},
+		Room: constants.NOTIFICATION_CHANNEL_ADMIN_1,
+	}
 }
