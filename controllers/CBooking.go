@@ -908,8 +908,10 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	// Update lại thông tin agency cho các round, move flight
 	if isAgencyChanged {
-		booking.UpdateAgencyForBooking(db)
-		updateAgencyInfoInPayment(db, booking)
+		go func() {
+			booking.UpdateAgencyForBooking(db)
+			updateAgencyInfoInPayment(db, booking)
+		}()
 	}
 
 	// Get lai booking mới nhất trong DB
