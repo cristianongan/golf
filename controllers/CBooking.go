@@ -1698,6 +1698,8 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	oldBooking := booking.CloneBooking()
+
 	booking.LockBill = setBoolForCursor(*body.LockBill)
 	if err := booking.Update(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -1720,6 +1722,27 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 			}
 		}
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_LOCK_BAG,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
