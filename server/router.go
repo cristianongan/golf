@@ -6,7 +6,9 @@ import (
 	"start/config"
 	"start/controllers"
 	"start/middlewares"
-	"start/socket"
+
+	// "start/socket"
+	socket "start/socket_room"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -44,13 +46,13 @@ func NewRouter() *gin.Engine {
 	router.Group(moduleName).GET("/", healthcheck)
 	router.Group(moduleName).GET("/healthz", healthcheck)
 	router.Group(moduleName).GET("/ws", func(c *gin.Context) {
-		socket.ServeWs(c.Writer, c.Request)
+		// socket.ServeWs(c.Writer, c.Request)
 	})
 
-	// router.Group(moduleName).GET("/ws/:roomId", func(c *gin.Context) {
-	// 	roomId := c.Param("roomId")
-	// 	socket_room.ServeWs(c.Writer, c.Request, roomId)
-	// })
+	router.Group(moduleName).GET("/ws/:roomId", func(c *gin.Context) {
+		roomId := c.Param("roomId")
+		socket.ServeWs(c.Writer, c.Request, roomId)
+	})
 
 	if config.GetKibanaLog() {
 		router.Use(middlewares.GinBodyLogMiddleware)
@@ -804,6 +806,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/test-fast-customer", middlewares.AuthorizedCmsUserHandler(cTest.TestFastCustomer))
 			cmsApiAuthorized.GET("/test-fast-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFastFee))
 			cmsApiAuthorized.GET("/test-caddie-slot", middlewares.AuthorizedCmsUserHandler(cTest.TestCaddieSlot))
+			cmsApiAuthorized.GET("/test-notification", middlewares.AuthorizedCmsUserHandler(cTest.TestNotification))
 
 			/// =================== Test ===================
 			cHelper := new(controllers.CHelper)
