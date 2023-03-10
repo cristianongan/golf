@@ -1248,6 +1248,66 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 	}
 }
 
+func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
+	hasBuggy := false
+	hasOddBuggy := false
+	hasPrivateBuggy := false
+	hasCaddie := false
+	isAgencyPaidBookingCaddie := item.GetAgencyPaidBookingCaddie() > 0
+
+	item.FindServiceItemsOfBag(db)
+	for _, v1 := range item.ListServiceItems {
+		for _, itemPaid := range item.AgencyPrePaid {
+			if !(itemPaid.Fee > 0 && v1.Hole <= itemPaid.Hole) {
+				break
+			}
+
+			if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy && itemPaid.Fee > 0 {
+				hasPrivateBuggy = true
+				item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
+					Fee:  v1.Amount,
+					Name: constants.THUE_RIENG_XE,
+					Type: constants.BOOKING_AGENCY_PRIVATE_CAR_FEE,
+					Hole: v1.Hole,
+				})
+				break
+			}
+
+			if v1.Name == constants.THUE_LE_XE && v1.Name == itemPaid.Name && !hasOddBuggy && itemPaid.Fee > 0 {
+				item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
+					Fee:  v1.Amount,
+					Name: constants.THUE_LE_XE,
+					Type: constants.BOOKING_AGENCY_BUGGY_ODD_FEE,
+					Hole: v1.Hole,
+				})
+				hasOddBuggy = true
+				break
+			}
+
+			if v1.Name == constants.THUE_NUA_XE && v1.Name == itemPaid.Name && !hasBuggy && itemPaid.Fee > 0 {
+				item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
+					Fee:  v1.Amount,
+					Name: constants.THUE_NUA_XE,
+					Type: constants.BOOKING_AGENCY_BUGGY_FEE,
+					Hole: v1.Hole,
+				})
+				hasBuggy = true
+				break
+			}
+		}
+
+		if v1.ServiceType == constants.CADDIE_SETTING && isAgencyPaidBookingCaddie && !hasCaddie {
+			hasCaddie = true
+			item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
+				Fee:  v1.Amount,
+				Name: "booking caddie",
+				Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
+				Hole: v1.Hole,
+			})
+		}
+	}
+}
+
 // UpdateMushPayForAgencyPaidAll
 func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 	mushPay := BookingMushPay{}
