@@ -16,6 +16,7 @@ import (
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
 	kiosk_inventory "start/models/kiosk-inventory"
+	model_payment "start/models/payment"
 	model_service "start/models/service"
 	"start/utils"
 	"strconv"
@@ -2045,4 +2046,27 @@ func validateBooking(db *gorm.DB, bookindUid string) (model_booking.Booking, err
 	}
 
 	return booking, nil
+}
+
+func updateAgencyInfoInPayment(booking model_booking.Booking) {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+	agency := model_payment.AgencyPayment{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		BookingCode: booking.BookingCode,
+	}
+
+	if errFindAgency := agency.FindFirst(db); errFindAgency == nil {
+		agency.AgencyId = booking.AgencyId
+		agency.PlayerBook = booking.AgencyInfo.ShortName
+		agency.AgencyInfo = model_payment.PaymentAgencyInfo{
+			Name:           booking.AgencyInfo.Name,
+			GuestStyle:     booking.GuestStyle,
+			GuestStyleName: booking.GuestStyleName,
+		}
+
+		if err := agency.Update(db); err != nil {
+			log.Print("afsdfasdfasdf")
+		}
+	}
 }
