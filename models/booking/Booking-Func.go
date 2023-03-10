@@ -156,6 +156,10 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 
 					if isCanAdd {
 						for _, itemPaid := range subDetail.AgencyPaid {
+							if !(itemPaid.Fee > 0 && v1.Hole <= itemPaid.Hole) {
+								break
+							}
+
 							if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy && itemPaid.Fee > 0 {
 								hasPrivateBuggy = true
 								isCanAdd = false
@@ -735,6 +739,10 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 
 					if isCanAdd {
 						for _, itemPaid := range subDetail.AgencyPaid {
+							if !(itemPaid.Fee > 0 && v1.Hole <= itemPaid.Hole) {
+								break
+							}
+
 							if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy && itemPaid.Fee > 0 {
 								hasPrivateBuggy = true
 								isCanAdd = false
@@ -1271,12 +1279,15 @@ func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
 	hasOddBuggy := false
 	hasPrivateBuggy := false
 	hasCaddie := false
-	isAgencyPaidBookingCaddie := item.GetAgencyPaidBookingCaddie() > 0
+	isAgencyPaidBookingCaddie := false
 
 	item.AgencyPaid = utils.ListBookingAgencyPayForBagData{}
 	for _, agencyItem := range item.AgencyPrePaid {
 		if agencyItem.Type == constants.BOOKING_AGENCY_GOLF_FEE {
 			item.AgencyPaid = append(item.AgencyPaid, agencyItem)
+		}
+		if agencyItem.Type == constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE && agencyItem.Fee > 0 {
+			isAgencyPaidBookingCaddie = true
 		}
 	}
 
