@@ -141,6 +141,10 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 
 					if isCanAdd {
 						for _, itemPaid := range subDetail.AgencyPaid {
+							if !(itemPaid.Fee > 0 && v1.Hole <= itemPaid.Hole) {
+								break
+							}
+
 							if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy && itemPaid.Fee > 0 {
 								hasPrivateBuggy = true
 								isCanAdd = false
@@ -720,6 +724,10 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 
 					if isCanAdd {
 						for _, itemPaid := range subDetail.AgencyPaid {
+							if !(itemPaid.Fee > 0 && v1.Hole <= itemPaid.Hole) {
+								break
+							}
+
 							if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy && itemPaid.Fee > 0 {
 								hasPrivateBuggy = true
 								isCanAdd = false
