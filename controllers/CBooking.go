@@ -320,14 +320,16 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 
 		// check caddie booking
-		// cCaddie := CCaddie{}
-		// listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
-		// if utils.ContainString(listCaddieWorkingByBookingDate, caddieNew.Code) > -1 {
-		// }
-		booking.CaddieBooking = caddieNew.Code
-		booking.CaddieId = caddieNew.Id
-		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
-		booking.HasBookCaddie = true
+		cCaddie := CCaddie{}
+		listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
+		if utils.ContainString(listCaddieWorkingByBookingDate, caddieNew.Code) == -1 {
+			response_message.BadRequestFreeMessage(c, "Caddie "+caddieNew.Code+" không có lịch làm việc!")
+		} else {
+			booking.CaddieBooking = caddieNew.Code
+			booking.CaddieId = caddieNew.Id
+			booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
+			booking.HasBookCaddie = true
+		}
 	}
 
 	if body.CustomerName != "" {
@@ -786,6 +788,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Agency id
+	isAgencyChanged := false
 	if body.AgencyId > 0 && body.AgencyId != booking.AgencyId {
 		agencyBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   body.PartnerUid,
@@ -801,6 +804,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.BadRequest(c, errAgency.Error())
 		}
 		guestStyle = agency.GuestStyle
+		isAgencyChanged = true
 	}
 
 	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
@@ -902,6 +906,14 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		updatePriceWithServiceItem(&booking, prof)
 	}
 
+	// Update lại thông tin agency cho các round, move flight
+	if isAgencyChanged {
+		go func() {
+			booking.UpdateAgencyForBooking(db)
+			updateAgencyInfoInPayment(booking)
+		}()
+	}
+
 	// Get lai booking mới nhất trong DB
 	bookLast := model_booking.Booking{}
 	bookLast.Uid = booking.Uid
@@ -925,8 +937,13 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 				caddieNew, err := caddieList.FindFirst(db)
 
 				if err != nil {
-					response_message.BadRequestFreeMessage(c, "Caddie Not Found")
 					return errors.New("Caddie Not Found!")
+				}
+
+				cCaddie := CCaddie{}
+				listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(booking.PartnerUid, booking.CourseUid, booking.BookingDate)
+				if utils.ContainString(listCaddieWorkingByBookingDate, caddieNew.Code) == -1 {
+					return errors.New("Caddie " + caddieNew.Code + " không có lịch làm việc!")
 				}
 
 				booking.CaddieId = caddieNew.Id
@@ -968,8 +985,14 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 				caddieNew, err := caddieList.FindFirst(db)
 
 				if err != nil {
-					response_message.BadRequestFreeMessage(c, "Caddie Not Found")
 					return errors.New("Caddie Not Found!")
+				}
+
+				// check caddie booking
+				cCaddie := CCaddie{}
+				listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, booking.BookingDate)
+				if utils.ContainString(listCaddieWorkingByBookingDate, caddieNew.Code) == -1 {
+					return errors.New("Caddie " + caddieNew.Code + " không có lịch làm việc!")
 				}
 
 				booking.CaddieBooking = caddieNew.Code
@@ -977,7 +1000,6 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 					booking.CaddieId = caddieNew.Id
 					booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 				}
-
 			}
 		} else {
 			booking.CaddieBooking = *body.CaddieCode
@@ -1175,6 +1197,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Agency id
+	isAgencyChanged := false
 	if body.AgencyId > 0 && (body.AgencyId != booking.AgencyId || body.Hole != booking.Hole) {
 		agencyBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   booking.PartnerUid,
@@ -1190,6 +1213,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			response_message.BadRequest(c, errAgency.Error())
 		}
 		guestStyle = agency.GuestStyle
+		isAgencyChanged = true
 	}
 
 	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
@@ -1275,7 +1299,12 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			// Create payment info
 			handlePayment(db, booking)
 		}
+		if isAgencyChanged {
+			updateAgencyInfoInPayment(booking)
+		}
 	}()
+
+	// Update lại thông tin agency cho các round, move flight
 
 	// Update lại round còn thiếu bag
 	cRound := CRound{}

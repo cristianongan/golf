@@ -331,6 +331,8 @@ func addBuggyFee(booking model_booking.Booking, fee int64, name string, hole int
 		PlayerName: booking.CustomerName,
 		BookingUid: booking.Uid,
 	}
+	serviceItem.PartnerUid = booking.PartnerUid
+	serviceItem.CourseUid = booking.CourseUid
 	serviceItem.Name = name
 	serviceItem.UnitPrice = fee
 	serviceItem.Quality = 1
@@ -349,6 +351,8 @@ func addCaddieBookingFee(booking model_booking.Booking, fee int64, name string, 
 		PlayerName: booking.CustomerName,
 		BookingUid: booking.Uid,
 	}
+	serviceItem.PartnerUid = booking.PartnerUid
+	serviceItem.CourseUid = booking.CourseUid
 	serviceItem.Name = name
 	serviceItem.UnitPrice = fee
 	serviceItem.Quality = 1

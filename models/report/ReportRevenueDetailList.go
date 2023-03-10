@@ -68,7 +68,7 @@ func addFilter(db *gorm.DB, item *ReportRevenueDetailList) *gorm.DB {
 	}
 
 	if item.GuestStyle != "" {
-		db = db.Where("guest_style COLLATE utf8mb4_general_ci LIKE ?", "%"+item.GuestStyle+"%")
+		db = db.Where("guest_style LIKE ?", "%"+item.GuestStyle+"%")
 	}
 
 	if item.BookingDate != "" {
@@ -76,7 +76,7 @@ func addFilter(db *gorm.DB, item *ReportRevenueDetailList) *gorm.DB {
 	}
 
 	if item.Bag != "" {
-		db = db.Where("bag COLLATE utf8mb4_general_ci LIKE ?", "%"+item.Bag+"%")
+		db = db.Where("bag LIKE ?", "%"+item.Bag+"%")
 	}
 
 	return db
@@ -85,7 +85,17 @@ func addFilter(db *gorm.DB, item *ReportRevenueDetailList) *gorm.DB {
 func (item *ReportRevenueDetailList) FindReportDayEnd(database *gorm.DB) (DayEndRevenue, error) {
 	db := database.Model(ReportRevenueDetail{})
 
-	db = addFilter(db, item)
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
 
 	db = db.Select(`partner_uid,
 					course_uid,

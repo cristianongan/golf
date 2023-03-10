@@ -393,10 +393,15 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequestDynamicKey(c, "UPDATE_BOOKING_ERROR", "")
 		return
 	}
+
 	// update lại payment
 	go handlePayment(db, booking)
 
 	go func() {
+		// Nếu case có Round, MoveFlight
+		mainBag.UpdateSubBagForBooking(db)
+		//
+
 		cRound := CRound{}
 		cRound.ResetRoundPaidByMain(booking.BillCode, db)
 	}()
