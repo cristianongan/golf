@@ -727,6 +727,34 @@ func (item *Booking) UpdateSubBagForBooking(database *gorm.DB) {
 	}
 }
 
+//MAIN-SUB Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
+func (item *Booking) UpdateAgencyPaidForBooking(database *gorm.DB, isAgencyPaid bool) {
+	db := database.Model(Booking{})
+	bookingR := BookingList{}
+	bookingR.PartnerUid = item.PartnerUid
+	bookingR.CourseUid = item.CourseUid
+	bookingR.GolfBag = item.Bag
+	bookingR.BookingDate = item.BookingDate
+
+	db, _, err := bookingR.FindAllBookingList(db)
+	var list []Booking
+	db.Find(&list)
+
+	db2 := datasources.GetDatabaseWithPartner(item.PartnerUid)
+	if err == nil {
+		for _, bookingBag := range list {
+			if item.Uid != bookingBag.Uid {
+				if isAgencyPaid {
+					bookingBag.AgencyPaid = item.AgencyPaid
+				} else {
+					bookingBag.AgencyPrePaid = item.AgencyPrePaid
+				}
+				bookingBag.Update(db2)
+			}
+		}
+	}
+}
+
 func (item *Booking) FindAllBookingOTA(database *gorm.DB) ([]Booking, error) {
 	db := database.Model(Booking{})
 	list := []Booking{}

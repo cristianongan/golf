@@ -1016,6 +1016,9 @@ func (item *Booking) UpdateBagGolfFee() {
 
 // Udp MushPay
 func (item *Booking) UpdateMushPay(db *gorm.DB) {
+	if len(item.AgencyPrePaid) > 0 {
+		item.UpdateAgencyPaid(db)
+	}
 	if item.CheckAgencyPaidAll() {
 		item.UpdateMushPayForAgencyPaidAll(db)
 	} else {
@@ -1254,6 +1257,13 @@ func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
 	hasPrivateBuggy := false
 	hasCaddie := false
 	isAgencyPaidBookingCaddie := item.GetAgencyPaidBookingCaddie() > 0
+
+	item.AgencyPaid = utils.ListBookingAgencyPayForBagData{}
+	for _, agencyItem := range item.AgencyPrePaid {
+		if agencyItem.Type == constants.BOOKING_AGENCY_GOLF_FEE {
+			item.AgencyPaid = append(item.AgencyPaid, agencyItem)
+		}
+	}
 
 	item.FindServiceItemsOfBag(db)
 	for _, v1 := range item.ListServiceItems {
