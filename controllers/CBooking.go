@@ -1121,10 +1121,10 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Checkin rồi thì k check in lại dc nữa
-	// if booking.BagStatus == constants.BAG_STATUS_WAITING && booking.CheckInTime > 0 {
-	// 	response_message.BadRequest(c, "da checkin roi")
-	// 	return
-	// }
+	if booking.BagStatus == constants.BAG_STATUS_WAITING && booking.CheckInTime > 0 {
+		response_message.BadRequest(c, "da checkin roi")
+		return
+	}
 
 	// Check Guest of member, check member có còn slot đi cùng không
 	var memberCard models.MemberCard
