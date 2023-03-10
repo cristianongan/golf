@@ -1321,7 +1321,7 @@ func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
 			hasCaddie = true
 			item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
 				Fee:  v1.Amount,
-				Name: "booking caddie",
+				Name: constants.BOOKING_CADDIE_NAME,
 				Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
 				Hole: v1.Hole,
 			})

@@ -1293,7 +1293,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	go func() {
 		if booking.CaddieBooking != "" {
 			caddieBookingFee := getBookingCadieFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, body.Hole)
-			addCaddieBookingFee(booking, caddieBookingFee.Fee, "Booking Caddie", body.Hole)
+			addCaddieBookingFee(booking, caddieBookingFee.Fee, constants.BOOKING_CADDIE_NAME, body.Hole)
 			updatePriceWithServiceItem(&booking, prof)
 		} else {
 			// Create payment info
