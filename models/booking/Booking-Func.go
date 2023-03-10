@@ -1256,12 +1256,15 @@ func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
 	hasOddBuggy := false
 	hasPrivateBuggy := false
 	hasCaddie := false
-	isAgencyPaidBookingCaddie := item.GetAgencyPaidBookingCaddie() > 0
+	isAgencyPaidBookingCaddie := false
 
 	item.AgencyPaid = utils.ListBookingAgencyPayForBagData{}
 	for _, agencyItem := range item.AgencyPrePaid {
 		if agencyItem.Type == constants.BOOKING_AGENCY_GOLF_FEE {
 			item.AgencyPaid = append(item.AgencyPaid, agencyItem)
+		}
+		if agencyItem.Type == constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE && agencyItem.Fee > 0 {
+			isAgencyPaidBookingCaddie = true
 		}
 	}
 
