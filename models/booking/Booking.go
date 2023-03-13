@@ -713,7 +713,7 @@ func (item *Booking) UpdateSubBagForBooking(database *gorm.DB) {
 		bookingR := BookingList{}
 		bookingR.PartnerUid = item.PartnerUid
 		bookingR.CourseUid = item.CourseUid
-		bookingR.BillCode = item.BillCode
+		bookingR.GolfBag = item.Bag
 		bookingR.BookingDate = item.BookingDate
 
 		db, _, err := bookingR.FindAllBookingList(db)
