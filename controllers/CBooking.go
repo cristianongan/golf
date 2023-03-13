@@ -40,6 +40,8 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
 	booking, _ := cBooking.CreateBookingCommon(body, c, prof)
 	if booking == nil {
 		// Khi booking lỗi thì remove index đã lưu trước đó trong redis
@@ -66,7 +68,7 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		Action:      constants.OP_LOG_ACTION_CREATE,
 		Body:        models.JsonDataLog{Data: body},
 		ValueOld:    models.JsonDataLog{},
-		ValueNew:    models.JsonDataLog{Data: booking},
+		ValueNew:    models.JsonDataLog{Data: getBagDetailFromBooking(db, *booking)},
 		Path:        c.Request.URL.Path,
 		Method:      c.Request.Method,
 		Bag:         booking.Bag,
