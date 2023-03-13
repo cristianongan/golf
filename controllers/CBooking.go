@@ -935,7 +935,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Update bag nếu có thay đổi
-	if errUdpBag := updateBag(c, &booking, body, prof); errUdpBag != nil {
+	if errUdpBag := updateBag(c, &oldBooking, &booking, body, prof); errUdpBag != nil {
 		return
 	}
 
@@ -944,7 +944,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.CaddieCode != nil {
-		if errUpd := updateCaddieBooking(c, &booking, body, prof); errUpd != nil {
+		if errUpd := updateCaddieBooking(c, &oldBooking, &booking, body, prof); errUpd != nil {
 			response_message.BadRequestFreeMessage(c, errUpd.Error())
 			return
 		}
@@ -1065,11 +1065,9 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 	return nil
 }
 
-func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking, prof models.CmsUser) error {
+func updateCaddieBooking(c *gin.Context, oldBooking *model_booking.BagDetail, booking *model_booking.Booking, body request.UpdateBooking, prof models.CmsUser) error {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	if body.CaddieCode != nil {
-		// data old
-		oldBooking := booking
 
 		if *body.CaddieCode != "" {
 			if *body.CaddieCode != booking.CaddieBooking {
@@ -1099,7 +1097,7 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 			booking.CaddieBooking = *body.CaddieCode
 		}
 
-		if booking.CheckInTime == 0 {
+		if booking.CheckInTime == 0 && oldBooking.CaddieBooking != *body.CaddieCode {
 			opLog := models.OperationLog{
 				PartnerUid:  booking.PartnerUid,
 				CourseUid:   booking.CourseUid,
@@ -1138,13 +1136,11 @@ func updateHole(c *gin.Context, booking *model_booking.Booking, hole int) {
 	cRound.UpdateListFeePriceInRound(c, db, booking, booking.GuestStyle, &round, hole)
 }
 
-func updateBag(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking, prof models.CmsUser) error {
+func updateBag(c *gin.Context, oldBooking *model_booking.BagDetail, booking *model_booking.Booking, body request.UpdateBooking, prof models.CmsUser) error {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 
 	if body.Bag != nil {
 		// data old
-		oldBooking := booking
-
 		if *body.Bag != "" {
 			if booking.Bag != *body.Bag {
 				booking.Bag = *body.Bag
@@ -1215,7 +1211,7 @@ func updateBag(c *gin.Context, booking *model_booking.Booking, body request.Upda
 			}
 		}
 
-		if booking.CheckInTime == 0 {
+		if booking.CheckInTime == 0 && oldBooking.Bag != *body.Bag {
 			opLog := models.OperationLog{
 				PartnerUid:  booking.PartnerUid,
 				CourseUid:   booking.CourseUid,
