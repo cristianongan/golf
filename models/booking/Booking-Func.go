@@ -1041,7 +1041,10 @@ func (item *Booking) UpdateBagGolfFee() {
 func (item *Booking) UpdateMushPay(db *gorm.DB) {
 	if len(item.AgencyPrePaid) > 0 {
 		item.UpdateAgencyPaid(db)
+	} else {
+		item.AgencyPaid = utils.ListBookingAgencyPayForBagData{}
 	}
+
 	if item.CheckAgencyPaidAll() {
 		item.UpdateMushPayForAgencyPaidAll(db)
 	} else {
