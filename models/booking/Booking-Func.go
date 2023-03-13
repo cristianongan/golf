@@ -1313,6 +1313,8 @@ func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
 				agencyNew.Fee = round.GetAmountGolfFee()
 				item.AgencyPaid = append(item.AgencyPaid, agencyNew)
 			}
+		} else {
+			item.AgencyPaid = append(item.AgencyPaid, agencyItem)
 		}
 
 		if agencyItem.Type == constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE && agencyItem.Fee > 0 {
