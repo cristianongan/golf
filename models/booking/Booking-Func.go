@@ -169,6 +169,10 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 
 					if isCanAdd {
 						for _, itemPaid := range subDetail.AgencyPaid {
+							if !(itemPaid.Fee > 0 && v1.Hole <= itemPaid.Hole) {
+								break
+							}
+
 							if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy && itemPaid.Fee > 0 {
 								hasPrivateBuggy = true
 								isCanAdd = false
@@ -748,6 +752,10 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 
 					if isCanAdd {
 						for _, itemPaid := range subDetail.AgencyPaid {
+							if !(itemPaid.Fee > 0 && v1.Hole <= itemPaid.Hole) {
+								break
+							}
+
 							if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy && itemPaid.Fee > 0 {
 								hasPrivateBuggy = true
 								isCanAdd = false
@@ -1044,6 +1052,12 @@ func (item *Booking) UpdateBagGolfFee() {
 
 // Udp MushPay
 func (item *Booking) UpdateMushPay(db *gorm.DB) {
+	if len(item.AgencyPrePaid) > 0 {
+		item.UpdateAgencyPaid(db)
+	} else {
+		item.AgencyPaid = utils.ListBookingAgencyPayForBagData{}
+	}
+
 	if item.CheckAgencyPaidAll() {
 		item.UpdateMushPayForAgencyPaidAll(db)
 	} else {
@@ -1273,6 +1287,89 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 	}
 	if err := currencyPaidGet.FindFirst(); err == nil {
 		item.CurrentBagPrice.AmountUsd = mushPay.MushPay / currencyPaidGet.Rate
+	}
+}
+
+func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
+	hasBuggy := false
+	hasOddBuggy := false
+	hasPrivateBuggy := false
+	hasCaddie := false
+	isAgencyPaidBookingCaddie := false
+
+	item.AgencyPaid = utils.ListBookingAgencyPayForBagData{}
+	for _, agencyItem := range item.AgencyPrePaid {
+		if item.Hole <= agencyItem.Hole {
+			if agencyItem.Type == constants.BOOKING_AGENCY_GOLF_FEE {
+				round := models.Round{
+					BillCode: item.BillCode,
+				}
+
+				if errFindRound := round.FirstRound(db); errFindRound != nil {
+					log.Println("Round not found")
+				}
+
+				agencyNew := agencyItem
+				agencyNew.Fee = round.GetAmountGolfFee()
+				item.AgencyPaid = append(item.AgencyPaid, agencyNew)
+			}
+		}
+
+		if agencyItem.Type == constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE && agencyItem.Fee > 0 {
+			isAgencyPaidBookingCaddie = true
+		}
+	}
+
+	item.FindServiceItemsOfBag(db)
+	for _, v1 := range item.ListServiceItems {
+		for _, itemPaid := range item.AgencyPrePaid {
+			if !(itemPaid.Fee > 0 && v1.Hole <= itemPaid.Hole) {
+				break
+			}
+
+			if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy && itemPaid.Fee > 0 {
+				hasPrivateBuggy = true
+				item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
+					Fee:  v1.Amount,
+					Name: constants.THUE_RIENG_XE,
+					Type: constants.BOOKING_AGENCY_PRIVATE_CAR_FEE,
+					Hole: v1.Hole,
+				})
+				break
+			}
+
+			if v1.Name == constants.THUE_LE_XE && v1.Name == itemPaid.Name && !hasOddBuggy && itemPaid.Fee > 0 {
+				item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
+					Fee:  v1.Amount,
+					Name: constants.THUE_LE_XE,
+					Type: constants.BOOKING_AGENCY_BUGGY_ODD_FEE,
+					Hole: v1.Hole,
+				})
+				hasOddBuggy = true
+				break
+			}
+
+			if v1.Name == constants.THUE_NUA_XE && v1.Name == itemPaid.Name && !hasBuggy && itemPaid.Fee > 0 {
+				item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
+					Fee:  v1.Amount,
+					Name: constants.THUE_NUA_XE,
+					Type: constants.BOOKING_AGENCY_BUGGY_FEE,
+					Hole: v1.Hole,
+				})
+				hasBuggy = true
+				break
+			}
+		}
+
+		if v1.ServiceType == constants.CADDIE_SETTING && isAgencyPaidBookingCaddie && !hasCaddie {
+			hasCaddie = true
+			item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
+				Fee:  v1.Amount,
+				Name: constants.BOOKING_CADDIE_NAME,
+				Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
+				Hole: v1.Hole,
+			})
+		}
 	}
 }
 

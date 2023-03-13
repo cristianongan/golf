@@ -1434,7 +1434,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	go func() {
 		if booking.CaddieBooking != "" {
 			caddieBookingFee := getBookingCadieFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, body.Hole)
-			addCaddieBookingFee(booking, caddieBookingFee.Fee, "Booking Caddie", body.Hole)
+			addCaddieBookingFee(booking, caddieBookingFee.Fee, constants.BOOKING_CADDIE_NAME, body.Hole)
 			updatePriceWithServiceItem(&booking, prof)
 		} else {
 			// Create payment info
@@ -1475,22 +1475,6 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	go createOperationLog(opLog)
 
 	okResponse(c, res)
-}
-
-func validateAgencyFeeBeforUpdate(booking model_booking.Booking, feeInfo request.AgencyFeeInfo) bool {
-	if feeInfo.BuggyFee == 0 && feeInfo.CaddieFee == 0 && feeInfo.GolfFee == 0 {
-		return true
-	}
-	if len(booking.AgencyPaid) > 0 && feeInfo.GolfFee > 0 && booking.AgencyPaid[0].Fee != feeInfo.GolfFee {
-		return true
-	}
-	if len(booking.AgencyPaid) > 1 && feeInfo.BuggyFee > 0 && booking.AgencyPaid[1].Fee != feeInfo.BuggyFee {
-		return true
-	}
-	if len(booking.AgencyPaid) > 2 && feeInfo.CaddieFee > 0 && booking.AgencyPaid[2].Fee != feeInfo.CaddieFee {
-		return true
-	}
-	return false
 }
 
 /*

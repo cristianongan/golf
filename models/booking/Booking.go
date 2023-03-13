@@ -128,6 +128,7 @@ type Booking struct {
 	AgencyPaid        utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty" gorm:"type:json"`
 	LockBill          *bool                                `json:"lock_bill" gorm:"default:0"`                  // lễ tân lock bill cho kh để restaurant ko thao tác đc nữa
 	AgencyPaidAll     *bool                                `json:"agency_paid_all" gorm:"default:0"`            // Đánh dấu agency trả all fee cho kh
+	AgencyPrePaid     utils.ListBookingAgencyPayForBagData `json:"agency_pre_paid,omitempty" gorm:"type:json"`  // Tiền Agency trả trước
 	LastBookingStatus string                               `json:"last_booking_status" gorm:"type:varchar(50)"` // Đánh dấu trạng thái cuối cùng của booking
 	//Cho get data
 	MemberCard        *models.MemberCard `json:"member_card_info,omitempty" gorm:"-:migration;foreignKey:MemberCardUid"`
@@ -721,6 +722,34 @@ func (item *Booking) UpdateSubBagForBooking(database *gorm.DB) {
 		for _, bookingBag := range list {
 			if item.Uid != bookingBag.Uid {
 				bookingBag.SubBags = item.SubBags
+				bookingBag.Update(db2)
+			}
+		}
+	}
+}
+
+//MAIN-SUB Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
+func (item *Booking) UpdateAgencyPaidForBooking(database *gorm.DB, isAgencyPaid bool) {
+	db := database.Model(Booking{})
+	bookingR := BookingList{}
+	bookingR.PartnerUid = item.PartnerUid
+	bookingR.CourseUid = item.CourseUid
+	bookingR.GolfBag = item.Bag
+	bookingR.BookingDate = item.BookingDate
+
+	db, _, err := bookingR.FindAllBookingList(db)
+	var list []Booking
+	db.Find(&list)
+
+	db2 := datasources.GetDatabaseWithPartner(item.PartnerUid)
+	if err == nil {
+		for _, bookingBag := range list {
+			if item.Uid != bookingBag.Uid {
+				if isAgencyPaid {
+					bookingBag.AgencyPaid = item.AgencyPaid
+				} else {
+					bookingBag.AgencyPrePaid = item.AgencyPrePaid
+				}
 				bookingBag.Update(db2)
 			}
 		}

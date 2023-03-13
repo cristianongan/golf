@@ -118,6 +118,7 @@ type BookingDel struct {
 	MovedFlight       *bool                                `json:"moved_flight" gorm:"default:0"`      // Đánh dấu booking đã move flight chưa
 	AddedRound        *bool                                `json:"added_flight" gorm:"default:0"`      // Đánh dấu booking đã add chưa
 	AgencyPaid        utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty" gorm:"type:json"`
+	AgencyPrePaid     utils.ListBookingAgencyPayForBagData `json:"agency_pre_paid,omitempty" gorm:"type:json"`  // Tiền Agency trả trước
 	LockBill          *bool                                `json:"lock_bill" gorm:"default:0"`                  // lễ tân lock bill cho kh để restaurant ko thao tác đc nữa
 	AgencyPaidAll     *bool                                `json:"agency_paid_all" gorm:"default:0"`            // Đánh dấu agency trả all fee cho kh
 	LastBookingStatus string                               `json:"last_booking_status" gorm:"type:varchar(50)"` // Đánh dấu trạng thái cuối cùng của booking
