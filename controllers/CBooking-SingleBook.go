@@ -47,6 +47,8 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 		// 	response_message.InternalServerError(c, err.Error())
 		// 	return
 		// }
+		// Old Booking
+		oldBooking := booking
 
 		booking.BagStatus = constants.BAG_STATUS_CANCEL
 		booking.CancelNote = body.Note
@@ -80,6 +82,27 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 				}
 			}
 		}()
+
+		//Add log
+		opLog := models.OperationLog{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			UserName:    prof.UserName,
+			UserUid:     prof.Uid,
+			Module:      constants.OP_LOG_MODULE_RECEPTION,
+			Function:    constants.OP_LOG_FUNCTION_CANCEL_BOOKING,
+			Action:      constants.OP_LOG_ACTION_CANCEL,
+			Body:        models.JsonDataLog{Data: body},
+			ValueOld:    models.JsonDataLog{Data: oldBooking},
+			ValueNew:    models.JsonDataLog{Data: booking},
+			Path:        c.Request.URL.Path,
+			Method:      c.Request.Method,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
+			BillCode:    booking.BillCode,
+			BookingUid:  booking.Uid,
+		}
+		go createOperationLog(opLog)
 	}
 
 	okResponse(c, booking)
@@ -197,12 +220,33 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		listBookingReadyMoved = append(listBookingReadyMoved, booking)
 	}
 
-	for _, booking := range listBookingReadyMoved {
+	for index, booking := range listBookingReadyMoved {
 		errUdp := booking.Update(db)
 		if errUdp != nil {
 			response_message.InternalServerError(c, errUdp.Error())
 			return
 		}
+
+		//Add log
+		opLog := models.OperationLog{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			UserName:    prof.UserName,
+			UserUid:     prof.Uid,
+			Module:      constants.OP_LOG_MODULE_RECEPTION,
+			Function:    constants.OP_LOG_FUNCTION_MOVE_BOOKING,
+			Action:      constants.OP_LOG_ACTION_MOVE,
+			Body:        models.JsonDataLog{Data: body},
+			ValueOld:    models.JsonDataLog{Data: body.BookUidList[index]},
+			ValueNew:    models.JsonDataLog{Data: booking},
+			Path:        c.Request.URL.Path,
+			Method:      c.Request.Method,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
+			BillCode:    booking.BillCode,
+			BookingUid:  booking.Uid,
+		}
+		go createOperationLog(opLog)
 		// go updateSlotTeeTimeWithLock(booking)
 	}
 
@@ -222,6 +266,8 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	isAddMore := false
+
 	bookingCode := utils.HashCodeUuid(uuid.New().String())
 	for index, body := range bodyRequest.BookingList {
 		if body.BookingCode == "" {
@@ -229,6 +275,7 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 			bodyRequest.BookingList[index].BookingTeeTime = true
 		} else {
 			bodyRequest.BookingList[index].BookingCode = body.BookingCode
+			isAddMore = true
 		}
 	}
 
@@ -246,12 +293,42 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		}
 	}
 
+	// Log add mỏe booking
+	if isAddMore {
+		go cBooking.AddLogCreateBatchBooking(c, prof, bodyRequest, listBooking)
+	}
+
 	// Bắn socket để client update ui
 	go func() {
 		cNotification := CNotification{}
 		cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, listBooking)
 	}()
+
 	okResponse(c, listBooking)
+}
+
+func (cBooking *CBooking) AddLogCreateBatchBooking(c *gin.Context, prof models.CmsUser, body request.CreateBatchBookingBody, list []model_booking.Booking) {
+	for index, booking := range list {
+		opLog := models.OperationLog{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			UserName:    prof.UserName,
+			UserUid:     prof.Uid,
+			Module:      constants.OP_LOG_MODULE_RECEPTION,
+			Function:    constants.OP_LOG_FUNCTION_ADD_MORE_BOOKING,
+			Action:      constants.OP_LOG_ACTION_ADD_MORE,
+			Body:        models.JsonDataLog{Data: body},
+			ValueOld:    models.JsonDataLog{Data: body.BookingList[index]},
+			ValueNew:    models.JsonDataLog{Data: booking},
+			Path:        c.Request.URL.Path,
+			Method:      c.Request.Method,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
+			BillCode:    booking.BillCode,
+			BookingUid:  booking.Uid,
+		}
+		go createOperationLog(opLog)
+	}
 }
 
 // func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) {
@@ -407,6 +484,32 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 		}
 	}
 	listBooking, _ := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+
+	//Add Log
+	go func() {
+		for index, booking := range listBooking {
+			opLog := models.OperationLog{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				UserName:    prof.UserName,
+				UserUid:     prof.Uid,
+				Module:      constants.OP_LOG_MODULE_RECEPTION,
+				Function:    constants.OP_LOG_FUNCTION_CANCEL_ALL_BOOKING,
+				Action:      constants.OP_LOG_ACTION_CANCEL_ALL,
+				Body:        models.JsonDataLog{Data: bodyRequest},
+				ValueOld:    models.JsonDataLog{Data: bodyRequest.BookingList[index]},
+				ValueNew:    models.JsonDataLog{Data: booking},
+				Path:        c.Request.URL.Path,
+				Method:      c.Request.Method,
+				Bag:         booking.Bag,
+				BookingDate: booking.BookingDate,
+				BillCode:    booking.BillCode,
+				BookingUid:  booking.Uid,
+			}
+			go createOperationLog(opLog)
+		}
+	}()
+
 	okResponse(c, listBooking)
 }
 
@@ -439,6 +542,8 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 
 	for _, booking := range list {
 		if booking.BagStatus == constants.BAG_STATUS_BOOKING {
+			oldBooking := booking
+
 			booking.BagStatus = constants.BAG_STATUS_CANCEL
 			booking.CancelNote = form.Reason
 			booking.CancelBookingTime = utils.GetTimeNow().Unix()
@@ -456,6 +561,27 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 					log.Println("CancelAllBooking err", errCreateDel.Error())
 				}
 			}
+
+			//Add log
+			opLog := models.OperationLog{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				UserName:    prof.UserName,
+				UserUid:     prof.Uid,
+				Module:      constants.OP_LOG_MODULE_RECEPTION,
+				Function:    constants.OP_LOG_FUNCTION_CANCEL_ALL_BOOKING,
+				Action:      constants.OP_LOG_ACTION_CANCEL_ALL,
+				Body:        models.JsonDataLog{Data: form},
+				ValueOld:    models.JsonDataLog{Data: oldBooking},
+				ValueNew:    models.JsonDataLog{Data: booking},
+				Path:        c.Request.URL.Path,
+				Method:      c.Request.Method,
+				Bag:         booking.Bag,
+				BookingDate: booking.BookingDate,
+				BillCode:    booking.BillCode,
+				BookingUid:  booking.Uid,
+			}
+			go createOperationLog(opLog)
 		}
 	}
 

@@ -193,7 +193,30 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	// TODO: check kho tea time trong ngày đó còn trống mới cho đặt
 
 	if body.Bag != "" {
+		// data old
+		oldBooking := booking
+
 		booking.Bag = body.Bag
+
+		opLog := models.OperationLog{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			UserName:    prof.UserName,
+			UserUid:     prof.Uid,
+			Module:      constants.OP_LOG_MODULE_RECEPTION,
+			Function:    constants.OP_LOG_FUNCTION_ADD_BAG_BOOKING,
+			Action:      constants.OP_LOG_ACTION_INPUT_BAG_BOOKING,
+			Body:        models.JsonDataLog{Data: body},
+			ValueOld:    models.JsonDataLog{Data: oldBooking},
+			ValueNew:    models.JsonDataLog{Data: booking},
+			Path:        c.Request.URL.Path,
+			Method:      c.Request.Method,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
+			BillCode:    booking.BillCode,
+			BookingUid:  booking.Uid,
+		}
+		go createOperationLog(opLog)
 	}
 
 	if body.BookingDate != "" {
@@ -350,6 +373,26 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			booking.CaddieId = caddieNew.Id
 			booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 			booking.HasBookCaddie = true
+
+			opLog := models.OperationLog{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				UserName:    prof.UserName,
+				UserUid:     prof.Uid,
+				Module:      constants.OP_LOG_MODULE_RECEPTION,
+				Function:    constants.OP_LOG_FUNCTION_ADD_CADDIE_BOOKING,
+				Action:      constants.OP_LOG_ACTION_BOOK_CADDIE,
+				Body:        models.JsonDataLog{Data: body},
+				ValueOld:    models.JsonDataLog{},
+				ValueNew:    models.JsonDataLog{Data: booking},
+				Path:        c.Request.URL.Path,
+				Method:      c.Request.Method,
+				Bag:         booking.Bag,
+				BookingDate: booking.BookingDate,
+				BillCode:    booking.BillCode,
+				BookingUid:  booking.Uid,
+			}
+			go createOperationLog(opLog)
 		}
 	}
 
@@ -497,6 +540,7 @@ func (_ CBooking) updateAgencyForBooking(
 			booking.SeparatePrice = true
 		}
 	}
+
 	return nil
 }
 
@@ -708,6 +752,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Data old booking
+	oldBooking := booking
+
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
 		response_message.BadRequestFreeMessage(c, "Bag đã CheckOut!")
 		return
@@ -886,7 +933,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Update bag nếu có thay đổi
-	if errUdpBag := updateBag(c, &booking, body); errUdpBag != nil {
+	if errUdpBag := updateBag(c, &booking, body, prof); errUdpBag != nil {
 		return
 	}
 
@@ -895,7 +942,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.CaddieCode != nil {
-		if errUpd := updateCaddieBooking(c, &booking, body); errUpd != nil {
+		if errUpd := updateCaddieBooking(c, &booking, body, prof); errUpd != nil {
 			response_message.BadRequestFreeMessage(c, errUpd.Error())
 			return
 		}
@@ -941,6 +988,27 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	bookLast.FindFirst(db)
 
 	res := getBagDetailFromBooking(db, bookLast)
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_UPDATE_BOOKING,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: res},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+	go createOperationLog(opLog)
 
 	okResponse(c, res)
 }
@@ -995,9 +1063,12 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 	return nil
 }
 
-func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking) error {
+func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking, prof models.CmsUser) error {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	if body.CaddieCode != nil {
+		// data old
+		oldBooking := booking
+
 		if *body.CaddieCode != "" {
 			if *body.CaddieCode != booking.CaddieBooking {
 				caddieList := models.CaddieList{}
@@ -1025,6 +1096,28 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 		} else {
 			booking.CaddieBooking = *body.CaddieCode
 		}
+
+		if booking.CheckInTime == 0 {
+			opLog := models.OperationLog{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				UserName:    prof.UserName,
+				UserUid:     prof.Uid,
+				Module:      constants.OP_LOG_MODULE_RECEPTION,
+				Function:    constants.OP_LOG_FUNCTION_UPDATE_CADDIE_BOOKING,
+				Action:      constants.OP_LOG_ACTION_UPD_BOOK_CADDIE,
+				Body:        models.JsonDataLog{Data: body},
+				ValueOld:    models.JsonDataLog{Data: oldBooking},
+				ValueNew:    models.JsonDataLog{Data: booking},
+				Path:        c.Request.URL.Path,
+				Method:      c.Request.Method,
+				Bag:         booking.Bag,
+				BookingDate: booking.BookingDate,
+				BillCode:    booking.BillCode,
+				BookingUid:  booking.Uid,
+			}
+			go createOperationLog(opLog)
+		}
 	}
 	return nil
 }
@@ -1043,10 +1136,13 @@ func updateHole(c *gin.Context, booking *model_booking.Booking, hole int) {
 	cRound.UpdateListFeePriceInRound(c, db, booking, booking.GuestStyle, &round, hole)
 }
 
-func updateBag(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking) error {
+func updateBag(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking, prof models.CmsUser) error {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 
 	if body.Bag != nil {
+		// data old
+		oldBooking := booking
+
 		if *body.Bag != "" {
 			if booking.Bag != *body.Bag {
 				booking.Bag = *body.Bag
@@ -1115,6 +1211,28 @@ func updateBag(c *gin.Context, booking *model_booking.Booking, body request.Upda
 			if booking.CheckInTime == 0 {
 				booking.Bag = *body.Bag
 			}
+		}
+
+		if booking.CheckInTime == 0 {
+			opLog := models.OperationLog{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				UserName:    prof.UserName,
+				UserUid:     prof.Uid,
+				Module:      constants.OP_LOG_MODULE_RECEPTION,
+				Function:    constants.OP_LOG_FUNCTION_UPDATE_BAG_BOOKING,
+				Action:      constants.OP_LOG_ACTION_INPUT_BAG_BOOKING,
+				Body:        models.JsonDataLog{Data: body},
+				ValueOld:    models.JsonDataLog{Data: oldBooking},
+				ValueNew:    models.JsonDataLog{Data: booking},
+				Path:        c.Request.URL.Path,
+				Method:      c.Request.Method,
+				Bag:         booking.Bag,
+				BookingDate: booking.BookingDate,
+				BillCode:    booking.BillCode,
+				BookingUid:  booking.Uid,
+			}
+			go createOperationLog(opLog)
 		}
 	}
 	return nil
@@ -1734,7 +1852,7 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
- Undo check thi thif check xoá payment đi
+Undo check thi thif check xoá payment đi
 */
 func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
