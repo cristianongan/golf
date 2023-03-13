@@ -1286,9 +1286,22 @@ func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
 
 	item.AgencyPaid = utils.ListBookingAgencyPayForBagData{}
 	for _, agencyItem := range item.AgencyPrePaid {
-		if agencyItem.Type == constants.BOOKING_AGENCY_GOLF_FEE {
-			item.AgencyPaid = append(item.AgencyPaid, agencyItem)
+		if item.Hole <= agencyItem.Hole {
+			if agencyItem.Type == constants.BOOKING_AGENCY_GOLF_FEE {
+				round := models.Round{
+					BillCode: item.BillCode,
+				}
+
+				if errFindRound := round.FirstRound(db); errFindRound != nil {
+					log.Println("Round not found")
+				}
+
+				agencyNew := agencyItem
+				agencyNew.Fee = round.GetAmountGolfFee()
+				item.AgencyPaid = append(item.AgencyPaid, agencyNew)
+			}
 		}
+
 		if agencyItem.Type == constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE && agencyItem.Fee > 0 {
 			isAgencyPaidBookingCaddie = true
 		}
