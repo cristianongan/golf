@@ -14,6 +14,19 @@ import (
 )
 
 // -------- Booking Logic --------
+func (item *Booking) CloneBookingDel() BookingDel {
+	delBooking := BookingDel{}
+	bData, errM := json.Marshal(&item)
+	if errM != nil {
+		log.Println("CloneBooking errM", errM.Error())
+	}
+	errUnM := json.Unmarshal(bData, &delBooking)
+	if errUnM != nil {
+		log.Println("CloneBooking errUnM", errUnM.Error())
+	}
+
+	return delBooking
+}
 
 func (item *Booking) CloneBooking() Booking {
 	copyBooking := Booking{}
