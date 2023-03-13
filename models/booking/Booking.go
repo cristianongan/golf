@@ -649,26 +649,28 @@ func (item *Booking) Count(database *gorm.DB) (int64, error) {
 
 // Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
 func (item *Booking) UpdateAgencyForBooking(database *gorm.DB) {
-	db := database.Model(Booking{})
-	bookingR := BookingList{}
-	bookingR.PartnerUid = item.PartnerUid
-	bookingR.CourseUid = item.CourseUid
-	bookingR.GolfBag = item.Bag
-	bookingR.BookingDate = item.BookingDate
+	if item.BillCode != "" {
+		db := database.Model(Booking{})
+		bookingR := BookingList{}
+		bookingR.PartnerUid = item.PartnerUid
+		bookingR.CourseUid = item.CourseUid
+		bookingR.BillCode = item.BillCode
+		bookingR.BookingDate = item.BookingDate
 
-	db, _, err := bookingR.FindAllBookingList(db)
-	var list []Booking
-	db.Find(&list)
+		db, _, err := bookingR.FindAllBookingList(db)
+		var list []Booking
+		db.Find(&list)
 
-	db2 := datasources.GetDatabaseWithPartner(item.PartnerUid)
-	if err == nil {
-		for _, bookingBag := range list {
-			if item.AgencyId != bookingBag.AgencyId {
-				bookingBag.AgencyId = item.AgencyId
-				bookingBag.AgencyInfo = item.AgencyInfo
-				bookingBag.CustomerType = item.CustomerType
-				if err := bookingBag.Update(db2); err != nil {
-					log.Print(err.Error())
+		db2 := datasources.GetDatabaseWithPartner(item.PartnerUid)
+		if err == nil {
+			for _, bookingBag := range list {
+				if item.AgencyId != bookingBag.AgencyId {
+					bookingBag.AgencyId = item.AgencyId
+					bookingBag.AgencyInfo = item.AgencyInfo
+					bookingBag.CustomerType = item.CustomerType
+					if err := bookingBag.Update(db2); err != nil {
+						log.Print(err.Error())
+					}
 				}
 			}
 		}
@@ -677,28 +679,30 @@ func (item *Booking) UpdateAgencyForBooking(database *gorm.DB) {
 
 // Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
 func (item *Booking) UpdateMemberCardForBooking(database *gorm.DB) {
-	db := database.Model(Booking{})
-	bookingR := BookingList{}
-	bookingR.PartnerUid = item.PartnerUid
-	bookingR.CourseUid = item.CourseUid
-	bookingR.GolfBag = item.Bag
-	bookingR.BookingDate = item.BookingDate
+	if item.BillCode != "" {
+		db := database.Model(Booking{})
+		bookingR := BookingList{}
+		bookingR.PartnerUid = item.PartnerUid
+		bookingR.CourseUid = item.CourseUid
+		bookingR.BillCode = item.BillCode
+		bookingR.BookingDate = item.BookingDate
 
-	db, _, err := bookingR.FindAllBookingList(db)
-	var list []Booking
-	db.Find(&list)
+		db, _, err := bookingR.FindAllBookingList(db)
+		var list []Booking
+		db.Find(&list)
 
-	db2 := datasources.GetDatabaseWithPartner(item.PartnerUid)
-	if err == nil {
-		for _, bookingBag := range list {
-			if item.Bag != bookingBag.Bag {
-				bookingBag.MemberCardUid = item.MemberCardUid
-				bookingBag.CardId = item.CardId
-				bookingBag.CustomerName = item.CustomerName
-				bookingBag.CustomerUid = item.CustomerUid
-				bookingBag.CustomerType = item.CustomerType
-				bookingBag.CustomerInfo = item.CustomerInfo
-				bookingBag.Update(db2)
+		db2 := datasources.GetDatabaseWithPartner(item.PartnerUid)
+		if err == nil {
+			for _, bookingBag := range list {
+				if item.Bag != bookingBag.Bag {
+					bookingBag.MemberCardUid = item.MemberCardUid
+					bookingBag.CardId = item.CardId
+					bookingBag.CustomerName = item.CustomerName
+					bookingBag.CustomerUid = item.CustomerUid
+					bookingBag.CustomerType = item.CustomerType
+					bookingBag.CustomerInfo = item.CustomerInfo
+					bookingBag.Update(db2)
+				}
 			}
 		}
 	}
@@ -706,23 +710,25 @@ func (item *Booking) UpdateMemberCardForBooking(database *gorm.DB) {
 
 //MAIN-SUB Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
 func (item *Booking) UpdateSubBagForBooking(database *gorm.DB) {
-	db := database.Model(Booking{})
-	bookingR := BookingList{}
-	bookingR.PartnerUid = item.PartnerUid
-	bookingR.CourseUid = item.CourseUid
-	bookingR.GolfBag = item.Bag
-	bookingR.BookingDate = item.BookingDate
+	if item.Bag != "" {
+		db := database.Model(Booking{})
+		bookingR := BookingList{}
+		bookingR.PartnerUid = item.PartnerUid
+		bookingR.CourseUid = item.CourseUid
+		bookingR.BillCode = item.BillCode
+		bookingR.BookingDate = item.BookingDate
 
-	db, _, err := bookingR.FindAllBookingList(db)
-	var list []Booking
-	db.Find(&list)
+		db, _, err := bookingR.FindAllBookingList(db)
+		var list []Booking
+		db.Find(&list)
 
-	db2 := datasources.GetDatabaseWithPartner(item.PartnerUid)
-	if err == nil {
-		for _, bookingBag := range list {
-			if item.Uid != bookingBag.Uid {
-				bookingBag.SubBags = item.SubBags
-				bookingBag.Update(db2)
+		db2 := datasources.GetDatabaseWithPartner(item.PartnerUid)
+		if err == nil {
+			for _, bookingBag := range list {
+				if item.Uid != bookingBag.Uid {
+					bookingBag.SubBags = item.SubBags
+					bookingBag.Update(db2)
+				}
 			}
 		}
 	}
