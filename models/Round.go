@@ -159,6 +159,11 @@ func (item *Round) LastRound(database *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
+func (item *Round) FirstRound(database *gorm.DB) error {
+	db := database.Order("created_at asc")
+	return db.Where(item).First(item).Error
+}
+
 func (item *Round) Delete(db *gorm.DB) error {
 	if item.Id == 0 {
 		return errors.New("Primary key is undefined!")
