@@ -1259,7 +1259,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	oldBooking := booking.CloneBooking()
+	oldBooking := getBagDetailFromBooking(db, booking.CloneBooking())
 
 	//Checkin rồi thì k check in lại dc nữa
 	if booking.BagStatus == constants.BAG_STATUS_WAITING && booking.CheckInTime > 0 {
@@ -1621,7 +1621,7 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	oldBooking := booking.CloneBooking()
+	oldBooking := getBagDetailFromBooking(db, booking.CloneBooking())
 
 	booking.BagStatus = constants.BAG_STATUS_CHECK_OUT
 	booking.CheckOutTime = utils.GetTimeNow().Unix()
@@ -1802,7 +1802,7 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	oldBooking := booking.CloneBooking()
+	oldBooking := getBagDetailFromBooking(db, booking.CloneBooking())
 
 	booking.LockBill = setBoolForCursor(*body.LockBill)
 	if err := booking.Update(db); err != nil {

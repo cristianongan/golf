@@ -57,7 +57,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		hole = *body.Hole
 	}
 
-	oldBooking := model_booking.Booking{}
+	oldBooking := model_booking.BagDetail{}
 
 	for _, data := range body.BookUidList {
 		// validate booking_uid
@@ -67,7 +67,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
-		oldBooking = booking.CloneBooking()
+		oldBooking = getBagDetailFromBooking(db, booking.CloneBooking())
 
 		// Tạo uid cho booking mới
 		bookingUid := uuid.New()
@@ -286,7 +286,7 @@ func (cRound CRound) SplitRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	oldBooking := booking.CloneBooking()
+	oldBooking := getBagDetailFromBooking(db, booking.CloneBooking())
 
 	currentRound := models.Round{}
 	currentRound.Id = body.RoundId
@@ -376,7 +376,7 @@ func (cRound CRound) MergeRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	oldBooking := booking.CloneBooking()
+	oldBooking := getBagDetailFromBooking(db, booking.CloneBooking())
 
 	roundR := models.Round{BillCode: booking.BillCode}
 	listRound, _ := roundR.FindAll(db)
@@ -465,7 +465,7 @@ func (cRound CRound) ChangeGuestyleOfRound(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
-	oldBooking := booking.CloneBooking()
+	oldBooking := getBagDetailFromBooking(db, booking.CloneBooking())
 
 	round := models.Round{}
 	round.Id = body.RoundId
@@ -628,7 +628,7 @@ func (cRound CRound) RemoveRound(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	oldB := booking.CloneBooking()
+	oldB := getBagDetailFromBooking(db, booking.CloneBooking())
 
 	if booking.BagStatus == constants.BAG_STATUS_IN_COURSE {
 		response_message.BadRequestFreeMessage(c, "Bag Status not valid!")
