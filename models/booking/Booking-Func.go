@@ -1437,6 +1437,8 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 	}
 
 	// Tính giá golf fee của main khi có sub bag
+	subList := []Booking{}
+
 	if len(item.SubBags) > 0 {
 		checkIsFirstRound := utils.ContainString(item.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_FIRST_ROUND)
 		checkIsNextRound := utils.ContainString(item.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
@@ -1448,6 +1450,7 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 				Model: models.Model{Uid: sub.BookingUid},
 			}
 			subBooking, _ := subBookingR.FindFirstByUId(db)
+			subList = append(subList, subBooking)
 
 			if subBooking.CheckAgencyPaidAll() {
 				break
@@ -1529,8 +1532,13 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 		} else {
 			if v.BillCode != item.BillCode {
 				// Tính giá service của sub
-				subBagFee += v.Amount
-				isNeedPay = true
+				subBooking := getBookingByBillCode(subList, v.BillCode)
+				if subBooking.CheckAgencyPaidAll() {
+					isNeedPay = false
+				} else {
+					subBagFee += v.Amount
+					isNeedPay = true
+				}
 			} else {
 				if item.CheckAgencyPaidAll() {
 					agencyPaidAll += v.Amount
@@ -1569,6 +1577,15 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 	if err := currencyPaidGet.FindFirst(); err == nil {
 		item.CurrentBagPrice.AmountUsd = mushPay.MushPay / currencyPaidGet.Rate
 	}
+}
+
+func getBookingByBillCode(list []Booking, billCode string) Booking {
+	for _, booking := range list {
+		if booking.BillCode == billCode {
+			return booking
+		}
+	}
+	return Booking{}
 }
 
 // Udp lại giá cho Booking
