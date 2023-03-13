@@ -1477,6 +1477,10 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 			}
 			subBooking, _ := subBookingR.FindFirstByUId(db)
 
+			if subBooking.CheckAgencyPaidAll() {
+				break
+			}
+
 			for _, round := range listSubRound {
 				if round.Index == 1 {
 					if !subBooking.CheckAgencyPaidRound1() && checkIsFirstRound > -1 {
