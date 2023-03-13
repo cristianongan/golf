@@ -55,10 +55,17 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 		booking.CancelBookingTime = utils.GetTimeNow().Unix()
 		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
-		errUdp := booking.Update(db)
-		if errUdp != nil {
-			response_message.InternalServerError(c, errUdp.Error())
+		bookingDel := booking.CloneBookingDel()
+
+		errCancel := booking.Delete(db)
+		if errCancel != nil {
+			response_message.InternalServerError(c, errCancel.Error())
 			return
+		} else {
+			errCreateBDel := bookingDel.Create(db)
+			if errCreateBDel != nil {
+				log.Println("CancelBooking err", errCreateBDel.Error())
+			}
 		}
 
 		go func() {
@@ -542,10 +549,17 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 			booking.CancelBookingTime = utils.GetTimeNow().Unix()
 			booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
-			errUdp := booking.Update(db1)
-			if errUdp != nil {
-				response_message.InternalServerError(c, errUdp.Error())
+			bookDel := booking.CloneBookingDel()
+
+			errCancel := booking.Delete(db1)
+			if errCancel != nil {
+				response_message.InternalServerError(c, errCancel.Error())
 				return
+			} else {
+				errCreateDel := bookDel.Create(db)
+				if errCreateDel != nil {
+					log.Println("CancelAllBooking err", errCreateDel.Error())
+				}
 			}
 
 			//Add log
