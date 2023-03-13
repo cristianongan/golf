@@ -209,8 +209,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			Function:    constants.OP_LOG_FUNCTION_ADD_BAG_BOOKING,
 			Action:      constants.OP_LOG_ACTION_INPUT_BAG_BOOKING,
 			Body:        models.JsonDataLog{Data: body},
-			ValueOld:    models.JsonDataLog{Data: oldBooking},
-			ValueNew:    models.JsonDataLog{Data: booking},
+			ValueOld:    models.JsonDataLog{Data: oldBooking.Bag},
+			ValueNew:    models.JsonDataLog{Data: booking.Bag},
 			Path:        c.Request.URL.Path,
 			Method:      c.Request.Method,
 			Bag:         booking.Bag,
@@ -386,7 +386,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 				Action:      constants.OP_LOG_ACTION_BOOK_CADDIE,
 				Body:        models.JsonDataLog{Data: body},
 				ValueOld:    models.JsonDataLog{},
-				ValueNew:    models.JsonDataLog{Data: booking},
+				ValueNew:    models.JsonDataLog{Data: booking.CaddieBooking},
 				Path:        c.Request.URL.Path,
 				Method:      c.Request.Method,
 				Bag:         booking.Bag,
@@ -755,7 +755,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Data old booking
-	oldBooking := booking
+	oldBooking := getBagDetailFromBooking(db, booking.CloneBooking())
 
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
 		response_message.BadRequestFreeMessage(c, "Bag đã CheckOut!")
@@ -1109,8 +1109,8 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 				Function:    constants.OP_LOG_FUNCTION_UPDATE_CADDIE_BOOKING,
 				Action:      constants.OP_LOG_ACTION_UPD_BOOK_CADDIE,
 				Body:        models.JsonDataLog{Data: body},
-				ValueOld:    models.JsonDataLog{Data: oldBooking},
-				ValueNew:    models.JsonDataLog{Data: booking},
+				ValueOld:    models.JsonDataLog{Data: oldBooking.CaddieBooking},
+				ValueNew:    models.JsonDataLog{Data: booking.CaddieBooking},
 				Path:        c.Request.URL.Path,
 				Method:      c.Request.Method,
 				Bag:         booking.Bag,
@@ -1225,8 +1225,8 @@ func updateBag(c *gin.Context, booking *model_booking.Booking, body request.Upda
 				Function:    constants.OP_LOG_FUNCTION_UPDATE_BAG_BOOKING,
 				Action:      constants.OP_LOG_ACTION_INPUT_BAG_BOOKING,
 				Body:        models.JsonDataLog{Data: body},
-				ValueOld:    models.JsonDataLog{Data: oldBooking},
-				ValueNew:    models.JsonDataLog{Data: booking},
+				ValueOld:    models.JsonDataLog{Data: oldBooking.Bag},
+				ValueNew:    models.JsonDataLog{Data: booking.Bag},
 				Path:        c.Request.URL.Path,
 				Method:      c.Request.Method,
 				Bag:         booking.Bag,
