@@ -788,7 +788,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Agency id
-	isAgencyChanged := false
+	// isAgencyChanged := false
 	if body.AgencyId > 0 && body.AgencyId != booking.AgencyId {
 		agencyBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   body.PartnerUid,
@@ -804,7 +804,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.BadRequest(c, errAgency.Error())
 		}
 		guestStyle = agency.GuestStyle
-		isAgencyChanged = true
+		// isAgencyChanged = true
 	}
 
 	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
@@ -907,12 +907,12 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Update lại thông tin agency cho các round, move flight
-	if isAgencyChanged {
-		go func() {
-			booking.UpdateAgencyForBooking(db)
-			updateAgencyInfoInPayment(booking)
-		}()
-	}
+	// if isAgencyChanged {
+	// 	go func() {
+	// 		booking.UpdateAgencyForBooking(db)
+	// 		updateAgencyInfoInPayment(booking)
+	// 	}()
+	// }
 
 	// Get lai booking mới nhất trong DB
 	bookLast := model_booking.Booking{}
@@ -1197,7 +1197,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Agency id
-	isAgencyChanged := false
+	// isAgencyChanged := false
 	if body.AgencyId > 0 && (body.AgencyId != booking.AgencyId || body.Hole != booking.Hole) {
 		agencyBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   booking.PartnerUid,
@@ -1213,7 +1213,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			response_message.BadRequest(c, errAgency.Error())
 		}
 		guestStyle = agency.GuestStyle
-		isAgencyChanged = true
+		// isAgencyChanged = true
 	}
 
 	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
@@ -1299,9 +1299,9 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			// Create payment info
 			handlePayment(db, booking)
 		}
-		if isAgencyChanged {
-			updateAgencyInfoInPayment(booking)
-		}
+		// if isAgencyChanged {
+		// 	updateAgencyInfoInPayment(booking)
+		// }
 	}()
 
 	// Update lại thông tin agency cho các round, move flight
