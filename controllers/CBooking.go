@@ -1825,6 +1825,11 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	action := constants.OP_LOG_ACTION_LOCK_BAG
+	if body.LockBill != nil && *body.LockBill == false {
+		action = constants.OP_LOG_ACTION_UN_LOCK_BAG
+	}
+
 	//Add log
 	opLog := models.OperationLog{
 		PartnerUid:  booking.PartnerUid,
@@ -1833,7 +1838,7 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 		UserUid:     prof.Uid,
 		Module:      constants.OP_LOG_MODULE_RECEPTION,
 		Function:    constants.OP_LOG_FUNCTION_CHECK_IN,
-		Action:      constants.OP_LOG_ACTION_LOCK_BAG,
+		Action:      action,
 		Body:        models.JsonDataLog{Data: body},
 		ValueOld:    models.JsonDataLog{Data: oldBooking},
 		ValueNew:    models.JsonDataLog{Data: booking},
