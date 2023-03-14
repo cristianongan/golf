@@ -28,6 +28,20 @@ func (item *CaddieWorkingCalendar) Create(db *gorm.DB) error {
 	return db.Create(item).Error
 }
 
+func (item *CaddieWorkingCalendar) IsDuplicated(db *gorm.DB) bool {
+	caddieWCCheck := CaddieWorkingCalendar{
+		PartnerUid: item.PartnerUid,
+		CourseUid:  item.CourseUid,
+		ApplyDate:  item.ApplyDate,
+		CaddieCode: item.CaddieCode,
+	}
+	errFind := caddieWCCheck.FindFirst(db)
+	if errFind == nil || caddieWCCheck.Id > 0 {
+		return true
+	}
+	return false
+}
+
 // / ------- CaddieWorkingCalendar batch insert to db ------
 func (item *CaddieWorkingCalendar) BatchInsert(database *gorm.DB, list []CaddieWorkingCalendar) error {
 	db := database.Table("caddie_working_calendars")
