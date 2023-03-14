@@ -194,6 +194,10 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	// TODO: check kho tea time trong ngày đó còn trống mới cho đặt
 
+	if body.Bag != "" {
+		booking.Bag = body.Bag
+	}
+
 	if body.BookingDate != "" {
 		// bookingDateInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, body.BookingDate)
 		// nowStr, _ := utils.GetLocalTimeFromTimeStamp("", constants.DATE_FORMAT_1, utils.GetTimeNow().Unix())
@@ -327,33 +331,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
 
-	if body.Bag != "" {
-		// data old
-		oldBooking := booking
-
-		booking.Bag = body.Bag
-
-		opLog := models.OperationLog{
-			PartnerUid:  booking.PartnerUid,
-			CourseUid:   booking.CourseUid,
-			UserName:    prof.UserName,
-			UserUid:     prof.Uid,
-			Module:      constants.OP_LOG_MODULE_RECEPTION,
-			Function:    constants.OP_LOG_FUNCTION_ADD_BAG_BOOKING,
-			Action:      constants.OP_LOG_ACTION_INPUT_BAG_BOOKING,
-			Body:        models.JsonDataLog{Data: body},
-			ValueOld:    models.JsonDataLog{Data: oldBooking.Bag},
-			ValueNew:    models.JsonDataLog{Data: booking.Bag},
-			Path:        c.Request.URL.Path,
-			Method:      c.Request.Method,
-			Bag:         booking.Bag,
-			BookingDate: booking.BookingDate,
-			BillCode:    booking.BillCode,
-			BookingUid:  booking.Uid,
-		}
-		go createOperationLog(opLog)
-	}
-
 	// Update caddie
 	if body.CaddieCode != nil && *body.CaddieCode != "" {
 		caddieList := models.CaddieList{}
@@ -447,6 +424,28 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
 		return nil, errC
+	}
+
+	if body.Bag != "" {
+		opLog := models.OperationLog{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			UserName:    prof.UserName,
+			UserUid:     prof.Uid,
+			Module:      constants.OP_LOG_MODULE_RECEPTION,
+			Function:    constants.OP_LOG_FUNCTION_ADD_BAG_BOOKING,
+			Action:      constants.OP_LOG_ACTION_INPUT_BAG_BOOKING,
+			Body:        models.JsonDataLog{Data: body},
+			ValueOld:    models.JsonDataLog{},
+			ValueNew:    models.JsonDataLog{Data: booking.Bag},
+			Path:        c.Request.URL.Path,
+			Method:      c.Request.Method,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
+			BillCode:    booking.BillCode,
+			BookingUid:  booking.Uid,
+		}
+		go createOperationLog(opLog)
 	}
 
 	if body.MemberUidOfGuest != "" && guestStyle != "" && memberCard.Uid != "" {
@@ -1825,11 +1824,6 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	action := constants.OP_LOG_ACTION_LOCK_BAG
-	if body.LockBill != nil && *body.LockBill == false {
-		action = constants.OP_LOG_ACTION_UN_LOCK_BAG
-	}
-
 	//Add log
 	opLog := models.OperationLog{
 		PartnerUid:  booking.PartnerUid,
@@ -1838,7 +1832,7 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 		UserUid:     prof.Uid,
 		Module:      constants.OP_LOG_MODULE_RECEPTION,
 		Function:    constants.OP_LOG_FUNCTION_CHECK_IN,
-		Action:      action,
+		Action:      constants.OP_LOG_ACTION_LOCK_BAG,
 		Body:        models.JsonDataLog{Data: body},
 		ValueOld:    models.JsonDataLog{Data: oldBooking},
 		ValueNew:    models.JsonDataLog{Data: booking},
@@ -1873,8 +1867,6 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
-
-	oldBooking := booking.CloneBooking()
 
 	if booking.BagStatus != constants.BAG_STATUS_WAITING {
 		response_message.InternalServerError(c, "Bag Status is not Waiting")
@@ -1947,29 +1939,6 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 
 	// Xoa payment
 	deleteSinglePayment(pUid, cUid, billCode, bUid, agencyId, bookingCode)
-
-	newBook := getBagDetailFromBooking(db, booking)
-
-	//Add log
-	opLog := models.OperationLog{
-		PartnerUid:  booking.PartnerUid,
-		CourseUid:   booking.CourseUid,
-		UserName:    prof.UserName,
-		UserUid:     prof.Uid,
-		Module:      constants.OP_LOG_MODULE_RECEPTION,
-		Function:    constants.OP_LOG_FUNCTION_CHECK_IN,
-		Action:      constants.OP_LOG_ACTION_UNDO_CHECK_IN,
-		Body:        models.JsonDataLog{Data: body},
-		ValueOld:    models.JsonDataLog{Data: oldBooking},
-		ValueNew:    models.JsonDataLog{Data: newBook},
-		Path:        c.Request.URL.Path,
-		Method:      c.Request.Method,
-		Bag:         booking.Bag,
-		BookingDate: booking.BookingDate,
-		BillCode:    booking.BillCode,
-		BookingUid:  booking.Uid,
-	}
-	go createOperationLog(opLog)
 
 	okRes(c)
 }
