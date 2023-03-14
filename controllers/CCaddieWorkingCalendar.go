@@ -97,19 +97,27 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 			caddieWC.Row = data.Row
 			caddieWC.NumberOrder = data.NumberOrder
 			caddieWC.CaddieIncrease = data.CaddieIncrease
+
+			// Check duplicate
+			if errCheck := caddieWC.IsDuplicated(db); errCheck {
+				continue
+			}
+
 			listCreate = append(listCreate, caddieWC)
 			listCaddieCode = append(listCaddieCode, data.CaddieCode)
 		}
 
 		// create
-		caddieWCCreate := models.CaddieWorkingCalendar{}
-		if err := caddieWCCreate.BatchInsert(db, listCreate); err != nil {
-			response_message.BadRequest(c, err.Error())
-			return
-		}
+		if len(listCreate) > 0 {
+			caddieWCCreate := models.CaddieWorkingCalendar{}
+			if err := caddieWCCreate.BatchInsert(db, listCreate); err != nil {
+				response_message.BadRequest(c, err.Error())
+				return
+			}
 
-		//Update lại ds caddie trong GO
-		go updateCaddieWorkingOnDay(listCaddieCode, body.PartnerUid, body.CourseUid, true)
+			//Update lại ds caddie trong GO
+			go updateCaddieWorkingOnDay(listCaddieCode, body.PartnerUid, body.CourseUid, true)
+		}
 	}
 
 	okRes(c)
