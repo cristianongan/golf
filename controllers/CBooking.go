@@ -369,7 +369,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 				Bag:         booking.Bag,
 				BookingDate: booking.BookingDate,
 				BillCode:    booking.BillCode,
-				BookingUid:  booking.Uid,
+				BookingUid:  bUid,
 			}
 			go createOperationLog(opLog)
 		}
