@@ -190,26 +190,6 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	opLog := models.OperationLog{
-		PartnerUid:  booking.PartnerUid,
-		CourseUid:   booking.CourseUid,
-		UserName:    prof.UserName,
-		UserUid:     prof.Uid,
-		Module:      constants.OP_LOG_MODULE_RECEPTION,
-		Function:    constants.OP_LOG_FUNCTION_ADD_PAYMENT,
-		Action:      constants.OP_LOG_ACTION_PAYMENT,
-		Body:        models.JsonDataLog{Data: body},
-		ValueOld:    models.JsonDataLog{},
-		ValueNew:    models.JsonDataLog{Data: singlePaymentItem},
-		Path:        c.Request.URL.Path,
-		Method:      c.Request.Method,
-		Bag:         booking.Bag,
-		BookingDate: booking.BookingDate,
-		BillCode:    booking.BillCode,
-		BookingUid:  booking.Uid,
-	}
-	go createOperationLog(opLog)
-
 	okRes(c)
 }
 
