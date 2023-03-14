@@ -252,9 +252,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		caddieBooking.Create(db)
 		buggyBooking.Create(db)
 
-		booking.UpdatePriceDetailCurrentBag(db)
-		booking.UpdateMushPay(db)
-		booking.Update(db)
+		updatePriceWithServiceItem(&booking, models.CmsUser{})
 
 		updateBookingAgencyPaymentForAllFee(booking)
 		handleSinglePayment(db, booking)

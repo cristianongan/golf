@@ -209,8 +209,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			Function:    constants.OP_LOG_FUNCTION_ADD_BAG_BOOKING,
 			Action:      constants.OP_LOG_ACTION_INPUT_BAG_BOOKING,
 			Body:        models.JsonDataLog{Data: body},
-			ValueOld:    models.JsonDataLog{Data: oldBooking},
-			ValueNew:    models.JsonDataLog{Data: booking},
+			ValueOld:    models.JsonDataLog{Data: oldBooking.Bag},
+			ValueNew:    models.JsonDataLog{Data: booking.Bag},
 			Path:        c.Request.URL.Path,
 			Method:      c.Request.Method,
 			Bag:         booking.Bag,
@@ -386,7 +386,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 				Action:      constants.OP_LOG_ACTION_BOOK_CADDIE,
 				Body:        models.JsonDataLog{Data: body},
 				ValueOld:    models.JsonDataLog{},
-				ValueNew:    models.JsonDataLog{Data: booking},
+				ValueNew:    models.JsonDataLog{Data: booking.CaddieBooking},
 				Path:        c.Request.URL.Path,
 				Method:      c.Request.Method,
 				Bag:         booking.Bag,
@@ -755,7 +755,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Data old booking
-	oldBooking := booking
+	oldBooking := getBagDetailFromBooking(db, booking.CloneBooking())
 
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
 		response_message.BadRequestFreeMessage(c, "Bag đã CheckOut!")
@@ -858,7 +858,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Agency id
-	isAgencyChanged := false
+	// isAgencyChanged := false
 	if body.AgencyId > 0 && body.AgencyId != booking.AgencyId {
 		agencyBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   body.PartnerUid,
@@ -874,7 +874,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 			response_message.BadRequest(c, errAgency.Error())
 		}
 		guestStyle = agency.GuestStyle
-		isAgencyChanged = true
+		// isAgencyChanged = true
 	}
 
 	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
@@ -935,7 +935,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Update bag nếu có thay đổi
-	if errUdpBag := updateBag(c, &booking, body, prof); errUdpBag != nil {
+	if errUdpBag := updateBag(c, &oldBooking, &booking, body, prof); errUdpBag != nil {
 		return
 	}
 
@@ -944,7 +944,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.CaddieCode != nil {
-		if errUpd := updateCaddieBooking(c, &booking, body, prof); errUpd != nil {
+		if errUpd := updateCaddieBooking(c, &oldBooking, &booking, body, prof); errUpd != nil {
 			response_message.BadRequestFreeMessage(c, errUpd.Error())
 			return
 		}
@@ -977,12 +977,12 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Update lại thông tin agency cho các round, move flight
-	if isAgencyChanged {
-		go func() {
-			booking.UpdateAgencyForBooking(db)
-			updateAgencyInfoInPayment(booking)
-		}()
-	}
+	// if isAgencyChanged {
+	// 	go func() {
+	// 		booking.UpdateAgencyForBooking(db)
+	// 		updateAgencyInfoInPayment(booking)
+	// 	}()
+	// }
 
 	// Get lai booking mới nhất trong DB
 	bookLast := model_booking.Booking{}
@@ -1065,11 +1065,9 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 	return nil
 }
 
-func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking, prof models.CmsUser) error {
+func updateCaddieBooking(c *gin.Context, oldBooking *model_booking.BagDetail, booking *model_booking.Booking, body request.UpdateBooking, prof models.CmsUser) error {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	if body.CaddieCode != nil {
-		// data old
-		oldBooking := booking
 
 		if *body.CaddieCode != "" {
 			if *body.CaddieCode != booking.CaddieBooking {
@@ -1099,7 +1097,7 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 			booking.CaddieBooking = *body.CaddieCode
 		}
 
-		if booking.CheckInTime == 0 {
+		if booking.CheckInTime == 0 && oldBooking.CaddieBooking != *body.CaddieCode {
 			opLog := models.OperationLog{
 				PartnerUid:  booking.PartnerUid,
 				CourseUid:   booking.CourseUid,
@@ -1109,8 +1107,8 @@ func updateCaddieBooking(c *gin.Context, booking *model_booking.Booking, body re
 				Function:    constants.OP_LOG_FUNCTION_UPDATE_CADDIE_BOOKING,
 				Action:      constants.OP_LOG_ACTION_UPD_BOOK_CADDIE,
 				Body:        models.JsonDataLog{Data: body},
-				ValueOld:    models.JsonDataLog{Data: oldBooking},
-				ValueNew:    models.JsonDataLog{Data: booking},
+				ValueOld:    models.JsonDataLog{Data: oldBooking.CaddieBooking},
+				ValueNew:    models.JsonDataLog{Data: booking.CaddieBooking},
 				Path:        c.Request.URL.Path,
 				Method:      c.Request.Method,
 				Bag:         booking.Bag,
@@ -1138,13 +1136,11 @@ func updateHole(c *gin.Context, booking *model_booking.Booking, hole int) {
 	cRound.UpdateListFeePriceInRound(c, db, booking, booking.GuestStyle, &round, hole)
 }
 
-func updateBag(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking, prof models.CmsUser) error {
+func updateBag(c *gin.Context, oldBooking *model_booking.BagDetail, booking *model_booking.Booking, body request.UpdateBooking, prof models.CmsUser) error {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 
 	if body.Bag != nil {
 		// data old
-		oldBooking := booking
-
 		if *body.Bag != "" {
 			if booking.Bag != *body.Bag {
 				booking.Bag = *body.Bag
@@ -1215,7 +1211,7 @@ func updateBag(c *gin.Context, booking *model_booking.Booking, body request.Upda
 			}
 		}
 
-		if booking.CheckInTime == 0 {
+		if booking.CheckInTime == 0 && oldBooking.Bag != *body.Bag {
 			opLog := models.OperationLog{
 				PartnerUid:  booking.PartnerUid,
 				CourseUid:   booking.CourseUid,
@@ -1225,8 +1221,8 @@ func updateBag(c *gin.Context, booking *model_booking.Booking, body request.Upda
 				Function:    constants.OP_LOG_FUNCTION_UPDATE_BAG_BOOKING,
 				Action:      constants.OP_LOG_ACTION_INPUT_BAG_BOOKING,
 				Body:        models.JsonDataLog{Data: body},
-				ValueOld:    models.JsonDataLog{Data: oldBooking},
-				ValueNew:    models.JsonDataLog{Data: booking},
+				ValueOld:    models.JsonDataLog{Data: oldBooking.Bag},
+				ValueNew:    models.JsonDataLog{Data: booking.Bag},
 				Path:        c.Request.URL.Path,
 				Method:      c.Request.Method,
 				Bag:         booking.Bag,
@@ -1340,7 +1336,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Agency id
-	isAgencyChanged := false
+	// isAgencyChanged := false
 	if body.AgencyId > 0 && (body.AgencyId != booking.AgencyId || body.Hole != booking.Hole) {
 		agencyBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   booking.PartnerUid,
@@ -1356,7 +1352,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			response_message.BadRequest(c, errAgency.Error())
 		}
 		guestStyle = agency.GuestStyle
-		isAgencyChanged = true
+		// isAgencyChanged = true
 	}
 
 	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
@@ -1442,9 +1438,9 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			// Create payment info
 			handlePayment(db, booking)
 		}
-		if isAgencyChanged {
-			updateAgencyInfoInPayment(booking)
-		}
+		// if isAgencyChanged {
+		// 	updateAgencyInfoInPayment(booking)
+		// }
 	}()
 
 	// Update lại thông tin agency cho các round, move flight
