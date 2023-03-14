@@ -1024,15 +1024,15 @@ func (item *Booking) UpdateBagGolfFee() {
 
 // Udp MushPay
 func (item *Booking) UpdateMushPay(db *gorm.DB) {
-	if len(item.AgencyPrePaid) > 0 {
-		item.UpdateAgencyPaid(db)
-	} else {
-		item.AgencyPaid = utils.ListBookingAgencyPayForBagData{}
-	}
 
 	if item.CheckAgencyPaidAll() {
 		item.UpdateMushPayForAgencyPaidAll(db)
 	} else {
+		if len(item.AgencyPrePaid) > 0 {
+			item.UpdateAgencyPaid(db)
+		} else {
+			item.AgencyPaid = utils.ListBookingAgencyPayForBagData{}
+		}
 		item.UpdateMushPayForBag(db)
 	}
 }
@@ -1698,7 +1698,7 @@ func (item *Booking) IsDuplicated(db *gorm.DB, checkTeeTime, checkBag bool) (boo
 func (item *Booking) CheckAgencyPaidRound1() bool {
 	totalAgencyPaid := int64(0)
 	for _, v := range item.AgencyPaid {
-		if v.Type == constants.BOOKING_AGENCY_GOLF_FEE {
+		if v.Type == constants.BOOKING_AGENCY_GOLF_FEE || v.Type == constants.BOOKING_AGENCY_PAID_ALL {
 			totalAgencyPaid += v.Fee
 		}
 	}
