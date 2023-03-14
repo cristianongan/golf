@@ -110,15 +110,14 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 			}
 			listGolfServiceTemp, _ := serviceGolfsTemp.FindAll(db)
 
-			RsubDetail := Booking{
-				Bag: v.GolfBag,
-			}
+			rsubDetail := Booking{}
+			rsubDetail.Uid = v.BookingUid
 
-			subDetail, _ := RsubDetail.FindFirstByUId(db)
+			subDetail, _ := rsubDetail.FindFirstByUId(db)
 			isAgencyPaidBookingCaddie := subDetail.GetAgencyPaidBookingCaddie() > 0
 
 			if subDetail.CheckAgencyPaidAll() {
-				break
+				continue
 			}
 
 			hasBuggy := false
@@ -266,16 +265,15 @@ func (item *Booking) FindServiceItemsForHandleFee(db *gorm.DB) {
 			}
 			listGolfServiceTemp, _ := serviceGolfsTemp.FindAll(db)
 
-			RsubDetail := Booking{
-				Bag: v.GolfBag,
-			}
+			rsubDetail := Booking{}
+			rsubDetail.Uid = v.BookingUid
 
-			subDetail, _ := RsubDetail.FindFirstByUId(db)
+			subDetail, _ := rsubDetail.FindFirstByUId(db)
 			isAgencyPaidBookingCaddie := subDetail.GetAgencyPaidBookingCaddie() > 0
 			// isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
 
 			if subDetail.CheckAgencyPaidAll() {
-				break
+				continue
 			}
 
 			for _, v1 := range listGolfServiceTemp {
@@ -458,16 +456,15 @@ func (item *Booking) FindServiceItemsInPayment(db *gorm.DB) {
 			}
 			listGolfServiceTemp, _ := serviceGolfsTemp.FindAll(db)
 
-			RsubDetail := Booking{
-				Bag: v.GolfBag,
-			}
+			rsubDetail := Booking{}
+			rsubDetail.Uid = v.BookingUid
 
-			subDetail, _ := RsubDetail.FindFirstByUId(db)
+			subDetail, _ := rsubDetail.FindFirstByUId(db)
 			isAgencyPaidBookingCaddie := subDetail.GetAgencyPaidBookingCaddie() > 0
 			// isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
 
 			if subDetail.CheckAgencyPaidAll() {
-				break
+				continue
 			}
 
 			for _, v1 := range listGolfServiceTemp {
@@ -696,16 +693,16 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 			}
 			listGolfServiceTemp, _ := serviceGolfsTemp.FindAllWithPaidInfo(db)
 
-			RsubDetail := Booking{
-				Bag: v.GolfBag,
-			}
-			subDetail, _ := RsubDetail.FindFirstByUId(db)
+			rsubDetail := Booking{}
+			rsubDetail.Uid = v.BookingUid
+
+			subDetail, _ := rsubDetail.FindFirstByUId(db)
 			isAgencyPaidBookingCaddie := subDetail.GetAgencyPaidBookingCaddie() > 0
 			// isAgencyPaidBuggy := subDetail.GetAgencyPaidBuggy() > 0
 
 			// agency paid all
 			if subDetail.CheckAgencyPaidAll() {
-				break
+				continue
 			}
 
 			hasBuggy := false
@@ -1052,15 +1049,15 @@ func (item *Booking) UpdateBagGolfFee() {
 
 // Udp MushPay
 func (item *Booking) UpdateMushPay(db *gorm.DB) {
+	if len(item.AgencyPrePaid) > 0 {
+		item.UpdateAgencyPaid(db)
+	} else {
+		item.AgencyPaid = utils.ListBookingAgencyPayForBagData{}
+	}
 
 	if item.CheckAgencyPaidAll() {
 		item.UpdateMushPayForAgencyPaidAll(db)
 	} else {
-		if len(item.AgencyPrePaid) > 0 {
-			item.UpdateAgencyPaid(db)
-		} else {
-			item.AgencyPaid = utils.ListBookingAgencyPayForBagData{}
-		}
 		item.UpdateMushPayForBag(db)
 	}
 }
@@ -1481,7 +1478,7 @@ func (item *Booking) UpdateMushPayForAgencyPaidAll(db *gorm.DB) {
 			subList = append(subList, subBooking)
 
 			if subBooking.CheckAgencyPaidAll() {
-				break
+				continue
 			}
 
 			for _, round := range listSubRound {
