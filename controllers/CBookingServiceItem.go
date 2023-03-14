@@ -137,32 +137,32 @@ func (_ *CBookingServiceItem) AddBookingServiceItemToBag(c *gin.Context, prof mo
 	}
 
 	if serviceItem.Type == constants.RENTAL_SETTING {
-		opLog.Function = constants.OP_LOG_FUNCTION_ADD_BOOKING_SERVICE_ITEM
+		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
 		opLog.Action = constants.OP_LOG_ACTION_ADD_RENTAL
 	}
 
 	if serviceItem.Type == constants.DRIVING_SETTING {
-		opLog.Function = constants.OP_LOG_FUNCTION_ADD_BOOKING_SERVICE_ITEM
+		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
 		opLog.Action = constants.OP_LOG_ACTION_ADD_DRIVING
 	}
 
 	if serviceItem.Type == constants.PROSHOP_SETTING {
-		opLog.Function = constants.OP_LOG_FUNCTION_ADD_BOOKING_SERVICE_ITEM
+		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
 		opLog.Action = constants.OP_LOG_ACTION_ADD_PROSHOP
 	}
 
 	if serviceItem.Type == constants.RESTAURANT_SETTING {
-		opLog.Function = constants.OP_LOG_FUNCTION_ADD_BOOKING_SERVICE_ITEM
+		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
 		opLog.Action = constants.OP_LOG_ACTION_ADD_RESTAURANT
 	}
 
 	if serviceItem.Type == constants.KIOSK_SETTING {
-		opLog.Function = constants.OP_LOG_FUNCTION_ADD_BOOKING_SERVICE_ITEM
+		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
 		opLog.Action = constants.OP_LOG_ACTION_ADD_KIOSK
 	}
 
 	if serviceItem.Type == constants.MINI_B_SETTING {
-		opLog.Function = constants.OP_LOG_FUNCTION_ADD_BOOKING_SERVICE_ITEM
+		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
 		opLog.Action = constants.OP_LOG_ACTION_ADD_MINI_B
 	}
 
