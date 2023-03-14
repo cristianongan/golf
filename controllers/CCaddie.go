@@ -490,6 +490,23 @@ func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
 		log.Println("Find frist caddie working schedule", err.Error())
 	}
 
+	//get caddie increase
+	listCaddieIncrease := []string{}
+	if form.Date != "" {
+		caddieWCI := models.CaddieWorkingCalendar{}
+		caddieWCI.CourseUid = form.CourseId
+		caddieWCI.PartnerUid = form.PartnerUid
+		caddieWCI.ApplyDate = form.Date
+		caddieWCI.CaddieIncrease = true
+
+		listIncrease, _, err := caddieWCI.FindAllByDate(db)
+		if err == nil {
+			for _, item := range listIncrease {
+				listCaddieIncrease = append(listCaddieIncrease, item["caddie_code"].(string))
+			}
+		}
+	}
+
 	var groupDayOff []int64
 
 	//add group caddie
@@ -531,6 +548,8 @@ func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
 	for _, v := range list {
 		caddies = append(caddies, v.Code)
 	}
+
+	caddies = append(caddies, listCaddieIncrease...)
 
 	res := response.PageResponse{
 		Data: caddies,
@@ -734,6 +753,23 @@ func (_ *CCaddie) GetCaddieWorkingByDate(partnerUid, courseUid, bookingDate stri
 		log.Println("Find frist caddie working schedule", err.Error())
 	}
 
+	//get caddie increase
+	listCaddieIncrease := []string{}
+	if bookingDate != "" {
+		caddieWCI := models.CaddieWorkingCalendar{}
+		caddieWCI.CourseUid = courseUid
+		caddieWCI.PartnerUid = partnerUid
+		caddieWCI.ApplyDate = bookingDate
+		caddieWCI.CaddieIncrease = true
+
+		listIncrease, _, err := caddieWCI.FindAllByDate(db)
+		if err == nil {
+			for _, item := range listIncrease {
+				listCaddieIncrease = append(listCaddieIncrease, item["caddie_code"].(string))
+			}
+		}
+	}
+
 	var groupDayOff []int64
 
 	//add group caddie
@@ -760,6 +796,8 @@ func (_ *CCaddie) GetCaddieWorkingByDate(partnerUid, courseUid, bookingDate stri
 		for _, v := range list {
 			caddies = append(caddies, v.Code)
 		}
+
+		caddies = append(caddies, listCaddieIncrease...)
 
 		return caddies
 	}
