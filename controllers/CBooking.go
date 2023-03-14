@@ -194,33 +194,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	// TODO: check kho tea time trong ngày đó còn trống mới cho đặt
 
-	if body.Bag != "" {
-		// data old
-		oldBooking := booking
-
-		booking.Bag = body.Bag
-
-		opLog := models.OperationLog{
-			PartnerUid:  booking.PartnerUid,
-			CourseUid:   booking.CourseUid,
-			UserName:    prof.UserName,
-			UserUid:     prof.Uid,
-			Module:      constants.OP_LOG_MODULE_RECEPTION,
-			Function:    constants.OP_LOG_FUNCTION_ADD_BAG_BOOKING,
-			Action:      constants.OP_LOG_ACTION_INPUT_BAG_BOOKING,
-			Body:        models.JsonDataLog{Data: body},
-			ValueOld:    models.JsonDataLog{Data: oldBooking.Bag},
-			ValueNew:    models.JsonDataLog{Data: booking.Bag},
-			Path:        c.Request.URL.Path,
-			Method:      c.Request.Method,
-			Bag:         booking.Bag,
-			BookingDate: booking.BookingDate,
-			BillCode:    booking.BillCode,
-			BookingUid:  booking.Uid,
-		}
-		go createOperationLog(opLog)
-	}
-
 	if body.BookingDate != "" {
 		// bookingDateInt := utils.GetTimeStampFromLocationTime("", constants.DATE_FORMAT_1, body.BookingDate)
 		// nowStr, _ := utils.GetLocalTimeFromTimeStamp("", constants.DATE_FORMAT_1, utils.GetTimeNow().Unix())
@@ -396,6 +369,33 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			}
 			go createOperationLog(opLog)
 		}
+	}
+
+	if body.Bag != "" {
+		// data old
+		oldBooking := booking
+
+		booking.Bag = body.Bag
+
+		opLog := models.OperationLog{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			UserName:    prof.UserName,
+			UserUid:     prof.Uid,
+			Module:      constants.OP_LOG_MODULE_RECEPTION,
+			Function:    constants.OP_LOG_FUNCTION_ADD_BAG_BOOKING,
+			Action:      constants.OP_LOG_ACTION_INPUT_BAG_BOOKING,
+			Body:        models.JsonDataLog{Data: body},
+			ValueOld:    models.JsonDataLog{Data: oldBooking.Bag},
+			ValueNew:    models.JsonDataLog{Data: booking.Bag},
+			Path:        c.Request.URL.Path,
+			Method:      c.Request.Method,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
+			BillCode:    booking.BillCode,
+			BookingUid:  booking.Uid,
+		}
+		go createOperationLog(opLog)
 	}
 
 	if body.CustomerName != "" {
