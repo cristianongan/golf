@@ -1825,6 +1825,11 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	action := constants.OP_LOG_ACTION_LOCK_BAG
+	if body.LockBill != nil && *body.LockBill == false {
+		action = constants.OP_LOG_ACTION_UN_LOCK_BAG
+	}
+
 	//Add log
 	opLog := models.OperationLog{
 		PartnerUid:  booking.PartnerUid,
@@ -1833,7 +1838,7 @@ func (cBooking *CBooking) LockBill(c *gin.Context, prof models.CmsUser) {
 		UserUid:     prof.Uid,
 		Module:      constants.OP_LOG_MODULE_RECEPTION,
 		Function:    constants.OP_LOG_FUNCTION_CHECK_IN,
-		Action:      constants.OP_LOG_ACTION_LOCK_BAG,
+		Action:      action,
 		Body:        models.JsonDataLog{Data: body},
 		ValueOld:    models.JsonDataLog{Data: oldBooking},
 		ValueNew:    models.JsonDataLog{Data: booking},
@@ -1868,6 +1873,8 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
+
+	oldBooking := booking.CloneBooking()
 
 	if booking.BagStatus != constants.BAG_STATUS_WAITING {
 		response_message.InternalServerError(c, "Bag Status is not Waiting")
@@ -1940,6 +1947,29 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 
 	// Xoa payment
 	deleteSinglePayment(pUid, cUid, billCode, bUid, agencyId, bookingCode)
+
+	newBook := getBagDetailFromBooking(db, booking)
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_CHECK_IN,
+		Action:      constants.OP_LOG_ACTION_UNDO_CHECK_IN,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: newBook},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
