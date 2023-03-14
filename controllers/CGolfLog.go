@@ -52,24 +52,26 @@ func (_ *CGolfLog) GetGolfLogList(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if form.Bag != "" {
-		// Get thêm lúc tạo booking
-		booking := model_booking.Booking{
-			Bag:         form.Bag,
-			BookingDate: form.BookingDate,
-		}
-		db := datasources.GetDatabaseWithPartner(form.PartnerUid)
-		errFF := booking.FindFirst(db)
-		if errFF == nil {
-			opLogBag := models.OperationLog{
-				BookingUid: booking.Uid,
-				Action:     constants.OP_LOG_ACTION_CREATE,
+		// Get thêm lúc tạo booking ở page cuối
+		if int64(form.Page*form.Limit) >= total {
+			booking := model_booking.Booking{
+				Bag:         form.Bag,
+				BookingDate: form.BookingDate,
 			}
-			errFS := opLogBag.FindFirst()
-			if errFS == nil {
-				listTemp := []models.OperationLog{}
-				listTemp = append(listTemp, opLogBag)
-				list = append(listTemp, list...)
-				total += 1
+			db := datasources.GetDatabaseWithPartner(form.PartnerUid)
+			errFF := booking.FindFirst(db)
+			if errFF == nil {
+				opLogBag := models.OperationLog{
+					BookingUid: booking.Uid,
+					Action:     constants.OP_LOG_ACTION_CREATE,
+				}
+				errFS := opLogBag.FindFirst()
+				if errFS == nil {
+					listTemp := []models.OperationLog{}
+					listTemp = append(listTemp, opLogBag)
+					list = append(list, listTemp...)
+					total += 1
+				}
 			}
 		}
 	}
