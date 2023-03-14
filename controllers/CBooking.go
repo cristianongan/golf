@@ -327,6 +327,33 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
 
+	if body.Bag != "" {
+		// data old
+		oldBooking := booking
+
+		booking.Bag = body.Bag
+
+		opLog := models.OperationLog{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			UserName:    prof.UserName,
+			UserUid:     prof.Uid,
+			Module:      constants.OP_LOG_MODULE_RECEPTION,
+			Function:    constants.OP_LOG_FUNCTION_ADD_BAG_BOOKING,
+			Action:      constants.OP_LOG_ACTION_INPUT_BAG_BOOKING,
+			Body:        models.JsonDataLog{Data: body},
+			ValueOld:    models.JsonDataLog{Data: oldBooking.Bag},
+			ValueNew:    models.JsonDataLog{Data: booking.Bag},
+			Path:        c.Request.URL.Path,
+			Method:      c.Request.Method,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
+			BillCode:    booking.BillCode,
+			BookingUid:  booking.Uid,
+		}
+		go createOperationLog(opLog)
+	}
+
 	// Update caddie
 	if body.CaddieCode != nil && *body.CaddieCode != "" {
 		caddieList := models.CaddieList{}
@@ -369,33 +396,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			}
 			go createOperationLog(opLog)
 		}
-	}
-
-	if body.Bag != "" {
-		// data old
-		oldBooking := booking
-
-		booking.Bag = body.Bag
-
-		opLog := models.OperationLog{
-			PartnerUid:  booking.PartnerUid,
-			CourseUid:   booking.CourseUid,
-			UserName:    prof.UserName,
-			UserUid:     prof.Uid,
-			Module:      constants.OP_LOG_MODULE_RECEPTION,
-			Function:    constants.OP_LOG_FUNCTION_ADD_BAG_BOOKING,
-			Action:      constants.OP_LOG_ACTION_INPUT_BAG_BOOKING,
-			Body:        models.JsonDataLog{Data: body},
-			ValueOld:    models.JsonDataLog{Data: oldBooking.Bag},
-			ValueNew:    models.JsonDataLog{Data: booking.Bag},
-			Path:        c.Request.URL.Path,
-			Method:      c.Request.Method,
-			Bag:         booking.Bag,
-			BookingDate: booking.BookingDate,
-			BillCode:    booking.BillCode,
-			BookingUid:  booking.Uid,
-		}
-		go createOperationLog(opLog)
 	}
 
 	if body.CustomerName != "" {
