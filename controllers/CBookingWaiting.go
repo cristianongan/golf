@@ -49,6 +49,23 @@ func (_ *CBookingWaiting) CreateBookingWaiting(c *gin.Context, prof models.CmsUs
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	opLog := models.OperationLog{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		UserName:   prof.UserName,
+		UserUid:    prof.Uid,
+		Module:     constants.OP_LOG_MODULE_RECEPTION,
+		Function:   constants.OP_LOG_FUNCTION_ADD_WAITING,
+		Action:     constants.OP_LOG_ACTION_CREATE,
+		Body:       models.JsonDataLog{Data: body},
+		ValueOld:   models.JsonDataLog{},
+		ValueNew:   models.JsonDataLog{Data: bookingWaiting},
+		Path:       c.Request.URL.Path,
+		Method:     c.Request.Method,
+	}
+	go createOperationLog(opLog)
+
 	c.JSON(200, bookingWaiting)
 }
 
@@ -129,6 +146,22 @@ func (_ *CBookingWaiting) DeleteBookingWaiting(c *gin.Context, prof models.CmsUs
 		return
 	}
 
+	opLog := models.OperationLog{
+		PartnerUid: prof.PartnerUid,
+		CourseUid:  prof.CourseUid,
+		UserName:   prof.UserName,
+		UserUid:    prof.Uid,
+		Module:     constants.OP_LOG_MODULE_RECEPTION,
+		Function:   constants.OP_LOG_FUNCTION_DEL_WAITING,
+		Action:     constants.OP_LOG_ACTION_DELETE,
+		Body:       models.JsonDataLog{Data: bookingIdStr},
+		ValueOld:   models.JsonDataLog{Data: bookingWaitingRequest},
+		ValueNew:   models.JsonDataLog{},
+		Path:       c.Request.URL.Path,
+		Method:     c.Request.Method,
+	}
+	go createOperationLog(opLog)
+
 	okRes(c)
 }
 
@@ -158,6 +191,9 @@ func (_ *CBookingWaiting) UpdateBookingWaiting(c *gin.Context, prof models.CmsUs
 		return
 	}
 
+	// Data old
+	oldData := bookingWaitingRequest
+
 	if body.BookingTime != "" {
 		bookingWaitingRequest.BookingTime = body.BookingTime
 	}
@@ -179,6 +215,22 @@ func (_ *CBookingWaiting) UpdateBookingWaiting(c *gin.Context, prof models.CmsUs
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	opLog := models.OperationLog{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		UserName:   prof.UserName,
+		UserUid:    prof.Uid,
+		Module:     constants.OP_LOG_MODULE_RECEPTION,
+		Function:   constants.OP_LOG_FUNCTION_UPD_WAITING,
+		Action:     constants.OP_LOG_ACTION_UPDATE,
+		Body:       models.JsonDataLog{Data: body},
+		ValueOld:   models.JsonDataLog{Data: oldData},
+		ValueNew:   models.JsonDataLog{Data: bookingWaitingRequest},
+		Path:       c.Request.URL.Path,
+		Method:     c.Request.Method,
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
