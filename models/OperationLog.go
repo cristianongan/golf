@@ -107,7 +107,7 @@ func (item *OperationLog) FindList(page Page) ([]OperationLog, int64, error) {
 	}
 
 	if item.Function != "" {
-		db = db.Where("function = ?", item.Function)
+		db = db.Where("`function` = ?", item.Function)
 	}
 
 	db.Count(&total)
