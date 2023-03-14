@@ -490,23 +490,6 @@ func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
 		log.Println("Find frist caddie working schedule", err.Error())
 	}
 
-	//get caddie increase
-	listCaddieIncrease := []string{}
-	if form.Date != "" {
-		caddieWCI := models.CaddieWorkingCalendar{}
-		caddieWCI.CourseUid = form.CourseId
-		caddieWCI.PartnerUid = form.PartnerUid
-		caddieWCI.ApplyDate = form.Date
-		caddieWCI.CaddieIncrease = true
-
-		listIncrease, _, err := caddieWCI.FindAllByDate(db)
-		if err == nil {
-			for _, item := range listIncrease {
-				listCaddieIncrease = append(listCaddieIncrease, item["caddie_code"].(string))
-			}
-		}
-	}
-
 	var groupDayOff []int64
 
 	//add group caddie
@@ -548,8 +531,6 @@ func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
 	for _, v := range list {
 		caddies = append(caddies, v.Code)
 	}
-
-	caddies = append(caddies, listCaddieIncrease...)
 
 	res := response.PageResponse{
 		Data: caddies,
@@ -605,12 +586,22 @@ func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	err := caddieRequest.SolfDelete(db)
+	err := caddieRequest.Delete(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
+	caddieDeleted := models.CaddieDeleted{
+		Caddie: caddieRequest,
+	}
+
+	if errCaddieDelCreated := caddieDeleted.Create(db); errCaddieDelCreated != nil {
+		log.Println(errCaddieDelCreated.Error())
+	}
+
+	toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+	removeCaddieOutSlotOnDate(caddieRequest.PartnerUid, caddieRequest.CourseUid, toDayDate, caddieRequest.Code)
 	okRes(c)
 }
 
