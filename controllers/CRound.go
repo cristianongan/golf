@@ -63,7 +63,7 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		// validate booking_uid
 		booking, err = cRound.validateBooking(db, data)
 		if err != nil {
-			response_message.BadRequest(c, err.Error())
+			response_message.BadRequestFreeMessage(c, err.Error())
 			return
 		}
 
