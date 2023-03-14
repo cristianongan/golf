@@ -74,7 +74,6 @@ func (_ *CGolfLog) GetGolfLogList(c *gin.Context, prof models.CmsUser) {
 				}
 			}
 		}
-
 	}
 
 	res := map[string]interface{}{
