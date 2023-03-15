@@ -44,6 +44,7 @@ func (_ *CGolfLog) GetGolfLogList(c *gin.Context, prof models.CmsUser) {
 	opLog.Bag = form.Bag
 	opLog.Function = form.Function
 	opLog.Module = form.Module
+	opLog.Action = form.Action
 
 	list, total, err := opLog.FindList(page)
 	if err != nil {
