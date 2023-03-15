@@ -295,7 +295,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/booking/reset-bag", middlewares.AuthorizedCmsUserHandler(cBooking.ResetBag))
 			cmsApiAuthorized.POST("/booking/undo-checkout", middlewares.AuthorizedCmsUserHandler(cBooking.UndoCheckOut))
 			cmsApiAuthorized.GET("/booking/get-list-bag-detail", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBagDetail))
-			// cmsApiAuthorized.GET("/booking/golf-fee", middlewares.AuthorizedCmsUserHandler(cBooking.GetGolfFeeInfoOfBag))
+			cmsApiAuthorized.GET("/booking/caddie-booking-cancel/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListCaddieBookingCancel))
 
 			/// =================== Caddie Buggy In Out Bag ===================
 			cCaddieBuggyInOut := new(controllers.CCaddieBuggyInOut)
