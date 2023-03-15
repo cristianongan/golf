@@ -1653,12 +1653,12 @@ func (cCourseOperating CCourseOperating) UndoTimeOut(c *gin.Context, prof models
 
 	for _, booking := range bookingResponse {
 		if *booking.LockBill {
-			response_message.BadRequest(c, "Bag "+booking.Bag+" đã lock")
+			response_message.BadRequestFreeMessage(c, "Bag "+booking.Bag+" đã lock")
 			return
 		}
 
 		if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-			response_message.BadRequest(c, "Bag "+booking.Bag+" đã check out!")
+			response_message.BadRequestFreeMessage(c, "Bag "+booking.Bag+" đã check out!")
 			return
 		}
 	}

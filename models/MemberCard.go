@@ -100,6 +100,23 @@ type MemberCardDetailRes struct {
 }
 
 /*
+ Clone object
+*/
+func (item *MemberCard) CloneMemberCard() MemberCard {
+	copyMemberCard := MemberCard{}
+	bData, errM := json.Marshal(&item)
+	if errM != nil {
+		log.Println("CloneMemberCard errM", errM.Error())
+	}
+	errUnM := json.Unmarshal(bData, &copyMemberCard)
+	if errUnM != nil {
+		log.Println("CloneMemberCard errUnM", errUnM.Error())
+	}
+
+	return copyMemberCard
+}
+
+/*
 Check time có thể sử dụng giá riêng
 */
 func (item *MemberCard) IsValidTimePrecial() bool {

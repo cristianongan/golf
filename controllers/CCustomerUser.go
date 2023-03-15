@@ -116,6 +116,27 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		callservices.CreateCustomer(body)
 	}()
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  customerUser.PartnerUid,
+		CourseUid:   customerUser.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CUSTOMER,
+		Function:    constants.OP_LOG_FUNCTION_CUSTOMER_USER,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: customerUser},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: "",
+		BillCode:    "",
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
+
 	okResponse(c, customerUser)
 }
 
@@ -172,6 +193,8 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
+
+	oldValue := customerUser.CloneCustomerUser()
 
 	body := models.CustomerUser{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -303,6 +326,27 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  customerUser.PartnerUid,
+		CourseUid:   customerUser.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CUSTOMER,
+		Function:    constants.OP_LOG_FUNCTION_CUSTOMER_USER,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldValue},
+		ValueNew:    models.JsonDataLog{Data: customerUser},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: "",
+		BillCode:    "",
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
+
 	okResponse(c, customerUser)
 }
 
@@ -329,6 +373,27 @@ func (_ *CCustomerUser) DeleteCustomerUser(c *gin.Context, prof models.CmsUser) 
 		response_message.InternalServerError(c, errDel.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  customerUser.PartnerUid,
+		CourseUid:   customerUser.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CUSTOMER,
+		Function:    constants.OP_LOG_FUNCTION_CUSTOMER_USER,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Body:        models.JsonDataLog{},
+		ValueOld:    models.JsonDataLog{Data: customerUser},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: "",
+		BillCode:    "",
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }

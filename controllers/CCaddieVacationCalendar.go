@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 	"start/constants"
@@ -73,9 +74,9 @@ func (_ *CCaddieVacationCalendar) CreateCaddieVacationCalendar(c *gin.Context, p
 		return
 	}
 
-	if body.Title == constants.CADDIE_VACATION_SICK || body.Title == constants.CADDIE_VACATION_UNPAID {
+	go func() {
 		cNotification := CNotification{}
-		go cNotification.CreateCaddieVacationNotification(db, request.GetCaddieVacationNotification{
+		cNotification.CreateCaddieVacationNotification(db, request.GetCaddieVacationNotification{
 			Caddie:       caddie,
 			DateFrom:     body.DateFrom,
 			DateTo:       body.DateTo,
@@ -85,7 +86,7 @@ func (_ *CCaddieVacationCalendar) CreateCaddieVacationCalendar(c *gin.Context, p
 			UserName:     prof.UserName,
 			Id:           caddieVC.Id,
 		})
-	}
+	}()
 
 	c.JSON(200, caddieVC)
 }
@@ -215,11 +216,17 @@ func (_ *CCaddieVacationCalendar) DeleteCaddieVacationCalendar(c *gin.Context, p
 	okRes(c)
 }
 
-func (_ *CCaddieVacationCalendar) UpdateCaddieVacationStatus(id int64, isApprove bool, partnerUid string, prof models.CmsUser) {
+func (_ *CCaddieVacationCalendar) UpdateCaddieVacationStatus(content []byte, isApprove bool, partnerUid string, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(partnerUid)
+
+	caddieEx := models.CaddieContentNoti{}
+	if err := json.Unmarshal(content, &caddieEx); err != nil {
+		return
+	}
+
 	RCaddieVacation := models.CaddieVacationCalendar{
 		ModelId: models.ModelId{
-			Id: id,
+			Id: caddieEx.Id,
 		},
 	}
 

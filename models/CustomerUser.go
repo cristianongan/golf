@@ -1,6 +1,8 @@
 package models
 
 import (
+	"encoding/json"
+	"log"
 	"start/constants"
 	"start/utils"
 	"strings"
@@ -39,6 +41,23 @@ type CustomerUser struct {
 	Mst      string `json:"mst" gorm:"type:varchar(50)"`      // mã số thuế
 	Identify string `json:"identify" gorm:"type:varchar(50)"` // CMT
 	Note     string `json:"note" gorm:"type:varchar(500)"`    // Ghi chu them
+}
+
+/*
+ Clone object
+*/
+func (item *CustomerUser) CloneCustomerUser() CustomerUser {
+	copyCustomerUser := CustomerUser{}
+	bData, errM := json.Marshal(&item)
+	if errM != nil {
+		log.Println("CloneCustomerUser errM", errM.Error())
+	}
+	errUnM := json.Unmarshal(bData, &copyCustomerUser)
+	if errUnM != nil {
+		log.Println("CloneCustomerUser errUnM", errUnM.Error())
+	}
+
+	return copyCustomerUser
 }
 
 func (item *CustomerUser) IsDuplicated(db *gorm.DB) bool {

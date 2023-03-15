@@ -6,7 +6,9 @@ import (
 	"start/config"
 	"start/controllers"
 	"start/middlewares"
-	"start/socket"
+
+	// "start/socket"
+	socket "start/socket_room"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -44,13 +46,13 @@ func NewRouter() *gin.Engine {
 	router.Group(moduleName).GET("/", healthcheck)
 	router.Group(moduleName).GET("/healthz", healthcheck)
 	router.Group(moduleName).GET("/ws", func(c *gin.Context) {
-		socket.ServeWs(c.Writer, c.Request)
+		// socket.ServeWs(c.Writer, c.Request)
 	})
 
-	// router.Group(moduleName).GET("/ws/:roomId", func(c *gin.Context) {
-	// 	roomId := c.Param("roomId")
-	// 	socket_room.ServeWs(c.Writer, c.Request, roomId)
-	// })
+	router.Group(moduleName).GET("/ws/:roomId", func(c *gin.Context) {
+		roomId := c.Param("roomId")
+		socket.ServeWs(c.Writer, c.Request, roomId)
+	})
 
 	if config.GetKibanaLog() {
 		router.Use(middlewares.GinBodyLogMiddleware)
@@ -735,6 +737,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Notification ===================
 			cNotification := new(controllers.CNotification)
 			cmsApiAuthorized.GET("/notification/list", middlewares.AuthorizedCmsUserHandler(cNotification.GetListNotification))
+			cmsApiAuthorized.GET("/notification/create-caddie", middlewares.AuthorizedCmsUserHandler(cNotification.CreateCaddieVacation))
 			cmsApiAuthorized.POST("/notification/caddie-calendar/approve/:id", middlewares.AuthorizedCmsUserHandler(cNotification.ApproveCaddieCalendarNotification))
 			cmsApiAuthorized.POST("/notification/seen", middlewares.AuthorizedCmsUserHandler(cNotification.SeenNotification))
 
@@ -789,6 +792,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/payment/bag-status", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportPayment))
 			cmsApiAuthorized.POST("/report/booking/players", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBookingPlayers))
 
+			/// =================== Golf Log ===================
+			cGolfLog := new(controllers.CGolfLog)
+			cmsApiAuthorized.GET("/op-log/list", middlewares.AuthorizedCmsUserHandler(cGolfLog.GetGolfLogList))
+
 			/// =================== Redis Settings ===================
 			cRedis := new(controllers.CRedis)
 			cmsApiAuthorized.POST("/redis/tee-time/reset-all", middlewares.AuthorizedCmsUserHandler(cRedis.DeleteAllRedisTeeTime))
@@ -803,6 +810,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/test-fast-customer", middlewares.AuthorizedCmsUserHandler(cTest.TestFastCustomer))
 			cmsApiAuthorized.GET("/test-fast-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFastFee))
 			cmsApiAuthorized.GET("/test-caddie-slot", middlewares.AuthorizedCmsUserHandler(cTest.TestCaddieSlot))
+			cmsApiAuthorized.GET("/test-notification", middlewares.AuthorizedCmsUserHandler(cTest.TestNotification))
 
 			/// =================== Test ===================
 			cHelper := new(controllers.CHelper)

@@ -134,6 +134,27 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_PAYMENT_SINGLE,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: singlePaymentItem},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+	go createOperationLog(opLog)
+
 	if !isAdd {
 		// Find Total
 		payItemR := model_payment.SinglePaymentItem{
@@ -164,7 +185,6 @@ func (_ *CPayment) CreateSinglePayment(c *gin.Context, prof models.CmsUser) {
 				response_message.InternalServerError(c, errUdp.Error())
 				return
 			}
-
 		} else {
 			log.Println("CreateSinglePayment errList", errList.Error())
 		}
@@ -259,6 +279,27 @@ func (_ *CPayment) UpdateSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  paymentItem.PartnerUid,
+		CourseUid:   paymentItem.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_PAYMENT_SINGLE,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: paymentItem},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         paymentItem.Bag,
+		BookingDate: paymentItem.BookingDate,
+		BillCode:    paymentItem.BillCode,
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
@@ -360,6 +401,27 @@ func (_ *CPayment) DeleteSinglePaymentItem(c *gin.Context, prof models.CmsUser) 
 	} else {
 		log.Println("DeleteSinglePaymentItem errFS", errFS.Error())
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  paymentItem.PartnerUid,
+		CourseUid:   paymentItem.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_PAYMENT_SINGLE,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: paymentItem},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         paymentItem.Bag,
+		BookingDate: paymentItem.BookingDate,
+		BillCode:    paymentItem.BillCode,
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
@@ -463,6 +525,27 @@ func (_ *CPayment) CreateAgencyPaymentItem(c *gin.Context, prof models.CmsUser) 
 	//Update agency payment
 	agencyPayment.UpdateTotalPaid(db)
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  agencyPaymentItem.PartnerUid,
+		CourseUid:   agencyPaymentItem.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_PAYMENT_AGENCY,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: agencyPaymentItem},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: agencyPaymentItem.BookingDate,
+		BillCode:    "",
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
+
 	okRes(c)
 }
 
@@ -508,6 +591,27 @@ func (_ *CPayment) DeleteAgencyPaymentItem(c *gin.Context, prof models.CmsUser) 
 	if errFAP == nil {
 		agencyPayment.UpdateTotalPaid(db)
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  paymentItem.PartnerUid,
+		CourseUid:   paymentItem.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_PAYMENT_AGENCY,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: paymentItem},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: paymentItem.BookingDate,
+		BillCode:    "",
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
@@ -636,7 +740,7 @@ func (_ *CPayment) GetAgencyPayForBagDetail(c *gin.Context, prof models.CmsUser)
 			payForBag.FeeData = append(payForBag.FeeData, utils.BookingAgencyPayForBagData{
 				Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
 				Fee:  agencyCaddieBookingFee,
-				Name: "Booking Caddie fee",
+				Name: constants.BOOKING_CADDIE_NAME,
 			})
 		}
 

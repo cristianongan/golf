@@ -365,8 +365,8 @@ func (item *BookingList) FindListRoundOfBagPlaying(database *gorm.DB, page model
 
 	db = addFilter(db, item, false)
 	db = db.Where("added_round = ?", false)
+	db = db.Where("moved_flight = ?", false)
 	db = db.Where("check_in_time > 0")
-	db = db.Where("bag_status <> ?", constants.BAG_STATUS_CHECK_OUT)
 	db = db.Where("bag_status <> ?", constants.BAG_STATUS_CANCEL)
 
 	db.Count(&total)
@@ -516,8 +516,9 @@ func (item *BookingList) FindReportAgencyPayment(database *gorm.DB) ([]map[strin
 
 	subQuery1 = subQuery1.Where("b.agency_id > 0")
 	subQuery1 = subQuery1.Where("b.check_in_time > 0")
+	subQuery1 = subQuery1.Where("b.check_out_time > 0")
 	subQuery1 = subQuery1.Where("b.bag_status <> 'CANCEL'")
-	// subQuery1 = subQuery1.Where("b.init_type <> 'ROUND'")
+	subQuery1 = subQuery1.Where("b.moved_flight = 0")
 	subQuery1 = subQuery1.Where("b.added_round = 0")
 
 	subQuery1.Group("b.agency_id")
@@ -543,7 +544,8 @@ func (item *BookingList) FindReportAgencyPayment(database *gorm.DB) ([]map[strin
 	subQuery2 = subQuery2.Where("b.agency_id > 0")
 	subQuery2 = subQuery2.Where("b.check_in_time > 0")
 	subQuery2 = subQuery2.Where("b.bag_status <> 'CANCEL'")
-	// subQuery2 = subQuery2.Where("b.init_type <> 'ROUND'")
+	subQuery2 = subQuery2.Where("b.check_out_time > 0")
+	subQuery1 = subQuery1.Where("b.moved_flight = 0")
 	subQuery2 = subQuery2.Where("b.added_round = 0")
 
 	subQuery2.Group("b.booking_code")

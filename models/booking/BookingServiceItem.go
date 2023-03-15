@@ -487,12 +487,12 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 		`)
 	}
 
-	if item.CourseUid != "" {
-		db = db.Where("booking_service_items.course_uid = ?", item.CourseUid)
-	}
-	if item.PartnerUid != "" {
-		db = db.Where("booking_service_items.partner_uid = ?", item.PartnerUid)
-	}
+	// if item.CourseUid != "" {
+	// 	db = db.Where("booking_service_items.course_uid = ?", item.CourseUid)
+	// }
+	// if item.PartnerUid != "" {
+	// 	db = db.Where("booking_service_items.partner_uid = ?", item.PartnerUid)
+	// }
 	if item.ServiceId != "" {
 		db = db.Where("booking_service_items.service_id = ?", item.ServiceId)
 	}
@@ -528,20 +528,20 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 	}
 
 	db = db.Joins(`INNER JOIN (?) as tb1 on booking_service_items.booking_uid = tb1.uid`, subQuery)
-	db = db.Joins(`INNER JOIN service_carts as tb2 on booking_service_items.service_bill = tb2.id`)
+	db = db.Joins(`LEFT JOIN service_carts as tb2 on booking_service_items.service_bill = tb2.id`)
 	db = db.Joins(`LEFT JOIN (?) as tb3 on booking_service_items.group_code = tb3.group_code`, subQuery1)
 
 	db = db.Where("tb1.check_in_time > 0")
 	db = db.Where("tb1.bag_status <> 'CANCEL'")
-	db = db.Where("tb2.bill_status NOT IN ?", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
+	db = db.Where("(tb2.bill_status NOT IN ? OR tb2.bill_status IS NULL)", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
 
 	if item.Type == "KIOSK" || item.Type == "PROSHOP" {
-		db.Group("booking_service_items.service_id, booking_service_items.item_code, booking_service_items.unit_price, booking_service_items.discount_type, booking_service_items.discount_value")
+		db.Group("booking_service_items.service_id, booking_service_items.item_code, booking_service_items.name, booking_service_items.unit_price, booking_service_items.discount_type, booking_service_items.discount_value")
+		db.Order("booking_service_items.location")
 	} else {
-		db.Group("booking_service_items.item_code, booking_service_items.unit_price,  booking_service_items.discount_type, booking_service_items.discount_value")
+		db.Group("booking_service_items.item_code, booking_service_items.name, booking_service_items.unit_price, booking_service_items.discount_type, booking_service_items.discount_value")
+		db.Order("booking_service_items.name")
 	}
-
-	db.Order("booking_service_items.name")
 
 	db = db.Find(&list)
 
@@ -557,12 +557,12 @@ func (item *BookingServiceItem) FindReportDetailFB(database *gorm.DB, date strin
 		SUM(tb.amount) as amount
 	`)
 
-	if item.CourseUid != "" {
-		db = db.Where("tb.course_uid = ?", item.CourseUid)
-	}
-	if item.PartnerUid != "" {
-		db = db.Where("tb.partner_uid = ?", item.PartnerUid)
-	}
+	// if item.CourseUid != "" {
+	// 	db = db.Where("tb.course_uid = ?", item.CourseUid)
+	// }
+	// if item.PartnerUid != "" {
+	// 	db = db.Where("tb.partner_uid = ?", item.PartnerUid)
+	// }
 
 	if item.Type == constants.RESTAURANT_SETTING {
 		db = db.Where("tb.type IN ?", []string{constants.RESTAURANT_SETTING, constants.MINI_R_SETTING})
@@ -591,14 +591,14 @@ func (item *BookingServiceItem) FindReportDetailFB(database *gorm.DB, date strin
 
 	// subQuery = subQuery.Where("bookings.added_round = 0")
 
-	db = db.Joins(`LEFT JOIN (?) as tb1 on tb.booking_uid = tb1.uid`, subQuery)
-	db = db.Joins(`INNER JOIN service_carts as tb2 on tb.service_bill = tb2.id`)
+	db = db.Joins(`INNER JOIN (?) as tb1 on tb.booking_uid = tb1.uid`, subQuery)
+	db = db.Joins(`LEFT JOIN service_carts as tb2 on tb.service_bill = tb2.id`)
 
 	db = db.Where("tb1.check_in_time > 0")
 	db = db.Where("tb1.bag_status <> 'CANCEL'")
-	db = db.Where("tb2.bill_status NOT IN ?", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
+	db = db.Where("(tb2.bill_status NOT IN ? OR tb2.bill_status IS NULL)", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
 
-	db = db.Group("tb.bag, tb.item_code, tb.location, tb.unit_price,  tb.discount_type, tb.discount_value")
+	db = db.Group("tb.bag, tb.item_code, tb.name, tb.location, tb.unit_price,  tb.discount_type, tb.discount_value")
 
 	db = db.Debug().Find(&list)
 
