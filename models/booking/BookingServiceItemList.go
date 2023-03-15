@@ -14,6 +14,7 @@ type BookingServiceItemList struct {
 	ItemCode   string
 	FromDate   string
 	ToDate     string
+	BillCode   string
 }
 
 func (item *BookingServiceItemList) addFilter(db *gorm.DB) *gorm.DB {
@@ -25,5 +26,17 @@ func (item *BookingServiceItemList) addFilter(db *gorm.DB) *gorm.DB {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 
+	if item.BillCode != "" {
+		db = db.Where("bill_code = ?", item.BillCode)
+	}
+
 	return db
+}
+
+func (item *BookingServiceItemList) FindAll(database *gorm.DB) (*gorm.DB, error) {
+	db := database.Model(BookingServiceItem{})
+
+	db = item.addFilter(db)
+
+	return db, db.Error
 }
