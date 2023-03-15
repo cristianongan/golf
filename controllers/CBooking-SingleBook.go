@@ -495,7 +495,7 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 				UserUid:     prof.Uid,
 				Module:      constants.OP_LOG_MODULE_RECEPTION,
 				Function:    constants.OP_LOG_FUNCTION_BOOKING,
-				Action:      constants.OP_LOG_ACTION_CANCEL_ALL,
+				Action:      constants.OP_LOG_ACTION_COPY,
 				Body:        models.JsonDataLog{Data: bodyRequest},
 				ValueOld:    models.JsonDataLog{Data: bodyRequest.BookingList[index]},
 				ValueNew:    models.JsonDataLog{Data: booking},
@@ -605,6 +605,27 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 		if booking != nil {
 			list = append(list, *booking)
 		}
+
+		//Add log
+		opLog := models.OperationLog{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			UserName:    prof.UserName,
+			UserUid:     prof.Uid,
+			Module:      constants.OP_LOG_MODULE_RECEPTION,
+			Function:    constants.OP_LOG_FUNCTION_BOOKING,
+			Action:      constants.OP_LOG_ACTION_CREATE,
+			Body:        models.JsonDataLog{Data: body},
+			ValueOld:    models.JsonDataLog{},
+			ValueNew:    models.JsonDataLog{Data: booking},
+			Path:        c.Request.URL.Path,
+			Method:      c.Request.Method,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
+			BillCode:    booking.BillCode,
+			BookingUid:  booking.Uid,
+		}
+		go createOperationLog(opLog)
 	}
 	return list, nil
 }
