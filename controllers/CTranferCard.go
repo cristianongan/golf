@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
@@ -85,6 +86,27 @@ func (_ *CTranferCard) CreateTranferCard(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errC.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CUSTOMER,
+		Function:    constants.OP_LOG_FUNCTION_TRANSFER_CARD,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: ownerOld},
+		ValueNew:    models.JsonDataLog{Data: tranferCard},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: "",
+		BillCode:    "",
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
 
 	okResponse(c, tranferCard)
 }
