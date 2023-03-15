@@ -125,7 +125,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 	item.FindServiceItemsOfBag(db)
 	for _, v := range item.ListServiceItems {
 		totalServiceItems += v.Amount
-		checkBuggy := strings.Contains(v.Name, "xe")
+		checkBuggy := strings.Contains(v.Name, "xe") && v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL
 
 		if v.BillCode == item.BillCode {
 			if v.Type == constants.MINI_B_SETTING {
@@ -144,7 +144,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 					practiceBallFee += v.Amount
 				} else {
 					if v.ServiceType != constants.BUGGY_SETTING && v.ServiceType != constants.CADDIE_SETTING && !checkBuggy {
-						if v.ItemCode != "Tham quan" {
+						if v.ItemCode != constants.THAM_QUAN {
 							rentalFee += v.Amount
 						}
 					}
@@ -159,7 +159,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 				otherFee += v.Amount
 			}
 
-			if checkBuggy || v.ItemCode == "Tham quan" {
+			if checkBuggy || v.ItemCode == constants.THAM_QUAN {
 				buggyFee += v.Amount
 			}
 
@@ -223,28 +223,28 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 	agencyInfo := model_report.BookingAgency{}
 	if item.AgencyId > 0 {
 		agencyInfo = model_report.BookingAgency{
-			AgencyId:    item.AgencyInfo.AgencyId,
-			ShortName:   item.AgencyInfo.ShortName,
-			Category:    item.AgencyInfo.Category,
-			Name:        item.AgencyInfo.Name,
-			BookingCode: item.NoteOfBooking,
+			AgencyId:    bookingR.AgencyInfo.AgencyId,
+			ShortName:   bookingR.AgencyInfo.ShortName,
+			Category:    bookingR.AgencyInfo.Category,
+			Name:        bookingR.AgencyInfo.Name,
+			BookingCode: bookingR.NoteOfBooking,
 		}
 	}
 
 	m := model_report.ReportRevenueDetail{
-		PartnerUid:       item.PartnerUid,
-		CourseUid:        item.CourseUid,
+		PartnerUid:       bookingR.PartnerUid,
+		CourseUid:        bookingR.CourseUid,
 		BillNo:           billNo,
-		Bag:              item.Bag,
-		GuestStyle:       item.GuestStyle,
-		GuestStyleName:   item.GuestStyleName,
-		BookingDate:      item.BookingDate,
-		CustomerId:       item.CustomerUid,
-		CustomerName:     item.CustomerName,
-		MembershipNo:     item.CardId,
-		CustomerType:     item.CustomerType,
+		Bag:              bookingR.Bag,
+		GuestStyle:       bookingR.GuestStyle,
+		GuestStyleName:   bookingR.GuestStyleName,
+		BookingDate:      bookingR.BookingDate,
+		CustomerId:       bookingR.CustomerUid,
+		CustomerName:     bookingR.CustomerName,
+		MembershipNo:     bookingR.CardId,
+		CustomerType:     bookingR.CustomerType,
 		Hole:             hole,
-		Paid:             item.GetAgencyPaid(),
+		Paid:             bookingR.GetAgencyPaid(),
 		GreenFee:         bookingGreenFee,
 		CaddieFee:        caddieFee,
 		FBFee:            fbFee,
