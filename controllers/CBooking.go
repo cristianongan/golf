@@ -1883,16 +1883,23 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	bookingServiceItemsR := model_booking.BookingServiceItem{
-		PartnerUid: booking.PartnerUid,
-		CourseUid:  booking.CourseUid,
-		BillCode:   booking.BillCode,
-	}
-	list, _ := bookingServiceItemsR.FindAll(db)
+	// check đk undo checkin in list items
+	if booking.BillCode != "" {
+		bookingServiceItemsR := model_booking.BookingServiceItemList{
+			PartnerUid: booking.PartnerUid,
+			CourseUid:  booking.CourseUid,
+			BillCode:   booking.BillCode,
+		}
+		db1, _ := bookingServiceItemsR.FindAll(db)
+		db1.Not("service_type = ?", constants.CADDIE_SETTING)
 
-	if len(list) > 0 {
-		response_message.InternalServerError(c, "Bag can not undo checkin")
-		return
+		list := []model_booking.BookingServiceItem{}
+		db1.Find(&list)
+
+		if len(list) > 0 {
+			response_message.InternalServerError(c, "Bag can not undo checkin")
+			return
+		}
 	}
 
 	pUid := booking.PartnerUid
