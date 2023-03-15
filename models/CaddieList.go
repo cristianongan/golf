@@ -247,6 +247,7 @@ func (item CaddieList) FindListWithoutPage(database *gorm.DB) ([]Caddie, error) 
 		db = db.Where("group_id IN ?", item.GroupList)
 	}
 
+	db.Not("status = ?", constants.STATUS_DELETED)
 	err := db.Find(&list).Error
 
 	if err != nil {
