@@ -51,18 +51,19 @@ func (_ *CBookingWaiting) CreateBookingWaiting(c *gin.Context, prof models.CmsUs
 	}
 
 	opLog := models.OperationLog{
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
-		UserName:   prof.UserName,
-		UserUid:    prof.Uid,
-		Module:     constants.OP_LOG_MODULE_RECEPTION,
-		Function:   constants.OP_LOG_FUNCTION_WAITTING_LIST,
-		Action:     constants.OP_LOG_ACTION_CREATE,
-		Body:       models.JsonDataLog{Data: body},
-		ValueOld:   models.JsonDataLog{},
-		ValueNew:   models.JsonDataLog{Data: bookingWaiting},
-		Path:       c.Request.URL.Path,
-		Method:     c.Request.Method,
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_WAITTING_LIST,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: bookingWaiting},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: body.BookingTime,
 	}
 	go createOperationLog(opLog)
 
@@ -147,18 +148,19 @@ func (_ *CBookingWaiting) DeleteBookingWaiting(c *gin.Context, prof models.CmsUs
 	}
 
 	opLog := models.OperationLog{
-		PartnerUid: prof.PartnerUid,
-		CourseUid:  prof.CourseUid,
-		UserName:   prof.UserName,
-		UserUid:    prof.Uid,
-		Module:     constants.OP_LOG_MODULE_RECEPTION,
-		Function:   constants.OP_LOG_FUNCTION_WAITTING_LIST,
-		Action:     constants.OP_LOG_ACTION_DELETE,
-		Body:       models.JsonDataLog{Data: bookingIdStr},
-		ValueOld:   models.JsonDataLog{Data: bookingWaitingRequest},
-		ValueNew:   models.JsonDataLog{},
-		Path:       c.Request.URL.Path,
-		Method:     c.Request.Method,
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_WAITTING_LIST,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Body:        models.JsonDataLog{Data: bookingIdStr},
+		ValueOld:    models.JsonDataLog{Data: bookingWaitingRequest},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: bookingWaitingRequest.BookingTime,
 	}
 	go createOperationLog(opLog)
 
@@ -217,18 +219,19 @@ func (_ *CBookingWaiting) UpdateBookingWaiting(c *gin.Context, prof models.CmsUs
 	}
 
 	opLog := models.OperationLog{
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
-		UserName:   prof.UserName,
-		UserUid:    prof.Uid,
-		Module:     constants.OP_LOG_MODULE_RECEPTION,
-		Function:   constants.OP_LOG_FUNCTION_WAITTING_LIST,
-		Action:     constants.OP_LOG_ACTION_UPDATE,
-		Body:       models.JsonDataLog{Data: body},
-		ValueOld:   models.JsonDataLog{Data: oldData},
-		ValueNew:   models.JsonDataLog{Data: bookingWaitingRequest},
-		Path:       c.Request.URL.Path,
-		Method:     c.Request.Method,
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_WAITTING_LIST,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldData},
+		ValueNew:    models.JsonDataLog{Data: bookingWaitingRequest},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: bookingWaitingRequest.BookingTime,
 	}
 	go createOperationLog(opLog)
 
