@@ -35,6 +35,7 @@ const (
 	OP_LOG_ACTION_ADD_KIOSK                        = "ADD_KIOSK"
 	OP_LOG_ACTION_ADD_MINI_B                       = "ADD_MINI_B"
 	OP_LOG_ACTION_ADD_DISCOUNT                     = "ADD_DISCOUNT"
+	OP_LOG_ACTION_DELETE_SERVICE_ITEM              = "DELETE_SERVICE_ITEM"
 	OP_LOG_ACTION_UNDO_CHECK_IN                    = "UNDO_CHECK_IN"
 	OP_LOG_ACTION_ADD_SUB_BAG                      = "ADD_SUB_BAG"
 	OP_LOG_ACTION_CHANGE_TO_MAIN_BAG               = "CHANGE_TO_MAIN_BAG"
@@ -98,4 +99,5 @@ const (
 	OP_LOG_FUNCTION_PROSHOP                  = "PROSHOP"
 	OP_LOG_FUNCTION_DRIVING                  = "DRIVING"
 	OP_LOG_FUNCTION_RESTAURANT               = "RESTAURANT"
+	OP_LOG_FUNCTION_MINIBAR                  = "MINIBAR"
 )

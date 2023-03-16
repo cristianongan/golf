@@ -524,6 +524,8 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 		updatePriceWithServiceItem(&booking, prof)
 	}
 
+	go addLog(c, prof, serviceCartItem, constants.OP_LOG_ACTION_ADD_DISCOUNT)
+
 	okRes(c)
 }
 
@@ -1052,6 +1054,8 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 		//Update lại giá trong booking
 		updatePriceWithServiceItem(&booking, prof)
 	}
+
+	go addLog(c, prof, serviceCartItem, constants.OP_LOG_ACTION_DELETE_SERVICE_ITEM)
 
 	okRes(c)
 }
@@ -1746,4 +1750,46 @@ func (_ CServiceCart) ChangeRentalStatus(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okRes(c)
+}
+
+func addLog(c *gin.Context, prof models.CmsUser, serviceCartItem model_booking.BookingServiceItem, action string) {
+	opLog := models.OperationLog{
+		PartnerUid:  serviceCartItem.PartnerUid,
+		CourseUid:   serviceCartItem.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_POS,
+		Action:      action,
+		Body:        models.JsonDataLog{Data: serviceCartItem},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: serviceCartItem},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         serviceCartItem.Bag,
+		BookingDate: "",
+		BillCode:    serviceCartItem.BillCode,
+		BookingUid:  serviceCartItem.BookingUid,
+	}
+
+	if serviceCartItem.Type == constants.RENTAL_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_GOLF_CLUB_RENTAL
+	}
+
+	if serviceCartItem.Type == constants.DRIVING_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_DRIVING
+	}
+
+	if serviceCartItem.Type == constants.PROSHOP_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_PROSHOP
+	}
+
+	if serviceCartItem.Type == constants.KIOSK_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_DRIVING
+	}
+
+	if serviceCartItem.Type == constants.MINI_B_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_MINIBAR
+	}
+
+	createOperationLog(opLog)
 }
