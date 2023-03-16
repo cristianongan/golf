@@ -910,6 +910,8 @@ func (cBooking *CBooking) GetListCaddieBookingCancel(c *gin.Context, prof models
 		PartnerUid:  form.PartnerUid,
 		CourseUid:   form.CourseUid,
 		BookingDate: form.BookingDate,
+		CaddieName:  form.CaddieName,
+		CaddieCode:  form.CaddieCode,
 	}
 	list, total, err := bookings.FindCaddieBookingCancel(db, page)
 

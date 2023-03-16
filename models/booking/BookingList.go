@@ -750,6 +750,16 @@ func (item *BookingList) FindCaddieBookingCancel(database *gorm.DB, page models.
 	db = db.Where("caddie_booking <> ''")
 	db = db.Where("booking_date = ?", item.BookingDate)
 
+	if item.CaddieName != "" {
+		db = db.Where("caddie_info->'$.name' COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CaddieName+"%")
+	}
+
+	if item.CaddieCode != "" {
+		db = db.Where("caddie_info->'$.code' COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CaddieCode+"%")
+	}
+
+	db.Order("created_at desc")
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
