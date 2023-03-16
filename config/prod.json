@@ -56,5 +56,6 @@
     "aes_pass_secret_key": "KujEOYTVLtdfNopHmVnuTjEiZyqAmZpV",
     "is_open_socket": true,
     "ccu_server": 50,
-    "reset_p": "fZ3bp+k0uwSuBRcW3CpcoA=="
+    "reset_p": "fZ3bp+k0uwSuBRcW3CpcoA==",
+    "is_write_log_to_db": true
 }
