@@ -804,8 +804,7 @@ func (item *Booking) FindAgencyCancelBooking(database *gorm.DB, page models.Page
 	}
 
 	db = db.Group("booking_code")
-	// db = db.Where("agency_id <> ?", 0)
-	db = db.Where("bag_status = ?", constants.BAG_STATUS_CANCEL)
+	db = db.Where("agency_id <> ?", 0)
 	db = db.Select("booking_dels.*, COUNT(booking_code) as number_people")
 
 	db.Count(&total)
