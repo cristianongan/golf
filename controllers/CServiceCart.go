@@ -377,6 +377,16 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 		BookingUid:  booking.Uid,
 	}
 
+	if body.LocationType == "GO" {
+		opLog.Module = constants.OP_LOG_MODULE_GO
+		opLog.Function = constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE
+		opLog.Action = constants.OP_LOG_ACTION_ADD_RENTAL
+	} else {
+		opLog.Module = constants.OP_LOG_MODULE_POS
+		opLog.Function = constants.OP_LOG_FUNCTION_GOLF_CLUB_RENTAL
+		opLog.Action = constants.OP_LOG_ACTION_ADD_RENTAL
+	}
+
 	go createOperationLog(opLog)
 
 	c.JSON(200, serviceCart)
@@ -480,27 +490,6 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 		//Update lại giá trong booking
 		updatePriceWithServiceItem(&booking, prof)
 	}
-
-	opLog := models.OperationLog{
-		PartnerUid:  booking.PartnerUid,
-		CourseUid:   booking.CourseUid,
-		UserName:    prof.UserName,
-		UserUid:     prof.Uid,
-		Module:      constants.OP_LOG_MODULE_POS,
-		Function:    constants.OP_LOG_FUNCTION_GOLF_CLUB_RENTAL,
-		Action:      constants.OP_LOG_ACTION_ADD_DISCOUNT,
-		Body:        models.JsonDataLog{Data: body},
-		ValueOld:    models.JsonDataLog{},
-		ValueNew:    models.JsonDataLog{Data: serviceCartItem},
-		Path:        c.Request.URL.Path,
-		Method:      c.Request.Method,
-		Bag:         booking.Bag,
-		BookingDate: booking.BookingDate,
-		BillCode:    booking.BillCode,
-		BookingUid:  booking.Uid,
-	}
-
-	go createOperationLog(opLog)
 
 	okRes(c)
 }
