@@ -76,11 +76,11 @@ func (item *TranferCard) FindList(database *gorm.DB, page Page, playerName strin
 		db = db.Where("( tranfer_cards.owner_uid LIKE ? or tranfer_cards.owner_uid_old LIKE ? )", "%"+item.OwnerUid+"%", "%"+item.OwnerUid+"%")
 	}
 	if item.CardId != "" {
-		db = db.Where("tranfer_cards.course_uid LIKE ?", "%"+item.CardId+"%")
+		db = db.Where("tranfer_cards.card_id LIKE ?", "%"+item.CardId+"%")
 	}
 
 	if playerName != "" {
-		db = db.Where("( tranfer_cards.owner_name LIKE ? or tranfer_cards.owner_name_old LIKE ? )", "%"+playerName+"%", "%"+playerName+"%")
+		db = db.Where("( customer_users.name LIKE ? or cso.name LIKE ? )", "%"+playerName+"%", "%"+playerName+"%")
 	}
 
 	// queryStr := `select * from (select tb0.*,
