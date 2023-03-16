@@ -398,3 +398,10 @@ type ReportBookingPlayers struct {
 	CourseUid   string `json:"course_uid" binding:"required"`
 	BookingDate string `json:"booking_date"`
 }
+
+type GetCaddieBookingCancel struct {
+	PageRequest
+	PartnerUid  string `form:"partner_uid" binding:"required"`
+	CourseUid   string `form:"course_uid" binding:"required"`
+	BookingDate string `form:"booking_date" binding:"required"`
+}

@@ -740,3 +740,21 @@ func (item *BookingList) CountReportPayment(database *gorm.DB, paymentStatus str
 
 	return total
 }
+
+func (item *BookingList) FindCaddieBookingCancel(database *gorm.DB, page models.Page) ([]BookingDel, int64, error) {
+	db := database.Model(BookingDel{})
+	list := []BookingDel{}
+	total := int64(0)
+
+	db = db.Where("partner_uid = ?", item.PartnerUid)
+	db = db.Where("course_uid = ?", item.CourseUid)
+	db = db.Where("caddie_booking <> ''")
+	db = db.Where("booking_date = ?", item.BookingDate)
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+	return list, total, db.Error
+}
