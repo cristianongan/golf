@@ -644,6 +644,7 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 			}
 
 			go addBuggyCaddieInOutNote(db, caddieOutNote)
+			go updateCaddieOutSlot(partnerUid, courseUid, []string{booking.CaddieInfo.Code})
 			opLog := models.OperationLog{
 				PartnerUid:  booking.PartnerUid,
 				CourseUid:   booking.CourseUid,
@@ -664,11 +665,6 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 			}
 			go createOperationLog(opLog)
 		}
-	}
-
-	if len(caddieList) > 0 {
-		// Update node caddie
-		updateCaddieOutSlot(partnerUid, courseUid, caddieList)
 	}
 
 	go func() {
