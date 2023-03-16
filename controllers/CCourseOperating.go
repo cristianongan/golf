@@ -128,6 +128,26 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 		}
 	}
 
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_GO,
+		Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_WAITING_LIST,
+		Action:      constants.OP_LOG_ACTION_COURSE_INFO_ATTACH,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+	go createOperationLog(opLog)
+
 	okResponse(c, booking)
 }
 
@@ -337,6 +357,27 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		// 	booking.CaddieInfo = b.CaddieInfo
 		// 	go booking.Update(db)
 		// }
+
+		//Add log
+		opLog := models.OperationLog{
+			PartnerUid:  body.PartnerUid,
+			CourseUid:   body.CourseUid,
+			UserName:    prof.UserName,
+			UserUid:     prof.Uid,
+			Module:      constants.OP_LOG_MODULE_GO,
+			Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_WAITING_LIST,
+			Action:      constants.OP_LOG_ACTION_COURSE_INFO_CREATE_FLIGHT,
+			Body:        models.JsonDataLog{Data: body},
+			ValueOld:    models.JsonDataLog{},
+			ValueNew:    models.JsonDataLog{Data: flight},
+			Path:        c.Request.URL.Path,
+			Method:      c.Request.Method,
+			Bag:         b.Bag,
+			BookingDate: b.BookingDate,
+			BillCode:    b.BillCode,
+			BookingUid:  b.Uid,
+		}
+		go createOperationLog(opLog)
 	}
 
 	// Tạo giá buggy cho bag
@@ -543,6 +584,8 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 		partnerUid = booking.PartnerUid
 		courseUid = booking.CourseUid
 
+		oldBooking := booking
+
 		if booking.BagStatus != constants.BAG_STATUS_TIMEOUT &&
 			booking.BagStatus != constants.BAG_STATUS_CHECK_OUT {
 
@@ -601,6 +644,25 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 			}
 
 			go addBuggyCaddieInOutNote(db, caddieOutNote)
+			opLog := models.OperationLog{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				UserName:    prof.UserName,
+				UserUid:     prof.Uid,
+				Module:      constants.OP_LOG_MODULE_GO,
+				Function:    constants.OP_LOG_ACTION_COURSE_INFO_OUT_ALL_FLIGHT,
+				Action:      constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+				Body:        models.JsonDataLog{Data: body},
+				ValueOld:    models.JsonDataLog{Data: oldBooking},
+				ValueNew:    models.JsonDataLog{Data: booking},
+				Path:        c.Request.URL.Path,
+				Method:      c.Request.Method,
+				Bag:         booking.Bag,
+				BookingDate: booking.BookingDate,
+				BillCode:    booking.BillCode,
+				BookingUid:  booking.Uid,
+			}
+			go createOperationLog(opLog)
 		}
 	}
 

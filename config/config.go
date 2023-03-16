@@ -263,3 +263,10 @@ func GetCcuServer() int {
 func GetResetP() string {
 	return config.GetString("reset_p")
 }
+
+/*
+ Set xem có cho phép ghi vào log DB không
+*/
+func GetIsWriteLogToDB() bool {
+	return config.GetBool("is_write_log_to_db")
+}

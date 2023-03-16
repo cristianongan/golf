@@ -7,6 +7,7 @@ type GetOperationLogForm struct {
 	CourseUid   string `form:"course_uid"`
 	Function    string `form:"function"`
 	Module      string `form:"module"`
+	Action      string `form:"action"`
 	Bag         string `form:"bag"`
 	BookingDate string `form:"booking_date"`
 }
