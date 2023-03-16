@@ -5,6 +5,7 @@ import (
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 
 	"github.com/gin-gonic/gin"
@@ -102,7 +103,7 @@ func (_ *CTranferCard) CreateTranferCard(c *gin.Context, prof models.CmsUser) {
 		Path:        c.Request.URL.Path,
 		Method:      c.Request.Method,
 		Bag:         "",
-		BookingDate: "",
+		BookingDate: utils.GetCurrentDay1(),
 		BillCode:    "",
 		BookingUid:  "",
 	}
