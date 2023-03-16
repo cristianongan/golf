@@ -88,6 +88,27 @@ func (_ *CCaddieVacationCalendar) CreateCaddieVacationCalendar(c *gin.Context, p
 		})
 	}()
 
+	// Add log
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_CADDIE_VACTION_CALENDAR,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: caddieVC},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: dateAction,
+	}
+	go createOperationLog(opLog)
+	// okRes(c)
+
 	c.JSON(200, caddieVC)
 }
 
@@ -178,6 +199,8 @@ func (_ *CCaddieVacationCalendar) UpdateCaddieVacationCalendar(c *gin.Context, p
 		return
 	}
 
+	caddieOld := caddieVC
+
 	caddieVC.Title = body.Title
 	caddieVC.Color = body.Color
 	caddieVC.DateFrom = body.DateFrom
@@ -191,6 +214,26 @@ func (_ *CCaddieVacationCalendar) UpdateCaddieVacationCalendar(c *gin.Context, p
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	// Add log
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_CADDIE_VACTION_CALENDAR,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: caddieOld},
+		ValueNew:    models.JsonDataLog{Data: caddieVC},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: dateAction,
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
@@ -213,6 +256,26 @@ func (_ *CCaddieVacationCalendar) DeleteCaddieVacationCalendar(c *gin.Context, p
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	// Add log
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_CADDIE_VACTION_CALENDAR,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Body:        models.JsonDataLog{Data: caddieVCStr},
+		ValueOld:    models.JsonDataLog{Data: caddieVC},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: dateAction,
+	}
+	go createOperationLog(opLog)
 	okRes(c)
 }
 
