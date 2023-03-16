@@ -7,6 +7,7 @@ import (
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 	"strings"
@@ -85,6 +86,28 @@ func (_ *CGolfFee) CreateGolfFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Function:    constants.OP_LOG_FUNCTION_GOLF_GOLF_FEE,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: golfFee},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, golfFee)
 }
 
@@ -144,6 +167,8 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
+
+	oldValue := utils.CloneObject(golfFee)
 
 	body := models.GolfFee{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -216,6 +241,27 @@ func (_ *CGolfFee) UpdateGolfFee(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Function:    constants.OP_LOG_FUNCTION_GOLF_GOLF_FEE,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldValue},
+		ValueNew:    models.JsonDataLog{Data: golfFee},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
+
 	okResponse(c, golfFee)
 }
 
@@ -243,6 +289,27 @@ func (_ *CGolfFee) DeleteGolfFee(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errDel.Error())
 		return
 	}
+
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  golfFee.PartnerUid,
+		CourseUid:   golfFee.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Function:    constants.OP_LOG_FUNCTION_GOLF_GOLF_FEE,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Body:        models.JsonDataLog{},
+		ValueOld:    models.JsonDataLog{Data: golfFee},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
