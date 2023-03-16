@@ -27,6 +27,23 @@ import (
 )
 
 /*
+ Clone object
+*/
+func CloneObject(item interface{}) interface{} {
+	copyObj := map[string]interface{}{}
+	bData, errM := json.Marshal(&item)
+	if errM != nil {
+		log.Println("CloneObject errM", errM.Error())
+	}
+	errUnM := json.Unmarshal(bData, &copyObj)
+	if errUnM != nil {
+		log.Println("CloneObject errUnM", errUnM.Error())
+	}
+
+	return copyObj
+}
+
+/*
   dùng redis để check single payment đã dc tạo chưa(Check ở sql chưa đủ realtime)
 */
 func GetRedisKeySinglePaymentCreated(partnerUid, courseUid, billCode string) string {
