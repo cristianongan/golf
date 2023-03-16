@@ -376,17 +376,17 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/course-operating/caddie/need-more", middlewares.AuthorizedCmsUserHandler(cCourseOperating.NeedMoreCaddie))   // Đổi caddie
 			cmsApiAuthorized.POST("/course-operating/caddie/delete-attach", middlewares.AuthorizedCmsUserHandler(cCourseOperating.DeleteAttach)) // Xoá caddie, buggy, flight
 			cmsApiAuthorized.GET("/course-operating/starting-sheet", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetStartingSheet))    // Get for starting sheet
-			cmsApiAuthorized.POST("/course-operating/undo-timeout", middlewares.AuthorizedCmsUserHandler(cCourseOperating.UndoTimeOut))
+			cmsApiAuthorized.POST("/course-operating/undo-timeout", middlewares.AuthorizedCmsUserHandler(cCourseOperating.UndoTimeOut))          // Undo Out flight
 
 			/// =================== + More Course Operating ===================
 			cmsApiAuthorized.POST("/course-operating/change-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.ChangeCaddie))
 			cmsApiAuthorized.POST("/course-operating/change-buggy", middlewares.AuthorizedCmsUserHandler(cCourseOperating.ChangeBuggy))
 			cmsApiAuthorized.POST("/course-operating/edit-holes-of-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.EditHolesOfCaddie))
-			cmsApiAuthorized.POST("/course-operating/add-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.AddBagToFlight))
+			cmsApiAuthorized.POST("/course-operating/add-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.AddBagToFlight)) // Add bag to flight
 
 			/// =================== + More Course Operating ===================
 			cmsApiAuthorized.GET("/course-operating/flight/list", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetFlight))
-			cmsApiAuthorized.POST("/course-operating/move-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.MoveBagToFlight))
+			cmsApiAuthorized.POST("/course-operating/move-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.MoveBagToFlight)) // Move flight
 
 			/// =================== Golf Bag ===================
 			cGolfBag := new(controllers.CGolfBag)
