@@ -125,10 +125,11 @@ type Booking struct {
 	IsPrivateBuggy    *bool                                `json:"is_private_buggy" gorm:"default:0"`               // Bag có dùng buggy riêng không
 	MovedFlight       *bool                                `json:"moved_flight" gorm:"default:0"`                   // Đánh dấu booking đã move flight chưa
 	AddedRound        *bool                                `json:"added_flight" gorm:"default:0"`                   // Đánh dấu booking đã add chưa
-	AgencyPaid        utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty" gorm:"type:json"`
-	LockBill          *bool                                `json:"lock_bill" gorm:"default:0"`                  // lễ tân lock bill cho kh để restaurant ko thao tác đc nữa
-	AgencyPaidAll     *bool                                `json:"agency_paid_all" gorm:"default:0"`            // Đánh dấu agency trả all fee cho kh
-	LastBookingStatus string                               `json:"last_booking_status" gorm:"type:varchar(50)"` // Đánh dấu trạng thái cuối cùng của booking
+	AgencyPaid        utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty" gorm:"type:json"`          // Tiền Agency thực tế trả
+	AgencyPrePaid     utils.ListBookingAgencyPayForBagData `json:"agency_pre_paid,omitempty" gorm:"type:json"`      // Tiền Agency trả trước
+	LockBill          *bool                                `json:"lock_bill" gorm:"default:0"`                      // lễ tân lock bill cho kh để restaurant ko thao tác đc nữa
+	AgencyPaidAll     *bool                                `json:"agency_paid_all" gorm:"default:0"`                // Đánh dấu agency trả all fee cho kh
+	LastBookingStatus string                               `json:"last_booking_status" gorm:"type:varchar(50)"`     // Đánh dấu trạng thái cuối cùng của booking
 	MemberCard        *models.MemberCard                   `json:"member_card_info,omitempty" gorm:"foreignKey:MemberCardUid"`
 	MemberCardOfGuest *models.MemberCard                   `json:"member_card_of_guest,omitempty" gorm:"foreignKey:MemberUidOfGuest"`
 }
@@ -706,7 +707,7 @@ func (item *Booking) UpdateMemberCardForBooking(database *gorm.DB) {
 	}
 }
 
-//MAIN-SUB Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
+// MAIN-SUB Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
 func (item *Booking) UpdateSubBagForBooking(database *gorm.DB) {
 	if item.Bag != "" {
 		db := database.Model(Booking{})
@@ -727,6 +728,34 @@ func (item *Booking) UpdateSubBagForBooking(database *gorm.DB) {
 					bookingBag.SubBags = item.SubBags
 					bookingBag.Update(db2)
 				}
+			}
+		}
+	}
+}
+
+//MAIN-SUB Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
+func (item *Booking) UpdateAgencyPaidForBooking(database *gorm.DB, isAgencyPaid bool) {
+	db := database.Model(Booking{})
+	bookingR := BookingList{}
+	bookingR.PartnerUid = item.PartnerUid
+	bookingR.CourseUid = item.CourseUid
+	bookingR.GolfBag = item.Bag
+	bookingR.BookingDate = item.BookingDate
+
+	db, _, err := bookingR.FindAllBookingList(db)
+	var list []Booking
+	db.Find(&list)
+
+	db2 := datasources.GetDatabaseWithPartner(item.PartnerUid)
+	if err == nil {
+		for _, bookingBag := range list {
+			if item.Uid != bookingBag.Uid {
+				if isAgencyPaid {
+					bookingBag.AgencyPaid = item.AgencyPaid
+				} else {
+					bookingBag.AgencyPrePaid = item.AgencyPrePaid
+				}
+				bookingBag.Update(db2)
 			}
 		}
 	}
@@ -1424,10 +1453,10 @@ func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]inte
 	db := database.Table("booking_service_items as tb1")
 
 	db = db.Select(`tb1.bag, tb2.customer_name,
-		SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_res,
+		SUM(if(tb1.type = ? || tb1.type = ?, tb1.amount, 0)) AS total_res,
 		SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_kiosk,
 		SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_bar
-	`, constants.RESTAURANT_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING)
+	`, constants.RESTAURANT_SETTING, constants.MINI_R_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING)
 
 	// sub query
 	subQuery := database.Table("bookings")
@@ -1445,17 +1474,17 @@ func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]inte
 	db = db.Joins(`INNER JOIN (?) as tb2 on tb1.booking_uid = tb2.uid`, subQuery)
 	db = db.Joins(`LEFT JOIN service_carts as tb3 on tb1.service_bill = tb3.id`)
 
-	if item.CourseUid != "" {
-		db = db.Where("tb1.course_uid = ?", item.CourseUid)
-	}
-	if item.PartnerUid != "" {
-		db = db.Where("tb1.partner_uid = ?", item.PartnerUid)
-	}
+	// if item.CourseUid != "" {
+	// 	db = db.Where("tb1.course_uid = ?", item.CourseUid)
+	// }
+	// if item.PartnerUid != "" {
+	// 	db = db.Where("tb1.partner_uid = ?", item.PartnerUid)
+	// }
 
 	db = db.Where("tb1.type IN ?", []string{constants.RESTAURANT_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.MINI_R_SETTING})
 	db = db.Where("tb2.check_in_time > 0")
 	db = db.Where("tb2.bag_status <> 'CANCEL'")
-	db = db.Where("tb3.bill_status NOT IN ?", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
+	db = db.Where("(tb3.bill_status NOT IN ? OR tb3.bill_status IS NULL)", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
 
 	db.Group("tb1.bag")
 

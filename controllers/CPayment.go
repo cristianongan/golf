@@ -636,7 +636,7 @@ func (_ *CPayment) GetAgencyPayForBagDetail(c *gin.Context, prof models.CmsUser)
 			payForBag.FeeData = append(payForBag.FeeData, utils.BookingAgencyPayForBagData{
 				Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
 				Fee:  agencyCaddieBookingFee,
-				Name: "Booking Caddie fee",
+				Name: constants.BOOKING_CADDIE_NAME,
 			})
 		}
 
