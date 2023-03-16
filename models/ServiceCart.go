@@ -188,7 +188,7 @@ func (item *ServiceCart) FindReport(database *gorm.DB, page Page, fromDate, toDa
 
 		subQuery = subQuery.Where("bill_status IN ?", []string{constants.RES_BILL_STATUS_FINISH, constants.RES_BILL_STATUS_OUT, constants.RES_BILL_STATUS_PROCESS})
 
-		subQuery = subQuery.Where("service_type = ?", []string{constants.RESTAURANT_SETTING, constants.MINI_R_SETTING})
+		subQuery = subQuery.Where("service_type IN ?", []string{constants.RESTAURANT_SETTING, constants.MINI_R_SETTING})
 
 		if fromDate != "" {
 			subQuery = subQuery.Where("booking_date >= STR_TO_DATE(?, '%Y-%m-%d')", fromDate)
