@@ -584,6 +584,8 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 		partnerUid = booking.PartnerUid
 		courseUid = booking.CourseUid
 
+		oldBooking := booking
+
 		if booking.BagStatus != constants.BAG_STATUS_TIMEOUT &&
 			booking.BagStatus != constants.BAG_STATUS_CHECK_OUT {
 
@@ -642,6 +644,25 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 			}
 
 			go addBuggyCaddieInOutNote(db, caddieOutNote)
+			opLog := models.OperationLog{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				UserName:    prof.UserName,
+				UserUid:     prof.Uid,
+				Module:      constants.OP_LOG_MODULE_GO,
+				Function:    constants.OP_LOG_ACTION_COURSE_INFO_OUT_ALL_FLIGHT,
+				Action:      constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+				Body:        models.JsonDataLog{Data: body},
+				ValueOld:    models.JsonDataLog{Data: oldBooking},
+				ValueNew:    models.JsonDataLog{Data: booking},
+				Path:        c.Request.URL.Path,
+				Method:      c.Request.Method,
+				Bag:         booking.Bag,
+				BookingDate: booking.BookingDate,
+				BillCode:    booking.BillCode,
+				BookingUid:  booking.Uid,
+			}
+			go createOperationLog(opLog)
 		}
 	}
 
