@@ -1148,6 +1148,28 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
 	}
 
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_GO,
+		Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+		Action:      constants.OP_LOG_ACTION_COURSE_INFO_CHANGE_CADDIE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldCaddie},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, booking)
 }
 
@@ -1171,6 +1193,8 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	oldBuggy := booking.BuggyInfo
 
 	if booking.BuggyInfo.Code == body.BuggyCode {
 		response_message.BadRequestFreeMessage(c, "Bag đang dùng buggy "+body.BuggyCode)
@@ -1235,6 +1259,28 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 	}
 
 	go updateBagShareWhenChangeBuggy(booking, hole, body.IsPrivateBuggy)
+
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_GO,
+		Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+		Action:      constants.OP_LOG_ACTION_COURSE_INFO_CHANGE_BUGGY,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBuggy},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	go createOperationLog(opLog)
 
 	okResponse(c, booking)
 }
