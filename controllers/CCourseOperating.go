@@ -650,8 +650,8 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 				UserName:    prof.UserName,
 				UserUid:     prof.Uid,
 				Module:      constants.OP_LOG_MODULE_GO,
-				Function:    constants.OP_LOG_ACTION_COURSE_INFO_OUT_ALL_FLIGHT,
-				Action:      constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+				Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+				Action:      constants.OP_LOG_ACTION_COURSE_INFO_OUT_ALL_FLIGHT,
 				Body:        models.JsonDataLog{Data: body},
 				ValueOld:    models.JsonDataLog{Data: oldBooking},
 				ValueNew:    models.JsonDataLog{Data: booking},
@@ -715,6 +715,8 @@ func (cCourseOperating *CCourseOperating) SimpleOutFlight(c *gin.Context, prof m
 		return
 	}
 
+	oldBooking := booking
+
 	if booking.BagStatus != constants.BAG_STATUS_IN_COURSE {
 		response_message.BadRequestDynamicKey(c, "BAG_NOT_IN_COURSE", "")
 		return
@@ -775,6 +777,27 @@ func (cCourseOperating *CCourseOperating) SimpleOutFlight(c *gin.Context, prof m
 		caddieList := []string{booking.CaddieInfo.Code}
 		updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
 	}
+
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_GO,
+		Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+		Action:      constants.OP_LOG_ACTION_COURSE_INFO_SIMPLE_OUT_FLIGHT,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
