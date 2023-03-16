@@ -10,6 +10,7 @@ import (
 	"start/controllers/response"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 
 	model_report "start/models/report"
@@ -131,7 +132,7 @@ func (_ *CCustomerUser) CreateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		Path:        c.Request.URL.Path,
 		Method:      c.Request.Method,
 		Bag:         "",
-		BookingDate: "",
+		BookingDate: utils.GetCurrentDay1(),
 		BillCode:    "",
 		BookingUid:  "",
 	}
@@ -341,7 +342,7 @@ func (_ *CCustomerUser) UpdateCustomerUser(c *gin.Context, prof models.CmsUser) 
 		Path:        c.Request.URL.Path,
 		Method:      c.Request.Method,
 		Bag:         "",
-		BookingDate: "",
+		BookingDate: utils.GetCurrentDay1(),
 		BillCode:    "",
 		BookingUid:  "",
 	}
@@ -389,7 +390,7 @@ func (_ *CCustomerUser) DeleteCustomerUser(c *gin.Context, prof models.CmsUser) 
 		Path:        c.Request.URL.Path,
 		Method:      c.Request.Method,
 		Bag:         "",
-		BookingDate: "",
+		BookingDate: utils.GetCurrentDay1(),
 		BillCode:    "",
 		BookingUid:  "",
 	}
