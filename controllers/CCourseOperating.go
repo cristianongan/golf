@@ -1527,7 +1527,33 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		if booking := b.GetBooking(); booking != nil && booking.Uid != b.Uid {
 			booking.CaddieId = b.CaddieId
 			booking.CaddieInfo = b.CaddieInfo
-			go booking.Update(db)
+
+			go func() {
+				booking.Update(db)
+
+				// Add log
+				opLog := models.OperationLog{
+					PartnerUid:  booking.PartnerUid,
+					CourseUid:   booking.CourseUid,
+					UserName:    prof.UserName,
+					UserUid:     prof.Uid,
+					Module:      constants.OP_LOG_MODULE_GO,
+					Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+					Action:      constants.OP_LOG_ACTION_COURSE_INFO_ADD_BAG_TO_FLIGHT,
+					Body:        models.JsonDataLog{Data: body},
+					ValueOld:    models.JsonDataLog{},
+					ValueNew:    models.JsonDataLog{Data: booking},
+					Path:        c.Request.URL.Path,
+					Method:      c.Request.Method,
+					Bag:         booking.Bag,
+					BookingDate: booking.BookingDate,
+					BillCode:    booking.BillCode,
+					BookingUid:  booking.Uid,
+				}
+
+				createOperationLog(opLog)
+			}()
+
 		}
 	}
 
@@ -1708,6 +1734,27 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 		return
 	}
 
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_GO,
+		Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+		Action:      constants.OP_LOG_ACTION_COURSE_INFO_MOVE_FLIGHT,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: booking},
+		ValueNew:    models.JsonDataLog{Data: newBooking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, newBooking)
 }
 
@@ -1755,7 +1802,29 @@ func (cCourseOperating CCourseOperating) UndoTimeOut(c *gin.Context, prof models
 		errUdp := booking.Update(db)
 		if errUdp != nil {
 			log.Println("SimpleOutFlight err book udp ", errUdp.Error())
+		} else {
+			opLog := models.OperationLog{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				UserName:    prof.UserName,
+				UserUid:     prof.Uid,
+				Module:      constants.OP_LOG_MODULE_GO,
+				Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_TIME_OUT,
+				Action:      constants.OP_LOG_ACTION_COURSE_INFO_UNDO_OUT_FLIGHT,
+				Body:        models.JsonDataLog{Data: body},
+				ValueOld:    models.JsonDataLog{},
+				ValueNew:    models.JsonDataLog{Data: booking},
+				Path:        c.Request.URL.Path,
+				Method:      c.Request.Method,
+				Bag:         booking.Bag,
+				BookingDate: booking.BookingDate,
+				BillCode:    booking.BillCode,
+				BookingUid:  booking.Uid,
+			}
+
+			go createOperationLog(opLog)
 		}
+
 	}
 
 	okRes(c)
