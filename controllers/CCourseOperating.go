@@ -601,12 +601,8 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 			}
 
 			go addBuggyCaddieInOutNote(db, caddieOutNote)
+			go updateCaddieOutSlot(partnerUid, courseUid, []string{booking.CaddieInfo.Code})
 		}
-	}
-
-	if len(caddieList) > 0 {
-		// Update node caddie
-		updateCaddieOutSlot(partnerUid, courseUid, caddieList)
 	}
 
 	go func() {
