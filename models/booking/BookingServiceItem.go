@@ -600,7 +600,7 @@ func (item *BookingServiceItem) FindReportDetailFB(database *gorm.DB, date strin
 
 	db = db.Group("tb.bag, tb.item_code, tb.name, tb.location, tb.unit_price,  tb.discount_type, tb.discount_value")
 
-	db = db.Debug().Find(&list)
+	db = db.Find(&list)
 
 	return list, db.Error
 }

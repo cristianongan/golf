@@ -708,7 +708,7 @@ func (item *Booking) UpdateMemberCardForBooking(database *gorm.DB) {
 	}
 }
 
-//MAIN-SUB Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
+// MAIN-SUB Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
 func (item *Booking) UpdateSubBagForBooking(database *gorm.DB) {
 	if item.Bag != "" {
 		db := database.Model(Booking{})
@@ -734,7 +734,7 @@ func (item *Booking) UpdateSubBagForBooking(database *gorm.DB) {
 	}
 }
 
-//MAIN-SUB Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
+// MAIN-SUB Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
 func (item *Booking) UpdateAgencyPaidForBooking(database *gorm.DB, isAgencyPaid bool) {
 	db := database.Model(Booking{})
 	bookingR := BookingList{}
@@ -1453,10 +1453,10 @@ func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]inte
 	db := database.Table("booking_service_items as tb1")
 
 	db = db.Select(`tb1.bag, tb2.customer_name,
-		SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_res,
+		SUM(if(tb1.type = ? || tb1.type = ?, tb1.amount, 0)) AS total_res,
 		SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_kiosk,
 		SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_bar
-	`, constants.RESTAURANT_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING)
+	`, constants.RESTAURANT_SETTING, constants.MINI_R_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING)
 
 	// sub query
 	subQuery := database.Table("bookings")
@@ -1484,7 +1484,7 @@ func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]inte
 	db = db.Where("tb1.type IN ?", []string{constants.RESTAURANT_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.MINI_R_SETTING})
 	db = db.Where("tb2.check_in_time > 0")
 	db = db.Where("tb2.bag_status <> 'CANCEL'")
-	db = db.Where("tb3.bill_status NOT IN ?", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
+	db = db.Where("(tb3.bill_status NOT IN ? OR tb2.bill_status IS NULL)", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
 
 	db.Group("tb1.bag")
 
