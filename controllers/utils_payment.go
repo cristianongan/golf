@@ -252,9 +252,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 		caddieBooking.Create(db)
 		buggyBooking.Create(db)
 
-		booking.UpdatePriceDetailCurrentBag(db)
-		booking.UpdateMushPay(db)
-		booking.Update(db)
+		updatePriceWithServiceItem(&booking, models.CmsUser{})
 
 		updateBookingAgencyPaymentForAllFee(booking)
 		handleSinglePayment(db, booking)
@@ -276,7 +274,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 	if feeInfo.PrivateCarFee > 0 {
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
 			Fee:  feeInfo.PrivateCarFee,
-			Name: "Thuê riêng xe",
+			Name: constants.THUE_RIENG_XE,
 			Type: constants.BOOKING_AGENCY_PRIVATE_CAR_FEE,
 			Hole: booking.Hole,
 		})
@@ -284,7 +282,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 	if feeInfo.BuggyFee > 0 {
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
 			Fee:  feeInfo.BuggyFee,
-			Name: "Thuê xe (1/2 xe)",
+			Name: constants.THUE_NUA_XE,
 			Type: constants.BOOKING_AGENCY_BUGGY_FEE,
 			Hole: booking.Hole,
 		})
@@ -292,7 +290,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 	if feeInfo.CaddieFee > 0 {
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
 			Fee:  feeInfo.CaddieFee,
-			Name: "booking caddie",
+			Name: constants.BOOKING_CADDIE_NAME,
 			Type: constants.BOOKING_AGENCY_BOOKING_CADDIE_FEE,
 			Hole: booking.Hole,
 		})
@@ -300,7 +298,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 	if feeInfo.OddCarFee > 0 {
 		bookingAgencyPayment.FeeData = append(bookingAgencyPayment.FeeData, utils.BookingAgencyPayForBagData{
 			Fee:  feeInfo.OddCarFee,
-			Name: "Thuê lẻ xe",
+			Name: constants.THUE_LE_XE,
 			Type: constants.BOOKING_AGENCY_BUGGY_ODD_FEE,
 			Hole: booking.Hole,
 		})
@@ -317,7 +315,7 @@ func handleAgencyPaid(booking model_booking.Booking, feeInfo request.AgencyFeeIn
 	// go func() {
 	// create bag payment
 	// Ghi nhận só tiền agency thanh toán cho bag đó
-	booking.AgencyPaid = bookingAgencyPayment.FeeData
+	booking.AgencyPrePaid = bookingAgencyPayment.FeeData
 
 	// update giá cho bag(main or sub nếu có)
 	updatePriceWithServiceItem(&booking, models.CmsUser{})

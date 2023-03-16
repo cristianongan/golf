@@ -44,8 +44,8 @@ func GetGolfFeeInfoOfBag(c *gin.Context, mainBooking model_booking.Booking) mode
 
 		golfFeeOfBag.AgencyPaidAll += booking.GetAgencyPaid()
 
-		if bookingR.CheckAgencyPaidAll() {
-			break
+		if booking.CheckAgencyPaidAll() {
+			continue
 		}
 
 		subRound := models.Round{BillCode: subBooking.BillCode}

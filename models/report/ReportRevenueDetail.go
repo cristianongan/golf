@@ -50,6 +50,7 @@ type ReportRevenueDetail struct {
 	Transfer         int64         `json:"transfer"`                                  // Số tiền chuyển khoản
 	PhiPhat          int64         `json:"phi_phat"`
 	Total            int64         `json:"total"`
+	CheckOutTime     int64         `json:"check_out_time"` // Time Check Out
 }
 
 type DayEndRevenue struct {
@@ -218,6 +219,7 @@ func (item *ReportRevenueDetail) FindReportDayEnd(database *gorm.DB) (DayEndReve
 					SUM(total) as all_fee,
 					SUM(phi_phat) as phi_phat,
 					SUM(cash) as cash,
+					SUM(debit) as debit,
 					SUM(transfer) as transfer,
 					SUM(customer_type = 'GUEST') AS member_guest,
 					SUM(customer_type = 'VISITOR') AS visitor,
