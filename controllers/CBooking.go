@@ -1397,6 +1397,7 @@ func (_ *CBooking) AddOtherPaid(c *gin.Context, prof models.CmsUser) {
 			serviceItem.Bag = booking.Bag
 			serviceItem.BookingUid = booking.Uid
 			serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
+			serviceItem.Quality = 1
 			errC := serviceItem.Create(db)
 			if errC != nil {
 				log.Println("AddOtherPaid errC", errC.Error())
