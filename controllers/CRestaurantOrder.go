@@ -1865,6 +1865,8 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 	booking := model_booking.Booking{}
 	booking.Bag = body.GolfBag
 	booking.BookingDate = dateDisplay
+	booking.AddedRound = setBoolForCursor(false)
+
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find booking target "+err.Error())
 		return
@@ -1889,12 +1891,27 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if sourceServiceCart.GolfBag == body.GolfBag {
+		response_message.BadRequest(c, "Bag transfer is not the same as current bag")
+		return
+	}
+
 	// validate golf bag source
-	bookingSource := model_booking.Booking{}
-	bookingSource.Bag = sourceServiceCart.GolfBag
-	bookingSource.BookingDate = dateDisplay
-	if err := bookingSource.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Find booking source "+err.Error())
+	bookingS := model_booking.Booking{}
+	bookingS.Uid = sourceServiceCart.BookingUid
+	bookingSource, errB := bookingS.FindFirstByUId(db)
+	if errB != nil {
+		response_message.BadRequest(c, "Booking "+errB.Error())
+		return
+	}
+
+	if bookingS.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	if *bookingS.LockBill {
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return
 	}
 
