@@ -367,6 +367,7 @@ func (item *BookingList) FindListRoundOfBagPlaying(database *gorm.DB, page model
 	db = db.Where("added_round = ?", false)
 	db = db.Where("moved_flight = ?", false)
 	db = db.Where("check_in_time > 0")
+	db = db.Where("check_out_time > 0")
 	db = db.Where("bag_status <> ?", constants.BAG_STATUS_CANCEL)
 
 	db.Count(&total)
@@ -738,4 +739,32 @@ func (item *BookingList) CountReportPayment(database *gorm.DB, paymentStatus str
 	}
 
 	return total
+}
+
+func (item *BookingList) FindCaddieBookingCancel(database *gorm.DB, page models.Page) ([]BookingDel, int64, error) {
+	db := database.Model(BookingDel{})
+	list := []BookingDel{}
+	total := int64(0)
+
+	db = db.Where("partner_uid = ?", item.PartnerUid)
+	db = db.Where("course_uid = ?", item.CourseUid)
+	db = db.Where("caddie_booking <> ''")
+	db = db.Where("booking_date = ?", item.BookingDate)
+
+	if item.CaddieName != "" {
+		db = db.Where("caddie_info->'$.name' COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CaddieName+"%")
+	}
+
+	if item.CaddieCode != "" {
+		db = db.Where("caddie_info->'$.code' COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CaddieCode+"%")
+	}
+
+	db.Order("created_at desc")
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+	return list, total, db.Error
 }

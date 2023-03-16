@@ -139,7 +139,7 @@ func (item *ReportRevenueDetailList) FindBookingRevenueList(database *gorm.DB, p
 	db := database.Model(ReportRevenueDetail{})
 
 	db = addFilter(db, item)
-	db = db.Order("check_out_time asc")
+	db = db.Order("check_out_time desc")
 
 	db.Count(&total)
 
