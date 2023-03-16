@@ -887,3 +887,43 @@ func (cBooking *CBooking) GetListLastBooking(c *gin.Context, prof models.CmsUser
 
 	okResponse(c, res)
 }
+
+/*
+Lấy ra ds caddie booking cancel
+*/
+func (cBooking *CBooking) GetListCaddieBookingCancel(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetCaddieBookingCancel{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	bookings := model_booking.BookingList{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: form.BookingDate,
+		CaddieName:  form.CaddieName,
+		CaddieCode:  form.CaddieCode,
+	}
+	list, total, err := bookings.FindCaddieBookingCancel(db, page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}

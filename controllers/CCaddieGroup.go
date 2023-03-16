@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"log"
+	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -78,6 +80,26 @@ func (_ CCaddieGroup) CreateCaddieGroup(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	// Add log
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_GROUP_MANAGEMENT,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: caddieGroup},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: dateAction,
+	}
+	go createOperationLog(opLog)
 
 	c.JSON(200, caddieGroup)
 }
@@ -162,6 +184,26 @@ func (_ CCaddieGroup) DeleteCaddieGroup(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Add log
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_GROUP_MANAGEMENT,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Body:        models.JsonDataLog{Data: caddieGroupId},
+		ValueOld:    models.JsonDataLog{Data: caddieGroup},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: dateAction,
+	}
+	go createOperationLog(opLog)
+
 	okRes(c)
 }
 
@@ -197,12 +239,35 @@ func (_ CCaddieGroup) MoveCaddieToGroup(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//data old
+	listOld := list
+
 	for _, item := range list {
 		item.GroupId = caddieGroup.Id
 		if err := item.Update(db); err != nil {
 			continue
 		}
 	}
+
+	// Add log
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_GROUP_MANAGEMENT,
+		Action:      constants.OP_LOG_ACTION_MOVE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: listOld},
+		ValueNew:    models.JsonDataLog{Data: list},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: dateAction,
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }

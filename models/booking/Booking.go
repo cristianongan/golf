@@ -128,9 +128,11 @@ type Booking struct {
 	AgencyPaid        utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty" gorm:"type:json"`
 	LockBill          *bool                                `json:"lock_bill" gorm:"default:0"`                  // lễ tân lock bill cho kh để restaurant ko thao tác đc nữa
 	AgencyPaidAll     *bool                                `json:"agency_paid_all" gorm:"default:0"`            // Đánh dấu agency trả all fee cho kh
+	AgencyPrePaid     utils.ListBookingAgencyPayForBagData `json:"agency_pre_paid,omitempty" gorm:"type:json"`  // Tiền Agency trả trước
 	LastBookingStatus string                               `json:"last_booking_status" gorm:"type:varchar(50)"` // Đánh dấu trạng thái cuối cùng của booking
-	MemberCard        *models.MemberCard                   `json:"member_card_info,omitempty" gorm:"foreignKey:MemberCardUid"`
-	MemberCardOfGuest *models.MemberCard                   `json:"member_card_of_guest,omitempty" gorm:"foreignKey:MemberUidOfGuest"`
+	//Cho get data
+	MemberCard        *models.MemberCard `json:"member_card_info,omitempty" gorm:"-:migration;foreignKey:MemberCardUid"`
+	MemberCardOfGuest *models.MemberCard `json:"member_card_of_guest,omitempty" gorm:"-:migration;foreignKey:MemberUidOfGuest"`
 }
 
 type FlyInfoResponse struct {
@@ -732,6 +734,34 @@ func (item *Booking) UpdateSubBagForBooking(database *gorm.DB) {
 	}
 }
 
+// MAIN-SUB Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
+func (item *Booking) UpdateAgencyPaidForBooking(database *gorm.DB, isAgencyPaid bool) {
+	db := database.Model(Booking{})
+	bookingR := BookingList{}
+	bookingR.PartnerUid = item.PartnerUid
+	bookingR.CourseUid = item.CourseUid
+	bookingR.GolfBag = item.Bag
+	bookingR.BookingDate = item.BookingDate
+
+	db, _, err := bookingR.FindAllBookingList(db)
+	var list []Booking
+	db.Find(&list)
+
+	db2 := datasources.GetDatabaseWithPartner(item.PartnerUid)
+	if err == nil {
+		for _, bookingBag := range list {
+			if item.Uid != bookingBag.Uid {
+				if isAgencyPaid {
+					bookingBag.AgencyPaid = item.AgencyPaid
+				} else {
+					bookingBag.AgencyPrePaid = item.AgencyPrePaid
+				}
+				bookingBag.Update(db2)
+			}
+		}
+	}
+}
+
 func (item *Booking) FindAllBookingOTA(database *gorm.DB) ([]Booking, error) {
 	db := database.Model(Booking{})
 	list := []Booking{}
@@ -758,7 +788,7 @@ func (item *Booking) FindAllBookingForAgencyPayment(database *gorm.DB) ([]Bookin
 }
 
 func (item *Booking) FindAgencyCancelBooking(database *gorm.DB, page models.Page) ([]AgencyCancelBookingList, int64, error) {
-	db := database.Model(Booking{})
+	db := database.Model(BookingDel{})
 	list := []AgencyCancelBookingList{}
 	total := int64(0)
 
@@ -774,9 +804,8 @@ func (item *Booking) FindAgencyCancelBooking(database *gorm.DB, page models.Page
 	}
 
 	db = db.Group("booking_code")
-	// db = db.Where("agency_id <> ?", 0)
-	db = db.Where("bag_status = ?", constants.BAG_STATUS_CANCEL)
-	db = db.Select("bookings.*, COUNT(booking_code) as number_people")
+	db = db.Where("agency_id <> ?", 0)
+	db = db.Select("booking_dels.*, COUNT(booking_code) as number_people")
 
 	db.Count(&total)
 

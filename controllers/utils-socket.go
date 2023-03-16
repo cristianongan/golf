@@ -3,7 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"start/constants"
-	"start/socket"
+	socket_room "start/socket_room"
 )
 
 /*
@@ -16,5 +16,8 @@ func pushSocketUdpRole(roleId int64) {
 	}
 
 	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket.GetHubSocket().Broadcast <- newFsConfigBytes
+	socket_room.Hub.Broadcast <- socket_room.Message{
+		Data: newFsConfigBytes,
+		Room: constants.NOTIFICATION_CHANNEL_ADMIN_1,
+	}
 }

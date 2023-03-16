@@ -128,6 +128,26 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 		}
 	}
 
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_GO,
+		Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_WAITING_LIST,
+		Action:      constants.OP_LOG_ACTION_COURSE_INFO_ATTACH,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+	go createOperationLog(opLog)
+
 	okResponse(c, booking)
 }
 
@@ -337,6 +357,27 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		// 	booking.CaddieInfo = b.CaddieInfo
 		// 	go booking.Update(db)
 		// }
+
+		//Add log
+		opLog := models.OperationLog{
+			PartnerUid:  body.PartnerUid,
+			CourseUid:   body.CourseUid,
+			UserName:    prof.UserName,
+			UserUid:     prof.Uid,
+			Module:      constants.OP_LOG_MODULE_GO,
+			Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_WAITING_LIST,
+			Action:      constants.OP_LOG_ACTION_COURSE_INFO_CREATE_FLIGHT,
+			Body:        models.JsonDataLog{Data: body},
+			ValueOld:    models.JsonDataLog{},
+			ValueNew:    models.JsonDataLog{Data: flight},
+			Path:        c.Request.URL.Path,
+			Method:      c.Request.Method,
+			Bag:         b.Bag,
+			BookingDate: b.BookingDate,
+			BillCode:    b.BillCode,
+			BookingUid:  b.Uid,
+		}
+		go createOperationLog(opLog)
 	}
 
 	// Tạo giá buggy cho bag
@@ -543,6 +584,8 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 		partnerUid = booking.PartnerUid
 		courseUid = booking.CourseUid
 
+		oldBooking := booking
+
 		if booking.BagStatus != constants.BAG_STATUS_TIMEOUT &&
 			booking.BagStatus != constants.BAG_STATUS_CHECK_OUT {
 
@@ -602,6 +645,25 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 
 			go addBuggyCaddieInOutNote(db, caddieOutNote)
 			go updateCaddieOutSlot(partnerUid, courseUid, []string{booking.CaddieInfo.Code})
+			opLog := models.OperationLog{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				UserName:    prof.UserName,
+				UserUid:     prof.Uid,
+				Module:      constants.OP_LOG_MODULE_GO,
+				Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+				Action:      constants.OP_LOG_ACTION_COURSE_INFO_OUT_ALL_FLIGHT,
+				Body:        models.JsonDataLog{Data: body},
+				ValueOld:    models.JsonDataLog{Data: oldBooking},
+				ValueNew:    models.JsonDataLog{Data: booking},
+				Path:        c.Request.URL.Path,
+				Method:      c.Request.Method,
+				Bag:         booking.Bag,
+				BookingDate: booking.BookingDate,
+				BillCode:    booking.BillCode,
+				BookingUid:  booking.Uid,
+			}
+			go createOperationLog(opLog)
 		}
 	}
 
@@ -648,6 +710,8 @@ func (cCourseOperating *CCourseOperating) SimpleOutFlight(c *gin.Context, prof m
 		response_message.BadRequestFreeMessage(c, err.Error())
 		return
 	}
+
+	oldBooking := booking
 
 	if booking.BagStatus != constants.BAG_STATUS_IN_COURSE {
 		response_message.BadRequestDynamicKey(c, "BAG_NOT_IN_COURSE", "")
@@ -709,6 +773,27 @@ func (cCourseOperating *CCourseOperating) SimpleOutFlight(c *gin.Context, prof m
 		caddieList := []string{booking.CaddieInfo.Code}
 		updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, caddieList)
 	}
+
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_GO,
+		Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+		Action:      constants.OP_LOG_ACTION_COURSE_INFO_SIMPLE_OUT_FLIGHT,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
@@ -848,6 +933,8 @@ func (cCourseOperating *CCourseOperating) DeleteAttach(c *gin.Context, prof mode
 		return
 	}
 
+	olgBooking := booking.CloneBooking()
+
 	caddieId := booking.CaddieId
 
 	if body.IsOutCaddie != nil && *body.IsOutCaddie == true {
@@ -895,6 +982,28 @@ func (cCourseOperating *CCourseOperating) DeleteAttach(c *gin.Context, prof mode
 	if errC := caddie.FindFirst(db); errC == nil {
 		updateCaddieOutSlot(booking.PartnerUid, booking.CourseUid, []string{caddie.Code})
 	}
+
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_GO,
+		Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+		Action:      constants.OP_LOG_ACTION_COURSE_INFO_DELETE_ATTACH_FLIGHT,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: olgBooking},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	go createOperationLog(opLog)
 
 	okResponse(c, booking)
 }
@@ -1059,6 +1168,28 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
 	}
 
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_GO,
+		Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+		Action:      constants.OP_LOG_ACTION_COURSE_INFO_CHANGE_CADDIE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldCaddie},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, booking)
 }
 
@@ -1082,6 +1213,8 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	oldBuggy := booking.BuggyInfo
 
 	if booking.BuggyInfo.Code == body.BuggyCode {
 		response_message.BadRequestFreeMessage(c, "Bag đang dùng buggy "+body.BuggyCode)
@@ -1146,6 +1279,28 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 	}
 
 	go updateBagShareWhenChangeBuggy(booking, hole, body.IsPrivateBuggy)
+
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_GO,
+		Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+		Action:      constants.OP_LOG_ACTION_COURSE_INFO_CHANGE_BUGGY,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBuggy},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	go createOperationLog(opLog)
 
 	okResponse(c, booking)
 }
@@ -1438,7 +1593,33 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		if booking := b.GetBooking(); booking != nil && booking.Uid != b.Uid {
 			booking.CaddieId = b.CaddieId
 			booking.CaddieInfo = b.CaddieInfo
-			go booking.Update(db)
+
+			go func() {
+				booking.Update(db)
+
+				// Add log
+				opLog := models.OperationLog{
+					PartnerUid:  booking.PartnerUid,
+					CourseUid:   booking.CourseUid,
+					UserName:    prof.UserName,
+					UserUid:     prof.Uid,
+					Module:      constants.OP_LOG_MODULE_GO,
+					Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+					Action:      constants.OP_LOG_ACTION_COURSE_INFO_ADD_BAG_TO_FLIGHT,
+					Body:        models.JsonDataLog{Data: body},
+					ValueOld:    models.JsonDataLog{},
+					ValueNew:    models.JsonDataLog{Data: booking},
+					Path:        c.Request.URL.Path,
+					Method:      c.Request.Method,
+					Bag:         booking.Bag,
+					BookingDate: booking.BookingDate,
+					BillCode:    booking.BillCode,
+					BookingUid:  booking.Uid,
+				}
+
+				createOperationLog(opLog)
+			}()
+
 		}
 	}
 
@@ -1619,6 +1800,27 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 		return
 	}
 
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_GO,
+		Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+		Action:      constants.OP_LOG_ACTION_COURSE_INFO_MOVE_FLIGHT,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: booking},
+		ValueNew:    models.JsonDataLog{Data: newBooking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, newBooking)
 }
 
@@ -1666,7 +1868,29 @@ func (cCourseOperating CCourseOperating) UndoTimeOut(c *gin.Context, prof models
 		errUdp := booking.Update(db)
 		if errUdp != nil {
 			log.Println("SimpleOutFlight err book udp ", errUdp.Error())
+		} else {
+			opLog := models.OperationLog{
+				PartnerUid:  booking.PartnerUid,
+				CourseUid:   booking.CourseUid,
+				UserName:    prof.UserName,
+				UserUid:     prof.Uid,
+				Module:      constants.OP_LOG_MODULE_GO,
+				Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_TIME_OUT,
+				Action:      constants.OP_LOG_ACTION_COURSE_INFO_UNDO_OUT_FLIGHT,
+				Body:        models.JsonDataLog{Data: body},
+				ValueOld:    models.JsonDataLog{},
+				ValueNew:    models.JsonDataLog{Data: booking},
+				Path:        c.Request.URL.Path,
+				Method:      c.Request.Method,
+				Bag:         booking.Bag,
+				BookingDate: booking.BookingDate,
+				BillCode:    booking.BillCode,
+				BookingUid:  booking.Uid,
+			}
+
+			go createOperationLog(opLog)
 		}
+
 	}
 
 	okRes(c)

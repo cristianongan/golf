@@ -34,6 +34,8 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	oldBooking := booking.CloneBooking()
+
 	if body.SubBags == nil {
 		response_message.BadRequest(c, "Subbags invalid nil")
 		return
@@ -121,6 +123,27 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 	//Đánh dấu các round(của sub bag) đã được trả bởi main bag
 	go bookMarkRoundPaidByMainBag(booking, db)
 	res := getBagDetailFromBooking(db, bookRes)
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_CHECK_IN,
+		Action:      constants.OP_LOG_ACTION_ADD_SUB_BAG,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: res},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+	go createOperationLog(opLog)
 
 	okResponse(c, res)
 }
@@ -355,6 +378,8 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	oldBooking := booking.CloneBooking()
+
 	list, _ := booking.FindMainBag(db)
 
 	if len(list) == 0 {
@@ -405,6 +430,29 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 		cRound := CRound{}
 		cRound.ResetRoundPaidByMain(booking.BillCode, db)
 	}()
+
+	res := getBagDetailFromBooking(db, booking)
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_CHECK_IN,
+		Action:      constants.OP_LOG_ACTION_CHANGE_TO_MAIN_BAG,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: res},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+	go createOperationLog(opLog)
 
 	okResponse(c, booking)
 }
