@@ -54,12 +54,14 @@ const (
 	OP_LOG_ACTION_COURSE_INFO_DELETE_ATTACH_FLIGHT = "DELETE_ATTACH_FLIGHT"
 	OP_LOG_ACTION_CREATE_BAG                       = "CREATE_BAG"
 	OP_LOG_ACTION_ADD_ITEM                         = "ADD_ITEM"
+	OP_LOG_ACTION_DELETE_BILL                      = "DELETE_BILL"
 	OP_LOG_ACTION_UNDO_BILL                        = "UNDO_BILL"
 	OP_LOG_ACTION_TRANSFER                         = "TRANSFER"
 	OP_LOG_ACTION_TIMER_ADD                        = "TIMER_ADD"
 	OP_LOG_ACTION_TIMER_UPDATE                     = "TIMER_UPDATE"
 	OP_LOG_ACTION_ADD_LIST_SETTING                 = "ADD_LIST_SETTING"
 	OP_LOG_ACTION_UPDATE_LIST_SETTING              = "UPDATE_LIST_SETTING"
+	OP_LOG_ACTION_RETURN                           = "RETURN"
 )
 
 /*
