@@ -393,7 +393,7 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 		UserUid:     prof.Uid,
 		Module:      constants.OP_LOG_MODULE_GO,
 		Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
-		Action:      constants.OP_LOG_ACTION_ADD_RENTAL,
+		Action:      constants.OP_LOG_ACTION_ADD_ITEM,
 		Body:        models.JsonDataLog{Data: body},
 		ValueOld:    models.JsonDataLog{},
 		ValueNew:    models.JsonDataLog{Data: serviceCartItem},
