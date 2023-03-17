@@ -17,7 +17,6 @@ import (
 	model_report "start/models/report"
 	"start/utils"
 	"start/utils/response_message"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -929,7 +928,7 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 	if body.CaddieCheckIn != nil {
 		if *body.CaddieCheckIn != "" {
 			if *body.CaddieCheckIn != booking.CaddieInfo.Code {
-				oldCaddie := booking.CaddieInfo
+				// oldCaddie := booking.CaddieInfo
 
 				caddieList := models.CaddieList{}
 				caddieList.CourseUid = booking.CourseUid
@@ -950,21 +949,21 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 				booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 
 				//Update lại trạng thái caddie
-				caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+				// caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
 				if err := caddieNew.Update(db); err != nil {
 
 				}
 
 				// Out Caddie, nếu caddie trong in course
-				go func() {
-					caddie := models.Caddie{}
-					caddie.Id = oldCaddie.Id
-					if err := caddie.FindFirst(db); err == nil {
-						if strings.Contains(caddie.CurrentStatus, constants.CADDIE_CURRENT_STATUS_IN_COURSE) {
-							udpCaddieOut(db, oldCaddie.Id)
-						}
-					}
-				}()
+				// go func() {
+				// 	caddie := models.Caddie{}
+				// 	caddie.Id = oldCaddie.Id
+				// 	if err := caddie.FindFirst(db); err == nil {
+				// 		if strings.Contains(caddie.CurrentStatus, constants.CADDIE_CURRENT_STATUS_IN_COURSE) {
+				// 			udpCaddieOut(db, oldCaddie.Id)
+				// 		}
+				// 	}
+				// }()
 			}
 		} else {
 			booking.CaddieId = 0

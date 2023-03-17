@@ -113,7 +113,7 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 	}
 
 	//Update trạng thái của các old caddie
-	if response.OldCaddie.Id > 0 {
+	if response.OldCaddie.Id > 0 && response.OldCaddie.Status == constants.CADDIE_CURRENT_STATUS_LOCK {
 		udpCaddieOut(db, response.OldCaddie.Id)
 	}
 
