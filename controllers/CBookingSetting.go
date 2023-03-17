@@ -52,6 +52,28 @@ func (_ *CBookingSetting) CreateBookingSettingGroup(c *gin.Context, prof models.
 		return
 	}
 
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SETTING_COURSE,
+		Function:    constants.OP_LOG_FUNCTION_TIME_SETTING,
+		Action:      constants.OP_LOG_ACTION_ADD_LIST_SETTING,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: bookingSettingGroup},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, bookingSettingGroup)
 }
 
@@ -107,6 +129,8 @@ func (_ *CBookingSetting) UpdateBookingSettingGroup(c *gin.Context, prof models.
 		return
 	}
 
+	oldValue := utils.CloneObject(bookingSettingGroup)
+
 	body := model_booking.BookingSettingGroup{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -134,6 +158,28 @@ func (_ *CBookingSetting) UpdateBookingSettingGroup(c *gin.Context, prof models.
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
+
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SETTING_COURSE,
+		Function:    constants.OP_LOG_FUNCTION_TIME_SETTING,
+		Action:      constants.OP_LOG_ACTION_UPDATE_LIST_SETTING,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldValue},
+		ValueNew:    models.JsonDataLog{Data: bookingSettingGroup},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+
+	go createOperationLog(opLog)
 
 	okResponse(c, bookingSettingGroup)
 }
@@ -226,6 +272,28 @@ func (_ *CBookingSetting) CreateBookingSetting(c *gin.Context, prof models.CmsUs
 		return
 	}
 
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SETTING_COURSE,
+		Function:    constants.OP_LOG_FUNCTION_TIME_SETTING,
+		Action:      constants.OP_LOG_ACTION_TIMER_ADD,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: bookingSetting},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, bookingSetting)
 }
 
@@ -282,6 +350,8 @@ func (_ *CBookingSetting) UpdateBookingSetting(c *gin.Context, prof models.CmsUs
 		return
 	}
 
+	oldValue := utils.CloneObject(bookingSetting)
+
 	body := model_booking.BookingSetting{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -326,6 +396,28 @@ func (_ *CBookingSetting) UpdateBookingSetting(c *gin.Context, prof models.CmsUs
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
+
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SETTING_COURSE,
+		Function:    constants.OP_LOG_FUNCTION_TIME_SETTING,
+		Action:      constants.OP_LOG_ACTION_TIMER_UPDATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldValue},
+		ValueNew:    models.JsonDataLog{Data: bookingSetting},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+
+	go createOperationLog(opLog)
 
 	okResponse(c, bookingSetting)
 }
