@@ -393,7 +393,7 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 		UserUid:     prof.Uid,
 		Module:      constants.OP_LOG_MODULE_GO,
 		Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
-		Action:      constants.OP_LOG_ACTION_ADD_RENTAL,
+		Action:      constants.OP_LOG_ACTION_ADD_ITEM,
 		Body:        models.JsonDataLog{Data: body},
 		ValueOld:    models.JsonDataLog{},
 		ValueNew:    models.JsonDataLog{Data: serviceCartItem},
@@ -1397,7 +1397,7 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 		UserName:    prof.UserName,
 		UserUid:     prof.Uid,
 		Module:      constants.OP_LOG_MODULE_POS,
-		Action:      constants.OP_LOG_ACTION_DELETE,
+		Action:      constants.OP_LOG_ACTION_DELETE_BILL,
 		Body:        models.JsonDataLog{Data: idRequest},
 		ValueOld:    models.JsonDataLog{Data: dataOld},
 		ValueNew:    models.JsonDataLog{Data: serviceCart},
@@ -1763,11 +1763,47 @@ func (_ CServiceCart) ChangeRentalStatus(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//old data
+	dataOld := serviceCart
+
+	// validate golf bag
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = serviceCart.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
+	if errF != nil {
+		response_message.InternalServerError(c, "Booking "+errF.Error())
+		return
+	}
+
 	// Update trạng thái
 	serviceCart.RentalStatus = constants.POS_RETAL_STATUS_RETURN
 	if err := serviceCart.Update(db); err != nil {
 		response_message.BadRequest(c, "Update service Cart "+err.Error())
 		return
+	}
+
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_POS,
+		Action:      constants.OP_LOG_ACTION_RETURN,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: dataOld},
+		ValueNew:    models.JsonDataLog{Data: serviceCart},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	if serviceCart.ServiceType == constants.RENTAL_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_GOLF_CLUB_RENTAL
+	} else if serviceCart.ServiceType == constants.DRIVING_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_DRIVING
 	}
 
 	okRes(c)
