@@ -58,6 +58,7 @@ const (
 	OP_LOG_ACTION_UNDO_BILL                        = "UNDO_BILL"
 	OP_LOG_ACTION_TRANSFER                         = "TRANSFER"
 	OP_LOG_ACTION_RETURN                           = "RETURN"
+	OP_LOG_ACTION_MOVE_KITCHEN                     = "MOVE_KITCHEN"
 )
 
 /*

@@ -1397,7 +1397,7 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 		UserName:    prof.UserName,
 		UserUid:     prof.Uid,
 		Module:      constants.OP_LOG_MODULE_POS,
-		Action:      constants.OP_LOG_ACTION_DELETE,
+		Action:      constants.OP_LOG_ACTION_DELETE_BILL,
 		Body:        models.JsonDataLog{Data: idRequest},
 		ValueOld:    models.JsonDataLog{Data: dataOld},
 		ValueNew:    models.JsonDataLog{Data: serviceCart},
