@@ -73,19 +73,21 @@ func (_ *CCaddieVacationCalendar) CreateCaddieVacationCalendar(c *gin.Context, p
 		return
 	}
 
-	go func() {
-		cNotification := CNotification{}
-		cNotification.CreateCaddieVacationNotification(db, request.GetCaddieVacationNotification{
-			Caddie:       caddie,
-			DateFrom:     body.DateFrom,
-			DateTo:       body.DateTo,
-			NumberDayOff: body.NumberDayOff,
-			Title:        body.Title,
-			CreateAt:     caddieVC.CreatedAt,
-			UserName:     prof.UserName,
-			Id:           caddieVC.Id,
-		})
-	}()
+	if body.Title == constants.CADDIE_VACATION_SICK || body.Title == constants.CADDIE_VACATION_UNPAID {
+		go func() {
+			cNotification := CNotification{}
+			cNotification.CreateCaddieVacationNotification(db, request.GetCaddieVacationNotification{
+				Caddie:       caddie,
+				DateFrom:     body.DateFrom,
+				DateTo:       body.DateTo,
+				NumberDayOff: body.NumberDayOff,
+				Title:        body.Title,
+				CreateAt:     caddieVC.CreatedAt,
+				UserName:     prof.UserName,
+				Id:           caddieVC.Id,
+			})
+		}()
+	}
 
 	// Add log
 	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
