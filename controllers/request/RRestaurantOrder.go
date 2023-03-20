@@ -116,9 +116,9 @@ type FinishRestaurantOrderBody struct {
 }
 
 type TransferItemBody struct {
-	PartnerUid     string  `json:"partner_uid"`
-	CourseUid      string  `json:"course_uid"`
-	ServiceCartId  int64   `json:"service_cart_id"`
-	GolfBag        string  `json:"golf_bag"`
+	PartnerUid     string  `json:"partner_uid" binding:"required"`
+	CourseUid      string  `json:"course_uid" binding:"required"`
+	ServiceCartId  int64   `json:"service_cart_id" binding:"required"`
+	GolfBag        string  `json:"golf_bag" binding:"required"`
 	CartItemIdList []int64 `json:"cart_item_id_list"`
 }

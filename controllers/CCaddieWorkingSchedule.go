@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"log"
+	"start/constants"
 	"start/controllers/request"
 	"start/controllers/response"
 	"start/datasources"
@@ -84,6 +85,26 @@ func (_ *CCaddieWorkingSchedule) CreateCaddieWorkingSchedule(c *gin.Context, pro
 				hasError2 = true
 				break
 			}
+
+			// Add log
+			dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+			opLog := models.OperationLog{
+				PartnerUid:  prof.PartnerUid,
+				CourseUid:   prof.CourseUid,
+				UserName:    prof.UserName,
+				UserUid:     prof.Uid,
+				Module:      constants.OP_LOG_MODULE_CADDIE,
+				Function:    constants.OP_LOG_FUNCTION_CADDIE_WORKING_SCHEDULE,
+				Action:      constants.OP_LOG_ACTION_CREATE,
+				Body:        models.JsonDataLog{Data: body},
+				ValueOld:    models.JsonDataLog{},
+				ValueNew:    models.JsonDataLog{Data: caddieWorkingSchedule},
+				Path:        c.Request.URL.Path,
+				Method:      c.Request.Method,
+				BookingDate: dateAction,
+			}
+			go createOperationLog(opLog)
 		}
 
 		if hasError2 {
@@ -200,6 +221,8 @@ func (_ *CCaddieWorkingSchedule) UpdateCaddieWorkingSchedule(c *gin.Context, pro
 
 		}
 
+		dataOld := caddieWorkingSchedule
+
 		caddieWorkingSchedule.IsDayOff = &applyDayOff.IsDayOff
 
 		if err := caddieWorkingSchedule.Update(db); err != nil {
@@ -207,6 +230,26 @@ func (_ *CCaddieWorkingSchedule) UpdateCaddieWorkingSchedule(c *gin.Context, pro
 			hasError = true
 			break
 		}
+
+		// Add log
+		dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+		opLog := models.OperationLog{
+			PartnerUid:  prof.PartnerUid,
+			CourseUid:   prof.CourseUid,
+			UserName:    prof.UserName,
+			UserUid:     prof.Uid,
+			Module:      constants.OP_LOG_MODULE_CADDIE,
+			Function:    constants.OP_LOG_FUNCTION_CADDIE_WORKING_SCHEDULE,
+			Action:      constants.OP_LOG_ACTION_UPDATE,
+			Body:        models.JsonDataLog{Data: body},
+			ValueOld:    models.JsonDataLog{Data: dataOld},
+			ValueNew:    models.JsonDataLog{Data: caddieWorkingSchedule},
+			Path:        c.Request.URL.Path,
+			Method:      c.Request.Method,
+			BookingDate: dateAction,
+		}
+		go createOperationLog(opLog)
 	}
 
 	if hasError {

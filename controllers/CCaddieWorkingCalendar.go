@@ -115,6 +115,30 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 				return
 			}
 
+			go func() {
+				for _, item := range listCreate {
+					// Add log
+					dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+					opLog := models.OperationLog{
+						PartnerUid:  prof.PartnerUid,
+						CourseUid:   prof.CourseUid,
+						UserName:    prof.UserName,
+						UserUid:     prof.Uid,
+						Module:      constants.OP_LOG_MODULE_CADDIE,
+						Function:    constants.OP_LOG_FUNCTION_CADDIE_SLOT,
+						Action:      constants.OP_LOG_ACTION_CREATE,
+						Body:        models.JsonDataLog{Data: body},
+						ValueOld:    models.JsonDataLog{},
+						ValueNew:    models.JsonDataLog{Data: item},
+						BookingDate: dateAction,
+						Path:        c.Request.URL.Path,
+						Method:      c.Request.Method,
+					}
+					go createOperationLog(opLog)
+				}
+			}()
+
 			//Update lại ds caddie trong GO
 			go updateCaddieWorkingOnDay(listCaddieCode, body.PartnerUid, body.CourseUid, true)
 		}
@@ -161,6 +185,26 @@ func (_ *CCaddieWorkingCalendar) ImportCaddieSlotAuto(c *gin.Context, prof model
 
 	//Update lại ds caddie trong GO
 	go updateCaddieWorkingOnDay(body.CaddieSlot, body.PartnerUid, body.CourseUid, true)
+
+	// Add log
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_CADDIE_SLOT,
+		Action:      constants.OP_LOG_ACTION_RESET_CAD_SLOT,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: caddieWCS},
+		BookingDate: dateAction,
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
@@ -429,6 +473,26 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieWorkingCalendar(c *gin.Context, pro
 		updateCaddieWorkingOnDay([]string{oldCaddie}, prof.PartnerUid, prof.CourseUid, false)
 		updateCaddieWorkingOnDay([]string{newCaddie}, prof.PartnerUid, prof.CourseUid, true)
 	}()
+
+	// Add log
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_CADDIE_SLOT,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldCaddie},
+		ValueNew:    models.JsonDataLog{Data: newCaddie},
+		BookingDate: dateAction,
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+	}
+	go createOperationLog(opLog)
 	okRes(c)
 }
 
@@ -453,6 +517,9 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieSlotAuto(c *gin.Context, prof model
 		return
 	}
 
+	// data old
+	caddieWSO := caddieWS
+
 	// Swap slot caddie
 	caddieWS.CaddieSlot = utils.SwapValue(caddieWS.CaddieSlot, body.CaddieCodeOld, body.CaddieCodeNew)
 
@@ -461,6 +528,26 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieSlotAuto(c *gin.Context, prof model
 		response_message.BadRequest(c, err.Error())
 		return
 	}
+
+	// Add log
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_CADDIE_SLOT,
+		Action:      constants.OP_LOG_ACTION_UPD_CAD_SLOT,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: caddieWSO.CaddieSlot},
+		ValueNew:    models.JsonDataLog{Data: caddieWS.CaddieSlot},
+		BookingDate: dateAction,
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
@@ -480,6 +567,12 @@ func (_ *CCaddieWorkingCalendar) DeleteCaddieWorkingCalendar(c *gin.Context, pro
 	caddiWC.PartnerUid = prof.PartnerUid
 	caddiWC.CourseUid = prof.CourseUid
 
+	if err := caddiWC.FindFirst(db); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// Delete caddie
 	if err := caddiWC.Delete(db); err != nil {
 		response_message.BadRequest(c, err.Error())
 		return
@@ -487,5 +580,24 @@ func (_ *CCaddieWorkingCalendar) DeleteCaddieWorkingCalendar(c *gin.Context, pro
 
 	//Update lại ds caddie trong GO
 	go updateCaddieWorkingOnDay([]string{caddiWC.CaddieCode}, prof.PartnerUid, prof.CourseUid, false)
+	// Add log
+
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_CADDIE_SLOT,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Body:        models.JsonDataLog{Data: caddeWCIdStr},
+		ValueOld:    models.JsonDataLog{Data: caddiWC},
+		ValueNew:    models.JsonDataLog{},
+		BookingDate: dateAction,
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+	}
+	go createOperationLog(opLog)
 	okRes(c)
 }

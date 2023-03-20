@@ -54,6 +54,22 @@ func (_ *CLockTeeTime) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser
 		}
 	}
 
+	opLog := models.OperationLog{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		UserName:   prof.UserName,
+		UserUid:    prof.Uid,
+		Module:     constants.OP_LOG_MODULE_RECEPTION,
+		Function:   constants.OP_LOG_FUNCTION_BOOKING,
+		Action:     constants.OP_LOG_ACTION_LOCK_TEE,
+		Body:       models.JsonDataLog{Data: body},
+		ValueOld:   models.JsonDataLog{},
+		ValueNew:   models.JsonDataLog{Data: teeTimeRedis},
+		Path:       c.Request.URL.Path,
+		Method:     c.Request.Method,
+	}
+	go createOperationLog(opLog)
+
 	okResponse(c, teeTimeRedis)
 }
 func (_ *CLockTeeTime) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
@@ -293,5 +309,26 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 	teeTimeRedisKey := getKeyTeeTimeLockRedis(query.BookingDate, query.CourseUid, query.TeeTime, query.TeeType+query.CourseType)
 	err := datasources.DelCacheByKey(teeTimeRedisKey)
 	log.Print(err)
+
+	opLog := models.OperationLog{
+		PartnerUid: query.PartnerUid,
+		CourseUid:  query.CourseUid,
+		UserName:   prof.UserName,
+		UserUid:    prof.Uid,
+		Module:     constants.OP_LOG_MODULE_RECEPTION,
+		Function:   constants.OP_LOG_FUNCTION_BOOKING,
+		Action:     constants.OP_LOG_ACTION_UNLOCK_TEE,
+		Body:       models.JsonDataLog{Data: query},
+		ValueOld:   models.JsonDataLog{},
+		ValueNew:   models.JsonDataLog{},
+		Path:       c.Request.URL.Path,
+		Method:     c.Request.Method,
+	}
+
+	if query.RequestType == "TURN_TIME" {
+		opLog.Action = constants.OP_LOG_ACTION_UNLOCK_TURN
+	}
+
+	go createOperationLog(opLog)
 	okRes(c)
 }

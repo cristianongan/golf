@@ -6,7 +6,9 @@ import (
 	"start/config"
 	"start/controllers"
 	"start/middlewares"
-	"start/socket"
+
+	// "start/socket"
+	socket "start/socket"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -49,7 +51,7 @@ func NewRouter() *gin.Engine {
 
 	// router.Group(moduleName).GET("/ws/:roomId", func(c *gin.Context) {
 	// 	roomId := c.Param("roomId")
-	// 	socket_room.ServeWs(c.Writer, c.Request, roomId)
+	// 	socket.ServeWs(c.Writer, c.Request, roomId)
 	// })
 
 	if config.GetKibanaLog() {
@@ -293,7 +295,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/booking/reset-bag", middlewares.AuthorizedCmsUserHandler(cBooking.ResetBag))
 			cmsApiAuthorized.POST("/booking/undo-checkout", middlewares.AuthorizedCmsUserHandler(cBooking.UndoCheckOut))
 			cmsApiAuthorized.GET("/booking/get-list-bag-detail", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBagDetail))
-			// cmsApiAuthorized.GET("/booking/golf-fee", middlewares.AuthorizedCmsUserHandler(cBooking.GetGolfFeeInfoOfBag))
+			cmsApiAuthorized.GET("/booking/caddie-booking-cancel/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListCaddieBookingCancel))
 
 			/// =================== Caddie Buggy In Out Bag ===================
 			cCaddieBuggyInOut := new(controllers.CCaddieBuggyInOut)
@@ -365,7 +367,7 @@ func NewRouter() *gin.Engine {
 			/// =================== Course Operating ====================
 			cCourseOperating := new(controllers.CCourseOperating)
 			cmsApiAuthorized.GET("/course-operating/booking/list-for-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetListBookingCaddieOnCourse))
-			cmsApiAuthorized.POST("/course-operating/booking/add-caddie-buggy", middlewares.AuthorizedCmsUserHandler(cCourseOperating.AddCaddieBuggyToBooking))
+			cmsApiAuthorized.POST("/course-operating/booking/add-caddie-buggy", middlewares.AuthorizedCmsUserHandler(cCourseOperating.AddCaddieBuggyToBooking)) // Attach
 			cmsApiAuthorized.POST("/course-operating/flight/create", middlewares.AuthorizedCmsUserHandler(cCourseOperating.CreateFlight))
 			cmsApiAuthorized.POST("/course-operating/caddie/out", middlewares.AuthorizedCmsUserHandler(cCourseOperating.OutCaddie))
 			cmsApiAuthorized.POST("/course-operating/caddie/undo", middlewares.AuthorizedCmsUserHandler(cCourseOperating.UndoOutCaddie))
@@ -374,17 +376,17 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/course-operating/caddie/need-more", middlewares.AuthorizedCmsUserHandler(cCourseOperating.NeedMoreCaddie))   // Đổi caddie
 			cmsApiAuthorized.POST("/course-operating/caddie/delete-attach", middlewares.AuthorizedCmsUserHandler(cCourseOperating.DeleteAttach)) // Xoá caddie, buggy, flight
 			cmsApiAuthorized.GET("/course-operating/starting-sheet", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetStartingSheet))    // Get for starting sheet
-			cmsApiAuthorized.POST("/course-operating/undo-timeout", middlewares.AuthorizedCmsUserHandler(cCourseOperating.UndoTimeOut))
+			cmsApiAuthorized.POST("/course-operating/undo-timeout", middlewares.AuthorizedCmsUserHandler(cCourseOperating.UndoTimeOut))          // Undo Out flight
 
 			/// =================== + More Course Operating ===================
 			cmsApiAuthorized.POST("/course-operating/change-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.ChangeCaddie))
 			cmsApiAuthorized.POST("/course-operating/change-buggy", middlewares.AuthorizedCmsUserHandler(cCourseOperating.ChangeBuggy))
 			cmsApiAuthorized.POST("/course-operating/edit-holes-of-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.EditHolesOfCaddie))
-			cmsApiAuthorized.POST("/course-operating/add-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.AddBagToFlight))
+			cmsApiAuthorized.POST("/course-operating/add-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.AddBagToFlight)) // Add bag to flight
 
 			/// =================== + More Course Operating ===================
 			cmsApiAuthorized.GET("/course-operating/flight/list", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetFlight))
-			cmsApiAuthorized.POST("/course-operating/move-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.MoveBagToFlight))
+			cmsApiAuthorized.POST("/course-operating/move-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.MoveBagToFlight)) // Move flight
 
 			/// =================== Golf Bag ===================
 			cGolfBag := new(controllers.CGolfBag)
@@ -670,19 +672,19 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/service-cart/list-bill-rental", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetListRentalCart))
 			cmsApiAuthorized.GET("/service-cart/list-best-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetBestItemInKiosk))
 			cmsApiAuthorized.GET("/service-cart/list-best-group", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetBestGroupInKiosk))
-			cmsApiAuthorized.POST("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddItemServiceToCart))
-			cmsApiAuthorized.POST("/service-cart/rental", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddItemRentalToCart))
-			cmsApiAuthorized.POST("/service-cart/add-discount", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddDiscountToItem))
+			cmsApiAuthorized.POST("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddItemServiceToCart))           // add item
+			cmsApiAuthorized.POST("/service-cart/rental", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddItemRentalToCart))     // add item rental
+			cmsApiAuthorized.POST("/service-cart/add-discount", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddDiscountToItem)) // add add discount item
 			cmsApiAuthorized.POST("/service-cart/discount-bill", middlewares.AuthorizedCmsUserHandler(cServiceCart.AddDiscountToBill))
-			cmsApiAuthorized.POST("/service-cart/create-billing", middlewares.AuthorizedCmsUserHandler(cServiceCart.CreateBill))
+			cmsApiAuthorized.POST("/service-cart/create-billing", middlewares.AuthorizedCmsUserHandler(cServiceCart.CreateBill)) // Tạo mã đơn
 			cmsApiAuthorized.POST("/service-cart/move-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.MoveItemToOtherCart))
 			cmsApiAuthorized.POST("/service-cart/create-new-guest", middlewares.AuthorizedCmsUserHandler(cServiceCart.CreateNewGuest))
-			cmsApiAuthorized.PUT("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.UpdateItemCart))
-			cmsApiAuthorized.PUT("/service-cart/finish-order", middlewares.AuthorizedCmsUserHandler(cServiceCart.FinishOrder))
+			cmsApiAuthorized.PUT("/service-cart", middlewares.AuthorizedCmsUserHandler(cServiceCart.UpdateItemCart))           // Update item
+			cmsApiAuthorized.PUT("/service-cart/finish-order", middlewares.AuthorizedCmsUserHandler(cServiceCart.FinishOrder)) // Save đơn
 			cmsApiAuthorized.PUT("/service-cart/undo-order", middlewares.AuthorizedCmsUserHandler(cServiceCart.UndoStatus))
 			cmsApiAuthorized.PUT("/service-cart/change-status-rental", middlewares.AuthorizedCmsUserHandler(cServiceCart.ChangeRentalStatus))
-			cmsApiAuthorized.DELETE("/service-cart/item/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteItemInCart))
-			cmsApiAuthorized.DELETE("/service-cart/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteCart))
+			cmsApiAuthorized.DELETE("/service-cart/item/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteItemInCart)) // Xóa item
+			cmsApiAuthorized.DELETE("/service-cart/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteCart))            // Xóa đơn
 
 			/// =================== Restaurant ===================
 			cRestaurantOrder := new(controllers.CRestaurantOrder)
@@ -690,10 +692,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/restaurant/list-bill", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.GetListBill))
 			cmsApiAuthorized.POST("/restaurant/food-process", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.GetFoodProcess))
 			cmsApiAuthorized.POST("/restaurant/detail-food-process", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.GetDetailFoodProcess))
-			cmsApiAuthorized.POST("/restaurant/add-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.AddItemOrder))
-			cmsApiAuthorized.POST("/restaurant/add-bill", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateRestaurantOrder))
-			cmsApiAuthorized.POST("/restaurant/add-booking", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateRestaurantBooking))
-			cmsApiAuthorized.POST("/restaurant/create-bill-code", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateBill))
+			cmsApiAuthorized.POST("/restaurant/add-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.AddItemOrder))               // add item
+			cmsApiAuthorized.POST("/restaurant/add-bill", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateRestaurantOrder))      // Tạo đơn
+			cmsApiAuthorized.POST("/restaurant/add-booking", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateRestaurantBooking)) // Tạo đơn booking cho nhà hàng
+			cmsApiAuthorized.POST("/restaurant/create-bill-code", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.CreateBill))         // Tạo mã đơn và chuyển xuống bếp
 			cmsApiAuthorized.POST("/restaurant/finish-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.FinishAllResItem))
 			cmsApiAuthorized.POST("/restaurant/transfer-item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.TransferItem))
 			cmsApiAuthorized.PUT("/restaurant/item", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.UpdateItemOrder))
@@ -701,8 +703,8 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/restaurant/finish-res-order", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.FinishRestaurantOrder))
 			cmsApiAuthorized.PUT("/restaurant/update-booking/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.UpdateRestaurantBooking))
 			cmsApiAuthorized.PUT("/restaurant/confrim-booking/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.ConfrimRestaurantBooking))
-			cmsApiAuthorized.DELETE("/restaurant/item/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteItemOrder))
-			cmsApiAuthorized.DELETE("/restaurant/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteRestaurantOrder))
+			cmsApiAuthorized.DELETE("/restaurant/item/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteItemOrder))  // Xóa item
+			cmsApiAuthorized.DELETE("/restaurant/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteRestaurantOrder)) // Xóa đơn
 			cmsApiAuthorized.DELETE("/restaurant/delete/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteOrder))
 
 			cRestaurantSetup := new(controllers.CRestaurantSetup)
@@ -789,6 +791,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/payment/bag-status", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportPayment))
 			cmsApiAuthorized.POST("/report/booking/players", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBookingPlayers))
 
+			/// =================== Golf Log ===================
+			cGolfLog := new(controllers.CGolfLog)
+			cmsApiAuthorized.GET("/op-log/list", middlewares.AuthorizedCmsUserHandler(cGolfLog.GetGolfLogList))
+
 			/// =================== Redis Settings ===================
 			cRedis := new(controllers.CRedis)
 			cmsApiAuthorized.POST("/redis/tee-time/reset-all", middlewares.AuthorizedCmsUserHandler(cRedis.DeleteAllRedisTeeTime))
@@ -803,6 +809,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/test-fast-customer", middlewares.AuthorizedCmsUserHandler(cTest.TestFastCustomer))
 			cmsApiAuthorized.GET("/test-fast-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFastFee))
 			cmsApiAuthorized.GET("/test-caddie-slot", middlewares.AuthorizedCmsUserHandler(cTest.TestCaddieSlot))
+			cmsApiAuthorized.GET("/test-notification", middlewares.AuthorizedCmsUserHandler(cTest.TestNotification))
 
 			/// =================== Test ===================
 			cHelper := new(controllers.CHelper)

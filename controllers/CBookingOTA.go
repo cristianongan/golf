@@ -395,9 +395,15 @@ func (cBooking *CBooking) CancelBookingOTA(c *gin.Context) {
 				}
 			} else {
 				v.BagStatus = constants.BAG_STATUS_CANCEL
-				errUdp := v.Update(db)
-				if errUdp != nil {
-					log.Println("CancelBookingOTA Book errUdp", errUdp.Error())
+				bookCancel := v.CloneBookingDel()
+				errCancel := v.Delete(db)
+				if errCancel != nil {
+					log.Println("CancelBookingOTA Book errCancel", errCancel.Error())
+				} else {
+					errCBC := bookCancel.Create(db)
+					if errCBC != nil {
+						log.Println("CancelBookingOTA Book errCBC", errCBC.Error())
+					}
 				}
 			}
 		}

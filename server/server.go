@@ -5,7 +5,7 @@ import (
 	"start/config"
 	"start/datasources"
 	"start/logger"
-	"start/socket"
+	socket "start/socket"
 	"start/utils"
 
 	ccron "start/cron"

@@ -105,6 +105,27 @@ func (_ *CCaddie) CreateCaddie(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	// Add log
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_CADDIE_LIST,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: Caddie},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: dateAction,
+	}
+	go createOperationLog(opLog)
+
 	c.JSON(200, Caddie)
 }
 
@@ -621,6 +642,26 @@ func (_ *CCaddie) DeleteCaddie(c *gin.Context, prof models.CmsUser) {
 
 	toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 	removeCaddieOutSlotOnDate(caddieRequest.PartnerUid, caddieRequest.CourseUid, toDayDate, caddieRequest.Code)
+
+	// Add log
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_CADDIE_LIST,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Body:        models.JsonDataLog{Data: caddieIdStr},
+		ValueOld:    models.JsonDataLog{Data: caddieRequest},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: dateAction,
+	}
+	go createOperationLog(opLog)
 	okRes(c)
 }
 
@@ -652,6 +693,8 @@ func (_ *CCaddie) UpdateCaddie(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	caddieOld := caddieRequest
+
 	assignCaddieUpdate(&caddieRequest, body)
 
 	err := caddieRequest.Update(db)
@@ -659,6 +702,26 @@ func (_ *CCaddie) UpdateCaddie(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	// Add log
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_CADDIE_LIST,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: caddieOld},
+		ValueNew:    models.JsonDataLog{Data: caddieRequest},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: dateAction,
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }

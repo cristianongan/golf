@@ -125,13 +125,14 @@ type Booking struct {
 	IsPrivateBuggy    *bool                                `json:"is_private_buggy" gorm:"default:0"`               // Bag có dùng buggy riêng không
 	MovedFlight       *bool                                `json:"moved_flight" gorm:"default:0"`                   // Đánh dấu booking đã move flight chưa
 	AddedRound        *bool                                `json:"added_flight" gorm:"default:0"`                   // Đánh dấu booking đã add chưa
-	AgencyPaid        utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty" gorm:"type:json"`          // Tiền Agency thực tế trả
-	AgencyPrePaid     utils.ListBookingAgencyPayForBagData `json:"agency_pre_paid,omitempty" gorm:"type:json"`      // Tiền Agency trả trước
-	LockBill          *bool                                `json:"lock_bill" gorm:"default:0"`                      // lễ tân lock bill cho kh để restaurant ko thao tác đc nữa
-	AgencyPaidAll     *bool                                `json:"agency_paid_all" gorm:"default:0"`                // Đánh dấu agency trả all fee cho kh
-	LastBookingStatus string                               `json:"last_booking_status" gorm:"type:varchar(50)"`     // Đánh dấu trạng thái cuối cùng của booking
-	MemberCard        *models.MemberCard                   `json:"member_card_info,omitempty" gorm:"foreignKey:MemberCardUid"`
-	MemberCardOfGuest *models.MemberCard                   `json:"member_card_of_guest,omitempty" gorm:"foreignKey:MemberUidOfGuest"`
+	AgencyPaid        utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty" gorm:"type:json"`
+	LockBill          *bool                                `json:"lock_bill" gorm:"default:0"`                  // lễ tân lock bill cho kh để restaurant ko thao tác đc nữa
+	AgencyPaidAll     *bool                                `json:"agency_paid_all" gorm:"default:0"`            // Đánh dấu agency trả all fee cho kh
+	AgencyPrePaid     utils.ListBookingAgencyPayForBagData `json:"agency_pre_paid,omitempty" gorm:"type:json"`  // Tiền Agency trả trước
+	LastBookingStatus string                               `json:"last_booking_status" gorm:"type:varchar(50)"` // Đánh dấu trạng thái cuối cùng của booking
+	//Cho get data
+	MemberCard        *models.MemberCard `json:"member_card_info,omitempty" gorm:"-:migration;foreignKey:MemberCardUid"`
+	MemberCardOfGuest *models.MemberCard `json:"member_card_of_guest,omitempty" gorm:"-:migration;foreignKey:MemberUidOfGuest"`
 }
 
 type FlyInfoResponse struct {
@@ -787,7 +788,7 @@ func (item *Booking) FindAllBookingForAgencyPayment(database *gorm.DB) ([]Bookin
 }
 
 func (item *Booking) FindAgencyCancelBooking(database *gorm.DB, page models.Page) ([]AgencyCancelBookingList, int64, error) {
-	db := database.Model(Booking{})
+	db := database.Model(BookingDel{})
 	list := []AgencyCancelBookingList{}
 	total := int64(0)
 
@@ -803,9 +804,8 @@ func (item *Booking) FindAgencyCancelBooking(database *gorm.DB, page models.Page
 	}
 
 	db = db.Group("booking_code")
-	// db = db.Where("agency_id <> ?", 0)
-	db = db.Where("bag_status = ?", constants.BAG_STATUS_CANCEL)
-	db = db.Select("bookings.*, COUNT(booking_code) as number_people")
+	db = db.Where("agency_id <> ?", 0)
+	db = db.Select("booking_dels.*, COUNT(booking_code) as number_people")
 
 	db.Count(&total)
 

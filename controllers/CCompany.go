@@ -6,6 +6,7 @@ import (
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -61,6 +62,27 @@ func (_ *CCompany) CreateCompany(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errC.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  company.PartnerUid,
+		CourseUid:   company.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_COMPANY,
+		Function:    constants.OP_LOG_FUNCTION_COMPANY_LIST,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: company},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
 
 	okResponse(c, company)
 }
@@ -122,6 +144,8 @@ func (_ *CCompany) UpdateCompany(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	oldValue := company.CloneCompany()
+
 	body := models.Company{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -161,6 +185,27 @@ func (_ *CCompany) UpdateCompany(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  company.PartnerUid,
+		CourseUid:   company.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_COMPANY,
+		Function:    constants.OP_LOG_FUNCTION_COMPANY_LIST,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldValue},
+		ValueNew:    models.JsonDataLog{Data: company},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
+
 	okResponse(c, company)
 }
 
@@ -188,6 +233,27 @@ func (_ *CCompany) DeleteCompany(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errDel.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  company.PartnerUid,
+		CourseUid:   company.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_COMPANY,
+		Function:    constants.OP_LOG_FUNCTION_COMPANY_LIST,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Body:        models.JsonDataLog{},
+		ValueOld:    models.JsonDataLog{Data: company},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }

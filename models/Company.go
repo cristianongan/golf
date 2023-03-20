@@ -1,7 +1,9 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
+	"log"
 	"start/constants"
 	"start/utils"
 	"strings"
@@ -22,6 +24,23 @@ type Company struct {
 	FaxCode         string `json:"fax_code" gorm:"type:varchar(30);index"`
 	CompanyTypeId   int64  `json:"company_type_id" gorm:"index"`
 	CompanyTypeName string `json:"company_type_name" gorm:"type:varchar(300)"`
+}
+
+/*
+ Clone object
+*/
+func (item *Company) CloneCompany() Company {
+	copyCompany := Company{}
+	bData, errM := json.Marshal(&item)
+	if errM != nil {
+		log.Println("CloneCompany errM", errM.Error())
+	}
+	errUnM := json.Unmarshal(bData, &copyCompany)
+	if errUnM != nil {
+		log.Println("CloneCompany errUnM", errUnM.Error())
+	}
+
+	return copyCompany
 }
 
 func (item *Company) IsDuplicated(db *gorm.DB) bool {

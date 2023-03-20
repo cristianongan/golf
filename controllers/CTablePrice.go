@@ -66,6 +66,28 @@ func (_ *CTablePrice) CreateTablePrice(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Function:    constants.OP_LOG_FUNCTION_GOLF_LIST_FEE,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: tablePrice},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, tablePrice)
 }
 
@@ -123,6 +145,8 @@ func (_ *CTablePrice) UpdateTablePrice(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	oldValue := utils.CloneObject(tablePrice)
+
 	body := models.TablePrice{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -147,6 +171,28 @@ func (_ *CTablePrice) UpdateTablePrice(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
+
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Function:    constants.OP_LOG_FUNCTION_GOLF_LIST_FEE,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldValue},
+		ValueNew:    models.JsonDataLog{Data: tablePrice},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+
+	go createOperationLog(opLog)
 
 	okResponse(c, tablePrice)
 }
@@ -179,6 +225,28 @@ func (_ *CTablePrice) DeleteTablePrice(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errDel.Error())
 		return
 	}
+
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  tablePrice.PartnerUid,
+		CourseUid:   tablePrice.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Function:    constants.OP_LOG_FUNCTION_GOLF_LIST_FEE,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Body:        models.JsonDataLog{},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: tablePrice},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+
+	go createOperationLog(opLog)
 
 	okRes(c)
 }

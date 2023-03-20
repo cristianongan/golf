@@ -6,6 +6,7 @@ import (
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 
 	"github.com/gin-gonic/gin"
@@ -116,6 +117,27 @@ func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  memberCard.PartnerUid,
+		CourseUid:   memberCard.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CUSTOMER,
+		Function:    constants.OP_LOG_FUNCTION_MEMBER_CARD,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: memberCard},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
+
 	okResponse(c, memberCard)
 }
 
@@ -193,6 +215,8 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	oldValue := memberCard.CloneMemberCard()
+
 	body := models.MemberCard{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -262,6 +286,27 @@ func (_ *CMemberCard) UpdateMemberCard(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  memberCard.PartnerUid,
+		CourseUid:   memberCard.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CUSTOMER,
+		Function:    constants.OP_LOG_FUNCTION_MEMBER_CARD,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldValue},
+		ValueNew:    models.JsonDataLog{Data: memberCard},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
+
 	okResponse(c, memberCard)
 }
 
@@ -288,6 +333,27 @@ func (_ *CMemberCard) DeleteMemberCard(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errDel.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  member.PartnerUid,
+		CourseUid:   member.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CUSTOMER,
+		Function:    constants.OP_LOG_FUNCTION_MEMBER_CARD,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Body:        models.JsonDataLog{},
+		ValueOld:    models.JsonDataLog{Data: member},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         "",
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    "",
+		BookingUid:  "",
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
