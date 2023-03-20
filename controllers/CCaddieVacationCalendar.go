@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"start/constants"
@@ -279,17 +278,11 @@ func (_ *CCaddieVacationCalendar) DeleteCaddieVacationCalendar(c *gin.Context, p
 	okRes(c)
 }
 
-func (_ *CCaddieVacationCalendar) UpdateCaddieVacationStatus(content []byte, isApprove bool, partnerUid string, prof models.CmsUser) {
+func (_ *CCaddieVacationCalendar) UpdateCaddieVacationStatus(id int64, isApprove bool, partnerUid string, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(partnerUid)
-
-	caddieEx := models.CaddieContentNoti{}
-	if err := json.Unmarshal(content, &caddieEx); err != nil {
-		return
-	}
-
 	RCaddieVacation := models.CaddieVacationCalendar{
 		ModelId: models.ModelId{
-			Id: caddieEx.Id,
+			Id: id,
 		},
 	}
 
