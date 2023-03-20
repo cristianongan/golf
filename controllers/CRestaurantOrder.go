@@ -126,6 +126,9 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//old data
+	dataOld := serviceCart
+
 	// validate golf bag
 	bookingR := model_booking.Booking{}
 	bookingR.Uid = serviceCart.BookingUid
@@ -197,6 +200,27 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 	updatePriceWithServiceItem(&booking, prof)
 	createExportBillInventory(c, prof, serviceCart, serviceCart.BillCode)
 
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_POS,
+		Function:    constants.OP_LOG_FUNCTION_RESTAURANT,
+		Action:      constants.OP_LOG_ACTION_MOVE_KITCHEN,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: dataOld},
+		ValueNew:    models.JsonDataLog{Data: serviceCart},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	go createOperationLog(opLog)
+
 	c.JSON(200, serviceCart)
 }
 
@@ -220,6 +244,9 @@ func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsU
 		response_message.BadRequest(c, err.Error())
 		return
 	}
+
+	//old data
+	dataOld := serviceCart
 
 	// if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
 	// 	serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
@@ -264,6 +291,27 @@ func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsU
 
 	//Update lại giá trong booking
 	updatePriceWithServiceItem(&booking, prof)
+
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_POS,
+		Function:    constants.OP_LOG_FUNCTION_RESTAURANT,
+		Action:      constants.OP_LOG_ACTION_DELETE_BILL,
+		Body:        models.JsonDataLog{Data: idRequest},
+		ValueOld:    models.JsonDataLog{Data: dataOld},
+		ValueNew:    models.JsonDataLog{Data: serviceCart},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
@@ -594,6 +642,27 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 	}
+
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_POS,
+		Function:    constants.OP_LOG_FUNCTION_RESTAURANT,
+		Action:      constants.OP_LOG_ACTION_ADD_ITEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: serviceCartItem},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
@@ -1865,6 +1934,8 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 	booking := model_booking.Booking{}
 	booking.Bag = body.GolfBag
 	booking.BookingDate = dateDisplay
+	booking.AddedRound = setBoolForCursor(false)
+
 	if err := booking.FindFirst(db); err != nil {
 		response_message.BadRequest(c, "Find booking target "+err.Error())
 		return
@@ -1951,7 +2022,7 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 		serviceCartItem.BillCode = booking.BillCode
 		serviceCartItem.BookingUid = booking.Uid
 		serviceCartItem.PlayerName = booking.CustomerName
-		totalAmount += (serviceCartItem.Amount - serviceCartItem.DiscountValue)
+		totalAmount += serviceCartItem.Amount
 
 		if errFor = serviceCartItem.Update(db); errFor != nil {
 			hasError = true

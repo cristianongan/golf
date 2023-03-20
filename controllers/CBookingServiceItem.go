@@ -118,6 +118,56 @@ func (_ *CBookingServiceItem) AddBookingServiceItemToBag(c *gin.Context, prof mo
 	//Update lại giá trong booking
 	updatePriceWithServiceItem(&booking, prof)
 
+	// Add log
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: serviceItem},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	if serviceItem.Type == constants.RENTAL_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
+		opLog.Action = constants.OP_LOG_ACTION_ADD_RENTAL
+	}
+
+	if serviceItem.Type == constants.DRIVING_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
+		opLog.Action = constants.OP_LOG_ACTION_ADD_DRIVING
+	}
+
+	if serviceItem.Type == constants.PROSHOP_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
+		opLog.Action = constants.OP_LOG_ACTION_ADD_PROSHOP
+	}
+
+	if serviceItem.Type == constants.RESTAURANT_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
+		opLog.Action = constants.OP_LOG_ACTION_ADD_RESTAURANT
+	}
+
+	if serviceItem.Type == constants.KIOSK_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
+		opLog.Action = constants.OP_LOG_ACTION_ADD_KIOSK
+	}
+
+	if serviceItem.Type == constants.MINI_B_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
+		opLog.Action = constants.OP_LOG_ACTION_ADD_MINI_B
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, serviceItem)
 }
 

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 	"start/constants"
@@ -73,9 +74,9 @@ func (_ *CCaddieVacationCalendar) CreateCaddieVacationCalendar(c *gin.Context, p
 		return
 	}
 
-	if body.Title == constants.CADDIE_VACATION_SICK || body.Title == constants.CADDIE_VACATION_UNPAID {
+	go func() {
 		cNotification := CNotification{}
-		go cNotification.CreateCaddieVacationNotification(db, request.GetCaddieVacationNotification{
+		cNotification.CreateCaddieVacationNotification(db, request.GetCaddieVacationNotification{
 			Caddie:       caddie,
 			DateFrom:     body.DateFrom,
 			DateTo:       body.DateTo,
@@ -85,7 +86,28 @@ func (_ *CCaddieVacationCalendar) CreateCaddieVacationCalendar(c *gin.Context, p
 			UserName:     prof.UserName,
 			Id:           caddieVC.Id,
 		})
+	}()
+
+	// Add log
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_CADDIE_VACTION_CALENDAR,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: caddieVC},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: dateAction,
 	}
+	go createOperationLog(opLog)
+	// okRes(c)
 
 	c.JSON(200, caddieVC)
 }
@@ -177,6 +199,8 @@ func (_ *CCaddieVacationCalendar) UpdateCaddieVacationCalendar(c *gin.Context, p
 		return
 	}
 
+	caddieOld := caddieVC
+
 	caddieVC.Title = body.Title
 	caddieVC.Color = body.Color
 	caddieVC.DateFrom = body.DateFrom
@@ -190,6 +214,26 @@ func (_ *CCaddieVacationCalendar) UpdateCaddieVacationCalendar(c *gin.Context, p
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	// Add log
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_CADDIE_VACTION_CALENDAR,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: caddieOld},
+		ValueNew:    models.JsonDataLog{Data: caddieVC},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: dateAction,
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
@@ -212,14 +256,40 @@ func (_ *CCaddieVacationCalendar) DeleteCaddieVacationCalendar(c *gin.Context, p
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	// Add log
+	dateAction, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_CADDIE,
+		Function:    constants.OP_LOG_FUNCTION_CADDIE_VACTION_CALENDAR,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Body:        models.JsonDataLog{Data: caddieVCStr},
+		ValueOld:    models.JsonDataLog{Data: caddieVC},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: dateAction,
+	}
+	go createOperationLog(opLog)
 	okRes(c)
 }
 
-func (_ *CCaddieVacationCalendar) UpdateCaddieVacationStatus(id int64, isApprove bool, partnerUid string, prof models.CmsUser) {
+func (_ *CCaddieVacationCalendar) UpdateCaddieVacationStatus(content []byte, isApprove bool, partnerUid string, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(partnerUid)
+
+	caddieEx := models.CaddieContentNoti{}
+	if err := json.Unmarshal(content, &caddieEx); err != nil {
+		return
+	}
+
 	RCaddieVacation := models.CaddieVacationCalendar{
 		ModelId: models.ModelId{
-			Id: id,
+			Id: caddieEx.Id,
 		},
 	}
 

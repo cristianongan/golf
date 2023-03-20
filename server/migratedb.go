@@ -72,6 +72,7 @@ func MigrateDbCms(db *gorm.DB) {
 
 	// ----- Booking -----
 	db.AutoMigrate(&model_booking.Booking{})
+	db.AutoMigrate(&model_booking.BookingDel{})
 	db.AutoMigrate(&model_booking.BookingWaiting{})
 	db.AutoMigrate(&model_booking.BookingSetting{})
 	db.AutoMigrate(&model_booking.BookingSettingGroup{})
@@ -206,5 +207,6 @@ func MigrateDbAuth() {
 		db.AutoMigrate(&models.Partner{})
 		db.AutoMigrate(&models.Course{})
 		db.AutoMigrate(&models.CustomerType{})
+		db.AutoMigrate(&models.OperationLog{})
 	}
 }
