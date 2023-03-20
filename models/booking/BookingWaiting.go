@@ -12,15 +12,45 @@ import (
 
 type BookingWaiting struct {
 	models.ModelId
-	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"`  // Hang Golf
-	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`   // San Golf
-	BookingCode string `json:"booking_code" gorm:"type:varchar(100);index"` //
-	BookingTime string `json:"booking_time" gorm:"type:varchar(100)"`       // Ngày tạo booking waiting
-	// TeeTime       string           `json:"tee_time" gorm:"type:varchar(20)"`            // Giờ tee time muốn chơi
-	PlayerName    string           `json:"player_name" gorm:"type:varchar(256)"`    // Tên người đặt booking waiting
-	PlayerContact string           `json:"player_contact" gorm:"type:varchar(256)"` // SĐT người đặt booking waiting
-	PeopleList    utils.ListString `json:"people_list,omitempty" gorm:"type:json"`  // Danh sách người chơi
-	Note          string           `json:"note" gorm:"type:varchar(256)"`           // Ghi chú
+	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hang Golf
+	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
+	CourseType  string `json:"course_type" gorm:"type:varchar(100)"`       // A,B,C
+	BookingDate string `json:"booking_date" gorm:"type:varchar(30);index"` // Ex: 06/11/2022
+
+	Hole           int    `json:"hole"`                                       // Số hố check in
+	GuestStyle     string `json:"guest_style" gorm:"type:varchar(200);index"` // Guest Style
+	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Guest Style Name
+
+	// MemberCard
+	CardId        string `json:"card_id" gorm:"index"`                           // MembarCard, Card ID cms user nhập vào
+	MemberCardUid string `json:"member_card_uid" gorm:"type:varchar(100);index"` // MemberCard Uid, Uid object trong Database
+
+	// Thêm customer info
+	CustomerBookingName  string        `json:"customer_booking_name" gorm:"type:varchar(256)"`  // Tên khách hàng đặt booking
+	CustomerBookingPhone string        `json:"customer_booking_phone" gorm:"type:varchar(100)"` // SDT khách hàng đặt booking
+	CustomerName         string        `json:"customer_name" gorm:"type:varchar(256)"`          // Tên khách hàng
+	CustomerUid          string        `json:"customer_uid" gorm:"type:varchar(256);index"`     // Uid khách hàng
+	CustomerType         string        `json:"customer_type" gorm:"type:varchar(256)"`          // Loai khach hang: Member, Guest, Visitor...
+	CustomerInfo         *CustomerInfo `json:"customer_info,omitempty" gorm:"type:json"`        // Customer Info
+
+	TeeType  string `json:"tee_type" gorm:"type:varchar(50)"`  // 1, 1A, 1B, 1C, 10, 10A, 10B
+	TeePath  string `json:"tee_path" gorm:"type:varchar(50)"`  // MORNING, NOON, NIGHT
+	TurnTime string `json:"turn_time" gorm:"type:varchar(30)"` // Ex: 16:26
+	TeeTime  string `json:"tee_time" gorm:"type:varchar(30)"`  // Ex: 16:26 Tee time là thời gian tee off dự kiến
+
+	Note string `json:"note" gorm:"type:varchar(500)"` // Note of Booking
+
+	CmsUser    string `json:"cms_user" gorm:"type:varchar(100)"`     // Cms User
+	CmsUserLog string `json:"cms_user_log" gorm:"type:varchar(200)"` // Cms User Log
+
+	// Caddie Id
+	CaddieBooking string `json:"caddie_booking" gorm:"type:varchar(50)"`
+
+	// Agency Id
+	AgencyId   int64          `json:"agency_id" gorm:"index"` // Agency
+	AgencyInfo *BookingAgency `json:"agency_info" gorm:"type:json"`
+
+	BookingCode string `json:"booking_code" gorm:"type:varchar(100);index"` // cho case tạo nhiều booking có cùng booking code
 }
 
 func (item *BookingWaiting) Create(db *gorm.DB) error {
@@ -74,20 +104,16 @@ func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]Boo
 		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
 
-	if item.BookingTime != "" {
-		db = db.Where("booking_time = ?", item.BookingTime)
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
 	}
 
-	if item.PlayerContact != "" {
-		db = db.Where("player_contact COLLATE utf8mb4_general_ci LIKE ?", "%"+item.PlayerContact+"%")
+	if item.CustomerBookingPhone != "" {
+		db = db.Where("player_contact COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CustomerBookingPhone+"%")
 	}
 
 	if item.BookingCode != "" {
 		db = db.Where("booking_code COLLATE utf8mb4_general_ci LIKE ?", "%"+item.BookingCode+"%")
-	}
-
-	if item.PlayerName != "" {
-		db = db.Where("player_name COLLATE utf8mb4_general_ci LIKE ? OR player_contact COLLATE utf8mb4_general_ci LIKE ? OR booking_code COLLATE utf8mb4_general_ci LIKE ?", "%"+item.PlayerName+"%", "%"+item.PlayerName+"%", "%"+item.PlayerName+"%")
 	}
 
 	db.Count(&total)
@@ -111,8 +137,8 @@ func (item *BookingWaiting) FindAll(database *gorm.DB) ([]BookingWaiting, int64,
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 
-	if item.BookingTime != "" {
-		db = db.Where("booking_time = ?", item.BookingTime)
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
 	}
 
 	db.Count(&total)
@@ -126,4 +152,30 @@ func (item *BookingWaiting) Delete(db *gorm.DB) error {
 		return errors.New("Primary key is undefined!")
 	}
 	return db.Delete(item).Error
+}
+
+func (item *BookingWaiting) IsDuplicated(db *gorm.DB, checkTeeTime, checkBag bool) (bool, error) {
+
+	if item.TeeTime == "" {
+		return false, nil
+	}
+	//Check turn time đã tồn tại
+	if checkTeeTime {
+		booking := BookingWaiting{
+			PartnerUid:  item.PartnerUid,
+			CourseUid:   item.CourseUid,
+			TeeTime:     item.TeeTime,
+			TurnTime:    item.TurnTime,
+			BookingDate: item.BookingDate,
+			TeeType:     item.TeeType,
+			CourseType:  item.CourseType,
+		}
+
+		errFind := booking.FindFirst(db)
+		if errFind == nil {
+			return true, errors.New("Duplicated TeeTime")
+		}
+	}
+
+	return false, nil
 }
