@@ -113,7 +113,7 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 	}
 
 	//Update trạng thái của các old caddie
-	if response.OldCaddie.Id > 0 && response.OldCaddie.Status == constants.CADDIE_CURRENT_STATUS_LOCK {
+	if response.OldCaddie.Id > 0 {
 		udpCaddieOut(db, response.OldCaddie.Id)
 	}
 
@@ -644,7 +644,9 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 			}
 
 			go addBuggyCaddieInOutNote(db, caddieOutNote)
+
 			go updateCaddieOutSlot(partnerUid, courseUid, []string{booking.CaddieInfo.Code})
+
 			opLog := models.OperationLog{
 				PartnerUid:  booking.PartnerUid,
 				CourseUid:   booking.CourseUid,
@@ -664,6 +666,7 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 				BookingUid:  booking.Uid,
 			}
 			go createOperationLog(opLog)
+
 		}
 	}
 

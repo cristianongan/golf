@@ -5,7 +5,7 @@ import (
 	"start/config"
 	"start/datasources"
 	"start/logger"
-	socket_room "start/socket_room"
+	socket "start/socket"
 	"start/utils"
 
 	ccron "start/cron"
@@ -31,9 +31,8 @@ func Init() {
 	// --- Socket ---
 
 	// socket.GetHubSocket() = socket.NewHub()
-	// socket.InitHubSocket()
-	// go socket.GetHubSocket().Run()
-	go socket_room.Hub.Run()
+	socket.InitHubSocket()
+	go socket.GetHubSocket().Run()
 
 	// http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 	// 	socket.ServeWs(socket.GetHubSocket(), w, r)
