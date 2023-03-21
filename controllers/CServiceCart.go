@@ -392,7 +392,6 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 		UserName:    prof.UserName,
 		UserUid:     prof.Uid,
 		Module:      constants.OP_LOG_MODULE_GO,
-		Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
 		Action:      constants.OP_LOG_ACTION_ADD_ITEM,
 		Body:        models.JsonDataLog{Data: body},
 		ValueOld:    models.JsonDataLog{},
@@ -408,16 +407,14 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 	if body.LocationType == "GO" {
 		opLog.Module = constants.OP_LOG_MODULE_GO
 		opLog.Function = constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE
-		opLog.Action = constants.OP_LOG_ACTION_ADD_RENTAL
 	} else {
-		if serviceCartItem.ServiceType == constants.RENTAL_SETTING {
+		if serviceCartItem.Type == constants.RENTAL_SETTING {
 			opLog.Function = constants.OP_LOG_FUNCTION_GOLF_CLUB_RENTAL
-		} else if serviceCartItem.ServiceType == constants.DRIVING_SETTING {
+		} else if serviceCartItem.Type == constants.DRIVING_SETTING {
 			opLog.Function = constants.OP_LOG_FUNCTION_DRIVING
 		}
 
 		opLog.Module = constants.OP_LOG_MODULE_POS
-		opLog.Action = constants.OP_LOG_ACTION_ADD_RENTAL
 	}
 
 	go createOperationLog(opLog)
