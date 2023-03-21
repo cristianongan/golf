@@ -7,6 +7,7 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
+	model_booking "start/models/booking"
 	model_service "start/models/service"
 	"start/utils"
 	"start/utils/response_message"
@@ -18,6 +19,50 @@ import (
 )
 
 type CHelper struct{}
+
+type MoveBookingCancelBody struct {
+	PartnerUid  string `json:"partner_uid" binding:"required"`  // Hang Golf
+	CourseUid   string `json:"course_uid" binding:"required"`   // San Golf
+	BookingDate string `json:"booking_date" binding:"required"` // Booking Date
+}
+
+func (_ *CHelper) MoveBookingCancel(c *gin.Context, prof models.CmsUser) {
+	body := MoveBookingCancelBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	if body.BookingDate == "" {
+		response_message.BadRequest(c, "bookingdate is empty")
+		return
+	}
+
+	db := datasources.GetDatabase()
+
+	bookingR := model_booking.Booking{
+		BookingDate: body.BookingDate,
+	}
+
+	listBook, err := bookingR.FindAllBookingCancel(db)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+	log.Println("MoveBookingCancel ", len(listBook))
+
+	for _, v := range listBook {
+		if v.BagStatus == constants.BAG_STATUS_CANCEL {
+			bookDel := v.CloneBookingDel()
+			errC := bookDel.Create(db)
+			if errC != nil {
+				log.Println("MoveBookingCancel errC", errC.Error())
+			}
+		}
+	}
+
+	okResponse(c, len(listBook))
+}
 
 func (_ *CHelper) AppLog(c *gin.Context, prof models.CmsUser) {
 	var body map[string]interface{}
