@@ -20,11 +20,11 @@ type CreateBookingWaitingBody struct {
 	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
 
 	// Member Card
-	MemberCardUid        string `json:"member_card_uid"`
-	CustomerName         string `json:"customer_name"`          // Tên khách hàng
-	CustomerBookingName  string `json:"customer_booking_name"`  // Tên khách hàng đặt booking
-	CustomerBookingPhone string `json:"customer_booking_phone"` // SDT khách hàng đặt booking
-	CustomerUid          string `json:"customer_uid"`
+	MemberCardUid        *string `json:"member_card_uid"`
+	CustomerName         string  `json:"customer_name"`          // Tên khách hàng
+	CustomerBookingName  string  `json:"customer_booking_name"`  // Tên khách hàng đặt booking
+	CustomerBookingPhone string  `json:"customer_booking_phone"` // SDT khách hàng đặt booking
+	CustomerUid          string  `json:"customer_uid"`
 
 	Note string `json:"note"` // Note of Booking
 
@@ -32,6 +32,10 @@ type CreateBookingWaitingBody struct {
 	AgencyId    int64   `json:"agency_id"`
 	CaddieCode  *string `json:"caddie_code"`
 	BookingCode string  `json:"booking_code"`
+
+	MemberUidOfGuest  *string `json:"member_uid_of_guest"`
+	MemberNameOfGuest string  `json:"member_name_of_guest"`
+	Id                int64   `json:"id"`
 }
 
 type GetListBookingWaitingForm struct {

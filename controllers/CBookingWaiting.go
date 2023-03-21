@@ -77,10 +77,10 @@ func createBookingWaitingCommon(body request.CreateBookingWaitingBody, c *gin.Co
 
 	// Member Card
 	// Check xem booking guest hay booking member
-	if body.MemberCardUid != "" {
+	if body.MemberCardUid != nil && *body.MemberCardUid != "" {
 		// Get Member Card
 		var memberCard = models.MemberCard{}
-		memberCard.Uid = body.MemberCardUid
+		memberCard.Uid = *body.MemberCardUid
 		errFind := memberCard.FindFirst(db)
 		if errFind != nil {
 			response_message.BadRequest(c, errFind.Error())
@@ -93,7 +93,7 @@ func createBookingWaitingCommon(body request.CreateBookingWaitingBody, c *gin.Co
 			return nil
 		}
 
-		bookingWaiting.MemberCardUid = body.MemberCardUid
+		bookingWaiting.MemberCardUid = *body.MemberCardUid
 		bookingWaiting.CardId = memberCard.CardId
 		bookingWaiting.CustomerName = owner.Name
 		bookingWaiting.CustomerUid = owner.Uid
@@ -105,6 +105,25 @@ func createBookingWaitingCommon(body request.CreateBookingWaitingBody, c *gin.Co
 		guestStyle = memberCard.GetGuestStyle(db)
 	} else {
 		bookingWaiting.CustomerName = body.CustomerName
+	}
+
+	if body.MemberUidOfGuest != nil && *body.MemberUidOfGuest != "" {
+		var memberCardOfGuest = models.MemberCard{}
+		memberCardOfGuest.Uid = body.MemberNameOfGuest
+		errFind := memberCardOfGuest.FindFirst(db)
+		if errFind != nil {
+			response_message.BadRequest(c, errFind.Error())
+			return nil
+		}
+
+		owner, errOwner := memberCardOfGuest.GetOwner(db)
+		if errOwner != nil {
+			response_message.BadRequest(c, errOwner.Error())
+			return nil
+		}
+
+		bookingWaiting.MemberUidOfGuest = *body.MemberUidOfGuest
+		bookingWaiting.MemberNameOfGuest = owner.Name
 	}
 
 	//Agency id
@@ -314,183 +333,208 @@ func (_ *CBookingWaiting) DeleteBookingWaiting(c *gin.Context, prof models.CmsUs
 
 func (_ *CBookingWaiting) UpdateBookingWaiting(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-	caddieIdStr := c.Param("id")
-	caddieId, errId := strconv.ParseInt(caddieIdStr, 10, 64)
-	if errId != nil {
-		response_message.BadRequest(c, errId.Error())
-		return
-	}
 
-	var body request.CreateBookingWaitingBody
-	if bindErr := c.ShouldBind(&body); bindErr != nil {
+	var bodyRequest request.CreateBatchBookingWaitingBody
+	if bindErr := c.ShouldBind(&bodyRequest); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
 		return
 	}
 
-	bookingWaiting := model_booking.BookingWaiting{}
-	bookingWaiting.Id = caddieId
-	bookingWaiting.PartnerUid = prof.PartnerUid
-	bookingWaiting.CourseUid = prof.CourseUid
+	for _, body := range bodyRequest.BookingList {
+		bookingWaiting := model_booking.BookingWaiting{}
+		bookingWaiting.Id = body.Id
+		bookingWaiting.PartnerUid = prof.PartnerUid
+		bookingWaiting.CourseUid = prof.CourseUid
 
-	errF := bookingWaiting.FindFirst(db)
-	if errF != nil {
-		response_message.BadRequest(c, errF.Error())
-		return
-	}
+		errF := bookingWaiting.FindFirst(db)
+		if errF != nil {
+			response_message.BadRequest(c, errF.Error())
+			return
+		}
 
-	// Data old
-	oldData := bookingWaiting
+		// Data old
+		// oldData := bookingWaiting
 
-	// Check Guest of member, check member có còn slot đi cùng không
-	guestStyle := ""
+		// Check Guest of member, check member có còn slot đi cùng không
+		guestStyle := ""
 
-	if body.BookingDate != "" {
-		bookingWaiting.BookingDate = body.BookingDate
-	} else {
-		dateDisplay, errDate := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
-		if errDate == nil {
-			bookingWaiting.BookingDate = dateDisplay
+		if body.BookingDate != "" {
+			bookingWaiting.BookingDate = body.BookingDate
 		} else {
-			log.Println("booking date display err ", errDate.Error())
-		}
-	}
-
-	//Check duplicated
-	// isDuplicated, _ := bookingWaiting.IsDuplicated(db, true, true)
-	// if isDuplicated {
-	// 	response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-	// 	return nil
-	// }
-
-	// Member Card
-	// Check xem booking guest hay booking member
-	if body.MemberCardUid != "" && body.MemberCardUid != bookingWaiting.MemberCardUid {
-		// Get Member Card
-		var memberCard = models.MemberCard{}
-		memberCard.Uid = body.MemberCardUid
-		errFind := memberCard.FindFirst(db)
-		if errFind != nil {
-			response_message.BadRequest(c, errFind.Error())
-			return
+			dateDisplay, errDate := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+			if errDate == nil {
+				bookingWaiting.BookingDate = dateDisplay
+			} else {
+				log.Println("booking date display err ", errDate.Error())
+			}
 		}
 
-		owner, errOwner := memberCard.GetOwner(db)
-		if errOwner != nil {
-			response_message.BadRequest(c, errOwner.Error())
-			return
+		// Member Card
+		// Check xem booking guest hay booking member
+		if body.MemberCardUid != nil {
+			if *body.MemberCardUid != "" {
+				if *body.MemberCardUid != bookingWaiting.MemberCardUid {
+					// Get Member Card
+					var memberCard = models.MemberCard{}
+					memberCard.Uid = *body.MemberCardUid
+					errFind := memberCard.FindFirst(db)
+					if errFind != nil {
+						response_message.BadRequest(c, errFind.Error())
+						return
+					}
+
+					owner, errOwner := memberCard.GetOwner(db)
+					if errOwner != nil {
+						response_message.BadRequest(c, errOwner.Error())
+						return
+					}
+
+					bookingWaiting.MemberCardUid = *body.MemberCardUid
+					bookingWaiting.CardId = memberCard.CardId
+					bookingWaiting.CustomerName = owner.Name
+					bookingWaiting.CustomerUid = owner.Uid
+					bookingWaiting.CustomerType = owner.Type
+
+					cus := convertToCustomerSqlIntoBooking(owner)
+					bookingWaiting.CustomerInfo = &cus
+
+					guestStyle = memberCard.GetGuestStyle(db)
+				}
+			} else {
+				bookingWaiting.MemberCardUid = ""
+				bookingWaiting.CardId = ""
+				bookingWaiting.CustomerUid = ""
+				bookingWaiting.CustomerType = ""
+				bookingWaiting.CustomerInfo = &model_booking.CustomerInfo{}
+			}
+		} else {
+			bookingWaiting.CustomerName = body.CustomerName
 		}
 
-		bookingWaiting.MemberCardUid = body.MemberCardUid
-		bookingWaiting.CardId = memberCard.CardId
-		bookingWaiting.CustomerName = owner.Name
-		bookingWaiting.CustomerUid = owner.Uid
-		bookingWaiting.CustomerType = owner.Type
+		if body.MemberCardUid != nil {
+			if *body.MemberCardUid != "" {
+				if *body.MemberCardUid != bookingWaiting.MemberCardUid {
+					var memberCardOfGuest = models.MemberCard{}
+					memberCardOfGuest.Uid = body.MemberNameOfGuest
+					errFind := memberCardOfGuest.FindFirst(db)
+					if errFind != nil {
+						response_message.BadRequest(c, errFind.Error())
+						return
+					}
 
-		cus := convertToCustomerSqlIntoBooking(owner)
-		bookingWaiting.CustomerInfo = &cus
+					owner, errOwner := memberCardOfGuest.GetOwner(db)
+					if errOwner != nil {
+						response_message.BadRequest(c, errOwner.Error())
+						return
+					}
 
-		guestStyle = memberCard.GetGuestStyle(db)
-	} else {
-		bookingWaiting.CustomerName = body.CustomerName
-	}
-
-	//Agency id
-	if body.AgencyId > 0 && body.AgencyId != bookingWaiting.AgencyId {
-		agency := models.Agency{}
-		agency.Id = body.AgencyId
-		errFindAgency := agency.FindFirst(db)
-		if errFindAgency != nil || agency.Id == 0 {
-			response_message.BadRequest(c, errFindAgency.Error())
-			return
+					bookingWaiting.MemberUidOfGuest = *body.MemberUidOfGuest
+					bookingWaiting.MemberNameOfGuest = owner.Name
+				}
+			} else {
+				bookingWaiting.MemberUidOfGuest = ""
+				bookingWaiting.MemberNameOfGuest = ""
+			}
 		}
 
-		agencyBooking := cloneToAgencyBooking(agency)
-		bookingWaiting.AgencyInfo = &agencyBooking
-		bookingWaiting.AgencyId = body.AgencyId
-		bookingWaiting.CustomerType = agency.Type
-		guestStyle = agency.GuestStyle
-	}
+		//Agency id
+		if body.AgencyId > 0 && body.AgencyId != bookingWaiting.AgencyId {
+			agency := models.Agency{}
+			agency.Id = body.AgencyId
+			errFindAgency := agency.FindFirst(db)
+			if errFindAgency != nil || agency.Id == 0 {
+				response_message.BadRequest(c, errFindAgency.Error())
+				return
+			}
 
-	if body.CustomerUid != "" && body.CustomerUid != bookingWaiting.CustomerUid {
-		//check customer
-		customer := models.CustomerUser{}
-		customer.Uid = body.CustomerUid
-		errFindCus := customer.FindFirst(db)
-		if errFindCus != nil || customer.Uid == "" {
-			response_message.BadRequest(c, "customer"+errFindCus.Error())
-			return
+			agencyBooking := cloneToAgencyBooking(agency)
+			bookingWaiting.AgencyInfo = &agencyBooking
+			bookingWaiting.AgencyId = body.AgencyId
+			bookingWaiting.CustomerType = agency.Type
+			guestStyle = agency.GuestStyle
 		}
 
-		bookingWaiting.CustomerName = customer.Name
+		if body.CustomerUid != "" && body.CustomerUid != bookingWaiting.CustomerUid {
+			//check customer
+			customer := models.CustomerUser{}
+			customer.Uid = body.CustomerUid
+			errFindCus := customer.FindFirst(db)
+			if errFindCus != nil || customer.Uid == "" {
+				response_message.BadRequest(c, "customer"+errFindCus.Error())
+				return
+			}
 
-		cus := convertToCustomerSqlIntoBooking(customer)
-		bookingWaiting.CustomerInfo = &cus
-		bookingWaiting.CustomerUid = body.CustomerUid
-	}
+			bookingWaiting.CustomerName = customer.Name
 
-	bookingWaiting.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
+			cus := convertToCustomerSqlIntoBooking(customer)
+			bookingWaiting.CustomerInfo = &cus
+			bookingWaiting.CustomerUid = body.CustomerUid
+		}
 
-	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
-	if body.GuestStyle != "" && guestStyle != body.GuestStyle {
-		guestStyle = body.GuestStyle
-	}
+		bookingWaiting.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 
-	// Update caddie
-	if body.CaddieCode != nil && *body.CaddieCode != "" {
-		caddieList := models.CaddieList{}
-		caddieList.CourseUid = body.CourseUid
-		caddieList.CaddieCode = *body.CaddieCode
-		caddieNew, err := caddieList.FindFirst(db)
+		// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
+		if body.GuestStyle != "" && guestStyle != body.GuestStyle {
+			guestStyle = body.GuestStyle
+		}
+
+		// Update caddie
+		if body.CaddieCode != nil && *body.CaddieCode != "" {
+			caddieList := models.CaddieList{}
+			caddieList.CourseUid = body.CourseUid
+			caddieList.CaddieCode = *body.CaddieCode
+			caddieNew, err := caddieList.FindFirst(db)
+			if err != nil {
+				response_message.BadRequestFreeMessage(c, "Caddie "+err.Error())
+				return
+			}
+
+			// check caddie booking
+			bookingWaiting.CaddieBooking = caddieNew.Code
+		}
+
+		if body.CustomerName != "" {
+			bookingWaiting.CustomerName = body.CustomerName
+		}
+
+		if body.CustomerBookingName != "" {
+			bookingWaiting.CustomerBookingName = body.CustomerBookingName
+		}
+
+		if body.CustomerBookingPhone != "" {
+			bookingWaiting.CustomerBookingPhone = body.CustomerBookingPhone
+		}
+
+		if body.BookingCode == "" {
+			bookingCode := utils.HashCodeUuid(uuid.New().String())
+			bookingWaiting.BookingCode = bookingCode
+		} else {
+			bookingWaiting.BookingCode = body.BookingCode
+		}
+
+		err := bookingWaiting.Update(db)
 		if err != nil {
-			response_message.BadRequestFreeMessage(c, "Caddie "+err.Error())
+			response_message.InternalServerError(c, err.Error())
 			return
 		}
-
-		// check caddie booking
-		bookingWaiting.CaddieBooking = caddieNew.Code
 	}
 
-	if body.CustomerName != "" {
-		bookingWaiting.CustomerName = body.CustomerName
-	}
-
-	if body.CustomerBookingName != "" {
-		bookingWaiting.CustomerBookingName = body.CustomerBookingName
-	}
-
-	if body.CustomerBookingPhone != "" {
-		bookingWaiting.CustomerBookingPhone = body.CustomerBookingPhone
-	}
-
-	if body.BookingCode == "" {
-		bookingCode := utils.HashCodeUuid(uuid.New().String())
-		bookingWaiting.BookingCode = bookingCode
-	} else {
-		bookingWaiting.BookingCode = body.BookingCode
-	}
-
-	err := bookingWaiting.Update(db)
-	if err != nil {
-		response_message.InternalServerError(c, err.Error())
-		return
-	}
-
-	opLog := models.OperationLog{
-		PartnerUid:  body.PartnerUid,
-		CourseUid:   body.CourseUid,
-		UserName:    prof.UserName,
-		UserUid:     prof.Uid,
-		Module:      constants.OP_LOG_MODULE_RECEPTION,
-		Function:    constants.OP_LOG_FUNCTION_WAITTING_LIST,
-		Action:      constants.OP_LOG_ACTION_UPDATE,
-		Body:        models.JsonDataLog{Data: body},
-		ValueOld:    models.JsonDataLog{Data: oldData},
-		ValueNew:    models.JsonDataLog{Data: bookingWaiting},
-		Path:        c.Request.URL.Path,
-		Method:      c.Request.Method,
-		BookingDate: bookingWaiting.BookingDate,
-	}
-	go createOperationLog(opLog)
+	// opLog := models.OperationLog{
+	// 	PartnerUid:  body.PartnerUid,
+	// 	CourseUid:   body.CourseUid,
+	// 	UserName:    prof.UserName,
+	// 	UserUid:     prof.Uid,
+	// 	Module:      constants.OP_LOG_MODULE_RECEPTION,
+	// 	Function:    constants.OP_LOG_FUNCTION_WAITTING_LIST,
+	// 	Action:      constants.OP_LOG_ACTION_UPDATE,
+	// 	Body:        models.JsonDataLog{Data: body},
+	// 	ValueOld:    models.JsonDataLog{Data: oldData},
+	// 	ValueNew:    models.JsonDataLog{Data: bookingWaiting},
+	// 	Path:        c.Request.URL.Path,
+	// 	Method:      c.Request.Method,
+	// 	BookingDate: bookingWaiting.BookingDate,
+	// }
+	// go createOperationLog(opLog)
 
 	okRes(c)
 }

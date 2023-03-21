@@ -597,7 +597,7 @@ func NewRouter() *gin.Engine {
 			cBookingWaiting := new(controllers.CBookingWaiting)
 			cmsApiAuthorized.POST("/booking-waiting", middlewares.AuthorizedCmsUserHandler(cBookingWaiting.CreateBookingWaitingList))
 			cmsApiAuthorized.GET("/booking-waiting/list", middlewares.AuthorizedCmsUserHandler(cBookingWaiting.GetBookingWaitingList))
-			cmsApiAuthorized.PUT("/booking-waiting/:id", middlewares.AuthorizedCmsUserHandler(cBookingWaiting.UpdateBookingWaiting))
+			cmsApiAuthorized.PUT("/booking-waiting", middlewares.AuthorizedCmsUserHandler(cBookingWaiting.UpdateBookingWaiting))
 			cmsApiAuthorized.DELETE("/booking-waiting/:id", middlewares.AuthorizedCmsUserHandler(cBookingWaiting.DeleteBookingWaiting))
 
 			/// =================== Booking Source =====================

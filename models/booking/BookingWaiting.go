@@ -51,6 +51,9 @@ type BookingWaiting struct {
 	AgencyInfo *BookingAgency `json:"agency_info" gorm:"type:json"`
 
 	BookingCode string `json:"booking_code" gorm:"type:varchar(100);index"` // cho case tạo nhiều booking có cùng booking code
+
+	MemberUidOfGuest  string `json:"member_uid_of_guest" gorm:"type:varchar(50);index"` // Member của Guest đến chơi cùng
+	MemberNameOfGuest string `json:"member_name_of_guest" gorm:"type:varchar(200)"`     // Member của Guest đến chơi cùng
 }
 
 func (item *BookingWaiting) Create(db *gorm.DB) error {
