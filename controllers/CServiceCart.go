@@ -1820,7 +1820,7 @@ func addLog(c *gin.Context, prof models.CmsUser, serviceCartItem model_booking.B
 		Path:        c.Request.URL.Path,
 		Method:      c.Request.Method,
 		Bag:         serviceCartItem.Bag,
-		BookingDate: "",
+		BookingDate: utils.GetCurrentDay1(),
 		BillCode:    serviceCartItem.BillCode,
 		BookingUid:  serviceCartItem.BookingUid,
 	}
