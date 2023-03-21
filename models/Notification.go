@@ -24,6 +24,10 @@ type Notification struct {
 	Note               string `json:"note" gorm:"type:varchar(500)"`
 	Content            []byte `json:"content" gorm:"type:json"`
 	DateApproved       int64  `json:"date_approved"`
+	Role               string `json:"role"`
+}
+
+type NotificationResponse struct {
 }
 
 type CaddieContentNoti struct {
