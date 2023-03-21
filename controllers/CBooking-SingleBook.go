@@ -556,7 +556,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 				response_message.InternalServerError(c, errCancel.Error())
 				return
 			} else {
-				errCreateDel := bookDel.Create(db)
+				errCreateDel := bookDel.Create(db1)
 				if errCreateDel != nil {
 					log.Println("CancelAllBooking err", errCreateDel.Error())
 				}
