@@ -734,7 +734,7 @@ func (item *Booking) UpdateSubBagForBooking(database *gorm.DB) {
 	}
 }
 
-//MAIN-SUB Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
+// MAIN-SUB Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
 func (item *Booking) UpdateAgencyPaidForBooking(database *gorm.DB, isAgencyPaid bool) {
 	db := database.Model(Booking{})
 	bookingR := BookingList{}
@@ -823,6 +823,17 @@ func (item *Booking) FindAllBookingCheckIn(database *gorm.DB, bookingDate string
 		db = db.Where("booking_date = ?", bookingDate)
 		db = db.Where("bag_status = ?", constants.BAG_STATUS_WAITING)
 	}
+
+	db.Find(&list)
+	return list, db.Error
+}
+
+func (item *Booking) FindAllBookingCancel(database *gorm.DB) ([]Booking, error) {
+	db := database.Model(Booking{})
+	list := []Booking{}
+
+	db = db.Where("booking_date = ?", item.BookingDate)
+	db = db.Where("bag_status = ?", constants.BAG_STATUS_CANCEL)
 
 	db.Find(&list)
 	return list, db.Error
