@@ -45,7 +45,7 @@ func (_ *CHelper) MoveBookingCancel(c *gin.Context, prof models.CmsUser) {
 	}
 
 	listBook, err := bookingR.FindAllBookingCancel(db)
-	if err == nil {
+	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
