@@ -144,7 +144,13 @@ func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]Get
 		db = db.Where("booking_code COLLATE utf8mb4_general_ci LIKE ?", "%"+item.BookingCode+"%")
 	}
 
-	db = db.Select("booking_waitings.*, JSON_ARRAYAGG(JSON_OBJECT('customer_name', customer_name , 'caddie_booking', caddie_booking, 'guest_style', guest_style, 'card_id', card_id, 'member_card_uid', member_card_uid)) as players")
+	db = db.Select(`booking_waitings.*, 
+					JSON_ARRAYAGG(JSON_OBJECT(
+					'customer_name', customer_name,
+					'caddie_booking', caddie_booking,
+					'guest_style', guest_style,
+					'card_id', card_id,
+					'member_card_uid', member_card_uid)) as players`)
 	db = db.Group("booking_code,tee_time")
 	db.Count(&total)
 
