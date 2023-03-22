@@ -55,7 +55,13 @@ type UpdateBookingWaiting struct {
 }
 
 type DeleteBookingWaiting struct {
-	BookingCode string `json:"booking_code"`
+	PartnerUid  string `json:"partner_uid" binding:"required"` // Hang Golf
+	CourseUid   string `json:"course_uid" binding:"required"`  // San Golf
+	BookingCode string `json:"booking_code" binding:"required"`
+	TeeType     string `json:"tee_type" binding:"required"`
+	TeeTime     string `json:"tee_time" binding:"required"`
+	CourseType  string `json:"course_type" binding:"required"`
+	BookingDate string `json:"booking_date" binding:"required"`
 }
 
 type CreateBatchBookingWaitingBody struct {

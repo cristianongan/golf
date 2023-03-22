@@ -340,7 +340,13 @@ func (_ *CBookingWaiting) DeleteBookingWaitingByBookingCode(c *gin.Context, prof
 	}
 
 	bookingWaitingRequest := model_booking.BookingWaiting{}
+	bookingWaitingRequest.PartnerUid = bodyRequest.PartnerUid
+	bookingWaitingRequest.CourseUid = bodyRequest.CourseUid
+	bookingWaitingRequest.TeeTime = bodyRequest.TeeTime
+	bookingWaitingRequest.TeeType = bodyRequest.TeeType
+	bookingWaitingRequest.CourseType = bodyRequest.CourseType
 	bookingWaitingRequest.BookingCode = bodyRequest.BookingCode
+	bookingWaitingRequest.BookingDate = bodyRequest.BookingDate
 
 	errF := bookingWaitingRequest.DeleteByBookingCode(db)
 

@@ -64,6 +64,7 @@ type GetBookingWaitingResponse struct {
 }
 
 type PlayerBookingWaiting struct {
+	Id            int64  `json:"id"`
 	CaddieBooking string `json:"caddie_booking,omitempty"`
 	CustomerName  string `json:"customer_name"`
 	GuestStyle    string `json:"guest_style,omitempty"`
@@ -188,6 +189,9 @@ func (item *BookingWaiting) DeleteByBookingCode(database *gorm.DB) error {
 	list := []BookingWaiting{}
 
 	db = db.Where("booking_code = ?", item.BookingCode)
+	db = db.Where("tee_time = ?", item.TeeTime)
+	db = db.Where("course_type = ?", item.CourseType)
+	db = db.Where("tee_type = ?", item.TeeType)
 
 	db = db.Delete(&list)
 	return db.Error
