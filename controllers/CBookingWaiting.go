@@ -11,6 +11,7 @@ import (
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -165,6 +166,38 @@ func createBookingWaitingCommon(body request.CreateBookingWaitingBody, c *gin.Co
 	// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
 	if body.GuestStyle != "" && guestStyle != body.GuestStyle {
 		guestStyle = body.GuestStyle
+	}
+
+	if guestStyle != "" {
+		golfFeeModel := models.GolfFee{
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+			GuestStyle: guestStyle,
+		}
+
+		if errGS := golfFeeModel.FindFirst(db); errGS != nil {
+			response_message.InternalServerError(c, "guest style not found ")
+		}
+
+		// Lấy phí bởi Guest style với ngày tạo
+		golfFee := models.GolfFee{}
+		var errFindGF error
+
+		if bookingWaiting.BookingDate != "" {
+			timeDate, _ := time.Parse(constants.DATE_FORMAT_1, bookingWaiting.BookingDate)
+			golfFee, errFindGF = golfFeeModel.GetGuestStyleOnTime(db, timeDate)
+			if errFindGF != nil {
+				response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+			}
+		} else {
+			golfFee, errFindGF = golfFeeModel.GetGuestStyleOnDay(db)
+			if errFindGF != nil {
+				response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+			}
+		}
+
+		bookingWaiting.GuestStyle = guestStyle
+		bookingWaiting.GuestStyleName = golfFee.GuestStyleName
 	}
 
 	// Update caddie
@@ -520,6 +553,38 @@ func (_ *CBookingWaiting) UpdateBookingWaiting(c *gin.Context, prof models.CmsUs
 		// Nếu guestyle truyền lên khác với gs của agency or member thì lấy gs truyền lên
 		if body.GuestStyle != "" && guestStyle != body.GuestStyle {
 			guestStyle = body.GuestStyle
+		}
+
+		if guestStyle != "" {
+			golfFeeModel := models.GolfFee{
+				PartnerUid: body.PartnerUid,
+				CourseUid:  body.CourseUid,
+				GuestStyle: guestStyle,
+			}
+
+			if errGS := golfFeeModel.FindFirst(db); errGS != nil {
+				response_message.InternalServerError(c, "guest style not found ")
+			}
+
+			// Lấy phí bởi Guest style với ngày tạo
+			golfFee := models.GolfFee{}
+			var errFindGF error
+
+			if bookingWaiting.BookingDate != "" {
+				timeDate, _ := time.Parse(constants.DATE_FORMAT_1, bookingWaiting.BookingDate)
+				golfFee, errFindGF = golfFeeModel.GetGuestStyleOnTime(db, timeDate)
+				if errFindGF != nil {
+					response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+				}
+			} else {
+				golfFee, errFindGF = golfFeeModel.GetGuestStyleOnDay(db)
+				if errFindGF != nil {
+					response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
+				}
+			}
+
+			bookingWaiting.GuestStyle = guestStyle
+			bookingWaiting.GuestStyleName = golfFee.GuestStyleName
 		}
 
 		// Update caddie

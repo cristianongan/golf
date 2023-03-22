@@ -151,6 +151,7 @@ func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]Get
 					'caddie_booking', caddie_booking,
 					'guest_style', guest_style,
 					'card_id', card_id,
+					'id', id,
 					'member_card_uid', member_card_uid)) as players`)
 	db = db.Group("booking_code,tee_time")
 	db.Count(&total)
@@ -192,6 +193,7 @@ func (item *BookingWaiting) DeleteByBookingCode(database *gorm.DB) error {
 	db = db.Where("tee_time = ?", item.TeeTime)
 	db = db.Where("course_type = ?", item.CourseType)
 	db = db.Where("tee_type = ?", item.TeeType)
+	db = db.Where("booking_date = ?", item.BookingDate)
 
 	db = db.Delete(&list)
 	return db.Error
