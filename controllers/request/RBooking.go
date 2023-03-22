@@ -327,7 +327,7 @@ type UpdateBooking struct {
 	CustomerIdentify     string `json:"customer_identify"`      // passport/cccd
 	Nationality          string `json:"nationality"`            // Nationality
 
-	NoteOfBooking string `json:"note_of_booking"` // Note of Booking
+	NoteOfBooking *string `json:"note_of_booking"` // Note of Booking
 
 	// Member Card
 	MemberCardUid *string `json:"member_card_uid"`
@@ -351,8 +351,8 @@ type UpdateBooking struct {
 	IsPrivateBuggy     *bool                   `json:"is_private_buggy"`
 	FeeInfo            *AgencyFeeInfo          `json:"fee_info"`
 	AgencyPaidAll      *bool                   `json:"agency_paid_all"`
-	NoteOfBag          string                  `json:"note_of_bag" gorm:"type:varchar(500)"`    // Note of Bag
-	NoteOfGo           string                  `json:"note_of_go" gorm:"type:varchar(500)"`     // Note khi trong GO
+	NoteOfBag          *string                 `json:"note_of_bag" gorm:"type:varchar(500)"`    // Note of Bag
+	NoteOfGo           *string                 `json:"note_of_go" gorm:"type:varchar(500)"`     // Note khi trong GO
 	MainBagPay         utils.ListString        `json:"main_bag_pay,omitempty" gorm:"type:json"` // Main Bag không thanh toán những phần này ở sub bag này
 }
 

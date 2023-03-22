@@ -906,18 +906,18 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Booking Note
-	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
-		booking.NoteOfBag = body.NoteOfBag
+	if body.NoteOfBag != nil {
+		booking.NoteOfBag = *body.NoteOfBag
 		go createBagsNoteNoteOfBag(db, booking)
 	}
 
-	if body.NoteOfBooking != "" && body.NoteOfBooking != booking.NoteOfBooking {
-		booking.NoteOfBooking = body.NoteOfBooking
+	if body.NoteOfBooking != nil {
+		booking.NoteOfBooking = *body.NoteOfBooking
 		go createBagsNoteNoteOfBooking(db, booking)
 	}
 
-	if body.NoteOfGo != "" {
-		booking.NoteOfGo = body.NoteOfGo
+	if body.NoteOfGo != nil {
+		booking.NoteOfGo = *body.NoteOfGo
 	}
 
 	if body.CustomerName != "" {
@@ -1437,12 +1437,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			// Create payment info
 			handlePayment(db, booking)
 		}
-		// if isAgencyChanged {
-		// 	updateAgencyInfoInPayment(booking)
-		// }
 	}()
-
-	// Update lại thông tin agency cho các round, move flight
 
 	// Update lại round còn thiếu bag
 	cRound := CRound{}
