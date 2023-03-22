@@ -54,6 +54,10 @@ type UpdateBookingWaiting struct {
 	Note          *string `json:"note"`
 }
 
+type DeleteBookingWaiting struct {
+	BookingCode string `json:"booking_code"`
+}
+
 type CreateBatchBookingWaitingBody struct {
 	BookingList ListCreateBatchBookingWaitingBody `json:"booking_list"`
 }

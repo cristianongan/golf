@@ -331,6 +331,44 @@ func (_ *CBookingWaiting) DeleteBookingWaiting(c *gin.Context, prof models.CmsUs
 	okRes(c)
 }
 
+func (_ *CBookingWaiting) DeleteBookingWaitingByBookingCode(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	bodyRequest := request.DeleteBookingWaiting{}
+	if bindErr := c.ShouldBind(&bodyRequest); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	bookingWaitingRequest := model_booking.BookingWaiting{}
+	bookingWaitingRequest.BookingCode = bodyRequest.BookingCode
+
+	errF := bookingWaitingRequest.DeleteByBookingCode(db)
+
+	if errF != nil {
+		response_message.BadRequest(c, errF.Error())
+		return
+	}
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_WAITTING_LIST,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Body:        models.JsonDataLog{Data: bodyRequest},
+		ValueOld:    models.JsonDataLog{Data: bookingWaitingRequest},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: bookingWaitingRequest.BookingDate,
+	}
+	go createOperationLog(opLog)
+
+	okRes(c)
+}
+
 func (_ *CBookingWaiting) UpdateBookingWaiting(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 

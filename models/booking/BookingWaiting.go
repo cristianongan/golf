@@ -1,6 +1,8 @@
 package model_booking
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"start/constants"
 	"start/models"
 	"start/utils"
@@ -56,6 +58,27 @@ type BookingWaiting struct {
 	MemberNameOfGuest string `json:"member_name_of_guest" gorm:"type:varchar(200)"`     // Member của Guest đến chơi cùng
 }
 
+type GetBookingWaitingResponse struct {
+	BookingWaiting
+	Players ListPlayerBookingWaiting `json:"players"` // Agency
+}
+
+type PlayerBookingWaiting struct {
+	CaddieBooking string `json:"caddie_booking"`
+	CustomerName  string `json:"customer_name"`
+	GuestStyle    string `json:"guest_style"`
+}
+
+type ListPlayerBookingWaiting []PlayerBookingWaiting
+
+func (item *ListPlayerBookingWaiting) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListPlayerBookingWaiting) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
 func (item *BookingWaiting) Create(db *gorm.DB) error {
 	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()
@@ -88,9 +111,9 @@ func (item *BookingWaiting) Count(database *gorm.DB) (int64, error) {
 	return total, db.Error
 }
 
-func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]BookingWaiting, int64, error) {
+func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]GetBookingWaitingResponse, int64, error) {
 	db := database.Model(BookingWaiting{})
-	list := []BookingWaiting{}
+	list := []GetBookingWaitingResponse{}
 	total := int64(0)
 	status := item.ModelId.Status
 	item.ModelId.Status = ""
@@ -119,6 +142,8 @@ func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]Boo
 		db = db.Where("booking_code COLLATE utf8mb4_general_ci LIKE ?", "%"+item.BookingCode+"%")
 	}
 
+	db = db.Select("booking_waitings.*, JSON_ARRAYAGG(JSON_OBJECT('customer_name', customer_name , 'caddie_booking', caddie_booking, 'guest_style', guest_style)) as players")
+	db = db.Group("booking_code,tee_time")
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
@@ -148,6 +173,16 @@ func (item *BookingWaiting) FindAll(database *gorm.DB) ([]BookingWaiting, int64,
 
 	db = db.Find(&list)
 	return list, total, db.Error
+}
+
+func (item *BookingWaiting) DeleteByBookingCode(database *gorm.DB) error {
+	db := database.Model(BookingWaiting{})
+	list := []BookingWaiting{}
+
+	db = db.Where("booking_code = ?", item.BookingCode)
+
+	db = db.Delete(&list)
+	return db.Error
 }
 
 func (item *BookingWaiting) Delete(db *gorm.DB) error {
