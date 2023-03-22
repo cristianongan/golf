@@ -64,9 +64,11 @@ type GetBookingWaitingResponse struct {
 }
 
 type PlayerBookingWaiting struct {
-	CaddieBooking string `json:"caddie_booking"`
+	CaddieBooking string `json:"caddie_booking,omitempty"`
 	CustomerName  string `json:"customer_name"`
-	GuestStyle    string `json:"guest_style"`
+	GuestStyle    string `json:"guest_style,omitempty"`
+	CardId        string `json:"card_id,omitempty"`
+	MemberCardUid string `json:"member_card_uid,omitempty"`
 }
 
 type ListPlayerBookingWaiting []PlayerBookingWaiting
@@ -142,12 +144,12 @@ func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]Get
 		db = db.Where("booking_code COLLATE utf8mb4_general_ci LIKE ?", "%"+item.BookingCode+"%")
 	}
 
-	db = db.Select("booking_waitings.*, JSON_ARRAYAGG(JSON_OBJECT('customer_name', customer_name , 'caddie_booking', caddie_booking, 'guest_style', guest_style)) as players")
+	db = db.Select("booking_waitings.*, JSON_ARRAYAGG(JSON_OBJECT('customer_name', customer_name , 'caddie_booking', caddie_booking, 'guest_style', guest_style, 'card_id', card_id, 'member_card_uid', member_card_uid)) as players")
 	db = db.Group("booking_code,tee_time")
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Find(&list)
+		db = page.Setup(db).Debug().Find(&list)
 	}
 	return list, total, db.Error
 }
