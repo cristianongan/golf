@@ -69,10 +69,18 @@ func (_ *CGolfLog) GetGolfLogList(c *gin.Context, prof models.CmsUser) {
 				}
 				errFS := opLogBag.FindFirst()
 				if errFS == nil {
-					listTemp := []models.OperationLog{}
-					listTemp = append(listTemp, opLogBag)
-					list = append(list, listTemp...)
-					total += 1
+					isCanAdd := true
+					for _, opLogTemp := range list {
+						if opLogTemp.Action == constants.OP_LOG_ACTION_CREATE && opLogTemp.Bag == opLogBag.Bag && opLogTemp.BookingUid == opLogBag.BookingUid {
+							isCanAdd = false
+						}
+					}
+					if isCanAdd {
+						listTemp := []models.OperationLog{}
+						listTemp = append(listTemp, opLogBag)
+						list = append(list, listTemp...)
+						total += 1
+					}
 				}
 			}
 		}
