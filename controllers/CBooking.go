@@ -352,26 +352,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			booking.CaddieId = caddieNew.Id
 			booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 			booking.HasBookCaddie = true
-
-			opLog := models.OperationLog{
-				PartnerUid:  booking.PartnerUid,
-				CourseUid:   booking.CourseUid,
-				UserName:    prof.UserName,
-				UserUid:     prof.Uid,
-				Module:      constants.OP_LOG_MODULE_RECEPTION,
-				Function:    constants.OP_LOG_FUNCTION_BOOKING,
-				Action:      constants.OP_LOG_ACTION_BOOK_CADDIE,
-				Body:        models.JsonDataLog{Data: body},
-				ValueOld:    models.JsonDataLog{},
-				ValueNew:    models.JsonDataLog{Data: booking.CaddieBooking},
-				Path:        c.Request.URL.Path,
-				Method:      c.Request.Method,
-				Bag:         booking.Bag,
-				BookingDate: booking.BookingDate,
-				BillCode:    booking.BillCode,
-				BookingUid:  bUid,
-			}
-			go createOperationLog(opLog)
 		}
 	}
 
@@ -424,28 +404,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
 		return nil, errC
-	}
-
-	if body.Bag != "" {
-		opLog := models.OperationLog{
-			PartnerUid:  booking.PartnerUid,
-			CourseUid:   booking.CourseUid,
-			UserName:    prof.UserName,
-			UserUid:     prof.Uid,
-			Module:      constants.OP_LOG_MODULE_RECEPTION,
-			Function:    constants.OP_LOG_FUNCTION_BOOKING,
-			Action:      constants.OP_LOG_ACTION_INPUT_BAG_BOOKING,
-			Body:        models.JsonDataLog{Data: body},
-			ValueOld:    models.JsonDataLog{},
-			ValueNew:    models.JsonDataLog{Data: booking.Bag},
-			Path:        c.Request.URL.Path,
-			Method:      c.Request.Method,
-			Bag:         booking.Bag,
-			BookingDate: booking.BookingDate,
-			BillCode:    booking.BillCode,
-			BookingUid:  booking.Uid,
-		}
-		go createOperationLog(opLog)
 	}
 
 	if body.MemberUidOfGuest != "" && guestStyle != "" && memberCard.Uid != "" {
