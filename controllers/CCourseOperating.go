@@ -817,7 +817,7 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 	// validate booking_uid
 	booking, err := cCourseOperating.validateBooking(db, body.BookingUid)
 	if err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequestFreeMessage(c, err.Error())
 		return
 	}
 
@@ -932,7 +932,7 @@ func (cCourseOperating *CCourseOperating) DeleteAttach(c *gin.Context, prof mode
 	// Check booking
 	booking, err := cCourseOperating.validateBooking(db, body.BookingUid)
 	if err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequestFreeMessage(c, err.Error())
 		return
 	}
 
@@ -1086,7 +1086,7 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 	// validate booking_uid
 	booking, err := cCourseOperating.validateBooking(db, body.BookingUid)
 	if err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequestFreeMessage(c, err.Error())
 		return
 	}
 
@@ -1213,7 +1213,7 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 
 	booking, err := cCourseOperating.validateBooking(db, body.BookingUid)
 	if err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequestFreeMessage(c, err.Error())
 		return
 	}
 
@@ -1743,23 +1743,13 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 	// validate booking_uid
 	booking, err := cCourseOperating.validateBooking(db, body.BookingUid)
 	if err != nil {
-		response_message.InternalServerError(c, err.Error())
+		response_message.BadRequestFreeMessage(c, err.Error())
 		return
 	}
 
 	// validate golf_bag
 	if booking.Bag != body.GolfBag {
 		response_message.InternalServerError(c, "Booking uid and golf bag do not match")
-		return
-	}
-
-	if *booking.LockBill {
-		response_message.BadRequestFreeMessage(c, "Bag "+booking.Bag+" đã lock")
-		return
-	}
-
-	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-		response_message.BadRequestFreeMessage(c, "Bag "+booking.Bag+" đã check out!")
 		return
 	}
 
