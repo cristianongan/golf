@@ -1376,6 +1376,7 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 			ItemName:  proshop.VieName,
 			Unit:      proshop.Unit,
 			GroupType: proshop.Type,
+			GroupName: proshop.GroupName,
 		}, nil
 	}
 
@@ -1391,6 +1392,7 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 			ItemName:  fb.VieName,
 			Unit:      fb.Unit,
 			GroupType: fb.Type,
+			GroupName: proshop.GroupName,
 		}, nil
 	}
 
@@ -1406,6 +1408,7 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 			ItemName:  rental.VieName,
 			Unit:      rental.Unit,
 			GroupType: rental.Type,
+			GroupName: proshop.GroupName,
 		}, nil
 	}
 
