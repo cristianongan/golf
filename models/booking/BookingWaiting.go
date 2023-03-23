@@ -6,7 +6,6 @@ import (
 	"start/constants"
 	"start/models"
 	"start/utils"
-	"strings"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -118,8 +117,6 @@ func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]Get
 	db := database.Model(BookingWaiting{})
 	list := []GetBookingWaitingResponse{}
 	total := int64(0)
-	status := item.ModelId.Status
-	item.ModelId.Status = ""
 
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
@@ -127,10 +124,6 @@ func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]Get
 
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
-	}
-
-	if status != "" {
-		db = db.Where("status in (?)", strings.Split(status, ","))
 	}
 
 	if item.BookingDate != "" {
@@ -145,6 +138,7 @@ func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]Get
 		db = db.Where("booking_code COLLATE utf8mb4_general_ci LIKE ?", "%"+item.BookingCode+"%")
 	}
 
+	db = db.Not("status = ?", constants.STATUS_DELETED)
 	db = db.Select(`booking_waitings.*, 
 					JSON_ARRAYAGG(JSON_OBJECT(
 					'customer_name', customer_name,

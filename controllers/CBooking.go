@@ -487,6 +487,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 	}
 
+	// Nếu booking từ waiting
+	if body.BookingWaitingId > 0 {
+		go deleteBookingWaiting(db, body.BookingWaitingId)
+	}
+
 	return &booking, nil
 }
 
