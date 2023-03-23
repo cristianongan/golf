@@ -77,7 +77,7 @@ func MethodInputBill(c *gin.Context, prof *models.CmsUser, body request.CreateBi
 		}
 
 		if errFindGoodsService := goodsService.FindFirst(db); errFindGoodsService != nil {
-			return errFindGoodsService
+
 		}
 
 		inputItem.ItemInfo = kiosk_inventory.ItemInfo{

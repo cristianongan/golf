@@ -1380,7 +1380,9 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 	}
 
 	fb := model_service.FoodBeverage{
-		FBCode: itemCode,
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+		FBCode:     itemCode,
 	}
 
 	if err := fb.FindFirst(db); err == nil {
@@ -1393,7 +1395,9 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 	}
 
 	rental := model_service.Rental{
-		RentalId: itemCode,
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+		RentalId:   itemCode,
 	}
 
 	if err := rental.FindFirst(db); err == nil {
