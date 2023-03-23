@@ -1172,6 +1172,8 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequest(c, "Bag transfer is not the same as current bag")
 		return
 	}
+	//
+	dataOld := sourceServiceCart
 
 	// validate golf bag source
 	bookingS := model_booking.Booking{}
@@ -1292,7 +1294,25 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	opLog := models.OperationLog{
+	opLogSource := models.OperationLog{
+		PartnerUid:  bookingSource.PartnerUid,
+		CourseUid:   bookingSource.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_POS,
+		Action:      constants.OP_LOG_ACTION_TRANSFER,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: dataOld},
+		ValueNew:    models.JsonDataLog{Data: sourceServiceCart},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         bookingSource.Bag,
+		BookingDate: bookingSource.BookingDate,
+		BillCode:    bookingSource.BillCode,
+		BookingUid:  bookingSource.Uid,
+	}
+
+	opLogTarget := models.OperationLog{
 		PartnerUid:  booking.PartnerUid,
 		CourseUid:   booking.CourseUid,
 		UserName:    prof.UserName,
@@ -1300,7 +1320,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 		Module:      constants.OP_LOG_MODULE_POS,
 		Action:      constants.OP_LOG_ACTION_TRANSFER,
 		Body:        models.JsonDataLog{Data: body},
-		ValueOld:    models.JsonDataLog{Data: sourceServiceCart},
+		ValueOld:    models.JsonDataLog{},
 		ValueNew:    models.JsonDataLog{Data: targetServiceCart},
 		Path:        c.Request.URL.Path,
 		Method:      c.Request.Method,
@@ -1311,18 +1331,24 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if targetServiceCart.ServiceType == constants.KIOSK_SETTING {
-		opLog.Function = constants.OP_LOG_FUNCTION_KIOSK
+		opLogSource.Function = constants.OP_LOG_FUNCTION_KIOSK
+		opLogTarget.Function = constants.OP_LOG_FUNCTION_KIOSK
 	} else if targetServiceCart.ServiceType == constants.MINI_B_SETTING {
-		opLog.Function = constants.OP_LOG_FUNCTION_MINI_BAR
+		opLogSource.Function = constants.OP_LOG_FUNCTION_MINI_BAR
+		opLogTarget.Function = constants.OP_LOG_FUNCTION_MINI_BAR
 	} else if targetServiceCart.ServiceType == constants.PROSHOP_SETTING {
-		opLog.Function = constants.OP_LOG_FUNCTION_PROSHOP
+		opLogSource.Function = constants.OP_LOG_FUNCTION_PROSHOP
+		opLogTarget.Function = constants.OP_LOG_FUNCTION_PROSHOP
 	} else if targetServiceCart.ServiceType == constants.RENTAL_SETTING {
-		opLog.Function = constants.OP_LOG_FUNCTION_GOLF_CLUB_RENTAL
+		opLogSource.Function = constants.OP_LOG_FUNCTION_GOLF_CLUB_RENTAL
+		opLogTarget.Function = constants.OP_LOG_FUNCTION_GOLF_CLUB_RENTAL
 	} else if targetServiceCart.ServiceType == constants.DRIVING_SETTING {
-		opLog.Function = constants.OP_LOG_FUNCTION_DRIVING
+		opLogSource.Function = constants.OP_LOG_FUNCTION_DRIVING
+		opLogTarget.Function = constants.OP_LOG_FUNCTION_DRIVING
 	}
 
-	go createOperationLog(opLog)
+	go createOperationLog(opLogSource)
+	go createOperationLog(opLogTarget)
 
 	okRes(c)
 }
@@ -1838,7 +1864,7 @@ func addLog(c *gin.Context, prof models.CmsUser, serviceCartItem model_booking.B
 	}
 
 	if serviceCartItem.Type == constants.KIOSK_SETTING {
-		opLog.Function = constants.OP_LOG_FUNCTION_DRIVING
+		opLog.Function = constants.OP_LOG_FUNCTION_KIOSK
 	}
 
 	if serviceCartItem.Type == constants.MINI_B_SETTING {
