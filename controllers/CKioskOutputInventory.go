@@ -53,6 +53,47 @@ func (item CKioskOutputInventory) CreateOutputBill(c *gin.Context, prof models.C
 		return
 	}
 
+	//Add log
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	opLog := models.OperationLog{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		UserName:   prof.UserName,
+		UserUid:    prof.Uid,
+		Module:     constants.OP_LOG_MODULE_POS,
+		Action:     constants.OP_LOG_ACTION_EXPORT_INVENTORY,
+		Body:       models.JsonDataLog{Data: body},
+		ValueOld:   models.JsonDataLog{},
+		ValueNew:   models.JsonDataLog{},
+		Path:       c.Request.URL.Path,
+		Method:     c.Request.Method,
+	}
+
+	go func() {
+		inventory := model_service.Kiosk{
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+			ModelId:    models.ModelId{Id: body.ServiceId},
+		}
+
+		if errFind := inventory.FindFirst(db); errFind == nil {
+			if inventory.KioskType == constants.KIOSK_SETTING {
+				opLog.Function = constants.OP_LOG_FUNCTION_KIOSK
+			} else if inventory.KioskType == constants.MINI_B_SETTING {
+				opLog.Function = constants.OP_LOG_FUNCTION_MINI_BAR
+			} else if inventory.KioskType == constants.PROSHOP_SETTING {
+				opLog.Function = constants.OP_LOG_FUNCTION_PROSHOP
+			} else if inventory.KioskType == constants.RENTAL_SETTING {
+				opLog.Function = constants.OP_LOG_FUNCTION_GOLF_CLUB_RENTAL
+			} else if inventory.KioskType == constants.DRIVING_SETTING {
+				opLog.Function = constants.OP_LOG_FUNCTION_DRIVING
+			}
+			createOperationLog(opLog)
+		}
+	}()
+
+	okRes(c)
+
 	okRes(c)
 }
 
