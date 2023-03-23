@@ -63,12 +63,14 @@ type GetBookingWaitingResponse struct {
 }
 
 type PlayerBookingWaiting struct {
-	Id            int64  `json:"id"`
-	CaddieBooking string `json:"caddie_booking,omitempty"`
-	CustomerName  string `json:"customer_name"`
-	GuestStyle    string `json:"guest_style,omitempty"`
-	CardId        string `json:"card_id,omitempty"`
-	MemberCardUid string `json:"member_card_uid,omitempty"`
+	Id                int64  `json:"id"`
+	CaddieBooking     string `json:"caddie_booking,omitempty"`
+	CustomerName      string `json:"customer_name"`
+	GuestStyle        string `json:"guest_style,omitempty"`
+	CardId            string `json:"card_id,omitempty"`
+	MemberCardUid     string `json:"member_card_uid,omitempty"`
+	MemberUidOfGuest  string `json:"member_uid_of_guest"`
+	MemberNameOfGuest string `json:"member_name_of_guest"`
 }
 
 type ListPlayerBookingWaiting []PlayerBookingWaiting
@@ -146,7 +148,9 @@ func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]Get
 					'guest_style', guest_style,
 					'card_id', card_id,
 					'id', id,
-					'member_card_uid', member_card_uid)) as players`)
+					'member_card_uid', member_card_uid,
+					'member_uid_of_guest', member_uid_of_guest,
+					'member_name_of_guest', member_name_of_guest)) as players`)
 	db = db.Group("booking_code,tee_time")
 	db.Count(&total)
 

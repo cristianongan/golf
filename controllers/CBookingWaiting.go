@@ -488,8 +488,8 @@ func (_ *CBookingWaiting) UpdateBookingWaiting(c *gin.Context, prof models.CmsUs
 			bookingWaiting.CustomerName = body.CustomerName
 		}
 
-		if body.MemberCardUid != nil {
-			if *body.MemberCardUid != "" {
+		if body.MemberUidOfGuest != nil {
+			if *body.MemberUidOfGuest != "" {
 				if *body.MemberCardUid != bookingWaiting.MemberCardUid {
 					var memberCardOfGuest = models.MemberCard{}
 					memberCardOfGuest.Uid = body.MemberNameOfGuest
