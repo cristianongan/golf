@@ -64,7 +64,6 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		UserName:    prof.UserName,
 		UserUid:     prof.Uid,
 		Module:      constants.OP_LOG_MODULE_RECEPTION,
-		Function:    constants.OP_LOG_FUNCTION_BOOKING,
 		Action:      constants.OP_LOG_ACTION_CREATE,
 		Body:        models.JsonDataLog{Data: body},
 		ValueOld:    models.JsonDataLog{},
@@ -76,6 +75,13 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		BillCode:    booking.BillCode,
 		BookingUid:  booking.Uid,
 	}
+
+	if body.IsCheckIn {
+		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
+	} else {
+		opLog.Function = constants.OP_LOG_FUNCTION_BOOKING
+	}
+
 	go createOperationLog(opLog)
 
 	// Bắn socket để client update ui
