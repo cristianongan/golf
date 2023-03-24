@@ -35,17 +35,18 @@ func (item CKioskInputInventory) CreateManualInputBill(c *gin.Context, prof mode
 
 	//Add log
 	opLog := models.OperationLog{
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
-		UserName:   prof.UserName,
-		UserUid:    prof.Uid,
-		Module:     constants.OP_LOG_MODULE_POS,
-		Action:     constants.OP_LOG_ACTION_IMPORT_INVENTORY,
-		Body:       models.JsonDataLog{Data: body},
-		ValueOld:   models.JsonDataLog{},
-		ValueNew:   models.JsonDataLog{},
-		Path:       c.Request.URL.Path,
-		Method:     c.Request.Method,
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_POS,
+		Action:      constants.OP_LOG_ACTION_IMPORT_INVENTORY,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
 	}
 
 	go func() {
