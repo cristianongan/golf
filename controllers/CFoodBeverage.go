@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
 	model_service "start/models/service"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 	"strings"
@@ -109,6 +111,25 @@ func (_ *CFoodBeverage) CreateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Function:    constants.OP_LOG_FUNCTION_FB_SYSTEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: service},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, service)
 }
 
@@ -174,6 +195,8 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
+
+	oldFoodBeverage := foodBeverage
 
 	body := request.UpdateFoodBeverageBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -262,6 +285,25 @@ func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		return
 	}
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  foodBeverage.PartnerUid,
+		CourseUid:   foodBeverage.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Function:    constants.OP_LOG_FUNCTION_FB_SYSTEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldFoodBeverage},
+		ValueNew:    models.JsonDataLog{Data: foodBeverage},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, foodBeverage)
 }
 
@@ -289,6 +331,25 @@ func (_ *CFoodBeverage) DeleteFoodBeverage(c *gin.Context, prof models.CmsUser) 
 		response_message.InternalServerError(c, errDel.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  fbModel.PartnerUid,
+		CourseUid:   fbModel.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Function:    constants.OP_LOG_FUNCTION_FB_SYSTEM,
+		Body:        models.JsonDataLog{Data: fbIdStr},
+		ValueOld:    models.JsonDataLog{Data: fbModel},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
