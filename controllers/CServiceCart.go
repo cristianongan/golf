@@ -221,11 +221,11 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		BookingUid:  booking.Uid,
 	}
 
-	if serviceCartItem.ServiceType == constants.KIOSK_SETTING {
+	if serviceCartItem.Type == constants.KIOSK_SETTING {
 		opLog.Function = constants.OP_LOG_FUNCTION_KIOSK
-	} else if serviceCartItem.ServiceType == constants.MINI_B_SETTING {
+	} else if serviceCartItem.Type == constants.MINI_B_SETTING {
 		opLog.Function = constants.OP_LOG_FUNCTION_MINI_BAR
-	} else if serviceCartItem.ServiceType == constants.PROSHOP_SETTING {
+	} else if serviceCartItem.Type == constants.PROSHOP_SETTING {
 		opLog.Function = constants.OP_LOG_FUNCTION_PROSHOP
 	}
 

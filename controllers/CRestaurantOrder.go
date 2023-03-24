@@ -2108,6 +2108,7 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 		UserName:    prof.UserName,
 		UserUid:     prof.Uid,
 		Module:      constants.OP_LOG_MODULE_POS,
+		Function:    constants.OP_LOG_FUNCTION_RESTAURANT,
 		Action:      constants.OP_LOG_ACTION_TRANSFER,
 		Body:        models.JsonDataLog{Data: body},
 		ValueOld:    models.JsonDataLog{Data: dataOld},
@@ -2126,6 +2127,7 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 		UserName:    prof.UserName,
 		UserUid:     prof.Uid,
 		Module:      constants.OP_LOG_MODULE_POS,
+		Function:    constants.OP_LOG_FUNCTION_RESTAURANT,
 		Action:      constants.OP_LOG_ACTION_TRANSFER,
 		Body:        models.JsonDataLog{Data: body},
 		ValueOld:    models.JsonDataLog{},
@@ -2137,9 +2139,6 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 		BillCode:    booking.BillCode,
 		BookingUid:  booking.Uid,
 	}
-
-	opLogSource.Function = constants.OP_LOG_FUNCTION_RESTAURANT
-	opLogTarget.Function = constants.OP_LOG_FUNCTION_KIOSK
 
 	go createOperationLog(opLogSource)
 	go createOperationLog(opLogTarget)
