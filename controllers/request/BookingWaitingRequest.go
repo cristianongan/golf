@@ -26,7 +26,9 @@ type CreateBookingWaitingBody struct {
 	CustomerBookingPhone string  `json:"customer_booking_phone"` // SDT khách hàng đặt booking
 	CustomerUid          string  `json:"customer_uid"`
 
-	Note string `json:"note"` // Note of Booking
+	Note                  *string `json:"note"` // Note of Booking
+	GuestStyleBooking     string  `json:"guest_style_booking"`
+	GuestStyleBookingName string  `json:"guest_style_booking_name"`
 
 	//Agency
 	AgencyId    int64   `json:"agency_id"`

@@ -176,28 +176,27 @@ func createBookingWaitingCommon(body request.CreateBookingWaitingBody, c *gin.Co
 		}
 
 		if errGS := golfFeeModel.FindFirst(db); errGS != nil {
-			response_message.InternalServerError(c, "guest style not found ")
-		}
-
-		// Lấy phí bởi Guest style với ngày tạo
-		golfFee := models.GolfFee{}
-		var errFindGF error
-
-		if bookingWaiting.BookingDate != "" {
-			timeDate, _ := time.Parse(constants.DATE_FORMAT_1, bookingWaiting.BookingDate)
-			golfFee, errFindGF = golfFeeModel.GetGuestStyleOnTime(db, timeDate)
-			if errFindGF != nil {
-				response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
-			}
-		} else {
-			golfFee, errFindGF = golfFeeModel.GetGuestStyleOnDay(db)
-			if errFindGF != nil {
-				response_message.InternalServerError(c, "golf fee err "+errFindGF.Error())
-			}
+			response_message.InternalServerError(c, "guest style not found")
 		}
 
 		bookingWaiting.GuestStyle = guestStyle
-		bookingWaiting.GuestStyleName = golfFee.GuestStyleName
+		bookingWaiting.GuestStyleName = golfFeeModel.GuestStyleName
+	}
+
+	if body.GuestStyleBooking != "" {
+		golfFeeModel := models.GolfFee{
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+			GuestStyle: body.GuestStyleBooking,
+		}
+
+		if errGS := golfFeeModel.FindFirst(db); errGS != nil {
+			response_message.InternalServerError(c, "guest style not found")
+			return nil
+		}
+
+		bookingWaiting.GuestStyle = body.GuestStyleBooking
+		bookingWaiting.GuestStyleBookingName = golfFeeModel.GuestStyleName
 	}
 
 	// Update caddie
@@ -229,6 +228,10 @@ func createBookingWaitingCommon(body request.CreateBookingWaitingBody, c *gin.Co
 
 	if body.CardBookingId != "" {
 		bookingWaiting.CardBookingId = body.CardBookingId
+	}
+
+	if body.Note != nil {
+		bookingWaiting.Note = *body.Note
 	}
 
 	if body.BookingCode == "" {
