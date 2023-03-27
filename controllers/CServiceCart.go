@@ -1847,3 +1847,30 @@ func addLog(c *gin.Context, prof models.CmsUser, serviceCartItem model_booking.B
 
 	createOperationLog(opLog)
 }
+
+func (_ CServiceCart) UpdateBillAmout(itemId int64, parnerId, courseId string) {
+	db := datasources.GetDatabaseWithPartner(parnerId)
+	// validate cart item
+	serviceCartItem := model_booking.BookingServiceItem{}
+	serviceCartItem.Id = itemId
+	serviceCartItem.PartnerUid = parnerId
+	serviceCartItem.CourseUid = courseId
+
+	if err := serviceCartItem.FindFirst(db); err != nil {
+		return
+	}
+
+	// validate cart
+	serviceCart := models.ServiceCart{}
+	serviceCart.Id = serviceCartItem.ServiceBill
+
+	if err := serviceCart.FindFirst(db); err != nil {
+		return
+	}
+
+	// update service cart
+	serviceCart.Amount -= serviceCartItem.Amount
+	if err := serviceCart.Update(db); err != nil {
+		return
+	}
+}

@@ -248,6 +248,11 @@ func (_ *CBookingServiceItem) DelBookingServiceItemToBag(c *gin.Context, prof mo
 		return
 	}
 
+	if serviceItem.ServiceBill > 0 {
+		cServiceCart := CServiceCart{}
+		cServiceCart.UpdateBillAmout(serviceItem.Id, serviceItem.PartnerUid, serviceItem.CourseUid)
+	}
+
 	//Update lại giá trong booking
 	updatePriceWithServiceItem(&booking, prof)
 
