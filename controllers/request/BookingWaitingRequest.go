@@ -36,6 +36,7 @@ type CreateBookingWaitingBody struct {
 	MemberUidOfGuest  *string `json:"member_uid_of_guest"`
 	MemberNameOfGuest string  `json:"member_name_of_guest"`
 	Id                int64   `json:"id"`
+	CardBookingId     string  `json:"card_booking_id"`
 }
 
 type GetListBookingWaitingForm struct {

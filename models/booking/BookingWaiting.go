@@ -55,6 +55,8 @@ type BookingWaiting struct {
 
 	MemberUidOfGuest  string `json:"member_uid_of_guest" gorm:"type:varchar(50);index"` // Member của Guest đến chơi cùng
 	MemberNameOfGuest string `json:"member_name_of_guest" gorm:"type:varchar(200)"`     // Member của Guest đến chơi cùng
+
+	CardBookingId string `json:"card_booking_id" gorm:"type:varchar(20)"` // MembarCard, Card ID cms user nhập vào
 }
 
 type GetBookingWaitingResponse struct {
@@ -187,13 +189,15 @@ func (item *BookingWaiting) DeleteByBookingCode(database *gorm.DB) error {
 	db := database.Model(BookingWaiting{})
 	list := []BookingWaiting{}
 
+	db = db.Where("partner_uid = ?", item.PartnerUid)
+	db = db.Where("course_uid = ?", item.CourseUid)
 	db = db.Where("booking_code = ?", item.BookingCode)
 	db = db.Where("tee_time = ?", item.TeeTime)
 	db = db.Where("course_type = ?", item.CourseType)
 	db = db.Where("tee_type = ?", item.TeeType)
 	db = db.Where("booking_date = ?", item.BookingDate)
 
-	db = db.Delete(&list)
+	db = db.Debug().Delete(&list)
 	return db.Error
 }
 

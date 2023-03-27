@@ -227,6 +227,10 @@ func createBookingWaitingCommon(body request.CreateBookingWaitingBody, c *gin.Co
 		bookingWaiting.CustomerBookingPhone = body.CustomerBookingPhone
 	}
 
+	if body.CardBookingId != "" {
+		bookingWaiting.CardBookingId = body.CardBookingId
+	}
+
 	if body.BookingCode == "" {
 		bookingCode := utils.HashCodeUuid(uuid.New().String())
 		bookingWaiting.BookingCode = bookingCode
@@ -243,6 +247,12 @@ func (cBooking *CBookingWaiting) CreateBookingWaitingList(c *gin.Context, prof m
 		badRequest(c, bindErr.Error())
 		return
 	}
+
+	if len(bodyRequest.BookingList) == 0 {
+		response_message.BadRequestFreeMessage(c, "Data Empty!")
+		return
+	}
+
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	bookingCode := utils.HashCodeUuid(uuid.New().String())
 	for index, body := range bodyRequest.BookingList {
@@ -251,6 +261,19 @@ func (cBooking *CBookingWaiting) CreateBookingWaitingList(c *gin.Context, prof m
 		} else {
 			bodyRequest.BookingList[index].BookingCode = body.BookingCode
 		}
+	}
+
+	if bodyRequest.BookingList[0].BookingCode != "" {
+		bookingWaitingRequest := model_booking.BookingWaiting{}
+		bookingWaitingRequest.PartnerUid = bodyRequest.BookingList[0].PartnerUid
+		bookingWaitingRequest.CourseUid = bodyRequest.BookingList[0].CourseUid
+		bookingWaitingRequest.TeeTime = bodyRequest.BookingList[0].TeeTime
+		bookingWaitingRequest.TeeType = bodyRequest.BookingList[0].TeeType
+		bookingWaitingRequest.CourseType = bodyRequest.BookingList[0].CourseType
+		bookingWaitingRequest.BookingCode = bodyRequest.BookingList[0].BookingCode
+		bookingWaitingRequest.BookingDate = bodyRequest.BookingList[0].BookingDate
+
+		bookingWaitingRequest.DeleteByBookingCode(db)
 	}
 
 	listBookingWaiting := []model_booking.BookingWaiting{}
