@@ -58,15 +58,15 @@ func (item CKioskInputInventory) CreateManualInputBill(c *gin.Context, prof mode
 
 		if errFind := inventory.FindFirst(db); errFind == nil {
 			if inventory.KioskType == constants.KIOSK_SETTING {
-				opLog.Function = constants.OP_LOG_FUNCTION_KIOSK
+				opLog.Function = constants.OP_LOG_FUNCTION_KIOSK_INVENTORY
 			} else if inventory.KioskType == constants.MINI_B_SETTING {
-				opLog.Function = constants.OP_LOG_FUNCTION_MINI_BAR
+				opLog.Function = constants.OP_LOG_FUNCTION_MINI_BAR_INVENTORY
 			} else if inventory.KioskType == constants.PROSHOP_SETTING {
-				opLog.Function = constants.OP_LOG_FUNCTION_PROSHOP
+				opLog.Function = constants.OP_LOG_FUNCTION_PROSHOP_INVENTORY
 			} else if inventory.KioskType == constants.RENTAL_SETTING {
-				opLog.Function = constants.OP_LOG_FUNCTION_GOLF_CLUB_RENTAL
+				opLog.Function = constants.OP_LOG_FUNCTION_GOLF_CLUB_RENTAL_INVENTORY
 			} else if inventory.KioskType == constants.DRIVING_SETTING {
-				opLog.Function = constants.OP_LOG_FUNCTION_DRIVING
+				opLog.Function = constants.OP_LOG_FUNCTION_DRIVING_INVENTORY
 			}
 			createOperationLog(opLog)
 		}
