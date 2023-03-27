@@ -22,8 +22,8 @@ type BookingWaiting struct {
 	GuestStyle     string `json:"guest_style" gorm:"type:varchar(200);index"` // Guest Style
 	GuestStyleName string `json:"guest_style_name" gorm:"type:varchar(256)"`  // Guest Style Name
 
-	GuestStyleBooking     string `json:"guest_style_booking" gorm:"type:varchar(200);index"` // Guest Style
-	GuestStyleBookingName string `json:"guest_style_booking_name" gorm:"type:varchar(256)"`  // Guest Style Name
+	GuestStyleBooking     string `json:"guest_style_booking" gorm:"type:varchar(20)"`       // Guest Style
+	GuestStyleBookingName string `json:"guest_style_booking_name" gorm:"type:varchar(100)"` // Guest Style Name
 
 	// MemberCard
 	CardId        string `json:"card_id" gorm:"index"`                           // MembarCard, Card ID cms user nhập vào

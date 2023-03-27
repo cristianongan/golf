@@ -195,7 +195,7 @@ func createBookingWaitingCommon(body request.CreateBookingWaitingBody, c *gin.Co
 			return nil
 		}
 
-		bookingWaiting.GuestStyle = body.GuestStyleBooking
+		bookingWaiting.GuestStyleBooking = body.GuestStyleBooking
 		bookingWaiting.GuestStyleBookingName = golfFeeModel.GuestStyleName
 	}
 
