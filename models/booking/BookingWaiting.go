@@ -156,7 +156,7 @@ func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]Get
 					'member_card_uid', member_card_uid,
 					'member_uid_of_guest', member_uid_of_guest,
 					'member_name_of_guest', member_name_of_guest)) as players`)
-	db = db.Group("booking_code,tee_time")
+	db = db.Group("booking_code,tee_time,course_type")
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
