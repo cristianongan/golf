@@ -188,7 +188,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 		if memberCard.Status == constants.STATUS_DISABLE {
 			response_message.BadRequestDynamicKey(c, "MEMBER_CARD_INACTIVE", "")
-			return nil, nil
+			return nil, errors.New("Member Card Inactive")
 		}
 	}
 
