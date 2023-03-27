@@ -100,3 +100,9 @@ type UpdateReportBody struct {
 	BillNo      string `form:"bill_no" json:"bill_no"`
 	BookingDate string `form:"booking_date" json:"booking_date"`
 }
+
+type RReportRevenueTotal struct {
+	PartnerUid  string `form:"partner_uid" binding:"required"`
+	CourseUid   string `form:"course_uid" binding:"required"`
+	BookingDate string `form:"booking_date" binding:"required"`
+}
