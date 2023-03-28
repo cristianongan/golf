@@ -348,8 +348,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			response_message.BadRequestFreeMessage(c, "Caddie "+caddieNew.Code+" không có lịch làm việc!")
 		} else {
 			booking.CaddieBooking = caddieNew.Code
-			booking.CaddieId = caddieNew.Id
-			booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 			booking.HasBookCaddie = true
 
 			opLog := models.OperationLog{
@@ -1091,13 +1089,9 @@ func updateCaddieBooking(c *gin.Context, oldBooking *model_booking.BagDetail, bo
 				}
 
 				booking.CaddieBooking = caddieNew.Code
-				if booking.CheckInTime == 0 {
-					booking.CaddieId = caddieNew.Id
-					booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
-				}
 			}
 		} else {
-			booking.CaddieBooking = *body.CaddieCode
+			booking.CaddieBooking = ""
 		}
 
 		if booking.CheckInTime == 0 && oldBooking.CaddieBooking != *body.CaddieCode {
@@ -1385,6 +1379,21 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		if errUpdGs := cBooking.updateGuestStyleToBooking(c, guestStyle, db, &booking, guestBody); errUpdGs != nil {
 			return
 		}
+	}
+
+	if booking.CaddieBooking != "" {
+		caddieList := models.CaddieList{}
+		caddieList.CourseUid = booking.CourseUid
+		caddieList.CaddieCode = booking.CaddieBooking
+		caddieNew, err := caddieList.FindFirst(db)
+
+		if err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
+
+		booking.CaddieId = caddieNew.Id
+		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 	}
 
 	if body.Locker != "" {
