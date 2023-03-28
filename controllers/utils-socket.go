@@ -18,6 +18,6 @@ func pushSocketUdpRole(roleId int64) {
 	newFsConfigBytes, _ := json.Marshal(notiData)
 	socket_room.Hub.Broadcast <- socket_room.Message{
 		Data: newFsConfigBytes,
-		Room: constants.NOTIFICATION_CHANNEL_ADMIN_1,
+		Room: "",
 	}
 }
