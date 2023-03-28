@@ -1376,11 +1376,14 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 			ItemName:  proshop.VieName,
 			Unit:      proshop.Unit,
 			GroupType: proshop.Type,
+			GroupName: proshop.GroupName,
 		}, nil
 	}
 
 	fb := model_service.FoodBeverage{
-		FBCode: itemCode,
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+		FBCode:     itemCode,
 	}
 
 	if err := fb.FindFirst(db); err == nil {
@@ -1389,11 +1392,14 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 			ItemName:  fb.VieName,
 			Unit:      fb.Unit,
 			GroupType: fb.Type,
+			GroupName: proshop.GroupName,
 		}, nil
 	}
 
 	rental := model_service.Rental{
-		RentalId: itemCode,
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+		RentalId:   itemCode,
 	}
 
 	if err := rental.FindFirst(db); err == nil {
@@ -1402,6 +1408,7 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 			ItemName:  rental.VieName,
 			Unit:      rental.Unit,
 			GroupType: rental.Type,
+			GroupName: proshop.GroupName,
 		}, nil
 	}
 
