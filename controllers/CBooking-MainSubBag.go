@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"start/constants"
 	"start/controllers/request"
@@ -67,9 +68,22 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 			// Có rồi không thêm nữa
 			log.Println("AddSubBagToBooking dupli book", v.BookingUid)
 		} else {
-			subBooking := model_booking.Booking{}
-			subBooking.Uid = v.BookingUid
-			err1 := subBooking.FindFirst(db)
+			subBookingR := model_booking.Booking{}
+			subBookingR.Uid = v.BookingUid
+			subBooking, err1 := subBookingR.FindFirstByUId(db)
+
+			if len(subBooking.MainBags) > 0 {
+				message := fmt.Sprint("Bag ", subBooking.Bag, " là sub của bag khác!")
+				response_message.BadRequestFreeMessage(c, message)
+				return
+			}
+
+			if len(subBooking.SubBags) > 0 {
+				message := fmt.Sprint("Bag ", subBooking.Bag, " là main của bag khác!")
+				response_message.BadRequestFreeMessage(c, message)
+				return
+			}
+
 			if err1 == nil {
 				//Subbag
 				subBag := utils.BookingSubBag{
@@ -374,22 +388,30 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 	bookingR.Uid = body.BookingUid
 	booking, errF := bookingR.FindFirstByUId(db)
 	if errF != nil {
-		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "")
+		response_message.BadRequestDynamicKey(c, "BOOKING_NOT_FOUND", "BOOKING_NOT_FOUND")
+		return
+	}
+
+	if len(booking.MainBags) == 0 {
+		response_message.BadRequestDynamicKey(c, "MAIN_BAG_NOT_FOUND", "MAIN_BAG_NOT_FOUND")
+		return
+	}
+
+	mainBag := model_booking.Booking{
+		CourseUid:   booking.CourseUid,
+		PartnerUid:  booking.PartnerUid,
+		Bag:         booking.MainBags[0].GolfBag,
+		BookingDate: booking.BookingDate,
+	}
+
+	errFMB := mainBag.FindFirst(db)
+	if errFMB != nil {
+		response_message.BadRequestDynamicKey(c, "BAG_NOT_FOUND", "BAG_NOT_FOUND")
 		return
 	}
 
 	oldBooking := booking.CloneBooking()
-
-	list, _ := booking.FindMainBag(db)
-
-	if len(list) == 0 {
-		response_message.BadRequestDynamicKey(c, "MAIN_BAG_NOT_FOUND", "")
-		return
-	}
-
-	mainBag := list[0]
 	subBags := utils.ListSubBag{}
-
 	for _, sub := range mainBag.SubBags {
 		if sub.GolfBag != booking.Bag {
 			subBags = append(subBags, sub)

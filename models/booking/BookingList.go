@@ -465,7 +465,7 @@ func (item *BookingList) FindListBookingWithBuggy(database *gorm.DB, page models
 	db = db.Where("bookings.buggy_info->'$.code' <> ''")
 	db = db.Where("booking_service_items.service_type = ?", constants.BUGGY_SETTING)
 	db = db.Joins("JOIN booking_service_items ON booking_service_items.booking_uid = bookings.uid")
-	db = db.Select("bookings.booking_date, JSON_VALUE(bookings.buggy_info,'$.code') as buggy_code, booking_service_items.name as buggy_type, bookings.bag, bookings.tee_off_time as tee_off, bookings.customer_name, bookings.guest_style, bookings.card_id, JSON_VALUE(bookings.agency_info,'$.name') as agency_name, bookings.hole, bookings.caddie_id, booking_service_items.amount as fee")
+	db = db.Select("bookings.booking_date, JSON_VALUE(bookings.buggy_info,'$.code') as buggy_code, booking_service_items.name as buggy_type, bookings.bag, bookings.tee_off_time as tee_off, bookings.customer_name, bookings.guest_style, bookings.card_id, JSON_VALUE(bookings.agency_info,'$.name') as agency_name, booking_service_items.hole, bookings.caddie_id, booking_service_items.amount as fee")
 
 	db.Count(&total)
 
