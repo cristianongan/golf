@@ -2070,3 +2070,12 @@ func updateAgencyInfoInPayment(booking model_booking.Booking) {
 		}
 	}
 }
+
+func deleteBookingWaiting(db *gorm.DB, id int64) {
+	bookingWaiting := model_booking.BookingWaiting{}
+	bookingWaiting.Id = id
+	if err := bookingWaiting.FindFirst(db); err == nil {
+		bookingWaiting.Status = constants.STATUS_DELETED
+		bookingWaiting.Update(db)
+	}
+}
