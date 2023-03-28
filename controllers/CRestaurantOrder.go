@@ -248,9 +248,7 @@ func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsU
 	//old data
 	dataOld := serviceCart
 
-	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
-		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
-
+	if serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
 		response_message.BadRequest(c, "Bill status invalid")
 		return
 	}
@@ -860,8 +858,7 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
-		serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
+	if serviceCart.BillStatus == constants.RES_BILL_STATUS_CANCEL {
 
 		response_message.BadRequest(c, "Bill status invalid")
 		return
@@ -1514,7 +1511,7 @@ func (_ CRestaurantOrder) FinishRestaurantOrder(c *gin.Context, prof models.CmsU
 	}
 
 	// Update trạng thái
-	serviceCart.BillStatus = constants.RES_BILL_STATUS_OUT
+	// serviceCart.BillStatus = constants.RES_BILL_STATUS_OUT
 	if err := serviceCart.Update(db); err != nil {
 		response_message.BadRequest(c, "Update service Cart "+err.Error())
 		return
