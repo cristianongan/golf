@@ -8,7 +8,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
-	"start/socket"
+	socket_room "start/socket_room"
 	"start/utils"
 )
 
@@ -115,5 +115,8 @@ func pushNotificationUnlockTee() {
 	}
 
 	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket.GetHubSocket().Broadcast <- newFsConfigBytes
+	socket_room.Hub.Broadcast <- socket_room.Message{
+		Data: newFsConfigBytes,
+		Room: constants.NOTIFICATION_CHANNEL_BOOKING,
+	}
 }

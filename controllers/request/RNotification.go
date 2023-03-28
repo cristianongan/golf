@@ -9,7 +9,7 @@ type CreateNotificationBody struct {
 }
 
 type ApproveCaddieCalendarNotification struct {
-	IsApprove bool   `json:"is_approve" binding:"required"`
+	IsApprove *bool  `json:"is_approve" binding:"required"`
 	Note      string `json:"note"`
 }
 
