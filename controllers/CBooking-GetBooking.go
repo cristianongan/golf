@@ -257,11 +257,14 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 
 	// Get List Round Of Sub Bag
 	listRoundOfSub := []model_booking.RoundOfBag{}
+	listSubBagStatus := utils.ListSubBagStatus{}
+
 	agencyPaidAll := int64(0)
 
 	if len(booking.SubBags) > 0 {
 		res := GetGolfFeeInfoOfBag(c, booking)
 		listRoundOfSub = res.ListRoundOfSubBag
+		listSubBagStatus = res.ListSubBagStatus
 		agencyPaidAll = res.AgencyPaidAll
 	} else {
 		agencyPaidAll = booking.GetAgencyPaid()
@@ -275,6 +278,7 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 		ListRoundOfSubBag: listRoundOfSub,
 		Rounds:            listRoundOfMain,
 		AgencyPaidAll:     agencyPaidAll,
+		ListSubBagStatus:  listSubBagStatus,
 	}
 
 	okResponse(c, feeResponse)

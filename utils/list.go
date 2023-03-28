@@ -43,6 +43,17 @@ func (item ListSubBag) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
 
+// ------- List SubbagStatus ---------
+type ListSubBagStatus []SubBagStatus
+
+func (item *ListSubBagStatus) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListSubBagStatus) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}
+
 // ------- List Order Item ---------
 type ListOrderItem []OrderItem
 

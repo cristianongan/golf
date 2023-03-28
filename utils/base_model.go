@@ -16,6 +16,11 @@ type BookingSubBag struct {
 	CmsUserLog  string `json:"cms_user_log"`
 }
 
+type SubBagStatus struct {
+	GolfBag   string `json:"golf_bag"` // Có thể bỏ
+	BagStatus string `json:"bag_status"`
+}
+
 type GolfHoleFee struct {
 	Hole int   `json:"hole"`
 	Fee  int64 `json:"fee"`

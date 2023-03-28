@@ -158,6 +158,7 @@ type GolfFeeOfBag struct {
 	Booking
 	ListRoundOfSubBag []RoundOfBag `json:"list_round_of_sub_bag"`
 	AgencyPaidAll     int64        `json:"agency_paid_all"`
+	ListSubBagStatus  utils.ListSubBagStatus
 }
 
 type PaymentOfBag struct {
@@ -171,6 +172,7 @@ type RoundOfBag struct {
 	PlayerName  string                               `json:"player_name"`
 	Rounds      models.ListRound                     `json:"rounds"`
 	AgencyPaid  utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty"`
+	BagStatus   string                               `json:"bag_status"`
 }
 
 type BookingForListServiceIems struct {
@@ -537,6 +539,7 @@ type BookingFeeOfBag struct {
 	AgencyPaidAll     int64                                `json:"agency_paid_all"`
 	Rounds            []models.RoundPaidByMainBag          `json:"rounds"`
 	MainBagPay        []string                             `json:"main_bag_pay"`
+	ListSubBagStatus  utils.ListSubBagStatus               `json:"list_sub_bag_status"`
 }
 
 type AgencyCancelBookingList struct {

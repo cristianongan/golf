@@ -30,6 +30,7 @@ func GetGolfFeeInfoOfBag(c *gin.Context, mainBooking model_booking.Booking) mode
 	checkIsNextRound := utils.ContainString(mainBooking.MainBagPay, constants.MAIN_BAG_FOR_PAY_SUB_NEXT_ROUNDS)
 
 	golfFeeOfBag.AgencyPaidAll = mainBooking.GetAgencyPaid()
+	golfFeeOfBag.ListSubBagStatus = utils.ListSubBagStatus{}
 
 	for _, subBooking := range mainBooking.SubBags {
 
@@ -41,6 +42,11 @@ func GetGolfFeeInfoOfBag(c *gin.Context, mainBooking model_booking.Booking) mode
 		if eBookingR != nil {
 			log.Println(eBookingR.Error())
 		}
+
+		golfFeeOfBag.ListSubBagStatus = append(golfFeeOfBag.ListSubBagStatus, utils.SubBagStatus{
+			GolfBag:   booking.Bag,
+			BagStatus: booking.BagStatus,
+		})
 
 		golfFeeOfBag.AgencyPaidAll += booking.GetAgencyPaid()
 
