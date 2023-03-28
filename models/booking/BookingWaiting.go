@@ -141,6 +141,10 @@ func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]Get
 		db = db.Where("player_contact COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CustomerBookingPhone+"%")
 	}
 
+	if item.CustomerName != "" {
+		db = db.Where("customer_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.CustomerName+"%")
+	}
+
 	if item.BookingCode != "" {
 		db = db.Where("booking_code COLLATE utf8mb4_general_ci LIKE ?", "%"+item.BookingCode+"%")
 	}
