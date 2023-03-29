@@ -446,7 +446,7 @@ func (cBooking *CBooking) ChangeToMainBag(c *gin.Context, prof models.CmsUser) {
 
 	go func() {
 		// Nếu case có Round, MoveFlight
-		mainBag.UpdateSubBagForBooking(db)
+		mainBag.UpdateMainSubBagForBooking(db)
 		//
 
 		cRound := CRound{}
