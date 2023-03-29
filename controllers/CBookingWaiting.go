@@ -256,6 +256,7 @@ func (cBooking *CBookingWaiting) CreateBookingWaitingList(c *gin.Context, prof m
 		return
 	}
 
+	isEdit := false
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	bookingCode := utils.HashCodeUuid(uuid.New().String())
 	for index, body := range bodyRequest.BookingList {
@@ -263,10 +264,10 @@ func (cBooking *CBookingWaiting) CreateBookingWaitingList(c *gin.Context, prof m
 			bodyRequest.BookingList[index].BookingCode = bookingCode
 		} else {
 			bodyRequest.BookingList[index].BookingCode = body.BookingCode
+			isEdit = true
 		}
 	}
 
-	isEdit := false
 	if bodyRequest.BookingList[0].BookingCode != "" {
 		bookingWaitingRequest := model_booking.BookingWaiting{}
 		bookingWaitingRequest.PartnerUid = bodyRequest.BookingList[0].PartnerUid
@@ -279,7 +280,6 @@ func (cBooking *CBookingWaiting) CreateBookingWaitingList(c *gin.Context, prof m
 
 		bookingWaitingRequest.DeleteByBookingCode(db)
 
-		isEdit = true
 	}
 
 	listBookingWaiting := []model_booking.BookingWaiting{}
