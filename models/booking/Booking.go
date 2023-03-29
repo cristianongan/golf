@@ -612,7 +612,25 @@ func (item *Booking) FindFirst(database *gorm.DB) error {
 
 func (item *Booking) FindFirstByUId(database *gorm.DB) (Booking, error) {
 	errFSub := item.FindFirst(database)
-	if errFSub == nil {
+	if errFSub != nil {
+		bookingDel := BookingDel{
+			Model: models.Model{Uid: item.Uid},
+		}
+		if errFindBookingDel := item.FindFirst(database); errFindBookingDel == nil {
+			if item.Bag != "" {
+				booking := Booking{
+					CourseUid:   bookingDel.CourseUid,
+					PartnerUid:  bookingDel.PartnerUid,
+					Bag:         bookingDel.Bag,
+					BookingDate: bookingDel.BookingDate,
+				}
+				db := database.Order("created_at desc")
+				db.Where(&booking).First(&booking)
+				return booking, db.Error
+			}
+			return *item, errFindBookingDel
+		}
+	} else {
 		if item.Bag != "" {
 			booking := Booking{
 				CourseUid:   item.CourseUid,
