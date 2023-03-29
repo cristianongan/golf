@@ -247,6 +247,9 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 			booking.UpdatePriceDetailCurrentBag(db)
 			booking.UpdateMushPay(db)
 			booking.Update(db)
+
+			go booking.UpdateMainSubBagForBooking(db)
+
 			if errUdp != nil {
 				err = errUdp
 				log.Println("UpdateMainBagForSubBag errUdp", errUdp.Error())
