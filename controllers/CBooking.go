@@ -1825,13 +1825,15 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking := model_booking.Booking{}
-	booking.Uid = body.BookingUid
-	errF := booking.FindFirst(db)
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = body.BookingUid
+	booking, errF := bookingR.FindFirstByUId(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
+
+	oldBooking := booking
 
 	if booking.BagStatus != constants.BAG_STATUS_WAITING {
 		response_message.InternalServerError(c, "Bag Status is not Waiting")
@@ -1911,6 +1913,27 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 
 	// Xoa payment
 	deleteSinglePayment(pUid, cUid, billCode, bUid, agencyId, bookingCode)
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_CHECK_IN,
+		Action:      constants.OP_LOG_ACTION_UNDO_CHECK_IN,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
@@ -1997,9 +2020,32 @@ func (cBooking *CBooking) UndoCheckOut(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	oldBooking := booking
+
 	booking.BagStatus = booking.LastBookingStatus
 	booking.CheckOutTime = 0
 
 	booking.Update(db)
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_CHECK_IN,
+		Action:      constants.OP_LOG_ACTION_UNDO_CHECK_OUT,
+		Body:        models.JsonDataLog{Data: form},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+	go createOperationLog(opLog)
 	okRes(c)
 }
