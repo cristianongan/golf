@@ -17,7 +17,6 @@ import (
 	model_report "start/models/report"
 	"start/utils"
 	"start/utils/response_message"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -194,7 +193,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 		if memberCard.Status == constants.STATUS_DISABLE {
 			response_message.BadRequestDynamicKey(c, "MEMBER_CARD_INACTIVE", "")
-			return nil, nil
+			return nil, errors.New("Member Card Inactive")
 		}
 	}
 
@@ -355,8 +354,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			response_message.BadRequestFreeMessage(c, "Caddie "+caddieNew.Code+" không có lịch làm việc!")
 		} else {
 			booking.CaddieBooking = caddieNew.Code
-			booking.CaddieId = caddieNew.Id
-			booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 			booking.HasBookCaddie = true
 		}
 	}
@@ -449,6 +446,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			// checkin mới tạo payment
 			go handleSinglePayment(db, booking)
 		}
+	}
+
+	// Nếu booking từ waiting
+	if body.BookingWaitingId > 0 {
+		go deleteBookingWaiting(db, body.BookingWaitingId)
 	}
 
 	return &booking, nil
@@ -753,11 +755,11 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	// }
 
 	//Upd Main Pay for Sub
-	isMainBagPayChanged := false
+	isPriceChanged := false
 	if body.MainBagPay != nil {
 		if !reflect.DeepEqual(booking.MainBagPay, body.MainBagPay) {
 			booking.MainBagPay = body.MainBagPay
-			isMainBagPayChanged = true
+			isPriceChanged = true
 			go bookMarkRoundPaidByMainBag(booking, db)
 		}
 	}
@@ -867,21 +869,23 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		if errUpdGs := cBooking.updateGuestStyleToBooking(c, guestStyle, db, &booking, guestBody); errUpdGs != nil {
 			return
 		}
+
+		isPriceChanged = true
 	}
 
 	// Booking Note
-	if body.NoteOfBag != "" && body.NoteOfBag != booking.NoteOfBag {
-		booking.NoteOfBag = body.NoteOfBag
+	if body.NoteOfBag != nil {
+		booking.NoteOfBag = *body.NoteOfBag
 		go createBagsNoteNoteOfBag(db, booking)
 	}
 
-	if body.NoteOfBooking != "" && body.NoteOfBooking != booking.NoteOfBooking {
-		booking.NoteOfBooking = body.NoteOfBooking
+	if body.NoteOfBooking != nil {
+		booking.NoteOfBooking = *body.NoteOfBooking
 		go createBagsNoteNoteOfBooking(db, booking)
 	}
 
-	if body.NoteOfGo != "" {
-		booking.NoteOfGo = body.NoteOfGo
+	if body.NoteOfGo != nil {
+		booking.NoteOfGo = *body.NoteOfGo
 	}
 
 	if body.CustomerName != "" {
@@ -935,7 +939,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// udp ok -> Tính lại giá
-	if isMainBagPayChanged {
+	if isPriceChanged {
 		updatePriceWithServiceItem(&booking, prof)
 	}
 
@@ -983,7 +987,7 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 	if body.CaddieCheckIn != nil {
 		if *body.CaddieCheckIn != "" {
 			if *body.CaddieCheckIn != booking.CaddieInfo.Code {
-				oldCaddie := booking.CaddieInfo
+				// oldCaddie := booking.CaddieInfo
 
 				caddieList := models.CaddieList{}
 				caddieList.CourseUid = booking.CourseUid
@@ -1004,21 +1008,21 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 				booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 
 				//Update lại trạng thái caddie
-				caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+				// caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
 				if err := caddieNew.Update(db); err != nil {
 
 				}
 
 				// Out Caddie, nếu caddie trong in course
-				go func() {
-					caddie := models.Caddie{}
-					caddie.Id = oldCaddie.Id
-					if err := caddie.FindFirst(db); err == nil {
-						if strings.Contains(caddie.CurrentStatus, constants.CADDIE_CURRENT_STATUS_IN_COURSE) {
-							udpCaddieOut(db, oldCaddie.Id)
-						}
-					}
-				}()
+				// go func() {
+				// 	caddie := models.Caddie{}
+				// 	caddie.Id = oldCaddie.Id
+				// 	if err := caddie.FindFirst(db); err == nil {
+				// 		if strings.Contains(caddie.CurrentStatus, constants.CADDIE_CURRENT_STATUS_IN_COURSE) {
+				// 			udpCaddieOut(db, oldCaddie.Id)
+				// 		}
+				// 	}
+				// }()
 			}
 		} else {
 			booking.CaddieId = 0
@@ -1051,13 +1055,9 @@ func updateCaddieBooking(c *gin.Context, oldBooking *model_booking.BagDetail, bo
 				}
 
 				booking.CaddieBooking = caddieNew.Code
-				if booking.CheckInTime == 0 {
-					booking.CaddieId = caddieNew.Id
-					booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
-				}
 			}
 		} else {
-			booking.CaddieBooking = *body.CaddieCode
+			booking.CaddieBooking = ""
 		}
 
 		if booking.CheckInTime == 0 && oldBooking.CaddieBooking != *body.CaddieCode {
@@ -1347,6 +1347,21 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	if booking.CaddieBooking != "" {
+		caddieList := models.CaddieList{}
+		caddieList.CourseUid = booking.CourseUid
+		caddieList.CaddieCode = booking.CaddieBooking
+		caddieNew, err := caddieList.FindFirst(db)
+
+		if err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
+
+		booking.CaddieId = caddieNew.Id
+		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
+	}
+
 	if body.Locker != "" {
 		booking.LockerNo = body.Locker
 		go createLocker(db, booking)
@@ -1401,12 +1416,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			// Create payment info
 			handlePayment(db, booking)
 		}
-		// if isAgencyChanged {
-		// 	updateAgencyInfoInPayment(booking)
-		// }
 	}()
-
-	// Update lại thông tin agency cho các round, move flight
 
 	// Update lại round còn thiếu bag
 	cRound := CRound{}

@@ -247,6 +247,9 @@ func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) erro
 			booking.UpdatePriceDetailCurrentBag(db)
 			booking.UpdateMushPay(db)
 			booking.Update(db)
+
+			go booking.UpdateMainSubBagForBooking(db)
+
 			if errUdp != nil {
 				err = errUdp
 				log.Println("UpdateMainBagForSubBag errUdp", errUdp.Error())
@@ -1376,11 +1379,14 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 			ItemName:  proshop.VieName,
 			Unit:      proshop.Unit,
 			GroupType: proshop.Type,
+			GroupName: proshop.GroupName,
 		}, nil
 	}
 
 	fb := model_service.FoodBeverage{
-		FBCode: itemCode,
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+		FBCode:     itemCode,
 	}
 
 	if err := fb.FindFirst(db); err == nil {
@@ -1389,11 +1395,14 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 			ItemName:  fb.VieName,
 			Unit:      fb.Unit,
 			GroupType: fb.Type,
+			GroupName: proshop.GroupName,
 		}, nil
 	}
 
 	rental := model_service.Rental{
-		RentalId: itemCode,
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+		RentalId:   itemCode,
 	}
 
 	if err := rental.FindFirst(db); err == nil {
@@ -1402,6 +1411,7 @@ func getItemInfoInService(db *gorm.DB, partnerUid, courseUid, itemCode string) (
 			ItemName:  rental.VieName,
 			Unit:      rental.Unit,
 			GroupType: rental.Type,
+			GroupName: proshop.GroupName,
 		}, nil
 	}
 
@@ -2068,5 +2078,14 @@ func updateAgencyInfoInPayment(booking model_booking.Booking) {
 		if err := agency.Update(db); err != nil {
 			log.Print("afsdfasdfasdf")
 		}
+	}
+}
+
+func deleteBookingWaiting(db *gorm.DB, id int64) {
+	bookingWaiting := model_booking.BookingWaiting{}
+	bookingWaiting.Id = id
+	if err := bookingWaiting.FindFirst(db); err == nil {
+		bookingWaiting.Status = constants.STATUS_DELETED
+		bookingWaiting.Update(db)
 	}
 }

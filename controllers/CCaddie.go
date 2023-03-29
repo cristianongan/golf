@@ -558,6 +558,8 @@ func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	caddie.ContractStatus = constants.CADDIE_CONTRACT_STATUS_FULLTIME
+
 	list, err := caddie.FindListWithoutPage(db)
 
 	if err != nil {

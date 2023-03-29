@@ -6,7 +6,6 @@ import (
 	"start/datasources"
 	"start/models"
 	kiosk_inventory "start/models/kiosk-inventory"
-	model_service "start/models/service"
 	"start/utils"
 	"start/utils/response_message"
 
@@ -111,18 +110,10 @@ func MethodInputBill(c *gin.Context, prof *models.CmsUser, body request.CreateBi
 			return errItemInfo
 		}
 
-		goodsService := model_service.GroupServices{
-			GroupCode: itemInfo.GroupCode,
-		}
-
-		if errFindGoodsService := goodsService.FindFirst(db); errFindGoodsService != nil {
-			return errFindGoodsService
-		}
-
 		inputItem.ItemInfo = kiosk_inventory.ItemInfo{
 			Price:     data.Price,
 			ItemName:  itemInfo.ItemName,
-			GroupName: goodsService.GroupName,
+			GroupName: itemInfo.GroupName,
 			GroupType: itemInfo.GroupType,
 			GroupCode: itemInfo.GroupCode,
 			Unit:      itemInfo.Unit,
