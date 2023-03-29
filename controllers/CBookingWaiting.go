@@ -266,6 +266,7 @@ func (cBooking *CBookingWaiting) CreateBookingWaitingList(c *gin.Context, prof m
 		}
 	}
 
+	isEdit := false
 	if bodyRequest.BookingList[0].BookingCode != "" {
 		bookingWaitingRequest := model_booking.BookingWaiting{}
 		bookingWaitingRequest.PartnerUid = bodyRequest.BookingList[0].PartnerUid
@@ -277,6 +278,8 @@ func (cBooking *CBookingWaiting) CreateBookingWaitingList(c *gin.Context, prof m
 		bookingWaitingRequest.BookingDate = bodyRequest.BookingList[0].BookingDate
 
 		bookingWaitingRequest.DeleteByBookingCode(db)
+
+		isEdit = true
 	}
 
 	listBookingWaiting := []model_booking.BookingWaiting{}
@@ -293,6 +296,29 @@ func (cBooking *CBookingWaiting) CreateBookingWaitingList(c *gin.Context, prof m
 		response_message.BadRequestFreeMessage(c, errCreate.Error())
 		return
 	}
+
+	opLog := models.OperationLog{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_WAITTING_LIST,
+		Body:        models.JsonDataLog{Data: bodyRequest},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	if isEdit {
+		opLog.Action = constants.OP_LOG_ACTION_UPDATE
+	} else {
+		opLog.Action = constants.OP_LOG_ACTION_CREATE
+	}
+
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
