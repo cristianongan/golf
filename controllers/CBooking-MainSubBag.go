@@ -119,6 +119,9 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// Update lại sub cho các round
+	go booking.UpdateMainSubBagForBooking(db)
+
 	bookRes := model_booking.Booking{}
 	bookRes.Uid = booking.Uid
 	errFRes := bookRes.FindFirst(db)
