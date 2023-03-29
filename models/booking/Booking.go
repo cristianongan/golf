@@ -616,8 +616,8 @@ func (item *Booking) FindFirstByUId(database *gorm.DB) (Booking, error) {
 		bookingDel := BookingDel{
 			Model: models.Model{Uid: item.Uid},
 		}
-		if errFindBookingDel := item.FindFirst(database); errFindBookingDel == nil {
-			if item.Bag != "" {
+		if errFindBookingDel := bookingDel.FindFirst(database); errFindBookingDel == nil {
+			if bookingDel.Bag != "" && bookingDel.BookingDate != "" {
 				booking := Booking{
 					CourseUid:   bookingDel.CourseUid,
 					PartnerUid:  bookingDel.PartnerUid,
@@ -631,7 +631,7 @@ func (item *Booking) FindFirstByUId(database *gorm.DB) (Booking, error) {
 			return *item, errFindBookingDel
 		}
 	} else {
-		if item.Bag != "" {
+		if item.Bag != "" && item.BookingDate != "" {
 			booking := Booking{
 				CourseUid:   item.CourseUid,
 				PartnerUid:  item.PartnerUid,

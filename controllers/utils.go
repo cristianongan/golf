@@ -229,9 +229,9 @@ func getBookingCmsUserLog(cmsUser string, timeDo int64) string {
 func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) error {
 	var err error
 	for _, v := range mainBooking.SubBags {
-		booking := model_booking.Booking{}
-		booking.Uid = v.BookingUid
-		errFind := booking.FindFirst(db)
+		bookingR := model_booking.Booking{}
+		bookingR.Uid = v.BookingUid
+		booking, errFind := bookingR.FindFirstByUId(db)
 		if errFind == nil {
 			mainBag := utils.BookingSubBag{
 				BookingUid: mainBooking.Uid,
