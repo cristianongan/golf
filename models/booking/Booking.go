@@ -710,7 +710,7 @@ func (item *Booking) UpdateMemberCardForBooking(database *gorm.DB) {
 
 // MAIN-SUB Update lại thông tin cho tất cả các booking của bag (ROUND, MOVE FLIGHT)
 func (item *Booking) UpdateMainSubBagForBooking(database *gorm.DB) {
-	if item.Bag != "" {
+	if item.Bag != "" && item.BookingDate != "" {
 		db := database.Model(Booking{})
 		bookingR := BookingList{}
 		bookingR.PartnerUid = item.PartnerUid
