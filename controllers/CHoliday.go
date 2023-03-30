@@ -2,11 +2,16 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
+	"log"
+	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -144,4 +149,34 @@ func (_ *CHoliday) DeleteHoliday(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okRes(c)
+}
+
+func (_ *CHoliday) CheckCurrentDay(partnerUid, courseUid, date string) bool {
+	db := datasources.GetDatabaseWithPartner(partnerUid)
+	bookingDate := ""
+	if date != "" {
+		bookingDate = date
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		if errD != nil {
+			log.Print("CHoliday CheckCurrentDay ", errD.Error())
+		} else {
+			bookingDate = toDayDate
+		}
+	}
+
+	if bookingDate != "" {
+		applyDate, _ := time.Parse(constants.DATE_FORMAT_1, date)
+		year := fmt.Sprint(applyDate.Year())
+
+		holiday := models.Holiday{
+			PartnerUid: partnerUid,
+			CourseUid:  courseUid,
+			Year:       year,
+		}
+
+		_, total, _ := holiday.FindListInRange(db, bookingDate)
+		return total > 0
+	}
+	return false
 }

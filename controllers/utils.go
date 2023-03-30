@@ -1571,7 +1571,7 @@ func removeRowIndexRedis(booking model_booking.Booking) {
 	}
 }
 
-func getBuggyFee(gs string) utils.ListGolfHoleFee {
+func getBuggyFee(gs string, bookingDate string) utils.ListGolfHoleFee {
 
 	partnerUid := "CHI-LINH"
 	courseUid := "CHI-LINH-01"
@@ -1598,7 +1598,7 @@ func getBuggyFee(gs string) utils.ListGolfHoleFee {
 		SettingId:  buggyFeeSetting.Id,
 	}
 
-	listSetting, _, _ := buggyFeeItemSettingR.FindAll(db)
+	listSetting, _ := buggyFeeItemSettingR.FindBuggyFeeOnDate(db, bookingDate)
 	buggyFeeItemSetting := models.BuggyFeeItemSetting{}
 	for _, item := range listSetting {
 		if item.Status == constants.STATUS_ENABLE {
@@ -1870,7 +1870,7 @@ func getIdGroup(s []models.CaddieGroup, e string) int64 {
 	}
 	return 0
 }
-func getBuggyFeeSetting(PartnerUid, CourseUid, GuestStyle string, Hole int) models.BuggyFeeItemSettingResponse {
+func getBuggyFeeSetting(PartnerUid, CourseUid, BookingDate, GuestStyle string, Hole int) models.BuggyFeeItemSettingResponse {
 	db := datasources.GetDatabaseWithPartner(PartnerUid)
 	buggyFeeSettingR := models.BuggyFeeSetting{
 		PartnerUid: PartnerUid,
@@ -1892,7 +1892,7 @@ func getBuggyFeeSetting(PartnerUid, CourseUid, GuestStyle string, Hole int) mode
 		GuestStyle: GuestStyle,
 		SettingId:  buggyFeeSetting.Id,
 	}
-	listSetting, _, _ := buggyFeeItemSettingR.FindAll(db)
+	listSetting, _ := buggyFeeItemSettingR.FindBuggyFeeOnDate(db, BookingDate)
 	buggyFeeItemSetting := models.BuggyFeeItemSetting{}
 	for _, item := range listSetting {
 		if item.Status == constants.STATUS_ENABLE {
@@ -1920,7 +1920,7 @@ func getBookingCadieFeeSetting(PartnerUid, CourseUid, GuestStyle string, Hole in
 		CourseUid:  CourseUid,
 	}
 
-	listBookingBuggyCaddySetting, _, _ := bookingCaddieFeeSettingR.FindList(db, models.Page{}, false)
+	listBookingBuggyCaddySetting, _ := bookingCaddieFeeSettingR.FindBookingCaddieFee(db)
 	bookingCaddieFeeSetting := models.BookingCaddyFeeSetting{}
 	for _, item := range listBookingBuggyCaddySetting {
 		if item.Status == constants.STATUS_ENABLE {

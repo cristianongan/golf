@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"log"
 	"start/constants"
 	"start/datasources"
@@ -390,6 +391,10 @@ func (item *GolfFee) GetGuestStyleList(database *gorm.DB, time string) []GuestSt
 		}
 	}
 
+	if CheckHoliday(item.PartnerUid, item.CourseUid, time) {
+		db = db.Where("dow LIKE ?", "%0%")
+	}
+
 	db = db.Group("guest_style")
 
 	db.Find(&list)
@@ -461,4 +466,34 @@ func (item *GolfFee) FindAll(database *gorm.DB) ([]GolfFee, error) {
 
 	err := db.Find(&list).Error
 	return list, err
+}
+
+func CheckHoliday(partnerUid, courseUid, date string) bool {
+	db := datasources.GetDatabaseWithPartner(partnerUid)
+	bookingDate := ""
+	if date != "" {
+		bookingDate = date
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		if errD != nil {
+			log.Print("CHoliday CheckCurrentDay ", errD.Error())
+		} else {
+			bookingDate = toDayDate
+		}
+	}
+
+	if bookingDate != "" {
+		applyDate, _ := time.Parse(constants.DATE_FORMAT_1, date)
+		year := fmt.Sprint(applyDate.Year())
+
+		holiday := Holiday{
+			PartnerUid: partnerUid,
+			CourseUid:  courseUid,
+			Year:       year,
+		}
+
+		_, total, _ := holiday.FindListInRange(db, bookingDate)
+		return total > 0
+	}
+	return false
 }
