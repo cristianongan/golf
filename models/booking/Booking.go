@@ -612,8 +612,26 @@ func (item *Booking) FindFirst(database *gorm.DB) error {
 
 func (item *Booking) FindFirstByUId(database *gorm.DB) (Booking, error) {
 	errFSub := item.FindFirst(database)
-	if errFSub == nil {
-		if item.Bag != "" {
+	if errFSub != nil {
+		bookingDel := BookingDel{
+			Model: models.Model{Uid: item.Uid},
+		}
+		if errFindBookingDel := bookingDel.FindFirst(database); errFindBookingDel == nil {
+			if bookingDel.Bag != "" && bookingDel.BookingDate != "" {
+				booking := Booking{
+					CourseUid:   bookingDel.CourseUid,
+					PartnerUid:  bookingDel.PartnerUid,
+					Bag:         bookingDel.Bag,
+					BookingDate: bookingDel.BookingDate,
+				}
+				db := database.Order("created_at desc")
+				db.Where(&booking).First(&booking)
+				return booking, db.Error
+			}
+			return *item, errFindBookingDel
+		}
+	} else {
+		if item.Bag != "" && item.BookingDate != "" {
 			booking := Booking{
 				CourseUid:   item.CourseUid,
 				PartnerUid:  item.PartnerUid,
@@ -1481,6 +1499,9 @@ func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]inte
 	}
 	if item.BookingDate != "" {
 		subQuery = subQuery.Where("bookings.booking_date = ?", item.BookingDate)
+	}
+	if item.Bag != "" {
+		subQuery = subQuery.Where("bookings.bag = ?", item.Bag)
 	}
 
 	db = db.Joins(`INNER JOIN (?) as tb2 on tb1.booking_uid = tb2.uid`, subQuery)

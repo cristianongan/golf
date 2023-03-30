@@ -496,6 +496,9 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 	if item.ServiceId != "" {
 		db = db.Where("booking_service_items.service_id = ?", item.ServiceId)
 	}
+	if item.Name != "" {
+		db = db.Where("booking_service_items.name LIKE ?", "%"+item.Name+"%")
+	}
 	if item.Type == constants.RESTAURANT_SETTING {
 		db = db.Where("booking_service_items.type IN ?", []string{constants.RESTAURANT_SETTING, constants.MINI_R_SETTING})
 	} else if item.Type != "" {
@@ -537,7 +540,7 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 
 	if item.Type == "KIOSK" || item.Type == "PROSHOP" {
 		db.Group("booking_service_items.service_id, booking_service_items.item_code, booking_service_items.name, booking_service_items.unit_price, booking_service_items.discount_type, booking_service_items.discount_value")
-		db.Order("booking_service_items.location")
+		db.Order("booking_service_items.location, booking_service_items.name")
 	} else {
 		db.Group("booking_service_items.item_code, booking_service_items.name, booking_service_items.unit_price, booking_service_items.discount_type, booking_service_items.discount_value")
 		db.Order("booking_service_items.name")
@@ -574,6 +577,14 @@ func (item *BookingServiceItem) FindReportDetailFB(database *gorm.DB, date strin
 
 	if item.GroupCode != "" {
 		db = db.Where("tb.group_code = ?", item.GroupCode)
+	}
+
+	if item.ItemCode != "" {
+		db = db.Where("tb.item_code = ?", item.ItemCode)
+	}
+
+	if item.Bag != "" {
+		db = db.Where("tb.bag = ?", item.Bag)
 	}
 
 	// sub query

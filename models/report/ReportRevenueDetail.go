@@ -85,6 +85,13 @@ type DayEndRevenue struct {
 	TotalPlayer      int64  `json:"total_player"`
 }
 
+type ReportDebit struct {
+	BookingDate  string `json:"booking_date"`  // Ngày chơi
+	Bag          string `json:"bag"`           // Mã KH
+	CustomerName string `json:"customer_name"` // Tên KH
+	Debit        int64  `json:"debit"`         // Số tiền nợ
+}
+
 type BookingAgency struct {
 	AgencyId    string `json:"agency_id"`    // Id Agency
 	ShortName   string `json:"short_name"`   // Ten ngắn Dai ly
@@ -243,4 +250,19 @@ func (item *ReportRevenueDetail) FindReportDayEnd(database *gorm.DB) (DayEndReve
 	db.Find(&dayEnd)
 
 	return dayEnd, db.Error
+}
+
+func (item *ReportRevenueDetail) FindAllDebit(database *gorm.DB) ([]ReportDebit, error) {
+	var list []ReportDebit
+
+	db := database.Model(ReportRevenueDetail{})
+
+	db = db.Where("partner_uid = ?", item.PartnerUid)
+	db = db.Where("course_uid = ?", item.CourseUid)
+	db = db.Where("booking_date = ?", item.BookingDate)
+	db = db.Where("debit != 0")
+
+	db.Find(&list)
+
+	return list, db.Error
 }
