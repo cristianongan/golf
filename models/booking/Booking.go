@@ -1482,6 +1482,9 @@ func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]inte
 	if item.BookingDate != "" {
 		subQuery = subQuery.Where("bookings.booking_date = ?", item.BookingDate)
 	}
+	if item.Bag != "" {
+		subQuery = subQuery.Where("bookings.bag = ?", item.Bag)
+	}
 
 	db = db.Joins(`INNER JOIN (?) as tb2 on tb1.booking_uid = tb2.uid`, subQuery)
 	db = db.Joins(`LEFT JOIN service_carts as tb3 on tb1.service_bill = tb3.id`)

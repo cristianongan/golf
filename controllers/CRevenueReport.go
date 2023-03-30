@@ -66,6 +66,7 @@ func (_ *CRevenueReport) GetReportRevenueDetailFBBag(c *gin.Context, prof models
 		PartnerUid:  form.PartnerUid,
 		CourseUid:   form.CourseUid,
 		BookingDate: form.Date,
+		Bag:         form.Bag,
 	}
 
 	list, err := serviceCart.FindReportDetailFBBag(db)
@@ -94,6 +95,8 @@ func (_ *CRevenueReport) GetReportRevenueDetailFB(c *gin.Context, prof models.Cm
 		CourseUid:  form.CourseUid,
 		Type:       form.Type,
 		GroupCode:  form.GroupCode,
+		ItemCode:   form.ItemCode,
+		Bag:        form.Bag,
 	}
 
 	list, err := bookSI.FindReportDetailFB(db, form.Date)
@@ -583,6 +586,7 @@ func (_ *CRevenueReport) GetReportRevenuePointOfSale(c *gin.Context, prof models
 		CourseUid:  form.CourseUid,
 		ServiceId:  form.ServiceId,
 		Type:       form.Type,
+		Name:       form.ItemName,
 	}
 
 	list, err := serviceItem.FindReportRevenuePOS(db, form.FromDate, form.ToDate)
