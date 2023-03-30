@@ -659,6 +659,13 @@ func (cRound CRound) RemoveRound(c *gin.Context, prof models.CmsUser) {
 		oldBooking.Update(db)
 		booking.Delete(db)
 
+		// Clone booking đã xóa sang bảng booking del
+		bookDel := booking.CloneBookingDel()
+		errCreateDel := bookDel.Create(db)
+		if errCreateDel != nil {
+			log.Println("CancelAllBooking err", errCreateDel.Error())
+		}
+
 		//Xóa round
 		roundR.LastRound(db)
 		roundR.Delete(db)

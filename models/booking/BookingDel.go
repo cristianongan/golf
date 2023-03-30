@@ -127,3 +127,8 @@ type BookingDel struct {
 func (item *BookingDel) Create(db *gorm.DB) error {
 	return db.Create(item).Error
 }
+
+func (item *BookingDel) FindFirst(database *gorm.DB) error {
+	db := database.Model(BookingDel{})
+	return db.Where(item).First(item).Error
+}
