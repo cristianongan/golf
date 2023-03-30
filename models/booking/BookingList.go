@@ -557,6 +557,10 @@ func (item *BookingList) FindReportAgencyPayment(database *gorm.DB) ([]map[strin
 
 	db = db.Joins("INNER JOIN (?) as tb2 ON tb2.agency_id = tb1.agency_id", subQuery1)
 
+	if item.AgencyName != "" {
+		db = db.Where("tb1.agency_name COLLATE utf8mb4_general_ci LIKE ?", "%"+item.AgencyName+"%")
+	}
+
 	db.Group("tb1.agency_id")
 
 	db = db.Find(&list)

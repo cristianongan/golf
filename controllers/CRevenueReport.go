@@ -615,7 +615,7 @@ func (_ *CRevenueReport) GetReportAgencyPayment(c *gin.Context, prof models.CmsU
 		CourseUid:  form.CourseUid,
 		FromDate:   form.FromDate,
 		ToDate:     form.ToDate,
-		// AgencyName: form.AgencyName,
+		AgencyName: form.AgencyName,
 	}
 
 	list, _ := bookingList.FindReportAgencyPayment(db)
