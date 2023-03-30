@@ -307,7 +307,7 @@ func (_ *CRevenueReport) GetReportSalePOS(c *gin.Context, prof models.CmsUser) {
 
 // Báo cáo DT tổng hợp với đk đã check-in
 func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUser) {
-	body := request.FinishBookingBody{}
+	body := request.RReportRevenueTotal{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())
 		return
@@ -328,6 +328,10 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 		badRequest(c, err.Error())
 		return
 	}
+
+	// Tìm ds bag có debit
+	listDebit, _ := repotR.FindAllDebit(db)
+	//
 
 	singlePaymentItemR1 := model_payment.SinglePaymentItem{
 		PartnerUid:  body.PartnerUid,
@@ -366,8 +370,9 @@ func (cBooking *CRevenueReport) GetDailyReport(c *gin.Context, prof models.CmsUs
 	data.TotalPlayer = data.Member + data.MemberGuest + data.Visitor + data.Foc + data.HK + data.Tour
 
 	res := map[string]interface{}{
-		"revenue": data,
-		"players": listTransfer,
+		"revenue":       data,
+		"players":       listTransfer,
+		"players_debit": listDebit,
 		"cards": map[string]interface{}{
 			"vcb":   vcb,
 			"bidv":  bidv,
