@@ -48,7 +48,7 @@ func (item *AgencySpecialPrice) FindOtherPriceOnTime(db *gorm.DB) (AgencySpecial
 		}
 
 		hourLast := fromH + "," + toH
-		if utils.CheckDow(v.Dow, hourLast, utils.GetTimeNow()) {
+		if CheckDow(v.Dow, hourLast, utils.GetTimeNow(), item.PartnerUid, item.CourseUid) {
 			idx = i
 		}
 	}
@@ -79,7 +79,7 @@ func (item *AgencySpecialPrice) FindOtherPriceOnDate(db *gorm.DB, date time.Time
 		}
 
 		hourLast := fromH + "," + toH
-		if utils.CheckDow(v.Dow, hourLast, date) {
+		if CheckDow(v.Dow, hourLast, date, item.PartnerUid, item.CourseUid) {
 			idx = i
 		}
 	}

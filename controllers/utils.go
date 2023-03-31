@@ -821,7 +821,7 @@ func checkMemberCardGuestOfDay(memberCard models.MemberCard, memberCardType mode
 		// Check GuestStyle có không
 		if v.GuestStyle == guestStyle {
 			if v.Dow != "" {
-				if utils.CheckDow(v.Dow, "", createdTime) {
+				if models.CheckDow(v.Dow, "", createdTime, memberCard.PartnerUid, memberCard.CourseUid) {
 					// Ngày hợp lệ
 					listTotal := []int{}
 					if utils.IsWeekend(createdTime.Unix()) {
