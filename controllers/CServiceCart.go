@@ -835,6 +835,9 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//
+	dataOld := serviceCartItem
+
 	// validate golf bag
 	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
 
@@ -956,6 +959,46 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 		//Update lại giá trong booking
 		updatePriceWithServiceItem(&booking, prof)
 	}
+
+	opLog := models.OperationLog{
+		PartnerUid:  serviceCartItem.PartnerUid,
+		CourseUid:   serviceCartItem.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_POS,
+		Action:      constants.OP_LOG_ACTION_UPD_ITEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: dataOld},
+		ValueNew:    models.JsonDataLog{Data: serviceCartItem},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         serviceCartItem.Bag,
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    serviceCartItem.BillCode,
+		BookingUid:  serviceCartItem.BookingUid,
+	}
+
+	if serviceCartItem.Type == constants.RENTAL_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_GOLF_CLUB_RENTAL
+	}
+
+	if serviceCartItem.Type == constants.DRIVING_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_DRIVING
+	}
+
+	if serviceCartItem.Type == constants.PROSHOP_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_PROSHOP
+	}
+
+	if serviceCartItem.Type == constants.KIOSK_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_KIOSK
+	}
+
+	if serviceCartItem.Type == constants.MINI_B_SETTING {
+		opLog.Function = constants.OP_LOG_FUNCTION_MINIBAR
+	}
+
+	createOperationLog(opLog)
 
 	okRes(c)
 }

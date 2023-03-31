@@ -693,6 +693,9 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//
+	dataOld := serviceCartItem
+
 	// validate restaurant order
 	serviceCart := models.ServiceCart{}
 	serviceCart.Id = serviceCartItem.ServiceBill
@@ -824,6 +827,27 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		//Update lại giá trong booking
 		updatePriceWithServiceItem(&booking, prof)
 	}
+
+	opLog := models.OperationLog{
+		PartnerUid:  serviceCartItem.PartnerUid,
+		CourseUid:   serviceCartItem.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_POS,
+		Function:    constants.OP_LOG_FUNCTION_RESTAURANT,
+		Action:      constants.OP_LOG_ACTION_UPD_ITEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: dataOld},
+		ValueNew:    models.JsonDataLog{Data: serviceCartItem},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         serviceCartItem.Bag,
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    serviceCartItem.BillCode,
+		BookingUid:  serviceCartItem.BookingUid,
+	}
+
+	createOperationLog(opLog)
 
 	okRes(c)
 }
