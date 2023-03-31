@@ -14,6 +14,7 @@ type BookingSubBag struct {
 	BookingCode string `json:"booking_code"`
 	CmsUser     string `json:"cms_user"`
 	CmsUserLog  string `json:"cms_user_log"`
+	BagStatus   string `json:"bag_status" gorm:"-:migration"`
 }
 
 type SubBagStatus struct {
