@@ -1601,9 +1601,11 @@ func getBuggyFee(gs string, bookingDate string) utils.ListGolfHoleFee {
 	listSetting, _ := buggyFeeItemSettingR.FindBuggyFeeOnDate(db, bookingDate)
 	buggyFeeItemSetting := models.BuggyFeeItemSetting{}
 	for _, item := range listSetting {
-		if item.Status == constants.STATUS_ENABLE {
+		if item.GuestStyle != "" {
 			buggyFeeItemSetting = item
 			break
+		} else {
+			buggyFeeItemSetting = item
 		}
 	}
 
@@ -1870,7 +1872,7 @@ func getIdGroup(s []models.CaddieGroup, e string) int64 {
 	}
 	return 0
 }
-func getBuggyFeeSetting(PartnerUid, CourseUid, BookingDate, GuestStyle string, Hole int) models.BuggyFeeItemSettingResponse {
+func getBuggyFeeSetting(PartnerUid, CourseUid, GuestStyle, BookingDate string, Hole int) models.BuggyFeeItemSettingResponse {
 	db := datasources.GetDatabaseWithPartner(PartnerUid)
 	buggyFeeSettingR := models.BuggyFeeSetting{
 		PartnerUid: PartnerUid,
@@ -1895,9 +1897,11 @@ func getBuggyFeeSetting(PartnerUid, CourseUid, BookingDate, GuestStyle string, H
 	listSetting, _ := buggyFeeItemSettingR.FindBuggyFeeOnDate(db, BookingDate)
 	buggyFeeItemSetting := models.BuggyFeeItemSetting{}
 	for _, item := range listSetting {
-		if item.Status == constants.STATUS_ENABLE {
+		if item.GuestStyle != "" {
 			buggyFeeItemSetting = item
 			break
+		} else {
+			buggyFeeItemSetting = item
 		}
 	}
 

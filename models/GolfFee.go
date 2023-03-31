@@ -392,7 +392,7 @@ func (item *GolfFee) GetGuestStyleList(database *gorm.DB, time string) []GuestSt
 	}
 
 	if CheckHoliday(item.PartnerUid, item.CourseUid, time) {
-		db = db.Where("dow LIKE ?", "%0%")
+		db = db.Or("dow LIKE ?", "%0%")
 	}
 
 	db = db.Group("guest_style")

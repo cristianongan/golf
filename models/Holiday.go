@@ -109,11 +109,11 @@ func (item *Holiday) FindListInRange(database *gorm.DB, time string) ([]Holiday,
 		db = db.Where("year = ?", item.Year)
 	}
 
-	db = db.Where("DATE_FORMAT(STR_TO_DATE((?) , '%d/%m'), '%m-%d') between DATE_FORMAT(STR_TO_DATE(from, '%d/%m'), '%m-%d') AND DATE_FORMAT(STR_TO_DATE(to, '%d/%m'), '%m-%d')", time)
+	db = db.Where("DATE_FORMAT(STR_TO_DATE((?) , '%d/%m'), '%m-%d') between DATE_FORMAT(STR_TO_DATE(`from`, '%d/%m'), '%m-%d') AND DATE_FORMAT(STR_TO_DATE(`to`, '%d/%m'), '%m-%d')", time)
 	db = db.Where("year = ?", item.Year)
 
 	db.Count(&total)
-	db = db.Find(&list)
+	db.Find(&list)
 	return list, total, db.Error
 }
 

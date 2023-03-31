@@ -189,10 +189,7 @@ func (item *BuggyFeeItemSetting) FindBuggyFeeOnDate(database *gorm.DB, time stri
 	}
 
 	db = db.Where("status = ?", constants.STATUS_ENABLE)
-	db = db.Order("created_at desc")
-
-	db.Limit(1).Debug().Find(&list)
-
+	db.Find(&list)
 	return list, db.Error
 }
 
