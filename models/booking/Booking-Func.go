@@ -1220,7 +1220,9 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 			// Nếu có main bag
 			if mainCheckOutTime > 0 && v.CreatedAt > mainCheckOutTime {
 				// main bag đã check out đi về, sub bag dùng tiếp service thì phải trả v
-				isBuggyCaddieRental = false
+				if mainPaidRental {
+					isBuggyCaddieRental = false
+				}
 				isNeedPay = true
 			} else {
 				if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL ||
