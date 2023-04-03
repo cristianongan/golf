@@ -5,7 +5,6 @@ import (
 	"start/models"
 	"start/utils"
 	"strconv"
-	"strings"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -90,7 +89,7 @@ func (item *BookingSettingGroup) FindList(database *gorm.DB, page models.Page, f
 	item.ModelId.Status = ""
 	// db = db.Where(item)
 	if status != "" {
-		db = db.Where("status in (?)", strings.Split(status, ","))
+		db = db.Where("`status` = ?", status)
 	}
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
