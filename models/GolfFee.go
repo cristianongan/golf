@@ -381,7 +381,11 @@ func (item *GolfFee) GetGuestStyleList(database *gorm.DB, time string) []GuestSt
 
 	// Filter guest style theo ngày trong tuần
 	if len(time) == 0 {
-		db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+		if CheckHoliday(item.PartnerUid, item.CourseUid, time) {
+			db = db.Where("dow LIKE ? OR dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%", "%0%")
+		} else {
+			db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+		}
 	} else {
 		dayOfWeek := utils.GetDayOfWeek(time)
 		if dayOfWeek != "" {
