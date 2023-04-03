@@ -73,7 +73,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 	if len(listGolfService) > 0 {
 		for index, v := range listGolfService {
 			// Check trạng thái bill
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 				// Add từ lễ tân thì k cần check
 				listServiceItems = append(listServiceItems, v)
 			} else {
@@ -226,8 +226,7 @@ func (item *Booking) FindServiceItemsForHandleFee(db *gorm.DB) {
 	if len(listGolfService) > 0 {
 		for index, v := range listGolfService {
 			// Check trạng thái bill
-			// if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_MANUAL {
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 				// Add từ lễ tân thì k cần check
 				listServiceItems = append(listServiceItems, v)
 			} else {
@@ -414,7 +413,7 @@ func (item *Booking) FindServiceItemsInPayment(db *gorm.DB) {
 			}
 
 			// Check trạng thái bill
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 				// Add từ lễ tân thì k cần check
 				if isCanAdd {
 					listServiceItems = append(listServiceItems, v)
@@ -547,7 +546,7 @@ func (item *Booking) FindServiceItemsOfBag(db *gorm.DB) {
 	if len(listGolfService) > 0 {
 		for _, v := range listGolfService {
 			// Check trạng thái bill
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 				// Add từ lễ tân thì k cần check
 				listServiceItems = append(listServiceItems, v)
 			} else {
@@ -656,7 +655,7 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 			}
 
 			// Check trạng thái bill
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 				// Add từ lễ tân thì k cần check
 				listServiceItems = append(listServiceItems, v)
 			} else {
@@ -882,7 +881,7 @@ func (item *Booking) FindServiceItemsForBill(db *gorm.DB) []BookingServiceItemWi
 			}
 
 			// Check trạng thái bill
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 				// Add từ lễ tân thì k cần check
 				listServiceItems = append(listServiceItems, v)
 			} else {

@@ -106,6 +106,8 @@ func (_ *CBookingServiceItem) AddBookingServiceItemToBag(c *gin.Context, prof mo
 	serviceItem.Bag = booking.Bag
 	serviceItem.BillCode = booking.BillCode
 	serviceItem.BookingUid = booking.Uid
+	serviceItem.PartnerUid = booking.PartnerUid
+	serviceItem.CourseUid = booking.CourseUid
 	serviceItem.PlayerName = booking.CustomerName
 	serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
 
