@@ -1200,6 +1200,12 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 	// update lại lấy service items mới
 	buggyCaddieRentalFee := int64(0)
 	buggyCaddieRentalFeeOfSub := int64(0)
+	buggyCaddieRentalMainBagNotPaid := int64(0)
+
+	hasBuggy := false
+	hasOddBuggy := false
+	hasPrivateBuggy := false
+	hasCaddie := false
 
 	item.FindServiceItems(db)
 	for _, v := range item.ListServiceItems {
@@ -1220,9 +1226,44 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 			// Nếu có main bag
 			if mainCheckOutTime > 0 && v.CreatedAt > mainCheckOutTime {
 				// main bag đã check out đi về, sub bag dùng tiếp service thì phải trả v
-				if mainPaidRental {
-					isBuggyCaddieRental = false
+				if mainPaidRental && isBuggyCaddieRental {
+					isPaid := false
+					for _, itemPaid := range item.AgencyPaid {
+						if !(itemPaid.Fee > 0 && v.Hole <= itemPaid.Hole) {
+							break
+						}
+
+						if v.Name == constants.THUE_RIENG_XE && v.Name == itemPaid.Name && !hasPrivateBuggy && itemPaid.Fee > 0 {
+							hasPrivateBuggy = true
+							isPaid = true
+							break
+						}
+
+						if v.Name == constants.THUE_LE_XE && v.Name == itemPaid.Name && !hasOddBuggy && itemPaid.Fee > 0 {
+							hasOddBuggy = true
+							isPaid = true
+							break
+						}
+
+						if v.Name == constants.THUE_NUA_XE && v.Name == itemPaid.Name && !hasBuggy && itemPaid.Fee > 0 {
+							hasBuggy = true
+							isPaid = true
+							break
+						}
+
+						if v.ServiceType == constants.CADDIE_SETTING && !hasCaddie && itemPaid.Fee > 0 {
+							hasCaddie = true
+							isPaid = true
+							break
+						}
+
+					}
+
+					if !isPaid {
+						buggyCaddieRentalMainBagNotPaid += v.Amount
+					}
 				}
+
 				isNeedPay = true
 			} else {
 				if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL ||
@@ -1262,7 +1303,7 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 
 	if mainPaidRental {
 		feePaid += buggyCaddieRentalMushPay
-		buggyCaddieRentalMushPay = 0
+		buggyCaddieRentalMushPay = buggyCaddieRentalMainBagNotPaid
 	}
 
 	if buggyCaddieRentalMushPay < 0 {
