@@ -152,7 +152,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
 						}
 						if v2 == serviceTypV1 && v1.PaidBy != constants.PAID_BY_AGENCY {
-							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v1.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 								isCanAdd = true
 							} else {
 								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
@@ -297,7 +297,7 @@ func (item *Booking) FindServiceItemsForHandleFee(db *gorm.DB) {
 							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
 						}
 						if v2 == serviceTypV1 && v1.PaidBy != constants.PAID_BY_AGENCY {
-							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v1.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 								isCanAdd = true
 							} else {
 								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
@@ -488,7 +488,7 @@ func (item *Booking) FindServiceItemsInPayment(db *gorm.DB) {
 							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
 						}
 						if v2 == serviceTypV1 && v1.PaidBy != constants.PAID_BY_AGENCY {
-							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v1.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 								isCanAdd = true
 							} else {
 								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
@@ -733,7 +733,7 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
 						}
 						if v2 == serviceTypV1 {
-							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v1.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 								isCanAdd = true
 							} else {
 								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
@@ -955,7 +955,7 @@ func (item *Booking) FindServiceItemsForBill(db *gorm.DB) []BookingServiceItemWi
 							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
 						}
 						if v2 == serviceTypV1 {
-							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v1.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 								isCanAdd = true
 							} else {
 								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||

@@ -229,9 +229,9 @@ func getBookingCmsUserLog(cmsUser string, timeDo int64) string {
 func updateMainBagForSubBag(db *gorm.DB, mainBooking model_booking.Booking) error {
 	var err error
 	for _, v := range mainBooking.SubBags {
-		bookingR := model_booking.Booking{}
-		bookingR.Uid = v.BookingUid
-		booking, errFind := bookingR.FindFirstByUId(db)
+		booking := model_booking.Booking{}
+		booking.Uid = v.BookingUid
+		errFind := booking.FindFirst(db)
 		if errFind == nil {
 			mainBag := utils.BookingSubBag{
 				BookingUid: mainBooking.Uid,
@@ -1959,7 +1959,7 @@ func checkForCheckOut(bag model_booking.Booking) (bool, string) {
 					}
 
 					// Check trong MainBag có trả mới add
-					if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+					if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v1.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 						// ok
 					} else {
 						if serviceCart.BillStatus == constants.RES_BILL_STATUS_FINISH ||
