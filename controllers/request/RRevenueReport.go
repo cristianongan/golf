@@ -13,6 +13,7 @@ type RevenueReportDetailFBBagForm struct {
 	PartnerUid string `form:"partner_uid" binding:"required"`
 	CourseUid  string `form:"course_uid" binding:"required"`
 	Date       string `form:"date" binding:"required"`
+	Bag        string `form:"bag"`
 }
 
 type RevenueReportDetailFBForm struct {
@@ -21,6 +22,8 @@ type RevenueReportDetailFBForm struct {
 	Date       string `form:"date" binding:"required"`
 	Type       string `form:"type"`
 	GroupCode  string `form:"group_code"`
+	Bag        string `form:"bag"`
+	ItemCode   string `form:"item_code"`
 }
 
 type RevenueBookingReportDetail struct {
@@ -81,6 +84,7 @@ type RevenueReportPOSForm struct {
 	ToDate     string `form:"to_date"`
 	ServiceId  string `form:"service_id"`
 	Type       string `form:"type"`
+	ItemName   string `form:"item_name"`
 }
 
 type AgencyPaymentReportForm struct {
@@ -99,4 +103,10 @@ type UpdateReportBody struct {
 	Bag         string `form:"bag" json:"bag"`
 	BillNo      string `form:"bill_no" json:"bill_no"`
 	BookingDate string `form:"booking_date" json:"booking_date"`
+}
+
+type RReportRevenueTotal struct {
+	PartnerUid  string `form:"partner_uid" binding:"required"`
+	CourseUid   string `form:"course_uid" binding:"required"`
+	BookingDate string `form:"booking_date" binding:"required"`
 }

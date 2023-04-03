@@ -241,11 +241,22 @@ func (_ *CBookingServiceItem) DelBookingServiceItemToBag(c *gin.Context, prof mo
 		return
 	}
 
-	errDel := serviceItem.Delete(db)
+	// update service cart
 
+	errDel := serviceItem.Delete(db)
 	if errDel != nil {
 		response_message.BadRequest(c, errDel.Error())
 		return
+	}
+
+	// update amout bill
+	if serviceItem.ServiceBill > 0 {
+		serviceCart := models.ServiceCart{}
+		serviceCart.Id = serviceItem.ServiceBill
+		if err := serviceCart.FindFirst(db); err == nil {
+			serviceCart.Amount -= serviceItem.Amount
+			serviceCart.Update(db)
+		}
 	}
 
 	//Update lại giá trong booking
