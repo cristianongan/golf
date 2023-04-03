@@ -174,18 +174,23 @@ func (item *BuggyFeeItemSetting) FindBuggyFeeOnDate(database *gorm.DB, time stri
 	}
 
 	if time == "" {
-		db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+		toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		if CheckHoliday(item.PartnerUid, item.CourseUid, toDayDate) {
+			db = db.Where("dow LIKE ?", "%0%")
+		} else {
+			db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+		}
 	} else {
 		dayOfWeek := utils.GetDayOfWeek(time)
 		if dayOfWeek != "" {
 			if CheckHoliday(item.PartnerUid, item.CourseUid, time) {
-				db = db.Where("dow LIKE ? OR dow LIKE ?", "%"+dayOfWeek+"%", "%0%")
+				db = db.Where("dow LIKE ?", "%0%")
 			} else {
 				db = db.Where("dow LIKE ?", "%"+dayOfWeek+"%")
 			}
 		} else {
 			if CheckHoliday(item.PartnerUid, item.CourseUid, time) {
-				db = db.Where("dow LIKE ? OR dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%", "%0%")
+				db = db.Where("dow LIKE ?", "%0%")
 			} else {
 				db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
 			}
@@ -193,7 +198,7 @@ func (item *BuggyFeeItemSetting) FindBuggyFeeOnDate(database *gorm.DB, time stri
 	}
 
 	db = db.Where("status = ?", constants.STATUS_ENABLE)
-	db.Find(&list)
+	db.Debug().Find(&list)
 	return list, db.Error
 }
 
