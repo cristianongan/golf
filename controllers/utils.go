@@ -1030,6 +1030,16 @@ func getBagWithRoundDetail(db *gorm.DB, booking model_booking.Booking) model_boo
 		}
 	}
 
+	if len(booking.MainBags) > 0 {
+		for idx, main := range booking.MainBags {
+			mainR := model_booking.Booking{}
+			mainR.Uid = main.BookingUid
+
+			mainBooking, _ := mainR.FindFirstByUId(db)
+			booking.MainBags[idx].BagStatus = mainBooking.BagStatus
+		}
+	}
+
 	return bagDetail
 }
 
