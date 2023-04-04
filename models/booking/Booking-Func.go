@@ -1250,7 +1250,7 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 							break
 						}
 
-						if v.ServiceType == constants.CADDIE_SETTING && !hasCaddie && itemPaid.Fee > 0 {
+						if v.ServiceType == constants.CADDIE_SETTING && item.GetAgencyPaidBookingCaddie() > 0 && !hasCaddie {
 							hasCaddie = true
 							isPaid = true
 							break
