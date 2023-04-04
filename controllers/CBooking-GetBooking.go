@@ -257,6 +257,7 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 
 	// Get List Round Of Sub Bag
 	listRoundOfSub := []model_booking.RoundOfBag{}
+
 	agencyPaidAll := int64(0)
 
 	if len(booking.SubBags) > 0 {

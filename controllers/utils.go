@@ -965,6 +965,27 @@ func getBagDetailFromBooking(db *gorm.DB, booking model_booking.Booking) model_b
 			bagDetail.Rounds = listRound
 		}
 	}
+
+	if len(booking.SubBags) > 0 {
+		for idx, sub := range booking.SubBags {
+			subR := model_booking.Booking{}
+			subR.Uid = sub.BookingUid
+
+			subBooking, _ := subR.FindFirstByUId(db)
+			booking.SubBags[idx].BagStatus = subBooking.BagStatus
+		}
+	}
+
+	if len(booking.MainBags) > 0 {
+		for idx, main := range booking.MainBags {
+			mainR := model_booking.Booking{}
+			mainR.Uid = main.BookingUid
+
+			mainBooking, _ := mainR.FindFirstByUId(db)
+			booking.MainBags[idx].BagStatus = mainBooking.BagStatus
+		}
+	}
+
 	return bagDetail
 }
 
@@ -1022,6 +1043,27 @@ func getBagWithRoundDetail(db *gorm.DB, booking model_booking.Booking) model_boo
 			bagDetail.RoundsWithNote = listRoundWithNote
 		}
 	}
+
+	if len(booking.SubBags) > 0 {
+		for idx, sub := range booking.SubBags {
+			subR := model_booking.Booking{}
+			subR.Uid = sub.BookingUid
+
+			subBooking, _ := subR.FindFirstByUId(db)
+			booking.SubBags[idx].BagStatus = subBooking.BagStatus
+		}
+	}
+
+	if len(booking.MainBags) > 0 {
+		for idx, main := range booking.MainBags {
+			mainR := model_booking.Booking{}
+			mainR.Uid = main.BookingUid
+
+			mainBooking, _ := mainR.FindFirstByUId(db)
+			booking.MainBags[idx].BagStatus = mainBooking.BagStatus
+		}
+	}
+
 	return bagDetail
 }
 

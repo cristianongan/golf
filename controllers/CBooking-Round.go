@@ -55,6 +55,7 @@ func GetGolfFeeInfoOfBag(c *gin.Context, mainBooking model_booking.Booking) mode
 			Bag:         subBooking.GolfBag,
 			BookingCode: subBooking.BookingCode,
 			PlayerName:  subBooking.PlayerName,
+			BagStatus:   booking.BagStatus,
 			Rounds:      []models.Round{},
 		}
 
