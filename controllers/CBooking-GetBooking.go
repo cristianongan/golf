@@ -243,10 +243,19 @@ func (_ *CBooking) GetBookingFeeOfBag(c *gin.Context, prof models.CmsUser) {
 		if mainCheckOutTime > 0 {
 			for index, round := range listRoundOfMain {
 				if round.Index == 1 && mainPaidRound1 {
-					listRoundOfMain[index].IsPaid = true
+					if round.CreatedAt > mainCheckOutTime {
+						listRoundOfMain[index].IsPaid = false
+					} else {
+						listRoundOfMain[index].IsPaid = true
+					}
 				}
+
 				if round.Index == 2 && mainPaidRound2 {
-					listRoundOfMain[index].IsPaid = true
+					if round.CreatedAt > mainCheckOutTime {
+						listRoundOfMain[index].IsPaid = false
+					} else {
+						listRoundOfMain[index].IsPaid = true
+					}
 				}
 			}
 		}

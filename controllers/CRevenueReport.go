@@ -524,6 +524,7 @@ func (cBooking *CRevenueReport) UpdateReportRevenueOnlyCheckIn(c *gin.Context, p
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,
 		BookingDate: body.BookingDate,
+		Bag:         body.Bag,
 	}
 
 	if err := reportR.DeleteByBookingDate(); err != nil {
@@ -537,6 +538,7 @@ func (cBooking *CRevenueReport) UpdateReportRevenueOnlyCheckIn(c *gin.Context, p
 		PartnerUid:  body.PartnerUid,
 		CourseUid:   body.CourseUid,
 		BookingDate: body.BookingDate,
+		GolfBag:     body.Bag,
 	}
 
 	db, _, err := bookings.FindAllBookingList(db)

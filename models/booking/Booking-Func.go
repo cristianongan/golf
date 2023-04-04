@@ -73,7 +73,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 	if len(listGolfService) > 0 {
 		for index, v := range listGolfService {
 			// Check trạng thái bill
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 				// Add từ lễ tân thì k cần check
 				listServiceItems = append(listServiceItems, v)
 			} else {
@@ -152,7 +152,7 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
 						}
 						if v2 == serviceTypV1 && v1.PaidBy != constants.PAID_BY_AGENCY {
-							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v1.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 								isCanAdd = true
 							} else {
 								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
@@ -226,8 +226,7 @@ func (item *Booking) FindServiceItemsForHandleFee(db *gorm.DB) {
 	if len(listGolfService) > 0 {
 		for index, v := range listGolfService {
 			// Check trạng thái bill
-			// if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_MANUAL {
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 				// Add từ lễ tân thì k cần check
 				listServiceItems = append(listServiceItems, v)
 			} else {
@@ -298,7 +297,7 @@ func (item *Booking) FindServiceItemsForHandleFee(db *gorm.DB) {
 							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
 						}
 						if v2 == serviceTypV1 && v1.PaidBy != constants.PAID_BY_AGENCY {
-							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v1.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 								isCanAdd = true
 							} else {
 								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
@@ -414,7 +413,7 @@ func (item *Booking) FindServiceItemsInPayment(db *gorm.DB) {
 			}
 
 			// Check trạng thái bill
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 				// Add từ lễ tân thì k cần check
 				if isCanAdd {
 					listServiceItems = append(listServiceItems, v)
@@ -489,7 +488,7 @@ func (item *Booking) FindServiceItemsInPayment(db *gorm.DB) {
 							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
 						}
 						if v2 == serviceTypV1 && v1.PaidBy != constants.PAID_BY_AGENCY {
-							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v1.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 								isCanAdd = true
 							} else {
 								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
@@ -547,7 +546,7 @@ func (item *Booking) FindServiceItemsOfBag(db *gorm.DB) {
 	if len(listGolfService) > 0 {
 		for _, v := range listGolfService {
 			// Check trạng thái bill
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 				// Add từ lễ tân thì k cần check
 				listServiceItems = append(listServiceItems, v)
 			} else {
@@ -656,7 +655,7 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 			}
 
 			// Check trạng thái bill
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 				// Add từ lễ tân thì k cần check
 				listServiceItems = append(listServiceItems, v)
 			} else {
@@ -734,7 +733,7 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
 						}
 						if v2 == serviceTypV1 {
-							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v1.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 								isCanAdd = true
 							} else {
 								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
@@ -882,7 +881,7 @@ func (item *Booking) FindServiceItemsForBill(db *gorm.DB) []BookingServiceItemWi
 			}
 
 			// Check trạng thái bill
-			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+			if v.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 				// Add từ lễ tân thì k cần check
 				listServiceItems = append(listServiceItems, v)
 			} else {
@@ -956,7 +955,7 @@ func (item *Booking) FindServiceItemsForBill(db *gorm.DB) []BookingServiceItemWi
 							serviceTypV1 = constants.GOLF_SERVICE_RENTAL
 						}
 						if v2 == serviceTypV1 {
-							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION {
+							if v1.Location == constants.SERVICE_ITEM_ADD_BY_RECEPTION || v1.Location == constants.SERVICE_ITEM_ADD_BY_GO {
 								isCanAdd = true
 							} else {
 								if serviceCart.BillStatus == constants.RES_BILL_STATUS_OUT ||
@@ -1166,13 +1165,22 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 			for _, round := range listSubRound {
 				if round.Index == 1 {
 					if !subBooking.CheckAgencyPaidRound1() && checkIsFirstRound > -1 {
+						if item.CheckOutTime > 0 && round.CreatedAt > item.CheckOutTime {
+
+						} else {
+							listRoundGolfFee = append(listRoundGolfFee, round)
+							subBagFee += round.GetAmountGolfFee()
+						}
+					}
+				}
+
+				if round.Index == 2 && checkIsNextRound > -1 {
+					if item.CheckOutTime > 0 && round.CreatedAt > item.CheckOutTime {
+
+					} else {
 						listRoundGolfFee = append(listRoundGolfFee, round)
 						subBagFee += round.GetAmountGolfFee()
 					}
-				}
-				if round.Index == 2 && checkIsNextRound > -1 {
-					listRoundGolfFee = append(listRoundGolfFee, round)
-					subBagFee += round.GetAmountGolfFee()
 				}
 			}
 		}
@@ -1200,6 +1208,12 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 	// update lại lấy service items mới
 	buggyCaddieRentalFee := int64(0)
 	buggyCaddieRentalFeeOfSub := int64(0)
+	buggyCaddieRentalMainBagNotPaid := int64(0)
+
+	hasBuggy := false
+	hasOddBuggy := false
+	hasPrivateBuggy := false
+	hasCaddie := false
 
 	item.FindServiceItems(db)
 	for _, v := range item.ListServiceItems {
@@ -1220,6 +1234,44 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 			// Nếu có main bag
 			if mainCheckOutTime > 0 && v.CreatedAt > mainCheckOutTime {
 				// main bag đã check out đi về, sub bag dùng tiếp service thì phải trả v
+				if mainPaidRental && isBuggyCaddieRental {
+					isPaid := false
+					for _, itemPaid := range item.AgencyPaid {
+						if !(itemPaid.Fee > 0 && v.Hole <= itemPaid.Hole) {
+							break
+						}
+
+						if v.Name == constants.THUE_RIENG_XE && v.Name == itemPaid.Name && !hasPrivateBuggy && itemPaid.Fee > 0 {
+							hasPrivateBuggy = true
+							isPaid = true
+							break
+						}
+
+						if v.Name == constants.THUE_LE_XE && v.Name == itemPaid.Name && !hasOddBuggy && itemPaid.Fee > 0 {
+							hasOddBuggy = true
+							isPaid = true
+							break
+						}
+
+						if v.Name == constants.THUE_NUA_XE && v.Name == itemPaid.Name && !hasBuggy && itemPaid.Fee > 0 {
+							hasBuggy = true
+							isPaid = true
+							break
+						}
+
+						if v.ServiceType == constants.CADDIE_SETTING && item.GetAgencyPaidBookingCaddie() > 0 && !hasCaddie {
+							hasCaddie = true
+							isPaid = true
+							break
+						}
+
+					}
+
+					if !isPaid {
+						buggyCaddieRentalMainBagNotPaid += v.Amount
+					}
+				}
+
 				isNeedPay = true
 			} else {
 				if (v.Type == constants.MAIN_BAG_FOR_PAY_SUB_RENTAL ||
@@ -1259,7 +1311,7 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 
 	if mainPaidRental {
 		feePaid += buggyCaddieRentalMushPay
-		buggyCaddieRentalMushPay = 0
+		buggyCaddieRentalMushPay = buggyCaddieRentalMainBagNotPaid
 	}
 
 	if buggyCaddieRentalMushPay < 0 {
