@@ -471,7 +471,7 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 	var list []map[string]interface{}
 
 	if item.Type == "KIOSK" || item.Type == "PROSHOP" {
-		db.Select(`booking_service_items.name, booking_service_items.unit, booking_service_items.location as group_name, 
+		db.Select(`booking_service_items.name, booking_service_items.unit, tb3.group_name, booking_service_items.location, 
 			sum(booking_service_items.quality) as quantity, 
 			booking_service_items.unit_price, sum(booking_service_items.amount) as amount,
 			booking_service_items.discount_type,
