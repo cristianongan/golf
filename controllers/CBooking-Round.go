@@ -55,28 +55,35 @@ func GetGolfFeeInfoOfBag(c *gin.Context, mainBooking model_booking.Booking) mode
 			Bag:         subBooking.GolfBag,
 			BookingCode: subBooking.BookingCode,
 			PlayerName:  subBooking.PlayerName,
+			BagStatus:   booking.BagStatus,
 			Rounds:      []models.Round{},
 		}
 
 		if checkIsFirstRound > -1 && len(listRound) > 0 && !booking.CheckAgencyPaidRound1() {
-			round1 := models.Round{}
 			for _, item := range listRound {
 				if item.Index == 1 {
-					round1 = item
+					if mainBooking.CheckOutTime > 0 && item.CreatedAt > mainBooking.CheckOutTime {
+
+					} else {
+						roundOfBag.Rounds = append(roundOfBag.Rounds, item)
+						break
+					}
 				}
 			}
 
-			roundOfBag.Rounds = append(roundOfBag.Rounds, round1)
 		}
 
 		if checkIsNextRound > -1 && len(listRound) > 1 {
-			round2 := models.Round{}
 			for _, item := range listRound {
 				if item.Index == 2 {
-					round2 = item
+					if mainBooking.CheckOutTime > 0 && item.CreatedAt > mainBooking.CheckOutTime {
+
+					} else {
+						roundOfBag.Rounds = append(roundOfBag.Rounds, item)
+						break
+					}
 				}
 			}
-			roundOfBag.Rounds = append(roundOfBag.Rounds, round2)
 		}
 
 		if len(listRound) > 0 {
