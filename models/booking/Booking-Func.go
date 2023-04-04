@@ -1165,13 +1165,22 @@ func (item *Booking) UpdateMushPayForBag(db *gorm.DB) {
 			for _, round := range listSubRound {
 				if round.Index == 1 {
 					if !subBooking.CheckAgencyPaidRound1() && checkIsFirstRound > -1 {
+						if item.CheckOutTime > 0 && round.CreatedAt > item.CheckOutTime {
+
+						} else {
+							listRoundGolfFee = append(listRoundGolfFee, round)
+							subBagFee += round.GetAmountGolfFee()
+						}
+					}
+				}
+
+				if round.Index == 2 && checkIsNextRound > -1 {
+					if item.CheckOutTime > 0 && round.CreatedAt > item.CheckOutTime {
+
+					} else {
 						listRoundGolfFee = append(listRoundGolfFee, round)
 						subBagFee += round.GetAmountGolfFee()
 					}
-				}
-				if round.Index == 2 && checkIsNextRound > -1 {
-					listRoundGolfFee = append(listRoundGolfFee, round)
-					subBagFee += round.GetAmountGolfFee()
 				}
 			}
 		}
