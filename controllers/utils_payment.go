@@ -338,7 +338,7 @@ func addBuggyFee(booking model_booking.Booking, fee int64, name string, hole int
 	serviceItem.Hole = hole
 	serviceItem.Type = constants.GOLF_SERVICE_RENTAL
 	serviceItem.ServiceType = constants.BUGGY_SETTING
-	serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_RECEPTION
+	serviceItem.Location = constants.SERVICE_ITEM_ADD_BY_GO
 	serviceItem.Create(db)
 }
 

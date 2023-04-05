@@ -14,6 +14,12 @@ type BookingSubBag struct {
 	BookingCode string `json:"booking_code"`
 	CmsUser     string `json:"cms_user"`
 	CmsUserLog  string `json:"cms_user_log"`
+	BagStatus   string `json:"bag_status,omitempty" gorm:"-:migration"`
+}
+
+type SubBagStatus struct {
+	GolfBag   string `json:"golf_bag"` // Có thể bỏ
+	BagStatus string `json:"bag_status"`
 }
 
 type GolfHoleFee struct {

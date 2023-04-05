@@ -171,6 +171,7 @@ type RoundOfBag struct {
 	PlayerName  string                               `json:"player_name"`
 	Rounds      models.ListRound                     `json:"rounds"`
 	AgencyPaid  utils.ListBookingAgencyPayForBagData `json:"agency_paid,omitempty"`
+	BagStatus   string                               `json:"bag_status"`
 }
 
 type BookingForListServiceIems struct {
