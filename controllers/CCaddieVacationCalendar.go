@@ -252,6 +252,15 @@ func (_ *CCaddieVacationCalendar) DeleteCaddieVacationCalendar(c *gin.Context, p
 	caddieVC.PartnerUid = prof.PartnerUid
 	caddieVC.CourseUid = prof.CourseUid
 
+	caddieVC1 := models.CaddieVacationCalendar{}
+	caddieVC1.Id = caddieVCId
+	caddieVC1.PartnerUid = prof.PartnerUid
+	caddieVC1.CourseUid = prof.CourseUid
+
+	if errCaddie := caddieVC1.FindFirst(db); errCaddie != nil {
+		log.Println(errCaddie.Error())
+	}
+
 	if err := caddieVC.Delete(db); err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -269,7 +278,7 @@ func (_ *CCaddieVacationCalendar) DeleteCaddieVacationCalendar(c *gin.Context, p
 		Function:    constants.OP_LOG_FUNCTION_CADDIE_VACTION_CALENDAR,
 		Action:      constants.OP_LOG_ACTION_DELETE,
 		Body:        models.JsonDataLog{Data: caddieVCStr},
-		ValueOld:    models.JsonDataLog{Data: caddieVC},
+		ValueOld:    models.JsonDataLog{Data: caddieVC1},
 		ValueNew:    models.JsonDataLog{},
 		Path:        c.Request.URL.Path,
 		Method:      c.Request.Method,
