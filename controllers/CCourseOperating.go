@@ -1854,7 +1854,7 @@ func (cCourseOperating CCourseOperating) UndoTimeOut(c *gin.Context, prof models
 		}
 	}
 
-	for _, booking := range bookingResponse {
+	for idx, booking := range bookingResponse {
 		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 		booking.TimeOutFlight = 0
 		booking.BagStatus = constants.BAG_STATUS_IN_COURSE
@@ -1871,7 +1871,7 @@ func (cCourseOperating CCourseOperating) UndoTimeOut(c *gin.Context, prof models
 				Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_TIME_OUT,
 				Action:      constants.OP_LOG_ACTION_COURSE_INFO_UNDO_OUT_FLIGHT,
 				Body:        models.JsonDataLog{Data: body},
-				ValueOld:    models.JsonDataLog{},
+				ValueOld:    models.JsonDataLog{bookingResponse[idx]},
 				ValueNew:    models.JsonDataLog{Data: booking},
 				Path:        c.Request.URL.Path,
 				Method:      c.Request.Method,
