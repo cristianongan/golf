@@ -99,10 +99,10 @@ func (_ *CTranferCard) CreateTranferCard(c *gin.Context, prof models.CmsUser) {
 		Action:     constants.OP_LOG_ACTION_CREATE,
 		Body:       models.JsonDataLog{Data: body},
 		ValueOld:   models.JsonDataLog{Data: ownerOld},
-		ValueNew: models.JsonDataLog{Data: models.JsonDataLog{Data: []interface{}{
-			tranferCard,
-			owner,
-		}}},
+		ValueNew: models.JsonDataLog{Data: models.TransferCardDetail{
+			TranferCard:  tranferCard,
+			CustomerUser: owner,
+		}},
 		Path:        c.Request.URL.Path,
 		Method:      c.Request.Method,
 		Bag:         "",
