@@ -484,6 +484,7 @@ func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
 
 	// Get group caddie work today
 	dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, form.Date)
+	dayNow := int(dateConvert.Weekday())
 	applyDate1 := datatypes.Date(dateConvert)
 	idDayOff1 := false
 
@@ -558,7 +559,9 @@ func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	caddie.ContractStatus = constants.CADDIE_CONTRACT_STATUS_FULLTIME
+	if dayNow != 6 && dayNow != 0 {
+		caddie.ContractStatus = constants.CADDIE_CONTRACT_STATUS_FULLTIME
+	}
 
 	list, err := caddie.FindListWithoutPage(db)
 
