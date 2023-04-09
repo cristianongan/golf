@@ -686,6 +686,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/service-cart/change-status-rental", middlewares.AuthorizedCmsUserHandler(cServiceCart.ChangeRentalStatus))
 			cmsApiAuthorized.DELETE("/service-cart/item/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteItemInCart)) // Xóa item
 			cmsApiAuthorized.DELETE("/service-cart/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteCart))            // Xóa đơn
+			//
+			cmsApiAuthorized.GET("/service-cart-app/list-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetListBillForApp))
+			cmsApiAuthorized.GET("/service-cart-app/list-bill", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetItemInBillForApp))
+			cmsApiAuthorized.POST("/service-cart-app/add", middlewares.AuthorizedCmsUserHandler(cServiceCart.SaveBillPOSInApp))
 
 			/// =================== Restaurant ===================
 			cRestaurantOrder := new(controllers.CRestaurantOrder)

@@ -45,6 +45,29 @@ type ServiceCart struct {
 	TotalMoveKitchen int            `json:"total_move_kitchen"`                          // Tổng số lần move kitchen của bill
 }
 
+type ListBillForApp struct {
+	ModelId
+	Status        string         `json:"status"`         //ENABLE, DISABLE, TESTING, DELETED
+	PartnerUid    string         `json:"partner_uid"`    // Hãng golf
+	CourseUid     string         `json:"course_uid"`     // Sân golf
+	ServiceId     int64          `json:"service_id"`     // Mã của service
+	ServiceType   string         `json:"service_type"`   // Loại của service
+	GolfBag       string         `json:"golf_bag"`       // Số bag order
+	BookingDate   datatypes.Date `json:"booking_date"`   // Ngày order
+	BookingUid    string         `json:"booking_uid"`    // Booking uid
+	BillCode      string         `json:"bill_code"`      // Mã hóa đơn
+	BillStatus    string         `json:"bill_status"`    // trạng thái đơn
+	TypeCode      string         `json:"type_code"`      // Mã dịch vụ của hóa đơn
+	Type          string         `json:"type"`           // Dịch vụ hóa đơn: BRING, SHIP, TABLE
+	StaffOrder    string         `json:"staff_order"`    // Người tạo đơn
+	PlayerName    string         `json:"player_name"`    // Người mua
+	Note          string         `json:"note"`           // Note của người mua
+	Amount        int64          `json:"amount"`         // tổng tiền
+	DiscountType  string         `json:"discount_type"`  // Loại giảm giá
+	DiscountValue int64          `json:"discount_value"` // Giá tiền được giảm
+	CaddieCode    string         `json:"caddie_code"`    // Caddie đi cùng bag
+}
+
 func (item *ServiceCart) Create(db *gorm.DB) error {
 	now := utils.GetTimeNow()
 
@@ -268,6 +291,39 @@ func (item *ServiceCart) FindReport(database *gorm.DB, page Page, fromDate, toDa
 
 		db = db.Joins(`LEFT JOIN (?) as tb3 on service_carts.booking_date = tb3.booking_date`, subQuery)
 	}
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, total, db.Error
+}
+
+func (item *ServiceCart) FindListForApp(database *gorm.DB, page Page) ([]ListBillForApp, int64, error) {
+	var list []ListBillForApp
+	total := int64(0)
+
+	db := database.Model(ServiceCart{})
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.ServiceId != 0 {
+		db = db.Where("service_id = ?", item.ServiceId)
+	}
+
+	if item.GolfBag != "" {
+		db = db.Where("golf_bag LIKE ? OR bill_code LIKE ? OR player_name LIKE ?", "%"+item.GolfBag+"%", "%"+item.GolfBag+"%", "%"+item.GolfBag+"%")
+	}
+
+	db = db.Where("booking_date = ?", item.BookingDate)
 
 	db.Count(&total)
 

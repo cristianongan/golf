@@ -1933,6 +1933,80 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 	c.JSON(200, serviceCart)
 }
 
+// Get list bill for app
+func (_ CServiceCart) GetListBillForApp(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	query := request.GetServiceCartBody{}
+	if bindErr := c.ShouldBind(&query); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   query.PageRequest.Limit,
+		Page:    query.PageRequest.Page,
+		SortBy:  query.PageRequest.SortBy,
+		SortDir: query.PageRequest.SortDir,
+	}
+
+	bookingDate, _ := time.Parse(constants.DATE_FORMAT, query.BookingDate)
+
+	serviceCart := models.ServiceCart{}
+	serviceCart.PartnerUid = query.PartnerUid
+	serviceCart.CourseUid = query.CourseUid
+	serviceCart.ServiceId = query.ServiceId
+	serviceCart.BookingDate = datatypes.Date(bookingDate)
+	serviceCart.GolfBag = query.GolfBag
+
+	list, total, err := serviceCart.FindList(db, page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	c.JSON(200, res)
+}
+
+// Get list item in bill for app
+func (_ CServiceCart) GetItemInBillForApp(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	query := request.GetItemServiceCartBody{}
+	if bindErr := c.ShouldBind(&query); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   query.PageRequest.Limit,
+		Page:    query.PageRequest.Page,
+		SortBy:  query.PageRequest.SortBy,
+		SortDir: query.PageRequest.SortDir,
+	}
+
+	serviceCartItem := model_booking.BookingServiceItem{}
+	serviceCartItem.ServiceBill = query.BillId
+
+	list, total, err := serviceCartItem.FindListInApp(db, page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	c.JSON(200, res)
+}
+
 func addLog(c *gin.Context, prof models.CmsUser, serviceCartItem model_booking.BookingServiceItem, action string) {
 	opLog := models.OperationLog{
 		PartnerUid:  serviceCartItem.PartnerUid,
