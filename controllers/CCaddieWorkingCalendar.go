@@ -518,7 +518,7 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieSlotAuto(c *gin.Context, prof model
 	}
 
 	// data old
-	caddieWSO := utils.CloneObject(caddieWS.CaddieSlot)
+	caddieWSO := utils.CloneObject(caddieWS)
 
 	// Swap slot caddie
 	caddieWS.CaddieSlot = utils.SwapValue(caddieWS.CaddieSlot, body.CaddieCodeOld, body.CaddieCodeNew)
