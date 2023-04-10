@@ -2,10 +2,11 @@ package request
 
 type GetListKioskForm struct {
 	PageRequest
-	PartnerUid string `form:"partner_uid"`
-	CourseUid  string `form:"course_uid"`
-	KioskName  string `form:"kiosk_name"`
-	Status     string `form:"status"`
+	PartnerUid  string `form:"partner_uid"`
+	CourseUid   string `form:"course_uid"`
+	KioskName   string `form:"kiosk_name"`
+	Status      string `form:"status"`
+	ServiceType string `form:"service_type"`
 }
 type CreateKioskForm struct {
 	PartnerUid  string `json:"partner_uid"`

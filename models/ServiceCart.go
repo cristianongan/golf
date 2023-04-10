@@ -323,6 +323,10 @@ func (item *ServiceCart) FindListForApp(database *gorm.DB, page Page) ([]ListBil
 		db = db.Where("golf_bag LIKE ? OR bill_code LIKE ? OR player_name LIKE ?", "%"+item.GolfBag+"%", "%"+item.GolfBag+"%", "%"+item.GolfBag+"%")
 	}
 
+	if item.StaffOrder != "" {
+		db = db.Where("staff_order = ?", item.StaffOrder)
+	}
+
 	db = db.Where("booking_date = ?", item.BookingDate)
 
 	db.Count(&total)

@@ -73,6 +73,7 @@ type GetServiceCartBody struct {
 	BookingDate string `form:"booking_date" binding:"required"`
 	ServiceId   int64  `form:"service_id"`
 	GolfBag     string `form:"golf_bag"`
+	UserName    string `form:"user_name"`
 }
 
 type GetServiceCartRentalBody struct {
@@ -124,9 +125,10 @@ type SaveBillPOSInAppBody struct {
 	GolfBag    string `json:"golf_bag" binding:"required"`
 	ServiceId  int64  `json:"service_id"`
 	BillId     int64  `json:"bill_id"`
+	Note       string `json:"note"`
 	// Infor nhà hàng
-	Type        string `json:"type" binding:"required"`
-	TypeCode    string `json:"type_code" binding:"required"`
+	Type        string `json:"type"`
+	TypeCode    string `json:"type_code"`
 	NumberGuest int    `json:"number_guest"`
 	Floor       int    `json:"floor"`
 	// Infor item

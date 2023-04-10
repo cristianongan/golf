@@ -47,6 +47,10 @@ func (_ *CKiosk) GetListKiosk(c *gin.Context, prof models.CmsUser) {
 		kioskR.Status = form.Status
 	}
 
+	if form.ServiceType != "" {
+		kioskR.ServiceType = form.ServiceType
+	}
+
 	list, _, err := kioskR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
