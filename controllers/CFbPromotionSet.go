@@ -8,6 +8,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_service "start/models/service"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -100,6 +101,26 @@ func (_ *CFbPromotionSet) CreateFoodBeveragePromotionSet(c *gin.Context, prof mo
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Function:    constants.OP_LOG_FUNCTION_FB_PROMOTION_SYSTEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: promotionSet},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
+
 	c.JSON(200, promotionSet)
 }
 
@@ -163,6 +184,9 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 		response_message.BadRequest(c, errF.Error())
 		return
 	}
+
+	oldValue := promotionSetR
+
 	if body.EnglishName != "" {
 		promotionSetR.EnglishName = body.EnglishName
 	}
@@ -229,6 +253,25 @@ func (_ *CFbPromotionSet) UpdatePromotionSet(c *gin.Context, prof models.CmsUser
 		return
 	}
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  promotionSetR.PartnerUid,
+		CourseUid:   promotionSetR.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Function:    constants.OP_LOG_FUNCTION_FB_PROMOTION_SYSTEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldValue},
+		ValueNew:    models.JsonDataLog{Data: promotionSetR},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
+
 	okRes(c)
 }
 func (_ *CFbPromotionSet) DeleteFoodBeveragePromotionSet(c *gin.Context, prof models.CmsUser) {
@@ -255,6 +298,25 @@ func (_ *CFbPromotionSet) DeleteFoodBeveragePromotionSet(c *gin.Context, prof mo
 		response_message.InternalServerError(c, errDel.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  fbModel.PartnerUid,
+		CourseUid:   fbModel.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Function:    constants.OP_LOG_FUNCTION_FB_PROMOTION_SYSTEM,
+		Body:        models.JsonDataLog{Data: fbIdStr},
+		ValueOld:    models.JsonDataLog{Data: fbModel},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
 
 	okRes(c)
 }

@@ -237,7 +237,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			Function:    constants.OP_LOG_FUNCTION_BOOKING,
 			Action:      constants.OP_LOG_ACTION_MOVE,
 			Body:        models.JsonDataLog{Data: body},
-			ValueOld:    models.JsonDataLog{Data: body.BookUidList[index]},
+			ValueOld:    models.JsonDataLog{Data: cloneListBooking[index]},
 			ValueNew:    models.JsonDataLog{Data: booking},
 			Path:        c.Request.URL.Path,
 			Method:      c.Request.Method,
@@ -487,7 +487,7 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 
 	//Add Log
 	go func() {
-		for index, booking := range listBooking {
+		for _, booking := range listBooking {
 			opLog := models.OperationLog{
 				PartnerUid:  booking.PartnerUid,
 				CourseUid:   booking.CourseUid,
@@ -497,7 +497,7 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 				Function:    constants.OP_LOG_FUNCTION_BOOKING,
 				Action:      constants.OP_LOG_ACTION_COPY,
 				Body:        models.JsonDataLog{Data: bodyRequest},
-				ValueOld:    models.JsonDataLog{Data: bodyRequest.BookingList[index]},
+				ValueOld:    models.JsonDataLog{},
 				ValueNew:    models.JsonDataLog{Data: booking},
 				Path:        c.Request.URL.Path,
 				Method:      c.Request.Method,

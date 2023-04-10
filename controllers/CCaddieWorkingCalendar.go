@@ -518,7 +518,7 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieSlotAuto(c *gin.Context, prof model
 	}
 
 	// data old
-	caddieWSO := caddieWS
+	caddieWSO := utils.CloneObject(caddieWS.CaddieSlot)
 
 	// Swap slot caddie
 	caddieWS.CaddieSlot = utils.SwapValue(caddieWS.CaddieSlot, body.CaddieCodeOld, body.CaddieCodeNew)
@@ -541,7 +541,7 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieSlotAuto(c *gin.Context, prof model
 		Function:    constants.OP_LOG_FUNCTION_CADDIE_SLOT,
 		Action:      constants.OP_LOG_ACTION_UPD_CAD_SLOT,
 		Body:        models.JsonDataLog{Data: body},
-		ValueOld:    models.JsonDataLog{Data: caddieWSO.CaddieSlot},
+		ValueOld:    models.JsonDataLog{Data: caddieWSO},
 		ValueNew:    models.JsonDataLog{Data: caddieWS.CaddieSlot},
 		BookingDate: dateAction,
 		Path:        c.Request.URL.Path,
