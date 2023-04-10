@@ -47,8 +47,8 @@ func (_ *CKiosk) GetListKiosk(c *gin.Context, prof models.CmsUser) {
 		kioskR.Status = form.Status
 	}
 
-	if form.ServiceType != "" {
-		kioskR.ServiceType = form.ServiceType
+	if form.KioskType != "" {
+		kioskR.KioskType = form.KioskType
 	}
 
 	list, _, err := kioskR.FindList(db, page)

@@ -90,8 +90,8 @@ func (item *Kiosk) FindList(database *gorm.DB, page models.Page) ([]Kiosk, int64
 	if item.KioskName != "" {
 		db = db.Where("name LIKE ?", "%"+item.KioskName+"%")
 	}
-	if item.ServiceType != "" {
-		db = db.Where("service_type = ?", item.ServiceType)
+	if item.KioskType != "" {
+		db = db.Where("kiosk_type = ?", item.KioskType)
 	}
 
 	db.Count(&total)
