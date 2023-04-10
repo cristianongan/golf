@@ -7,6 +7,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_service "start/models/service"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -103,6 +104,25 @@ func (_ *CRental) CreateRental(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Function:    constants.OP_LOG_FUNCTION_RENTAL_SYSTEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: rental},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, rental)
 }
 
@@ -163,6 +183,8 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
+
+	oldRental := rental
 
 	body := request.UpdateRentalBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -233,6 +255,25 @@ func (_ *CRental) UpdateRental(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  rental.PartnerUid,
+		CourseUid:   rental.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Function:    constants.OP_LOG_FUNCTION_RENTAL_SYSTEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldRental},
+		ValueNew:    models.JsonDataLog{Data: rental},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, rental)
 }
 
@@ -260,6 +301,25 @@ func (_ *CRental) DeleteRental(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errDel.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  rental.PartnerUid,
+		CourseUid:   rental.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Function:    constants.OP_LOG_FUNCTION_RENTAL_SYSTEM,
+		Body:        models.JsonDataLog{Data: rentalIdStr},
+		ValueOld:    models.JsonDataLog{Data: rental},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
 
 	okRes(c)
 }

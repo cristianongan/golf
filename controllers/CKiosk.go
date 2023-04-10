@@ -7,6 +7,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_service "start/models/service"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -104,6 +105,25 @@ func (_ *CKiosk) CreateKiosk(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SETTING_COURSE,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Function:    constants.OP_LOG_FUNCTION_POS_SYSTEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: kiosk},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, kiosk)
 }
 
@@ -125,6 +145,8 @@ func (_ *CKiosk) UpdateKiosk(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
+
+	valueOld := kiosk
 
 	body := request.CreateKioskForm{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -150,6 +172,25 @@ func (_ *CKiosk) UpdateKiosk(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SETTING_COURSE,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Function:    constants.OP_LOG_FUNCTION_POS_SYSTEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: valueOld},
+		ValueNew:    models.JsonDataLog{Data: kiosk},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
 
 	okResponse(c, kiosk)
 }
@@ -178,6 +219,25 @@ func (_ *CKiosk) DeleteKiosk(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errDel.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  kiosk.PartnerUid,
+		CourseUid:   kiosk.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SETTING_COURSE,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Function:    constants.OP_LOG_FUNCTION_POS_SYSTEM,
+		Body:        models.JsonDataLog{Data: kioskIdStr},
+		ValueOld:    models.JsonDataLog{Data: kiosk},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
 
 	okRes(c)
 }
