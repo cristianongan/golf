@@ -485,30 +485,30 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 	}
 	listBooking, _ := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
 
-	//Add Log
-	go func() {
-		for _, booking := range listBooking {
-			opLog := models.OperationLog{
-				PartnerUid:  booking.PartnerUid,
-				CourseUid:   booking.CourseUid,
-				UserName:    prof.UserName,
-				UserUid:     prof.Uid,
-				Module:      constants.OP_LOG_MODULE_RECEPTION,
-				Function:    constants.OP_LOG_FUNCTION_BOOKING,
-				Action:      constants.OP_LOG_ACTION_COPY,
-				Body:        models.JsonDataLog{Data: bodyRequest},
-				ValueOld:    models.JsonDataLog{},
-				ValueNew:    models.JsonDataLog{Data: booking},
-				Path:        c.Request.URL.Path,
-				Method:      c.Request.Method,
-				Bag:         booking.Bag,
-				BookingDate: booking.BookingDate,
-				BillCode:    booking.BillCode,
-				BookingUid:  booking.Uid,
-			}
-			go createOperationLog(opLog)
-		}
-	}()
+	// //Add Log
+	// go func() {
+	// 	for _, booking := range listBooking {
+	// 		opLog := models.OperationLog{
+	// 			PartnerUid:  booking.PartnerUid,
+	// 			CourseUid:   booking.CourseUid,
+	// 			UserName:    prof.UserName,
+	// 			UserUid:     prof.Uid,
+	// 			Module:      constants.OP_LOG_MODULE_RECEPTION,
+	// 			Function:    constants.OP_LOG_FUNCTION_BOOKING,
+	// 			Action:      constants.OP_LOG_ACTION_COPY,
+	// 			Body:        models.JsonDataLog{Data: bodyRequest},
+	// 			ValueOld:    models.JsonDataLog{},
+	// 			ValueNew:    models.JsonDataLog{Data: booking},
+	// 			Path:        c.Request.URL.Path,
+	// 			Method:      c.Request.Method,
+	// 			Bag:         booking.Bag,
+	// 			BookingDate: booking.BookingDate,
+	// 			BillCode:    booking.BillCode,
+	// 			BookingUid:  booking.Uid,
+	// 		}
+	// 		go createOperationLog(opLog)
+	// 	}
+	// }()
 
 	okResponse(c, listBooking)
 }
