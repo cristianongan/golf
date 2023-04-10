@@ -338,6 +338,18 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	//Find Caddie
+	if body.CaddieId > 0 {
+		db := datasources.GetDatabaseWithPartner(body.PartnerUid)
+		caddie := models.Caddie{}
+		caddie.Id = body.CaddieId
+		errFCAD := caddie.FindFirst(db)
+		if errFCAD != nil {
+			response_message.BadRequest(c, errFCAD.Error())
+			return
+		}
+	}
+
 	cmsUser := models.CmsUser{
 		UserName:   body.UserName,
 		FullName:   body.FullName,
@@ -346,6 +358,7 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: body.PartnerUid,
 		CourseUid:  body.CourseUid,
 		RoleId:     body.RoleId,
+		CaddieId:   body.CaddieId,
 	}
 
 	hashPass, errHash := utils.GeneratePassword(passw)
@@ -590,7 +603,7 @@ func (_ *CCmsUser) ResetPassCmsUser(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
- Get permission user
+Get permission user
 */
 func (_ *CCmsUser) GetPermissionCmsUser(c *gin.Context, prof models.CmsUser) {
 
