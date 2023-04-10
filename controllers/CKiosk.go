@@ -77,6 +77,47 @@ func (_ *CKiosk) GetListKiosk(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, kioskList)
 }
 
+func (_ *CKiosk) GetListKioskForApp(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListKioskForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	kioskR := model_service.Kiosk{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+
+	if form.KioskName != "" {
+		kioskR.KioskName = form.KioskName
+	}
+
+	if form.Status != "" {
+		kioskR.Status = form.Status
+	}
+
+	if form.KioskType != "" {
+		kioskR.KioskType = form.KioskType
+	}
+
+	list, _, err := kioskR.FindList(db, page)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okResponse(c, list)
+}
+
 func (_ *CKiosk) CreateKiosk(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := model_service.Kiosk{}

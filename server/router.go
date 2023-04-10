@@ -555,6 +555,7 @@ func NewRouter() *gin.Engine {
 			cKiosk := new(controllers.CKiosk)
 			cmsApiAuthorized.POST("/kiosk", middlewares.AuthorizedCmsUserHandler(cKiosk.CreateKiosk))
 			cmsApiAuthorized.GET("/kiosk/list", middlewares.AuthorizedCmsUserHandler(cKiosk.GetListKiosk))
+			cmsApiAuthorized.GET("/kiosk-app/list", middlewares.AuthorizedCmsUserHandler(cKiosk.GetListKioskForApp))
 			cmsApiAuthorized.PUT("/kiosk/:id", middlewares.AuthorizedCmsUserHandler(cKiosk.UpdateKiosk))
 			cmsApiAuthorized.DELETE("/kiosk/:id", middlewares.AuthorizedCmsUserHandler(cKiosk.DeleteKiosk))
 
