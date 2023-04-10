@@ -237,7 +237,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			Function:    constants.OP_LOG_FUNCTION_BOOKING,
 			Action:      constants.OP_LOG_ACTION_MOVE,
 			Body:        models.JsonDataLog{Data: body},
-			ValueOld:    models.JsonDataLog{Data: body.BookUidList[index]},
+			ValueOld:    models.JsonDataLog{Data: cloneListBooking[index]},
 			ValueNew:    models.JsonDataLog{Data: booking},
 			Path:        c.Request.URL.Path,
 			Method:      c.Request.Method,
