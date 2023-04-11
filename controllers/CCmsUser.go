@@ -328,6 +328,7 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Find Role
+	roleType := constants.ROLE_TYPE_CMS
 	if body.RoleId > 0 {
 		role := model_role.Role{}
 		role.Id = body.RoleId
@@ -335,6 +336,8 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 		if errFR != nil {
 			response_message.BadRequest(c, errFR.Error())
 			return
+		} else {
+			roleType = role.Type
 		}
 	}
 
@@ -359,6 +362,7 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 		CourseUid:  body.CourseUid,
 		RoleId:     body.RoleId,
 		CaddieId:   body.CaddieId,
+		Type:       roleType,
 	}
 
 	hashPass, errHash := utils.GeneratePassword(passw)
@@ -412,7 +416,21 @@ func (_ *CCmsUser) UpdateCmsUser(c *gin.Context, prof models.CmsUser) {
 		cmsUser.Email = body.Email
 	}
 	if body.RoleId > 0 {
+		//Find Role
+		roleType := constants.ROLE_TYPE_CMS
+		if body.RoleId > 0 {
+			role := model_role.Role{}
+			role.Id = body.RoleId
+			errFR := role.FindFirst()
+			if errFR != nil {
+				response_message.BadRequest(c, errFR.Error())
+				return
+			} else {
+				roleType = role.Type
+			}
+		}
 		cmsUser.RoleId = body.RoleId
+		cmsUser.Type = roleType
 	}
 	if body.Status != "" {
 		cmsUser.Status = body.Status
