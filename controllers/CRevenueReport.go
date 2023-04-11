@@ -30,11 +30,11 @@ func (_ *CRevenueReport) GetReportRevenueFoodBeverage(c *gin.Context, prof model
 	page := models.Page{
 		Limit:   form.PageRequest.Limit,
 		Page:    form.PageRequest.Page,
-		SortBy:  form.PageRequest.SortBy,
+		SortBy:  "booking_date",
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	serviceCart := models.ServiceCart{
+	serviceCart := model_booking.BookingServiceItem{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
