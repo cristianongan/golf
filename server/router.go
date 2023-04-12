@@ -578,6 +578,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/tee-time/list", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.GetTeeTimeSettings))
 			cmsApiAuthorized.POST("/tee-time/delete", middlewares.AuthorizedCmsUserHandler(cLockTeeTime.DeleteLockTeeTime))
 
+			/// =================== Par Of Hole =====================
+			cParOfHole := new(controllers.CParOfHole)
+			cmsApiAuthorized.POST("/par-of-hole", middlewares.AuthorizedCmsUserHandler(cParOfHole.CreateParOfHole))
+			cmsApiAuthorized.GET("/par-of-hole/list", middlewares.AuthorizedCmsUserHandler(cParOfHole.GetListParOfHole))
+			cmsApiAuthorized.PUT("/par-of-hole/:id", middlewares.AuthorizedCmsUserHandler(cParOfHole.UpdateParOfHole))
+			cmsApiAuthorized.DELETE("/par-of-hole/:id", middlewares.AuthorizedCmsUserHandler(cParOfHole.DeleteParOfHole))
+
 			/// =================== Role ===================
 			cRole := new(controllers.CRole)
 			cmsApiAuthorized.POST("/role/add", middlewares.AuthorizedCmsUserHandler(cRole.CreateRole))
