@@ -270,3 +270,14 @@ func GetResetP() string {
 func GetIsWriteLogToDB() bool {
 	return config.GetBool("is_write_log_to_db")
 }
+
+/*
+ Bitly config
+*/
+func GetBitlyUrl() string {
+	return config.GetString("bitly.url")
+}
+
+func GetBitlyToken() string {
+	return config.GetString("bitly.token")
+}

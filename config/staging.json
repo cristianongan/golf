@@ -57,5 +57,9 @@
     "is_open_socket": true,
     "ccu_server": 500000,
     "reset_p": "fZ3bp+k0uwSuBRcW3CpcoA==",
-    "is_write_log_to_db": true
+    "is_write_log_to_db": true,
+    "bitly" : {
+        "url": "https://api-ssl.bitly.com/v4/",
+        "token": "97b45ee97112fc236bdb0988a954b908e15ade44"
+    }
 }
