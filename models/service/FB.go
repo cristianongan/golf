@@ -51,6 +51,7 @@ type FoodBeverageList struct {
 	FBCode     string `json:"fb_code"`
 	// EnglishName  string  `json:"english_name"`    // Tên Tiếng Anh
 	// VieName      string  `json:"vietnamese_name"` // Tên Tiếng Viet
+	Type         string  `json:"type"` // sub type của F&B
 	Name         string  `json:"name"` // Tên
 	GroupCode    string  `json:"group_code"`
 	GroupName    string  `json:"group_name"`
@@ -171,7 +172,7 @@ func (item *FoodBeverageRequest) FindListForApp(database *gorm.DB, page models.P
 	list := []FoodBeverageList{}
 	total := int64(0)
 
-	db = db.Select(`food_beverages.partner_uid, food_beverages.course_uid, food_beverages.fb_code, food_beverages.name,
+	db = db.Select(`food_beverages.partner_uid, food_beverages.course_uid, food_beverages.fb_code, food_beverages.name, food_beverages.type,
 	food_beverages.group_code, group_services.group_name, food_beverages.unit, food_beverages.price, tb2.sale_quantity`)
 
 	if item.PartnerUid != "" {
