@@ -164,7 +164,7 @@ func (item *BookingWaiting) FindList(database *gorm.DB, page models.Page) ([]Get
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
-		db = page.Setup(db).Debug().Find(&list)
+		db = page.Setup(db).Find(&list)
 	}
 	return list, total, db.Error
 }
@@ -204,7 +204,7 @@ func (item *BookingWaiting) DeleteByBookingCode(database *gorm.DB) error {
 	db = db.Where("tee_type = ?", item.TeeType)
 	db = db.Where("booking_date = ?", item.BookingDate)
 
-	db = db.Debug().Delete(&list)
+	db = db.Delete(&list)
 	return db.Error
 }
 
