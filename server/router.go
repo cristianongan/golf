@@ -811,6 +811,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/test-fast-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFastFee))
 			cmsApiAuthorized.GET("/test-caddie-slot", middlewares.AuthorizedCmsUserHandler(cTest.TestCaddieSlot))
 			cmsApiAuthorized.GET("/test-notification", middlewares.AuthorizedCmsUserHandler(cTest.TestNotification))
+			cmsApiAuthorized.POST("/test-short-link", middlewares.AuthorizedCmsUserHandler(cTest.TestBitlyShortLink))
 
 			/// =================== Test ===================
 			cHelper := new(controllers.CHelper)
@@ -822,6 +823,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/helper/admin/create-caddie-slot", middlewares.AuthorizedCmsUserHandler(cHelper.CreateCaddieSlotByDate)) // Chỉ dùng cho import data fb
 			cmsApiAuthorized.POST("/helper/admin/reset-caddie", middlewares.AuthorizedCmsUserHandler(cHelper.ResetCaddie))                  // Reset Caddie -> cho di lam và có thể chọn
 			cmsApiAuthorized.POST("/helper/admin/move-booking-cancel", middlewares.AuthorizedCmsUserHandler(cHelper.MoveBookingCancel))
+
 		}
 
 		// ----------------------------------------------------------

@@ -3,21 +3,15 @@ package services
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"start/config"
+	"start/constants"
+	"time"
 )
-
-const BaseURL = "https://api-ssl.bitly.com/v4"
-
-type Shortener interface {
-	//Short A url
-	Shorten(url string) (*ShortResp, error)
-}
-type bitly struct {
-	Token   string
-	Client  *http.Client
-	baseURL string
-}
 
 type ShortReq struct {
 	URL       string `json:"long_url"`
@@ -50,38 +44,49 @@ type ShortResp struct {
 	ID             string   `json:"id"`
 }
 
-func (b bitly) Shorten(url string) (*ShortResp, error) {
-	buff := new(bytes.Buffer)
-	err := json.NewEncoder(buff).Encode(ShortReq{URL: url})
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/shorten", b.baseURL), buff)
-	if err != nil {
-		return nil, err
+func CallBitly(url string, bBody []byte) (error, int, []byte) {
+	req, errNewRequest := http.NewRequest("POST", url, bytes.NewBuffer(bBody))
+	if errNewRequest != nil {
+		return errNewRequest, 0, nil
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", b.Token))
-	resp, err := b.Client.Do(req)
-	if err != nil {
-		return nil, err
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", config.GetBitlyToken()))
+	client := &http.Client{
+		Timeout: time.Second * constants.TIMEOUT,
 	}
-	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		return nil, fmt.Errorf("unexpected status %d: %s", resp.StatusCode, resp.Status)
+	resp, errRequest := client.Do(req)
+	if errRequest != nil {
+		return errRequest, 0, nil
 	}
+	defer resp.Body.Close()
 
-	ret := &ShortResp{}
-	err = json.NewDecoder(resp.Body).Decode(ret)
-	if err != nil {
-		return nil, err
+	byteBody, errForward := ioutil.ReadAll(resp.Body)
+	if errForward != nil {
+		return errForward, 0, nil
 	}
-
-	return ret, nil
+	log.Println("CallBitly response ", string(byteBody))
+	return nil, resp.StatusCode, byteBody
 }
 
-// New creates a new bitly shortner
-func New(token string) Shortener {
-	c := http.DefaultClient
-	return &bitly{
-		baseURL: BaseURL,
-		Token:   token,
-		Client:  c,
+func BitlyShorten(bBody []byte) (error, int, ShortResp) {
+
+	url := config.GetBitlyUrl() + "shorten"
+
+	shortResp := ShortResp{}
+
+	err, statusCode, dataByte := CallBitly(url, bBody)
+	if err != nil {
+		return err, statusCode, shortResp
 	}
+
+	if statusCode != 200 && statusCode != 201 {
+		return errors.New("BitlyShorten error status code"), statusCode, shortResp
+	}
+
+	errUn := json.Unmarshal(dataByte, &shortResp)
+	if errUn != nil {
+		return errUn, statusCode, shortResp
+	}
+
+	return nil, statusCode, shortResp
 }
