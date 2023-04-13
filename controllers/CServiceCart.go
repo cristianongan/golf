@@ -2072,11 +2072,11 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 
 			// Update amount
 			if item.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
-				amountDiscont := (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice) * (100 - item.DiscountValue) / 100
+				amountDiscont := (((int64(item.Quantity) - int64(serviceCartItem.Quality)) * serviceCartItem.UnitPrice) * (100 - item.DiscountValue)) / 100
 
-				serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount + amountDiscont
+				serviceCart.Amount = serviceCart.Amount + amountDiscont
 			} else {
-				serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount + (int64(item.Quantity) * item.UnitPrice)
+				serviceCart.Amount += (int64(item.Quantity) * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
 			}
 			go updItemInApp(c, serviceCart, serviceCartItem, booking, item, kiosk, prof)
 		}
