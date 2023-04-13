@@ -55,7 +55,7 @@ type ListItemInApp struct {
 	ItemCode      string `json:"item_code"`   // Mã code của item
 	ItemType      string `json:"item_type"`   // Phân loại đồ ăn theo COMBO hoặc NORMAL
 	Name          string `json:"name"`
-	Quality       int    `json:"quality"` // Số lượng
+	Quality       int    `json:"quantity"` // Số lượng
 	UnitPrice     int64  `json:"unit_price"`
 	DiscountType  string `json:"discount_type"`
 	DiscountValue int64  `json:"discount_value"`
