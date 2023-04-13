@@ -82,7 +82,29 @@ func (item *BookingCaddyFeeSetting) FindAll(database *gorm.DB) ([]BookingCaddyFe
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
 
+	db = db.Where("status = ENABLE")
+	db = db.Order("created_at desc")
 	db.Find(&list)
+
+	return list, db.Error
+}
+
+func (item *BookingCaddyFeeSetting) FindBookingCaddieFee(database *gorm.DB) ([]BookingCaddyFeeSetting, error) {
+	db := database.Model(BookingCaddyFeeSetting{})
+	list := []BookingCaddyFeeSetting{}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	db = db.Where("status = ?", constants.STATUS_ENABLE)
+	db = db.Order("created_at desc")
+
+	db.Limit(1).Find(&list)
 	return list, db.Error
 }
 

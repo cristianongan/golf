@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"log"
 	"start/constants"
 	"start/datasources"
@@ -143,7 +144,7 @@ func (item *GolfFee) GetGuestStyleOnDay(database *gorm.DB) (GolfFee, error) {
 		for i, gf := range list {
 			if gf.ApplyTime != "" {
 				if idxTemp < 0 {
-					if utils.CheckDow(gf.Dow, gf.ApplyTime, utils.GetLocalUnixTime()) {
+					if CheckDow(gf.Dow, gf.ApplyTime, utils.GetLocalUnixTime(), item.PartnerUid, item.CourseUid) {
 						idxTemp = i
 					}
 				}
@@ -160,7 +161,7 @@ func (item *GolfFee) GetGuestStyleOnDay(database *gorm.DB) (GolfFee, error) {
 
 	for i, golfFee_ := range list {
 		if idxTemp < 0 {
-			if utils.CheckDow(golfFee_.Dow, "", utils.GetLocalUnixTime()) {
+			if CheckDow(golfFee_.Dow, "", utils.GetLocalUnixTime(), item.PartnerUid, item.CourseUid) {
 				idxTemp = i
 			}
 		}
@@ -222,7 +223,7 @@ func (item *GolfFee) GetGuestStyleOnTime(database *gorm.DB, time time.Time) (Gol
 		for i, gf := range list {
 			if gf.ApplyTime != "" {
 				if idxTemp < 0 {
-					if utils.CheckDow(gf.Dow, gf.ApplyTime, time) {
+					if CheckDow(gf.Dow, gf.ApplyTime, time, item.PartnerUid, item.CourseUid) {
 						idxTemp = i
 					}
 				}
@@ -239,7 +240,7 @@ func (item *GolfFee) GetGuestStyleOnTime(database *gorm.DB, time time.Time) (Gol
 
 	for i, golfFee_ := range list {
 		if idxTemp < 0 {
-			if utils.CheckDow(golfFee_.Dow, "", time) {
+			if CheckDow(golfFee_.Dow, "", time, item.PartnerUid, item.CourseUid) {
 				idxTemp = i
 			}
 		}
@@ -380,13 +381,26 @@ func (item *GolfFee) GetGuestStyleList(database *gorm.DB, time string) []GuestSt
 
 	// Filter guest style theo ngày trong tuần
 	if len(time) == 0 {
-		db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+		toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		if CheckHoliday(item.PartnerUid, item.CourseUid, toDayDate) {
+			db = db.Where("dow LIKE ? OR dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%", "%0%")
+		} else {
+			db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+		}
 	} else {
 		dayOfWeek := utils.GetDayOfWeek(time)
 		if dayOfWeek != "" {
-			db = db.Where("dow LIKE ?", "%"+dayOfWeek+"%")
+			if CheckHoliday(item.PartnerUid, item.CourseUid, time) {
+				db = db.Where("dow LIKE ? OR dow LIKE ?", "%"+dayOfWeek+"%", "%0%")
+			} else {
+				db = db.Where("dow LIKE ?", "%"+dayOfWeek+"%")
+			}
 		} else {
-			db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+			if CheckHoliday(item.PartnerUid, item.CourseUid, time) {
+				db = db.Where("dow LIKE ? OR dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%", "%0%")
+			} else {
+				db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+			}
 		}
 	}
 
@@ -461,4 +475,34 @@ func (item *GolfFee) FindAll(database *gorm.DB) ([]GolfFee, error) {
 
 	err := db.Find(&list).Error
 	return list, err
+}
+
+func CheckHoliday(partnerUid, courseUid, date string) bool {
+	db := datasources.GetDatabaseWithPartner(partnerUid)
+	bookingDate := ""
+	if date != "" {
+		bookingDate = date
+	} else {
+		toDayDate, errD := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		if errD != nil {
+			log.Print("CHoliday CheckCurrentDay ", errD.Error())
+		} else {
+			bookingDate = toDayDate
+		}
+	}
+
+	if bookingDate != "" {
+		applyDate, _ := time.Parse(constants.DATE_FORMAT_1, date)
+		year := fmt.Sprint(applyDate.Year())
+
+		holiday := Holiday{
+			PartnerUid: partnerUid,
+			CourseUid:  courseUid,
+			Year:       year,
+		}
+
+		_, total, _ := holiday.FindListInRange(db, bookingDate)
+		return total > 0
+	}
+	return false
 }

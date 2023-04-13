@@ -107,7 +107,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 		// BuggyFee = utils.GetFeeFromListFee(fee.BuggyFee, body.Hole)
 	}
 
-	BuggyFee = utils.GetFeeFromListFee(getBuggyFee(agency.GuestStyle), 18)
+	BuggyFee = utils.GetFeeFromListFee(getBuggyFee(agency.GuestStyle, bookingDateF), 18)
 
 	// Get Setting để tạo list tee time
 	cBookingSetting := CBookingSetting{}
