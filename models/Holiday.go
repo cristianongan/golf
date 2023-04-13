@@ -100,6 +100,23 @@ func (item *Holiday) FindList(database *gorm.DB) ([]Holiday, int64, error) {
 	return list, total, db.Error
 }
 
+func (item *Holiday) FindListInRange(database *gorm.DB, time string) ([]Holiday, int64, error) {
+	db := database.Model(Holiday{})
+	list := []Holiday{}
+	total := int64(0)
+
+	if item.Year != "" {
+		db = db.Where("year = ?", item.Year)
+	}
+
+	db = db.Where("DATE_FORMAT(STR_TO_DATE((?) , '%d/%m'), '%m-%d') between DATE_FORMAT(STR_TO_DATE(`from`, '%d/%m'), '%m-%d') AND DATE_FORMAT(STR_TO_DATE(`to`, '%d/%m'), '%m-%d')", time)
+	db = db.Where("year = ?", item.Year)
+
+	db.Count(&total)
+	db.Find(&list)
+	return list, total, db.Error
+}
+
 func (item *Holiday) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")

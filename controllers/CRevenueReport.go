@@ -69,7 +69,7 @@ func (_ *CRevenueReport) GetReportRevenueDetailFBBag(c *gin.Context, prof models
 		Bag:         form.Bag,
 	}
 
-	list, err := serviceCart.FindReportDetailFBBag(db)
+	list, err := serviceCart.FindReportDetailFBBag(db, form.Location)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

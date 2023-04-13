@@ -110,12 +110,14 @@ func (_ *CBuggyCaddyFeeSetting) GetBuggyCaddyFeeSetting(c *gin.Context, prof mod
 		GuestStyle: form.GuestStyle,
 		SettingId:  buggyFeeSetting.Id,
 	}
-	listSetting, _, _ := buggyFeeItemSettingR.FindAll(db)
+	listSetting, _ := buggyFeeItemSettingR.FindBuggyFeeOnDate(db, form.BookingDate)
 	buggyFeeItemSetting := models.BuggyFeeItemSetting{}
 	for _, item := range listSetting {
-		if item.Status == constants.STATUS_ENABLE {
+		if item.GuestStyle != "" {
 			buggyFeeItemSetting = item
 			break
+		} else {
+			buggyFeeItemSetting = item
 		}
 	}
 

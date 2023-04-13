@@ -1,11 +1,11 @@
 package model_booking
 
 import (
+	"log"
 	"start/constants"
 	"start/models"
 	"start/utils"
 	"strconv"
-	"strings"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -86,11 +86,12 @@ func (item *BookingSettingGroup) FindList(database *gorm.DB, page models.Page, f
 	db := database.Model(BookingSettingGroup{})
 	list := []BookingSettingGroup{}
 	total := int64(0)
-	status := item.ModelId.Status
+	status := constants.STATUS_ENABLE
 	item.ModelId.Status = ""
 	// db = db.Where(item)
 	if status != "" {
-		db = db.Where("status in (?)", strings.Split(status, ","))
+		log.Println("BookingSettingGroup FindList status", status)
+		db = db.Where("`status` = ?", status)
 	}
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)

@@ -105,6 +105,7 @@ func MigrateDbCms(db *gorm.DB) {
 	db.AutoMigrate(&models.Nationality{})
 	db.AutoMigrate(&models.CompanyType{})
 	db.AutoMigrate(&models.Company{})
+	db.AutoMigrate(&models.ParOfHole{})
 
 	// ------- GO --------
 	db.AutoMigrate(&model_gostarter.Flight{})

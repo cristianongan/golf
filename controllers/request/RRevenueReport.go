@@ -14,6 +14,7 @@ type RevenueReportDetailFBBagForm struct {
 	CourseUid  string `form:"course_uid" binding:"required"`
 	Date       string `form:"date" binding:"required"`
 	Bag        string `form:"bag"`
+	Location   string `form:"location"`
 }
 
 type RevenueReportDetailFBForm struct {

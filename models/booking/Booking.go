@@ -1478,7 +1478,7 @@ func (item *Booking) UpdateRoundForBooking(database *gorm.DB) {
 	}
 }
 
-func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]interface{}, error) {
+func (item *Booking) FindReportDetailFBBag(database *gorm.DB, location string) ([]map[string]interface{}, error) {
 	var list []map[string]interface{}
 
 	db := database.Table("booking_service_items as tb1")
@@ -1515,7 +1515,16 @@ func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]inte
 	// 	db = db.Where("tb1.partner_uid = ?", item.PartnerUid)
 	// }
 
-	db = db.Where("tb1.type IN ?", []string{constants.RESTAURANT_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.MINI_R_SETTING})
+	if location != "" {
+		if location == constants.RESTAURANT_SETTING {
+			db = db.Where("tb1.type IN ?", []string{constants.RESTAURANT_SETTING, constants.MINI_R_SETTING})
+		} else {
+			db = db.Where("tb1.type = ?", location)
+		}
+	} else {
+		db = db.Where("tb1.type IN ?", []string{constants.RESTAURANT_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.MINI_R_SETTING})
+	}
+
 	db = db.Where("tb2.check_in_time > 0")
 	db = db.Where("tb2.bag_status <> 'CANCEL'")
 	db = db.Where("(tb3.bill_status NOT IN ? OR tb3.bill_status IS NULL)", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
