@@ -1989,13 +1989,16 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 		serviceCart.BookingUid = booking.Uid
 		serviceCart.BookingDate = datatypes.Date(applyDate)
 		serviceCart.ServiceId = body.ServiceId
-		serviceCart.BillCode = constants.BILL_NONE
 		serviceCart.StaffOrder = prof.UserName
 		serviceCart.ServiceType = kiosk.KioskType
 		serviceCart.PlayerName = booking.CustomerName
 
 		if serviceCart.ServiceType != constants.RESTAURANT_SETTING {
-			serviceCart.BillCode = utils.GetTimeNow().Format("20060102150405")
+			if body.BillCode != "" {
+				serviceCart.BillCode = body.BillCode
+			} else {
+				serviceCart.BillCode = utils.GetTimeNow().Format("20060102150405")
+			}
 			serviceCart.BillStatus = constants.POS_BILL_STATUS_ACTIVE
 		} else {
 			serviceCart.Type = body.Type
@@ -2006,7 +2009,12 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 				serviceCart.ResFloor = body.Floor
 			}
 
-			serviceCart.BillCode = "OD-" + strconv.Itoa(int(body.BillId))
+			if body.BillCode != "" {
+				serviceCart.BillCode = body.BillCode
+			} else {
+				serviceCart.BillCode = "OD-" + strconv.Itoa(int(body.BillId))
+			}
+
 			serviceCart.TimeProcess = utils.GetTimeNow().Unix()
 			serviceCart.BillStatus = constants.RES_STATUS_PROCESS
 		}

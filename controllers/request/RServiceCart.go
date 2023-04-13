@@ -125,6 +125,7 @@ type SaveBillPOSInAppBody struct {
 	GolfBag    string `json:"golf_bag" binding:"required"`
 	ServiceId  int64  `json:"service_id"`
 	BillId     int64  `json:"bill_id"`
+	BillCode   string `json:"bill_code"`
 	Note       string `json:"note"`
 	// Infor nhà hàng
 	Type        string `json:"type"`
