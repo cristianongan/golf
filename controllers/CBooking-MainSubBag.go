@@ -84,6 +84,11 @@ func (_ *CBooking) AddSubBagToBooking(c *gin.Context, prof models.CmsUser) {
 				return
 			}
 
+			if subBooking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+				response_message.BadRequestDynamicKey(c, "BAG_CHECKOUT_LOCK", "Bag "+subBooking.Bag+" is check out")
+				return
+			}
+
 			if err1 == nil {
 				//Subbag
 				subBag := utils.BookingSubBag{
