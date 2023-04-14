@@ -279,7 +279,7 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		}
 	}
 
-	listBooking, err := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	listBooking, err := cBooking.CreateBatch(bodyRequest.BookingList, c, prof, "")
 	if err != nil {
 		return
 	}
@@ -483,7 +483,7 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 			}
 		}
 	}
-	listBooking, _ := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	listBooking, _ := cBooking.CreateBatch(bodyRequest.BookingList, c, prof, "COPY")
 
 	// //Add Log
 	// go func() {
@@ -594,7 +594,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
-func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser) ([]model_booking.Booking, error) {
+func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser, typeAction string) ([]model_booking.Booking, error) {
 	list := []model_booking.Booking{}
 	for _, body := range bookingList {
 		booking, errCreate := cBooking.CreateBookingCommon(body, c, prof)
@@ -624,6 +624,12 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 			BookingDate: booking.BookingDate,
 			BillCode:    booking.BillCode,
 			BookingUid:  booking.Uid,
+		}
+
+		if typeAction == "COPY" {
+			opLog.Action = constants.OP_LOG_ACTION_COPY
+		} else {
+			opLog.Action = constants.OP_LOG_ACTION_CREATE
 		}
 		go createOperationLog(opLog)
 	}

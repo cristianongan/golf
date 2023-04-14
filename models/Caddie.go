@@ -91,7 +91,7 @@ func (item *Caddie) Update(db *gorm.DB) error {
 }
 
 func (item *Caddie) FindFirst(db *gorm.DB) error {
-	return db.Where(item).Preload("GroupInfo").First(item).Error
+	return db.Where(item).First(item).Error
 }
 
 func (item *Caddie) FindCaddieDetail(database *gorm.DB) (CaddieResponse, error) {
