@@ -61,6 +61,11 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	}
 
 	// validate kiosk
+	if body.ServiceId == 0 {
+		response_message.BadRequest(c, "Kiosk not found")
+		return
+	}
+
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = body.ServiceId
 	if err := kiosk.FindFirst(db); err != nil {
@@ -273,6 +278,11 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate kiosk
+	if body.ServiceId == 0 {
+		response_message.BadRequest(c, "Kiosk not found")
+		return
+	}
+
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = body.ServiceId
 	if err := kiosk.FindFirst(db); err != nil {

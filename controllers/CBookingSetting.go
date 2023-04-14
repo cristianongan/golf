@@ -505,6 +505,7 @@ func (_ *CBookingSetting) GetSettingOnDate(db *gorm.DB, form request.GetListBook
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
+	bookingSettingGroupR.Status = constants.STATUS_ENABLE
 	listBSG, _, errLBSG := bookingSettingGroupR.FindList(db, page, from, to)
 	if errLBSG != nil || len(listBSG) == 0 {
 		return nil, nil, errors.New("Not found booking setting group")

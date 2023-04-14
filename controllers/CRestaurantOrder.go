@@ -1277,6 +1277,11 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 	}
 
 	// validate kiosk
+	if body.ServiceId == 0 {
+		response_message.BadRequest(c, "Kiosk not found")
+		return
+	}
+	
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = body.ServiceId
 	if err := kiosk.FindFirst(db); err != nil {
