@@ -136,7 +136,7 @@ type Booking struct {
 
 	//Qr code
 	CheckInCode string `json:"checkin_code" gorm:"type:varchar(50);index"`
-	QrcodeUrl   string `json:"qrcode_url" gorm:"type:varchar(250);index"`
+	QrcodeUrl   string `json:"qrcode_url" gorm:"type:varchar(250)"`
 }
 
 type FlyInfoResponse struct {
