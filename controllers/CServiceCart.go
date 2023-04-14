@@ -2040,6 +2040,11 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
+	//Update
+	if body.TypeCode != "" {
+		serviceCart.TypeCode = body.TypeCode
+	}
+
 	// Add item
 	for _, item := range body.Items {
 		if item.Action == "CREATE" {
