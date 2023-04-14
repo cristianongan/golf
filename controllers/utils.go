@@ -25,6 +25,8 @@ import (
 
 	model_report "start/models/report"
 
+	qrcode "github.com/skip2/go-qrcode"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -2134,4 +2136,16 @@ func deleteBookingWaiting(db *gorm.DB, id int64) {
 		bookingWaiting.Status = constants.STATUS_DELETED
 		bookingWaiting.Update(db)
 	}
+}
+
+// Gen qr code
+func genQrCode(mess string) string {
+	file, _ := qrcode.Encode(mess, qrcode.Medium, 256)
+
+	link, errUpdload := datasources.UploadQrCodeFile(file)
+	if errUpdload != nil {
+		return ""
+	}
+
+	return link
 }
