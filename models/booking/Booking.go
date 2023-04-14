@@ -133,6 +133,10 @@ type Booking struct {
 	//Cho get data
 	MemberCard        *models.MemberCard `json:"member_card_info,omitempty" gorm:"-:migration;foreignKey:MemberCardUid"`
 	MemberCardOfGuest *models.MemberCard `json:"member_card_of_guest,omitempty" gorm:"-:migration;foreignKey:MemberUidOfGuest"`
+
+	//Qr code
+	CheckInCode string `json:"checkin_code" gorm:"type:varchar(50);index"`
+	QrcodeUrl   string `json:"qrcode_url" gorm:"type:varchar(250);index"`
 }
 
 type FlyInfoResponse struct {

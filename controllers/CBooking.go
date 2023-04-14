@@ -409,6 +409,30 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		return nil, errC
 	}
 
+	go genQrCodeForBooking(&booking)
+
+	if body.Bag != "" {
+		opLog := models.OperationLog{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			UserName:    prof.UserName,
+			UserUid:     prof.Uid,
+			Module:      constants.OP_LOG_MODULE_RECEPTION,
+			Function:    constants.OP_LOG_FUNCTION_BOOKING,
+			Action:      constants.OP_LOG_ACTION_INPUT_BAG_BOOKING,
+			Body:        models.JsonDataLog{Data: body},
+			ValueOld:    models.JsonDataLog{},
+			ValueNew:    models.JsonDataLog{Data: booking.Bag},
+			Path:        c.Request.URL.Path,
+			Method:      c.Request.Method,
+			Bag:         booking.Bag,
+			BookingDate: booking.BookingDate,
+			BillCode:    booking.BillCode,
+			BookingUid:  booking.Uid,
+		}
+		go createOperationLog(opLog)
+	}
+
 	if body.MemberUidOfGuest != "" && guestStyle != "" && memberCard.Uid != "" {
 		go updateMemberCard(db, memberCard)
 	}

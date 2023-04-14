@@ -2139,13 +2139,42 @@ func deleteBookingWaiting(db *gorm.DB, id int64) {
 }
 
 // Gen qr code
-func genQrCode(mess string) string {
-	file, _ := qrcode.Encode(mess, qrcode.Medium, 256)
+func genQrCodeForBooking(booking *model_booking.Booking) {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+
+	var checkinCode string
+
+	checkinCode = utils.RandomCharNumberV3(4)
+
+	for {
+		// validate checkinCode
+		bookingR := model_booking.Booking{
+			CourseUid:   booking.CourseUid,
+			PartnerUid:  booking.PartnerUid,
+			BookingDate: booking.BookingDate,
+			CheckInCode: checkinCode,
+		}
+		if err := bookingR.FindFirst(db); err == nil {
+			checkinCode = utils.RandomCharNumber(4)
+		} else {
+			break
+		}
+	}
+
+	// gen code
+	code := checkinCode + strconv.FormatInt(time.Now().Unix(), 10)
+
+	file, _ := qrcode.Encode(code, qrcode.Medium, 256)
 
 	link, errUpdload := datasources.UploadQrCodeFile(file)
 	if errUpdload != nil {
-		return ""
+		log.Println("genQrCodeForBooking err, ", errUpdload.Error())
 	}
 
-	return link
+	//Update booking
+	booking.CheckInCode = checkinCode
+	booking.QrcodeUrl = link
+	if err := booking.Update(db); err != nil {
+		log.Println("genQrCodeForBooking err, ", err.Error())
+	}
 }
