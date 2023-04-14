@@ -27,7 +27,7 @@ import (
 )
 
 /*
- Clone object
+Clone object
 */
 func CloneObject(item interface{}) interface{} {
 	copyObj := map[string]interface{}{}
@@ -44,7 +44,7 @@ func CloneObject(item interface{}) interface{} {
 }
 
 /*
-  dùng redis để check single payment đã dc tạo chưa(Check ở sql chưa đủ realtime)
+dùng redis để check single payment đã dc tạo chưa(Check ở sql chưa đủ realtime)
 */
 func GetRedisKeySinglePaymentCreated(partnerUid, courseUid, billCode string) string {
 	singlePaymentRedisKey := config.GetEnvironmentName() + ":" + "single_payment:" + "_" + partnerUid + "_" + courseUid + "_" + billCode
@@ -53,7 +53,7 @@ func GetRedisKeySinglePaymentCreated(partnerUid, courseUid, billCode string) str
 }
 
 /*
-  dùng redis để check agency payment đã dc tạo chưa(Check ở sql chưa đủ realtime)
+dùng redis để check agency payment đã dc tạo chưa(Check ở sql chưa đủ realtime)
 */
 func GetRedisKeyAgencyPaymentCreated(partnerUid, courseUid, bookCode string) string {
 	agencyPaymentRedisKey := config.GetEnvironmentName() + ":" + "agency_payment:" + "_" + partnerUid + "_" + courseUid + "_" + bookCode
@@ -663,6 +663,14 @@ func GetDayOfWeek(strTime string) string {
 
 func RandomCharNumber(length int) string {
 	id, err := gonanoid.Generate("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 5)
+	if err != nil {
+		return ""
+	}
+	return id
+}
+
+func RandomCharNumberV3(length int) string {
+	id, err := gonanoid.Generate("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", length)
 	if err != nil {
 		return ""
 	}
