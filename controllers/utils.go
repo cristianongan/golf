@@ -2144,7 +2144,7 @@ func genQrCodeForBooking(booking *model_booking.Booking) {
 
 	var checkinCode string
 
-	checkinCode = utils.RandomCharNumber(4)
+	checkinCode = utils.RandomCharNumber(3)
 
 	for {
 		// validate checkinCode
