@@ -423,6 +423,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		return nil, errC
 	}
 
+	go genQrCodeForBooking(&booking)
+
 	if body.Bag != "" {
 		opLog := models.OperationLog{
 			PartnerUid:  booking.PartnerUid,
