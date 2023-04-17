@@ -26,7 +26,7 @@ func (_ *CParOfHole) SaveParOfHole(c *gin.Context, prof models.CmsUser) {
 			parOfHole := models.ParOfHole{
 				PartnerUid: body.PartnerUid,
 				CourseUid:  body.CourseUid,
-				Course:     body.Course,
+				Course:     config.Course,
 				Hole:       config.Hole,
 				Par:        config.Par,
 				Minute:     config.Minute,
@@ -47,6 +47,7 @@ func (_ *CParOfHole) SaveParOfHole(c *gin.Context, prof models.CmsUser) {
 				return
 			}
 
+			parOfHole.Course = config.Course
 			parOfHole.Hole = config.Hole
 			parOfHole.Par = config.Par
 			parOfHole.Minute = config.Minute

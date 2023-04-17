@@ -3,7 +3,6 @@ package request
 type CreateParOfHoleBody struct {
 	PartnerUid string            `json:"partner_uid" binding:"required"` // Hãng Golf
 	CourseUid  string            `json:"course_uid" binding:"required"`  // Sân Golf
-	Course     string            `json:"course"`                         //  Sân
 	Configs    []ConfigParOfHole `json:"configs" binding:"required"`     // Loại sân
 }
 
