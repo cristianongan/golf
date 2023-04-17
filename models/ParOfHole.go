@@ -85,7 +85,7 @@ func (item *ParOfHole) DeleteBatch(db *gorm.DB) error {
 	}
 
 	if item.Course != "" {
-		db = db.Where("apply_date = ?", item.Course)
+		db = db.Where("course = ?", item.Course)
 	}
 
 	return db.Delete(item).Error
