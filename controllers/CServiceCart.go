@@ -1983,6 +1983,48 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// validate item
+	for _, item := range body.Items {
+		if item.Action == "CREATE" {
+			if item.Type == constants.SERVICE_ITEM_RES_COMBO {
+				fbSet := model_service.FbPromotionSet{}
+				fbSet.PartnerUid = prof.PartnerUid
+				fbSet.CourseUid = prof.CourseUid
+				fbSet.Code = item.ItemCode
+
+				if err := fbSet.FindFirst(db); err != nil {
+					response_message.BadRequestDynamicKey(c, "CREATE_FAIL", "Create item "+fbSet.VieName+" fail!")
+					return
+				}
+			} else {
+				fb := model_service.FoodBeverage{}
+				fb.PartnerUid = prof.PartnerUid
+				fb.CourseUid = prof.CourseUid
+				fb.FBCode = item.ItemCode
+
+				if err := fb.FindFirst(db); err != nil {
+					response_message.BadRequestDynamicKey(c, "CREATE_FAIL", "Create item "+fb.Name+" fail!")
+					return
+				}
+			}
+		} else if (item.Action == "DELETE" || item.Action == "UPDATE") && body.BillId > 0 && item.ItemId > 0 {
+			// validate service cart item
+			serviceCartItem := model_booking.BookingServiceItem{}
+			serviceCartItem.Id = item.ItemId
+			serviceCartItem.PartnerUid = prof.PartnerUid
+			serviceCartItem.CourseUid = prof.CourseUid
+
+			if err := serviceCartItem.FindFirst(db); err != nil {
+				if item.Action == "DELETE" {
+					response_message.BadRequestDynamicKey(c, "DELETE_FAIL", "Delete item "+serviceCartItem.Name+" fail!")
+				} else {
+					response_message.BadRequestDynamicKey(c, "UPDATE_FAIL", "Update item "+serviceCartItem.Name+" fail!")
+				}
+				return
+			}
+		}
+	}
+
 	// create bill
 	// check service cart
 	serviceCart := models.ServiceCart{}
