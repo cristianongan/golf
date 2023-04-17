@@ -534,6 +534,7 @@ func NewRouter() *gin.Engine {
 			cFoodBeverage := new(controllers.CFoodBeverage)
 			cmsApiAuthorized.POST("/f&b", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.CreateFoodBeverage))
 			cmsApiAuthorized.GET("/f&b/list", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.GetListFoodBeverage))
+			cmsApiAuthorized.GET("/f&b-app/list", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.GetListFBForApp))
 			cmsApiAuthorized.PUT("/f&b/:id", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.UpdateFoodBeverage))
 			cmsApiAuthorized.DELETE("/f&b/:id", middlewares.AuthorizedCmsUserHandler(cFoodBeverage.DeleteFoodBeverage))
 
@@ -555,6 +556,7 @@ func NewRouter() *gin.Engine {
 			cKiosk := new(controllers.CKiosk)
 			cmsApiAuthorized.POST("/kiosk", middlewares.AuthorizedCmsUserHandler(cKiosk.CreateKiosk))
 			cmsApiAuthorized.GET("/kiosk/list", middlewares.AuthorizedCmsUserHandler(cKiosk.GetListKiosk))
+			cmsApiAuthorized.GET("/kiosk-app/list", middlewares.AuthorizedCmsUserHandler(cKiosk.GetListKioskForApp))
 			cmsApiAuthorized.PUT("/kiosk/:id", middlewares.AuthorizedCmsUserHandler(cKiosk.UpdateKiosk))
 			cmsApiAuthorized.DELETE("/kiosk/:id", middlewares.AuthorizedCmsUserHandler(cKiosk.DeleteKiosk))
 
@@ -694,6 +696,10 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/service-cart/change-status-rental", middlewares.AuthorizedCmsUserHandler(cServiceCart.ChangeRentalStatus))
 			cmsApiAuthorized.DELETE("/service-cart/item/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteItemInCart)) // Xóa item
 			cmsApiAuthorized.DELETE("/service-cart/:id", middlewares.AuthorizedCmsUserHandler(cServiceCart.DeleteCart))            // Xóa đơn
+			//
+			cmsApiAuthorized.GET("/service-cart-app/list-item", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetItemInBillForApp))
+			cmsApiAuthorized.GET("/service-cart-app/list-bill", middlewares.AuthorizedCmsUserHandler(cServiceCart.GetListBillForApp))
+			cmsApiAuthorized.POST("/service-cart-app/add", middlewares.AuthorizedCmsUserHandler(cServiceCart.SaveBillPOSInApp))
 
 			/// =================== Restaurant ===================
 			cRestaurantOrder := new(controllers.CRestaurantOrder)

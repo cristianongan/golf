@@ -46,6 +46,26 @@ type BookingServiceItem struct {
 	Hole           int    `json:"hole"`                                    // Số hố check in
 }
 
+type ListItemInApp struct {
+	models.ModelId
+	PartnerUid    string `json:"partner_uid"` // Hãng golf
+	CourseUid     string `json:"course_uid"`  // Sân golf
+	ItemId        int64  `json:"item_id"`     // Id item
+	Unit          string `json:"unit"`        // Unit của item
+	ItemCode      string `json:"item_code"`   // Mã code của item
+	ItemType      string `json:"item_type"`   // Phân loại đồ ăn theo COMBO hoặc NORMAL
+	Name          string `json:"name"`
+	Quality       int    `json:"quantity"` // Số lượng
+	UnitPrice     int64  `json:"unit_price"`
+	DiscountType  string `json:"discount_type"`
+	DiscountValue int64  `json:"discount_value"`
+	Amount        int64  `json:"amount"`
+	UserAction    string `json:"user_action"`  // Người tạo
+	Input         string `json:"input"`        // Note
+	ServiceBill   int64  `json:"service_bill"` // id service cart
+	Location      string `json:"location"`     // Dc add từ đâu
+}
+
 // Response cho FE
 type BookingServiceItemResponse struct {
 	BookingServiceItem
@@ -614,6 +634,32 @@ func (item *BookingServiceItem) FindReportDetailFB(database *gorm.DB, date strin
 	db = db.Find(&list)
 
 	return list, db.Error
+}
+
+func (item *BookingServiceItem) FindListInApp(database *gorm.DB, page models.Page) ([]ListItemInApp, int64, error) {
+	db := database.Model(BookingServiceItem{})
+	list := []ListItemInApp{}
+	total := int64(0)
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.ServiceBill > 0 {
+		db = db.Where("service_bill = ?", item.ServiceBill)
+	}
+
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, total, db.Error
 }
 
 func (item *BookingServiceItem) FindReport(database *gorm.DB, page models.Page, fromDate, toDate, typeService string) ([]map[string]interface{}, int64, error) {

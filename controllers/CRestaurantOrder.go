@@ -91,7 +91,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 	serviceCart.ServiceType = kiosk.KioskType
 	serviceCart.BillCode = constants.BILL_NONE
 	serviceCart.BillStatus = constants.RES_STATUS_ORDER
-	serviceCart.StaffOrder = prof.FullName
+	serviceCart.StaffOrder = prof.UserName
 	serviceCart.PlayerName = booking.CustomerName
 
 	if err := serviceCart.Create(db); err != nil {
@@ -1360,7 +1360,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 	serviceCart.TypeCode = body.Table
 	serviceCart.NumberGuest = body.NumberGuest
 	serviceCart.ResFloor = body.Floor
-	serviceCart.StaffOrder = prof.FullName
+	serviceCart.StaffOrder = prof.UserName
 	serviceCart.PlayerName = body.PlayerName
 	serviceCart.Phone = body.Phone
 	serviceCart.OrderTime = body.OrderTime
@@ -2032,7 +2032,7 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 	targetServiceCart.ServiceType = sourceServiceCart.ServiceType
 	targetServiceCart.BillStatus = sourceServiceCart.BillStatus
 	targetServiceCart.BookingUid = booking.Uid
-	targetServiceCart.StaffOrder = prof.FullName
+	targetServiceCart.StaffOrder = prof.UserName
 	targetServiceCart.BillCode = constants.BILL_NONE
 
 	// create cart

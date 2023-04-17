@@ -159,7 +159,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		serviceCart.BookingDate = datatypes.Date(applyDate)
 		serviceCart.ServiceId = body.ServiceId
 		serviceCart.BillCode = constants.BILL_NONE
-		serviceCart.StaffOrder = prof.FullName
+		serviceCart.StaffOrder = prof.UserName
 		serviceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
 		serviceCart.ServiceType = kiosk.KioskType
 		serviceCart.PlayerName = booking.CustomerName
@@ -339,7 +339,7 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 		serviceCart.BookingDate = datatypes.Date(applyDate)
 		serviceCart.ServiceId = body.ServiceId
 		serviceCart.BillCode = constants.BILL_NONE
-		serviceCart.StaffOrder = prof.FullName
+		serviceCart.StaffOrder = prof.UserName
 		serviceCart.BillStatus = constants.POS_BILL_STATUS_PENDING
 	}
 
@@ -1312,7 +1312,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	if err != nil {
 		// create cart
 		targetServiceCart.BookingUid = booking.Uid
-		targetServiceCart.StaffOrder = prof.FullName
+		targetServiceCart.StaffOrder = prof.UserName
 		targetServiceCart.BillCode = constants.BILL_NONE
 		targetServiceCart.BillCode = utils.GetTimeNow().Format("20060102150405")
 
@@ -1931,6 +1931,269 @@ func (_ CServiceCart) ChangeRentalStatus(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
+// Thêm sản phẩm vào giỏ hàng
+func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.SaveBillPOSInAppBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	validate := validator.New()
+
+	if err := validate.Struct(body); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
+	// validate golf bag
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(time.Now().Unix())
+
+	booking := model_booking.Booking{}
+	booking.PartnerUid = body.PartnerUid
+	booking.CourseUid = body.CourseUid
+	booking.Bag = body.GolfBag
+	booking.BookingDate = dateDisplay
+	if err := booking.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Booking "+err.Error())
+		return
+	}
+
+	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
+		response_message.BadRequest(c, "Bag status invalid")
+		return
+	}
+
+	if *booking.LockBill {
+		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
+		return
+	}
+
+	// validate kiosk
+	kiosk := model_service.Kiosk{}
+	kiosk.Id = body.ServiceId
+	if err := kiosk.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Kiosk "+err.Error())
+		return
+	}
+
+	if kiosk.KioskType != constants.KIOSK_SETTING && kiosk.KioskType != constants.RESTAURANT_SETTING {
+		response_message.BadRequest(c, "Kiosk type invalid")
+		return
+	}
+
+	// create bill
+	// check service cart
+	serviceCart := models.ServiceCart{}
+	serviceCart.PartnerUid = body.PartnerUid
+	serviceCart.CourseUid = body.CourseUid
+
+	applyDate := utils.GetDateLocal()
+
+	if body.BillId != 0 {
+		serviceCart.Id = body.BillId
+	} else {
+		serviceCart.GolfBag = body.GolfBag
+		serviceCart.BookingUid = booking.Uid
+		serviceCart.BookingDate = datatypes.Date(applyDate)
+		serviceCart.ServiceId = body.ServiceId
+		serviceCart.StaffOrder = prof.UserName
+		serviceCart.ServiceType = kiosk.KioskType
+		serviceCart.PlayerName = booking.CustomerName
+
+		if serviceCart.ServiceType != constants.RESTAURANT_SETTING {
+			if body.BillCode != "" {
+				serviceCart.BillCode = body.BillCode
+			} else {
+				serviceCart.BillCode = utils.GetTimeNow().Format("20060102150405")
+			}
+			serviceCart.BillStatus = constants.POS_BILL_STATUS_ACTIVE
+		} else {
+			serviceCart.Type = body.Type
+			serviceCart.TypeCode = body.TypeCode
+
+			if body.Type == constants.RES_TYPE_TABLE {
+				serviceCart.NumberGuest = body.NumberGuest
+				serviceCart.ResFloor = body.Floor
+			}
+
+			if body.BillCode != "" {
+				serviceCart.BillCode = body.BillCode
+			} else {
+				serviceCart.BillCode = "OD-" + strconv.Itoa(int(body.BillId))
+			}
+
+			serviceCart.TimeProcess = utils.GetTimeNow().Unix()
+			serviceCart.BillStatus = constants.RES_STATUS_PROCESS
+		}
+	}
+
+	err := serviceCart.FindFirst(db)
+	// no cart
+	if err != nil {
+		// create cart
+		if err := serviceCart.Create(db); err != nil {
+			response_message.InternalServerError(c, "Create cart "+err.Error())
+			return
+		}
+	}
+
+	//Update
+	if body.TypeCode != "" {
+		serviceCart.TypeCode = body.TypeCode
+	}
+
+	// Add item
+	for _, item := range body.Items {
+		if item.Action == "CREATE" {
+			if serviceCart.ServiceType != constants.RESTAURANT_SETTING {
+				go addItemKioskInApp(c, serviceCart, booking, item, kiosk, prof)
+			} else {
+				go addItemResInApp(c, serviceCart, booking, item, kiosk, prof)
+			}
+
+			// Update amount
+			if item.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
+				amountDiscont := ((int64(item.Quantity) * item.UnitPrice) * (100 - item.DiscountValue)) / 100
+				serviceCart.Amount = serviceCart.Amount + amountDiscont
+			} else {
+				serviceCart.Amount = serviceCart.Amount + (int64(item.Quantity) * item.UnitPrice)
+			}
+		}
+
+		if item.Action == "UPDATE" && body.BillId > 0 && item.ItemId > 0 {
+			// validate service cart item
+			serviceCartItem := model_booking.BookingServiceItem{}
+			serviceCartItem.Id = item.ItemId
+			serviceCartItem.PartnerUid = prof.PartnerUid
+			serviceCartItem.CourseUid = prof.CourseUid
+
+			if err := serviceCartItem.FindFirst(db); err != nil {
+				response_message.InternalServerError(c, "Find item "+err.Error())
+				return
+			}
+
+			// Update amount
+			if item.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
+				amountDiscont := (((int64(item.Quantity) - int64(serviceCartItem.Quality)) * serviceCartItem.UnitPrice) * (100 - item.DiscountValue)) / 100
+
+				serviceCart.Amount = serviceCart.Amount + amountDiscont
+			} else {
+				serviceCart.Amount += (int64(item.Quantity) * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+			}
+			go updItemInApp(c, serviceCart, serviceCartItem, booking, item, kiosk, prof)
+		}
+
+		if item.Action == "DELETE" && body.BillId > 0 && item.ItemId > 0 {
+			// validate service cart item
+			serviceCartItem := model_booking.BookingServiceItem{}
+			serviceCartItem.Id = item.ItemId
+			serviceCartItem.PartnerUid = prof.PartnerUid
+			serviceCartItem.CourseUid = prof.CourseUid
+
+			if err := serviceCartItem.FindFirst(db); err != nil {
+				response_message.InternalServerError(c, "Find item "+err.Error())
+				return
+			}
+
+			// Update amount
+			serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount
+			// Delete item
+			go delItemInApp(c, serviceCart, serviceCartItem, booking, item, kiosk, prof)
+		}
+	}
+
+	if body.Note != "" {
+		serviceCart.Note = body.Note
+	}
+
+	// update bill
+	if err := serviceCart.Update(db); err != nil {
+		response_message.InternalServerError(c, "Update cart "+err.Error())
+		return
+	}
+
+	updatePriceWithServiceItem(&booking, prof)
+
+	c.JSON(200, serviceCart)
+}
+
+// Get list bill for app
+func (_ CServiceCart) GetListBillForApp(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	query := request.GetServiceCartBody{}
+	if bindErr := c.ShouldBind(&query); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   query.PageRequest.Limit,
+		Page:    query.PageRequest.Page,
+		SortBy:  query.PageRequest.SortBy,
+		SortDir: query.PageRequest.SortDir,
+	}
+
+	bookingDate, _ := time.Parse(constants.DATE_FORMAT, query.BookingDate)
+
+	serviceCart := models.ServiceCart{}
+	serviceCart.PartnerUid = query.PartnerUid
+	serviceCart.CourseUid = query.CourseUid
+	serviceCart.ServiceId = query.ServiceId
+	serviceCart.BookingDate = datatypes.Date(bookingDate)
+	serviceCart.GolfBag = query.GolfBag
+	serviceCart.StaffOrder = query.UserName
+
+	list, total, err := serviceCart.FindListForApp(db, page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	c.JSON(200, res)
+}
+
+// Get list item in bill for app
+func (_ CServiceCart) GetItemInBillForApp(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	query := request.GetItemServiceCartBody{}
+	if bindErr := c.ShouldBind(&query); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   query.PageRequest.Limit,
+		Page:    query.PageRequest.Page,
+		SortBy:  query.PageRequest.SortBy,
+		SortDir: query.PageRequest.SortDir,
+	}
+
+	serviceCartItem := model_booking.BookingServiceItem{}
+	serviceCartItem.ServiceBill = query.BillId
+
+	list, total, err := serviceCartItem.FindListInApp(db, page)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	c.JSON(200, res)
+}
+
 func addLog(c *gin.Context, prof models.CmsUser, serviceCartItem model_booking.BookingServiceItem, action string) {
 	opLog := models.OperationLog{
 		PartnerUid:  serviceCartItem.PartnerUid,
@@ -1971,4 +2234,292 @@ func addLog(c *gin.Context, prof models.CmsUser, serviceCartItem model_booking.B
 	}
 
 	createOperationLog(opLog)
+}
+
+func addItemKioskInApp(c *gin.Context, bill models.ServiceCart, booking model_booking.Booking, item request.Item, kiosk model_service.Kiosk, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	// create cart item
+	serviceCartItem := model_booking.BookingServiceItem{}
+
+	// get infor item code
+	fb := model_service.FoodBeverage{}
+	fb.PartnerUid = prof.PartnerUid
+	fb.CourseUid = prof.CourseUid
+	fb.FBCode = item.ItemCode
+
+	if err := fb.FindFirst(db); err != nil {
+		response_message.InternalServerError(c, "Find infor "+err.Error())
+		return
+	}
+	// add infor cart item
+	serviceCartItem.ItemId = fb.Id
+	serviceCartItem.Type = kiosk.KioskType
+	serviceCartItem.Location = kiosk.KioskName
+	serviceCartItem.GroupCode = fb.GroupCode
+	serviceCartItem.Name = fb.VieName
+	serviceCartItem.EngName = fb.EnglishName
+	serviceCartItem.UnitPrice = int64(fb.Price)
+	serviceCartItem.Unit = fb.Unit
+
+	// add infor cart item
+	serviceCartItem.PartnerUid = bill.PartnerUid
+	serviceCartItem.CourseUid = bill.CourseUid
+	serviceCartItem.ServiceType = kiosk.ServiceType
+	serviceCartItem.Bag = bill.GolfBag
+	serviceCartItem.BillCode = booking.BillCode
+	serviceCartItem.BookingUid = booking.Uid
+	serviceCartItem.PlayerName = booking.CustomerName
+	serviceCartItem.ServiceId = strconv.Itoa(int(bill.ServiceId))
+	serviceCartItem.ServiceBill = bill.Id
+	serviceCartItem.ItemCode = item.ItemCode
+	serviceCartItem.Quality = item.Quantity
+	serviceCartItem.Amount = int64(item.Quantity) * item.UnitPrice
+	serviceCartItem.DiscountType = item.DiscountType
+	serviceCartItem.DiscountValue = item.DiscountValue
+	serviceCartItem.UserAction = prof.UserName
+
+	if item.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
+		amountDiscont := ((int64(item.Quantity) * item.UnitPrice) * (100 - item.DiscountValue)) / 100
+		serviceCartItem.Amount = amountDiscont
+	}
+
+	if err := serviceCartItem.Create(db); err != nil {
+		response_message.InternalServerError(c, "Create item "+err.Error())
+		return
+	}
+}
+
+func addItemResInApp(c *gin.Context, bill models.ServiceCart, booking model_booking.Booking, item request.Item, kiosk model_service.Kiosk, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	// create cart item
+	serviceCartItem := model_booking.BookingServiceItem{
+		PartnerUid:  prof.PartnerUid,
+		CourseUid:   prof.CourseUid,
+		Bag:         booking.Bag,
+		BookingUid:  booking.Uid,
+		BillCode:    booking.BillCode,
+		PlayerName:  booking.CustomerName,
+		ServiceId:   strconv.Itoa(int(bill.ServiceId)),
+		ServiceBill: bill.Id,
+		ItemCode:    item.ItemCode,
+		Quality:     item.Quantity,
+		UserAction:  prof.UserName,
+	}
+
+	// add res item with combo
+	restaurantItems := []models.RestaurantItem{}
+
+	// validate item code by group
+	if item.Type == constants.SERVICE_ITEM_RES_COMBO {
+		fbSet := model_service.FbPromotionSet{}
+		fbSet.PartnerUid = prof.PartnerUid
+		fbSet.CourseUid = prof.CourseUid
+		fbSet.Code = item.ItemCode
+
+		if err := fbSet.FindFirst(db); err != nil {
+			response_message.InternalServerError(c, "Find infor "+err.Error())
+			return
+		}
+
+		// add infor cart item
+		serviceCartItem.ItemId = fbSet.Id
+		serviceCartItem.ServiceType = kiosk.ServiceType
+		serviceCartItem.Type = kiosk.KioskType
+		serviceCartItem.Location = kiosk.KioskName
+		serviceCartItem.ItemType = constants.SERVICE_ITEM_RES_COMBO
+		serviceCartItem.Name = fbSet.VieName
+		serviceCartItem.EngName = fbSet.EnglishName
+		serviceCartItem.UnitPrice = int64(fbSet.Price)
+		serviceCartItem.Amount = int64(item.Quantity) * int64(fbSet.Price)
+
+		// add item res
+		for _, v := range fbSet.FBList {
+			item := models.RestaurantItem{
+				Type:             v.Type,
+				ItemName:         v.VieName,
+				ItemComboName:    fbSet.VieName,
+				ItemComboCode:    item.ItemCode,
+				ItemCode:         v.FBCode,
+				ItemUnit:         v.Unit,
+				Quantity:         v.Quantity * item.Quantity,
+				QuantityProgress: v.Quantity * item.Quantity,
+			}
+
+			restaurantItems = append(restaurantItems, item)
+		}
+	} else {
+		fb := model_service.FoodBeverage{}
+		fb.PartnerUid = prof.PartnerUid
+		fb.CourseUid = prof.CourseUid
+		fb.FBCode = item.ItemCode
+
+		if err := fb.FindFirst(db); err != nil {
+			response_message.InternalServerError(c, "Find infor "+err.Error())
+			return
+		}
+
+		// add infor cart item
+		serviceCartItem.ItemId = fb.Id
+		serviceCartItem.ServiceType = kiosk.ServiceType
+		serviceCartItem.Type = kiosk.KioskType
+		serviceCartItem.Location = kiosk.KioskName
+		serviceCartItem.GroupCode = fb.GroupCode
+		serviceCartItem.ItemType = constants.SERVICE_ITEM_RES_NORMAL
+		serviceCartItem.Name = fb.VieName
+		serviceCartItem.EngName = fb.EnglishName
+		serviceCartItem.UnitPrice = int64(fb.Price)
+		serviceCartItem.Unit = fb.Unit
+		serviceCartItem.Amount = int64(item.Quantity) * int64(fb.Price)
+
+		// add infor res item
+		item := models.RestaurantItem{
+			Type:             fb.Type,
+			ItemName:         fb.VieName,
+			ItemCode:         fb.FBCode,
+			ItemUnit:         fb.Unit,
+			Quantity:         item.Quantity,
+			QuantityProgress: item.Quantity,
+		}
+
+		restaurantItems = append(restaurantItems, item)
+	}
+
+	serviceCartItem.DiscountType = item.DiscountType
+	serviceCartItem.DiscountValue = item.DiscountValue
+
+	if item.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
+		amountDiscont := ((int64(item.Quantity) * item.UnitPrice) * (100 - item.DiscountValue)) / 100
+		serviceCartItem.Amount = amountDiscont
+	}
+
+	// create cart item
+	if err := serviceCartItem.Create(db); err != nil {
+		response_message.InternalServerError(c, "Create item "+err.Error())
+		return
+	}
+
+	for _, v := range restaurantItems {
+		// add infor restaurant item
+		v.PartnerUid = prof.PartnerUid
+		v.CourseUid = prof.CourseUid
+		v.ServiceId = bill.ServiceId
+		v.OrderDate = utils.GetTimeNow().Format(constants.DATE_FORMAT_1)
+		v.BillId = bill.Id
+		v.ItemId = serviceCartItem.Id
+		v.ItemStatus = constants.RES_STATUS_ORDER
+
+		if err := v.Create(db); err != nil {
+			response_message.InternalServerError(c, "Create res item "+err.Error())
+			return
+		}
+	}
+}
+
+func updItemInApp(c *gin.Context, bill models.ServiceCart, bsItem model_booking.BookingServiceItem, booking model_booking.Booking, item request.Item, kiosk model_service.Kiosk, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	if item.Quantity > 0 {
+		// validate res item
+		restaurantItem := models.RestaurantItem{}
+
+		restaurantItem.PartnerUid = prof.PartnerUid
+		restaurantItem.CourseUid = prof.CourseUid
+		restaurantItem.ServiceId = bill.ServiceId
+		restaurantItem.BillId = bill.Id
+		restaurantItem.ItemId = bsItem.Id
+
+		list, err := restaurantItem.FindAll(db)
+
+		if err != nil {
+			return
+		}
+
+		// update res item
+		if bill.ServiceType == constants.RESTAURANT_SETTING {
+			for _, v := range list {
+				if item.Quantity > 0 {
+					if v.ItemComboCode != "" {
+						v.Quantity = (v.Quantity / bsItem.Quality) * item.Quantity
+						v.QuantityProgress = (v.QuantityProgress / bsItem.Quality) * item.Quantity
+					} else {
+						v.Quantity = item.Quantity
+						v.QuantityProgress = item.Quantity
+					}
+				}
+
+				if item.Note != "" {
+					v.ItemNote = item.Note
+				}
+
+				if err := v.Update(db); err != nil {
+					return
+				}
+			}
+		}
+
+		// update service item
+		bsItem.Quality = item.Quantity
+		bsItem.Amount = int64(item.Quantity) * bsItem.UnitPrice
+		// Update amount
+		if item.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
+			amountDiscont := (bsItem.Amount * bsItem.DiscountValue) / 100
+			bsItem.Amount = bsItem.Amount - amountDiscont
+		}
+	}
+
+	if item.Note != "" {
+		bsItem.Input = item.Note
+	}
+
+	if err := bsItem.Update(db); err != nil {
+		response_message.InternalServerError(c, "Update item "+err.Error())
+		return
+	}
+
+}
+
+func delItemInApp(c *gin.Context, bill models.ServiceCart, bsItem model_booking.BookingServiceItem, booking model_booking.Booking, item request.Item, kiosk model_service.Kiosk, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	// Delete Item
+	if err := bsItem.Delete(db); err != nil {
+		response_message.InternalServerError(c, "Delete item "+err.Error())
+		return
+	}
+
+	// Check service type
+	if bill.ServiceType == constants.RESTAURANT_SETTING {
+		// validate res item
+		restaurantItem := models.RestaurantItem{}
+		restaurantItem.BillId = bill.Id
+		restaurantItem.ItemId = bsItem.Id
+
+		resList, err := restaurantItem.FindAll(db)
+		if err != nil {
+			response_message.InternalServerError(c, "Find res item "+err.Error())
+			return
+		}
+
+		if bill.BillStatus == constants.RES_BILL_STATUS_PROCESS {
+			// Update res item
+			for _, item := range resList {
+				item.ItemStatus = constants.RES_STATUS_CANCEL
+
+				if err := item.Update(db); err != nil {
+					response_message.InternalServerError(c, "Update res item "+err.Error())
+					return
+				}
+			}
+		} else {
+			// Delete res item
+			for _, item := range resList {
+
+				if err := item.Delete(db); err != nil {
+					response_message.InternalServerError(c, "Delete res item "+err.Error())
+					return
+				}
+			}
+		}
+	}
 }

@@ -6,6 +6,7 @@ type GetListKioskForm struct {
 	CourseUid  string `form:"course_uid"`
 	KioskName  string `form:"kiosk_name"`
 	Status     string `form:"status"`
+	KioskType  string `form:"kiosk_type"`
 }
 type CreateKioskForm struct {
 	PartnerUid  string `json:"partner_uid"`

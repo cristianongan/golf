@@ -73,6 +73,7 @@ type GetServiceCartBody struct {
 	BookingDate string `form:"booking_date" binding:"required"`
 	ServiceId   int64  `form:"service_id"`
 	GolfBag     string `form:"golf_bag"`
+	UserName    string `form:"user_name"`
 }
 
 type GetServiceCartRentalBody struct {
@@ -116,4 +117,33 @@ type CreateNewGuestBody struct {
 
 type FinishOrderBody struct {
 	BillId int64 `json:"bill_id" binding:"required"`
+}
+
+type SaveBillPOSInAppBody struct {
+	PartnerUid string `json:"partner_uid" binding:"required"`
+	CourseUid  string `json:"course_uid" binding:"required"`
+	GolfBag    string `json:"golf_bag" binding:"required"`
+	ServiceId  int64  `json:"service_id"`
+	BillId     int64  `json:"bill_id"`
+	BillCode   string `json:"bill_code"`
+	Note       string `json:"note"`
+	// Infor nhà hàng
+	Type        string `json:"type"`
+	TypeCode    string `json:"type_code"`
+	NumberGuest int    `json:"number_guest"`
+	Floor       int    `json:"floor"`
+	// Infor item
+	Items []Item `json:"items"`
+}
+
+type Item struct {
+	Action        string `json:"action" binding:"required"`
+	ItemCode      string `json:"item_code" binding:"required"`
+	ItemId        int64  `json:"id"`
+	Type          string `json:"type"`
+	Quantity      int    `json:"quantity"`
+	UnitPrice     int64  `json:"unit_price"`
+	DiscountType  string `json:"discount_type"`
+	DiscountValue int64  `json:"discount_value"`
+	Note          string `json:"note"`
 }
