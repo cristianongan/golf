@@ -14,6 +14,12 @@ import (
 	"github.com/ttacon/libphonenumber"
 )
 
+type QrCodeUrlModel struct {
+	QrImg       string `json:"qr_img"`
+	Date        string `json:"date"`
+	CheckInCode string `json:"check-in-code"`
+}
+
 /*
  Gen QR URL -> send sms
 */
@@ -60,7 +66,19 @@ func sendSmsBooking(listBooking []model_booking.Booking) error {
 
 		message += playerName + " - " + "Mã check-in: " + b.CheckInCode + " - QR: "
 
-		encodedurlQrCodeChecking := base64.StdEncoding.EncodeToString([]byte(b.QrcodeUrl))
+		qrCodeUrlModel := QrCodeUrlModel{
+			QrImg:       b.QrcodeUrl,
+			CheckInCode: b.CheckInCode,
+			Date:        b.BookingDate,
+		}
+
+		byteQrCodeUrlModel, errMas := json.Marshal(&qrCodeUrlModel)
+
+		if errMas != nil {
+			log.Println("sendSmsBooking errMas", errMas.Error())
+		}
+
+		encodedurlQrCodeChecking := base64.StdEncoding.EncodeToString(byteQrCodeUrlModel)
 
 		linkQRCodeFull := config.GetPortalCmsUrl() + "qr-ci/" + encodedurlQrCodeChecking
 
