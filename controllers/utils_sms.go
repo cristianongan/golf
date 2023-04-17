@@ -49,7 +49,7 @@ func sendSmsBooking(listBooking []model_booking.Booking) error {
 
 	for i, b := range listBooking {
 		iStr := strconv.Itoa(i)
-		message += iStr + ". Player 1: "
+		message += iStr + ". Player " + iStr + ": "
 		playerName := ""
 		if b.MemberCard != nil {
 			playerName = b.MemberCard.CardId
