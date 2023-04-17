@@ -65,10 +65,10 @@
         "url": "https://vngolf-portal.vnpaytest.vn/"
     },
     "vnpay_sms": {
-        "url": "https://smsgw.vnpay.vn/smsgw/sendSms",
-        "sender": "CARO",
-        "keyword": "CARO",
-        "username": "950073",
-        "password": "b9a877ff-bf6b-4413-a9af-0eafdc6afaef"
+        "url": "http://10.22.18.118:8083/smsgw/sendSms",
+        "sender": "VNPAY",
+        "keyword": "GOLF_TEST",
+        "username": "950811",
+        "password": "f3c98dec9f36459c8100478d694af863"
     }
 }
