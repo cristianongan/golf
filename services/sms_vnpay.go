@@ -8,8 +8,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	urlLib "net/url"
 	"start/config"
-	"start/constants"
 	"strconv"
 	"strings"
 	"time"
@@ -112,11 +112,11 @@ func VNPaySendSmsV2(phone, message string) (string, error) {
 	}
 	req.Header.Add("Content-Type", "application/json")
 
-	// proxyUrl, _ := urlLib.Parse(config.GetUrlCaroProxy())
-	// client := &http.Client{Transport: &http.Transport{Proxy: http.ProxyURL(proxyUrl)}}
-	client := &http.Client{
-		Timeout: time.Second * constants.TIMEOUT,
-	}
+	proxyUrl, _ := urlLib.Parse(config.GetUrlCaroProxy())
+	client := &http.Client{Transport: &http.Transport{Proxy: http.ProxyURL(proxyUrl)}}
+	// client := &http.Client{
+	// 	Timeout: time.Second * constants.TIMEOUT,
+	// }
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Error on dispatching request. ", err.Error())

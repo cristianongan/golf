@@ -71,5 +71,11 @@
         "keyword": "CARO",
         "username": "950073",
         "password": "b9a877ff-bf6b-4413-a9af-0eafdc6afaef"
+    },
+    "caro_proxy":{
+        "protocol":"http",
+        "url":"128.199.86.0:4000",
+        "user":"squid",
+        "pass":"T00RHrvhwmdy4YLG4JwW60KHF0v0UWMPsAWyJPIqL240"
     }
 }
