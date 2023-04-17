@@ -13,7 +13,7 @@ import (
 
 type CParOfHole struct{}
 
-func (_ *CParOfHole) CreateParOfHole(c *gin.Context, prof models.CmsUser) {
+func (_ *CParOfHole) SaveParOfHole(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := request.CreateParOfHoleBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -21,23 +21,45 @@ func (_ *CParOfHole) CreateParOfHole(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	parOfHole := models.ParOfHole{
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
-		CourseType: body.CourseType,
-		Course:     body.Course,
-		Hole:       body.Hole,
-		Par:        body.Par,
-		Minute:     body.Minute,
+	for _, config := range body.Configs {
+		if config.Action == "CREATE" {
+			parOfHole := models.ParOfHole{
+				PartnerUid: body.PartnerUid,
+				CourseUid:  body.CourseUid,
+				Course:     body.Course,
+				Hole:       config.Hole,
+				Par:        config.Par,
+				Minute:     config.Minute,
+			}
+
+			errC := parOfHole.Create(db)
+			if errC != nil {
+				response_message.InternalServerError(c, errC.Error())
+				return
+			}
+		} else if config.Action == "UPDATE" && config.Id > 0 {
+			// find frist
+			parOfHole := models.ParOfHole{}
+			parOfHole.Id = config.Id
+			errF := parOfHole.FindFirst(db)
+			if errF != nil {
+				response_message.InternalServerError(c, errF.Error())
+				return
+			}
+
+			parOfHole.Hole = config.Hole
+			parOfHole.Par = config.Par
+			parOfHole.Minute = config.Minute
+
+			errUdp := parOfHole.Update(db)
+			if errUdp != nil {
+				response_message.InternalServerError(c, errUdp.Error())
+				return
+			}
+		}
 	}
 
-	errC := parOfHole.Create(db)
-	if errC != nil {
-		response_message.InternalServerError(c, errC.Error())
-		return
-	}
-
-	okResponse(c, parOfHole)
+	okRes(c)
 }
 
 func (_ *CParOfHole) GetListParOfHole(c *gin.Context, prof models.CmsUser) {
@@ -141,6 +163,32 @@ func (_ *CParOfHole) DeleteParOfHole(c *gin.Context, prof models.CmsUser) {
 	errDel := parOfHole.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
+		return
+	}
+
+	okRes(c)
+}
+
+func (_ *CParOfHole) ResetParOfHole(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	// validate body
+	body := request.ResetParOfHoleBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	// Delete batch
+	parOfHole := models.ParOfHole{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		Course:     body.Course,
+	}
+
+	errF := parOfHole.DeleteBatch(db)
+	if errF != nil {
+		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 

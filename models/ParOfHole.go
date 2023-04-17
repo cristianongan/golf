@@ -74,3 +74,19 @@ func (item *ParOfHole) Delete(db *gorm.DB) error {
 	}
 	return db.Delete(item).Error
 }
+
+func (item *ParOfHole) DeleteBatch(db *gorm.DB) error {
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.Course != "" {
+		db = db.Where("apply_date = ?", item.Course)
+	}
+
+	return db.Delete(item).Error
+}

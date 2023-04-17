@@ -580,7 +580,8 @@ func NewRouter() *gin.Engine {
 
 			/// =================== Par Of Hole =====================
 			cParOfHole := new(controllers.CParOfHole)
-			cmsApiAuthorized.POST("/par-of-hole", middlewares.AuthorizedCmsUserHandler(cParOfHole.CreateParOfHole))
+			cmsApiAuthorized.POST("/par-of-hole/save", middlewares.AuthorizedCmsUserHandler(cParOfHole.SaveParOfHole))
+			cmsApiAuthorized.POST("/par-of-hole/reset", middlewares.AuthorizedCmsUserHandler(cParOfHole.ResetParOfHole))
 			cmsApiAuthorized.GET("/par-of-hole/list", middlewares.AuthorizedCmsUserHandler(cParOfHole.GetListParOfHole))
 			cmsApiAuthorized.PUT("/par-of-hole/:id", middlewares.AuthorizedCmsUserHandler(cParOfHole.UpdateParOfHole))
 			cmsApiAuthorized.DELETE("/par-of-hole/:id", middlewares.AuthorizedCmsUserHandler(cParOfHole.DeleteParOfHole))
