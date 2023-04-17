@@ -83,7 +83,7 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		listBook := []model_booking.Booking{}
 		listBook = append(listBook, *booking)
 		// Send sms
-		go sendSmsBooking(listBook)
+		go genQRCodeListBook(listBook)
 	}
 
 	go createOperationLog(opLog)
@@ -414,7 +414,8 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		return nil, errC
 	}
 
-	go genQrCodeForBooking(&booking)
+	// HaiCV: update sang hàm mới
+	// go genQrCodeForBooking(&booking)
 
 	if body.Bag != "" {
 		opLog := models.OperationLog{

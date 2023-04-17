@@ -305,7 +305,7 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 	}()
 
 	//Send Sms
-	go sendSmsBooking(listBooking)
+	go genQRCodeListBook(listBooking)
 
 	okResponse(c, listBooking)
 }

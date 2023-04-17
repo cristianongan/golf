@@ -14,6 +14,21 @@ import (
 	"github.com/ttacon/libphonenumber"
 )
 
+/*
+ Gen QR URL -> send sms
+*/
+func genQRCodeListBook(listBooking []model_booking.Booking) {
+	listHaveQRURL := []model_booking.Booking{}
+	for _, v := range listBooking {
+		genQrCodeForBooking(&v)
+		listHaveQRURL = append(listHaveQRURL, v)
+	}
+	sendSmsBooking(listHaveQRURL)
+}
+
+/*
+ Send sms
+*/
 func sendSmsBooking(listBooking []model_booking.Booking) error {
 
 	if len(listBooking) == 0 {
