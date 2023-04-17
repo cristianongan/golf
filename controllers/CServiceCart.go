@@ -1618,11 +1618,10 @@ func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
 		datasources.SetCache(key, "100000", -1)
 		bagClone = "100000"
 	}
+	// validate golf bag
+	dateDisplay, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 
 	for {
-		// validate golf bag
-		dateDisplay, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
-
 		booking := model_booking.Booking{}
 		booking.Bag = bagClone
 		booking.BookingDate = dateDisplay
@@ -1665,7 +1664,7 @@ func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
 		CourseUid:      body.CourseUid,
 		Bag:            bagClone,
 		BillCode:       billCode,
-		BookingDate:    utils.GetTimeNow().Format("02/01/2006"),
+		BookingDate:    dateDisplay,
 		BagStatus:      constants.BAG_STATUS_WAITING,
 		InitType:       constants.BOOKING_INIT_TYPE_CHECKIN,
 		CheckInTime:    utils.GetTimeNow().Unix(),
