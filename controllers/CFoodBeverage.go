@@ -195,6 +195,7 @@ func (_ *CFoodBeverage) GetListFBForApp(c *gin.Context, prof models.CmsUser) {
 	fbR := model_service.FoodBeverageRequest{}
 	fbR.PartnerUid = form.PartnerUid
 	fbR.CourseUid = form.CourseUid
+	fbR.ServiceId = form.ServiceId
 	fbR.CodeOrName = form.CodeOrName
 
 	list, total, err := fbR.FindListForApp(db, page)

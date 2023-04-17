@@ -67,6 +67,7 @@ type FoodBeverageRequest struct {
 	FoodBeverage
 	CodeOrName string   `form:"code_or_name"`
 	GroupName  string   `json:"group_name"`
+	ServiceId  string   `json:"service_id"`
 	FBCodeList []string `form:"fb_code_list"`
 }
 
@@ -203,7 +204,12 @@ func (item *FoodBeverageRequest) FindListForApp(database *gorm.DB, page models.P
 	if item.PartnerUid != "" {
 		subQuery = subQuery.Where("booking_service_items.partner_uid = ?", item.PartnerUid)
 	}
+	if item.ServiceId != "" {
+		subQuery = subQuery.Where("booking_service_items.service_id = ?", item.ServiceId)
+	}
+	subQuery = subQuery.Joins(`LEFT JOIN service_carts as tb3 on booking_service_items.service_bill = tb3.id`)
 
+	subQuery = subQuery.Where("(tb3.bill_status NOT IN ? OR tb3.bill_status IS NULL)", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
 	subQuery = subQuery.Where("booking_service_items.created_at >= ?", from.AddDate(0, 0, -8).Unix())
 
 	subQuery.Group("booking_service_items.item_code")
