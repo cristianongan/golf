@@ -281,3 +281,30 @@ func GetBitlyUrl() string {
 func GetBitlyToken() string {
 	return config.GetString("bitly.token")
 }
+
+// ============== Golf Portal URL ==============
+func GetPortalCmsUrl() string {
+	return config.GetString("portal_cms.url")
+}
+
+// =============== VNPAY SMS =======================
+func GetVNPayUrl() string {
+	return config.GetString("vnpay_sms.url")
+}
+
+/// Same BrandName
+func GetVNPaySender() string {
+	return config.GetString("vnpay_sms.sender")
+}
+
+func GetVNPayKeyword() string {
+	return config.GetString("vnpay_sms.keyword")
+}
+
+func GetVNPayUserName() string {
+	return config.GetString("vnpay_sms.username")
+}
+
+func GetVNPayPassword() string {
+	return config.GetString("vnpay_sms.password")
+}

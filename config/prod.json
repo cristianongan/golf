@@ -64,5 +64,12 @@
     },
     "portal_cms": {
         "url": "https://vngolf-portal.vnpay.vn/"
+    },
+    "vnpay_sms": {
+        "url": "https://smsgw.vnpay.vn/smsgw/sendSms",
+        "sender": "CARO",
+        "keyword": "CARO",
+        "username": "950073",
+        "password": "b9a877ff-bf6b-4413-a9af-0eafdc6afaef"
     }
 }

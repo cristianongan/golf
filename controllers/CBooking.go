@@ -79,6 +79,11 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
 	} else {
 		opLog.Function = constants.OP_LOG_FUNCTION_BOOKING
+
+		listBook := []model_booking.Booking{}
+		listBook = append(listBook, *booking)
+		// Send sms
+		go sendSmsBooking(listBook)
 	}
 
 	go createOperationLog(opLog)
