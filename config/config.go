@@ -308,11 +308,3 @@ func GetVNPayUserName() string {
 func GetVNPayPassword() string {
 	return config.GetString("vnpay_sms.password")
 }
-
-// ========= Caro Proxy ============
-func GetUrlCaroProxy() string {
-	return config.GetString("caro_proxy.protocol") + "://" +
-		config.GetString("caro_proxy.user") + ":" +
-		config.GetString("caro_proxy.pass") + "@" +
-		config.GetString("caro_proxy.url")
-}
