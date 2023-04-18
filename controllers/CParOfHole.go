@@ -72,10 +72,10 @@ func (_ *CParOfHole) GetListParOfHole(c *gin.Context, prof models.CmsUser) {
 	}
 
 	page := models.Page{
-		Limit:   form.PageRequest.Limit,
-		Page:    form.PageRequest.Page,
-		SortBy:  form.PageRequest.SortBy,
-		SortDir: form.PageRequest.SortDir,
+		Limit: form.PageRequest.Limit,
+		Page:  form.PageRequest.Page,
+		// SortBy:  form.PageRequest.SortBy,
+		// SortDir: form.PageRequest.SortDir,
 	}
 
 	parOfHoleR := models.ParOfHole{

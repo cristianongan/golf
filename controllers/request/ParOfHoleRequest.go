@@ -32,7 +32,7 @@ type UpdateParOfHoleBody struct {
 }
 
 type ResetParOfHoleBody struct {
-	PartnerUid string `form:"partner_uid" binding:"required"`
-	CourseUid  string `form:"course_uid" binding:"required"` // Sân Golf
-	Course     string `json:"course" binding:"required"`     //  Sân
+	PartnerUid string `json:"partner_uid" binding:"required"`
+	CourseUid  string `json:"course_uid" binding:"required"` // Sân Golf
+	Course     string `json:"course"`                        //  Sân
 }

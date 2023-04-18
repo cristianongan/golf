@@ -1741,6 +1741,7 @@ func (_ CCourseOperating) GetFlight(c *gin.Context, prof models.CmsUser) {
 	flights.CaddieCode = query.CaddieCode
 	flights.PlayerName = query.PlayerName
 	flights.GolfBag = query.GolfBag
+	flights.BagStatus = query.BagStatus
 
 	list, total, err := flights.FindFlightList(db, page)
 

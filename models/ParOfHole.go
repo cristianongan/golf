@@ -60,6 +60,8 @@ func (item *ParOfHole) FindList(database *gorm.DB, page Page) ([]ParOfHole, int6
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
+	db.Order("course, hole")
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
@@ -85,7 +87,7 @@ func (item *ParOfHole) DeleteBatch(db *gorm.DB) error {
 	}
 
 	if item.Course != "" {
-		db = db.Where("apply_date = ?", item.Course)
+		db = db.Where("course = ?", item.Course)
 	}
 
 	return db.Delete(item).Error
