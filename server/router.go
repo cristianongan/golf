@@ -588,6 +588,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/par-of-hole/:id", middlewares.AuthorizedCmsUserHandler(cParOfHole.UpdateParOfHole))
 			cmsApiAuthorized.DELETE("/par-of-hole/:id", middlewares.AuthorizedCmsUserHandler(cParOfHole.DeleteParOfHole))
 
+			/// =================== Player Score =====================
+			cPlayerScore := new(controllers.CPlayerScore)
+			cmsApiAuthorized.POST("/player-score", middlewares.AuthorizedCmsUserHandler(cPlayerScore.CreatePlayerScore))
+			cmsApiAuthorized.GET("/player-score/list", middlewares.AuthorizedCmsUserHandler(cPlayerScore.GetListPlayerScore))
+			cmsApiAuthorized.PUT("/player-score/:id", middlewares.AuthorizedCmsUserHandler(cPlayerScore.UpdatePlayerScore))
+			cmsApiAuthorized.DELETE("/player-score/:id", middlewares.AuthorizedCmsUserHandler(cPlayerScore.DeletePlayerScore))
+
 			/// =================== Role ===================
 			cRole := new(controllers.CRole)
 			cmsApiAuthorized.POST("/role/add", middlewares.AuthorizedCmsUserHandler(cRole.CreateRole))
