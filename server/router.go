@@ -867,6 +867,15 @@ func NewRouter() *gin.Engine {
 			}
 		}
 
+		// ----------------------------------------------------------
+		// ====================== Public =======================
+		// ----------------------------------------------------------
+		publicApi := routerApi.Group("public")
+		{
+			cPublic := new(controllers.CPublic)
+			publicApi.POST("/booking/info", cPublic.GetBookingInfo)
+		}
+
 		accountantApi := routerApi.Group("accountant")
 		{
 			accountantV1Api := accountantApi.Group("v1")

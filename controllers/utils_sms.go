@@ -18,6 +18,8 @@ type QrCodeUrlModel struct {
 	QrImg       string `json:"qr_img"`
 	Date        string `json:"date"`
 	CheckInCode string `json:"check_in_code"`
+	PartnerUid  string `json:"partner_uid"`
+	CourseUid   string `json:"course_uid"`
 }
 
 /*
@@ -70,6 +72,8 @@ func sendSmsBooking(listBooking []model_booking.Booking) error {
 			QrImg:       b.QrcodeUrl,
 			CheckInCode: b.CheckInCode,
 			Date:        b.BookingDate,
+			PartnerUid:  b.PartnerUid,
+			CourseUid:   b.CourseUid,
 		}
 
 		byteQrCodeUrlModel, errMas := json.Marshal(&qrCodeUrlModel)
