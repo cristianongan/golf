@@ -2156,8 +2156,6 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	updatePriceWithServiceItem(&booking, prof)
-
 	c.JSON(200, serviceCart)
 }
 
@@ -2329,6 +2327,8 @@ func addItemKioskInApp(c *gin.Context, bill models.ServiceCart, booking model_bo
 		response_message.InternalServerError(c, "Create item "+err.Error())
 		return
 	}
+
+	updatePriceWithServiceItem(&booking, prof)
 }
 
 func addItemResInApp(c *gin.Context, bill models.ServiceCart, booking model_booking.Booking, item request.Item, kiosk model_service.Kiosk, prof models.CmsUser) {
@@ -2456,6 +2456,8 @@ func addItemResInApp(c *gin.Context, bill models.ServiceCart, booking model_book
 			return
 		}
 	}
+
+	updatePriceWithServiceItem(&booking, prof)
 }
 
 func updItemInApp(c *gin.Context, bill models.ServiceCart, bsItem model_booking.BookingServiceItem, booking model_booking.Booking, item request.Item, kiosk model_service.Kiosk, prof models.CmsUser) {
@@ -2519,6 +2521,8 @@ func updItemInApp(c *gin.Context, bill models.ServiceCart, bsItem model_booking.
 		return
 	}
 
+	updatePriceWithServiceItem(&booking, prof)
+
 }
 
 func delItemInApp(c *gin.Context, bill models.ServiceCart, bsItem model_booking.BookingServiceItem, booking model_booking.Booking, item request.Item, kiosk model_service.Kiosk, prof models.CmsUser) {
@@ -2564,4 +2568,6 @@ func delItemInApp(c *gin.Context, bill models.ServiceCart, bsItem model_booking.
 			}
 		}
 	}
+
+	updatePriceWithServiceItem(&booking, prof)
 }
