@@ -60,6 +60,8 @@ func (item *ParOfHole) FindList(database *gorm.DB, page Page) ([]ParOfHole, int6
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
+	db.Order("course, hole")
+
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {
