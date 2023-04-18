@@ -468,3 +468,33 @@ func (item *MemberCard) GetGuestStyle(db *gorm.DB) string {
 	}
 	return memberCardType.GuestStyle
 }
+
+func (item *MemberCard) FindListForEkyc(database *gorm.DB) ([]map[string]interface{}, error) {
+	db := database.Table("member_cards")
+	list := []map[string]interface{}{}
+	// total := int64(0)
+
+	db = db.Select("member_cards.uid as uid,member_cards.partner_uid as partner_uid,member_cards.course_uid as course_uid,member_cards.card_id as card_id,member_card_types.name as mc_types_name,member_card_types.guest_style as guest_style,customer_users.name as owner_name,customer_users.email as owner_email,customer_users.phone as owner_phone,customer_users.dob as owner_dob,customer_users.sex as owner_sex,customer_users.avatar as owner_avatar")
+
+	db = db.Joins("LEFT JOIN member_card_types on member_cards.mc_type_id = member_card_types.id")
+
+	db = db.Joins("LEFT JOIN customer_users on member_cards.owner_uid = customer_users.uid")
+
+	if item.CourseUid != "" {
+		db = db.Where("member_cards.course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("member_cards.partner_uid = ?", item.PartnerUid)
+	}
+	if item.OwnerUid != "" {
+		db = db.Where("member_cards.owner_uid = ?", item.OwnerUid)
+	}
+	if item.Status != "" {
+		db = db.Where("member_cards.status = ?", item.Status)
+	}
+
+	// db.Count(&total)
+	db = db.Find(&list)
+
+	return list, db.Error
+}

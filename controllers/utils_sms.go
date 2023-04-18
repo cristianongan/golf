@@ -17,7 +17,7 @@ import (
 type QrCodeUrlModel struct {
 	QrImg       string `json:"qr_img"`
 	Date        string `json:"date"`
-	CheckInCode string `json:"check-in-code"`
+	CheckInCode string `json:"check_in_code"`
 }
 
 /*

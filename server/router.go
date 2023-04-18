@@ -855,6 +855,18 @@ func NewRouter() *gin.Engine {
 			}
 		}
 
+		// ----------------------------------------------------------
+		// ====================== Ekyc =======================
+		// ----------------------------------------------------------
+		ekycApi := routerApi.Group("ekyc")
+		{
+			ekycV1Api := ekycApi.Group("v1")
+			{
+				cEkyc := new(controllers.Cekyc)
+				ekycV1Api.POST("/member-card/list", cEkyc.GetListMemberForEkycList)
+			}
+		}
+
 		accountantApi := routerApi.Group("accountant")
 		{
 			accountantV1Api := accountantApi.Group("v1")
