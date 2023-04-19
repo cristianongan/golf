@@ -53,7 +53,7 @@ func sendSmsBooking(listBooking []model_booking.Booking) error {
 		return errPhone
 	}
 
-	message := "Sân " + listBooking[0].CourseUid + " xác nhận đặt chỗ ngày " + listBooking[0].BookingDate + ": "
+	message := "San " + listBooking[0].CourseUid + " xac nhan dat cho ngay " + listBooking[0].BookingDate + ": "
 
 	for i, b := range listBooking {
 		iStr := strconv.Itoa(i)
@@ -62,11 +62,11 @@ func sendSmsBooking(listBooking []model_booking.Booking) error {
 		if b.MemberCard != nil {
 			playerName = b.MemberCard.CardId
 		}
-		if playerName == "" {
-			playerName = b.CustomerInfo.Name
-		}
+		// if playerName == "" {
+		// 	playerName = b.CustomerInfo.Name
+		// }
 
-		message += playerName + " - " + "Mã check-in: " + b.CheckInCode + " - QR: "
+		message += playerName + " - " + "Ma check-in: " + b.CheckInCode + " - QR: "
 
 		qrCodeUrlModel := QrCodeUrlModel{
 			QrImg:       b.QrcodeUrl,
