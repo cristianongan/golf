@@ -235,6 +235,11 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 		opLog.Function = constants.OP_LOG_FUNCTION_PROSHOP
 	}
 
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
+
 	go createOperationLog(opLog)
 
 	c.JSON(200, serviceCart)
@@ -580,6 +585,11 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	createOperationLog(opLog)
+
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
 
 	okRes(c)
 }
@@ -1155,6 +1165,11 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 
 	go addLog(c, prof, serviceCartItem, constants.OP_LOG_ACTION_DELETE_SERVICE_ITEM)
 
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
+
 	okRes(c)
 }
 
@@ -1218,6 +1233,11 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	createExportBillInventory(c, prof, serviceCart, serviceCart.BillCode)
+
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
 
 	okRes(c)
 }
@@ -1546,6 +1566,11 @@ func (_ CServiceCart) DeleteCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	go createOperationLog(opLog)
+
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
 
 	okRes(c)
 }

@@ -159,6 +159,11 @@ func (_ CKioskInventory) AddItemToInventory(c *gin.Context, prof models.CmsUser)
 		list = append(list, item)
 	}
 
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessKIForApp()
+	}()
+
 	okResponse(c, list)
 }
 

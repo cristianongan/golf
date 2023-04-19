@@ -524,6 +524,9 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 	} else if item.Type != "" {
 		db = db.Where("booking_service_items.type = ?", item.Type)
 	}
+	if item.UserAction != "" {
+		db = db.Where("booking_service_items.user_action = ?", item.UserAction)
+	}
 
 	// sub query
 	subQuery := database.Table("bookings")
@@ -561,6 +564,9 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 	if item.Type == "KIOSK" || item.Type == "PROSHOP" {
 		db.Group("booking_service_items.service_id, booking_service_items.item_code, booking_service_items.name, booking_service_items.unit_price, booking_service_items.discount_type, booking_service_items.discount_value")
 		db.Order("booking_service_items.location, booking_service_items.name")
+	} else if item.Type == "APP" {
+		db.Group("booking_service_items.item_code, booking_service_items.name, booking_service_items.unit_price")
+		db.Order("booking_service_items.name")
 	} else {
 		db.Group("booking_service_items.item_code, booking_service_items.name, booking_service_items.unit_price, booking_service_items.discount_type, booking_service_items.discount_value")
 		db.Order("booking_service_items.name")
