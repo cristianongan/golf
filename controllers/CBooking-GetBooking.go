@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 	"start/constants"
@@ -958,20 +959,22 @@ func (_ *CBooking) GetListBookingWithSelectForApp(c *gin.Context, prof models.Cm
 
 	bookings := SetParamGetBookingRequest(form)
 
-	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
-
-	res := response.PageResponse{}
+	list, total, err := bookings.FindAllForReportBooking(db, page)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
+	var data response.Booking
+	inrec, _ := json.Marshal(list)
+	json.Unmarshal(inrec, &data)
 
-	var list []response.Booking
+	res := response.PageResponse{}
+
 	db.Find(&list)
 	res = response.PageResponse{
 		Total: total,
-		Data:  list,
+		Data:  data,
 	}
 
 	okResponse(c, res)
