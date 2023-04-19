@@ -60,7 +60,7 @@
     "is_write_log_to_db": true,
     "bitly" : {
         "url": "https://api-ssl.bitly.com/v4/",
-        "token": "158ad6de5e288c1924e3743651f7db7c6cf782c5"
+        "token": "97b45ee97112fc236bdb0988a954b908e15ade44"
     },
     "portal_cms": {
         "url": "https://vngolf-portal.vnpaytest.vn/"

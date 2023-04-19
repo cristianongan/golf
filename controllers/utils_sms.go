@@ -56,7 +56,7 @@ func sendSmsBooking(listBooking []model_booking.Booking) error {
 	message := "San " + listBooking[0].CourseUid + " xac nhan dat cho ngay " + listBooking[0].BookingDate + ": "
 
 	for i, b := range listBooking {
-		iStr := strconv.Itoa(i)
+		iStr := strconv.Itoa(i + 1)
 		message += iStr + ". Player " + iStr + ": "
 		playerName := ""
 		if b.MemberCard != nil {
