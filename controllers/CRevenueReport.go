@@ -581,6 +581,9 @@ func (_ *CRevenueReport) GetReportUsingBuggyInGo(c *gin.Context, prof models.Cms
 }
 
 func (_ *CRevenueReport) GetReportRevenuePointOfSale(c *gin.Context, prof models.CmsUser) {
+	//
+	isApp := c.Request.Header.Get("isApp")
+
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.RevenueReportPOSForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
@@ -597,7 +600,7 @@ func (_ *CRevenueReport) GetReportRevenuePointOfSale(c *gin.Context, prof models
 		UserAction: form.UserName,
 	}
 
-	list, err := serviceItem.FindReportRevenuePOS(db, form.FromDate, form.ToDate)
+	list, err := serviceItem.FindReportRevenuePOS(db, form.FromDate, form.ToDate, isApp)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
