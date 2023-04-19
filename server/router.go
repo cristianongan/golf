@@ -297,6 +297,8 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/booking/get-list-bag-detail", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBagDetail))
 			cmsApiAuthorized.GET("/booking/caddie-booking-cancel/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListCaddieBookingCancel))
 
+			cmsApiAuthorized.GET("/booking-app/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBookingWithSelectForApp)) // api select booking in app
+
 			/// =================== Caddie Buggy In Out Bag ===================
 			cCaddieBuggyInOut := new(controllers.CCaddieBuggyInOut)
 			cmsApiAuthorized.GET("/booking/caddie-buggy-in-out", middlewares.AuthorizedCmsUserHandler(cCaddieBuggyInOut.GetCaddieBuggyInOut))

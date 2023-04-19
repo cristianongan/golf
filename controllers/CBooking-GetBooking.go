@@ -937,3 +937,42 @@ func (cBooking *CBooking) GetListCaddieBookingCancel(c *gin.Context, prof models
 
 	okResponse(c, res)
 }
+
+/*
+Danh sách booking với select cho app
+*/
+func (_ *CBooking) GetListBookingWithSelectForApp(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	bookings := SetParamGetBookingRequest(form)
+
+	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
+
+	res := response.PageResponse{}
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []response.Booking
+	db.Find(&list)
+	res = response.PageResponse{
+		Total: total,
+		Data:  list,
+	}
+
+	okResponse(c, res)
+}
