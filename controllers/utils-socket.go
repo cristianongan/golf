@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"encoding/json"
+	"start/callservices"
 	"start/constants"
-	socket_room "start/socket_room"
+	"start/controllers/request"
 )
 
 /*
@@ -15,9 +15,17 @@ func pushSocketUdpRole(roleId int64) {
 		"role_id": roleId,
 	}
 
-	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket_room.Hub.Broadcast <- socket_room.Message{
-		Data: newFsConfigBytes,
+	// push mess socket
+	reqSocket := request.MessSocketBody{
+		Data: notiData,
 		Room: "",
 	}
+
+	go callservices.PushMessInSocket(reqSocket)
+
+	// newFsConfigBytes, _ := json.Marshal(notiData)
+	// socket_room.Hub.Broadcast <- socket_room.Message{
+	// 	Data: newFsConfigBytes,
+	// 	Room: "",
+	// }
 }

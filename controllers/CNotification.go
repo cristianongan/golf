@@ -3,11 +3,11 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"start/callservices"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
-	socket_room "start/socket_room"
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
@@ -155,15 +155,27 @@ func (_ *CNotification) Admin1ApproveCaddieVacation(c *gin.Context, prof models.
 			response_message.InternalServerError(c, errNotification.Error())
 			return
 		}
-		//
 
-		go func() {
-			newFsConfigBytes, _ := json.Marshal(notificationAd2)
-			socket_room.Hub.Broadcast <- socket_room.Message{
-				Data: newFsConfigBytes,
-				Room: constants.NOTIFICATION_CHANNEL_ADMIN_2,
-			}
-		}()
+		// parse
+		var mess map[string]interface{}
+		inrec, _ := json.Marshal(notificationAd2)
+		json.Unmarshal(inrec, &mess)
+
+		// push mess socket
+		reqSocket := request.MessSocketBody{
+			Data: mess,
+			Room: constants.NOTIFICATION_CHANNEL_ADMIN_2,
+		}
+
+		go callservices.PushMessInSocket(reqSocket)
+
+		// go func() {
+		// 	newFsConfigBytes, _ := json.Marshal(notificationAd2)
+		// 	socket_room.Hub.Broadcast <- socket_room.Message{
+		// 		Data: newFsConfigBytes,
+		// 		Room: constants.NOTIFICATION_CHANNEL_ADMIN_2,
+		// 	}
+		// }()
 	} else {
 		notification.NotificationStatus = constants.NOTIFICATION_REJECTED
 		notification.UserApprove = prof.UserName
@@ -198,13 +210,26 @@ func (_ *CNotification) Admin1ApproveCaddieVacation(c *gin.Context, prof models.
 			return
 		}
 
-		go func() {
-			newFsConfigBytes, _ := json.Marshal(newNotification)
-			socket_room.Hub.Broadcast <- socket_room.Message{
-				Data: newFsConfigBytes,
-				Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
-			}
-		}()
+		// parse
+		var mess map[string]interface{}
+		inrec, _ := json.Marshal(newNotification)
+		json.Unmarshal(inrec, &mess)
+
+		// push mess socket
+		reqSocket := request.MessSocketBody{
+			Data: mess,
+			Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
+		}
+
+		go callservices.PushMessInSocket(reqSocket)
+
+		// go func() {
+		// 	newFsConfigBytes, _ := json.Marshal(newNotification)
+		// 	socket_room.Hub.Broadcast <- socket_room.Message{
+		// 		Data: newFsConfigBytes,
+		// 		Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
+		// 	}
+		// }()
 	}
 
 	okRes(c)
@@ -298,17 +323,36 @@ func (_ *CNotification) Admin2ApproveCaddieVacation(c *gin.Context, prof models.
 	cCaddieVacation := CCaddieVacationCalendar{}
 	go cCaddieVacation.UpdateCaddieVacationStatus(notification.Content, *form.IsApprove, notification.PartnerUid, prof)
 
-	go func() {
-		newFsConfigBytes, _ := json.Marshal(newNotification)
-		socket_room.Hub.Broadcast <- socket_room.Message{
-			Data: newFsConfigBytes,
-			Room: constants.NOTIFICATION_CHANNEL_ADMIN_1,
-		}
-		socket_room.Hub.Broadcast <- socket_room.Message{
-			Data: newFsConfigBytes,
-			Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
-		}
-	}()
+	// parse
+	var mess map[string]interface{}
+	inrec, _ := json.Marshal(newNotification)
+	json.Unmarshal(inrec, &mess)
+
+	// push mess socket
+	reqSocket1 := request.MessSocketBody{
+		Data: mess,
+		Room: constants.NOTIFICATION_CHANNEL_ADMIN_1,
+	}
+
+	reqSocket2 := request.MessSocketBody{
+		Data: mess,
+		Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
+	}
+
+	go callservices.PushMessInSocket(reqSocket1)
+	go callservices.PushMessInSocket(reqSocket2)
+
+	// go func() {
+	// 	newFsConfigBytes, _ := json.Marshal(newNotification)
+	// 	socket_room.Hub.Broadcast <- socket_room.Message{
+	// 		Data: newFsConfigBytes,
+	// 		Room: constants.NOTIFICATION_CHANNEL_ADMIN_1,
+	// 	}
+	// 	socket_room.Hub.Broadcast <- socket_room.Message{
+	// 		Data: newFsConfigBytes,
+	// 		Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
+	// 	}
+	// }()
 	okRes(c)
 }
 
@@ -358,11 +402,24 @@ func (_ *CNotification) CreateCaddieVacationNotification(db *gorm.DB, body reque
 
 	notiData.Create(db)
 
-	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket_room.Hub.Broadcast <- socket_room.Message{
-		Data: newFsConfigBytes,
+	// parse
+	var mess map[string]interface{}
+	inrec, _ := json.Marshal(notiData)
+	json.Unmarshal(inrec, &mess)
+
+	// push mess socket
+	reqSocket := request.MessSocketBody{
+		Data: mess,
 		Room: constants.NOTIFICATION_CHANNEL_ADMIN_1,
 	}
+
+	go callservices.PushMessInSocket(reqSocket)
+
+	// newFsConfigBytes, _ := json.Marshal(notiData)
+	// socket_room.Hub.Broadcast <- socket_room.Message{
+	// 	Data: newFsConfigBytes,
+	// 	Room: constants.NOTIFICATION_CHANNEL_ADMIN_1,
+	// }
 }
 
 func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
@@ -371,11 +428,19 @@ func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
 		"title": title,
 	}
 
-	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket_room.Hub.Broadcast <- socket_room.Message{
-		Data: newFsConfigBytes,
+	// push mess socket
+	reqSocket := request.MessSocketBody{
+		Data: notiData,
 		Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
 	}
+
+	go callservices.PushMessInSocket(reqSocket)
+
+	// newFsConfigBytes, _ := json.Marshal(notiData)
+	// socket_room.Hub.Broadcast <- socket_room.Message{
+	// 	Data: newFsConfigBytes,
+	// 	Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
+	// }
 }
 
 func (_ *CNotification) PushNotificationCreateBooking(bookType string, booking any) {
@@ -385,11 +450,19 @@ func (_ *CNotification) PushNotificationCreateBooking(bookType string, booking a
 		// "booking": booking,
 	}
 
-	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket_room.Hub.Broadcast <- socket_room.Message{
-		Data: newFsConfigBytes,
+	// push mess socket
+	reqSocket := request.MessSocketBody{
+		Data: notiData,
 		Room: constants.NOTIFICATION_CHANNEL_BOOKING,
 	}
+
+	go callservices.PushMessInSocket(reqSocket)
+
+	// newFsConfigBytes, _ := json.Marshal(notiData)
+	// socket_room.Hub.Broadcast <- socket_room.Message{
+	// 	Data: newFsConfigBytes,
+	// 	Room: constants.NOTIFICATION_CHANNEL_BOOKING,
+	// }
 }
 
 func (_ *CNotification) PushNotificationLockTee(lockType string) {
@@ -398,11 +471,19 @@ func (_ *CNotification) PushNotificationLockTee(lockType string) {
 		"title": "",
 	}
 
-	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket_room.Hub.Broadcast <- socket_room.Message{
-		Data: newFsConfigBytes,
+	// push mess socket
+	reqSocket := request.MessSocketBody{
+		Data: notiData,
 		Room: constants.NOTIFICATION_CHANNEL_BOOKING,
 	}
+
+	go callservices.PushMessInSocket(reqSocket)
+
+	// newFsConfigBytes, _ := json.Marshal(notiData)
+	// socket_room.Hub.Broadcast <- socket_room.Message{
+	// 	Data: newFsConfigBytes,
+	// 	Room: constants.NOTIFICATION_CHANNEL_BOOKING,
+	// }
 }
 
 func (_ *CNotification) CreateCaddieVacation(c *gin.Context, prof models.CmsUser) {

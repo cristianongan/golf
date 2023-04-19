@@ -258,15 +258,20 @@ func GetCcuServer() int {
 }
 
 /*
- P: Vnpay@123
+P: Vnpay@123
 */
 func GetResetP() string {
 	return config.GetString("reset_p")
 }
 
 /*
- Set xem có cho phép ghi vào log DB không
+Set xem có cho phép ghi vào log DB không
 */
 func GetIsWriteLogToDB() bool {
 	return config.GetBool("is_write_log_to_db")
+}
+
+// =============== Get URL Golf Socket ========================
+func GetGolfSocketURL() string {
+	return config.GetString("golf_socket.url")
 }
