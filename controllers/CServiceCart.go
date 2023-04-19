@@ -7,6 +7,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	kiosk_inventory "start/models/kiosk-inventory"
 	model_service "start/models/service"
 	"start/utils"
 	"start/utils/response_message"
@@ -1960,8 +1961,8 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
-		response_message.BadRequest(c, "Bag status invalid")
+	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
+		response_message.BadRequestDynamicKey(c, "BAG_BE_CHECK_OUT", "Bag check out")
 		return
 	}
 
@@ -1997,6 +1998,25 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 					return
 				}
 			} else {
+				if kiosk.KioskType != constants.RESTAURANT_SETTING {
+					// validate quantity
+					inventory := kiosk_inventory.InventoryItem{}
+					inventory.PartnerUid = body.PartnerUid
+					inventory.CourseUid = body.CourseUid
+					inventory.ServiceId = body.ServiceId
+					inventory.Code = item.ItemCode
+
+					if err := inventory.FindFirst(db); err != nil {
+						response_message.BadRequest(c, "Inventory "+err.Error())
+						return
+					}
+
+					// Kiểm tra số lượng hàng tồn trong kho
+					if int64(item.Quantity) > inventory.Quantity {
+						response_message.BadRequestDynamicKey(c, "CREATE_FAIL", "The quantity of goods in stock is not enough")
+						return
+					}
+				}
 				fb := model_service.FoodBeverage{}
 				fb.PartnerUid = prof.PartnerUid
 				fb.CourseUid = prof.CourseUid
@@ -2021,6 +2041,26 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 					response_message.BadRequestDynamicKey(c, "UPDATE_FAIL", "Update item "+serviceCartItem.Name+" fail!")
 				}
 				return
+			}
+
+			if kiosk.KioskType != constants.RESTAURANT_SETTING && item.Action == "UPDATE" {
+				// validate quantity
+				inventory := kiosk_inventory.InventoryItem{}
+				inventory.PartnerUid = body.PartnerUid
+				inventory.CourseUid = body.CourseUid
+				inventory.ServiceId = body.ServiceId
+				inventory.Code = item.ItemCode
+
+				if err := inventory.FindFirst(db); err != nil {
+					response_message.BadRequest(c, "Inventory "+err.Error())
+					return
+				}
+
+				// Kiểm tra số lượng hàng tồn trong kho
+				if int64(item.Quantity) > inventory.Quantity+int64(serviceCartItem.Quality) {
+					response_message.BadRequestDynamicKey(c, "UPDATE_FAIL", "The quantity of goods in stock is not enough")
+					return
+				}
 			}
 		}
 	}
@@ -2291,6 +2331,26 @@ func addItemKioskInApp(c *gin.Context, bill models.ServiceCart, booking model_bo
 		response_message.InternalServerError(c, "Find infor "+err.Error())
 		return
 	}
+
+	// validate quantity
+	inventory := kiosk_inventory.InventoryItem{}
+	inventory.PartnerUid = prof.PartnerUid
+	inventory.CourseUid = prof.CourseUid
+	inventory.ServiceId = bill.ServiceId
+	inventory.Code = item.ItemCode
+
+	if err := inventory.FindFirst(db); err != nil {
+		response_message.BadRequest(c, "Inventory "+err.Error())
+		return
+	}
+
+	// Update số lượng hàng tồn trong kho
+	inventory.Quantity -= int64(item.Quantity)
+	if err := inventory.Update(db); err != nil {
+		response_message.BadRequest(c, err.Error())
+		return
+	}
+
 	// add infor cart item
 	serviceCartItem.ItemId = fb.Id
 	serviceCartItem.Type = kiosk.KioskType
@@ -2449,7 +2509,7 @@ func addItemResInApp(c *gin.Context, bill models.ServiceCart, booking model_book
 		v.OrderDate = utils.GetTimeNow().Format(constants.DATE_FORMAT_1)
 		v.BillId = bill.Id
 		v.ItemId = serviceCartItem.Id
-		v.ItemStatus = constants.RES_STATUS_ORDER
+		v.ItemStatus = constants.RES_STATUS_PROCESS
 
 		if err := v.Create(db); err != nil {
 			response_message.InternalServerError(c, "Create res item "+err.Error())
@@ -2462,6 +2522,26 @@ func addItemResInApp(c *gin.Context, bill models.ServiceCart, booking model_book
 
 func updItemInApp(c *gin.Context, bill models.ServiceCart, bsItem model_booking.BookingServiceItem, booking model_booking.Booking, item request.Item, kiosk model_service.Kiosk, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	if bill.ServiceType != constants.RESTAURANT_SETTING {
+		// Update số lượng hàng tồn trong kho
+		inventory := kiosk_inventory.InventoryItem{}
+		inventory.PartnerUid = bill.PartnerUid
+		inventory.CourseUid = bill.CourseUid
+		inventory.ServiceId = bill.ServiceId
+		inventory.Code = bsItem.ItemCode
+
+		if err := inventory.FindFirst(db); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+
+		inventory.Quantity = inventory.Quantity + int64(bsItem.Quality) - int64(item.Quantity)
+		if err := inventory.Update(db); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+	}
 
 	if item.Quantity > 0 {
 		// validate res item
