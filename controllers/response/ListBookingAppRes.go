@@ -12,11 +12,13 @@ type Booking struct {
 	CourseType  string `json:"course_type"`  // A,B,C
 	BookingDate string `json:"booking_date"` // Ex: 06/11/2022
 
-	Bag            string `json:"bag"`              // Golf Bag
-	Hole           int    `json:"hole"`             // Số hố check in
-	GuestStyle     string `json:"guest_style"`      // Guest Style
-	GuestStyleName string `json:"guest_style_name"` // Guest Style Name
-	CustomerName   string `json:"customer_name"`    // Tên khách hàng
+	Bag                 string `json:"bag"`                                            // Golf Bag
+	Hole                int    `json:"hole"`                                           // Số hố check in
+	HoleBooking         int    `json:"hole_booking"`                                   // Số hố khi booking
+	GuestStyle          string `json:"guest_style"`                                    // Guest Style
+	GuestStyleName      string `json:"guest_style_name"`                               // Guest Style Name
+	CustomerName        string `json:"customer_name"`                                  // Tên khách hàng
+	CustomerBookingName string `json:"customer_booking_name" gorm:"type:varchar(256)"` // Tên khách hàng đặt booking
 
 	// MemberCard
 	CardId        string `json:"card_id"`         // MembarCard, Card ID cms user nhập vào
