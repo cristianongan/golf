@@ -383,7 +383,7 @@ func (item *GolfFee) GetGuestStyleList(database *gorm.DB, time string) []GuestSt
 	if len(time) == 0 {
 		toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 		if CheckHoliday(item.PartnerUid, item.CourseUid, toDayDate) {
-			db = db.Where("dow LIKE ? OR dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%", "%0%")
+			db = db.Where("dow LIKE ?", "%0%")
 		} else {
 			db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
 		}
@@ -391,13 +391,13 @@ func (item *GolfFee) GetGuestStyleList(database *gorm.DB, time string) []GuestSt
 		dayOfWeek := utils.GetDayOfWeek(time)
 		if dayOfWeek != "" {
 			if CheckHoliday(item.PartnerUid, item.CourseUid, time) {
-				db = db.Where("dow LIKE ? OR dow LIKE ?", "%"+dayOfWeek+"%", "%0%")
+				db = db.Where("dow LIKE ?", "%0%")
 			} else {
 				db = db.Where("dow LIKE ?", "%"+dayOfWeek+"%")
 			}
 		} else {
 			if CheckHoliday(item.PartnerUid, item.CourseUid, time) {
-				db = db.Where("dow LIKE ? OR dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%", "%0%")
+				db = db.Where("dow LIKE ?", "%0%")
 			} else {
 				db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
 			}
