@@ -135,7 +135,7 @@ type Booking struct {
 	MemberCardOfGuest *models.MemberCard `json:"member_card_of_guest,omitempty" gorm:"-:migration;foreignKey:MemberUidOfGuest"`
 
 	//Qr code
-	CheckInCode string `json:"checkin_code" gorm:"type:varchar(50);index"`
+	CheckInCode string `json:"check_in_code" gorm:"type:varchar(50);index"`
 	QrcodeUrl   string `json:"qrcode_url" gorm:"type:varchar(250)"`
 }
 
