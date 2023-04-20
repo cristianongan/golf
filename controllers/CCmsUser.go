@@ -233,6 +233,29 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 		}
 	}
 
+	if user.CaddieId > 0 {
+		caddie := models.Caddie{}
+		caddie.Id = user.CaddieId
+		db := datasources.GetDatabaseWithPartner(user.PartnerUid)
+		errFCd := caddie.FindFirst(db)
+		if errFCd == nil {
+			userDataRes := map[string]interface{}{
+				"user_name":   user.UserName,
+				"phone":       user.Phone,
+				"partner_uid": user.PartnerUid,
+				"course_uid":  user.CourseUid,
+				"course_info": courseInfo,
+				"role_name":   role.Name,
+				"role_id":     user.RoleId,
+				"permissions": listPerMis,
+				"caddie_info": caddie,
+			}
+
+			okResponse(c, gin.H{"token": jwt, "data": userDataRes})
+			return
+		}
+	}
+
 	userDataRes := map[string]interface{}{
 		"user_name":   user.UserName,
 		"phone":       user.Phone,
