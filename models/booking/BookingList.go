@@ -61,6 +61,7 @@ type BookingList struct {
 	NotNoneGolfAndWalking bool
 	BillCode              string
 	CommonFilter          string
+	GuestType             string
 }
 
 type BookingStarter struct {
@@ -318,6 +319,11 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 
 	if item.BillCode != "" {
 		db = db.Where("bill_code = ?", item.BillCode)
+	}
+
+	if item.GuestType == "NO_SHOW" {
+		time := time.Now().Add(time.Hour * -1).Format(constants.HOUR_FORMAT)
+		db = db.Where("STR_TO_DATE(bookings.tee_time, '%H:%i') <= STR_TO_DATE(?, '%H:%i')", time)
 	}
 
 	return db
