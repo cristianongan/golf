@@ -960,16 +960,19 @@ func (_ *CBooking) GetListBookingWithSelectForApp(c *gin.Context, prof models.Cm
 
 	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
 
-	res := response.PageResponse{}
-
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
 	}
 
 	var list []response.Booking
+
+	db = db.Where("bookings.bag_status <> 'CANCEL'")
+	db = db.Where("bookings.added_round = ?", false)
+	db = db.Where("bookings.moved_flight = ?", false)
 	db.Find(&list)
-	res = response.PageResponse{
+
+	res := response.PageResponse{
 		Total: total,
 		Data:  list,
 	}
