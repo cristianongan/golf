@@ -7,7 +7,7 @@ type GetListKioskForm struct {
 	KioskName  string `form:"kiosk_name"`
 	Status     string `form:"status"`
 	KioskType  string `form:"kiosk_type"`
-	IsColdBox  bool   `json:"is_cold_box"`
+	IsColdBox  bool   `form:"is_cold_box"`
 }
 type CreateKioskForm struct {
 	PartnerUid  string `json:"partner_uid"`
