@@ -486,7 +486,7 @@ func (item *BookingServiceItem) FindBestGroup(database *gorm.DB, page models.Pag
 	return list, total, db.Error
 }
 
-func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate, toDate string) ([]map[string]interface{}, error) {
+func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate, toDate, isApp string) ([]map[string]interface{}, error) {
 	db := database.Table("booking_service_items")
 	var list []map[string]interface{}
 
@@ -524,6 +524,9 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 	} else if item.Type != "" {
 		db = db.Where("booking_service_items.type = ?", item.Type)
 	}
+	if item.UserAction != "" {
+		db = db.Where("booking_service_items.user_action = ?", item.UserAction)
+	}
 
 	// sub query
 	subQuery := database.Table("bookings")
@@ -558,12 +561,17 @@ func (item *BookingServiceItem) FindReportRevenuePOS(database *gorm.DB, formDate
 	db = db.Where("tb1.bag_status <> 'CANCEL'")
 	db = db.Where("(tb2.bill_status NOT IN ? OR tb2.bill_status IS NULL)", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
 
-	if item.Type == "KIOSK" || item.Type == "PROSHOP" {
-		db.Group("booking_service_items.service_id, booking_service_items.item_code, booking_service_items.name, booking_service_items.unit_price, booking_service_items.discount_type, booking_service_items.discount_value")
-		db.Order("booking_service_items.location, booking_service_items.name")
-	} else {
-		db.Group("booking_service_items.item_code, booking_service_items.name, booking_service_items.unit_price, booking_service_items.discount_type, booking_service_items.discount_value")
+	if isApp == "app" {
+		db.Group("booking_service_items.item_code, booking_service_items.name, booking_service_items.unit_price")
 		db.Order("booking_service_items.name")
+	} else {
+		if item.Type == "KIOSK" || item.Type == "PROSHOP" {
+			db.Group("booking_service_items.service_id, booking_service_items.item_code, booking_service_items.name, booking_service_items.unit_price, booking_service_items.discount_type, booking_service_items.discount_value")
+			db.Order("booking_service_items.location, booking_service_items.name")
+		} else {
+			db.Group("booking_service_items.item_code, booking_service_items.name, booking_service_items.unit_price, booking_service_items.discount_type, booking_service_items.discount_value")
+			db.Order("booking_service_items.name")
+		}
 	}
 
 	db = db.Find(&list)

@@ -632,6 +632,9 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 			opLog.Action = constants.OP_LOG_ACTION_CREATE
 		}
 		go createOperationLog(opLog)
+		// push socket
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
 	}
 	return list, nil
 }

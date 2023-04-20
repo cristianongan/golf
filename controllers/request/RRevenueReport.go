@@ -86,6 +86,7 @@ type RevenueReportPOSForm struct {
 	ServiceId  string `form:"service_id"`
 	Type       string `form:"type"`
 	ItemName   string `form:"item_name"`
+	UserName   string `form:"user_name"`
 }
 
 type AgencyPaymentReportForm struct {
