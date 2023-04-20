@@ -19,6 +19,7 @@ type Kiosk struct {
 	KioskCode   string `json:"kiosk_code" gorm:"type:varchar(100);index"`  // Mã kiosk
 	ServiceType string `json:"service_type" gorm:"type:varchar(50)"`       // Loại rental, kiosk, proshop
 	KioskType   string `json:"kiosk_type" gorm:"type:varchar(50)"`         // Kiểu Kiosk (Mini Bar, Mini Restaurant,...)
+	IsColdBox   *bool  `json:"is_cold_box" gorm:"default:0"`
 }
 
 func (item *Kiosk) IsValidated() bool {
@@ -92,6 +93,9 @@ func (item *Kiosk) FindList(database *gorm.DB, page models.Page) ([]Kiosk, int64
 	}
 	if item.KioskType != "" {
 		db = db.Where("kiosk_type = ?", item.KioskType)
+	}
+	if item.IsColdBox != nil {
+		db = db.Where("is_cold_box = ?", item.IsColdBox)
 	}
 
 	db.Count(&total)
