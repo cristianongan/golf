@@ -31,6 +31,7 @@ func (_ *CRole) CreateRole(c *gin.Context, prof models.CmsUser) {
 	role.Name = body.Name
 	role.PartnerUid = body.PartnerUid
 	role.CourseUid = body.CourseUid
+	role.Description = body.Description
 	if body.Type != "" {
 		if body.Type == constants.ROLE_TYPE_CMS || body.Type == constants.ROLE_TYPE_APP {
 			role.Type = body.Type
