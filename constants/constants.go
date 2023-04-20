@@ -1,17 +1,22 @@
 package constants
 
 /*
-	Max Slot TeeTime
+QR Prefix
+*/
+const QR_PREFIX_CHECK_IN = "CKI"
+
+/*
+Max Slot TeeTime
 */
 const SLOT_TEE_TIME = 4
 
 /*
-	Paid By Agency
+Paid By Agency
 */
 const PAID_BY_AGENCY = "AGENCY"
 
 /*
-	Paid By Agency
+Paid By Agency
 */
 const LOCK_OTA = "LOCK_OTA"
 const LOCK_CMS = "LOCK_CMS"

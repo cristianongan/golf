@@ -2162,7 +2162,7 @@ func genQrCodeForBooking(booking *model_booking.Booking) {
 	}
 
 	// gen code
-	code := checkinCode + strconv.FormatInt(time.Now().Unix(), 10)
+	code := constants.QR_PREFIX_CHECK_IN + checkinCode + strconv.FormatInt(time.Now().Unix(), 10)
 
 	file, _ := qrcode.Encode(code, qrcode.Medium, 256)
 
