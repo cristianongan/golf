@@ -109,8 +109,8 @@ func (_ *CKiosk) GetListKioskForApp(c *gin.Context, prof models.CmsUser) {
 		kioskR.KioskType = form.KioskType
 	}
 
-	if form.IsColdBox {
-		kioskR.IsColdBox = setBoolForCursor(form.IsColdBox)
+	if form.IsColdBox != nil {
+		kioskR.IsColdBox = form.IsColdBox
 	}
 
 	list, _, err := kioskR.FindList(db, page)

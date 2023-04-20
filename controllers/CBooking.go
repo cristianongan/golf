@@ -1393,7 +1393,20 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	if booking.CaddieBooking != "" {
+	if body.CaddieCode != "" {
+		caddieList := models.CaddieList{}
+		caddieList.CourseUid = booking.CourseUid
+		caddieList.CaddieCode = body.CaddieCode
+		caddieNew, err := caddieList.FindFirst(db)
+
+		if err != nil {
+			response_message.InternalServerError(c, err.Error())
+			return
+		}
+
+		booking.CaddieId = caddieNew.Id
+		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
+	} else if booking.CaddieBooking != "" {
 		caddieList := models.CaddieList{}
 		caddieList.CourseUid = booking.CourseUid
 		caddieList.CaddieCode = booking.CaddieBooking
