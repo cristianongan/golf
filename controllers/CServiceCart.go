@@ -2188,9 +2188,16 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 
 			// Update amount
 			if item.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
-				amountDiscont := (((int64(item.Quantity) - int64(serviceCartItem.Quality)) * serviceCartItem.UnitPrice) * (100 - item.DiscountValue)) / 100
+				var amountDiscont int64
+				if item.Quantity-serviceCartItem.Quality == 0 {
+					amountDiscont := (int64(item.Quantity) * item.UnitPrice) * (100 - item.DiscountValue) / 100
 
-				serviceCart.Amount = serviceCart.Amount + amountDiscont
+					serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount + amountDiscont
+				} else {
+					amountDiscont = (((int64(item.Quantity) - int64(serviceCartItem.Quality)) * serviceCartItem.UnitPrice) * (100 - item.DiscountValue)) / 100
+					serviceCart.Amount = serviceCart.Amount + amountDiscont
+				}
+
 			} else {
 				serviceCart.Amount += (int64(item.Quantity) * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
 			}
@@ -2617,8 +2624,11 @@ func updItemInApp(c *gin.Context, bill models.ServiceCart, bsItem model_booking.
 		bsItem.Amount = int64(item.Quantity) * bsItem.UnitPrice
 		// Update amount
 		if item.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
-			amountDiscont := (bsItem.Amount * bsItem.DiscountValue) / 100
+			amountDiscont := (bsItem.Amount * item.DiscountValue) / 100
 			bsItem.Amount = bsItem.Amount - amountDiscont
+
+			bsItem.DiscountType = item.DiscountType
+			bsItem.DiscountValue = item.DiscountValue
 		}
 	}
 
