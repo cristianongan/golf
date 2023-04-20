@@ -329,7 +329,7 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	}
 
 	if item.GuestType == "NO_BOOKING" {
-		db = db.Where("customer_type <> 'NONE_GOLF")
+		db = db.Where("customer_type <> 'NONE_GOLF'")
 	}
 
 	return db
