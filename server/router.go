@@ -864,6 +864,8 @@ func NewRouter() *gin.Engine {
 			{
 				cEkyc := new(controllers.Cekyc)
 				ekycV1Api.POST("/member-card/list", cEkyc.GetListMemberForEkycList)
+				ekycV1Api.POST("/member-card/check-booking", cEkyc.CheckBookingMemberForEkyc)
+				ekycV1Api.POST("/member-card/check-in", cEkyc.CheckInBookingMemberForEkyc)
 			}
 		}
 

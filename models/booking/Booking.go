@@ -1530,3 +1530,28 @@ func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]inte
 
 	return list, db.Error
 }
+
+/*
+Find booking cua member trong ngay
+*/
+func (item *Booking) FindMemberBooking(database *gorm.DB) ([]Booking, error) {
+	db := database.Table("bookings")
+	list := []Booking{}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+	if item.MemberCardUid != "" {
+		db = db.Where("member_card_uid = ?", item.MemberCardUid)
+	}
+
+	db.Find(&list)
+
+	return list, db.Error
+}
