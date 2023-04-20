@@ -95,7 +95,12 @@ func (item *Kiosk) FindList(database *gorm.DB, page models.Page) ([]Kiosk, int64
 		db = db.Where("kiosk_type = ?", item.KioskType)
 	}
 	if item.IsColdBox != nil {
-		db = db.Where("is_cold_box = ?", item.IsColdBox)
+		if *item.IsColdBox == true {
+			db = db.Where("is_cold_box = ?", 1)
+		}
+		if *item.IsColdBox == false {
+			db = db.Where("is_cold_box = ?", 0)
+		}
 	}
 
 	db.Count(&total)
