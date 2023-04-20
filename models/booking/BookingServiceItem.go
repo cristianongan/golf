@@ -61,7 +61,7 @@ type ListItemInApp struct {
 	DiscountValue int64  `json:"discount_value"`
 	Amount        int64  `json:"amount"`
 	UserAction    string `json:"user_action"`  // Người tạo
-	Input         string `json:"input"`        // Note
+	Input         string `json:"note"`         // Note
 	ServiceBill   int64  `json:"service_bill"` // id service cart
 	Location      string `json:"location"`     // Dc add từ đâu
 }
