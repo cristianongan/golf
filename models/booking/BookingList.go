@@ -322,10 +322,10 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 	}
 
 	if item.GuestType == "NO_SHOW" {
-		time := time.Now().Add(time.Hour * -1).Format(constants.HOUR_FORMAT)
+		time, _ := utils.GetDateFromTimestampWithFormat(time.Now().Add(time.Hour*-1).Unix(), constants.HOUR_FORMAT)
 		db = db.Where("bag_status <> 'CANCEL'")
 		db = db.Where("check_in_time = 0")
-		db = db.Where("STR_TO_DATE(tee_time, '%H:%i') <= STR_TO_DATE(?, '%H:%i')", time)
+		db = db.Where("STR_TO_DATE(bookings.tee_time, '%H:%i') <= STR_TO_DATE(?, '%H:%i')", time)
 	}
 
 	if item.GuestType == "NO_BOOKING" {
@@ -803,7 +803,7 @@ func (item *BookingList) FindCaddieBookingCancel(database *gorm.DB, page models.
 func (item *BookingList) FindAllGuestNoShow(database *gorm.DB) (*gorm.DB, error) {
 	db := database.Model(Booking{})
 
-	time := time.Now().Add(time.Hour * -1).Format(constants.HOUR_FORMAT)
+	time, _ := utils.GetDateFromTimestampWithFormat(time.Now().Add(time.Hour*-1).Unix(), constants.HOUR_FORMAT)
 
 	db = addFilter(db, item, false)
 	db = db.Where("bookings.bag_status <> 'CANCEL'")
