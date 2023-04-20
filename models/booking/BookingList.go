@@ -323,7 +323,14 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 
 	if item.GuestType == "NO_SHOW" {
 		time := time.Now().Add(time.Hour * -1).Format(constants.HOUR_FORMAT)
-		db = db.Where("STR_TO_DATE(bookings.tee_time, '%H:%i') <= STR_TO_DATE(?, '%H:%i')", time)
+		db = db.Where("bag_status <> 'CANCEL'")
+		db = db.Where("check_in_time = 0")
+		db = db.Where("STR_TO_DATE(tee_time, '%H:%i') <= STR_TO_DATE(?, '%H:%i')", time)
+	}
+
+	if item.GuestType == "NO_BOOKING" {
+		db = db.Where("customer_type <> 'NONE_GOLF")
+		db = db.Where("init_type = 'CHECKIN'")
 	}
 
 	return db
