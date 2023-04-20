@@ -1068,6 +1068,11 @@ func (_ CServiceCart) UpdateItemCart(c *gin.Context, prof models.CmsUser) {
 
 	createOperationLog(opLog)
 
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
+
 	okRes(c)
 }
 
