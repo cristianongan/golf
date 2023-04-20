@@ -590,7 +590,7 @@ func (_ *CCmsUser) ResetPassCmsUser(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
- Get permission user
+Get permission user
 */
 func (_ *CCmsUser) GetPermissionCmsUser(c *gin.Context, prof models.CmsUser) {
 

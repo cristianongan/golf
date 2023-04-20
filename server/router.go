@@ -863,9 +863,9 @@ func NewRouter() *gin.Engine {
 			ekycV1Api := ekycApi.Group("v1")
 			{
 				cEkyc := new(controllers.Cekyc)
-				ekycV1Api.POST("/member-card/list", cEkyc.GetListMemberForEkycList)
-				ekycV1Api.POST("/member-card/check-booking", cEkyc.CheckBookingMemberForEkyc)
-				ekycV1Api.POST("/member-card/check-in", cEkyc.CheckInBookingMemberForEkyc)
+				ekycV1Api.POST("/member-card/list", cEkyc.GetListMemberForEkycList)           // Lay danh sach thanh vien
+				ekycV1Api.POST("/member-card/check-booking", cEkyc.CheckBookingMemberForEkyc) // kiem tra thanh vien co booking ngay do khong
+				ekycV1Api.POST("/member-card/check-in", cEkyc.CheckInBookingMemberForEkyc)    // check in booking member
 			}
 		}
 
