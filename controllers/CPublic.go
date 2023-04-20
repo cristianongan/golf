@@ -29,6 +29,7 @@ type PublicGetBookingResp struct {
 	TeeTime        string `json:"tee_time"`
 	CaddieCode     string `json:"caddie_code"`
 	GuestStyleName string `json:"guest_style_name"`
+	CustomerName   string `json:"customer_name"`
 }
 
 /*
@@ -67,6 +68,8 @@ func (_ *CPublic) GetBookingInfo(c *gin.Context) {
 		return
 	}
 
+	cusName := booking.CustomerName
+
 	bookResp := PublicGetBookingResp{
 		PartnerUid:     booking.PartnerUid,
 		CourseUid:      booking.CourseUid,
@@ -76,6 +79,7 @@ func (_ *CPublic) GetBookingInfo(c *gin.Context) {
 		TeeTime:        booking.TeeTime,
 		CaddieCode:     booking.CaddieInfo.Code,
 		GuestStyleName: booking.GuestStyleName,
+		CustomerName:   cusName,
 	}
 
 	okResponse(c, bookResp)
