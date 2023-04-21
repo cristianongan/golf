@@ -814,6 +814,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/report/starter", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportStarter))
 			cmsApiAuthorized.GET("/report/payment/bag-status", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportPayment))
 			cmsApiAuthorized.POST("/report/booking/players", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBookingPlayers))
+			cmsApiAuthorized.POST("/report/booking-statistic", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetStatisticBooking))
 
 			/// =================== Golf Log ===================
 			cGolfLog := new(controllers.CGolfLog)
