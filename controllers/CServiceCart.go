@@ -1990,7 +1990,7 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 	booking.Bag = body.GolfBag
 	booking.BookingDate = dateDisplay
 	if err := booking.FindFirst(db); err != nil {
-		response_message.BadRequest(c, "Booking "+err.Error())
+		response_message.BadRequestFreeMessage(c, "Bag not found")
 		return
 	}
 
