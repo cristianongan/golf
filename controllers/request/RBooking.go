@@ -78,6 +78,7 @@ type GetListBookingWithSelectForm struct {
 	CustomerType    string  `form:"customer_type"`
 	BuggyCode       string  `form:"buggy_code"`
 	GuestStyle      string  `form:"guest_style"`
+	GuestType       string  `form:"guest_type"`
 }
 
 type GetListBookingWithListServiceItems struct {
