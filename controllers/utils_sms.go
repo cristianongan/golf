@@ -23,7 +23,7 @@ type QrCodeUrlModel struct {
 }
 
 /*
- Gen QR URL -> send sms
+Gen QR URL -> send sms
 */
 func genQRCodeListBook(listBooking []model_booking.Booking) {
 	listHaveQRURL := []model_booking.Booking{}
@@ -35,7 +35,7 @@ func genQRCodeListBook(listBooking []model_booking.Booking) {
 }
 
 /*
- Send sms
+Send sms
 */
 func sendSmsBooking(listBooking []model_booking.Booking) error {
 
@@ -68,8 +68,11 @@ func sendSmsBooking(listBooking []model_booking.Booking) error {
 
 		message += playerName + " - " + "Ma check-in: " + b.CheckInCode + " - QR: "
 
+		// base64 qr image
+		encodeQrUrl := base64.StdEncoding.EncodeToString([]byte(b.QrcodeUrl))
+
 		qrCodeUrlModel := QrCodeUrlModel{
-			QrImg:       b.QrcodeUrl,
+			QrImg:       encodeQrUrl,
 			CheckInCode: b.CheckInCode,
 			Date:        b.BookingDate,
 			PartnerUid:  b.PartnerUid,
