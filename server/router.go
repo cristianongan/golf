@@ -739,6 +739,7 @@ func NewRouter() *gin.Engine {
 			cNotification := new(controllers.CNotification)
 			cmsApiAuthorized.GET("/notification/list", middlewares.AuthorizedCmsUserHandler(cNotification.GetListNotification))
 			cmsApiAuthorized.POST("/notification/caddie-calendar/approve/:id", middlewares.AuthorizedCmsUserHandler(cNotification.Admin2ApproveCaddieVacation))
+			cmsApiAuthorized.POST("/notification/caddie-working-calendar/approve/:id", middlewares.AuthorizedCmsUserHandler(cNotification.Admin1ApproveCaddieWC))
 			cmsApiAuthorized.POST("/notification/seen", middlewares.AuthorizedCmsUserHandler(cNotification.SeenNotification))
 
 			/// =================== Buggy Fee Setting ===================

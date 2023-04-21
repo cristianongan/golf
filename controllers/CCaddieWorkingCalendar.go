@@ -84,6 +84,7 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 
 		listCreate := []models.CaddieWorkingCalendar{}
 		listCaddieCode := []string{}
+		listCodeCI := []string{}
 
 		for _, data := range v.CaddieList {
 			caddieWC := models.CaddieWorkingCalendar{}
@@ -97,6 +98,11 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 			caddieWC.Row = data.Row
 			caddieWC.NumberOrder = data.NumberOrder
 			caddieWC.CaddieIncrease = data.CaddieIncrease
+
+			if data.CaddieIncrease {
+				caddieWC.ApproveStatus = constants.CADDIE_WORKING_CALENDAR_PENDING
+				listCodeCI = append(listCodeCI, caddieWC.CaddieCode)
+			}
 
 			// Check duplicate
 			if errCheck := caddieWC.IsDuplicated(db); errCheck {
@@ -142,6 +148,9 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 			//Update lại ds caddie trong GO
 			go updateCaddieWorkingOnDay(listCaddieCode, body.PartnerUid, body.CourseUid, true)
 		}
+
+		cNotification := CNotification{}
+		go cNotification.CreateCWCNotification(db, prof, v.ApplyDate, listCodeCI)
 	}
 
 	okRes(c)
