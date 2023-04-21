@@ -514,6 +514,9 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 			amountDiscont = 0
 		}
 		serviceCartItem.Amount = amountDiscont
+	} else if body.DiscountType == "" {
+		serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount + (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+		serviceCartItem.Amount = int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice
 	}
 
 	serviceCartItem.DiscountType = body.DiscountType
@@ -2198,8 +2201,8 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 					serviceCart.Amount = serviceCart.Amount + amountDiscont
 				}
 
-			} else {
-				serviceCart.Amount += (int64(item.Quantity) * serviceCartItem.UnitPrice) - (int64(serviceCartItem.Quality) * serviceCartItem.UnitPrice)
+			} else if item.DiscountType == "" {
+				serviceCart.Amount += (int64(item.Quantity) * item.UnitPrice) - serviceCartItem.Amount
 			}
 			go updItemInApp(c, serviceCart, serviceCartItem, booking, item, kiosk, prof)
 		}
