@@ -52,7 +52,7 @@ type FoodBeverageList struct {
 	// EnglishName  string  `json:"english_name"`    // Tên Tiếng Anh
 	// VieName      string  `json:"vietnamese_name"` // Tên Tiếng Viet
 	Type         string  `json:"type"` // sub type của F&B
-	Name         string  `json:"name"` // Tên
+	VieName      string  `json:"name"` // Tên
 	GroupCode    string  `json:"group_code"`
 	GroupName    string  `json:"group_name"`
 	Unit         string  `json:"unit"`
@@ -173,7 +173,7 @@ func (item *FoodBeverageRequest) FindListForApp(database *gorm.DB, page models.P
 	list := []FoodBeverageList{}
 	total := int64(0)
 
-	db = db.Select(`food_beverages.partner_uid, food_beverages.course_uid, food_beverages.fb_code, food_beverages.name, food_beverages.type,
+	db = db.Select(`food_beverages.partner_uid, food_beverages.course_uid, food_beverages.fb_code, food_beverages.vie_name, food_beverages.type,
 	food_beverages.group_code, group_services.group_name, food_beverages.unit, food_beverages.price, tb2.sale_quantity`)
 
 	if item.PartnerUid != "" {
@@ -188,6 +188,8 @@ func (item *FoodBeverageRequest) FindListForApp(database *gorm.DB, page models.P
 			"food_beverages.name COLLATE utf8mb4_general_ci LIKE ?"
 		db = db.Where(query, "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%", "%"+item.CodeOrName+"%")
 	}
+
+	db = db.Where("food_beverages.status = ?", "ENABLE")
 
 	// sub query
 	now := utils.GetTimeNow().Format("02/01/2006")
