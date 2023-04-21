@@ -2631,10 +2631,10 @@ func updItemInApp(c *gin.Context, bill models.ServiceCart, bsItem model_booking.
 		if item.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
 			amountDiscont := (bsItem.Amount * item.DiscountValue) / 100
 			bsItem.Amount = bsItem.Amount - amountDiscont
-
-			bsItem.DiscountType = item.DiscountType
-			bsItem.DiscountValue = item.DiscountValue
 		}
+
+		bsItem.DiscountType = item.DiscountType
+		bsItem.DiscountValue = item.DiscountValue
 	}
 
 	if item.Note != "" {
