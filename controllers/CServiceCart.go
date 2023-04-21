@@ -1995,7 +1995,7 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-		response_message.BadRequestDynamicKey(c, "BAG_BE_CHECK_OUT", "Bag check out")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 
@@ -2013,7 +2013,7 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if kiosk.KioskType != constants.KIOSK_SETTING && kiosk.KioskType != constants.RESTAURANT_SETTING {
-		response_message.BadRequest(c, "Kiosk type invalid")
+		response_message.BadRequestFreeMessage(c, "Kiosk type invalid")
 		return
 	}
 
@@ -2056,7 +2056,7 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 				fb.FBCode = item.ItemCode
 
 				if err := fb.FindFirst(db); err != nil {
-					response_message.BadRequestDynamicKey(c, "CREATE_FAIL", "Create item "+fb.Name+" fail!")
+					response_message.BadRequestFreeMessage(c, "Create item "+fb.Name+" fail!")
 					return
 				}
 			}
@@ -2069,9 +2069,9 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 
 			if err := serviceCartItem.FindFirst(db); err != nil {
 				if item.Action == "DELETE" {
-					response_message.BadRequestDynamicKey(c, "DELETE_FAIL", "Delete item "+serviceCartItem.Name+" fail!")
+					response_message.BadRequestFreeMessage(c, "Delete item "+serviceCartItem.Name+" fail!")
 				} else {
-					response_message.BadRequestDynamicKey(c, "UPDATE_FAIL", "Update item "+serviceCartItem.Name+" fail!")
+					response_message.BadRequestFreeMessage(c, "Update item "+serviceCartItem.Name+" fail!")
 				}
 				return
 			}
@@ -2091,7 +2091,7 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 
 				// Kiểm tra số lượng hàng tồn trong kho
 				if int64(item.Quantity) > inventory.Quantity+int64(serviceCartItem.Quality) {
-					response_message.BadRequestDynamicKey(c, "UPDATE_FAIL", "The quantity of goods in stock is not enough")
+					response_message.BadRequestFreeMessage(c, "The quantity of goods in stock is not enough")
 					return
 				}
 			}
