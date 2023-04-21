@@ -2194,7 +2194,7 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 
 					serviceCart.Amount = serviceCart.Amount - serviceCartItem.Amount + amountDiscont
 				} else {
-					amountDiscont = (((int64(item.Quantity) - int64(serviceCartItem.Quality)) * serviceCartItem.UnitPrice) * (100 - item.DiscountValue)) / 100
+					amountDiscont = ((int64(item.Quantity)*item.UnitPrice)*(100-item.DiscountValue) - (int64(serviceCartItem.Quality)*serviceCartItem.UnitPrice)*(100-serviceCartItem.DiscountValue)) / 100
 					serviceCart.Amount = serviceCart.Amount + amountDiscont
 				}
 
