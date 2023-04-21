@@ -56,4 +56,7 @@ type Booking struct {
 	BillCode       string `json:"bill_code"`        // hỗ trợ query tính giá
 	IsPrivateBuggy *bool  `json:"is_private_buggy"` // Bag có dùng buggy riêng không
 	LockBill       *bool  `json:"lock_bill"`        // lễ tân lock bill cho kh để restaurant ko thao tác đc nữa
+
+	//Qr code
+	CheckInCode string `json:"check_in_code"`
 }
