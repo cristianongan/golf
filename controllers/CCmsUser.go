@@ -235,6 +235,7 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 
 	userDataRes := map[string]interface{}{
 		"user_name":   user.UserName,
+		"full_name":   user.FullName,
 		"phone":       user.Phone,
 		"partner_uid": user.PartnerUid,
 		"course_uid":  user.CourseUid,
@@ -590,7 +591,7 @@ func (_ *CCmsUser) ResetPassCmsUser(c *gin.Context, prof models.CmsUser) {
 }
 
 /*
- Get permission user
+Get permission user
 */
 func (_ *CCmsUser) GetPermissionCmsUser(c *gin.Context, prof models.CmsUser) {
 
