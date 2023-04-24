@@ -1736,6 +1736,11 @@ func (_ CServiceCart) CreateNewGuest(c *gin.Context, prof models.CmsUser) {
 
 	go createOperationLog(opLog)
 
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, &booking)
+	}()
+
 	c.JSON(200, booking)
 }
 
