@@ -125,6 +125,10 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 			hasPrivateBuggy := false
 			hasCaddie := false
 
+			hasPrivateBuggySamePrice := item.checkBuggySamePriceWithAgency(constants.THUE_RIENG_XE, listGolfServiceTemp)
+			hasOddBuggySamePrice := item.checkBuggySamePriceWithAgency(constants.THUE_LE_XE, listGolfServiceTemp)
+			hasBuggySamePrice := item.checkBuggySamePriceWithAgency(constants.THUE_NUA_XE, listGolfServiceTemp)
+
 			for _, v1 := range listGolfServiceTemp {
 
 				isCanAdd := false
@@ -173,21 +177,45 @@ func (item *Booking) FindServiceItems(db *gorm.DB) {
 							}
 
 							if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy && itemPaid.Fee > 0 {
-								hasPrivateBuggy = true
-								isCanAdd = false
-								break
+								if hasPrivateBuggySamePrice {
+									if v1.Amount == itemPaid.Fee {
+										hasPrivateBuggy = true
+										isCanAdd = false
+										break
+									}
+								} else {
+									hasPrivateBuggy = true
+									isCanAdd = false
+									break
+								}
 							}
 
 							if v1.Name == constants.THUE_LE_XE && v1.Name == itemPaid.Name && !hasOddBuggy && itemPaid.Fee > 0 {
-								hasOddBuggy = true
-								isCanAdd = false
-								break
+								if hasOddBuggySamePrice {
+									if v1.Amount == itemPaid.Fee {
+										hasOddBuggy = true
+										isCanAdd = false
+										break
+									}
+								} else {
+									hasOddBuggy = true
+									isCanAdd = false
+									break
+								}
 							}
 
 							if v1.Name == constants.THUE_NUA_XE && v1.Name == itemPaid.Name && !hasBuggy && itemPaid.Fee > 0 {
-								hasBuggy = true
-								isCanAdd = false
-								break
+								if hasBuggySamePrice {
+									if v1.Amount == itemPaid.Fee {
+										hasBuggy = true
+										isCanAdd = false
+										break
+									}
+								} else {
+									hasBuggy = true
+									isCanAdd = false
+									break
+								}
 							}
 						}
 					}
@@ -692,6 +720,19 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 			}
 			listGolfServiceTemp, _ := serviceGolfsTemp.FindAllWithPaidInfo(db)
 
+			listServiceItems := []BookingServiceItem{}
+			for _, ite := range listGolfServiceTemp {
+				listServiceItems = append(listServiceItems, ite.BookingServiceItem)
+			}
+			// check item buggy 1/2 xe, cùng giá với buggy 1/2 xe mà agency paid
+			hasPrivateBuggySamePrice := item.checkBuggySamePriceWithAgency(constants.THUE_RIENG_XE, listServiceItems)
+
+			// check item buggy lẻ xe, cùng giá với buggy lẻ xe mà agency paid
+			hasOddBuggySamePrice := item.checkBuggySamePriceWithAgency(constants.THUE_LE_XE, listServiceItems)
+
+			// check item buggy riêng, cùng giá với buggy riêng mà agency paid
+			hasBuggySamePrice := item.checkBuggySamePriceWithAgency(constants.THUE_NUA_XE, listServiceItems)
+
 			rsubDetail := Booking{}
 			rsubDetail.Uid = v.BookingUid
 
@@ -753,21 +794,45 @@ func (item *Booking) FindServiceItemsWithPaidInfo(db *gorm.DB) []BookingServiceI
 							}
 
 							if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy && itemPaid.Fee > 0 {
-								hasPrivateBuggy = true
-								isCanAdd = false
-								break
+								if hasPrivateBuggySamePrice {
+									if v1.Amount == itemPaid.Fee {
+										hasPrivateBuggy = true
+										isCanAdd = false
+										break
+									}
+								} else {
+									hasPrivateBuggy = true
+									isCanAdd = false
+									break
+								}
 							}
 
 							if v1.Name == constants.THUE_LE_XE && v1.Name == itemPaid.Name && !hasOddBuggy && itemPaid.Fee > 0 {
-								hasOddBuggy = true
-								isCanAdd = false
-								break
+								if hasOddBuggySamePrice {
+									if v1.Amount == itemPaid.Fee {
+										hasOddBuggy = true
+										isCanAdd = false
+										break
+									}
+								} else {
+									hasOddBuggy = true
+									isCanAdd = false
+									break
+								}
 							}
 
 							if v1.Name == constants.THUE_NUA_XE && v1.Name == itemPaid.Name && !hasBuggy && itemPaid.Fee > 0 {
-								hasBuggy = true
-								isCanAdd = false
-								break
+								if hasBuggySamePrice {
+									if v1.Amount == itemPaid.Fee {
+										hasBuggy = true
+										isCanAdd = false
+										break
+									}
+								} else {
+									hasBuggy = true
+									isCanAdd = false
+									break
+								}
 							}
 						}
 					}
@@ -1378,6 +1443,15 @@ func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
 
 	item.FindServiceItemsOfBag(db)
 
+	// check item buggy riêng, cùng giá với buggy riêng mà agency paid
+	hasPrivateBuggySamePrice := item.checkBuggySamePriceWithAgency(constants.THUE_RIENG_XE, item.ListServiceItems)
+
+	// check item buggy lẻ xe, cùng giá với buggy lẻ xe mà agency paid
+	hasOddBuggySamePrice := item.checkBuggySamePriceWithAgency(constants.THUE_LE_XE, item.ListServiceItems)
+
+	// check item buggy 1/2 xe, cùng giá với buggy 1/2 xe mà agency paid
+	hasBuggySamePrice := item.checkBuggySamePriceWithAgency(constants.THUE_NUA_XE, item.ListServiceItems)
+
 	for _, v1 := range item.ListServiceItems {
 		for _, itemPaid := range item.AgencyPrePaid {
 			if !(itemPaid.Fee > 0 && v1.Hole <= itemPaid.Hole) {
@@ -1385,8 +1459,7 @@ func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
 			}
 
 			if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy {
-				// check item buggy riêng, cùng giá với buggy riêng mà agency paid
-				hasPrivateBuggySamePrice := item.checkBuggySamePriceWithAgency(constants.THUE_RIENG_XE)
+
 				if hasPrivateBuggySamePrice {
 					if v1.Amount == itemPaid.Fee {
 						hasPrivateBuggy = true
@@ -1411,8 +1484,6 @@ func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
 			}
 
 			if v1.Name == constants.THUE_LE_XE && v1.Name == itemPaid.Name && !hasOddBuggy && itemPaid.Fee > 0 {
-				// check item buggy lẻ xe, cùng giá với buggy lẻ xe mà agency paid
-				hasOddBuggySamePrice := item.checkBuggySamePriceWithAgency(constants.THUE_LE_XE)
 				if hasOddBuggySamePrice {
 					if v1.Amount == itemPaid.Fee {
 						item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
@@ -1437,8 +1508,6 @@ func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
 			}
 
 			if v1.Name == constants.THUE_NUA_XE && v1.Name == itemPaid.Name && !hasBuggy && itemPaid.Fee > 0 {
-				// check item buggy 1/2 xe, cùng giá với buggy 1/2 xe mà agency paid
-				hasBuggySamePrice := item.checkBuggySamePriceWithAgency(constants.THUE_NUA_XE)
 				if hasBuggySamePrice {
 					if v1.Amount == itemPaid.Fee {
 						item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
@@ -1475,8 +1544,8 @@ func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
 	}
 }
 
-func (item *Booking) checkBuggySamePriceWithAgency(buggyType string) bool {
-	for _, ite := range item.ListServiceItems {
+func (item *Booking) checkBuggySamePriceWithAgency(buggyType string, list []BookingServiceItem) bool {
+	for _, ite := range list {
 		if ite.ServiceType == constants.BUGGY_SETTING {
 			for _, itemPaid := range item.AgencyPrePaid {
 				if ite.Name == constants.THUE_NUA_XE && ite.Name == itemPaid.Name &&
