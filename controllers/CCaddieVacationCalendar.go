@@ -133,6 +133,7 @@ func (_ *CCaddieVacationCalendar) GetCaddieVacationCalendarList(c *gin.Context, 
 	caddie.CourseUid = body.CourseUid
 	caddie.Name = body.CaddieName
 	caddie.Code = body.CaddieCode
+	caddie.ContractStatus = "fulltime_probation,fulltime,parttime"
 
 	list, total, err := caddie.FindList(db, page)
 
