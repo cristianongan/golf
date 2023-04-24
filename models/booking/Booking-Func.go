@@ -1413,7 +1413,7 @@ func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
 			}
 
 			if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy {
-				if hasBuggySamePrice {
+				if hasPrivateBuggySamePrice {
 					if v1.Amount == itemPaid.Fee {
 						hasPrivateBuggy = true
 						item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
@@ -1461,7 +1461,7 @@ func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
 			}
 
 			if v1.Name == constants.THUE_NUA_XE && v1.Name == itemPaid.Name && !hasBuggy && itemPaid.Fee > 0 {
-				if hasPrivateBuggySamePrice {
+				if hasBuggySamePrice {
 					if v1.Amount == itemPaid.Fee {
 						item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
 							Fee:  v1.Amount,
