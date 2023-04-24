@@ -1347,6 +1347,11 @@ func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
 	hasBuggy := false
 	hasOddBuggy := false
 	hasPrivateBuggy := false
+
+	hasBuggySamePrice := false        // check item buggy 1/2 xe, cùng giá với buggy 1/2 xe mà agency paid
+	hasOddBuggySamePrice := false     // check item buggy lẻ xe, cùng giá với buggy lẻ xe mà agency paid
+	hasPrivateBuggySamePrice := false // check item buggy riêng, cùng giá với buggy riêng mà agency paid
+
 	hasCaddie := false
 	isAgencyPaidBookingCaddie := false
 
@@ -1376,43 +1381,107 @@ func (item *Booking) UpdateAgencyPaid(db *gorm.DB) {
 	}
 
 	item.FindServiceItemsOfBag(db)
+	for _, ite := range item.ListServiceItems {
+		if ite.ServiceType == constants.BUGGY_SETTING {
+			for _, itemPaid := range item.AgencyPrePaid {
+				if ite.Name == constants.THUE_NUA_XE && ite.Name == itemPaid.Name &&
+					ite.Hole == itemPaid.Hole &&
+					ite.Amount == itemPaid.Fee {
+					hasBuggySamePrice = true
+					break
+				}
+				if ite.Name == constants.THUE_LE_XE && ite.Name == itemPaid.Name &&
+					ite.Hole == itemPaid.Hole &&
+					ite.Amount == itemPaid.Fee {
+					hasOddBuggySamePrice = true
+					break
+				}
+				if ite.Name == constants.THUE_RIENG_XE && ite.Name == itemPaid.Name &&
+					ite.Hole == itemPaid.Hole &&
+					ite.Amount == itemPaid.Fee {
+					hasPrivateBuggySamePrice = true
+					break
+				}
+			}
+		}
+	}
+
 	for _, v1 := range item.ListServiceItems {
 		for _, itemPaid := range item.AgencyPrePaid {
 			if !(itemPaid.Fee > 0 && v1.Hole <= itemPaid.Hole) {
 				break
 			}
 
-			if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy && itemPaid.Fee > 0 {
-				hasPrivateBuggy = true
-				item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
-					Fee:  v1.Amount,
-					Name: constants.THUE_RIENG_XE,
-					Type: constants.BOOKING_AGENCY_PRIVATE_CAR_FEE,
-					Hole: v1.Hole,
-				})
-				break
+			if v1.Name == constants.THUE_RIENG_XE && v1.Name == itemPaid.Name && !hasPrivateBuggy {
+				if hasBuggySamePrice {
+					if v1.Amount == itemPaid.Fee {
+						hasPrivateBuggy = true
+						item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
+							Fee:  v1.Amount,
+							Name: constants.THUE_RIENG_XE,
+							Type: constants.BOOKING_AGENCY_PRIVATE_CAR_FEE,
+							Hole: v1.Hole,
+						})
+						break
+					}
+				} else {
+					hasPrivateBuggy = true
+					item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
+						Fee:  v1.Amount,
+						Name: constants.THUE_RIENG_XE,
+						Type: constants.BOOKING_AGENCY_PRIVATE_CAR_FEE,
+						Hole: v1.Hole,
+					})
+					break
+				}
 			}
 
 			if v1.Name == constants.THUE_LE_XE && v1.Name == itemPaid.Name && !hasOddBuggy && itemPaid.Fee > 0 {
-				item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
-					Fee:  v1.Amount,
-					Name: constants.THUE_LE_XE,
-					Type: constants.BOOKING_AGENCY_BUGGY_ODD_FEE,
-					Hole: v1.Hole,
-				})
-				hasOddBuggy = true
-				break
+				if hasOddBuggySamePrice {
+					if v1.Amount == itemPaid.Fee {
+						item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
+							Fee:  v1.Amount,
+							Name: constants.THUE_LE_XE,
+							Type: constants.BOOKING_AGENCY_BUGGY_ODD_FEE,
+							Hole: v1.Hole,
+						})
+						hasOddBuggy = true
+						break
+					}
+				} else {
+					item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
+						Fee:  v1.Amount,
+						Name: constants.THUE_LE_XE,
+						Type: constants.BOOKING_AGENCY_BUGGY_ODD_FEE,
+						Hole: v1.Hole,
+					})
+					hasOddBuggy = true
+					break
+				}
 			}
 
 			if v1.Name == constants.THUE_NUA_XE && v1.Name == itemPaid.Name && !hasBuggy && itemPaid.Fee > 0 {
-				item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
-					Fee:  v1.Amount,
-					Name: constants.THUE_NUA_XE,
-					Type: constants.BOOKING_AGENCY_BUGGY_FEE,
-					Hole: v1.Hole,
-				})
-				hasBuggy = true
-				break
+				if hasPrivateBuggySamePrice {
+					if v1.Amount == itemPaid.Fee {
+						item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
+							Fee:  v1.Amount,
+							Name: constants.THUE_NUA_XE,
+							Type: constants.BOOKING_AGENCY_BUGGY_FEE,
+							Hole: v1.Hole,
+						})
+						hasBuggy = true
+						break
+					}
+				} else {
+					item.AgencyPaid = append(item.AgencyPaid, utils.BookingAgencyPayForBagData{
+						Fee:  v1.Amount,
+						Name: constants.THUE_NUA_XE,
+						Type: constants.BOOKING_AGENCY_BUGGY_FEE,
+						Hole: v1.Hole,
+					})
+					hasBuggy = true
+					break
+				}
 			}
 		}
 
