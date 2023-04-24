@@ -117,7 +117,19 @@ func (item *InventoryItem) FindList(database *gorm.DB, page models.Page, param I
 		}
 	}
 
-	db = db.Joins("INNER JOIN group_services as tb2 on tb2.group_code = JSON_UNQUOTE(tb1.item_info->'$.group_type')")
+	// subQuery
+
+	subQuery := database.Table("group_services")
+
+	if param.PartnerUid != "" {
+		subQuery = subQuery.Where("group_services.partner_uid = ?", param.PartnerUid)
+	}
+
+	if param.CourseUid != "" {
+		subQuery = subQuery.Where("group_services.course_uid = ?", param.CourseUid)
+	}
+
+	db = db.Joins("INNER JOIN (?) as tb2 on tb2.group_code = JSON_UNQUOTE(tb1.item_info->'$.group_type')", subQuery)
 
 	db.Count(&total)
 
