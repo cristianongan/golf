@@ -146,7 +146,7 @@ func (_ *Cekyc) CheckBookingMemberForEkyc(c *gin.Context) {
 		return
 	}
 
-	responseBaseModel.Data = listBook[idx]
+	responseBaseModel.Data = listBook[idx].CloneBookingEkyc()
 
 	c.JSON(http.StatusOK, responseBaseModel)
 
@@ -247,7 +247,7 @@ func (_ *Cekyc) CheckInBookingMemberForEkyc(c *gin.Context) {
 	}
 	go createOperationLog(opLog)
 
-	responseBaseModel.Data = res
+	responseBaseModel.Data = res.CloneBookingEkyc()
 
 	c.JSON(http.StatusOK, responseBaseModel)
 }
