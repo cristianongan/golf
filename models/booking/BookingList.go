@@ -821,7 +821,7 @@ func (item *BookingList) BookingStatisticByDate(database *gorm.DB) (BookingStati
 	var res BookingStatistic
 
 	db = addFilter(db, item, false)
-	db = db.Where("added_round = ?", false)
+	// db = db.Where("added_round = ?", false)
 	db = db.Where("bookings.moved_flight = ?", false)
 	db = db.Where("bookings.bag_status <> 'CANCEL'")
 	db = db.Where("bookings.init_type = 'BOOKING'")

@@ -53,7 +53,9 @@ func runCreateCaddieWorkingSlot() {
 	dateFrist, dateLast := utils.WeekRange(yearNow, weekNow)
 	listDate := rangeDateOnWeek(db, course, dateFrist, dateLast, strconv.Itoa(yearNow))
 
-	log.Println(listDate)
+	index := utils.IndexOf(listDate, dateNow)
+
+	log.Println(listDate, index)
 
 	// Get group caddie work today
 	applyDate1 := datatypes.Date(dateConvert)
@@ -74,7 +76,7 @@ func runCreateCaddieWorkingSlot() {
 
 	var listCWSYes []models.CaddieWorkingSchedule
 
-	if dayNow != 6 && dayNow != 0 {
+	if index == -1 && dayNow != 6 && dayNow != 0 {
 		// get group caddie day off yesterday
 		var dateYesterday string
 
@@ -196,7 +198,7 @@ func runCreateCaddieWorkingSlot() {
 		}
 	}
 
-	if len(dataGroupWorking) > 0 && dayNow != 6 && dayNow != 0 {
+	if index == -1 && len(dataGroupWorking) > 0 && dayNow != 6 && dayNow != 0 {
 		listCaddies, err := caddies.FindAllCaddieGroup(db, constants.CADDIE_CONTRACT_STATUS_FULLTIME, dataGroupWorking)
 
 		if err != nil {
@@ -226,6 +228,50 @@ func runCreateCaddieWorkingSlot() {
 			caddieWorking = append(caddieWorking, caddieCodes...)
 		} else {
 			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieCodes, caddieLeave)
+
+			caddieWorking = append(caddieWorking, caddieMerge...)
+		}
+	}
+
+	// Xếp slot caddie holiday
+	if index != -1 && len(dataGroupWorking) > 0 && dayNow != 6 && dayNow != 0 {
+		listCaddiesFull, err := caddies.FindAllCaddieGroup(db, constants.CADDIE_CONTRACT_STATUS_FULLTIME, dataGroupWorking)
+
+		if err != nil {
+			log.Println("Find all caddie group err", err.Error())
+		}
+
+		listCaddiesPart, err := caddies.FindAllCaddieGroup(db, constants.CADDIE_CONTRACT_STATUS_PARTTIME, dataGroupWorking)
+
+		if err != nil {
+			log.Println("Find all caddie group err", err.Error())
+		}
+
+		caddieCodes := append(listCaddiesFull, listCaddiesPart...)
+
+		caddieSortSlots := GetCaddieCode(caddieCodes)
+
+		// Lấy data xếp nốt
+		var applyDate string
+
+		if dayNow == 6 {
+			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -6).Unix())
+		} else {
+			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -1).Unix())
+		}
+
+		caddieSlot := models.CaddieWorkingSlot{
+			PartnerUid: course.PartnerUid,
+			CourseUid:  course.CourseUid,
+			ApplyDate:  applyDate,
+		}
+
+		err = caddieSlot.FindFirst(db)
+
+		if err != nil {
+			caddieWorking = append(caddieWorking, caddieSortSlots...)
+		} else {
+			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieSortSlots, caddieLeave)
 
 			caddieWorking = append(caddieWorking, caddieMerge...)
 		}

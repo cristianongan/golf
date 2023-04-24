@@ -12,7 +12,7 @@ func CronStart() {
 
 	c.AddFunc("@every 5s", runCheckLockTeeTime)
 	c.AddFunc("CRON_TZ=Asia/Ho_Chi_Minh 05 23 * * *", runReportCaddieFeeToDay)            // Chạy lúc 23h00 hàng ngày
-	c.AddFunc("CRON_TZ=Asia/Ho_Chi_Minh 00 19 * * *", runCreateCaddieWorkingSlotJob)      // Chạy lúc 18h45 hàng ngày
+	c.AddFunc("@every 1m", runCreateCaddieWorkingSlotJob)                                 // Chạy lúc 18h45 hàng ngày
 	c.AddFunc("CRON_TZ=Asia/Ho_Chi_Minh 45 18 * * *", runResetCaddieStatusJob)            // Chạy lúc 18h30 tối hàng ngày để reset caddie status
 	c.AddFunc("CRON_TZ=Asia/Ho_Chi_Minh 10 00 * * *", runResetDataMemberCardJob)          // Chạy lúc 00h10 sáng hàng ngày để reset data trong ngày của member card
 	c.AddFunc("CRON_TZ=Asia/Ho_Chi_Minh 00 00 * * *", runReportInventoryStatisticItemJob) // Chạy lúc 0h sáng hàng ngày để thống kê sản phẩm trong kiosk inventory
