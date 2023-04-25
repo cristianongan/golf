@@ -432,7 +432,7 @@ func (_ *CNotification) CreateCaddieVacation(c *gin.Context, prof models.CmsUser
 
 func (_ *CNotification) CreateCWCNotification(db *gorm.DB, prof models.CmsUser, applayDate string, caddieCode []string) {
 	// noti
-	title := fmt.Sprintln("Caddie xin tăng cường ngày %v: %v", applayDate, strings.Join(caddieCode, ", "))
+	title := fmt.Sprintln("Caddie xin tăng cường ngày ", applayDate, ": ", strings.Join(caddieCode, ", "))
 
 	extraInfo := models.CaddieWCINoti{
 		Caddies:   caddieCode,
@@ -514,7 +514,7 @@ func (_ *CNotification) Admin1ApproveCaddieWC(c *gin.Context, prof models.CmsUse
 			return
 		}
 
-		title = fmt.Sprintln("%v đã được duyệt.", notification.Title)
+		title = fmt.Sprintln(notification.Title, " đã được duyệt.")
 	} else {
 		notification.NotificationStatus = constants.NOTIFICATION_REJECTED
 		notification.UserApprove = prof.UserName
@@ -535,7 +535,7 @@ func (_ *CNotification) Admin1ApproveCaddieWC(c *gin.Context, prof models.CmsUse
 			return
 		}
 
-		title = fmt.Sprintln("%v không được duyệt.", notification.Title)
+		title = fmt.Sprintln(notification.Title, " không được duyệt.")
 	}
 
 	newNotification := models.Notification{
