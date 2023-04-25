@@ -40,22 +40,17 @@ func runCreateCaddieWorkingSlot() {
 	var dataGroupWorking []int64
 	var slotPrioritize []int64
 
-	// statusFull := []string{constants.CADDIE_CONTRACT_STATUS_FULLTIME}
-	// statusAll := []string{constants.CADDIE_CONTRACT_STATUS_FULLTIME, constants.CADDIE_CONTRACT_STATUS_PARTTIME}
-
 	// Format date
-	dateNow, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().AddDate(0, 0, 1).Unix())
+	dateNow, _ := utils.GetBookingDateFromTimestamp(1682596800)
 	dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, dateNow)
 	dayNow := int(dateConvert.Weekday())
 
 	// Lấy danh sách ngày trong tuần
 	yearNow, weekNow := dateConvert.ISOWeek()
 	dateFrist, dateLast := utils.WeekRange(yearNow, weekNow)
-	listDate := rangeDateOnWeek(db, course, dateFrist, dateLast, strconv.Itoa(yearNow))
+	listDate := rangeDateOnWeek(db, course, dateFrist, dateLast.AddDate(0, 0, -2), strconv.Itoa(yearNow))
 
 	index := utils.IndexOf(listDate, dateNow)
-
-	log.Println(listDate, index)
 
 	// Get group caddie work today
 	applyDate1 := datatypes.Date(dateConvert)
@@ -78,13 +73,8 @@ func runCreateCaddieWorkingSlot() {
 
 	if index == -1 && dayNow != 6 && dayNow != 0 {
 		// get group caddie day off yesterday
-		var dateYesterday string
-
-		if dayNow == 1 {
-			dateYesterday, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -3).Unix())
-		} else {
-			dateYesterday, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -1).Unix())
-		}
+		dateValid := checkDateNormal(db, course, dateConvert, strconv.Itoa(yearNow))
+		dateYesterday, _ := utils.GetBookingDateFromTimestamp(dateValid.Unix())
 
 		dateConvert2, _ := time.Parse(constants.DATE_FORMAT_1, dateYesterday)
 		applyDate2 := datatypes.Date(dateConvert2)
@@ -208,13 +198,8 @@ func runCreateCaddieWorkingSlot() {
 		caddieCodes := GetCaddieCode(listCaddies)
 
 		// Lấy data xếp nốt
-		var applyDate string
-
-		if dayNow == 1 {
-			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -3).Unix())
-		} else {
-			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -1).Unix())
-		}
+		dateValid := checkDateNormal(db, course, dateConvert, strconv.Itoa(yearNow))
+		applyDate, _ := utils.GetBookingDateFromTimestamp(dateValid.Unix())
 
 		caddieSlot := models.CaddieWorkingSlot{
 			PartnerUid: course.PartnerUid,
@@ -254,10 +239,11 @@ func runCreateCaddieWorkingSlot() {
 		// Lấy data xếp nốt
 		var applyDate string
 
-		if dayNow == 6 {
-			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -6).Unix())
+		if index == 0 {
+			applyDate, _ = utils.GetBookingDateFromTimestamp(dateFrist.AddDate(0, 0, -1).Unix())
 		} else {
-			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -1).Unix())
+			dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, listDate[index-1])
+			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.Unix())
 		}
 
 		caddieSlot := models.CaddieWorkingSlot{
@@ -297,7 +283,10 @@ func runCreateCaddieWorkingSlot() {
 		// Lấy data xếp nốt
 		var applyDate string
 
-		if dayNow == 6 {
+		if len(listDate) > 0 && dayNow == 6 {
+			dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, listDate[len(listDate)-1])
+			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.Unix())
+		} else if dayNow == 6 {
 			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -6).Unix())
 		} else {
 			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -1).Unix())
@@ -331,10 +320,10 @@ func runCreateCaddieWorkingSlot() {
 	if !caddieSlot.IsDuplicated(db) {
 		caddieSlot.CaddieSlot = slotCaddie
 
-		// err = caddieSlot.Create(db)
-		// if err != nil {
-		// 	log.Println("Create report caddie err", err.Error())
-		// }
+		err = caddieSlot.Create(db)
+		if err != nil {
+			log.Println("Create report caddie err", err.Error())
+		}
 
 		for _, caddieCode := range slotCaddie {
 			caddie := models.Caddie{
@@ -458,4 +447,32 @@ func rangeDateOnWeek(database *gorm.DB, course ModelCourse, start, end time.Time
 	}
 
 	return listDate
+}
+
+func checkDateNormal(database *gorm.DB, course ModelCourse, start time.Time, year string) time.Time {
+	db := datasources.GetDatabase()
+
+	var dateValid time.Time
+	y, m, d := start.Date()
+	start = time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+
+	for {
+		start = start.AddDate(0, 0, -1)
+		date := start.Format(constants.DATE_FORMAT_1)
+		day := int(start.Weekday())
+
+		holiday := models.Holiday{
+			PartnerUid: course.PartnerUid,
+			CourseUid:  course.CourseUid,
+			Year:       year,
+		}
+
+		_, total, _ := holiday.FindListInRange(db, date)
+		if total == 0 && day != 6 && day != 0 {
+			dateValid = start
+			break
+		}
+	}
+
+	return dateValid
 }
