@@ -99,6 +99,10 @@ func (item *CaddieWorkingCalendar) FindAllByDate(database *gorm.DB) ([]map[strin
 		db = db.Where("caddie_working_calendars.apply_date = ?", item.ApplyDate)
 	}
 
+	if item.ApproveStatus != "" {
+		db = db.Where("caddie_working_calendars.approve_status = ?", item.ApproveStatus)
+	}
+
 	if item.CaddieIncrease {
 		db = db.Where("caddie_working_calendars.caddie_increase = 1")
 	} else {
