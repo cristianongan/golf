@@ -41,7 +41,7 @@ func runCreateCaddieWorkingSlot() {
 	var slotPrioritize []int64
 
 	// Format date
-	dateNow, _ := utils.GetBookingDateFromTimestamp(1682596800)
+	dateNow, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().AddDate(0, 0, 1).Unix())
 	dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, dateNow)
 	dayNow := int(dateConvert.Weekday())
 
