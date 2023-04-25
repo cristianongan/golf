@@ -146,6 +146,7 @@ func (item *OperationLog) Delete() error {
 	return datasources.GetDatabaseAuth().Delete(item).Error
 }
 
+// Delete data cho table log
 func (item *OperationLog) BatchDeleteLog(list []int64) error {
 	db := datasources.GetDatabaseAuth()
 
