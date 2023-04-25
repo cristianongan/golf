@@ -586,7 +586,7 @@ func (item *Booking) Update(db *gorm.DB) error {
 	}
 
 	item.Model.UpdatedAt = utils.GetTimeNow().Unix()
-	errUpdate := db.Save(item).Error
+	errUpdate := db.Omit("ListServiceItems.*").Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
