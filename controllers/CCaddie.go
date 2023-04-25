@@ -328,6 +328,7 @@ func (_ *CCaddie) GetCaddieReadyOnDay(c *gin.Context, prof models.CmsUser) {
 	caddieWCI.PartnerUid = form.PartnerUid
 	caddieWCI.ApplyDate = toDayDate
 	caddieWCI.CaddieIncrease = true
+	caddieWCI.ApproveStatus = constants.CADDIE_WORKING_CALENDAR_APPROVED
 
 	listIncrease, _, err := caddieWCI.FindAllByDate(db)
 
