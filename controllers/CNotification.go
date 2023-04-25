@@ -548,11 +548,6 @@ func (_ *CNotification) Admin1ApproveCaddieWC(c *gin.Context, prof models.CmsUse
 		Note:       form.Note,
 	}
 
-	if errNotification := newNotification.Create(db); errNotification != nil {
-		response_message.InternalServerError(c, errNotification.Error())
-		return
-	}
-
 	go func() {
 		newFsConfigBytes, _ := json.Marshal(newNotification)
 		socket_room.Hub.Broadcast <- socket_room.Message{
