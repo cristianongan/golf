@@ -11,6 +11,7 @@ func CronStart() {
 	c := cron.New()
 
 	c.AddFunc("@every 5s", runCheckLockTeeTime)
+	c.AddFunc("@every 5m", runAddLogBackupJob)
 	c.AddFunc("CRON_TZ=Asia/Ho_Chi_Minh 05 23 * * *", runReportCaddieFeeToDay)            // Chạy lúc 23h00 hàng ngày
 	c.AddFunc("CRON_TZ=Asia/Ho_Chi_Minh 00 19 * * *", runCreateCaddieWorkingSlotJob)      // Chạy lúc 18h45 hàng ngày
 	c.AddFunc("CRON_TZ=Asia/Ho_Chi_Minh 45 18 * * *", runResetCaddieStatusJob)            // Chạy lúc 18h30 tối hàng ngày để reset caddie status

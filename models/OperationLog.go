@@ -8,6 +8,7 @@ import (
 	"start/datasources"
 	"start/utils"
 	"strings"
+	"time"
 )
 
 type JsonDataLog struct {
@@ -77,7 +78,21 @@ func (item *OperationLog) Count() (int64, error) {
 }
 
 func (item *OperationLog) FindList(page Page) ([]OperationLog, int64, error) {
-	db := datasources.GetDatabaseAuth().Model(OperationLog{})
+	db := datasources.GetDatabaseAuth()
+	//Check date
+	if item.BookingDate != "" {
+		now := utils.GetTimeNow()
+		dateBody, _ := time.Parse(constants.DATE_FORMAT_1, item.BookingDate)
+
+		if now.Month() == dateBody.Month() && now.Year() == dateBody.Year() {
+			db = db.Model(OperationLog{})
+		} else {
+			db = db.Table("operation_logs_" + dateBody.Format(constants.MONTH_FORMAT_LOG))
+		}
+	} else {
+		db = db.Model(OperationLog{})
+	}
+
 	list := []OperationLog{}
 	total := int64(0)
 	status := item.ModelId.Status
@@ -112,6 +127,9 @@ func (item *OperationLog) FindList(page Page) ([]OperationLog, int64, error) {
 	if item.Action != "" {
 		db = db.Where("`action` = ?", item.Action)
 	}
+	if item.CreatedAt != 0 {
+		db = db.Where("created_at < ?", item.CreatedAt)
+	}
 
 	db.Count(&total)
 
@@ -126,4 +144,12 @@ func (item *OperationLog) Delete() error {
 		return errors.New("Primary key is undefined!")
 	}
 	return datasources.GetDatabaseAuth().Delete(item).Error
+}
+
+func (item *OperationLog) BatchDeleteLog(list []int64) error {
+	db := datasources.GetDatabaseAuth()
+
+	db = db.Where("id IN ? ", list)
+
+	return db.Delete(item).Error
 }
