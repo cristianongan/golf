@@ -520,6 +520,7 @@ func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
 		caddieWCI.PartnerUid = form.PartnerUid
 		caddieWCI.ApplyDate = form.Date
 		caddieWCI.CaddieIncrease = true
+		caddieWCI.ApproveStatus = constants.CADDIE_WORKING_CALENDAR_APPROVED
 
 		listIncrease, _, err := caddieWCI.FindAllByDate(db)
 		if err == nil {
@@ -839,6 +840,7 @@ func (_ *CCaddie) GetCaddieWorkingByDate(partnerUid, courseUid, bookingDate stri
 		caddieWCI.PartnerUid = partnerUid
 		caddieWCI.ApplyDate = bookingDate
 		caddieWCI.CaddieIncrease = true
+		caddieWCI.ApproveStatus = constants.CADDIE_WORKING_CALENDAR_APPROVED
 
 		listIncrease, _, err := caddieWCI.FindAllByDate(db)
 		if err == nil {
