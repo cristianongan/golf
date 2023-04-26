@@ -478,9 +478,15 @@ func (_ *CNotification) PushMessBoookingForApp(typeMess string, bag *model_booki
 		"data": bag,
 	}
 
-	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket_room.Hub.Broadcast <- socket_room.Message{
-		Data: newFsConfigBytes,
-		Room: constants.NOTIFICATION_CHANNEL_BOOKING_APP,
+	// Check date
+	dateNow, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	if dateNow == bag.BookingDate {
+		newFsConfigBytes, _ := json.Marshal(notiData)
+		socket_room.Hub.Broadcast <- socket_room.Message{
+			Data: newFsConfigBytes,
+			Room: constants.NOTIFICATION_CHANNEL_BOOKING_APP,
+		}
 	}
+
 }
