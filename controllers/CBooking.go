@@ -644,8 +644,6 @@ func (_ CBooking) updateGuestStyleToBooking(c *gin.Context, guestStyle string,
 		response_message.InternalServerError(c, "guest style not found ")
 	}
 
-	booking.CustomerType = golfFeeModel.CustomerType
-
 	// Lấy phí bởi Guest style với ngày tạo
 	golfFee := models.GolfFee{}
 	var errFindGF error
@@ -663,6 +661,7 @@ func (_ CBooking) updateGuestStyleToBooking(c *gin.Context, guestStyle string,
 		}
 	}
 
+	booking.CustomerType = golfFee.CustomerType
 	booking.GuestStyle = guestStyle
 	booking.GuestStyleName = golfFee.GuestStyleName
 
