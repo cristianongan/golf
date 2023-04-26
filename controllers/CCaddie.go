@@ -459,6 +459,10 @@ func (_ *CCaddie) GetCaddiGroupDayOffByDate(c *gin.Context, prof models.CmsUser)
 		caddie.GroupList = groupDayOff
 	}
 
+	if form.ContractStatus != "" {
+		caddie.ContractStatus = form.ContractStatus
+	}
+
 	list, total, err := caddie.FindList(db, page)
 
 	if err != nil {
