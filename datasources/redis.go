@@ -150,6 +150,14 @@ func GetRedisKeyLockerReportCaddieFeeToDay() string {
 	return config.GetEnvironmentName() + "_" + "anhnq_redis_locker_report_caddie_fee_today"
 }
 
+func GetRedisKeyLockerAddLogBackup() string {
+	return config.GetEnvironmentName() + "_" + "anhnq_redis_locker_add_log_backup"
+}
+
+func GetTableLogRedisKey(tbName string) string {
+	return config.GetEnvironmentName() + "_" + "anhnq_table_log_" + tbName
+}
+
 func GetRedisKeyLockerCreateCaddieWorkingSlot() string {
 	return config.GetEnvironmentName() + "_" + "anhnq_redis_locker_create_caddie_working_slot"
 }
