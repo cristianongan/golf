@@ -51,6 +51,13 @@ func (item *PlayerScore) Create(db *gorm.DB) error {
 	return db.Create(item).Error
 }
 
+// / ------- CaddieWorkingCalendar batch insert to db ------
+func (item *PlayerScore) BatchInsert(database *gorm.DB, list []PlayerScore) error {
+	db := database.Model(PlayerScore{})
+
+	return db.Create(&list).Error
+}
+
 func (item *PlayerScore) Update(db *gorm.DB) error {
 	item.ModelId.UpdatedAt = utils.GetTimeNow().Unix()
 	errUpdate := db.Save(item).Error

@@ -2,9 +2,11 @@ package controllers
 
 import (
 	"errors"
+	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -20,22 +22,38 @@ func (_ *CPlayerScore) CreatePlayerScore(c *gin.Context, prof models.CmsUser) {
 		badRequest(c, bindErr.Error())
 		return
 	}
+	now := utils.GetTimeNow()
 
-	PlayerScore := models.PlayerScore{
-		PartnerUid:  body.PartnerUid,
-		CourseUid:   body.CourseUid,
-		BookingDate: body.BookingDate,
-		Bag:         body.Bag,
-		Course:      body.Course,
-		Hole:        body.Hole,
-		Par:         body.Par,
-		Shots:       body.Shots,
-		Index:       body.Index,
-		TimeStart:   body.TimeStart,
-		TimeEnd:     body.TimeEnd,
+	// Batch insert player score
+	playerScore := models.PlayerScore{}
+
+	var listPlayer []models.PlayerScore
+
+	for _, player := range body.Players {
+		playerScore := models.PlayerScore{
+			PartnerUid:  body.PartnerUid,
+			CourseUid:   body.CourseUid,
+			BookingDate: body.BookingDate,
+			Bag:         player.Bag,
+			Course:      body.Course,
+			Hole:        body.Hole,
+			Par:         body.Par,
+			Shots:       player.Shots,
+			Index:       player.Index,
+			TimeStart:   body.TimeStart,
+			TimeEnd:     body.TimeEnd,
+		}
+
+		playerScore.ModelId.CreatedAt = now.Unix()
+		playerScore.ModelId.UpdatedAt = now.Unix()
+		if playerScore.ModelId.Status == "" {
+			playerScore.ModelId.Status = constants.STATUS_ENABLE
+		}
+
+		listPlayer = append(listPlayer, playerScore)
 	}
 
-	errC := PlayerScore.Create(db)
+	errC := playerScore.BatchInsert(db, listPlayer)
 	if errC != nil {
 		response_message.InternalServerError(c, errC.Error())
 		return
