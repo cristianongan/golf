@@ -328,6 +328,7 @@ func (_ *CCaddie) GetCaddieReadyOnDay(c *gin.Context, prof models.CmsUser) {
 	caddieWCI.PartnerUid = form.PartnerUid
 	caddieWCI.ApplyDate = toDayDate
 	caddieWCI.CaddieIncrease = true
+	caddieWCI.ApproveStatus = constants.CADDIE_WORKING_CALENDAR_APPROVED
 
 	listIncrease, _, err := caddieWCI.FindAllByDate(db)
 
@@ -520,6 +521,7 @@ func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
 		caddieWCI.PartnerUid = form.PartnerUid
 		caddieWCI.ApplyDate = form.Date
 		caddieWCI.CaddieIncrease = true
+		caddieWCI.ApproveStatus = constants.CADDIE_WORKING_CALENDAR_APPROVED
 
 		listIncrease, _, err := caddieWCI.FindAllByDate(db)
 		if err == nil {
@@ -818,6 +820,7 @@ func (_ *CCaddie) GetCaddieWorkingByDate(partnerUid, courseUid, bookingDate stri
 	// Get group caddie work today
 	dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, bookingDate)
 	applyDate1 := datatypes.Date(dateConvert)
+	dayNow := int(dateConvert.Weekday())
 	idDayOff1 := false
 
 	// get caddie work sechedule
@@ -852,6 +855,7 @@ func (_ *CCaddie) GetCaddieWorkingByDate(partnerUid, courseUid, bookingDate stri
 		caddieWCI.PartnerUid = partnerUid
 		caddieWCI.ApplyDate = bookingDate
 		caddieWCI.CaddieIncrease = true
+		caddieWCI.ApproveStatus = constants.CADDIE_WORKING_CALENDAR_APPROVED
 
 		listIncrease, _, err := caddieWCI.FindAllByDate(db)
 		if err == nil {
@@ -874,6 +878,10 @@ func (_ *CCaddie) GetCaddieWorkingByDate(partnerUid, courseUid, bookingDate stri
 
 	caddie.PartnerUid = partnerUid
 	caddie.CourseUid = courseUid
+
+	if dayNow != 6 && dayNow != 0 {
+		caddie.ContractStatus = constants.CADDIE_CONTRACT_STATUS_FULLTIME
+	}
 
 	if len(groupDayOff) > 0 {
 		caddie.GroupList = groupDayOff
