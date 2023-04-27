@@ -577,7 +577,7 @@ func (item *Booking) Create(db *gorm.DB, uid string) error {
 		item.Model.Status = constants.STATUS_ENABLE
 	}
 
-	return db.Omit("ListServiceItems.*").Create(item).Error
+	return db.Omit("ListServiceItems").Create(item).Error
 }
 
 func (item *Booking) Update(db *gorm.DB) error {
@@ -586,7 +586,7 @@ func (item *Booking) Update(db *gorm.DB) error {
 	}
 
 	item.Model.UpdatedAt = utils.GetTimeNow().Unix()
-	errUpdate := db.Omit("ListServiceItems.*").Save(item).Error
+	errUpdate := db.Omit("ListServiceItems").Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
