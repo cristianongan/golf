@@ -978,6 +978,7 @@ func (cCourseOperating *CCourseOperating) DeleteAttach(c *gin.Context, prof mode
 
 	// auto delete buggy fee
 	deleteBuggyFee(booking)
+	updatePriceWithServiceItem(&booking, models.CmsUser{})
 	udpCaddieOut(db, caddieId)
 
 	caddie := models.Caddie{}
