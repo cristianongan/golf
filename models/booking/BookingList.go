@@ -7,6 +7,7 @@ import (
 	"start/utils"
 	"strconv"
 	"strings"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -60,6 +61,7 @@ type BookingList struct {
 	NotNoneGolfAndWalking bool
 	BillCode              string
 	CommonFilter          string
+	GuestType             string
 }
 
 type BookingStarter struct {
@@ -82,13 +84,25 @@ type ResBookingWithBuggyFeeInfo struct {
 }
 
 type ReportBooking struct {
-	TimeOut     int64 `json:"time_out"`
-	CheckIn     int64 `json:"check_in"`
-	CheckOut    int64 `json:"check_out"`
-	NonCheckIn  int64 `json:"non_check_in"`
-	NonCheckOut int64 `json:"non_check_out"`
-	Waiting     int64 `json:"waiting"`
-	InCourse    int64 `json:"in_course"`
+	TimeOut        int64 `json:"time_out"`
+	CheckIn        int64 `json:"check_in"`
+	CheckOut       int64 `json:"check_out"`
+	NonCheckIn     int64 `json:"non_check_in"`
+	NonCheckOut    int64 `json:"non_check_out"`
+	Waiting        int64 `json:"waiting"`
+	InCourse       int64 `json:"in_course"`
+	TotalBooking   int64 `json:"total_booking"`
+	GuestNoBooking int64 `json:"guest_no_booking"`
+}
+
+type BookingStatistic struct {
+	TotalBooking int64 `json:"total_booking"`
+	AMorning     int64 `json:"a_morning"`
+	BMorning     int64 `json:"b_morning"`
+	CMorning     int64 `json:"c_morning"`
+	ANoon        int64 `json:"a_noon"`
+	BNoon        int64 `json:"b_noon"`
+	CNoon        int64 `json:"c_noon"`
 }
 
 func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
@@ -305,6 +319,17 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 
 	if item.BillCode != "" {
 		db = db.Where("bill_code = ?", item.BillCode)
+	}
+
+	if item.GuestType == "NO_SHOW" {
+		time, _ := utils.GetDateFromTimestampWithFormat(time.Now().Add(time.Hour*-1).Unix(), constants.HOUR_FORMAT)
+		db = db.Where("bag_status <> 'CANCEL'")
+		db = db.Where("check_in_time = 0")
+		db = db.Where("STR_TO_DATE(tee_time, '%H:%i') <= STR_TO_DATE(?, '%H:%i')", time)
+	}
+
+	if item.GuestType == "NO_BOOKING" {
+		db = db.Where("customer_type <> 'NONE_GOLF'")
 	}
 
 	return db
@@ -592,17 +617,19 @@ func (item *BookingList) ReportAllBooking(database *gorm.DB) (ReportBooking, err
 	var res ReportBooking
 
 	db = addFilter(db, item, false)
-	db = db.Where("added_round = ?", false)
-	db = db.Where("bookings.moved_flight = ?", false)
+	// db = db.Where("added_round = ?", false)
+	// db = db.Where("bookings.moved_flight = ?", false)
 	db = db.Where("bookings.bag_status <> 'CANCEL'")
 
-	db = db.Select(`SUM(bag_status = 'TIMEOUT') AS time_out,
-					SUM(bag_status = 'IN_COURSE') AS in_course,
-					SUM(bag_status = 'WAITING' AND customer_type <> 'NONE_GOLF') AS waiting,
+	db = db.Select(`SUM(bag_status = 'TIMEOUT' AND added_round = 0 AND moved_flight = 0) AS time_out,
+					SUM(bag_status = 'IN_COURSE' AND added_round = 0 AND moved_flight = 0) AS in_course,
+					SUM(bag_status = 'WAITING' AND customer_type <> 'NONE_GOLF' AND added_round = 0 AND moved_flight = 0) AS waiting,
 					SUM(check_in_time > 0 AND customer_type <> 'NONE_GOLF') AS check_in,
 					SUM(check_out_time > 0 AND customer_type <> 'NONE_GOLF') AS check_out,
 					SUM(check_in_time > 0 AND customer_type = 'NONE_GOLF') AS non_check_in,
-					SUM(check_out_time > 0 AND customer_type = 'NONE_GOLF') AS non_check_out`)
+					SUM(check_out_time > 0 AND customer_type = 'NONE_GOLF') AS non_check_out,
+					SUM(init_type = 'BOOKING') AS total_booking,
+					SUM(init_type = 'CHECKIN' AND customer_type <> 'NONE_GOLF') AS guest_no_booking`)
 
 	db.Find(&res)
 
@@ -771,4 +798,43 @@ func (item *BookingList) FindCaddieBookingCancel(database *gorm.DB, page models.
 		db = page.Setup(db).Find(&list)
 	}
 	return list, total, db.Error
+}
+
+func (item *BookingList) FindAllGuestNoShow(database *gorm.DB) (*gorm.DB, error) {
+	db := database.Model(Booking{})
+
+	time, _ := utils.GetDateFromTimestampWithFormat(time.Now().Add(time.Hour*-1).Unix(), constants.HOUR_FORMAT)
+
+	db = addFilter(db, item, false)
+	db = db.Where("bookings.bag_status <> 'CANCEL'")
+	db = db.Where("bookings.check_in_time = 0")
+	db = db.Where("bookings.added_round = ?", false)
+	db = db.Where("bookings.moved_flight = ?", false)
+	db = db.Where("STR_TO_DATE(bookings.tee_time, '%H:%i') <= STR_TO_DATE(?, '%H:%i')", time)
+
+	return db, db.Error
+}
+
+func (item *BookingList) BookingStatisticByDate(database *gorm.DB) (BookingStatistic, error) {
+
+	db := database.Model(Booking{})
+	var res BookingStatistic
+
+	db = addFilter(db, item, false)
+	// db = db.Where("added_round = ?", false)
+	// db = db.Where("bookings.moved_flight = ?", false)
+	db = db.Where("bookings.bag_status <> 'CANCEL'")
+	db = db.Where("bookings.init_type = 'BOOKING'")
+
+	db = db.Select(`SUM(init_type = 'BOOKING') AS total_booking,
+			SUM(course_type = 'A' and tee_path = 'MORNING') AS a_morning,
+			SUM(course_type = 'A' and tee_path = 'NOON') AS a_noon,
+			SUM(course_type = 'B' and tee_path = 'MORNING') AS b_morning,
+			SUM(course_type = 'B' and tee_path = 'NOON') AS b_noon,
+			SUM(course_type = 'C' and tee_path = 'MORNING') AS c_morning,
+			SUM(course_type = 'C' and tee_path = 'NOON') AS c_noon`)
+
+	db.Find(&res)
+
+	return res, db.Error
 }
