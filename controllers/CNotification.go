@@ -443,30 +443,6 @@ func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
 	// }
 }
 
-func (_ *CNotification) PushMessPOSForApp(bill models.ServiceCart) {
-	// Data mess
-	notiData := map[string]interface{}{
-		"bill_id": bill.Id,
-	}
-
-	// Push mess socket
-	reqSocket := request.MessSocketBody{
-		Data: notiData,
-	}
-
-	if bill.ServiceType == constants.RESTAURANT_SETTING {
-		notiData["type"] = constants.NOTIFICATION_RESTAURANT_BILL_UPDATE
-		reqSocket.Room = constants.NOTIFICATION_CHANNEL_RESTAURANT
-	}
-
-	if bill.ServiceType == constants.KIOSK_SETTING {
-		notiData["type"] = constants.NOTIFICATION_KIOSK_BILL_UPDATE
-		reqSocket.Room = constants.NOTIFICATION_CHANNEL_KIOSK
-	}
-
-	go callservices.PushMessInSocket(reqSocket)
-}
-
 func (_ *CNotification) PushNotificationCreateBooking(bookType string, booking any) {
 	notiData := map[string]interface{}{
 		"type":  bookType,
