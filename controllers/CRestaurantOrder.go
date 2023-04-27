@@ -52,7 +52,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 	}
 
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-		response_message.BadRequest(c, "Bag status invalid")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 
@@ -139,7 +139,7 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-		response_message.BadRequest(c, "Bag status invalid")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 
@@ -500,7 +500,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-		response_message.BadRequest(c, "Bag status invalid")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 
@@ -719,7 +719,7 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-		response_message.BadRequest(c, "Bag status invalid")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 
@@ -874,7 +874,7 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-		response_message.BadRequest(c, "Bag status invalid")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 
@@ -1238,7 +1238,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 		}
 
 		if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-			response_message.BadRequest(c, "Bag status invalid")
+			response_message.BadRequestFreeMessage(c, "Bag check out")
 			return
 		}
 
@@ -1257,7 +1257,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 		response_message.BadRequest(c, "Kiosk not found")
 		return
 	}
-	
+
 	kiosk := model_service.Kiosk{}
 	kiosk.Id = body.ServiceId
 	if err := kiosk.FindFirst(db); err != nil {
@@ -1595,7 +1595,7 @@ func (_ CRestaurantOrder) UpdateRestaurantBooking(c *gin.Context, prof models.Cm
 		}
 
 		if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-			response_message.BadRequest(c, "Bag status invalid")
+			response_message.BadRequestFreeMessage(c, "Bag check out")
 			return
 		}
 
@@ -1810,7 +1810,7 @@ func (_ CRestaurantOrder) ConfrimRestaurantBooking(c *gin.Context, prof models.C
 		}
 
 		if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-			response_message.BadRequest(c, "Bag status invalid")
+			response_message.BadRequestFreeMessage(c, "Bag check out")
 			return
 		}
 
@@ -1952,7 +1952,7 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-		response_message.BadRequest(c, "Bag status invalid")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 
@@ -1985,7 +1985,7 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if bookingS.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-		response_message.BadRequest(c, "Bag status invalid")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 

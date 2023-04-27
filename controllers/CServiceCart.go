@@ -51,7 +51,7 @@ func (_ CServiceCart) AddItemServiceToCart(c *gin.Context, prof models.CmsUser) 
 	}
 
 	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
-		response_message.BadRequest(c, "Bag status invalid")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 
@@ -268,7 +268,7 @@ func (_ CServiceCart) AddItemRentalToCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
-		response_message.BadRequest(c, "Bag status invalid")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 
@@ -475,7 +475,7 @@ func (_ CServiceCart) AddDiscountToItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
-		response_message.BadRequest(c, "Bag status invalid")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 
@@ -570,7 +570,7 @@ func (_ CServiceCart) AddDiscountToBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
-		response_message.BadRequest(c, "Bag status invalid")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 
@@ -1004,7 +1004,7 @@ func (_ CServiceCart) DeleteItemInCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-		response_message.BadRequest(c, "Bag status invalid")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 
@@ -1110,7 +1110,7 @@ func (_ CServiceCart) CreateBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-		response_message.BadRequest(c, "Bag status invalid")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 
@@ -1160,7 +1160,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if booking.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-		response_message.BadRequest(c, "Bag status invalid")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 
@@ -1193,7 +1193,7 @@ func (_ CServiceCart) MoveItemToOtherCart(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if bookingS.BagStatus == constants.BAG_STATUS_CHECK_OUT {
-		response_message.BadRequest(c, "Bag status invalid")
+		response_message.BadRequestFreeMessage(c, "Bag check out")
 		return
 	}
 
