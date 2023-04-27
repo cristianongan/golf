@@ -27,7 +27,7 @@ import (
 )
 
 /*
- Clone object
+Clone object
 */
 func CloneObject(item interface{}) interface{} {
 	copyObj := map[string]interface{}{}
@@ -44,7 +44,7 @@ func CloneObject(item interface{}) interface{} {
 }
 
 /*
-  dùng redis để check single payment đã dc tạo chưa(Check ở sql chưa đủ realtime)
+dùng redis để check single payment đã dc tạo chưa(Check ở sql chưa đủ realtime)
 */
 func GetRedisKeySinglePaymentCreated(partnerUid, courseUid, billCode string) string {
 	singlePaymentRedisKey := config.GetEnvironmentName() + ":" + "single_payment:" + "_" + partnerUid + "_" + courseUid + "_" + billCode
@@ -53,7 +53,7 @@ func GetRedisKeySinglePaymentCreated(partnerUid, courseUid, billCode string) str
 }
 
 /*
-  dùng redis để check agency payment đã dc tạo chưa(Check ở sql chưa đủ realtime)
+dùng redis để check agency payment đã dc tạo chưa(Check ở sql chưa đủ realtime)
 */
 func GetRedisKeyAgencyPaymentCreated(partnerUid, courseUid, bookCode string) string {
 	agencyPaymentRedisKey := config.GetEnvironmentName() + ":" + "agency_payment:" + "_" + partnerUid + "_" + courseUid + "_" + bookCode
@@ -741,4 +741,30 @@ func GetLocalUnixTime() time.Time {
 	}
 	tm := GetTimeNow().In(loc)
 	return tm
+}
+
+// Get range date in current week
+func WeekRange(year, week int) (start, end time.Time) {
+	start = WeekStart(year, week)
+	end = start.AddDate(0, 0, 6)
+	return
+}
+
+// Find week start in current week
+func WeekStart(year, week int) time.Time {
+	// Start from the middle of the year:
+	t := time.Date(year, 7, 1, 0, 0, 0, 0, time.UTC)
+
+	// Roll back to Monday:
+	if wd := t.Weekday(); wd == time.Sunday {
+		t = t.AddDate(0, 0, -6)
+	} else {
+		t = t.AddDate(0, 0, -int(wd)+1)
+	}
+
+	// Difference in weeks:
+	_, w := t.ISOWeek()
+	t = t.AddDate(0, 0, (week-w)*7)
+
+	return t
 }
