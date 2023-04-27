@@ -294,7 +294,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		}
 
 		booking.CustomerName = customer.Name
-		booking.CustomerType = customer.Type
+		// booking.CustomerType = customer.Type
 		booking.CustomerInfo = cloneToCustomerBooking(customer)
 		booking.CustomerUid = body.CustomerUid
 	}
@@ -519,7 +519,7 @@ func (_ CBooking) updateAgencyForBooking(
 	agencyBooking := cloneToAgencyBooking(*agency)
 	booking.AgencyInfo = agencyBooking
 	booking.AgencyId = body.AgencyId
-	booking.CustomerType = agency.Type
+	// booking.CustomerType = agency.Type
 
 	if booking.MemberCardUid == "" {
 		// Nếu có cả member card thì ưu tiên giá member card
@@ -613,7 +613,7 @@ func (_ CBooking) updateMemberCardToBooking(c *gin.Context,
 	booking.CardId = memberCard.CardId
 	booking.CustomerName = owner.Name
 	booking.CustomerUid = owner.Uid
-	booking.CustomerType = owner.Type
+	// booking.CustomerType = owner.Type
 	booking.CustomerInfo = convertToCustomerSqlIntoBooking(owner)
 
 	if memberCard.PriceCode == 1 && memberCard.IsValidTimePrecial() {
@@ -651,8 +651,6 @@ func (_ CBooking) updateGuestStyleToBooking(c *gin.Context, guestStyle string,
 		response_message.InternalServerError(c, "guest style not found ")
 	}
 
-	booking.CustomerType = golfFeeModel.CustomerType
-
 	// Lấy phí bởi Guest style với ngày tạo
 	golfFee := models.GolfFee{}
 	var errFindGF error
@@ -670,6 +668,7 @@ func (_ CBooking) updateGuestStyleToBooking(c *gin.Context, guestStyle string,
 		}
 	}
 
+	booking.CustomerType = golfFee.CustomerType
 	booking.GuestStyle = guestStyle
 	booking.GuestStyleName = golfFee.GuestStyleName
 
