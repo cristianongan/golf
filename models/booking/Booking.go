@@ -577,7 +577,7 @@ func (item *Booking) Create(db *gorm.DB, uid string) error {
 		item.Model.Status = constants.STATUS_ENABLE
 	}
 
-	return db.Omit("ListServiceItems.*").Create(item).Error
+	return db.Create(item).Error
 }
 
 func (item *Booking) Update(db *gorm.DB) error {
