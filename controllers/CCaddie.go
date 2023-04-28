@@ -702,6 +702,19 @@ func (_ *CCaddie) UpdateCaddie(c *gin.Context, prof models.CmsUser) {
 
 	caddieOld := caddieRequest
 
+	// group old
+	caddieG := models.CaddieGroup{}
+
+	caddieG.Id = caddieRequest.GroupId
+
+	errCG := caddieG.FindFirst(db)
+	if errF != nil {
+		response_message.BadRequest(c, errCG.Error())
+		return
+	}
+
+	caddieOld.Group = caddieG.Name
+
 	assignCaddieUpdate(&caddieRequest, body)
 
 	err := caddieRequest.Update(db)

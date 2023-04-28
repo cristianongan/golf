@@ -24,6 +24,19 @@ type InventoryItem struct {
 	StockStatus string   `json:"stock_status" gorm:"type:varchar(100)"`      // trạng thái: còn hàng hay hết hàng
 }
 
+type InventoryItemList struct {
+	models.ModelId
+	PartnerUid  string   `json:"partner_uid"`  // Hang Golf
+	CourseUid   string   `json:"course_uid"`   // San Golf
+	ServiceId   int64    `json:"service_id"`   // mã service
+	ServiceName string   `json:"service_name"` // tên service
+	Code        string   `json:"code"`         // mã sp
+	ItemInfo    ItemInfo `json:"item_info"`    // Thông tin sản phầm
+	Quantity    int64    `json:"quantity"`     // số lượng
+	StockStatus string   `json:"stock_status"` // trạng thái: còn hàng hay hết hàng
+	GroupName   string   `json:"group_name"`
+}
+
 type InventoryItemRequest struct {
 	ServiceId   int64
 	PartnerUid  string
@@ -66,42 +79,57 @@ func (item *InventoryItem) BatchInsert(database *gorm.DB, list []InventoryItem) 
 	}
 	return err
 }
-func (item *InventoryItem) FindList(database *gorm.DB, page models.Page, param InventoryItemRequest) ([]InventoryItem, int64, error) {
-	db := database.Model(InventoryItem{})
-	list := []InventoryItem{}
+func (item *InventoryItem) FindList(database *gorm.DB, page models.Page, param InventoryItemRequest) ([]InventoryItemList, int64, error) {
+	db := database.Table("inventory_items as tb1")
+	list := []InventoryItemList{}
 	total := int64(0)
 
+	db = db.Select("tb1.*, tb2.group_name")
 	if param.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", param.PartnerUid)
+		db = db.Where("tb1.partner_uid = ?", param.PartnerUid)
 	}
 
 	if param.CourseUid != "" {
-		db = db.Where("course_uid = ?", param.CourseUid)
+		db = db.Where("tb1.course_uid = ?", param.CourseUid)
 	}
 
 	if param.ServiceId > 0 {
-		db = db.Where("service_id = ?", param.ServiceId)
+		db = db.Where("tb1.service_id = ?", param.ServiceId)
 	}
 
 	if param.ItemCode != "" || param.ProductName != "" {
-		db = db.Where("code COLLATE utf8mb4_general_ci LIKE ? OR item_info->'$.item_name' COLLATE utf8mb4_general_ci LIKE ?", "%"+param.ItemCode+"%", "%"+param.ProductName+"%")
+		db = db.Where("tb1.code COLLATE utf8mb4_general_ci LIKE ? OR tb1.item_info->'$.item_name' COLLATE utf8mb4_general_ci LIKE ?", "%"+param.ItemCode+"%", "%"+param.ProductName+"%")
 	}
 
 	if param.Type != "" {
 		if param.Type == constants.GROUP_FB_FOOD {
-			db = db.Where("item_info->'$.group_type' = ?", "G1")
+			db = db.Where("tb1.item_info->'$.group_type' = ?", "G1")
 		} else if param.Type == constants.GROUP_FB_DRINK {
-			db = db.Where("item_info->'$.group_type' = ?", "G2")
+			db = db.Where("tb1.item_info->'$.group_type' = ?", "G2")
 		}
 	}
 
 	if param.InStock != "" {
 		if param.InStock == "1" {
-			db.Where("quantity > 0")
+			db.Where("tb1.quantity > 0")
 		} else {
-			db.Where("quantity = ?", 0)
+			db.Where("tb1.quantity = ?", 0)
 		}
 	}
+
+	// subQuery
+
+	subQuery := database.Table("group_services")
+
+	if param.PartnerUid != "" {
+		subQuery = subQuery.Where("group_services.partner_uid = ?", param.PartnerUid)
+	}
+
+	if param.CourseUid != "" {
+		subQuery = subQuery.Where("group_services.course_uid = ?", param.CourseUid)
+	}
+
+	db = db.Joins("INNER JOIN (?) as tb2 on tb2.group_code = JSON_UNQUOTE(tb1.item_info->'$.group_type')", subQuery)
 
 	db.Count(&total)
 

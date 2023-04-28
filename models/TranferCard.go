@@ -24,6 +24,11 @@ type TranferCard struct {
 	Note        string `json:"note" gorm:"type:varchar(500)"`                // Ghi chu them
 }
 
+type TransferCardDetail struct {
+	TranferCard
+	CustomerUser
+}
+
 func (item *TranferCard) Create(db *gorm.DB) error {
 	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()

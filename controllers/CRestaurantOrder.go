@@ -91,7 +91,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 	serviceCart.ServiceType = kiosk.KioskType
 	serviceCart.BillCode = constants.BILL_NONE
 	serviceCart.BillStatus = constants.RES_STATUS_ORDER
-	serviceCart.StaffOrder = prof.FullName
+	serviceCart.StaffOrder = prof.UserName
 	serviceCart.PlayerName = booking.CustomerName
 
 	if err := serviceCart.Create(db); err != nil {
@@ -310,6 +310,11 @@ func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsU
 	}
 
 	go createOperationLog(opLog)
+
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
 
 	okRes(c)
 }
@@ -662,6 +667,11 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 
 	go createOperationLog(opLog)
 
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
+
 	okRes(c)
 }
 
@@ -692,6 +702,9 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequest(c, "Find item"+err.Error())
 		return
 	}
+
+	//
+	dataOld := serviceCartItem
 
 	// validate restaurant order
 	serviceCart := models.ServiceCart{}
@@ -825,6 +838,32 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		updatePriceWithServiceItem(&booking, prof)
 	}
 
+	opLog := models.OperationLog{
+		PartnerUid:  serviceCartItem.PartnerUid,
+		CourseUid:   serviceCartItem.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_POS,
+		Function:    constants.OP_LOG_FUNCTION_RESTAURANT,
+		Action:      constants.OP_LOG_ACTION_UPD_ITEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: dataOld},
+		ValueNew:    models.JsonDataLog{Data: serviceCartItem},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         serviceCartItem.Bag,
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    serviceCartItem.BillCode,
+		BookingUid:  serviceCartItem.BookingUid,
+	}
+
+	createOperationLog(opLog)
+
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
+
 	okRes(c)
 }
 
@@ -945,6 +984,11 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 		//Update lại giá trong booking
 		updatePriceWithServiceItem(&booking, prof)
 	}
+
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
 
 	okRes(c)
 }
@@ -1336,7 +1380,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 	serviceCart.TypeCode = body.Table
 	serviceCart.NumberGuest = body.NumberGuest
 	serviceCart.ResFloor = body.Floor
-	serviceCart.StaffOrder = prof.FullName
+	serviceCart.StaffOrder = prof.UserName
 	serviceCart.PlayerName = body.PlayerName
 	serviceCart.Phone = body.Phone
 	serviceCart.OrderTime = body.OrderTime
@@ -1765,6 +1809,11 @@ func (_ CRestaurantOrder) UpdateRestaurantBooking(c *gin.Context, prof models.Cm
 		return
 	}
 
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
+
 	okRes(c)
 }
 
@@ -1975,6 +2024,9 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//
+	dataOld := sourceServiceCart
+
 	// validate golf bag source
 	bookingS := model_booking.Booking{}
 	bookingS.Uid = sourceServiceCart.BookingUid
@@ -2005,7 +2057,7 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 	targetServiceCart.ServiceType = sourceServiceCart.ServiceType
 	targetServiceCart.BillStatus = sourceServiceCart.BillStatus
 	targetServiceCart.BookingUid = booking.Uid
-	targetServiceCart.StaffOrder = prof.FullName
+	targetServiceCart.StaffOrder = prof.UserName
 	targetServiceCart.BillCode = constants.BILL_NONE
 
 	// create cart
@@ -2108,6 +2160,47 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, "Update target cart "+err.Error())
 		return
 	}
+
+	opLogSource := models.OperationLog{
+		PartnerUid:  bookingSource.PartnerUid,
+		CourseUid:   bookingSource.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_POS,
+		Function:    constants.OP_LOG_FUNCTION_RESTAURANT,
+		Action:      constants.OP_LOG_ACTION_TRANSFER,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: dataOld},
+		ValueNew:    models.JsonDataLog{Data: sourceServiceCart},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         bookingSource.Bag,
+		BookingDate: bookingSource.BookingDate,
+		BillCode:    bookingSource.BillCode,
+		BookingUid:  bookingSource.Uid,
+	}
+
+	opLogTarget := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_POS,
+		Function:    constants.OP_LOG_FUNCTION_RESTAURANT,
+		Action:      constants.OP_LOG_ACTION_TRANSFER,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: targetServiceCart},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	go createOperationLog(opLogSource)
+	go createOperationLog(opLogTarget)
 
 	okRes(c)
 }

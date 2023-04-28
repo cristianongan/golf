@@ -669,6 +669,14 @@ func RandomCharNumber(length int) string {
 	return id
 }
 
+func RandomCharNumberV3(length int) string {
+	id, err := gonanoid.Generate("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", length)
+	if err != nil {
+		return ""
+	}
+	return id
+}
+
 func RandomCharNumberV2(length int) string {
 	id, err := gonanoid.Generate("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz", length)
 	if err != nil {

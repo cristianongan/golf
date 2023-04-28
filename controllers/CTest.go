@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"start/callservices"
@@ -9,6 +10,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	"start/services"
 	socket_room "start/socket_room"
 	"start/utils"
 	"start/utils/response_message"
@@ -19,6 +21,38 @@ import (
 )
 
 type CTest struct{}
+
+type BitlyShortLinkBody struct {
+	LongUrl string `json:"long_url" binding:"required"` // Hang Golf
+}
+
+func (_ *CTest) TestBitlyShortLink(c *gin.Context, prof models.CmsUser) {
+	var body BitlyShortLinkBody
+
+	if bindErr := c.BindJSON(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	bodyModel := services.ShortReq{
+		URL:    body.LongUrl,
+		Domain: "bit.ly",
+	}
+
+	bodyModelByte, errB := json.Marshal(bodyModel)
+	if errB != nil {
+		response_message.InternalServerError(c, errB.Error())
+		return
+	}
+
+	errS, _, resp := services.BitlyShorten(bodyModelByte)
+	if errS != nil {
+		response_message.InternalServerError(c, errS.Error())
+		return
+	}
+
+	okResponse(c, resp)
+}
 
 func (cBooking *CTest) TestFee(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)

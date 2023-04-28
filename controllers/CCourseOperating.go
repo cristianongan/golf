@@ -826,6 +826,8 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 		return
 	}
 
+	oldBooking := booking
+
 	// validate caddie_code
 	oldCaddie := booking.CaddieInfo
 
@@ -911,6 +913,28 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 
 		go addBuggyCaddieInOutNote(db, caddieBuggyInNote)
 	}
+
+	// ADD LOG
+	opLog := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_GO,
+		Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_IN_COURSE,
+		Action:      constants.OP_LOG_ACTION_COURSE_INFO_CHANGE_CADDIE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldBooking},
+		ValueNew:    models.JsonDataLog{Data: booking},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	go createOperationLog(opLog)
 
 	okResponse(c, booking)
 }
@@ -1718,6 +1742,7 @@ func (_ CCourseOperating) GetFlight(c *gin.Context, prof models.CmsUser) {
 	flights.CaddieCode = query.CaddieCode
 	flights.PlayerName = query.PlayerName
 	flights.GolfBag = query.GolfBag
+	flights.BagStatus = query.BagStatus
 
 	list, total, err := flights.FindFlightList(db, page)
 
@@ -1855,7 +1880,7 @@ func (cCourseOperating CCourseOperating) UndoTimeOut(c *gin.Context, prof models
 		}
 	}
 
-	for _, booking := range bookingResponse {
+	for idx, booking := range bookingResponse {
 		booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 		booking.TimeOutFlight = 0
 		booking.BagStatus = constants.BAG_STATUS_IN_COURSE
@@ -1872,7 +1897,7 @@ func (cCourseOperating CCourseOperating) UndoTimeOut(c *gin.Context, prof models
 				Function:    constants.OP_LOG_FUNCTION_COURSE_INFO_TIME_OUT,
 				Action:      constants.OP_LOG_ACTION_COURSE_INFO_UNDO_OUT_FLIGHT,
 				Body:        models.JsonDataLog{Data: body},
-				ValueOld:    models.JsonDataLog{},
+				ValueOld:    models.JsonDataLog{bookingResponse[idx]},
 				ValueNew:    models.JsonDataLog{Data: booking},
 				Path:        c.Request.URL.Path,
 				Method:      c.Request.Method,

@@ -7,6 +7,7 @@ import (
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
+	model_booking "start/models/booking"
 	socket_room "start/socket_room"
 	"start/utils"
 	"start/utils/response_message"
@@ -430,6 +431,47 @@ func (_ *CNotification) CreateCaddieVacation(c *gin.Context, prof models.CmsUser
 	okRes(c)
 }
 
+func (_ *CNotification) PushMessPOSForApp(bill models.ServiceCart) {
+	// Data mess
+	notiData := map[string]interface{}{
+		"bill_id": bill.Id,
+	}
+
+	if bill.ServiceType == constants.RESTAURANT_SETTING {
+		notiData["type"] = constants.NOTIFICATION_RESTAURANT_BILL_UPDATE
+
+		newFsConfigBytes, _ := json.Marshal(notiData)
+		socket_room.Hub.Broadcast <- socket_room.Message{
+			Data: newFsConfigBytes,
+			Room: constants.NOTIFICATION_CHANNEL_RESTAURANT,
+		}
+	}
+
+	if bill.ServiceType == constants.KIOSK_SETTING {
+		notiData["type"] = constants.NOTIFICATION_KIOSK_BILL_UPDATE
+
+		newFsConfigBytes, _ := json.Marshal(notiData)
+		socket_room.Hub.Broadcast <- socket_room.Message{
+			Data: newFsConfigBytes,
+			Room: constants.NOTIFICATION_CHANNEL_KIOSK,
+		}
+	}
+}
+
+func (_ *CNotification) PushMessKIForApp() {
+	// Data mess
+	notiData := map[string]interface{}{
+		"type":  constants.NOTIFICATION_KIOSK_INVENTORY_UPDATE,
+		"title": "",
+	}
+
+	newFsConfigBytes, _ := json.Marshal(notiData)
+	socket_room.Hub.Broadcast <- socket_room.Message{
+		Data: newFsConfigBytes,
+		Room: constants.NOTIFICATION_CHANNEL_KIOSK,
+	}
+}
+
 func (_ *CNotification) CreateCWCNotification(db *gorm.DB, prof models.CmsUser, applayDate string, caddieCode []string) {
 	// noti
 	title := fmt.Sprintln("Caddie xin tăng cường ngày ", applayDate, ": ", strings.Join(caddieCode, ", "))
@@ -459,6 +501,26 @@ func (_ *CNotification) CreateCWCNotification(db *gorm.DB, prof models.CmsUser, 
 		Data: newFsConfigBytes,
 		Room: constants.NOTIFICATION_CHANNEL_ADMIN_1,
 	}
+}
+
+func (_ *CNotification) PushMessBoookingForApp(typeMess string, bag *model_booking.Booking) {
+	// Data mess
+	notiData := map[string]interface{}{
+		"type": typeMess,
+		"data": bag,
+	}
+
+	// Check date
+	dateNow, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+
+	if dateNow == bag.BookingDate {
+		newFsConfigBytes, _ := json.Marshal(notiData)
+		socket_room.Hub.Broadcast <- socket_room.Message{
+			Data: newFsConfigBytes,
+			Room: constants.NOTIFICATION_CHANNEL_BOOKING_APP,
+		}
+	}
+
 }
 
 func (_ *CNotification) Admin1ApproveCaddieWC(c *gin.Context, prof models.CmsUser) {

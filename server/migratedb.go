@@ -53,6 +53,7 @@ func MigrateDbCms(db *gorm.DB) {
 	db.AutoMigrate(&models.LockTurn{})
 	db.AutoMigrate(&models.TeeTypeClose{})
 	db.AutoMigrate(&model_booking.CancelBookingSetting{})
+	db.AutoMigrate(&models.PlayerScore{})
 
 	// ----- Agency ------
 	db.AutoMigrate(&models.Agency{})
@@ -105,6 +106,7 @@ func MigrateDbCms(db *gorm.DB) {
 	db.AutoMigrate(&models.Nationality{})
 	db.AutoMigrate(&models.CompanyType{})
 	db.AutoMigrate(&models.Company{})
+	db.AutoMigrate(&models.ParOfHole{})
 
 	// ------- GO --------
 	db.AutoMigrate(&model_gostarter.Flight{})

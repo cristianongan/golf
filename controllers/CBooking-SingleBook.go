@@ -237,7 +237,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			Function:    constants.OP_LOG_FUNCTION_BOOKING,
 			Action:      constants.OP_LOG_ACTION_MOVE,
 			Body:        models.JsonDataLog{Data: body},
-			ValueOld:    models.JsonDataLog{Data: body.BookUidList[index]},
+			ValueOld:    models.JsonDataLog{Data: cloneListBooking[index]},
 			ValueNew:    models.JsonDataLog{Data: booking},
 			Path:        c.Request.URL.Path,
 			Method:      c.Request.Method,
@@ -279,7 +279,7 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		}
 	}
 
-	listBooking, err := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	listBooking, err := cBooking.CreateBatch(bodyRequest.BookingList, c, prof, "")
 	if err != nil {
 		return
 	}
@@ -289,7 +289,7 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		item := bodyRequest.BookingList[0]
 		if item.BookingRestaurant.Enable {
 			db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-			go addServiceCart(db, len(bodyRequest.BookingList), item.PartnerUid, item.CourseUid, item.CustomerBookingName, item.CustomerBookingPhone, item.BookingDate, prof.FullName)
+			go addServiceCart(db, len(bodyRequest.BookingList), item.PartnerUid, item.CourseUid, item.CustomerBookingName, item.CustomerBookingPhone, item.BookingDate, prof.UserName)
 		}
 	}
 
@@ -303,6 +303,9 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		cNotification := CNotification{}
 		cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, listBooking)
 	}()
+
+	//Send Sms
+	go genQRCodeListBook(listBooking)
 
 	okResponse(c, listBooking)
 }
@@ -483,32 +486,32 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 			}
 		}
 	}
-	listBooking, _ := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	listBooking, _ := cBooking.CreateBatch(bodyRequest.BookingList, c, prof, "COPY")
 
-	//Add Log
-	go func() {
-		for index, booking := range listBooking {
-			opLog := models.OperationLog{
-				PartnerUid:  booking.PartnerUid,
-				CourseUid:   booking.CourseUid,
-				UserName:    prof.UserName,
-				UserUid:     prof.Uid,
-				Module:      constants.OP_LOG_MODULE_RECEPTION,
-				Function:    constants.OP_LOG_FUNCTION_BOOKING,
-				Action:      constants.OP_LOG_ACTION_COPY,
-				Body:        models.JsonDataLog{Data: bodyRequest},
-				ValueOld:    models.JsonDataLog{Data: bodyRequest.BookingList[index]},
-				ValueNew:    models.JsonDataLog{Data: booking},
-				Path:        c.Request.URL.Path,
-				Method:      c.Request.Method,
-				Bag:         booking.Bag,
-				BookingDate: booking.BookingDate,
-				BillCode:    booking.BillCode,
-				BookingUid:  booking.Uid,
-			}
-			go createOperationLog(opLog)
-		}
-	}()
+	// //Add Log
+	// go func() {
+	// 	for _, booking := range listBooking {
+	// 		opLog := models.OperationLog{
+	// 			PartnerUid:  booking.PartnerUid,
+	// 			CourseUid:   booking.CourseUid,
+	// 			UserName:    prof.UserName,
+	// 			UserUid:     prof.Uid,
+	// 			Module:      constants.OP_LOG_MODULE_RECEPTION,
+	// 			Function:    constants.OP_LOG_FUNCTION_BOOKING,
+	// 			Action:      constants.OP_LOG_ACTION_COPY,
+	// 			Body:        models.JsonDataLog{Data: bodyRequest},
+	// 			ValueOld:    models.JsonDataLog{},
+	// 			ValueNew:    models.JsonDataLog{Data: booking},
+	// 			Path:        c.Request.URL.Path,
+	// 			Method:      c.Request.Method,
+	// 			Bag:         booking.Bag,
+	// 			BookingDate: booking.BookingDate,
+	// 			BillCode:    booking.BillCode,
+	// 			BookingUid:  booking.Uid,
+	// 		}
+	// 		go createOperationLog(opLog)
+	// 	}
+	// }()
 
 	okResponse(c, listBooking)
 }
@@ -594,7 +597,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
-func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser) ([]model_booking.Booking, error) {
+func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser, typeAction string) ([]model_booking.Booking, error) {
 	list := []model_booking.Booking{}
 	for _, body := range bookingList {
 		booking, errCreate := cBooking.CreateBookingCommon(body, c, prof)
@@ -625,7 +628,16 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 			BillCode:    booking.BillCode,
 			BookingUid:  booking.Uid,
 		}
+
+		if typeAction == "COPY" {
+			opLog.Action = constants.OP_LOG_ACTION_COPY
+		} else {
+			opLog.Action = constants.OP_LOG_ACTION_CREATE
+		}
 		go createOperationLog(opLog)
+		// push socket
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
 	}
 	return list, nil
 }
