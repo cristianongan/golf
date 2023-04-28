@@ -676,28 +676,35 @@ func (item *BookingServiceItem) FindReport(database *gorm.DB, page models.Page, 
 
 	db := database.Table("booking_service_items as tb1")
 
-	db = db.Select(`tb2.booking_date,
+	db = db.Select(`tb1.created_at, tb2.booking_date,
 		SUM(if(tb1.type = ? || tb1.type = ?, tb1.amount, 0)) AS total_res,
-		SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_kiosk,
+		SUM(if(tb1.type = ? AND tb4.is_cold_box = 0, tb1.amount, 0)) AS total_kiosk,
+		SUM(if(tb1.type = ? AND tb4.is_cold_box = 1, tb1.amount, 0)) AS total_kiosk_cb,
 		SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_bar
-	`, constants.RESTAURANT_SETTING, constants.MINI_R_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING)
+	`, constants.RESTAURANT_SETTING, constants.MINI_R_SETTING, constants.KIOSK_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING)
 
 	if typeService == "RES" {
 		if typeService == "RES" {
-			db = db.Select(`tb2.booking_date, 
+			db = db.Select(`tb1.created_at, tb2.booking_date, 
 			SUM(if(tb1.type = ? || tb1.type = ?, tb1.amount, 0)) AS total_res`, constants.RESTAURANT_SETTING, constants.MINI_R_SETTING)
 		}
 	}
 
 	if typeService == "KIOSK" {
 		if typeService == "KIOSK" {
-			db = db.Select(`tb2.booking_date, SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_kiosk`, constants.KIOSK_SETTING)
+			db = db.Select(`tb1.created_at, tb2.booking_date, SUM(if(tb1.type = ? AND tb4.is_cold_box = 0, tb1.amount, 0)) AS total_kiosk`, constants.KIOSK_SETTING)
+		}
+	}
+
+	if typeService == "KIOSK_CB" {
+		if typeService == "KIOSK_CB" {
+			db = db.Select(`tb1.created_at, tb2.booking_date, SUM(if(tb1.type = ? AND tb4.is_cold_box = 1, tb1.amount, 0)) AS total_kiosk_cb`, constants.KIOSK_SETTING)
 		}
 	}
 
 	if typeService == "MINI_B" {
 		if typeService == "MINI_B" {
-			db = db.Select(`tb2.booking_date, SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_bar`, constants.MINI_B_SETTING)
+			db = db.Select(`tb1.created_at, tb2.booking_date, SUM(if(tb1.type = ?, tb1.amount, 0)) AS total_bar`, constants.MINI_B_SETTING)
 		}
 	}
 
@@ -721,6 +728,7 @@ func (item *BookingServiceItem) FindReport(database *gorm.DB, page models.Page, 
 
 	db = db.Joins(`INNER JOIN (?) as tb2 on tb1.booking_uid = tb2.uid`, subQuery)
 	db = db.Joins(`LEFT JOIN service_carts as tb3 on tb1.service_bill = tb3.id`)
+	db = db.Joins(`INNER JOIN kiosks as tb4 on tb1.service_id = CONVERT(tb4.id, CHAR) COLLATE utf8mb4_general_ci`)
 
 	db = db.Where("tb1.type IN ?", []string{constants.RESTAURANT_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.MINI_R_SETTING})
 	db = db.Where("tb2.check_in_time > 0")
@@ -728,7 +736,6 @@ func (item *BookingServiceItem) FindReport(database *gorm.DB, page models.Page, 
 	db = db.Where("(tb3.bill_status NOT IN ? OR tb3.bill_status IS NULL)", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
 
 	db.Group("tb2.booking_date")
-
 	db.Count(&total)
 
 	if total > 0 && int64(page.Offset()) < total {

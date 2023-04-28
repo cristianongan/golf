@@ -16,7 +16,7 @@ type CreateKioskForm struct {
 	ServiceType string `json:"service_type"`
 	KioskType   string `json:"kiosk_type"`
 	Status      string `json:"status"`
-	IsColdBox   bool   `json:"is_cold_box"`
+	IsColdBox   *bool  `json:"is_cold_box"`
 }
 
 type GetSetupListForm struct {

@@ -52,6 +52,10 @@ func (_ *CKiosk) GetListKiosk(c *gin.Context, prof models.CmsUser) {
 		kioskR.KioskType = form.KioskType
 	}
 
+	if form.IsColdBox != nil {
+		kioskR.IsColdBox = form.IsColdBox
+	}
+
 	list, _, err := kioskR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -212,8 +216,8 @@ func (_ *CKiosk) UpdateKiosk(c *gin.Context, prof models.CmsUser) {
 	if body.ServiceType != "" {
 		kiosk.ServiceType = body.ServiceType
 	}
-	if body.IsColdBox {
-		kiosk.IsColdBox = setBoolForCursor(body.IsColdBox)
+	if body.IsColdBox != nil {
+		kiosk.IsColdBox = body.IsColdBox
 	}
 
 	errUdp := kiosk.Update(db)
