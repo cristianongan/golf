@@ -32,7 +32,7 @@ func genQRCodeListBook(listBooking []model_booking.Booking) {
 		listHaveQRURL = append(listHaveQRURL, v)
 	}
 	//disable for prod
-	sendSmsBooking(listHaveQRURL)
+	// sendSmsBooking(listHaveQRURL)
 }
 
 /*
