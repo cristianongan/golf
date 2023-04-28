@@ -836,6 +836,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/test-fast-fee", middlewares.AuthorizedCmsUserHandler(cTest.TestFastFee))
 			cmsApiAuthorized.GET("/test-caddie-slot", middlewares.AuthorizedCmsUserHandler(cTest.TestCaddieSlot))
 			cmsApiAuthorized.GET("/test-notification", middlewares.AuthorizedCmsUserHandler(cTest.TestNotification))
+			cmsApiAuthorized.POST("/test-short-link", middlewares.AuthorizedCmsUserHandler(cTest.TestBitlyShortLink))
 
 			/// =================== Test ===================
 			cHelper := new(controllers.CHelper)
@@ -847,6 +848,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/helper/admin/create-caddie-slot", middlewares.AuthorizedCmsUserHandler(cHelper.CreateCaddieSlotByDate)) // Chỉ dùng cho import data fb
 			cmsApiAuthorized.POST("/helper/admin/reset-caddie", middlewares.AuthorizedCmsUserHandler(cHelper.ResetCaddie))                  // Reset Caddie -> cho di lam và có thể chọn
 			cmsApiAuthorized.POST("/helper/admin/move-booking-cancel", middlewares.AuthorizedCmsUserHandler(cHelper.MoveBookingCancel))
+
 		}
 
 		// ----------------------------------------------------------
@@ -876,6 +878,29 @@ func NewRouter() *gin.Engine {
 				otaV1Api.POST("/LockTeeTime", cTeeTime.LockTeeTime)
 				otaV1Api.POST("/UnlockTeeTime", cTeeTime.UnlockTeeTime)
 			}
+		}
+
+		// ----------------------------------------------------------
+		// ====================== Ekyc =======================
+		// ----------------------------------------------------------
+		ekycApi := routerApi.Group("ekyc")
+		{
+			ekycV1Api := ekycApi.Group("v1")
+			{
+				cEkyc := new(controllers.Cekyc)
+				ekycV1Api.POST("/member-card/list", cEkyc.GetListMemberForEkycList)           // Lay danh sach thanh vien
+				ekycV1Api.POST("/member-card/check-booking", cEkyc.CheckBookingMemberForEkyc) // kiem tra thanh vien co booking ngay do khong
+				ekycV1Api.POST("/member-card/check-in", cEkyc.CheckInBookingMemberForEkyc)    // check in booking member
+			}
+		}
+
+		// ----------------------------------------------------------
+		// ====================== Public =======================
+		// ----------------------------------------------------------
+		publicApi := routerApi.Group("public")
+		{
+			cPublic := new(controllers.CPublic)
+			publicApi.POST("/booking/info", cPublic.GetBookingInfo)
 		}
 
 		accountantApi := routerApi.Group("accountant")

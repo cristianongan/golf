@@ -133,6 +133,10 @@ type Booking struct {
 	//Cho get data
 	MemberCard        *models.MemberCard `json:"member_card_info,omitempty" gorm:"-:migration;foreignKey:MemberCardUid"`
 	MemberCardOfGuest *models.MemberCard `json:"member_card_of_guest,omitempty" gorm:"-:migration;foreignKey:MemberUidOfGuest"`
+
+	//Qr code
+	CheckInCode string `json:"check_in_code" gorm:"type:varchar(50);index"`
+	QrcodeUrl   string `json:"qrcode_url" gorm:"type:varchar(250)"`
 }
 
 type FlyInfoResponse struct {
@@ -1532,6 +1536,31 @@ func (item *Booking) FindReportDetailFBBag(database *gorm.DB, location string) (
 	db.Group("tb1.bag")
 
 	db = db.Find(&list)
+
+	return list, db.Error
+}
+
+/*
+Find booking cua member trong ngay
+*/
+func (item *Booking) FindMemberBooking(database *gorm.DB) ([]Booking, error) {
+	db := database.Table("bookings")
+	list := []Booking{}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+	if item.MemberCardUid != "" {
+		db = db.Where("member_card_uid = ?", item.MemberCardUid)
+	}
+
+	db.Find(&list)
 
 	return list, db.Error
 }

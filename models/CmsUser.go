@@ -31,6 +31,8 @@ type CmsUser struct {
 	Sex        int    `json:"sex"`                                 // gioi tinh
 	Department string `json:"department" gorm:"type:varchar(100)"` // Đơn vị
 	RoleId     int64  `json:"role_id" gorm:"index"`                // Quyền hạn
+	CaddieId   int64  `json:"caddie_id" gorm:"index"`              // Gan voi Caddie (Neu co)
+	Type       string `json:"type" gorm:"index;type:varchar(30)"`  // APP, CMS
 }
 
 type CmsUserDetail struct {

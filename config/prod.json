@@ -17,7 +17,7 @@
         "password": "(zTUd^6N48f#pd^S",
         "host": "10.20.4.153",
         "port": "3306",
-        "is_migrated": false,
+        "is_migrated": true,
         "debug": true
     },
     "mysql_auth": {
@@ -57,5 +57,19 @@
     "is_open_socket": true,
     "ccu_server": 50,
     "reset_p": "fZ3bp+k0uwSuBRcW3CpcoA==",
-    "is_write_log_to_db": true
+    "is_write_log_to_db": true,
+    "bitly" : {
+        "url": "https://api-ssl.bitly.com/v4/",
+        "token": "97b45ee97112fc236bdb0988a954b908e15ade44"
+    },
+    "portal_cms": {
+        "url": "https://vngolf-portal.vnpay.vn/"
+    },
+    "vnpay_sms": {
+        "url": "http://10.22.18.118:8083/smsgw/sendSms",
+        "sender": "VNPAY",
+        "keyword": "GOLF_TEST",
+        "username": "950811",
+        "password": "f3c98dec9f36459c8100478d694af863"
+    }
 }

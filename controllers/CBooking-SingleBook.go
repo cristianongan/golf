@@ -304,6 +304,9 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, listBooking)
 	}()
 
+	//Send Sms
+	go genQRCodeListBook(listBooking)
+
 	okResponse(c, listBooking)
 }
 

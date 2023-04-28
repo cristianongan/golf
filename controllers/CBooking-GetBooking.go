@@ -519,6 +519,7 @@ func SetParamGetBookingRequest(form request.GetListBookingWithSelectForm) model_
 	bookings.GuestStyle = form.GuestStyle
 	bookings.CaddieName = form.CaddieName
 	bookings.GuestType = form.GuestType
+	bookings.CheckInCode = form.CheckInCode
 
 	return bookings
 }
