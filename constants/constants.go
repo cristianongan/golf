@@ -1,6 +1,11 @@
 package constants
 
 /*
+QR Prefix
+*/
+const QR_PREFIX_CHECK_IN = "CKI"
+
+/*
 Max Slot TeeTime
 */
 const SLOT_TEE_TIME = 4

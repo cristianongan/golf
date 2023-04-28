@@ -62,6 +62,7 @@ type BookingList struct {
 	BillCode              string
 	CommonFilter          string
 	GuestType             string
+	CheckInCode           string
 }
 
 type BookingStarter struct {
@@ -330,6 +331,10 @@ func addFilter(db *gorm.DB, item *BookingList, isGroupBillCode bool) *gorm.DB {
 
 	if item.GuestType == "NO_BOOKING" {
 		db = db.Where("customer_type <> 'NONE_GOLF'")
+	}
+
+	if item.CheckInCode != "" {
+		db = db.Where("check_in_code = ?", item.CheckInCode)
 	}
 
 	return db

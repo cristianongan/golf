@@ -25,6 +25,8 @@ import (
 
 	model_report "start/models/report"
 
+	qrcode "github.com/skip2/go-qrcode"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -2133,5 +2135,46 @@ func deleteBookingWaiting(db *gorm.DB, id int64) {
 	if err := bookingWaiting.FindFirst(db); err == nil {
 		bookingWaiting.Status = constants.STATUS_DELETED
 		bookingWaiting.Update(db)
+	}
+}
+
+// Gen qr code
+func genQrCodeForBooking(booking *model_booking.Booking) {
+	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
+
+	var checkinCode string
+
+	checkinCode = utils.RandomCharNumberV3(4)
+
+	for {
+		// validate checkinCode
+		bookingR := model_booking.Booking{
+			CourseUid:   booking.CourseUid,
+			PartnerUid:  booking.PartnerUid,
+			BookingDate: booking.BookingDate,
+			CheckInCode: checkinCode,
+		}
+		if err := bookingR.FindFirst(db); err == nil {
+			checkinCode = utils.RandomCharNumber(4)
+		} else {
+			break
+		}
+	}
+
+	// gen code
+	code := constants.QR_PREFIX_CHECK_IN + checkinCode + strconv.FormatInt(time.Now().Unix(), 10)
+
+	file, _ := qrcode.Encode(code, qrcode.Medium, 256)
+
+	link, errUpdload := datasources.UploadQrCodeFile(file)
+	if errUpdload != nil {
+		log.Println("genQrCodeForBooking err, ", errUpdload.Error())
+	}
+
+	//Update booking
+	booking.CheckInCode = checkinCode
+	booking.QrcodeUrl = link
+	if err := booking.Update(db); err != nil {
+		log.Println("genQrCodeForBooking err, ", err.Error())
 	}
 }

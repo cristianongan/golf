@@ -98,6 +98,33 @@ func minioUploadFile(bucketname, path string, file *multipart.File) (string, err
 	return config.GetMinioGetDataHost() + config.GetMinioBucket() + path, nil
 }
 
+func minioUploadForByte(bucketname, path string, file []byte) (string, error) {
+	errMake := mackePublicBucket(bucketname)
+	if errMake != nil {
+		return "", errMake
+	}
+
+	buff := bytes.NewBuffer(file)
+	bFile := buff.Bytes()
+	lengthFile := buff.Len()
+	userMetaData := map[string]string{"x-amz-acl": "public-read"}
+	// contentTypeFile := http.DetectContentType(bFile)
+
+	_, errUpload := minioClient.PutObject(
+		context.Background(),
+		bucketname,
+		path, bytes.NewReader(bFile),
+		int64(lengthFile),
+		minio.PutObjectOptions{ContentType: "application/octet-stream", UserMetadata: userMetaData}) // svg contentType : image/svg+xml
+	if errUpload != nil {
+		log.Println("minio err ERROR_UPLOAD:", errUpload)
+		return "", errUpload
+	}
+	// fmt.Println("minio Successfully uploaded bytes: ", utils.StructToJson(uploadInfo))
+
+	return config.GetMinioGetDataHost() + config.GetMinioBucket() + path, nil
+}
+
 func UploadAvatarFile(file *multipart.File) (string, error) {
 	bucketName := config.GetMinioBucket()
 	path := "/avatars/" + utils.GenerateUidTimestamp() + ".png"
@@ -114,4 +141,10 @@ func UploadIconFile(iconName, fileType string, file *multipart.File) (string, er
 	bucketName := config.GetMinioBucket()
 	path := "/icon/" + iconName + "-" + utils.GenerateUidTimestamp() + "." + fileType
 	return minioUploadFile(bucketName, path, file)
+}
+
+func UploadQrCodeFile(file []byte) (string, error) {
+	bucketName := config.GetMinioBucket()
+	path := "/qr-code/" + utils.GenerateUidTimestamp() + ".png"
+	return minioUploadForByte(bucketName, path, file)
 }
