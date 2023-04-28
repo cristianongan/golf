@@ -1,20 +1,28 @@
 package constants
 
 /*
-	Max Slot TeeTime
+Max Slot TeeTime
 */
 const SLOT_TEE_TIME = 4
 
 /*
-	Paid By Agency
+Paid By Agency
 */
 const PAID_BY_AGENCY = "AGENCY"
 
 /*
-	Paid By Agency
+Paid By Agency
 */
 const LOCK_OTA = "LOCK_OTA"
 const LOCK_CMS = "LOCK_CMS"
+
+/*
+Type cho Role cho App hoặc Cms Portal
+*/
+const (
+	ROLE_TYPE_APP = "APP"
+	ROLE_TYPE_CMS = "CMS"
+)
 
 /*
 Get base price cho type agency họăc member card
