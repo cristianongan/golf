@@ -295,7 +295,12 @@ func (item *GolfFee) FindList(database *gorm.DB, page Page, isToday, dow string)
 				db = db.Where("table_price_id = ?", currentTablePrice.Id)
 			}
 		}
-		db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+		toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		if CheckHoliday(item.PartnerUid, item.CourseUid, toDayDate) {
+			db = db.Where("dow LIKE ?", "%0%")
+		} else {
+			db = db.Where("dow LIKE ?", "%"+utils.GetCurrentDayStrWithMap()+"%")
+		}
 	}
 
 	if dow != "" {
