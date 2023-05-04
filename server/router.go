@@ -386,6 +386,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/course-operating/edit-holes-of-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.EditHolesOfCaddie))
 			cmsApiAuthorized.POST("/course-operating/add-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.AddBagToFlight)) // Add bag to flight
 
+			/// =================== Course Operating For App ====================
+			cBagAttachCaddie := new(controllers.CBagAttachCaddie)
+			cmsApiAuthorized.POST("/bag-attach-caddie", middlewares.AuthorizedCmsUserHandler(cBagAttachCaddie.CreateAttachCaddie))
+			cmsApiAuthorized.GET("/bag-attach-caddie/list", middlewares.AuthorizedCmsUserHandler(cBagAttachCaddie.GetListAttachCaddie))
+			cmsApiAuthorized.PUT("/bag-attach-caddie/:id", middlewares.AuthorizedCmsUserHandler(cBagAttachCaddie.UpdateAttachCaddie))
+			cmsApiAuthorized.DELETE("/bag-attach-caddie/:id", middlewares.AuthorizedCmsUserHandler(cBagAttachCaddie.DeleteAttachCaddie))
+
 			/// =================== + More Course Operating ===================
 			cmsApiAuthorized.GET("/course-operating/flight/list", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetFlight))
 			cmsApiAuthorized.POST("/course-operating/move-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.MoveBagToFlight)) // Move flight

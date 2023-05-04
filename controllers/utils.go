@@ -1180,6 +1180,16 @@ func checkCaddieReady(booking model_booking.Booking, caddie models.Caddie) error
 	return nil
 }
 
+func checkCaddieReadyForApp(caddie models.Caddie) string {
+	if !(caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH ||
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH_R2 ||
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH_R3) {
+		return "Caddie " + caddie.Code + " chưa sẵn sàng để ghép "
+	}
+	return ""
+}
+
 /*
 Buggy có thể ghép tối đa 2 player
 Check Buggy có đang sẵn sàng để ghép không
