@@ -146,7 +146,10 @@ func (_ *Cekyc) CheckBookingMemberForEkyc(c *gin.Context) {
 		return
 	}
 
-	responseBaseModel.Data = listBook[idx].CloneBookingEkyc()
+	//Get full info
+	resFull := getBagDetailFromBooking(db, listBook[idx])
+
+	responseBaseModel.Data = resFull.CloneBookingEkyc()
 
 	c.JSON(http.StatusOK, responseBaseModel)
 
