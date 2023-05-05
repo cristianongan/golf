@@ -14,6 +14,40 @@ import (
 
 type CMemberCard struct{}
 
+// ======================== eKyc ===========================
+/*
+  List member cho app thu thap
+*/
+func (_ *CMemberCard) EKycGetListMemberCard(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListMemberCardEKycAppThuThapForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	memberCardR := models.MemberCard{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+		CardId:     form.CardId,
+	}
+	memberCardR.Status = constants.STATUS_ENABLE
+	list, err := memberCardR.FindListForEkycAppThuThap(db, page, form.PlayerName)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okResponse(c, list)
+}
+
 func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := models.MemberCard{}

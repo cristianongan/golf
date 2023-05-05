@@ -31,3 +31,11 @@ type UnMarkContactCustomerBody struct {
 	PartnerUid string `json:"partner_uid" binding:"required"`
 	CourseUid  string `json:"course_uid" binding:"required"`
 }
+
+type GetListMemberCardEKycAppThuThapForm struct {
+	PageRequest
+	PartnerUid string `form:"partner_uid" binding:"required"`
+	CourseUid  string `form:"course_uid" binding:"required"`
+	CardId     string `form:"card_id"`
+	PlayerName string `form:"player_name"`
+}
