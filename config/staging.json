@@ -71,5 +71,9 @@
         "keyword": "GOLF_TEST",
         "username": "950811",
         "password": "f3c98dec9f36459c8100478d694af863"
+    },
+    "ekyc": {
+        "url": "https://cobekycgwv2.vnpaytest.vn/ekycgw/golf/",
+        "update_image": "update_ekyc"
     }
 }

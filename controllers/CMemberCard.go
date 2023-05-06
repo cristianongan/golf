@@ -107,6 +107,8 @@ func (_ *CMemberCard) EKycUpdateImageMemberCard(c *gin.Context, prof models.CmsU
 	}
 
 	// TODO: Cập nhật ảnh sang eKyc server
+	// for tìm tất cả các member có owner_uid call udp sang
+	go ekycUpdateImage(ownerUid, link)
 
 	okResponse(c, customerInfo)
 }

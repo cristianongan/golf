@@ -122,3 +122,23 @@ func sendSmsBooking(listBooking []model_booking.Booking) error {
 
 	return errSend
 }
+
+/*
+Update image to ekyc server
+*/
+func ekycUpdateImage(memberUid, link string) {
+	body := services.EkycUpdateBody{
+		D:           memberUid,
+		S:           memberUid,
+		SelfieImage: link,
+	}
+
+	dataByte, errM := json.Marshal(body)
+
+	if errM != nil {
+		log.Println("ekycUpdateImage errM", errM.Error())
+		return
+	}
+
+	_, _ = services.EkycUpdateImage(dataByte)
+}
