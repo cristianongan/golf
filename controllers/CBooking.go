@@ -1700,6 +1700,9 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 	}
 	go createOperationLog(opLog)
 
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+
 	okResponse(c, booking)
 }
 
@@ -2026,6 +2029,9 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 		BookingUid:  booking.Uid,
 	}
 	go createOperationLog(opLog)
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UCI, &booking)
 
 	okRes(c)
 }

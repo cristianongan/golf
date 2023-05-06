@@ -148,6 +148,10 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 	}
 	go createOperationLog(opLog)
 
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+
 	okResponse(c, booking)
 }
 
@@ -350,6 +354,10 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 			log.Println("CreateFlight err flight ", errUdp.Error())
 		}
 
+		// push socket
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &b)
+
 		listBookingUpdated = append(listBookingUpdated, b)
 		// Update lại thông tin booking
 		// if booking := b.GetBooking(); booking != nil && booking.Uid != b.Uid {
@@ -507,6 +515,10 @@ func (_ *CCourseOperating) OutCaddie(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+
 	// Udp Note
 	caddieOutNote := model_gostarter.CaddieBuggyInOut{
 		PartnerUid:  booking.PartnerUid,
@@ -608,6 +620,10 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 			if errUdp != nil {
 				log.Println("OutAllFlight err book udp ", errUdp.Error())
 			}
+
+			// push socket
+			cNotification := CNotification{}
+			go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
 
 			// Update lại giá của Round theo số hố
 			cRound := CRound{}
@@ -1616,6 +1632,11 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		if errUdp != nil {
 			log.Println("AddBagToFlight err flight ", errUdp.Error())
 		}
+
+		// push socket
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &b)
+
 		listBookingUpdated = append(listBookingUpdated, b)
 		// Update lại thông tin booking
 		if booking := b.GetBooking(); booking != nil && booking.Uid != b.Uid {
@@ -1818,6 +1839,10 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 		response_message.InternalServerError(c, errCreateBooking.Error())
 		return
 	}
+
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, &newBooking)
 
 	opLog := models.OperationLog{
 		PartnerUid:  booking.PartnerUid,
