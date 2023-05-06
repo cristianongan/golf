@@ -39,11 +39,18 @@ func (_ *CMemberCard) EKycUpdateImageMemberCard(c *gin.Context, prof models.CmsU
 		return
 	}
 
+	// // memberCardUid
+	// memberCardUid := c.PostForm("member_card_uid")
+	// log.Println("EKycUpdateImageMemberCard memberCardUid", memberCardUid)
+	// if memberCardUid == "" {
+	// 	response_message.BadRequest(c, "memberCardUid not valid")
+	// 	return
+	// }
 	// memberCardUid
-	memberCardUid := c.PostForm("member_card_uid")
-	log.Println("EKycUpdateImageMemberCard memberCardUid", memberCardUid)
-	if memberCardUid == "" {
-		response_message.BadRequest(c, "memberCardUid not valid")
+	ownerUid := c.PostForm("owner_uid")
+	log.Println("EKycUpdateImageMemberCard ownerUid", ownerUid)
+	if ownerUid == "" {
+		response_message.BadRequest(c, "ownerUid not valid")
 		return
 	}
 
@@ -66,17 +73,17 @@ func (_ *CMemberCard) EKycUpdateImageMemberCard(c *gin.Context, prof models.CmsU
 	}
 
 	// find member card
-	memberCard := models.MemberCard{}
-	memberCard.Uid = memberCardUid
-	errFMc := memberCard.FindFirst(db)
-	if errFMc != nil {
-		response_message.BadRequest(c, errFMc.Error())
-		return
-	}
+	// memberCard := models.MemberCard{}
+	// memberCard.Uid = memberCardUid
+	// errFMc := memberCard.FindFirst(db)
+	// if errFMc != nil {
+	// 	response_message.BadRequest(c, errFMc.Error())
+	// 	return
+	// }
 
 	// find customer
 	customerInfo := models.CustomerUser{}
-	customerInfo.Uid = memberCard.OwnerUid
+	customerInfo.Uid = ownerUid
 	errCus := customerInfo.FindFirst(db)
 	if errCus != nil {
 		response_message.BadRequest(c, errCus.Error())
