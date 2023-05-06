@@ -13,6 +13,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	model_gostarter "start/models/go-starter"
 	model_payment "start/models/payment"
 	model_report "start/models/report"
 	"start/utils"
@@ -1490,6 +1491,9 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	res := getBagDetailFromBooking(db, booking)
 
+	// Update bag attach caddie
+	go cBooking.updateBagAttachCaddie(db, booking.Uid)
+
 	//Add log
 	opLog := models.OperationLog{
 		PartnerUid:  booking.PartnerUid,
@@ -2136,4 +2140,18 @@ func (cBooking *CBooking) UndoCheckOut(c *gin.Context, prof models.CmsUser) {
 	}
 	go createOperationLog(opLog)
 	okRes(c)
+}
+
+func (_ CBooking) updateBagAttachCaddie(db *gorm.DB, bookindUid string) {
+	caddieAttach := model_gostarter.BagAttachCaddie{}
+	caddieAttach.BookingUid = bookindUid
+	if err := caddieAttach.FindFirst(db); err == nil {
+		caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_WAITING
+
+		if err := caddieAttach.FindFirst(db); err == nil {
+			caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_WAITING
+
+			_ = caddieAttach.Update(db)
+		}
+	}
 }
