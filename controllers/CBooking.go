@@ -353,6 +353,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			return nil, err
 		}
 
+		if caddieNew.ContractStatus == constants.CADDIE_CONTRACT_STATUS_TERMINATION {
+			response_message.BadRequestFreeMessage(c, "Caddie termination")
+			return nil, err
+		}
+
 		// check caddie booking
 		cCaddie := CCaddie{}
 		listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
@@ -1051,6 +1056,10 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body re
 					return errors.New("Caddie Not Found!")
 				}
 
+				if caddieNew.ContractStatus == constants.CADDIE_CONTRACT_STATUS_TERMINATION {
+					return errors.New("Caddie termination!")
+				}
+
 				cCaddie := CCaddie{}
 				listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(booking.PartnerUid, booking.CourseUid, booking.BookingDate)
 				if utils.ContainString(listCaddieWorkingByBookingDate, caddieNew.Code) == -1 {
@@ -1098,6 +1107,10 @@ func updateCaddieBooking(c *gin.Context, oldBooking *model_booking.BagDetail, bo
 
 				if err != nil {
 					return errors.New("Caddie Not Found!")
+				}
+
+				if caddieNew.ContractStatus == constants.CADDIE_CONTRACT_STATUS_TERMINATION {
+					return errors.New("Caddie termination!")
 				}
 
 				// check caddie booking
@@ -1411,6 +1424,11 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
+		if caddieNew.ContractStatus == constants.CADDIE_CONTRACT_STATUS_TERMINATION {
+			response_message.BadRequestFreeMessage(c, "Caddie "+err.Error())
+			return
+		}
+
 		booking.CaddieId = caddieNew.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 	} else if booking.CaddieBooking != "" {
@@ -1421,6 +1439,11 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 		if err != nil {
 			response_message.InternalServerError(c, err.Error())
+			return
+		}
+
+		if caddieNew.ContractStatus == constants.CADDIE_CONTRACT_STATUS_TERMINATION {
+			response_message.BadRequestFreeMessage(c, "Caddie "+err.Error())
 			return
 		}
 
