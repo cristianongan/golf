@@ -15,8 +15,17 @@ import (
 type CMemberCard struct{}
 
 // ======================== eKyc ===========================
+
 /*
-  List member cho app thu thap
+List member cho app thu thap
+*/
+func (_ *CMemberCard) EKycUpdateImageMemberCard(c *gin.Context, prof models.CmsUser) {
+	// db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+}
+
+/*
+List member cho app thu thap
 */
 func (_ *CMemberCard) EKycGetListMemberCard(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
