@@ -45,7 +45,31 @@ type CustomerUser struct {
 }
 
 /*
- Clone object
+Update list image ekyc
+*/
+func (item *CustomerUser) UpdateListImages(link string) {
+	if link == "" {
+		return
+	}
+	listTemp := utils.ListString{}
+
+	if item.ListImages == nil || len(item.ListImages) == 0 {
+		listTemp = append(listTemp, link)
+	} else if len(item.ListImages) == 1 {
+		listTemp = append(listTemp, item.ListImages...)
+		listTemp = append(listTemp, link)
+	} else {
+		listTemp = append(listTemp, link)
+		if len(item.ListImages) > 1 {
+			listTemp = append(listTemp, item.ListImages[1])
+		}
+	}
+
+	item.ListImages = listTemp
+}
+
+/*
+Clone object
 */
 func (item *CustomerUser) CloneCustomerUser() CustomerUser {
 	copyCustomerUser := CustomerUser{}

@@ -529,7 +529,14 @@ func (item *MemberCard) FindListForEkycAppThuThap(database *gorm.DB, page Page, 
 		db = db.Where("customer_users.name LIKE ? OR member_cards.card_id LIKE ?", "%"+search+"%", "%"+search+"%")
 	}
 
-	db = db.Find(&list)
+	total := int64(0)
+
+	// db = db.Find(&list)
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
 
 	return list, db.Error
 }

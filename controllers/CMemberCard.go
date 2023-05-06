@@ -18,7 +18,7 @@ type CMemberCard struct{}
 // ======================== eKyc ===========================
 
 /*
-List member cho app thu thap
+Cập nhật ảnh cho member
 */
 func (_ *CMemberCard) EKycUpdateImageMemberCard(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
@@ -83,6 +83,25 @@ func (_ *CMemberCard) EKycUpdateImageMemberCard(c *gin.Context, prof models.CmsU
 		return
 	}
 
+	//Upload image to minio
+	link, errUpdload := datasources.UploadFile(&file)
+	if errUpdload != nil {
+		log.Println(errUpdload)
+		response_message.InternalServerError(c, errUpdload.Error())
+		return
+	}
+
+	customerInfo.UpdateListImages(link)
+
+	erUdp := customerInfo.Update(db)
+	if erUdp != nil {
+		response_message.BadRequest(c, erUdp.Error())
+		return
+	}
+
+	// TODO: Cập nhật ảnh sang eKyc server
+
+	okResponse(c, customerInfo)
 }
 
 /*
@@ -101,6 +120,10 @@ func (_ *CMemberCard) EKycGetListMemberCard(c *gin.Context, prof models.CmsUser)
 		Page:    form.PageRequest.Page,
 		SortBy:  form.PageRequest.SortBy,
 		SortDir: form.PageRequest.SortDir,
+	}
+
+	if page.Limit > 20 {
+		page.Limit = 20
 	}
 
 	memberCardR := models.MemberCard{
