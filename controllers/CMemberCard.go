@@ -36,10 +36,9 @@ func (_ *CMemberCard) EKycGetListMemberCard(c *gin.Context, prof models.CmsUser)
 	memberCardR := models.MemberCard{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
-		CardId:     form.CardId,
 	}
 	memberCardR.Status = constants.STATUS_ENABLE
-	list, err := memberCardR.FindListForEkycAppThuThap(db, page, form.PlayerName)
+	list, err := memberCardR.FindListForEkycAppThuThap(db, page, form.Search)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

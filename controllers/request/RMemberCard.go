@@ -36,6 +36,6 @@ type GetListMemberCardEKycAppThuThapForm struct {
 	PageRequest
 	PartnerUid string `form:"partner_uid" binding:"required"`
 	CourseUid  string `form:"course_uid" binding:"required"`
-	CardId     string `form:"card_id"`
-	PlayerName string `form:"player_name"`
+	// CardId     string `form:"card_id"`
+	Search string `form:"search"`
 }

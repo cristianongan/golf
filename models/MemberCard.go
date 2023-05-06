@@ -504,7 +504,7 @@ list for app thu thap anh
 dùng hàm khác cho ít join cho đỡ tải
 */
 
-func (item *MemberCard) FindListForEkycAppThuThap(database *gorm.DB, page Page, playerName string) ([]map[string]interface{}, error) {
+func (item *MemberCard) FindListForEkycAppThuThap(database *gorm.DB, page Page, search string) ([]map[string]interface{}, error) {
 	db := database.Table("member_cards")
 	list := []map[string]interface{}{}
 
@@ -521,12 +521,12 @@ func (item *MemberCard) FindListForEkycAppThuThap(database *gorm.DB, page Page, 
 	if item.Status != "" {
 		db = db.Where("member_cards.status = ?", item.Status)
 	}
-	if item.CardId != "" {
-		db = db.Where("member_cards.card_id LIKE ?", "%"+item.CardId+"%")
-	}
+	// if item.CardId != "" {
+	// 	db = db.Where("member_cards.card_id LIKE ?", "%"+item.CardId+"%")
+	// }
 
-	if playerName != "" {
-		db = db.Where("customer_users.name LIKE ? OR member_cards.card_id LIKE ?", "%"+playerName+"%", "%"+playerName+"%")
+	if search != "" {
+		db = db.Where("customer_users.name LIKE ? OR member_cards.card_id LIKE ?", "%"+search+"%", "%"+search+"%")
 	}
 
 	db = db.Find(&list)
