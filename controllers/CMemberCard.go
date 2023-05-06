@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -20,7 +21,67 @@ type CMemberCard struct{}
 List member cho app thu thap
 */
 func (_ *CMemberCard) EKycUpdateImageMemberCard(c *gin.Context, prof models.CmsUser) {
-	// db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	// partner uid
+	partnerUid := c.PostForm("partner_uid")
+	log.Println("EKycUpdateImageMemberCard partnerUid", partnerUid)
+	if partnerUid == "" {
+		response_message.BadRequest(c, "partner uid not valid")
+		return
+	}
+
+	// course uid
+	courseUid := c.PostForm("course_uid")
+	log.Println("EKycUpdateImageMemberCard courseUid", courseUid)
+	if courseUid == "" {
+		response_message.BadRequest(c, "courseUid not valid")
+		return
+	}
+
+	// memberCardUid
+	memberCardUid := c.PostForm("member_card_uid")
+	log.Println("EKycUpdateImageMemberCard memberCardUid", memberCardUid)
+	if memberCardUid == "" {
+		response_message.BadRequest(c, "memberCardUid not valid")
+		return
+	}
+
+	// sid
+	sid := c.PostForm("sid")
+	log.Println("EKycUpdateImageMemberCard sid", sid)
+
+	type Sizer interface {
+		Size() int64
+	}
+	file, _, errImg := c.Request.FormFile("image")
+	if errImg != nil {
+		response_message.BadRequest(c, errImg.Error())
+		return
+	}
+	fileSize := file.(Sizer).Size()
+	if fileSize > constants.MAX_SIZE_AVATAR_UPLOAD {
+		response_message.BadRequest(c, "over limit size")
+		return
+	}
+
+	// find member card
+	memberCard := models.MemberCard{}
+	memberCard.Uid = memberCardUid
+	errFMc := memberCard.FindFirst(db)
+	if errFMc != nil {
+		response_message.BadRequest(c, errFMc.Error())
+		return
+	}
+
+	// find customer
+	customerInfo := models.CustomerUser{}
+	customerInfo.Uid = memberCard.OwnerUid
+	errCus := customerInfo.FindFirst(db)
+	if errCus != nil {
+		response_message.BadRequest(c, errCus.Error())
+		return
+	}
 
 }
 
