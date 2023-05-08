@@ -27,6 +27,7 @@ func CallEkyc(url string, bBody []byte) (error, int, []byte) {
 	client := &http.Client{
 		Timeout: time.Second * constants.TIMEOUT,
 	}
+	log.Println("CallEkyc test 01")
 	resp, errRequest := client.Do(req)
 	if errRequest != nil {
 		return errRequest, 0, nil
@@ -49,6 +50,7 @@ func EkycUpdateImage(bBody []byte) (error, int) {
 	url := config.GetEkycUrl() + config.GetEkycUpdate()
 
 	// shortResp := ShortResp{}
+	log.Println("EkycUpdateImage url", url)
 
 	err, statusCode, dataByte := CallEkyc(url, bBody)
 	if err != nil {
@@ -56,7 +58,7 @@ func EkycUpdateImage(bBody []byte) (error, int) {
 	}
 
 	if statusCode != 200 && statusCode != 201 {
-		return errors.New("BitlyShorten error status code"), statusCode
+		return errors.New("EkycUpdateImage error status code"), statusCode
 	}
 
 	log.Println("EkycUpdateImage dataByte ", string(dataByte))

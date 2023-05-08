@@ -135,6 +135,8 @@ func ekycUpdateImage(memberUid, link string) {
 
 	dataByte, errM := json.Marshal(body)
 
+	log.Println("ekycUpdateImage")
+
 	if errM != nil {
 		log.Println("ekycUpdateImage errM", errM.Error())
 		return
