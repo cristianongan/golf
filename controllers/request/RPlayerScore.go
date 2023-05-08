@@ -9,6 +9,7 @@ type CreatePlayerScoreBody struct {
 	Par         int      `json:"par"`                            // Số lần chạm gậy
 	TimeStart   int64    `json:"time_start"`
 	TimeEnd     int64    `json:"time_end"`
+	FlightId    int64    `json:"flight_id" binding:"required"`
 	Players     []Player `json:"players"`
 }
 
@@ -20,9 +21,12 @@ type Player struct {
 
 type GetListPlayerScoreForm struct {
 	PageRequest
-	PartnerUid string `form:"partner_uid" binding:"required"`
-	CourseUid  string `form:"course_uid" binding:"required"` // Sân Golf
-	BookingUid string `form:"booking_uid"`
+	PartnerUid  string `form:"partner_uid" binding:"required"`
+	CourseUid   string `form:"course_uid" binding:"required"` // Sân Golf
+	BookingDate string `form:"booking_date"`                  //  Sân
+	Bag         string `form:"bag"`
+	Hole        int    `form:"hole"`
+	FlightId    int64  `form:"flight_id"`
 }
 
 type UpdatePlayerScoreBody struct {
@@ -33,4 +37,5 @@ type UpdatePlayerScoreBody struct {
 	Index     int    `json:"index"`
 	TimeStart int64  `json:"time_start"`
 	TimeEnd   int64  `json:"time_end"`
+	FlightId  int64  `json:"flight_id"`
 }

@@ -34,6 +34,7 @@ func (_ *CPlayerScore) CreatePlayerScore(c *gin.Context, prof models.CmsUser) {
 			PartnerUid:  body.PartnerUid,
 			CourseUid:   body.CourseUid,
 			BookingDate: body.BookingDate,
+			FlightId:    body.FlightId,
 			Bag:         player.Bag,
 			Course:      body.Course,
 			Hole:        body.Hole,
@@ -78,8 +79,12 @@ func (_ *CPlayerScore) GetListPlayerScore(c *gin.Context, prof models.CmsUser) {
 	}
 
 	PlayerScoreR := models.PlayerScore{
-		PartnerUid: form.PartnerUid,
-		CourseUid:  form.CourseUid,
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: form.BookingDate,
+		Bag:         form.Bag,
+		Hole:        form.Hole,
+		FlightId:    form.FlightId,
 	}
 	list, total, err := PlayerScoreR.FindList(db, page)
 	if err != nil {
@@ -122,6 +127,10 @@ func (_ *CPlayerScore) UpdatePlayerScore(c *gin.Context, prof models.CmsUser) {
 	if body.Course != "" {
 		playerScore.Course = body.Course
 	}
+
+	// if body.FlightId != 0 {
+	// 	playerScore.FlightId = body.FlightId
+	// }
 
 	playerScore.Hole = body.Hole
 	playerScore.Par = body.Par
