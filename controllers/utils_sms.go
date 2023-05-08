@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"start/config"
+	"start/datasources"
 	model_booking "start/models/booking"
 	"start/services"
 	"strconv"
@@ -38,7 +39,7 @@ func genQRCodeListBook(listBooking []model_booking.Booking) {
 /*
 Send sms
 */
-func sendSmsBooking(listBooking []model_booking.Booking) error {
+func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 
 	if len(listBooking) == 0 {
 		errEmpty := errors.New("sendSmsBooking Err List Booking Emplty")
@@ -47,7 +48,7 @@ func sendSmsBooking(listBooking []model_booking.Booking) error {
 	}
 
 	// parse standard phone number
-	num, errPhone := libphonenumber.Parse(listBooking[0].CustomerBookingPhone, "VN")
+	num, errPhone := libphonenumber.Parse(phone, "VN")
 	if errPhone != nil {
 		log.Println("sendSmsBooking errPhone:", errPhone)
 
@@ -143,4 +144,102 @@ func ekycUpdateImage(memberUid, link string) {
 	}
 
 	_, _ = services.EkycUpdateImage(dataByte)
+}
+
+/*
+Send sms
+*/
+func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
+
+	if len(listBooking) == 0 {
+		errEmpty := errors.New("sendEmailBooking Err List Booking Emplty")
+		log.Println("sendEmailBooking errEmpty", errEmpty.Error())
+		return errEmpty
+	}
+
+	// Sender
+	sender := "hotro@caro.vn"
+
+	// subject
+	subject := "Sân " + listBooking[0].CourseUid + " xác nhận đặt chỗ ngày " + listBooking[0].BookingDate
+
+	// message
+	message := fmt.Sprintf(`
+		<!DOCTYPE html>
+		<html>
+		</head>
+		<body>
+		<h4 style="margin-bottom:20px;">Dear %s,</h4>
+		<p>Sân <span style="font-weight: bold;">%s</span> xác nhận đặt chỗ ngày <span style="font-weight: bold;">%s</span> :</p>
+		<p>- Mã đặt chỗ: <span style="font-weight: bold;">%s</span></p>
+		<p>- Người đặt: <span style="font-weight: bold;">%s</span></p>
+		<p style="margin-bottom:20px;">- Số lượng: <span style="font-weight: bold;">%d</span></p>
+
+	`, listBooking[0].CustomerBookingName, listBooking[0].CourseUid, listBooking[0].BookingDate, listBooking[0].BookingCode,
+		listBooking[0].CustomerBookingName, len(listBooking))
+
+	for i, b := range listBooking {
+		iStr := strconv.Itoa(i + 1)
+		message += `<p>` + iStr + ". Player " + listBooking[0].CustomerName + ": "
+		playerName := ""
+		if b.MemberCard != nil {
+			playerName = b.MemberCard.CardId
+		}
+
+		message += fmt.Sprintf(`<span style="font-weight: bold;">%s</span> Ma check-in: <span style="font-weight: bold;">%s</span> - (QR Check-in: "`, playerName, b.CheckInCode)
+
+		// base64 qr image
+		encodeQrUrl := base64.StdEncoding.EncodeToString([]byte(b.QrcodeUrl))
+
+		qrCodeUrlModel := QrCodeUrlModel{
+			QrImg:       encodeQrUrl,
+			CheckInCode: b.CheckInCode,
+			Date:        b.BookingDate,
+			PartnerUid:  b.PartnerUid,
+			CourseUid:   b.CourseUid,
+		}
+
+		byteQrCodeUrlModel, errMas := json.Marshal(&qrCodeUrlModel)
+
+		if errMas != nil {
+			log.Println("sendEmailBooking errMas", errMas.Error())
+		}
+
+		encodedurlQrCodeChecking := base64.StdEncoding.EncodeToString(byteQrCodeUrlModel)
+
+		linkQRCodeFull := config.GetPortalCmsUrl() + "qr-ci/" + encodedurlQrCodeChecking
+
+		bodyModel := services.ShortReq{
+			URL:    linkQRCodeFull,
+			Domain: "bit.ly",
+		}
+
+		bodyModelByte, errB := json.Marshal(bodyModel)
+		if errB != nil {
+			log.Println("sendEmailBooking errB", errB.Error())
+		}
+
+		errS, _, resp := services.BitlyShorten(bodyModelByte)
+		if errS != nil {
+			log.Println("sendEmailBooking errS", errS.Error())
+		}
+
+		if resp.URL != "" {
+			log.Println("sendEmailBooking short Link", resp.URL)
+			message += resp.URL + ")</p>"
+		} else {
+			message += linkQRCodeFull + ")</p>"
+		}
+
+	}
+
+	message = message + `
+		<h4 style="color: red; margin-top:20px;">Lưu ý: Quý khách vui lòng cung cấp mã QR Check-in hoặc đọc Nã check-in để được phục vụ khi đến sân. Xin cảm ơn !</h4>
+		</body>
+		</html>`
+
+	// Send mail
+	errSend := datasources.SendEmail(email, subject, message, sender)
+
+	return errSend
 }

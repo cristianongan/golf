@@ -411,3 +411,12 @@ type GetCaddieBookingCancel struct {
 	CaddieCode  string `form:"caddie_code"`
 	CaddieName  string `form:"caddie_name"`
 }
+
+type SendInforGuestBody struct {
+	PartnerUid  string `json:"partner_uid" binding:"required"`
+	CourseUid   string `json:"course_uid" binding:"required"`
+	BookingCode string `json:"booking_code" binding:"required"`
+	PhoneNumber string `json:"phone_number"`
+	Email       string `json:"email"`
+	Method      string `json:"method"`
+}

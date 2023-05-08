@@ -937,3 +937,37 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 
 // 	return &booking, nil
 // }
+
+func (cBooking *CBooking) SendInforGuest(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	body := request.SendInforGuestBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	booking := model_booking.Booking{}
+
+	booking.CourseUid = body.CourseUid
+	booking.PartnerUid = body.PartnerUid
+	booking.BookingCode = body.BookingCode
+
+	list, err := booking.FindListWithBookingCode(db)
+
+	if err != nil {
+		response_message.BadRequest(c, "FindList: "+err.Error())
+	}
+
+	// Send email
+	if body.Method == constants.SEND_INFOR_GUEST_BOTH || body.Method == constants.SEND_INFOR_GUEST_EMAIL {
+		go sendEmailBooking(list, body.Email)
+	}
+
+	// Send sms
+	if body.Method == constants.SEND_INFOR_GUEST_BOTH || body.Method == constants.SEND_INFOR_GUEST_SMS {
+		go sendSmsBooking(list, body.PhoneNumber)
+	}
+
+	okRes(c)
+}
