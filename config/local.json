@@ -72,7 +72,7 @@
         "password": "f3c98dec9f36459c8100478d694af863"
     },
     "ekyc": {
-        "url": "https://cobekycgwv2.vnpaytest.vn/ekycgw/golf/",
+        "url": "https://cpbappserver.vnpaytest.vn/cmsgw/golf/",
         "update_image": "update_ekyc"
     }
 }
