@@ -8,6 +8,7 @@ import (
 	"log"
 	"start/config"
 	"start/datasources"
+	"start/models"
 	model_booking "start/models/booking"
 	"start/services"
 	"strconv"
@@ -157,11 +158,20 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 		return errEmpty
 	}
 
+	course := models.Course{}
+	course.Uid = listBooking[0].CourseUid
+	course.PartnerUid = listBooking[0].PartnerUid
+	errF := course.FindFirst()
+	if errF != nil {
+		log.Println("sendEmailBooking errEmpty", errF.Error())
+		return errF
+	}
+
 	// Sender
 	sender := "hotro@caro.vn"
 
 	// subject
-	subject := "Sân " + listBooking[0].CourseUid + " xác nhận đặt chỗ ngày " + listBooking[0].BookingDate
+	subject := "Sân " + course.Name + " xác nhận đặt chỗ ngày " + listBooking[0].BookingDate
 
 	// message
 	message := fmt.Sprintf(`
@@ -175,7 +185,7 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 		<p>- Người đặt: <span style="font-weight: bold;">%s</span></p>
 		<p style="margin-bottom:20px;">- Số lượng: <span style="font-weight: bold;">%d</span></p>
 
-	`, listBooking[0].CustomerBookingName, listBooking[0].CourseUid, listBooking[0].BookingDate, listBooking[0].BookingCode,
+	`, listBooking[0].CustomerBookingName, course.Name, listBooking[0].BookingDate, listBooking[0].BookingCode,
 		listBooking[0].CustomerBookingName, len(listBooking))
 
 	for i, b := range listBooking {
