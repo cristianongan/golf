@@ -3,6 +3,7 @@ module start
 go 1.18
 
 require (
+	github.com/aws/aws-sdk-go v1.44.258
 	github.com/bsm/redislock v0.8.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.8.1
@@ -23,7 +24,7 @@ require (
 	github.com/twharmon/slices v0.0.4
 	github.com/ulule/limiter/v3 v3.10.0
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
-	golang.org/x/text v0.3.7
+	golang.org/x/text v0.4.0
 	gorm.io/datatypes v1.0.6
 	gorm.io/driver/mysql v1.3.2
 	gorm.io/gorm v1.23.4
@@ -32,6 +33,7 @@ require (
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
@@ -88,8 +90,8 @@ require (
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/vibrantbyte/go-antpath v1.1.1
-	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
-	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
+	golang.org/x/net v0.1.0 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/ini.v1 v1.66.6 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22 // indirect

@@ -287,6 +287,10 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	/*
 		Chọn khách hàng từ agency
 	*/
+	if body.CustomerEmail != nil && *body.CustomerEmail != "" {
+		booking.CustomerEmail = *body.CustomerEmail
+	}
+
 	if body.CustomerUid != "" {
 		//check customer
 		customer := models.CustomerUser{}
@@ -783,6 +787,10 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	// if body.GuestStyle != "" {
 	// 	booking.GuestStyle = body.GuestStyle
 	// }
+	// Upd email
+	if body.CustomerEmail != nil && *body.CustomerEmail != "" {
+		booking.CustomerEmail = *body.CustomerEmail
+	}
 
 	//Upd Main Pay for Sub
 	isPriceChanged := false

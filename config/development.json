@@ -74,5 +74,11 @@
     "ekyc": {
         "url": "https://cpbappserver.vnpaytest.vn/cmsgw/golf/",
         "update_image": "update_ekyc"
+    },
+    "ses": {
+        "region": "us-east-1",
+        "bucket": "carotech",
+        "id_key": "AKIAIWT37SN4AZPXSCXQ",
+        "private_key": "twzQiKBSdlGzH9MQ41oFDg81B1YGtdk2qz5Kw+V0"
     }
 }
