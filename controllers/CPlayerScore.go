@@ -61,7 +61,11 @@ func (_ *CPlayerScore) CreatePlayerScore(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	okRes(c)
+	res := map[string]interface{}{
+		"data": listPlayer,
+	}
+
+	okResponse(c, res)
 }
 
 func (_ *CPlayerScore) GetListPlayerScore(c *gin.Context, prof models.CmsUser) {
@@ -130,10 +134,6 @@ func (_ *CPlayerScore) UpdatePlayerScore(c *gin.Context, prof models.CmsUser) {
 		playerScore.Course = body.Course
 	}
 
-	// if body.FlightId != 0 {
-	// 	playerScore.FlightId = body.FlightId
-	// }
-
 	playerScore.Hole = body.Hole
 	playerScore.Par = body.Par
 	playerScore.Shots = body.Shots
@@ -148,6 +148,41 @@ func (_ *CPlayerScore) UpdatePlayerScore(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, playerScore)
+}
+
+func (_ *CPlayerScore) UpdateListPlayerScore(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	// validate body
+	body := request.UpdateListPSBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	for _, player := range body.ListPlayer {
+		playerScore := models.PlayerScore{}
+		playerScore.Id = player.Id
+		errF := playerScore.FindFirst(db)
+		if errF != nil {
+			response_message.InternalServerError(c, errF.Error())
+			return
+		}
+
+		if player.Course != "" {
+			playerScore.Course = player.Course
+		}
+
+		playerScore.Shots = player.Shots
+		playerScore.TimeEnd = player.TimeEnd
+
+		errUdp := playerScore.Update(db)
+		if errUdp != nil {
+			response_message.InternalServerError(c, errUdp.Error())
+			return
+		}
+	}
+
+	okRes(c)
 }
 
 func (_ *CPlayerScore) DeletePlayerScore(c *gin.Context, prof models.CmsUser) {

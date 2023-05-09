@@ -60,4 +60,5 @@ type Booking struct {
 
 	//Qr code
 	CheckInCode string `json:"check_in_code"`
+	QrcodeUrl   string `json:"qrcode_url" gorm:"type:varchar(250)"`
 }

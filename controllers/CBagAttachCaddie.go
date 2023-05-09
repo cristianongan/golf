@@ -114,6 +114,13 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 	// Create attach caddie
 	caddieAttach := model_gostarter.BagAttachCaddie{}
 
+	caddieAttach.PartnerUid = body.PartnerUid
+	caddieAttach.CourseUid = body.CourseUid
+	caddieAttach.BookingDate = body.BookingDate
+	caddieAttach.Bag = body.Bag
+	caddieAttach.CaddieCode = body.CaddieCode
+	caddieAttach.LockerNo = body.LockerNo
+
 	// validate booking
 	if body.BookingUid != "" {
 		booking := model_booking.Booking{}
@@ -136,12 +143,6 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 	} else {
 		caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_READY
 	}
-
-	caddieAttach.PartnerUid = body.PartnerUid
-	caddieAttach.CourseUid = body.CourseUid
-	caddieAttach.BookingDate = body.BookingDate
-	caddieAttach.Bag = body.Bag
-	caddieAttach.CaddieCode = body.CaddieCode
 
 	errC := caddieAttach.Create(db)
 
@@ -178,6 +179,12 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
+
+	// Updtae
+	caddieAttach.Bag = body.Bag
+	caddieAttach.BookingDate = body.BookingDate
+	caddieAttach.CaddieCode = body.CaddieCode
+	caddieAttach.LockerNo = body.LockerNo
 
 	// validate bag
 	bookingBag := model_booking.Booking{}
@@ -275,10 +282,6 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 		caddieAttach.CustomerName = ""
 		caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_READY
 	}
-
-	caddieAttach.Bag = body.Bag
-	caddieAttach.BookingDate = body.BookingDate
-	caddieAttach.CaddieCode = body.CaddieCode
 
 	errC := caddieAttach.Update(db)
 

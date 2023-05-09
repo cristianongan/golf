@@ -8,6 +8,7 @@ type CreateBagAttachCaddieBody struct {
 	CaddieCode   string `json:"caddie_code" validate:"required"`
 	CustomerName string `json:"customer_name"`
 	Bag          string `json:"bag" validate:"required"`
+	LockerNo     string `json:"locker_no"`
 }
 
 type UpdateBagAttachCaddieBody struct {
@@ -15,6 +16,7 @@ type UpdateBagAttachCaddieBody struct {
 	BookingDate  string `json:"booking_date" validate:"required"`
 	CaddieCode   string `json:"caddie_code" validate:"required"`
 	CustomerName string `json:"customer_name"`
+	LockerNo     string `json:"locker_no"`
 	Bag          string `json:"bag" validate:"required"`
 }
 

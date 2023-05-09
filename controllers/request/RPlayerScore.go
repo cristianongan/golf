@@ -1,5 +1,7 @@
 package request
 
+import "start/models"
+
 type CreatePlayerScoreBody struct {
 	PartnerUid  string   `json:"partner_uid" binding:"required"` // Hãng Golf
 	CourseUid   string   `json:"course_uid" binding:"required"`  // Sân Golf
@@ -41,4 +43,8 @@ type UpdatePlayerScoreBody struct {
 	TimeEnd   int64  `json:"time_end"`
 	FlightId  int64  `json:"flight_id"`
 	HoleIndex int    `json:"hole_index"` // Số thứ tự của hố
+}
+
+type UpdateListPSBody struct {
+	ListPlayer []models.PlayerScore `json:"list_player"` //  Sân
 }

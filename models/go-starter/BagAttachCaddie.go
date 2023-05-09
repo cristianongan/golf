@@ -19,6 +19,7 @@ type BagAttachCaddie struct {
 	BagStatus    string `json:"bag_status" gorm:"type:varchar(50);index"`    //Bag status
 	CustomerName string `json:"customer_name" gorm:"type:varchar(256)"`      // Player name
 	CaddieCode   string `json:"caddie_code" gorm:"type:varchar(50);index"`   // Mã caddie
+	LockerNo     string `json:"locker_no" gorm:"type:varchar(100)"`          // Locker mã số tủ gửi đồ
 }
 
 // ======= CRUD ===========

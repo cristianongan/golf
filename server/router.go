@@ -603,6 +603,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/player-score/list", middlewares.AuthorizedCmsUserHandler(cPlayerScore.GetListPlayerScore))
 			cmsApiAuthorized.PUT("/player-score/:id", middlewares.AuthorizedCmsUserHandler(cPlayerScore.UpdatePlayerScore))
 			cmsApiAuthorized.DELETE("/player-score/:id", middlewares.AuthorizedCmsUserHandler(cPlayerScore.DeletePlayerScore))
+			cmsApiAuthorized.POST("/player-score/update-list", middlewares.AuthorizedCmsUserHandler(cPlayerScore.UpdateListPlayerScore))
 
 			/// =================== Role ===================
 			cRole := new(controllers.CRole)
