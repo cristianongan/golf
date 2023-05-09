@@ -179,6 +179,13 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	if body.IsCheckIn {
 		booking.Hole = body.Hole
+
+		if body.CaddieCheckIn != nil {
+			if errUpd := updateCaddieCheckIn(c, &booking, body.CaddieCheckIn); errUpd != nil {
+				response_message.BadRequestFreeMessage(c, errUpd.Error())
+				return nil, errUpd
+			}
+		}
 	}
 
 	// Check Guest of member, check member có còn slot đi cùng không
@@ -973,7 +980,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.CaddieCheckIn != nil {
-		if errUpd := updateCaddieCheckIn(c, &booking, body); errUpd != nil {
+		if errUpd := updateCaddieCheckIn(c, &booking, body.CaddieCheckIn); errUpd != nil {
 			response_message.BadRequestFreeMessage(c, errUpd.Error())
 			return
 		}
@@ -1040,16 +1047,16 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, res)
 }
 
-func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking) error {
+func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, caddie *string) error {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
-	if body.CaddieCheckIn != nil {
-		if *body.CaddieCheckIn != "" {
-			if *body.CaddieCheckIn != booking.CaddieInfo.Code {
+	if caddie != nil {
+		if *caddie != "" {
+			if *caddie != booking.CaddieInfo.Code {
 				// oldCaddie := booking.CaddieInfo
 
 				caddieList := models.CaddieList{}
 				caddieList.CourseUid = booking.CourseUid
-				caddieList.CaddieCode = *body.CaddieCheckIn
+				caddieList.CaddieCode = *caddie
 				caddieNew, err := caddieList.FindFirst(db)
 
 				if err != nil {
