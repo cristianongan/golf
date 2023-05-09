@@ -65,9 +65,6 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 		if b.MemberCard != nil {
 			playerName = b.MemberCard.CardId
 		}
-		// if playerName == "" {
-		// 	playerName = b.CustomerInfo.Name
-		// }
 
 		message += playerName + " - " + "Ma check-in: " + b.CheckInCode + " - QR: "
 
@@ -190,7 +187,7 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 
 	for i, b := range listBooking {
 		iStr := strconv.Itoa(i + 1)
-		message += `<p>` + iStr + ". Player " + listBooking[0].CustomerName + ": "
+		message += `<p>` + iStr + ". Player " + b.CustomerName + ": "
 		playerName := ""
 		if b.MemberCard != nil {
 			playerName = b.MemberCard.CardId
@@ -244,7 +241,7 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 	}
 
 	message = message + `
-		<h4 style="color: red; margin-top:20px;">Lưu ý: Quý khách vui lòng cung cấp mã QR Check-in hoặc đọc Nã check-in để được phục vụ khi đến sân. Xin cảm ơn !</h4>
+		<h4 style="color: red; margin-top:20px; font-style: italic;">Lưu ý: Quý khách vui lòng cung cấp mã QR Check-in hoặc đọc Nã check-in để được phục vụ khi đến sân. Xin cảm ơn !</h4>
 		</body>
 		</html>`
 

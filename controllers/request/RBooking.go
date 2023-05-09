@@ -141,7 +141,7 @@ type CreateBookingBody struct {
 	GuestStyle           string  `json:"guest_style"`            // Guest Style
 	GuestStyleName       string  `json:"guest_style_name"`       // Guest Style Name
 	CustomerName         string  `json:"customer_name"`          // Tên khách hàng
-	CustomerEmail        *string `json:"customer_email"`         // Email khách hàng
+	CustomerBookingEmail *string `json:"customer_booking_email"` // Email khách hàng
 	CustomerBookingName  string  `json:"customer_booking_name"`  // Tên khách hàng đặt booking
 	CustomerBookingPhone string  `json:"customer_booking_phone"` // SDT khách hàng đặt booking
 	CustomerIdentify     string  `json:"customer_identify"`      // passport/cccd
@@ -325,7 +325,7 @@ type UpdateBooking struct {
 	GuestStyle           string  `json:"guest_style"`            // Guest Style
 	GuestStyleName       string  `json:"guest_style_name"`       // Guest Style Name
 	CustomerName         string  `json:"customer_name"`          // Tên khách hàng
-	CustomerEmail        *string `json:"customer_email"`         // Email khách hàng
+	CustomerBookingEmail *string `json:"customer_booking_email"` // Email khách hàng
 	CustomerBookingName  string  `json:"customer_booking_name"`  // Tên khách hàng đặt booking
 	CustomerBookingPhone string  `json:"customer_booking_phone"` // SDT khách hàng đặt booking
 	CustomerIdentify     string  `json:"customer_identify"`      // passport/cccd
@@ -413,10 +413,13 @@ type GetCaddieBookingCancel struct {
 }
 
 type SendInforGuestBody struct {
-	PartnerUid  string `json:"partner_uid" binding:"required"`
-	CourseUid   string `json:"course_uid" binding:"required"`
-	BookingCode string `json:"booking_code" binding:"required"`
-	PhoneNumber string `json:"phone_number"`
-	Email       string `json:"email"`
-	Method      string `json:"method"`
+	SendMethod  string        `json:"send_method" binding:"required"`
+	ListBooking []ItemBooking `json:"list_booking" binding:"required"`
+}
+
+type ItemBooking struct {
+	Uid                  string `json:"uid"`
+	CustomerName         string `json:"customer_name"`
+	CustomerBookingPhone string `json:"customer_booking_phone"`
+	CustomerBookingEmail string `json:"customer_booking_email"`
 }

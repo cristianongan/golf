@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 /*
@@ -947,27 +948,75 @@ func (cBooking *CBooking) SendInforGuest(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	booking := model_booking.Booking{}
+	var listBooking []model_booking.Booking
 
-	booking.CourseUid = body.CourseUid
-	booking.PartnerUid = body.PartnerUid
-	booking.BookingCode = body.BookingCode
+	for _, item := range body.ListBooking {
+		// Update booking
+		booking := model_booking.Booking{}
+		booking.Uid = item.Uid
 
-	list, err := booking.FindListWithBookingCode(db)
+		if err := booking.FindFirst(db); err != nil {
+			response_message.BadRequestFreeMessage(c, "Booking not found")
+			return
+		}
 
-	if err != nil {
-		response_message.BadRequest(c, "FindList: "+err.Error())
+		booking.CustomerName = item.CustomerName
+		booking.CustomerBookingEmail = item.CustomerBookingEmail
+		booking.CustomerBookingPhone = item.CustomerBookingPhone
+
+		listBooking = append(listBooking, booking)
 	}
 
-	// Send email
-	if body.Method == constants.SEND_INFOR_GUEST_BOTH || body.Method == constants.SEND_INFOR_GUEST_EMAIL {
-		go sendEmailBooking(list, body.Email)
-	}
+	if len(listBooking) > 0 {
+		// Update list booking
+		go updateListBooking(db, listBooking)
 
-	// Send sms
-	if body.Method == constants.SEND_INFOR_GUEST_BOTH || body.Method == constants.SEND_INFOR_GUEST_SMS {
-		go sendSmsBooking(list, body.PhoneNumber)
+		// Send email
+		if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_EMAIL {
+			go sendEmailBooking(listBooking, body.ListBooking[0].CustomerBookingEmail)
+		}
+
+		// Send sms
+		if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_SMS {
+			go sendSmsBooking(listBooking, body.ListBooking[0].CustomerBookingPhone)
+		}
+
+		// Add log
+		go addLogSendInforGuest(db, listBooking, prof, body.SendMethod)
+
 	}
 
 	okRes(c)
+}
+
+func updateListBooking(db *gorm.DB, listBooking []model_booking.Booking) {
+	for _, booking := range listBooking {
+		// Update booking
+		if err := booking.FindFirst(db); err != nil {
+			log.Println("Update list booking err", err.Error())
+		}
+	}
+}
+
+func addLogSendInforGuest(db *gorm.DB, listBooking []model_booking.Booking, prof models.CmsUser, method string) {
+	// Booking Infor
+	bookingInfor := listBooking[0]
+
+	// Add log send infỏ guest
+	logInfor := model_booking.SendInforGuest{
+		PartnerUid:   prof.PartnerUid,
+		CourseUid:    prof.CourseUid,
+		BookingCode:  bookingInfor.BookingCode,
+		BookingDate:  bookingInfor.BookingDate,
+		BookingName:  bookingInfor.CustomerBookingName,
+		NumberPeople: len(listBooking),
+		SendMethod:   method,
+		PhoneNumber:  bookingInfor.CustomerBookingPhone,
+		Email:        bookingInfor.CustomerBookingEmail,
+		CmsUser:      prof.UserName,
+	}
+
+	if err := logInfor.Create(db); err != nil {
+		log.Println("Create send infor guest err", err.Error())
+	}
 }

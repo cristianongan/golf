@@ -40,7 +40,7 @@ type Booking struct {
 	// Thêm customer info
 	CustomerBookingName  string       `json:"customer_booking_name" gorm:"type:varchar(256)"`  // Tên khách hàng đặt booking
 	CustomerBookingPhone string       `json:"customer_booking_phone" gorm:"type:varchar(100)"` // SDT khách hàng đặt booking
-	CustomerEmail        string       `json:"customer_email" gorm:"type:varchar(256)"`         // Email khách hàng đặt booking
+	CustomerBookingEmail string       `json:"customer_booking_email" gorm:"type:varchar(256)"` // Email khách hàng đặt booking
 	CustomerName         string       `json:"customer_name" gorm:"type:varchar(256)"`          // Tên khách hàng
 	CustomerUid          string       `json:"customer_uid" gorm:"type:varchar(256);index"`     // Uid khách hàng
 	CustomerType         string       `json:"customer_type" gorm:"type:varchar(256)"`          // Loai khach hang: Member, Guest, Visitor...

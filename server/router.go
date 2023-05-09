@@ -298,6 +298,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/booking/undo-checkout", middlewares.AuthorizedCmsUserHandler(cBooking.UndoCheckOut))
 			cmsApiAuthorized.GET("/booking/get-list-bag-detail", middlewares.AuthorizedCmsUserHandler(cBooking.GetListBagDetail))
 			cmsApiAuthorized.GET("/booking/caddie-booking-cancel/list", middlewares.AuthorizedCmsUserHandler(cBooking.GetListCaddieBookingCancel))
+			cmsApiAuthorized.POST("/booking/send-infor-guest", middlewares.AuthorizedCmsUserHandler(cBooking.SendInforGuest)) // Gửi email, sms cho khách hàng
 
 			/// =================== Caddie Buggy In Out Bag ===================
 			cCaddieBuggyInOut := new(controllers.CCaddieBuggyInOut)
