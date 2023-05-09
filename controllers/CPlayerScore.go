@@ -38,6 +38,7 @@ func (_ *CPlayerScore) CreatePlayerScore(c *gin.Context, prof models.CmsUser) {
 			Bag:         player.Bag,
 			Course:      body.Course,
 			Hole:        body.Hole,
+			HoleIndex:   body.HoleIndex,
 			Par:         body.Par,
 			Shots:       player.Shots,
 			Index:       player.Index,
@@ -84,6 +85,7 @@ func (_ *CPlayerScore) GetListPlayerScore(c *gin.Context, prof models.CmsUser) {
 		BookingDate: form.BookingDate,
 		Bag:         form.Bag,
 		Hole:        form.Hole,
+		HoleIndex:   form.HoleIndex,
 		FlightId:    form.FlightId,
 	}
 	list, total, err := PlayerScoreR.FindList(db, page)

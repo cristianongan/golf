@@ -6,6 +6,7 @@ type CreatePlayerScoreBody struct {
 	BookingDate string   `json:"booking_date"`                   //  Sân
 	Course      string   `json:"course"`                         //  Sân
 	Hole        int      `json:"hole"`                           // Số hố
+	HoleIndex   int      `json:"hole_index"`                     // Số thứ tự của hố
 	Par         int      `json:"par"`                            // Số lần chạm gậy
 	TimeStart   int64    `json:"time_start"`
 	TimeEnd     int64    `json:"time_end"`
@@ -26,6 +27,7 @@ type GetListPlayerScoreForm struct {
 	BookingDate string `form:"booking_date"`                  //  Sân
 	Bag         string `form:"bag"`
 	Hole        int    `form:"hole"`
+	HoleIndex   int    `form:"hole_index"` // Số thứ tự của hố
 	FlightId    int64  `form:"flight_id"`
 }
 
@@ -38,4 +40,5 @@ type UpdatePlayerScoreBody struct {
 	TimeStart int64  `json:"time_start"`
 	TimeEnd   int64  `json:"time_end"`
 	FlightId  int64  `json:"flight_id"`
+	HoleIndex int    `json:"hole_index"` // Số thứ tự của hố
 }
