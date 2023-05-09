@@ -135,11 +135,22 @@ func (_ *Cekyc) CheckBookingMemberForEkyc(c *gin.Context) {
 
 	for i, v := range listBook {
 		if idx == -1 && v.BagStatus == constants.BAG_STATUS_BOOKING {
-			idx = i
+			if v.Bag == "" {
+				// Chưa đủ dk check in
+				idx = -2
+			} else {
+				idx = i
+			}
 		}
 	}
 
 	if idx < 0 {
+		if idx == -2 {
+			responseBaseModel.Code = "04"
+			responseBaseModel.Desc = "Chưa đủ điều kiện check-in: thiếu Bag"
+			c.JSON(http.StatusBadRequest, responseBaseModel)
+			return
+		}
 		responseBaseModel.Code = "03"
 		responseBaseModel.Desc = "Not find Booking"
 		c.JSON(http.StatusBadRequest, responseBaseModel)
