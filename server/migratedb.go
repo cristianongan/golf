@@ -79,6 +79,7 @@ func MigrateDbCms(db *gorm.DB) {
 	db.AutoMigrate(&model_booking.BookingServiceItem{})
 	db.AutoMigrate(&model_booking.BookingSource{})
 	db.AutoMigrate(&model_booking.BookingOta{})
+	db.AutoMigrate(&model_booking.SendInforGuest{})
 
 	// ----- Payment -------
 	db.AutoMigrate(&model_payment.SinglePayment{})
