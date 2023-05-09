@@ -177,17 +177,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		AgencyPaidAll:      body.AgencyPaidAll,
 	}
 
-	if body.IsCheckIn {
-		booking.Hole = body.Hole
-
-		if body.CaddieCheckIn != nil {
-			if errUpd := updateCaddieCheckIn(c, &booking, body.CaddieCheckIn); errUpd != nil {
-				response_message.BadRequestFreeMessage(c, errUpd.Error())
-				return nil, errUpd
-			}
-		}
-	}
-
 	// Check Guest of member, check member có còn slot đi cùng không
 	var memberCard models.MemberCard
 	guestStyle := ""
@@ -232,6 +221,17 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			booking.BookingDate = dateDisplay
 		} else {
 			log.Println("booking date display err ", errDate.Error())
+		}
+	}
+
+	if body.IsCheckIn {
+		booking.Hole = body.Hole
+
+		if body.CaddieCheckIn != nil {
+			if errUpd := updateCaddieCheckIn(c, &booking, body.CaddieCheckIn); errUpd != nil {
+				response_message.BadRequestFreeMessage(c, errUpd.Error())
+				return nil, errUpd
+			}
 		}
 	}
 
