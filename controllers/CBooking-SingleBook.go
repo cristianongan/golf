@@ -1004,16 +1004,18 @@ func addLogSendInforGuest(db *gorm.DB, listBooking []model_booking.Booking, prof
 
 	// Add log send infỏ guest
 	logInfor := model_booking.SendInforGuest{
-		PartnerUid:   prof.PartnerUid,
-		CourseUid:    prof.CourseUid,
-		BookingCode:  bookingInfor.BookingCode,
-		BookingDate:  bookingInfor.BookingDate,
-		BookingName:  bookingInfor.CustomerBookingName,
-		NumberPeople: len(listBooking),
-		SendMethod:   method,
-		PhoneNumber:  bookingInfor.CustomerBookingPhone,
-		Email:        bookingInfor.CustomerBookingEmail,
-		CmsUser:      prof.UserName,
+		PartnerUid:     prof.PartnerUid,
+		CourseUid:      prof.CourseUid,
+		BookingCode:    bookingInfor.BookingCode,
+		BookingDate:    bookingInfor.BookingDate,
+		BookingName:    bookingInfor.CustomerBookingName,
+		GuestStyle:     bookingInfor.GuestStyle,
+		GuestStyleName: bookingInfor.GuestStyleName,
+		NumberPeople:   len(listBooking),
+		SendMethod:     method,
+		PhoneNumber:    bookingInfor.CustomerBookingPhone,
+		Email:          bookingInfor.CustomerBookingEmail,
+		CmsUser:        prof.UserName,
 	}
 
 	if err := logInfor.Create(db); err != nil {
