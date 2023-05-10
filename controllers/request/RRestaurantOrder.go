@@ -98,9 +98,9 @@ type GetFoodProcessBody struct {
 	PartnerUid string `json:"partner_uid"`
 	CourseUid  string `json:"course_uid"`
 	ServiceId  int64  `json:"service_id" binding:"required"`
-	OrderDate  string `form:"order_date" binding:"required"`
+	OrderDate  string `json:"order_date" binding:"required"`
 	Type       string `json:"type"`
-	Status     string `json:"statys"`
+	Status     string `json:"status"`
 }
 
 type GetDetailFoodProcessBody struct {
