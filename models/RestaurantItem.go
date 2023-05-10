@@ -153,7 +153,7 @@ func (item *RestaurantItem) FindAllGroupBy(database *gorm.DB) ([]RestaurantItem,
 	db := database.Model(RestaurantItem{})
 	list := []RestaurantItem{}
 
-	db.Select("*, sum(quantity_progress) as total_process")
+	// db.Select("*, sum(quantity_progress) as total_process")
 
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
@@ -167,12 +167,15 @@ func (item *RestaurantItem) FindAllGroupBy(database *gorm.DB) ([]RestaurantItem,
 	if item.Type != "" {
 		db = db.Where("type = ?", item.Type)
 	}
-	if item.ItemName != "" {
-		db = db.Where("item_name LIKE ?", "%"+item.ItemName+"%")
+	if item.ItemStatus != "" {
+		db = db.Where("item_status = ?", item.ItemStatus)
+	}
+	if item.OrderDate != "" {
+		db = db.Where("order_date = ?", item.OrderDate)
 	}
 
-	db = db.Where("item_status = ?", constants.RES_STATUS_PROCESS)
-	db.Group("item_code")
+	// db = db.Where("item_status = ?", constants.RES_STATUS_PROCESS)
+	// db.Group("item_code")
 
 	db.Find(&list)
 

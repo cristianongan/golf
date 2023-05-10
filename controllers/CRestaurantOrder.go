@@ -1138,10 +1138,14 @@ func (_ CRestaurantOrder) GetFoodProcess(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate restaurant item
-	resItem := models.RestaurantItem{}
-	resItem.ServiceId = body.ServiceId
-	resItem.Type = body.Type
-	resItem.ItemName = body.Name
+	resItem := models.RestaurantItem{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		ServiceId:  body.ServiceId,
+		Type:       body.Type,
+		OrderDate:  body.OrderDate,
+		ItemStatus: body.Status,
+	}
 
 	list, err := resItem.FindAllGroupBy(db)
 
