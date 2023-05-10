@@ -177,10 +177,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		AgencyPaidAll:      body.AgencyPaidAll,
 	}
 
-	if body.IsCheckIn {
-		booking.Hole = body.Hole
-	}
-
 	// Check Guest of member, check member có còn slot đi cùng không
 	var memberCard models.MemberCard
 	guestStyle := ""
@@ -225,6 +221,17 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 			booking.BookingDate = dateDisplay
 		} else {
 			log.Println("booking date display err ", errDate.Error())
+		}
+	}
+
+	if body.IsCheckIn {
+		booking.Hole = body.Hole
+
+		if body.CaddieCheckIn != nil {
+			if errUpd := updateCaddieCheckIn(c, &booking, body.CaddieCheckIn); errUpd != nil {
+				response_message.BadRequestFreeMessage(c, errUpd.Error())
+				return nil, errUpd
+			}
 		}
 	}
 
@@ -350,6 +357,11 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		caddieNew, err := caddieList.FindFirst(db)
 		if err != nil {
 			response_message.BadRequestFreeMessage(c, "Caddie "+err.Error())
+			return nil, err
+		}
+
+		if caddieNew.ContractStatus == constants.CADDIE_CONTRACT_STATUS_TERMINATION {
+			response_message.BadRequestFreeMessage(c, "Caddie termination")
 			return nil, err
 		}
 
@@ -968,7 +980,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.CaddieCheckIn != nil {
-		if errUpd := updateCaddieCheckIn(c, &booking, body); errUpd != nil {
+		if errUpd := updateCaddieCheckIn(c, &booking, body.CaddieCheckIn); errUpd != nil {
 			response_message.BadRequestFreeMessage(c, errUpd.Error())
 			return
 		}
@@ -1035,20 +1047,24 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, res)
 }
 
-func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, body request.UpdateBooking) error {
+func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, caddie *string) error {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
-	if body.CaddieCheckIn != nil {
-		if *body.CaddieCheckIn != "" {
-			if *body.CaddieCheckIn != booking.CaddieInfo.Code {
+	if caddie != nil {
+		if *caddie != "" {
+			if *caddie != booking.CaddieInfo.Code {
 				// oldCaddie := booking.CaddieInfo
 
 				caddieList := models.CaddieList{}
 				caddieList.CourseUid = booking.CourseUid
-				caddieList.CaddieCode = *body.CaddieCheckIn
+				caddieList.CaddieCode = *caddie
 				caddieNew, err := caddieList.FindFirst(db)
 
 				if err != nil {
 					return errors.New("Caddie Not Found!")
+				}
+
+				if caddieNew.ContractStatus == constants.CADDIE_CONTRACT_STATUS_TERMINATION {
+					return errors.New("Caddie termination!")
 				}
 
 				cCaddie := CCaddie{}
@@ -1098,6 +1114,10 @@ func updateCaddieBooking(c *gin.Context, oldBooking *model_booking.BagDetail, bo
 
 				if err != nil {
 					return errors.New("Caddie Not Found!")
+				}
+
+				if caddieNew.ContractStatus == constants.CADDIE_CONTRACT_STATUS_TERMINATION {
+					return errors.New("Caddie termination!")
 				}
 
 				// check caddie booking
@@ -1411,6 +1431,11 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
+		if caddieNew.ContractStatus == constants.CADDIE_CONTRACT_STATUS_TERMINATION {
+			response_message.BadRequestFreeMessage(c, "Caddie "+err.Error())
+			return
+		}
+
 		booking.CaddieId = caddieNew.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 	} else if booking.CaddieBooking != "" {
@@ -1421,6 +1446,11 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 		if err != nil {
 			response_message.InternalServerError(c, err.Error())
+			return
+		}
+
+		if caddieNew.ContractStatus == constants.CADDIE_CONTRACT_STATUS_TERMINATION {
+			response_message.BadRequestFreeMessage(c, "Caddie "+err.Error())
 			return
 		}
 
@@ -1955,6 +1985,21 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 			response_message.InternalServerError(c, "Bag can not undo checkin")
 			return
 		}
+
+		// Xóa fee caddie booking
+		bookingSID := model_booking.BookingServiceItem{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			BillCode:    booking.BillCode,
+			ServiceType: constants.CADDIE_SETTING,
+		}
+
+		errD := bookingSID.DeleteBatch(db)
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+
 	}
 
 	pUid := booking.PartnerUid

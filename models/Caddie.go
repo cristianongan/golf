@@ -3,6 +3,7 @@ package models
 import (
 	"start/constants"
 	"start/utils"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -150,6 +151,10 @@ func (item *Caddie) FindList(database *gorm.DB, page Page) ([]Caddie, int64, err
 	}
 	if item.Phone != "" {
 		db = db.Where("phone = ?", item.Phone)
+	}
+	if item.ContractStatus != "" {
+		status := strings.Split(item.ContractStatus, ",")
+		db = db.Where("contract_status in (?)", status)
 	}
 	db.Count(&total)
 
