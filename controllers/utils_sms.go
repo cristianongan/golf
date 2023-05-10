@@ -154,6 +154,7 @@ func ekycUpdateImage(sid, memberUid, link string, imgFile multipart.File) {
 		return
 	}
 	dataModelJsonStr := string(dataModelByte)
+	log.Println("ekycUpdateImage D", dataModelJsonStr)
 
 	// S = signature
 	errGen, signature := utils.EkycGenSignature(dataModelJsonStr)
@@ -161,6 +162,7 @@ func ekycUpdateImage(sid, memberUid, link string, imgFile multipart.File) {
 		log.Println("ekycUpdateImage errGen", errGen.Error())
 		return
 	}
+	log.Println("ekycUpdateImage S", signature)
 
 	body := services.EkycUpdateBody{
 		D:           dataModelJsonStr,
