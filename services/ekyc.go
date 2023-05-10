@@ -85,12 +85,13 @@ func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile mu
 
 	byteBody, errForward := ioutil.ReadAll(resp.Body)
 
-	log.Println("CallEkyc byteBody ", string(byteBody))
+	if byteBody != nil {
+		log.Println("CallEkyc response ", string(byteBody))
+	}
 
 	if errForward != nil {
 		return errForward, 0, nil
 	}
-	log.Println("CallEkyc response ", string(byteBody))
 	return nil, resp.StatusCode, byteBody
 }
 
@@ -101,7 +102,7 @@ func EkycUpdateImage(bBody []byte, dataModel EkycUpdateBody, imgFile multipart.F
 	// shortResp := ShortResp{}
 	log.Println("EkycUpdateImage url", url)
 
-	err, statusCode, dataByte := CallEkyc(url, bBody, dataModel, imgFile)
+	err, statusCode, _ := CallEkyc(url, bBody, dataModel, imgFile)
 	if err != nil {
 		return err, statusCode
 	}
@@ -110,7 +111,7 @@ func EkycUpdateImage(bBody []byte, dataModel EkycUpdateBody, imgFile multipart.F
 		return errors.New("EkycUpdateImage error status code"), statusCode
 	}
 
-	log.Println("EkycUpdateImage res dataByte ", string(dataByte))
+	// log.Println("EkycUpdateImage res dataByte ", string(dataByte))
 
 	// errUn := json.Unmarshal(dataByte, &shortResp)
 	// if errUn != nil {
