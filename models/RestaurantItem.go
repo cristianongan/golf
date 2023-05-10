@@ -153,7 +153,7 @@ func (item *RestaurantItem) FindAllGroupBy(database *gorm.DB) ([]map[string]inte
 	db := database.Model(RestaurantItem{})
 	var list []map[string]interface{}
 
-	db = db.Select("restaurant_items*, service_carts.*")
+	db = db.Select("restaurant_items.*, service_carts.*")
 
 	if item.CourseUid != "" {
 		db = db.Where("restaurant_items.course_uid = ?", item.CourseUid)
