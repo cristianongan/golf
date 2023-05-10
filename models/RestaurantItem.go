@@ -149,30 +149,32 @@ func (item *RestaurantItem) FindAll(database *gorm.DB) ([]RestaurantItem, error)
 	return list, db.Error
 }
 
-func (item *RestaurantItem) FindAllGroupBy(database *gorm.DB) ([]RestaurantItem, error) {
+func (item *RestaurantItem) FindAllGroupBy(database *gorm.DB) ([]map[string]interface{}, error) {
 	db := database.Model(RestaurantItem{})
-	list := []RestaurantItem{}
+	var list []map[string]interface{}
 
-	// db.Select("*, sum(quantity_progress) as total_process")
+	db = db.Select("restaurant_items*, service_carts.*")
 
 	if item.CourseUid != "" {
-		db = db.Where("course_uid = ?", item.CourseUid)
+		db = db.Where("restaurant_items.course_uid = ?", item.CourseUid)
 	}
 	if item.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", item.PartnerUid)
+		db = db.Where("restaurant_items.partner_uid = ?", item.PartnerUid)
 	}
 	if item.ServiceId != 0 {
-		db = db.Where("service_id = ?", item.ServiceId)
+		db = db.Where("restaurant_items.service_id = ?", item.ServiceId)
 	}
 	if item.Type != "" {
-		db = db.Where("type = ?", item.Type)
+		db = db.Where("restaurant_items.type = ?", item.Type)
 	}
 	if item.ItemStatus != "" {
-		db = db.Where("item_status = ?", item.ItemStatus)
+		db = db.Where("restaurant_items.item_status = ?", item.ItemStatus)
 	}
 	if item.OrderDate != "" {
-		db = db.Where("order_date = ?", item.OrderDate)
+		db = db.Where("restaurant_items.order_date = ?", item.OrderDate)
 	}
+
+	db = db.Joins("INNER JOIN service_carts on service_carts.id = restaurant_items.bill_id")
 
 	// db = db.Where("item_status = ?", constants.RES_STATUS_PROCESS)
 	// db.Group("item_code")
