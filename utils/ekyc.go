@@ -7,7 +7,6 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	base64 "encoding/base64"
-	"encoding/pem"
 	"errors"
 	"io/ioutil"
 	"log"
@@ -33,12 +32,17 @@ func EkycGenSignature(dataStr string) (error, string) {
 	signature := ""
 
 	// Get private key from local
+	// test local
+	//f, errPrv := os.Open("../prv.rsa")
+	//staging , prod
 	f, errPrv := os.Open("prv.rsa")
 	if errPrv != nil {
 		log.Println("EkycGenSignature errPrv", errPrv.Error())
 		return errPrv, signature
 	}
 	defer f.Close()
+
+	log.Println("EkycGenSignature read file ok")
 
 	byteRsaPrivateValue, errRA := ioutil.ReadAll(f)
 
@@ -51,6 +55,8 @@ func EkycGenSignature(dataStr string) (error, string) {
 	if errPkey != nil {
 		return errPkey, signature
 	}
+
+	log.Println("EkycGenSignature privateKey ok")
 
 	msgHash := sha256.New()
 	_, errmhash := msgHash.Write([]byte(dataStr))
@@ -159,18 +165,18 @@ func BytesToPublicKey(pub []byte) (*rsa.PublicKey, error) {
 
 // BytesToPrivateKey bytes to private key
 func BytesToPrivateKey(priv []byte) (*rsa.PrivateKey, error) {
-	block, _ := pem.Decode(priv)
-	enc := x509.IsEncryptedPEMBlock(block)
-	b := block.Bytes
-	var err error
-	if enc {
-		log.Println("is encrypted pem block")
-		b, err = x509.DecryptPEMBlock(block, nil)
-		if err != nil {
-			return nil, err
-		}
-	}
-	key, err := x509.ParsePKCS1PrivateKey(b)
+	// block, _ := pem.Decode(priv)
+	// enc := x509.IsEncryptedPEMBlock(block)
+	// b := block.Bytes
+	// var err error
+	// if enc {
+	// 	log.Println("is encrypted pem block")
+	// 	b, err = x509.DecryptPEMBlock(block, nil)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
+	key, err := x509.ParsePKCS1PrivateKey(priv)
 	if err != nil {
 		return nil, err
 	}

@@ -319,3 +319,7 @@ func GetEkycUrl() string {
 func GetEkycUpdate() string {
 	return config.GetString("ekyc.update_image")
 }
+
+func GetEkycAuthKey() string {
+	return config.GetString("ekyc.auth_key")
+}
