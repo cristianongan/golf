@@ -759,7 +759,7 @@ func (item *BookingServiceItem) DeleteBatch(db *gorm.DB) error {
 	}
 
 	if item.ServiceType != "" {
-		db = db.Where("service_type = ?", item.BillCode)
+		db = db.Where("service_type = ?", item.ServiceType)
 	}
 
 	return db.Delete(item).Error
