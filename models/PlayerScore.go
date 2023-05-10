@@ -44,6 +44,22 @@ type ListPlayerScore struct {
 	TimeEnd      int64  `json:"time_end"`                // Thời gian end
 }
 
+func (item *PlayerScore) IsDuplicated(db *gorm.DB) bool {
+	modelCheck := PlayerScore{
+		PartnerUid: item.PartnerUid,
+		CourseUid:  item.CourseUid,
+		FlightId:   item.FlightId,
+		Bag:        item.Bag,
+		HoleIndex:  item.HoleIndex,
+	}
+
+	errFind := modelCheck.FindFirst(db)
+	if errFind == nil || modelCheck.Id > 0 {
+		return true
+	}
+	return false
+}
+
 func (item *PlayerScore) Create(db *gorm.DB) error {
 	now := utils.GetTimeNow()
 	item.ModelId.CreatedAt = now.Unix()

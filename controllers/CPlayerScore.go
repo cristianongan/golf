@@ -52,6 +52,11 @@ func (_ *CPlayerScore) CreatePlayerScore(c *gin.Context, prof models.CmsUser) {
 			playerScore.ModelId.Status = constants.STATUS_ENABLE
 		}
 
+		if playerScore.IsDuplicated(db) {
+			response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
+			return
+		}
+
 		listPlayer = append(listPlayer, playerScore)
 	}
 
