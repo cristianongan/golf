@@ -42,8 +42,6 @@ func EkycGenSignature(dataStr string) (error, string) {
 	}
 	defer f.Close()
 
-	log.Println("EkycGenSignature read file ok")
-
 	byteRsaPrivateValue, errRA := ioutil.ReadAll(f)
 
 	if errRA != nil {
@@ -62,7 +60,7 @@ func EkycGenSignature(dataStr string) (error, string) {
 		return errPkey, signature
 	}
 
-	log.Println("EkycGenSignature privateKey ok")
+	// log.Println("EkycGenSignature privateKey ok")
 
 	msgHash := sha256.New()
 	_, errmhash := msgHash.Write([]byte(dataStr))
@@ -124,9 +122,7 @@ func BytesToPrivateKey(priv []byte) (*rsa.PrivateKey, error) {
 	// 	}
 	// }
 	ifc, err1 := x509.ParsePKCS8PrivateKey(priv)
-	if err1 == nil {
-		log.Println("BytesToPrivateKey oke")
-	} else {
+	if err1 != nil {
 		log.Println("BytesToPrivateKey err1", err1.Error())
 	}
 

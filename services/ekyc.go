@@ -3,13 +3,16 @@ package services
 import (
 	"bytes"
 	"errors"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"mime/multipart"
 	"net/http"
-	"net/url"
+	"path/filepath"
 	"start/config"
 	"start/constants"
+	"strconv"
 	"time"
 )
 
@@ -28,26 +31,51 @@ type EkycDataModel struct {
 }
 
 func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile multipart.File) (error, int, []byte) {
-	req, errNewRequest := http.NewRequest("POST", urlFull, bytes.NewBuffer(bBody))
-	if errNewRequest != nil {
-		return errNewRequest, 0, nil
+	// req, errNewRequest := http.NewRequest("POST", urlFull, bytes.NewBuffer(bBody))
+	// if errNewRequest != nil {
+	// 	return errNewRequest, 0, nil
+	// }
+
+	payload := &bytes.Buffer{}
+	writer := multipart.NewWriter(payload)
+	_ = writer.WriteField("d", dataModel.D)
+	_ = writer.WriteField("s", dataModel.S)
+
+	timeUnix := time.Now().UnixNano()
+	timeUnixStr := strconv.FormatInt(timeUnix, 10)
+
+	fileName := "ekyc-" + timeUnixStr + ".png"
+	log.Println("CallEkyc fileName", fileName)
+
+	part3,
+		errFile3 := writer.CreateFormFile("selfieImage", filepath.Base(fileName))
+	_, errFile3 = io.Copy(part3, imgFile)
+	if errFile3 != nil {
+		fmt.Println(errFile3)
+		return errFile3, 0, nil
 	}
-
-	form := url.Values{}
-	form.Add("d", dataModel.D)
-	form.Add("s", dataModel.S)
-
-	req.PostForm = form
-
-	req.Header.Add("Authorization", config.GetEkycAuthKey())
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-	// req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	// req.Header.Set("Content-Type", "application/json")
+	err := writer.Close()
+	if err != nil {
+		fmt.Println(err)
+		return err, 0, nil
+	}
 
 	client := &http.Client{
 		Timeout: time.Second * constants.TIMEOUT,
 	}
+	req, err := http.NewRequest("POST", urlFull, payload)
+
+	if err != nil {
+		fmt.Println(err)
+		return err, 0, nil
+	}
+	req.Header.Add("Authorization", config.GetEkycAuthKey())
+
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	// client := &http.Client{
+	// 	Timeout: time.Second * constants.TIMEOUT,
+	// }
 	log.Println("CallEkyc test 01")
 	resp, errRequest := client.Do(req)
 	if errRequest != nil {
