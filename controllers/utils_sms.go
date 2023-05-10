@@ -167,7 +167,7 @@ func ekycUpdateImage(sid, memberUid, link string, imgFile multipart.File) {
 	body := services.EkycUpdateBody{
 		D:           dataModelJsonStr,
 		S:           signature,
-		SelfieImage: link,
+		SelfieImage: link, // Khong dung
 	}
 
 	dataByte, errM := json.Marshal(body)
@@ -177,7 +177,10 @@ func ekycUpdateImage(sid, memberUid, link string, imgFile multipart.File) {
 		return
 	}
 
-	_, _ = services.EkycUpdateImage(dataByte, body, imgFile)
+	errUpload, _ := services.EkycUpdateImage(dataByte, body, imgFile)
+	if errUpload != nil {
+		log.Println("ekycUpdateImage errUpload", errUpload.Error())
+	}
 }
 
 /*

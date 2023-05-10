@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"log"
+	"start/config"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -91,23 +92,25 @@ func (_ *CMemberCard) EKycUpdateImageMemberCard(c *gin.Context, prof models.CmsU
 	}
 
 	//Upload image to minio
-	// link, errUpdload := datasources.UploadFile(&file)
-	// if errUpdload != nil {
-	// 	log.Println("error upload")
-	// 	// response_message.InternalServerError(c, errUpdload.Error())
-	// 	// return
-	// } else {
-	// 	//Upload oke
-	// 	customerInfo.UpdateListImages(link)
+	if config.GetEnvironmentName() != "local" {
+		link, errUpdload := datasources.UploadFile(&file)
+		if errUpdload != nil {
+			log.Println("error upload")
+			response_message.InternalServerError(c, errUpdload.Error())
+			return
+		} else {
+			//Upload oke
+			customerInfo.UpdateListImages(link)
 
-	// 	erUdp := customerInfo.Update(db)
-	// 	if erUdp != nil {
-	// 		response_message.BadRequest(c, erUdp.Error())
-	// 		return
-	// 	}
-	// }
+			erUdp := customerInfo.Update(db)
+			if erUdp != nil {
+				response_message.BadRequest(c, erUdp.Error())
+				return
+			}
+		}
+	}
 
-	// TODO: Cập nhật ảnh sang eKyc server
+	// Cập nhật ảnh sang eKyc server
 	// for tìm tất cả các member có owner_uid call udp sang
 	memberR := models.MemberCard{
 		PartnerUid: partnerUid,
