@@ -1955,6 +1955,21 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 			response_message.InternalServerError(c, "Bag can not undo checkin")
 			return
 		}
+
+		// Xóa fee caddie booking
+		bookingSID := model_booking.BookingServiceItem{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			BillCode:    booking.BillCode,
+			ServiceType: constants.CADDIE_SETTING,
+		}
+
+		errD := bookingSID.DeleteBatch(db)
+		if errD != nil {
+			response_message.InternalServerError(c, errD.Error())
+			return
+		}
+
 	}
 
 	pUid := booking.PartnerUid
