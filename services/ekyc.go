@@ -76,7 +76,7 @@ func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile mu
 	// client := &http.Client{
 	// 	Timeout: time.Second * constants.TIMEOUT,
 	// }
-	log.Println("CallEkyc test 01")
+	// log.Println("CallEkyc test 01")
 	resp, errRequest := client.Do(req)
 	if errRequest != nil {
 		return errRequest, 0, nil
@@ -110,7 +110,7 @@ func EkycUpdateImage(bBody []byte, dataModel EkycUpdateBody, imgFile multipart.F
 		return errors.New("EkycUpdateImage error status code"), statusCode
 	}
 
-	log.Println("EkycUpdateImage dataByte ", string(dataByte))
+	log.Println("EkycUpdateImage res dataByte ", string(dataByte))
 
 	// errUn := json.Unmarshal(dataByte, &shortResp)
 	// if errUn != nil {

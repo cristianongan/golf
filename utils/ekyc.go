@@ -69,7 +69,12 @@ func EkycGenSignature(dataStr string) (error, string) {
 	}
 	msgHashSum := msgHash.Sum(nil)
 
-	signatureByte, errSig := rsa.SignPSS(rand.Reader, privateKey, crypto.SHA256, msgHashSum, nil)
+	// signatureByte, errSig := rsa.SignPSS(rand.Reader, privateKey, crypto.SHA256, rand.Reader, privateKey, nil)
+	// if errSig != nil {
+	// 	return errSig, signature
+	// }
+
+	signatureByte, errSig := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA256, msgHashSum)
 	if errSig != nil {
 		return errSig, signature
 	}
