@@ -7,7 +7,6 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	base64 "encoding/base64"
-	"encoding/pem"
 	"errors"
 	"io/ioutil"
 	"log"
@@ -33,6 +32,9 @@ func EkycGenSignature(dataStr string) (error, string) {
 	signature := ""
 
 	// Get private key from local
+	// test local
+	//f, errPrv := os.Open("../prv.rsa")
+	//staging , prod
 	f, errPrv := os.Open("prv.rsa")
 	if errPrv != nil {
 		log.Println("EkycGenSignature errPrv", errPrv.Error())
@@ -47,10 +49,18 @@ func EkycGenSignature(dataStr string) (error, string) {
 		return errRA, signature
 	}
 
-	privateKey, errPkey := BytesToPrivateKey(byteRsaPrivateValue)
+	base64EncodeRsaPrivate, errDecodeByteRsa := base64.StdEncoding.DecodeString(string(byteRsaPrivateValue))
+	if errDecodeByteRsa != nil {
+		log.Println("EkycGenSignature errDecodeByteRsa", errDecodeByteRsa.Error())
+		return errDecodeByteRsa, signature
+	}
+
+	privateKey, errPkey := BytesToPrivateKey(base64EncodeRsaPrivate)
 	if errPkey != nil {
 		return errPkey, signature
 	}
+
+	// log.Println("EkycGenSignature privateKey ok")
 
 	msgHash := sha256.New()
 	_, errmhash := msgHash.Write([]byte(dataStr))
@@ -59,7 +69,12 @@ func EkycGenSignature(dataStr string) (error, string) {
 	}
 	msgHashSum := msgHash.Sum(nil)
 
-	signatureByte, errSig := rsa.SignPSS(rand.Reader, privateKey, crypto.SHA256, msgHashSum, nil)
+	// signatureByte, errSig := rsa.SignPSS(rand.Reader, privateKey, crypto.SHA256, rand.Reader, privateKey, nil)
+	// if errSig != nil {
+	// 	return errSig, signature
+	// }
+
+	signatureByte, errSig := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA256, msgHashSum)
 	if errSig != nil {
 		return errSig, signature
 	}
@@ -70,65 +85,6 @@ func EkycGenSignature(dataStr string) (error, string) {
 	return nil, signature
 }
 
-/*
-func VerifyVNPayRsa(phone, bankCode, bankName, token string) error {
-	msgStr := phone + bankCode + bankName
-	log.Println("VerifyVNPayRsa msgStr", msgStr)
-	hashed := sha256.Sum256([]byte(msgStr))
-	// msg := []byte(msgStr)
-
-	var err error
-
-	// Base 64 token
-	byteTokenDec, errTokenDc := base64.StdEncoding.DecodeString(token)
-	if errTokenDc != nil {
-		log.Println("verifyVNPayRsa errTokenDc ", errTokenDc.Error())
-		return errTokenDc
-	}
-	signature := byteTokenDec // == token
-
-	// Get public key from local
-	f, errF := os.Open("vnp_public.rsa")
-	if errF != nil {
-		log.Println("verifyVNPayRsa errF", errF.Error())
-		return errF
-	}
-	defer f.Close()
-
-	byteRsaPublicValue, errRA := ioutil.ReadAll(f)
-
-	if errRA != nil {
-		log.Println("verifyVNPayRsa errRA", errRA.Error())
-		return errRA
-	}
-
-	rsaPublicValueStr := string(byteRsaPublicValue)
-
-	byteRsaPublicValueDec, errDc := base64.StdEncoding.DecodeString(rsaPublicValueStr)
-	if errDc != nil {
-		log.Println("verifyVNPayRsa errDc ", errDc.Error())
-		return errDc
-	}
-
-	// public key
-	publicKey, errPK := BytesToPublicKey(byteRsaPublicValueDec)
-	if errPK != nil {
-		log.Println("verifyVNPayRsa errPK", errPK.Error())
-		return errPK
-	}
-
-	// Verify
-	err = rsa.VerifyPKCS1v15(publicKey, crypto.SHA256, hashed[:], signature)
-	if err != nil {
-		fmt.Println("verifyVNPayRsa could not verify signature: ", err.Error())
-		return err
-	}
-
-	// signature is valid
-	fmt.Println("verifyVNPayRsa signature verified")
-	return nil
-}
-*/
 // BytesToPublicKey bytes to public key
 func BytesToPublicKey(pub []byte) (*rsa.PublicKey, error) {
 	// block, _ := pem.Decode(pub)
@@ -159,20 +115,31 @@ func BytesToPublicKey(pub []byte) (*rsa.PublicKey, error) {
 
 // BytesToPrivateKey bytes to private key
 func BytesToPrivateKey(priv []byte) (*rsa.PrivateKey, error) {
-	block, _ := pem.Decode(priv)
-	enc := x509.IsEncryptedPEMBlock(block)
-	b := block.Bytes
-	var err error
-	if enc {
-		log.Println("is encrypted pem block")
-		b, err = x509.DecryptPEMBlock(block, nil)
-		if err != nil {
-			return nil, err
-		}
+	// block, _ := pem.Decode(priv)
+	// enc := x509.IsEncryptedPEMBlock(block)
+	// b := block.Bytes
+	// var err error
+	// if enc {
+	// 	log.Println("is encrypted pem block")
+	// 	b, err = x509.DecryptPEMBlock(block, nil)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
+	ifc, err1 := x509.ParsePKCS8PrivateKey(priv)
+	if err1 != nil {
+		log.Println("BytesToPrivateKey err1", err1.Error())
 	}
-	key, err := x509.ParsePKCS1PrivateKey(b)
-	if err != nil {
-		return nil, err
+
+	key, ok := ifc.(*rsa.PrivateKey)
+	if !ok {
+		return nil, errors.New("BytesToPrivateKey not ok")
 	}
+
+	// key, err := x509.ParsePKCS1PrivateKey(priv)
+	// if err != nil {
+	// 	log.Println("BytesToPrivateKey", err.Error())
+	// 	return nil, err
+	// }
 	return key, nil
 }

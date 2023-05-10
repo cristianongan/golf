@@ -6,13 +6,17 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"mime/multipart"
 	"start/config"
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
 	"start/services"
+	"start/utils"
 	"strconv"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/ttacon/libphonenumber"
 )
 
@@ -125,23 +129,58 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 /*
 Update image to ekyc server
 */
-func ekycUpdateImage(memberUid, link string) {
+func ekycUpdateImage(sid, memberUid, link string, imgFile multipart.File) {
+
+	// Current Time
+	currentTime := time.Now().Unix()
+	currentTimeStr := strconv.FormatInt(currentTime, 10)
+
+	// Request Id
+	uid := uuid.New()
+	requestId := utils.HashCodeUuid(uid.String())
+
+	dataModel := services.EkycDataModel{
+		Sid:       sid,
+		IdNumber:  memberUid,
+		Timestamp: currentTimeStr,
+		RequestId: requestId,
+	}
+
+	// d = DataModel -> string json
+	//
+	dataModelByte, errMar := json.Marshal(dataModel)
+	if errMar != nil {
+		log.Println("ekycUpdateImage errMar", errMar.Error())
+		return
+	}
+	dataModelJsonStr := string(dataModelByte)
+	log.Println("ekycUpdateImage D", dataModelJsonStr)
+
+	// S = signature
+	errGen, signature := utils.EkycGenSignature(dataModelJsonStr)
+	if errGen != nil {
+		log.Println("ekycUpdateImage errGen", errGen.Error())
+		return
+	}
+	log.Println("ekycUpdateImage S", signature)
+
 	body := services.EkycUpdateBody{
-		D:           memberUid,
-		S:           memberUid,
-		SelfieImage: link,
+		D:           dataModelJsonStr,
+		S:           signature,
+		SelfieImage: link, // Khong dung
 	}
 
 	dataByte, errM := json.Marshal(body)
-
-	log.Println("ekycUpdateImage")
 
 	if errM != nil {
 		log.Println("ekycUpdateImage errM", errM.Error())
 		return
 	}
 
-	_, _ = services.EkycUpdateImage(dataByte)
+	errUpload, _ := services.EkycUpdateImage(dataByte, body, imgFile)
+	if errUpload != nil {
+		log.Println("ekycUpdateImage errUpload", errUpload.Error())
+	}
 }
 
 /*

@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"log"
+	"start/config"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -91,24 +92,37 @@ func (_ *CMemberCard) EKycUpdateImageMemberCard(c *gin.Context, prof models.CmsU
 	}
 
 	//Upload image to minio
-	link, errUpdload := datasources.UploadFile(&file)
-	if errUpdload != nil {
-		log.Println(errUpdload)
-		response_message.InternalServerError(c, errUpdload.Error())
-		return
+	if config.GetEnvironmentName() != "local" {
+		link, errUpdload := datasources.UploadFile(&file)
+		if errUpdload != nil {
+			log.Println("error upload")
+			response_message.InternalServerError(c, errUpdload.Error())
+			return
+		} else {
+			//Upload oke
+			customerInfo.UpdateListImages(link)
+
+			erUdp := customerInfo.Update(db)
+			if erUdp != nil {
+				response_message.BadRequest(c, erUdp.Error())
+				return
+			}
+		}
 	}
 
-	customerInfo.UpdateListImages(link)
-
-	erUdp := customerInfo.Update(db)
-	if erUdp != nil {
-		response_message.BadRequest(c, erUdp.Error())
-		return
-	}
-
-	// TODO: Cập nhật ảnh sang eKyc server
+	// Cập nhật ảnh sang eKyc server
 	// for tìm tất cả các member có owner_uid call udp sang
-	go ekycUpdateImage(ownerUid, link)
+	memberR := models.MemberCard{
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+		OwnerUid:   ownerUid,
+	}
+	errMember, listMem := memberR.FindAll(db)
+	if errMember == nil && len(listMem) > 0 {
+		for _, v := range listMem {
+			go ekycUpdateImage(sid, v.Uid, "", file)
+		}
+	}
 
 	okResponse(c, customerInfo)
 }
