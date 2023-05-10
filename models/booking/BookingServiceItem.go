@@ -744,3 +744,23 @@ func (item *BookingServiceItem) FindReport(database *gorm.DB, page models.Page, 
 
 	return list, total, db.Error
 }
+
+func (item *BookingServiceItem) DeleteBatch(db *gorm.DB) error {
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.BillCode != "" {
+		db = db.Where("bill_code = ?", item.BillCode)
+	}
+
+	if item.ServiceType != "" {
+		db = db.Where("service_type = ?", item.BillCode)
+	}
+
+	return db.Delete(item).Error
+}
