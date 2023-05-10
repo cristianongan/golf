@@ -52,7 +52,7 @@ func (item *SendInforGuest) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *SendInforGuest) FindList(database *gorm.DB, page models.Page, from, to int64, isFullDay bool) ([]SendInforGuest, int64, error) {
+func (item *SendInforGuest) FindList(database *gorm.DB, page models.Page) ([]SendInforGuest, int64, error) {
 	db := database.Model(SendInforGuest{})
 	list := []SendInforGuest{}
 	total := int64(0)
@@ -62,6 +62,14 @@ func (item *SendInforGuest) FindList(database *gorm.DB, page models.Page, from, 
 	}
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+	if item.BookingCode != "" {
+		db = db.Where(`booking_code COLLATE utf8mb4_general_ci LIKE ? OR booking_name COLLATE utf8mb4_general_ci LIKE ? 
+		OR phone_number COLLATE utf8mb4_general_ci LIKE ? OR email COLLATE utf8mb4_general_ci LIKE ?`,
+			"%"+item.BookingCode+"%", "%"+item.BookingCode+"%", "%"+item.BookingCode+"%", "%"+item.BookingCode+"%")
 	}
 
 	db.Count(&total)
