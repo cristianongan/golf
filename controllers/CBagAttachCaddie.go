@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"log"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -12,6 +13,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type CBagAttachCaddie struct{}
@@ -140,6 +142,8 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 		caddieAttach.BookingUid = body.BookingUid
 		caddieAttach.CustomerName = body.CustomerName
 		caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_BOOKING
+
+		go UpdateNewBooking(db, &booking, caddieAttach)
 	} else {
 		caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_READY
 	}
@@ -274,10 +278,19 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 			return
 		}
 
+		if caddieAttach.BookingUid != "" && caddieAttach.BookingUid != body.BookingUid {
+			go UpdateOldBooking(db, caddieAttach)
+		}
+
+		go UpdateNewBooking(db, &booking, caddieAttach)
+
 		caddieAttach.BookingUid = body.BookingUid
 		caddieAttach.CustomerName = body.CustomerName
 		caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_BOOKING
 	} else {
+		if caddieAttach.BookingUid != "" {
+			go UpdateOldBooking(db, caddieAttach)
+		}
 		caddieAttach.BookingUid = ""
 		caddieAttach.CustomerName = ""
 		caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_READY
@@ -318,4 +331,66 @@ func (_ *CBagAttachCaddie) DeleteAttachCaddie(c *gin.Context, prof models.CmsUse
 	}
 
 	okRes(c)
+}
+
+// Update thông tin booking
+func UpdateNewBooking(db *gorm.DB, booking *model_booking.Booking, caddieAtt model_gostarter.BagAttachCaddie) {
+	if caddieAtt.CaddieCode != "" {
+		caddie := models.Caddie{
+			PartnerUid: booking.PartnerUid,
+			CourseUid:  booking.CourseUid,
+			Code:       caddieAtt.CaddieCode,
+		}
+		errFC := caddie.FindFirst(db)
+		if errFC != nil {
+			log.Println("UpdateBooking err: ", errFC)
+		}
+
+		booking.CaddieId = caddie.Id
+		booking.CaddieInfo = cloneToCaddieBooking(caddie)
+	}
+
+	if caddieAtt.Bag != "" {
+		booking.Bag = caddieAtt.Bag
+	}
+
+	if caddieAtt.LockerNo != "" {
+		booking.LockerNo = caddieAtt.LockerNo
+		booking.LockerStatus = constants.LOCKER_STATUS_USED
+	} else {
+		booking.LockerNo = ""
+		booking.LockerStatus = ""
+	}
+
+	if err := booking.Update(db); err != nil {
+		log.Println("UpdateBooking err: ", err)
+	}
+
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, booking)
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, booking)
+}
+
+func UpdateOldBooking(db *gorm.DB, caddieAtt model_gostarter.BagAttachCaddie) {
+	booking := model_booking.Booking{}
+
+	booking.Uid = caddieAtt.BookingUid
+	if err := booking.FindFirst(db); err != nil {
+		log.Println("FindFrist err: ", err)
+	}
+
+	// Update infor
+	booking.CaddieId = 0
+	booking.CaddieInfo = model_booking.BookingCaddie{}
+	booking.Bag = ""
+	booking.LockerNo = ""
+	booking.LockerStatus = ""
+
+	if err := booking.Update(db); err != nil {
+		log.Println("UpdateBooking err: ", err)
+	}
+
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, booking)
 }

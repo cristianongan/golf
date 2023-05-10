@@ -67,6 +67,7 @@ type Booking struct {
 	NoteOfBooking string `json:"note_of_booking" gorm:"type:varchar(500)"` // Note of Booking
 	NoteOfGo      string `json:"note_of_go" gorm:"type:varchar(500)"`      // Note khi trong GO
 	LockerNo      string `json:"locker_no" gorm:"type:varchar(100)"`       // Locker mã số tủ gửi đồ
+	LockerStatus  string `json:"locker_status" gorm:"type:varchar(100)"`   //Trạng thái locker
 	ReportNo      string `json:"report_no" gorm:"type:varchar(200)"`       // Report No
 	CancelNote    string `json:"cancel_note" gorm:"type:varchar(300)"`     // Cancel note
 

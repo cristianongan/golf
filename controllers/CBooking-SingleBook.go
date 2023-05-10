@@ -103,6 +103,9 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 			BookingUid:  booking.Uid,
 		}
 		go createOperationLog(opLog)
+
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
 	}
 
 	okResponse(c, booking)
@@ -585,6 +588,9 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 				BookingUid:  booking.Uid,
 			}
 			go createOperationLog(opLog)
+
+			cNotification := CNotification{}
+			go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
 		}
 	}
 
