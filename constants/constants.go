@@ -126,8 +126,9 @@ const (
 )
 
 const (
-	CADDIE_CONTRACT_STATUS_FULLTIME = "fulltime"
-	CADDIE_CONTRACT_STATUS_PARTTIME = "parttime"
+	CADDIE_CONTRACT_STATUS_FULLTIME    = "fulltime"
+	CADDIE_CONTRACT_STATUS_PARTTIME    = "parttime"
+	CADDIE_CONTRACT_STATUS_TERMINATION = "termination"
 )
 
 const (
