@@ -51,7 +51,13 @@ func EkycGenSignature(dataStr string) (error, string) {
 		return errRA, signature
 	}
 
-	privateKey, errPkey := BytesToPrivateKey(byteRsaPrivateValue)
+	base64EncodeRsaPrivate, errDecodeByteRsa := base64.StdEncoding.DecodeString(string(byteRsaPrivateValue))
+	if errDecodeByteRsa != nil {
+		log.Println("EkycGenSignature errDecodeByteRsa", errDecodeByteRsa.Error())
+		return errDecodeByteRsa, signature
+	}
+
+	privateKey, errPkey := BytesToPrivateKey(base64EncodeRsaPrivate)
 	if errPkey != nil {
 		return errPkey, signature
 	}
@@ -76,65 +82,6 @@ func EkycGenSignature(dataStr string) (error, string) {
 	return nil, signature
 }
 
-/*
-func VerifyVNPayRsa(phone, bankCode, bankName, token string) error {
-	msgStr := phone + bankCode + bankName
-	log.Println("VerifyVNPayRsa msgStr", msgStr)
-	hashed := sha256.Sum256([]byte(msgStr))
-	// msg := []byte(msgStr)
-
-	var err error
-
-	// Base 64 token
-	byteTokenDec, errTokenDc := base64.StdEncoding.DecodeString(token)
-	if errTokenDc != nil {
-		log.Println("verifyVNPayRsa errTokenDc ", errTokenDc.Error())
-		return errTokenDc
-	}
-	signature := byteTokenDec // == token
-
-	// Get public key from local
-	f, errF := os.Open("vnp_public.rsa")
-	if errF != nil {
-		log.Println("verifyVNPayRsa errF", errF.Error())
-		return errF
-	}
-	defer f.Close()
-
-	byteRsaPublicValue, errRA := ioutil.ReadAll(f)
-
-	if errRA != nil {
-		log.Println("verifyVNPayRsa errRA", errRA.Error())
-		return errRA
-	}
-
-	rsaPublicValueStr := string(byteRsaPublicValue)
-
-	byteRsaPublicValueDec, errDc := base64.StdEncoding.DecodeString(rsaPublicValueStr)
-	if errDc != nil {
-		log.Println("verifyVNPayRsa errDc ", errDc.Error())
-		return errDc
-	}
-
-	// public key
-	publicKey, errPK := BytesToPublicKey(byteRsaPublicValueDec)
-	if errPK != nil {
-		log.Println("verifyVNPayRsa errPK", errPK.Error())
-		return errPK
-	}
-
-	// Verify
-	err = rsa.VerifyPKCS1v15(publicKey, crypto.SHA256, hashed[:], signature)
-	if err != nil {
-		fmt.Println("verifyVNPayRsa could not verify signature: ", err.Error())
-		return err
-	}
-
-	// signature is valid
-	fmt.Println("verifyVNPayRsa signature verified")
-	return nil
-}
-*/
 // BytesToPublicKey bytes to public key
 func BytesToPublicKey(pub []byte) (*rsa.PublicKey, error) {
 	// block, _ := pem.Decode(pub)
@@ -176,9 +123,22 @@ func BytesToPrivateKey(priv []byte) (*rsa.PrivateKey, error) {
 	// 		return nil, err
 	// 	}
 	// }
-	key, err := x509.ParsePKCS1PrivateKey(priv)
-	if err != nil {
-		return nil, err
+	ifc, err1 := x509.ParsePKCS8PrivateKey(priv)
+	if err1 == nil {
+		log.Println("BytesToPrivateKey oke")
+	} else {
+		log.Println("BytesToPrivateKey err1", err1.Error())
 	}
+
+	key, ok := ifc.(*rsa.PrivateKey)
+	if !ok {
+		return nil, errors.New("BytesToPrivateKey not ok")
+	}
+
+	// key, err := x509.ParsePKCS1PrivateKey(priv)
+	// if err != nil {
+	// 	log.Println("BytesToPrivateKey", err.Error())
+	// 	return nil, err
+	// }
 	return key, nil
 }
