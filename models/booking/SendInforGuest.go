@@ -67,8 +67,7 @@ func (item *SendInforGuest) FindList(database *gorm.DB, page models.Page) ([]Sen
 		db = db.Where("booking_date = ?", item.BookingDate)
 	}
 	if item.BookingCode != "" {
-		db = db.Where(`booking_code COLLATE utf8mb4_general_ci LIKE ? OR booking_name COLLATE utf8mb4_general_ci LIKE ? 
-		OR phone_number COLLATE utf8mb4_general_ci LIKE ? OR email COLLATE utf8mb4_general_ci LIKE ?`,
+		db = db.Where(`booking_code LIKE ? OR booking_name LIKE ? OR phone_number LIKE ? OR email LIKE ?`,
 			"%"+item.BookingCode+"%", "%"+item.BookingCode+"%", "%"+item.BookingCode+"%", "%"+item.BookingCode+"%")
 	}
 
