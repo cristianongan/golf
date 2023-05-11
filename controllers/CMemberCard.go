@@ -120,7 +120,7 @@ func (_ *CMemberCard) EKycUpdateImageMemberCard(c *gin.Context, prof models.CmsU
 	errMember, listMem := memberR.FindAll(db)
 	if errMember == nil && len(listMem) > 0 {
 		for _, v := range listMem {
-			go ekycUpdateImage(sid, v.Uid, "", file)
+			go ekycUpdateImage(partnerUid, courseUid, sid, v.Uid, "", file)
 		}
 	}
 

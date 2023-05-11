@@ -25,6 +25,8 @@ type EkycUpdateBody struct {
 type EkycDataModel struct {
 	Sid            string `json:"sid"`
 	IdNumber       string `json:"idNumber"`
+	PartnerUid     string `json:"partnerUid"`
+	CourseUid      string `json:"courseUid"`
 	SelfieCheckSum string `json:"selfieCheckSum"`
 	Timestamp      string `json:"timestamp"`
 	RequestId      string `json:"requestId"`
