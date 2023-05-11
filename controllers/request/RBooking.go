@@ -422,4 +422,5 @@ type ItemBooking struct {
 	CustomerName         string `json:"customer_name"`
 	CustomerBookingPhone string `json:"customer_booking_phone"`
 	CustomerBookingEmail string `json:"customer_booking_email"`
+	CaddieBooking        string `json:"caddie_booking"`
 }

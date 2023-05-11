@@ -963,6 +963,7 @@ func (cBooking *CBooking) SendInforGuest(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerName = item.CustomerName
 		booking.CustomerBookingEmail = item.CustomerBookingEmail
 		booking.CustomerBookingPhone = item.CustomerBookingPhone
+		booking.CaddieBooking = item.CaddieBooking
 
 		listBooking = append(listBooking, booking)
 	}
@@ -992,7 +993,7 @@ func (cBooking *CBooking) SendInforGuest(c *gin.Context, prof models.CmsUser) {
 func updateListBooking(db *gorm.DB, listBooking []model_booking.Booking) {
 	for _, booking := range listBooking {
 		// Update booking
-		if err := booking.FindFirst(db); err != nil {
+		if err := booking.Update(db); err != nil {
 			log.Println("Update list booking err", err.Error())
 		}
 	}
