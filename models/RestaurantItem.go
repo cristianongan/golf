@@ -150,7 +150,7 @@ func (item *RestaurantItem) FindAll(database *gorm.DB) ([]RestaurantItem, error)
 }
 
 func (item *RestaurantItem) FindAllGroupBy(database *gorm.DB) ([]map[string]interface{}, error) {
-	db := database.Model(RestaurantItem{})
+	db := database.Table("restaurant_items")
 	var list []map[string]interface{}
 
 	db = db.Select("restaurant_items.*", "service_carts.*")
@@ -177,7 +177,7 @@ func (item *RestaurantItem) FindAllGroupBy(database *gorm.DB) ([]map[string]inte
 	db = db.Joins("INNER JOIN service_carts on service_carts.id = restaurant_items.bill_id")
 
 	// db = db.Where("item_status = ?", constants.RES_STATUS_PROCESS)
-	// db.Group("item_code")
+	db.Order("service_carts.time_process desc")
 
 	db.Find(&list)
 
