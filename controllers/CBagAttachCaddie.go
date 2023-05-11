@@ -184,29 +184,31 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 		return
 	}
 
+	// validate bag
+	if body.Bag != caddieAttach.Bag {
+		bookingBag := model_booking.Booking{}
+
+		bookingBag.PartnerUid = prof.PartnerUid
+		bookingBag.CourseUid = prof.CourseUid
+		bookingBag.Bag = body.Bag
+		bookingBag.BookingDate = body.BookingDate
+
+		isDuplicated, errDupli := bookingBag.IsDuplicated(db, false, true)
+		if isDuplicated {
+			if errDupli != nil {
+				response_message.InternalServerErrorWithKey(c, errDupli.Error(), "DUPLICATE_BAG")
+				return
+			}
+			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+			return
+		}
+	}
+
 	// Updtae
 	caddieAttach.Bag = body.Bag
 	caddieAttach.BookingDate = body.BookingDate
 	caddieAttach.CaddieCode = body.CaddieCode
 	caddieAttach.LockerNo = body.LockerNo
-
-	// validate bag
-	bookingBag := model_booking.Booking{}
-
-	bookingBag.PartnerUid = prof.PartnerUid
-	bookingBag.CourseUid = prof.CourseUid
-	bookingBag.Bag = body.Bag
-	bookingBag.BookingDate = body.BookingDate
-
-	isDuplicated, errDupli := bookingBag.IsDuplicated(db, false, true)
-	if isDuplicated {
-		if errDupli != nil {
-			response_message.InternalServerErrorWithKey(c, errDupli.Error(), "DUPLICATE_BAG")
-			return
-		}
-		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-		return
-	}
 
 	// validate caddie
 	if body.CaddieCode != "" && body.CaddieCode != caddieAttach.CaddieCode {
