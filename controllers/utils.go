@@ -2187,4 +2187,8 @@ func genQrCodeForBooking(booking *model_booking.Booking) {
 	if err := booking.Update(db); err != nil {
 		log.Println("genQrCodeForBooking err, ", err.Error())
 	}
+
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
 }
