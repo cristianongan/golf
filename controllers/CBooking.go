@@ -1317,6 +1317,27 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.Hole = body.Hole
 	}
 
+	if body.Locker != "" {
+		locker := models.Locker{
+			PartnerUid:   booking.PartnerUid,
+			CourseUid:    booking.CourseUid,
+			Locker:       booking.LockerNo,
+			BookingDate:  booking.BookingDate,
+			LockerStatus: constants.LOCKER_STATUS_UNRETURNED,
+		}
+
+		// check tồn tại
+		_ = locker.FindFirst(db)
+
+		if locker.Id > 0 {
+			response_message.BadRequestFreeMessage(c, "Locker đã được mượn.")
+			return
+		}
+
+		booking.LockerNo = body.Locker
+		go createLocker(db, booking)
+	}
+
 	if body.MemberCardUid != nil && *body.MemberCardUid != booking.MemberCardUid ||
 		body.AgencyId != booking.AgencyId {
 		booking.SeparatePrice = false
@@ -1427,11 +1448,6 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 		booking.CaddieId = caddieNew.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
-	}
-
-	if body.Locker != "" {
-		booking.LockerNo = body.Locker
-		go createLocker(db, booking)
 	}
 
 	if body.TeeType != "" {
@@ -1961,6 +1977,24 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 		if len(list) > 0 {
 			response_message.InternalServerError(c, "Bag can not undo checkin")
 			return
+		}
+	}
+
+	if booking.LockerNo != "" {
+		locker := models.Locker{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			Locker:      booking.LockerNo,
+			BookingDate: booking.BookingDate,
+			BookingUid:  booking.Uid,
+		}
+
+		// Find locker
+		_ = locker.FindFirst(db)
+
+		errC := locker.Delete(db)
+		if errC != nil {
+			log.Println("deleteLocker errC", errC.Error())
 		}
 	}
 

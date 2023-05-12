@@ -358,10 +358,10 @@ func UpdateNewBooking(db *gorm.DB, booking *model_booking.Booking, caddieAtt mod
 
 	if caddieAtt.LockerNo != "" {
 		booking.LockerNo = caddieAtt.LockerNo
-		booking.LockerStatus = constants.LOCKER_STATUS_USED
+		// booking.LockerStatus = constants.LOCKER_STATUS_RETURNED
 	} else {
 		booking.LockerNo = ""
-		booking.LockerStatus = ""
+		// booking.LockerStatus = ""
 	}
 
 	if err := booking.Update(db); err != nil {
@@ -386,7 +386,7 @@ func UpdateOldBooking(db *gorm.DB, caddieAtt model_gostarter.BagAttachCaddie) {
 	booking.CaddieInfo = model_booking.BookingCaddie{}
 	booking.Bag = ""
 	booking.LockerNo = ""
-	booking.LockerStatus = ""
+	// booking.LockerStatus = ""
 
 	if err := booking.Update(db); err != nil {
 		log.Println("UpdateBooking err: ", err)
