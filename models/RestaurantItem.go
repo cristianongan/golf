@@ -153,7 +153,7 @@ func (item *RestaurantItem) FindAllGroupBy(database *gorm.DB) ([]map[string]inte
 	db := database.Table("restaurant_items")
 	var list []map[string]interface{}
 
-	db = db.Select("restaurant_items.*", "service_carts.*")
+	db = db.Select("restaurant_items.*", "service_carts.time_process", "service_carts.type as bill_type", "service_carts.type_code", "service_carts.player_name", "SUM(restaurant_items.quantity) as quantity")
 
 	if item.CourseUid != "" {
 		db = db.Where("restaurant_items.course_uid = ?", item.CourseUid)
@@ -164,20 +164,28 @@ func (item *RestaurantItem) FindAllGroupBy(database *gorm.DB) ([]map[string]inte
 	if item.ServiceId != 0 {
 		db = db.Where("restaurant_items.service_id = ?", item.ServiceId)
 	}
-	if item.Type != "" {
-		db = db.Where("restaurant_items.type = ?", item.Type)
-	}
-	if item.ItemStatus != "" {
-		db = db.Where("restaurant_items.item_status = ?", item.ItemStatus)
-	}
 	if item.OrderDate != "" {
 		db = db.Where("restaurant_items.order_date = ?", item.OrderDate)
 	}
 
-	db = db.Joins("INNER JOIN service_carts on service_carts.id = restaurant_items.bill_id")
+	// SubQuery
+	subQuery := database.Table("group_services")
 
-	// db = db.Where("item_status = ?", constants.RES_STATUS_PROCESS)
-	db.Order("service_carts.time_process desc")
+	if item.CourseUid != "" {
+		subQuery = subQuery.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		subQuery = subQuery.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.Type != "" {
+		subQuery = subQuery.Where("group_name = ?", item.Type)
+	}
+
+	db = db.Joins("INNER JOIN service_carts on service_carts.id = restaurant_items.bill_id")
+	db = db.Joins("INNER JOIN (?) as tb1 on tb1.group_code = restaurant_items.type", subQuery)
+
+	db.Group("restaurant_items.item_code")
+	db.Order("service_carts.time_process")
 
 	db.Find(&list)
 

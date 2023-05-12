@@ -187,7 +187,7 @@ func (_ CRestaurantOrder) CreateBill(c *gin.Context, prof models.CmsUser) {
 	}
 
 	for _, item := range list {
-		item.ItemStatus = constants.RES_STATUS_PROCESS
+		// item.ItemStatus = constants.RES_STATUS_PROCESS
 		item.MoveKitchenTimes = serviceCart.TotalMoveKitchen
 
 		if err := item.Update(db); err != nil {
@@ -638,7 +638,7 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		v.OrderDate = utils.GetTimeNow().Format(constants.DATE_FORMAT_1)
 		v.BillId = serviceCart.Id
 		v.ItemId = serviceCartItem.Id
-		v.ItemStatus = constants.RES_STATUS_ORDER
+		// v.ItemStatus = constants.RES_STATUS_ORDER
 
 		if err := v.Create(db); err != nil {
 			response_message.BadRequest(c, err.Error())
@@ -1957,7 +1957,7 @@ func (_ CRestaurantOrder) ConfrimRestaurantBooking(c *gin.Context, prof models.C
 			v.CourseUid = serviceCart.CourseUid
 			v.ServiceId = serviceCart.ServiceId
 			v.OrderDate = utils.GetTimeNow().Format(constants.DATE_FORMAT_1)
-			v.ItemStatus = constants.RES_STATUS_ORDER
+			// v.ItemStatus = constants.RES_STATUS_ORDER
 
 			if err := v.Create(db); err != nil {
 				response_message.BadRequest(c, err.Error())
