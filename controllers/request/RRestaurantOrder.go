@@ -125,3 +125,17 @@ type TransferItemBody struct {
 	GolfBag        string  `json:"golf_bag" binding:"required"`
 	CartItemIdList []int64 `json:"cart_item_id_list"`
 }
+
+type ActionKitchenBody struct {
+	PartnerUid string `json:"partner_uid" binding:"required"`
+	CourseUid  string `json:"course_uid" binding:"required"`
+	ItemCode   string `json:"item_code" binding:"required"`
+	OrderDate  string `json:"order_date" binding:"required"`
+	ServiceId  int64  `json:"service_id" binding:"required"`
+	Type       string `json:"type"`
+	Action     string `json:"action"`
+
+	//
+	BillId         int64 `json:"bill_id"`
+	QuantityReturn int   `json:"quantity_return"`
+}
