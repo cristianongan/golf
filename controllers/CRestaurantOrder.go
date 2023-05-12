@@ -2057,6 +2057,7 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 	targetServiceCart.ServiceType = sourceServiceCart.ServiceType
 	targetServiceCart.BillStatus = sourceServiceCart.BillStatus
 	targetServiceCart.BookingUid = booking.Uid
+	targetServiceCart.PlayerName = booking.CustomerName
 	targetServiceCart.StaffOrder = prof.UserName
 	targetServiceCart.BillCode = constants.BILL_NONE
 

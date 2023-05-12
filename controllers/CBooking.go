@@ -2155,13 +2155,10 @@ func (cBooking *CBooking) UndoCheckOut(c *gin.Context, prof models.CmsUser) {
 func (_ CBooking) updateBagAttachCaddie(db *gorm.DB, bookindUid string) {
 	caddieAttach := model_gostarter.BagAttachCaddie{}
 	caddieAttach.BookingUid = bookindUid
+
 	if err := caddieAttach.FindFirst(db); err == nil {
 		caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_WAITING
 
-		if err := caddieAttach.FindFirst(db); err == nil {
-			caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_WAITING
-
-			_ = caddieAttach.Update(db)
-		}
+		_ = caddieAttach.Update(db)
 	}
 }
