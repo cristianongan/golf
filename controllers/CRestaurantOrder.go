@@ -1144,7 +1144,7 @@ func (_ CRestaurantOrder) GetFoodProcess(c *gin.Context, prof models.CmsUser) {
 		ServiceId:  body.ServiceId,
 		Type:       body.Type,
 		OrderDate:  body.OrderDate,
-		ItemStatus: body.Status,
+		// ItemStatus: body.Status,
 	}
 
 	list, err := resItem.FindAllGroupBy(db)
@@ -2061,6 +2061,7 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 	targetServiceCart.ServiceType = sourceServiceCart.ServiceType
 	targetServiceCart.BillStatus = sourceServiceCart.BillStatus
 	targetServiceCart.BookingUid = booking.Uid
+	targetServiceCart.PlayerName = booking.CustomerName
 	targetServiceCart.StaffOrder = prof.UserName
 	targetServiceCart.BillCode = constants.BILL_NONE
 
@@ -2219,7 +2220,7 @@ func (_ CRestaurantOrder) ActionKitchenRes(c *gin.Context, prof models.CmsUser) 
 	}
 
 	if body.Type == "PROCESS" {
-		if body.Action == "Only" {
+		if body.Action == "ONLY" {
 			resItem := models.RestaurantItem{}
 
 			resItem.CourseUid = body.CourseUid
@@ -2242,7 +2243,7 @@ func (_ CRestaurantOrder) ActionKitchenRes(c *gin.Context, prof models.CmsUser) 
 			}
 		}
 
-		if body.Action == "All" {
+		if body.Action == "ALL" {
 			resItem := models.RestaurantItem{}
 
 			resItem.CourseUid = body.CourseUid
@@ -2257,7 +2258,7 @@ func (_ CRestaurantOrder) ActionKitchenRes(c *gin.Context, prof models.CmsUser) 
 				item.QuantityProgress += item.QuantityOrder
 				item.QuantityOrder = 0
 
-				if err := resItem.Update(db); err != nil {
+				if err := item.Update(db); err != nil {
 					response_message.BadRequest(c, err.Error())
 					return
 				}
@@ -2280,7 +2281,7 @@ func (_ CRestaurantOrder) ActionKitchenRes(c *gin.Context, prof models.CmsUser) 
 			item.QuantityDone += item.QuantityProgress
 			item.QuantityProgress = 0
 
-			if err := resItem.Update(db); err != nil {
+			if err := item.Update(db); err != nil {
 				response_message.BadRequest(c, err.Error())
 				return
 			}

@@ -237,7 +237,11 @@ func (item *RestaurantItem) FindListWithStatus(database *gorm.DB, status string)
 	}
 
 	if item.ItemCode != "" {
-		db = db.Where("item_code = ?", item.Id)
+		db = db.Where("item_code = ?", item.ItemCode)
+	}
+
+	if item.OrderDate != "" {
+		db = db.Where("order_date = ?", item.OrderDate)
 	}
 
 	if status == "PROCESS" {
