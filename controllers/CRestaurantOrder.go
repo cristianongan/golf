@@ -1187,7 +1187,7 @@ func (_ CRestaurantOrder) GetDetailFoodProcess(c *gin.Context, prof models.CmsUs
 		return
 	}
 
-	c.JSON(200, list)
+	okResponse(c, list)
 }
 
 // Action hoàn thành all
