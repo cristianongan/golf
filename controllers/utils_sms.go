@@ -64,7 +64,7 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 
 	for i, b := range listBooking {
 		if b.AgencyId > 0 {
-			log.Println("Agency disable send sms")
+			log.Println("sendSmsBooking Agency disable send sms")
 		} else {
 			iStr := strconv.Itoa(i + 1)
 			message += iStr + ". Player " + iStr + ": "
