@@ -1154,7 +1154,11 @@ func (_ CRestaurantOrder) GetFoodProcess(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	c.JSON(200, list)
+	res := map[string]interface{}{
+		"data": list,
+	}
+
+	okResponse(c, res)
 }
 
 // get list theo sản phẩm
@@ -1187,7 +1191,7 @@ func (_ CRestaurantOrder) GetDetailFoodProcess(c *gin.Context, prof models.CmsUs
 		return
 	}
 
-	okResponse(c, list)
+	c.JSON(200, list)
 }
 
 // Action hoàn thành all
