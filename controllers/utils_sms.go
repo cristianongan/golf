@@ -63,58 +63,61 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 	message := "San " + listBooking[0].CourseUid + " xac nhan dat cho ngay " + listBooking[0].BookingDate + ": "
 
 	for i, b := range listBooking {
-		iStr := strconv.Itoa(i + 1)
-		message += iStr + ". Player " + iStr + ": "
-		playerName := ""
-		if b.MemberCard != nil {
-			playerName = b.MemberCard.CardId
-		}
-
-		message += playerName + " - " + "Ma check-in: " + b.CheckInCode + " - QR: "
-
-		// base64 qr image
-		encodeQrUrl := base64.StdEncoding.EncodeToString([]byte(b.QrcodeUrl))
-
-		qrCodeUrlModel := QrCodeUrlModel{
-			QrImg:       encodeQrUrl,
-			CheckInCode: b.CheckInCode,
-			Date:        b.BookingDate,
-			PartnerUid:  b.PartnerUid,
-			CourseUid:   b.CourseUid,
-		}
-
-		byteQrCodeUrlModel, errMas := json.Marshal(&qrCodeUrlModel)
-
-		if errMas != nil {
-			log.Println("sendSmsBooking errMas", errMas.Error())
-		}
-
-		encodedurlQrCodeChecking := base64.StdEncoding.EncodeToString(byteQrCodeUrlModel)
-
-		linkQRCodeFull := config.GetPortalCmsUrl() + "qr-ci/" + encodedurlQrCodeChecking
-
-		bodyModel := services.ShortReq{
-			URL:    linkQRCodeFull,
-			Domain: "bit.ly",
-		}
-
-		bodyModelByte, errB := json.Marshal(bodyModel)
-		if errB != nil {
-			log.Println("sendSmsBooking errB", errB.Error())
-		}
-
-		errS, _, resp := services.BitlyShorten(bodyModelByte)
-		if errS != nil {
-			log.Println("sendSmsBooking errS", errS.Error())
-		}
-
-		if resp.URL != "" {
-			log.Println("sendSmsBooking short Link", resp.URL)
-			message += resp.URL
+		if b.AgencyId > 0 {
+			log.Println("Agency disable send sms")
 		} else {
-			message += linkQRCodeFull
-		}
+			iStr := strconv.Itoa(i + 1)
+			message += iStr + ". Player " + iStr + ": "
+			playerName := ""
+			if b.MemberCard != nil {
+				playerName = b.MemberCard.CardId
+			}
 
+			message += playerName + " - " + "Ma check-in: " + b.CheckInCode + " - QR: "
+
+			// base64 qr image
+			encodeQrUrl := base64.StdEncoding.EncodeToString([]byte(b.QrcodeUrl))
+
+			qrCodeUrlModel := QrCodeUrlModel{
+				QrImg:       encodeQrUrl,
+				CheckInCode: b.CheckInCode,
+				Date:        b.BookingDate,
+				PartnerUid:  b.PartnerUid,
+				CourseUid:   b.CourseUid,
+			}
+
+			byteQrCodeUrlModel, errMas := json.Marshal(&qrCodeUrlModel)
+
+			if errMas != nil {
+				log.Println("sendSmsBooking errMas", errMas.Error())
+			}
+
+			encodedurlQrCodeChecking := base64.StdEncoding.EncodeToString(byteQrCodeUrlModel)
+
+			linkQRCodeFull := config.GetPortalCmsUrl() + "qr-ci/" + encodedurlQrCodeChecking
+
+			bodyModel := services.ShortReq{
+				URL:    linkQRCodeFull,
+				Domain: "bit.ly",
+			}
+
+			bodyModelByte, errB := json.Marshal(bodyModel)
+			if errB != nil {
+				log.Println("sendSmsBooking errB", errB.Error())
+			}
+
+			errS, _, resp := services.BitlyShorten(bodyModelByte)
+			if errS != nil {
+				log.Println("sendSmsBooking errS", errS.Error())
+			}
+
+			if resp.URL != "" {
+				log.Println("sendSmsBooking short Link", resp.URL)
+				message += resp.URL
+			} else {
+				message += linkQRCodeFull
+			}
+		}
 	}
 
 	strPhoneNumber := "+" + fmt.Sprint(num.GetCountryCode()) + fmt.Sprint(num.GetNationalNumber())
