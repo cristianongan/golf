@@ -2279,11 +2279,23 @@ func (_ CRestaurantOrder) ActionKitchenRes(c *gin.Context, prof models.CmsUser) 
 		resItem.ItemCode = body.ItemCode
 		resItem.ServiceId = body.ServiceId
 
-		list, _ := resItem.FindListWithStatus(db, body.Type)
+		typeFilter := ""
+
+		if body.Group == "DRINK" {
+			typeFilter = "PROCESS"
+		} else {
+			typeFilter = body.Type
+		}
+
+		list, _ := resItem.FindListWithStatus(db, typeFilter)
 
 		for _, item := range list {
 			item.QuantityDone += item.QuantityProgress
-			item.QuantityProgress = 0
+			if body.Group == "DRINK" {
+				item.QuantityOrder = 0
+			} else {
+				item.QuantityProgress = 0
+			}
 
 			if err := item.Update(db); err != nil {
 				response_message.BadRequest(c, err.Error())

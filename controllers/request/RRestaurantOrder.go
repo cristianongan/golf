@@ -134,7 +134,7 @@ type ActionKitchenBody struct {
 	ServiceId  int64  `json:"service_id" binding:"required"`
 	Type       string `json:"type"`
 	Action     string `json:"action"`
-
+	Group      string `json:"group"`
 	//
 	BillId         int64 `json:"bill_id"`
 	QuantityReturn int   `json:"quantity_return"`
