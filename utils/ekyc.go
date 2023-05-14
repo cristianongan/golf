@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"start/config"
 )
 
 /*
@@ -35,12 +36,24 @@ func EkycGenSignature(dataStr string) (error, string) {
 	// test local
 	//f, errPrv := os.Open("../prv.rsa")
 	//staging , prod
-	f, errPrv := os.Open("prv.rsa")
+	var f *os.File
+	var errPrv error
+	if config.GetEnvironmentName() == "prod" {
+		f, errPrv = os.Open("prv_prod.rsa")
+	} else {
+		f, errPrv = os.Open("prv.rsa")
+	}
+
 	if errPrv != nil {
 		log.Println("EkycGenSignature errPrv", errPrv.Error())
 		return errPrv, signature
 	}
 	defer f.Close()
+
+	if f == nil {
+		log.Println("EkycGenSignature f err")
+		return errors.New("EkycGenSignature f err"), signature
+	}
 
 	byteRsaPrivateValue, errRA := ioutil.ReadAll(f)
 
