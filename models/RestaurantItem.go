@@ -69,6 +69,10 @@ func (item *RestaurantItem) FindFirstOrder(db *gorm.DB) error {
 		db = db.Where("service_id = ?", item.ServiceId)
 	}
 
+	if item.OrderDate != "" {
+		db = db.Where("order_date = ?", item.OrderDate)
+	}
+
 	db = db.Where("quantity_order > 0")
 
 	return db.First(item).Error
