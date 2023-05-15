@@ -515,6 +515,8 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 	// 		go createOperationLog(opLog)
 	// 	}
 	// }()
+	//Send Sms
+	go genQRCodeListBook(listBooking)
 
 	okResponse(c, listBooking)
 }
