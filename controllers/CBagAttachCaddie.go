@@ -247,6 +247,12 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 			Code:       caddieAttach.CaddieCode,
 		}
 
+		errFC = caddieOld.FindFirst(db)
+		if errFC != nil {
+			response_message.BadRequestFreeMessage(c, "Caddie not found")
+			return
+		}
+
 		if caddieOld.CurrentRound == 0 {
 			caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
 		} else if caddieOld.CurrentRound == 1 {
@@ -257,9 +263,8 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 			caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH_R3
 		}
 
-		errFC = caddieOld.FindFirst(db)
-		if errFC != nil {
-			response_message.BadRequestFreeMessage(c, "Caddie not found")
+		if err := caddieOld.Update(db); err != nil {
+			response_message.InternalServerError(c, err.Error())
 			return
 		}
 	}
