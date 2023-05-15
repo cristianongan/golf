@@ -52,18 +52,28 @@ func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile *m
 	fileName := "ekyc-" + timeUnixStr + ".png"
 	log.Println("CallEkyc fileName", fileName)
 
-	part3,
-		errFile3 := writer.CreateFormFile("selfieImage", filepath.Base(fileName))
+	/*
+		var buff bytes.Buffer
+		io.Copy(&buff, *file)
+		bFile := buff.Bytes()
+
+		path, bytes.NewReader(bFile),
+	*/
+
+	part3, errFile3 := writer.CreateFormFile("selfieImage", filepath.Base(fileName))
 	_, errFile3 = io.Copy(part3, *imgFile)
 	if errFile3 != nil {
 		log.Println("CallEkyc errFile3", errFile3.Error())
 		return errFile3, 0, nil
 	}
+
 	err := writer.Close()
 	if err != nil {
 		log.Println("CallEkyc err", err.Error())
 		return err, 0, nil
 	}
+
+	log.Println("CallEkyc len data", payload.Bytes())
 
 	log.Println("CallEkyc payload", payload)
 	log.Println("CallEkyc writer", writer)
