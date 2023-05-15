@@ -186,6 +186,14 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 		return
 	}
 
+	if body.CaddieCode == "" && body.Bag == "" && body.BookingUid == "" {
+		errDel := caddieAttach.Delete(db)
+		if errDel != nil {
+			response_message.InternalServerError(c, errDel.Error())
+			return
+		}
+	}
+
 	// validate bag
 	if body.Bag != caddieAttach.Bag {
 		bookingBag := model_booking.Booking{}
