@@ -2290,7 +2290,6 @@ func (_ CRestaurantOrder) ActionKitchenRes(c *gin.Context, prof models.CmsUser) 
 		list, _ := resItem.FindListWithStatus(db, typeFilter)
 
 		for _, item := range list {
-			item.QuantityDone += item.QuantityProgress
 			if body.Group == "DRINK" {
 				item.QuantityDone += item.QuantityOrder
 				item.QuantityOrder = 0
