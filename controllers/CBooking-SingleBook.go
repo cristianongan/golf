@@ -595,7 +595,8 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 			go createOperationLog(opLog)
 
 			cNotification := CNotification{}
-			go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+			bookingCancel := booking
+			go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &bookingCancel)
 		}
 	}
 
