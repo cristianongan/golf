@@ -78,6 +78,10 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 
 	if body.IsCheckIn {
 		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
+
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
+
 	} else {
 		opLog.Function = constants.OP_LOG_FUNCTION_BOOKING
 
