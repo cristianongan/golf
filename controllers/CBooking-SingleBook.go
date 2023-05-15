@@ -252,8 +252,9 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		go createOperationLog(opLog)
 		// go updateSlotTeeTimeWithLock(booking)
 
+		cloneBooking := booking
 		cNotification := CNotification{}
-		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &cloneBooking)
 	}
 
 	go func() {
