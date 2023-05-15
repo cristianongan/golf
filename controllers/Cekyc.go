@@ -135,18 +135,32 @@ func (_ *Cekyc) CheckBookingMemberForEkyc(c *gin.Context) {
 
 	for i, v := range listBook {
 		if idx == -1 && v.BagStatus == constants.BAG_STATUS_BOOKING {
-			idx = i
+			if v.Bag == "" {
+				// Chưa đủ dk check in
+				idx = -2
+			} else {
+				idx = i
+			}
 		}
 	}
 
 	if idx < 0 {
+		if idx == -2 {
+			responseBaseModel.Code = "04"
+			responseBaseModel.Desc = "Chưa đủ điều kiện check-in: thiếu Bag"
+			c.JSON(http.StatusBadRequest, responseBaseModel)
+			return
+		}
 		responseBaseModel.Code = "03"
 		responseBaseModel.Desc = "Not find Booking"
 		c.JSON(http.StatusBadRequest, responseBaseModel)
 		return
 	}
 
-	responseBaseModel.Data = listBook[idx].CloneBookingEkyc()
+	//Get full info
+	resFull := getBagDetailFromBooking(db, listBook[idx])
+
+	responseBaseModel.Data = resFull.CloneBookingEkyc()
 
 	c.JSON(http.StatusOK, responseBaseModel)
 
@@ -246,6 +260,10 @@ func (_ *Cekyc) CheckInBookingMemberForEkyc(c *gin.Context) {
 		BookingUid:  res.Uid,
 	}
 	go createOperationLog(opLog)
+
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
 
 	responseBaseModel.Data = res.CloneBookingEkyc()
 

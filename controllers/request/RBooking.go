@@ -139,13 +139,14 @@ type CreateBookingBody struct {
 	RowIndex    *int   `json:"row_index"`    // index trong Flight
 
 	// Guest booking
-	GuestStyle           string `json:"guest_style"`            // Guest Style
-	GuestStyleName       string `json:"guest_style_name"`       // Guest Style Name
-	CustomerName         string `json:"customer_name"`          // Tên khách hàng
-	CustomerBookingName  string `json:"customer_booking_name"`  // Tên khách hàng đặt booking
-	CustomerBookingPhone string `json:"customer_booking_phone"` // SDT khách hàng đặt booking
-	CustomerIdentify     string `json:"customer_identify"`      // passport/cccd
-	Nationality          string `json:"nationality"`            // Nationality
+	GuestStyle           string  `json:"guest_style"`            // Guest Style
+	GuestStyleName       string  `json:"guest_style_name"`       // Guest Style Name
+	CustomerName         string  `json:"customer_name"`          // Tên khách hàng
+	CustomerBookingEmail *string `json:"customer_booking_email"` // Email khách hàng
+	CustomerBookingName  string  `json:"customer_booking_name"`  // Tên khách hàng đặt booking
+	CustomerBookingPhone string  `json:"customer_booking_phone"` // SDT khách hàng đặt booking
+	CustomerIdentify     string  `json:"customer_identify"`      // passport/cccd
+	Nationality          string  `json:"nationality"`            // Nationality
 
 	NoteOfBooking string `json:"note_of_booking"` // Note of Booking
 
@@ -325,13 +326,14 @@ type UpdateBooking struct {
 	RowIndex    *int    `json:"row_index"`    // index trong Flight
 
 	// Guest booking
-	GuestStyle           string `json:"guest_style"`            // Guest Style
-	GuestStyleName       string `json:"guest_style_name"`       // Guest Style Name
-	CustomerName         string `json:"customer_name"`          // Tên khách hàng
-	CustomerBookingName  string `json:"customer_booking_name"`  // Tên khách hàng đặt booking
-	CustomerBookingPhone string `json:"customer_booking_phone"` // SDT khách hàng đặt booking
-	CustomerIdentify     string `json:"customer_identify"`      // passport/cccd
-	Nationality          string `json:"nationality"`            // Nationality
+	GuestStyle           string  `json:"guest_style"`            // Guest Style
+	GuestStyleName       string  `json:"guest_style_name"`       // Guest Style Name
+	CustomerName         string  `json:"customer_name"`          // Tên khách hàng
+	CustomerBookingEmail *string `json:"customer_booking_email"` // Email khách hàng
+	CustomerBookingName  string  `json:"customer_booking_name"`  // Tên khách hàng đặt booking
+	CustomerBookingPhone string  `json:"customer_booking_phone"` // SDT khách hàng đặt booking
+	CustomerIdentify     string  `json:"customer_identify"`      // passport/cccd
+	Nationality          string  `json:"nationality"`            // Nationality
 
 	NoteOfBooking *string `json:"note_of_booking"` // Note of Booking
 
@@ -412,4 +414,17 @@ type GetCaddieBookingCancel struct {
 	BookingDate string `form:"booking_date" binding:"required"`
 	CaddieCode  string `form:"caddie_code"`
 	CaddieName  string `form:"caddie_name"`
+}
+
+type SendInforGuestBody struct {
+	SendMethod  string        `json:"send_method" binding:"required"`
+	ListBooking []ItemBooking `json:"list_booking" binding:"required"`
+}
+
+type ItemBooking struct {
+	Uid                  string `json:"uid"`
+	CustomerName         string `json:"customer_name"`
+	CustomerBookingPhone string `json:"customer_booking_phone"`
+	CustomerBookingEmail string `json:"customer_booking_email"`
+	CaddieBooking        string `json:"caddie_booking"`
 }
