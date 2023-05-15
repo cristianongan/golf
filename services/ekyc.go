@@ -53,14 +53,18 @@ func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile mu
 		errFile3 := writer.CreateFormFile("selfieImage", filepath.Base(fileName))
 	_, errFile3 = io.Copy(part3, imgFile)
 	if errFile3 != nil {
-		fmt.Println(errFile3)
+		// fmt.Println(errFile3)
+		log.Println("CallEkyc errFile3", errFile3.Error())
 		return errFile3, 0, nil
 	}
 	err := writer.Close()
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
+		log.Println("CallEkyc err", err.Error())
 		return err, 0, nil
 	}
+
+	log.Println("CallEkyc payload", payload)
 
 	client := &http.Client{
 		Timeout: time.Second * constants.TIMEOUT,
