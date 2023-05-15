@@ -20,6 +20,7 @@ type BagAttachCaddie struct {
 	CustomerName string `json:"customer_name" gorm:"type:varchar(256)"`      // Player name
 	CaddieCode   string `json:"caddie_code" gorm:"type:varchar(50);index"`   // Mã caddie
 	LockerNo     string `json:"locker_no" gorm:"type:varchar(100)"`          // Locker mã số tủ gửi đồ
+	CmsUser      string `json:"cms_user" gorm:"type:varchar(100);index"`     // Cms User
 }
 
 // ======= CRUD ===========
@@ -65,6 +66,9 @@ func (item *BagAttachCaddie) FindList(database *gorm.DB, page models.Page) ([]Ba
 	}
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+	if item.CmsUser != "" {
+		db = db.Where("cms_user = ?", item.CmsUser)
 	}
 
 	db.Count(&total)

@@ -38,6 +38,7 @@ func (_ *CBagAttachCaddie) GetListAttachCaddie(c *gin.Context, prof models.CmsUs
 		CourseUid:   form.CourseUid,
 		Bag:         form.Search,
 		BookingDate: form.BookingDate,
+		CmsUser:     form.CmsUser,
 	}
 
 	list, total, err := caddieAttach.FindList(db, page)
@@ -122,6 +123,7 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 	caddieAttach.Bag = body.Bag
 	caddieAttach.CaddieCode = body.CaddieCode
 	caddieAttach.LockerNo = body.LockerNo
+	caddieAttach.CmsUser = prof.UserName
 
 	// validate booking
 	if body.BookingUid != "" {

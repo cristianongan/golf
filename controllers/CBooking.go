@@ -1321,7 +1321,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		locker := models.Locker{
 			PartnerUid:   booking.PartnerUid,
 			CourseUid:    booking.CourseUid,
-			Locker:       booking.LockerNo,
+			Locker:       body.Locker,
 			BookingDate:  booking.BookingDate,
 			LockerStatus: constants.LOCKER_STATUS_UNRETURNED,
 		}
