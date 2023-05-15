@@ -32,11 +32,14 @@ type EkycDataModel struct {
 	RequestId      string `json:"requestId"`
 }
 
-func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile multipart.File) (error, int, []byte) {
+func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile *multipart.File) (error, int, []byte) {
 	// req, errNewRequest := http.NewRequest("POST", urlFull, bytes.NewBuffer(bBody))
 	// if errNewRequest != nil {
 	// 	return errNewRequest, 0, nil
 	// }
+	if imgFile == nil {
+		return errors.New("File is nill"), 0, nil
+	}
 
 	payload := &bytes.Buffer{}
 	writer := multipart.NewWriter(payload)
@@ -51,7 +54,7 @@ func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile mu
 
 	part3,
 		errFile3 := writer.CreateFormFile("selfieImage", filepath.Base(fileName))
-	_, errFile3 = io.Copy(part3, imgFile)
+	_, errFile3 = io.Copy(part3, *imgFile)
 	if errFile3 != nil {
 		log.Println("CallEkyc errFile3", errFile3.Error())
 		return errFile3, 0, nil
@@ -100,7 +103,7 @@ func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile mu
 	return nil, resp.StatusCode, byteBody
 }
 
-func EkycUpdateImage(bBody []byte, dataModel EkycUpdateBody, imgFile multipart.File) (error, int) {
+func EkycUpdateImage(bBody []byte, dataModel EkycUpdateBody, imgFile *multipart.File) (error, int) {
 
 	url := config.GetEkycUrl() + config.GetEkycUpdate()
 

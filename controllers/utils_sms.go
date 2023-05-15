@@ -132,7 +132,7 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 /*
 Update image to ekyc server
 */
-func ekycUpdateImage(partnerUid, courseUid, sid, memberUid, link string, imgFile multipart.File) {
+func ekycUpdateImage(partnerUid, courseUid, sid, memberUid, link string, imgFile *multipart.File) {
 
 	// Current Time
 	currentTime := time.Now().Unix()
