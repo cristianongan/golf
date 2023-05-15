@@ -305,9 +305,6 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, listBooking)
 	}()
 
-	//Send Sms
-	go genQRCodeListBook(listBooking)
-
 	okResponse(c, listBooking)
 }
 
@@ -640,6 +637,10 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 		cNotification := CNotification{}
 		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
 	}
+
+	//Send Sms
+	go genQRCodeListBook(list)
+
 	return list, nil
 }
 
