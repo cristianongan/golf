@@ -121,7 +121,9 @@ func GinBodyLogMiddleware(c *gin.Context) {
 		for _, item := range notShowrequests {
 			matched, _ := regexp.MatchString(item, c.Request.URL.Path)
 			if !matched {
-				fmt.Println(newlog)
+				if config.GetEnvironmentName() != "local" {
+					fmt.Println(newlog)
+				}
 			}
 		}
 	}
