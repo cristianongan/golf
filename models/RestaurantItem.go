@@ -62,7 +62,7 @@ func (item *RestaurantItem) FindFirstOrder(db *gorm.DB) error {
 	}
 
 	if item.ItemCode != "" {
-		db = db.Where("item_code = ?", item.Id)
+		db = db.Where("item_code = ?", item.ItemCode)
 	}
 
 	if item.ServiceId != 0 {
