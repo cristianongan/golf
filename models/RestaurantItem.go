@@ -199,6 +199,8 @@ func (item *RestaurantItem) FindAllGroupBy(database *gorm.DB) ([]map[string]inte
 		db = db.Where("restaurant_items.order_date = ?", item.OrderDate)
 	}
 
+	db = db.Where("restaurant_items.item_status NOT IN ?", []string{constants.RES_STATUS_ORDER, constants.RES_STATUS_CANCEL, constants.RES_STATUS_BOOKING})
+
 	// SubQuery
 	subQuery := database.Table("group_services")
 
