@@ -209,7 +209,12 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 	}
 
 	// Sender
-	sender := "hotro@caro.vn"
+	// sender := "hotro@ caro .vn"
+	sender := course.EmailBooking
+	if sender == "" {
+		log.Println("sendEmailBooking Sender is empty")
+		return errors.New("Sender is empty")
+	}
 
 	// subject
 	subject := "Sân " + course.Name + " xác nhận đặt chỗ ngày " + listBooking[0].BookingDate
