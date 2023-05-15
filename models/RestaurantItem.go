@@ -62,7 +62,7 @@ func (item *RestaurantItem) FindFirstOrder(db *gorm.DB) error {
 	}
 
 	if item.ItemCode != "" {
-		db = db.Where("item_code = ?", item.Id)
+		db = db.Where("item_code = ?", item.ItemCode)
 	}
 
 	if item.ServiceId != 0 {
@@ -198,6 +198,8 @@ func (item *RestaurantItem) FindAllGroupBy(database *gorm.DB) ([]map[string]inte
 	if item.OrderDate != "" {
 		db = db.Where("restaurant_items.order_date = ?", item.OrderDate)
 	}
+
+	db = db.Where("restaurant_items.item_status NOT IN ?", []string{constants.RES_STATUS_ORDER, constants.RES_STATUS_CANCEL, constants.RES_STATUS_BOOKING})
 
 	// SubQuery
 	subQuery := database.Table("group_services")
