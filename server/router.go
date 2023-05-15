@@ -731,6 +731,8 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.DELETE("/restaurant/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteRestaurantOrder)) // Xóa đơn
 			cmsApiAuthorized.DELETE("/restaurant/delete/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.DeleteOrder))
 
+			cmsApiAuthorized.POST("/restaurant/kitchen", middlewares.AuthorizedCmsUserHandler(cRestaurantOrder.ActionKitchenRes)) // action bếp
+
 			cRestaurantSetup := new(controllers.CRestaurantSetup)
 			cmsApiAuthorized.GET("/restaurant/set-up/list", middlewares.AuthorizedCmsUserHandler(cRestaurantSetup.GetRestaurantSetupList))
 
