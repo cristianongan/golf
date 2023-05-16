@@ -40,6 +40,11 @@ type CaddieContentNoti struct {
 	Hour         string `json:"hour"`
 }
 
+type CaddieWCINoti struct {
+	Caddies   []string `json:"caddies"`    // danh sách caddie
+	ApplyDate string   `json:"apply_date"` //  ngày áp dụng
+}
+
 func (item *CaddieContentNoti) Scan(v interface{}) error {
 	return json.Unmarshal(v.([]byte), item)
 }

@@ -53,6 +53,7 @@ func MigrateDbCms(db *gorm.DB) {
 	db.AutoMigrate(&models.LockTurn{})
 	db.AutoMigrate(&models.TeeTypeClose{})
 	db.AutoMigrate(&model_booking.CancelBookingSetting{})
+	db.AutoMigrate(&models.PlayerScore{})
 
 	// ----- Agency ------
 	db.AutoMigrate(&models.Agency{})
@@ -79,6 +80,7 @@ func MigrateDbCms(db *gorm.DB) {
 	db.AutoMigrate(&model_booking.BookingServiceItem{})
 	db.AutoMigrate(&model_booking.BookingSource{})
 	db.AutoMigrate(&model_booking.BookingOta{})
+	db.AutoMigrate(&model_booking.SendInforGuest{})
 
 	// ----- Payment -------
 	db.AutoMigrate(&model_payment.SinglePayment{})
@@ -105,6 +107,7 @@ func MigrateDbCms(db *gorm.DB) {
 	db.AutoMigrate(&models.Nationality{})
 	db.AutoMigrate(&models.CompanyType{})
 	db.AutoMigrate(&models.Company{})
+	db.AutoMigrate(&models.ParOfHole{})
 
 	// ------- GO --------
 	db.AutoMigrate(&model_gostarter.Flight{})

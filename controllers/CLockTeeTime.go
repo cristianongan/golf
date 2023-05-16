@@ -55,18 +55,19 @@ func (_ *CLockTeeTime) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser
 	}
 
 	opLog := models.OperationLog{
-		PartnerUid: body.PartnerUid,
-		CourseUid:  body.CourseUid,
-		UserName:   prof.UserName,
-		UserUid:    prof.Uid,
-		Module:     constants.OP_LOG_MODULE_RECEPTION,
-		Function:   constants.OP_LOG_FUNCTION_BOOKING,
-		Action:     constants.OP_LOG_ACTION_LOCK_TEE,
-		Body:       models.JsonDataLog{Data: body},
-		ValueOld:   models.JsonDataLog{},
-		ValueNew:   models.JsonDataLog{Data: teeTimeRedis},
-		Path:       c.Request.URL.Path,
-		Method:     c.Request.Method,
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_BOOKING,
+		Action:      constants.OP_LOG_ACTION_LOCK_TEE,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: teeTimeRedis},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
 	}
 	go createOperationLog(opLog)
 
@@ -311,18 +312,19 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 	log.Print(err)
 
 	opLog := models.OperationLog{
-		PartnerUid: query.PartnerUid,
-		CourseUid:  query.CourseUid,
-		UserName:   prof.UserName,
-		UserUid:    prof.Uid,
-		Module:     constants.OP_LOG_MODULE_RECEPTION,
-		Function:   constants.OP_LOG_FUNCTION_BOOKING,
-		Action:     constants.OP_LOG_ACTION_UNLOCK_TEE,
-		Body:       models.JsonDataLog{Data: query},
-		ValueOld:   models.JsonDataLog{},
-		ValueNew:   models.JsonDataLog{},
-		Path:       c.Request.URL.Path,
-		Method:     c.Request.Method,
+		PartnerUid:  query.PartnerUid,
+		CourseUid:   query.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_RECEPTION,
+		Function:    constants.OP_LOG_FUNCTION_BOOKING,
+		Action:      constants.OP_LOG_ACTION_UNLOCK_TEE,
+		Body:        models.JsonDataLog{Data: query},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
 	}
 
 	if query.RequestType == "TURN_TIME" {

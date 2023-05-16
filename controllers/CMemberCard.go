@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"errors"
+	"log"
+	"start/config"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -13,6 +15,153 @@ import (
 )
 
 type CMemberCard struct{}
+
+// ======================== eKyc ===========================
+
+/*
+Cập nhật ảnh cho member
+*/
+func (_ *CMemberCard) EKycUpdateImageMemberCard(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	// partner uid
+	partnerUid := c.PostForm("partner_uid")
+	log.Println("EKycUpdateImageMemberCard partnerUid", partnerUid)
+	if partnerUid == "" {
+		response_message.BadRequest(c, "partner uid not valid")
+		return
+	}
+
+	// course uid
+	courseUid := c.PostForm("course_uid")
+	log.Println("EKycUpdateImageMemberCard courseUid", courseUid)
+	if courseUid == "" {
+		response_message.BadRequest(c, "courseUid not valid")
+		return
+	}
+
+	// // memberCardUid
+	// memberCardUid := c.PostForm("member_card_uid")
+	// log.Println("EKycUpdateImageMemberCard memberCardUid", memberCardUid)
+	// if memberCardUid == "" {
+	// 	response_message.BadRequest(c, "memberCardUid not valid")
+	// 	return
+	// }
+	// memberCardUid
+	ownerUid := c.PostForm("owner_uid")
+	log.Println("EKycUpdateImageMemberCard ownerUid", ownerUid)
+	if ownerUid == "" {
+		response_message.BadRequest(c, "ownerUid not valid")
+		return
+	}
+
+	// sid
+	sid := c.PostForm("sid")
+	log.Println("EKycUpdateImageMemberCard sid", sid)
+
+	type Sizer interface {
+		Size() int64
+	}
+	file, _, errImg := c.Request.FormFile("image")
+	if errImg != nil {
+		response_message.BadRequest(c, errImg.Error())
+		return
+	}
+	fileSize := file.(Sizer).Size()
+	if fileSize > constants.MAX_SIZE_AVATAR_UPLOAD {
+		response_message.BadRequest(c, "over limit size")
+		return
+	}
+
+	// find member card
+	// memberCard := models.MemberCard{}
+	// memberCard.Uid = memberCardUid
+	// errFMc := memberCard.FindFirst(db)
+	// if errFMc != nil {
+	// 	response_message.BadRequest(c, errFMc.Error())
+	// 	return
+	// }
+
+	// find customer
+	customerInfo := models.CustomerUser{}
+	customerInfo.Uid = ownerUid
+	errCus := customerInfo.FindFirst(db)
+	if errCus != nil {
+		response_message.BadRequest(c, errCus.Error())
+		return
+	}
+
+	//Upload image to minio
+	if config.GetEnvironmentName() != "local" {
+		link, errUpdload := datasources.UploadFile(&file)
+		if errUpdload != nil {
+			log.Println("error upload")
+			response_message.InternalServerError(c, errUpdload.Error())
+			return
+		} else {
+			//Upload oke
+			customerInfo.UpdateListImages(link)
+
+			erUdp := customerInfo.Update(db)
+			if erUdp != nil {
+				response_message.BadRequest(c, erUdp.Error())
+				return
+			}
+		}
+	}
+
+	// Cập nhật ảnh sang eKyc server
+	// for tìm tất cả các member có owner_uid call udp sang
+	memberR := models.MemberCard{
+		PartnerUid: partnerUid,
+		CourseUid:  courseUid,
+		OwnerUid:   ownerUid,
+	}
+	errMember, listMem := memberR.FindAll(db)
+	if errMember == nil && len(listMem) > 0 {
+		for _, v := range listMem {
+			go ekycUpdateImage(partnerUid, courseUid, sid, v.Uid, "", file)
+		}
+	}
+
+	okResponse(c, customerInfo)
+}
+
+/*
+List member cho app thu thap
+*/
+func (_ *CMemberCard) EKycGetListMemberCard(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListMemberCardEKycAppThuThapForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	if page.Limit > 20 {
+		page.Limit = 20
+	}
+
+	memberCardR := models.MemberCard{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+	memberCardR.Status = constants.STATUS_ENABLE
+	list, err := memberCardR.FindListForEkycAppThuThap(db, page, form.Search)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okResponse(c, list)
+}
 
 func (_ *CMemberCard) CreateMemberCard(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)

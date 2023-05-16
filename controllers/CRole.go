@@ -31,6 +31,14 @@ func (_ *CRole) CreateRole(c *gin.Context, prof models.CmsUser) {
 	role.Name = body.Name
 	role.PartnerUid = body.PartnerUid
 	role.CourseUid = body.CourseUid
+	role.Description = body.Description
+	if body.Type != "" {
+		if body.Type == constants.ROLE_TYPE_CMS || body.Type == constants.ROLE_TYPE_APP {
+			role.Type = body.Type
+		}
+	} else {
+		role.Type = constants.ROLE_TYPE_CMS
+	}
 
 	errC := role.Create()
 	if errC != nil {
@@ -95,6 +103,7 @@ func (_ *CRole) GetListRole(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 		Name:       form.Search,
+		Type:       form.Type,
 	}
 
 	subRoles, err := model_role.GetAllSubRoleUids(int(prof.RoleId))

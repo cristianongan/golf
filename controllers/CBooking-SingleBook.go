@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 /*
@@ -237,7 +238,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			Function:    constants.OP_LOG_FUNCTION_BOOKING,
 			Action:      constants.OP_LOG_ACTION_MOVE,
 			Body:        models.JsonDataLog{Data: body},
-			ValueOld:    models.JsonDataLog{Data: body.BookUidList[index]},
+			ValueOld:    models.JsonDataLog{Data: cloneListBooking[index]},
 			ValueNew:    models.JsonDataLog{Data: booking},
 			Path:        c.Request.URL.Path,
 			Method:      c.Request.Method,
@@ -279,7 +280,7 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		}
 	}
 
-	listBooking, err := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	listBooking, err := cBooking.CreateBatch(bodyRequest.BookingList, c, prof, "")
 	if err != nil {
 		return
 	}
@@ -289,7 +290,7 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		item := bodyRequest.BookingList[0]
 		if item.BookingRestaurant.Enable {
 			db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-			go addServiceCart(db, len(bodyRequest.BookingList), item.PartnerUid, item.CourseUid, item.CustomerBookingName, item.CustomerBookingPhone, item.BookingDate, prof.FullName)
+			go addServiceCart(db, len(bodyRequest.BookingList), item.PartnerUid, item.CourseUid, item.CustomerBookingName, item.CustomerBookingPhone, item.BookingDate, prof.UserName)
 		}
 	}
 
@@ -483,32 +484,32 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 			}
 		}
 	}
-	listBooking, _ := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	listBooking, _ := cBooking.CreateBatch(bodyRequest.BookingList, c, prof, "COPY")
 
-	//Add Log
-	go func() {
-		for index, booking := range listBooking {
-			opLog := models.OperationLog{
-				PartnerUid:  booking.PartnerUid,
-				CourseUid:   booking.CourseUid,
-				UserName:    prof.UserName,
-				UserUid:     prof.Uid,
-				Module:      constants.OP_LOG_MODULE_RECEPTION,
-				Function:    constants.OP_LOG_FUNCTION_BOOKING,
-				Action:      constants.OP_LOG_ACTION_COPY,
-				Body:        models.JsonDataLog{Data: bodyRequest},
-				ValueOld:    models.JsonDataLog{Data: bodyRequest.BookingList[index]},
-				ValueNew:    models.JsonDataLog{Data: booking},
-				Path:        c.Request.URL.Path,
-				Method:      c.Request.Method,
-				Bag:         booking.Bag,
-				BookingDate: booking.BookingDate,
-				BillCode:    booking.BillCode,
-				BookingUid:  booking.Uid,
-			}
-			go createOperationLog(opLog)
-		}
-	}()
+	// //Add Log
+	// go func() {
+	// 	for _, booking := range listBooking {
+	// 		opLog := models.OperationLog{
+	// 			PartnerUid:  booking.PartnerUid,
+	// 			CourseUid:   booking.CourseUid,
+	// 			UserName:    prof.UserName,
+	// 			UserUid:     prof.Uid,
+	// 			Module:      constants.OP_LOG_MODULE_RECEPTION,
+	// 			Function:    constants.OP_LOG_FUNCTION_BOOKING,
+	// 			Action:      constants.OP_LOG_ACTION_COPY,
+	// 			Body:        models.JsonDataLog{Data: bodyRequest},
+	// 			ValueOld:    models.JsonDataLog{},
+	// 			ValueNew:    models.JsonDataLog{Data: booking},
+	// 			Path:        c.Request.URL.Path,
+	// 			Method:      c.Request.Method,
+	// 			Bag:         booking.Bag,
+	// 			BookingDate: booking.BookingDate,
+	// 			BillCode:    booking.BillCode,
+	// 			BookingUid:  booking.Uid,
+	// 		}
+	// 		go createOperationLog(opLog)
+	// 	}
+	// }()
 
 	okResponse(c, listBooking)
 }
@@ -594,7 +595,7 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 	okRes(c)
 }
 
-func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser) ([]model_booking.Booking, error) {
+func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser, typeAction string) ([]model_booking.Booking, error) {
 	list := []model_booking.Booking{}
 	for _, body := range bookingList {
 		booking, errCreate := cBooking.CreateBookingCommon(body, c, prof)
@@ -625,8 +626,21 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 			BillCode:    booking.BillCode,
 			BookingUid:  booking.Uid,
 		}
+
+		if typeAction == "COPY" {
+			opLog.Action = constants.OP_LOG_ACTION_COPY
+		} else {
+			opLog.Action = constants.OP_LOG_ACTION_CREATE
+		}
 		go createOperationLog(opLog)
+		// push socket
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
 	}
+
+	//Send Sms
+	go genQRCodeListBook(list)
+
 	return list, nil
 }
 
@@ -934,3 +948,88 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 
 // 	return &booking, nil
 // }
+
+func (cBooking *CBooking) SendInforGuest(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	body := request.SendInforGuestBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	var listBooking []model_booking.Booking
+
+	for _, item := range body.ListBooking {
+		// Update booking
+		booking := model_booking.Booking{}
+		booking.Uid = item.Uid
+
+		if err := booking.FindFirst(db); err != nil {
+			response_message.BadRequestFreeMessage(c, "Booking not found")
+			return
+		}
+
+		booking.CustomerName = item.CustomerName
+		booking.CustomerBookingEmail = item.CustomerBookingEmail
+		booking.CustomerBookingPhone = item.CustomerBookingPhone
+		booking.CaddieBooking = item.CaddieBooking
+
+		listBooking = append(listBooking, booking)
+	}
+
+	if len(listBooking) > 0 {
+		// Update list booking
+		go updateListBooking(db, listBooking)
+
+		// Send email
+		if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_EMAIL {
+			go sendEmailBooking(listBooking, body.ListBooking[0].CustomerBookingEmail)
+		}
+
+		// Send sms
+		if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_SMS {
+			go sendSmsBooking(listBooking, body.ListBooking[0].CustomerBookingPhone)
+		}
+
+		// Add log
+		go addLogSendInforGuest(db, listBooking, prof, body.SendMethod)
+
+	}
+
+	okRes(c)
+}
+
+func updateListBooking(db *gorm.DB, listBooking []model_booking.Booking) {
+	for _, booking := range listBooking {
+		// Update booking
+		if err := booking.Update(db); err != nil {
+			log.Println("Update list booking err", err.Error())
+		}
+	}
+}
+
+func addLogSendInforGuest(db *gorm.DB, listBooking []model_booking.Booking, prof models.CmsUser, method string) {
+	// Booking Infor
+	bookingInfor := listBooking[0]
+
+	// Add log send infỏ guest
+	logInfor := model_booking.SendInforGuest{
+		PartnerUid:     prof.PartnerUid,
+		CourseUid:      prof.CourseUid,
+		BookingCode:    bookingInfor.BookingCode,
+		BookingDate:    bookingInfor.BookingDate,
+		BookingName:    bookingInfor.CustomerBookingName,
+		GuestStyle:     bookingInfor.GuestStyle,
+		GuestStyleName: bookingInfor.GuestStyleName,
+		NumberPeople:   len(listBooking),
+		SendMethod:     method,
+		PhoneNumber:    bookingInfor.CustomerBookingPhone,
+		Email:          bookingInfor.CustomerBookingEmail,
+		CmsUser:        prof.UserName,
+	}
+
+	if err := logInfor.Create(db); err != nil {
+		log.Println("Create send infor guest err", err.Error())
+	}
+}

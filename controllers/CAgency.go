@@ -110,12 +110,12 @@ func (_ *CAgency) UpdateAgency(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if agency.AgencyId != body.AgencyId || agency.ShortName != body.ShortName {
-		if body.IsDuplicated(db) {
-			response_message.BadRequestDynamicKey(c, "AGENCY_DUPLI_AGENCY_ID", constants.API_ERR_DUPLICATED_RECORD)
-			return
-		}
-	}
+	// if agency.AgencyId != body.AgencyId || agency.ShortName != body.ShortName {
+	// 	if body.IsDuplicated(db) {
+	// 		response_message.BadRequestDynamicKey(c, "AGENCY_DUPLI_AGENCY_ID", constants.API_ERR_DUPLICATED_RECORD)
+	// 		return
+	// 	}
+	// }
 
 	if body.Name != "" {
 		agency.Name = body.Name

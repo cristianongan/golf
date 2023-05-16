@@ -59,5 +59,30 @@
     "is_open_socket": true,
     "ccu_server": 50,
     "reset_p": "fZ3bp+k0uwSuBRcW3CpcoA==",
-    "is_write_log_to_db": false
+    "is_write_log_to_db": false,
+    "bitly" : {
+        "url": "https://api-ssl.bitly.com/v4/",
+        "token": "158ad6de5e288c1924e3743651f7db7c6cf782c5"
+    },
+    "portal_cms": {
+        "url": "https://vngolf-portal.vnpaytest.vn/"
+    },
+    "vnpay_sms": {
+        "url": "http://10.22.18.118:8083/smsgw/sendSms",
+        "sender": "VNPAY",
+        "keyword": "GOLF_TEST",
+        "username": "950811",
+        "password": "f3c98dec9f36459c8100478d694af863"
+    },
+    "ekyc": {
+        "url": "https://ekycbe209.vnpaytest.vn/cmsgw/golf/",
+        "update_image": "update_ekyc",
+        "auth_key": "Basic YzRhMTQwMTJiYjMwNDQ4M2I2ZTI4ZjVkMjgxODBjY2U6MjZkZjg0YTNjMWZiNDc1NGFhMDlhNGUxYjhiYTgyYWI="
+    },
+    "ses": {
+        "region": "us-east-1",
+        "bucket": "carotech",
+        "id_key": "AKIAIWT37SN4AZPXSCXQ",
+        "private_key": "twzQiKBSdlGzH9MQ41oFDg81B1YGtdk2qz5Kw+V0"
+    }
 }

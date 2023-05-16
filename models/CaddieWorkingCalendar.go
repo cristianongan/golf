@@ -3,6 +3,7 @@ package models
 import (
 	"start/constants"
 	"start/utils"
+	"time"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -15,8 +16,11 @@ type CaddieWorkingCalendar struct {
 	CaddieCode     string `json:"caddie_code" gorm:"type:varchar(100);index"` // caddie code
 	ApplyDate      string `json:"apply_date"  gorm:"type:varchar(100)"`       // ngày áp dụng
 	Row            int    `json:"row"`                                        // thứ tự hàng
-	NumberOrder    int64  `json:"number_order"`                               // số thứ tự caddie\
+	NumberOrder    int64  `json:"number_order"`                               // số thứ tự caddie
 	CaddieIncrease bool   `json:"caddie_increase"`                            // caddie tăng cường
+	ApproveStatus  string `json:"approve_status"`
+	ApproveTime    int64  `json:"approve_time"`
+	UserApprove    string `json:"user_approve"`
 }
 
 func (item *CaddieWorkingCalendar) Create(db *gorm.DB) error {
@@ -95,6 +99,10 @@ func (item *CaddieWorkingCalendar) FindAllByDate(database *gorm.DB) ([]map[strin
 		db = db.Where("caddie_working_calendars.apply_date = ?", item.ApplyDate)
 	}
 
+	if item.ApproveStatus != "" {
+		db = db.Where("caddie_working_calendars.approve_status = ?", item.ApproveStatus)
+	}
+
 	if item.CaddieIncrease {
 		db = db.Where("caddie_working_calendars.caddie_increase = 1")
 	} else {
@@ -138,4 +146,44 @@ func (item *CaddieWorkingCalendar) DeleteBatch(db *gorm.DB) error {
 	}
 
 	return db.Delete(item).Error
+}
+
+func (item *CaddieWorkingCalendar) DeleteBatchCaddies(db *gorm.DB, caddieCode []string) error {
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.ApplyDate != "" {
+		db = db.Where("apply_date = ?", item.ApplyDate)
+	}
+
+	db = db.Where("caddie_code IN ?", caddieCode)
+
+	return db.Delete(item).Error
+}
+
+func (item *CaddieWorkingCalendar) UpdateBatchCaddieCode(db *gorm.DB, caddieCode []string, userName string) error {
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.ApplyDate != "" {
+		db = db.Where("apply_date = ?", item.ApplyDate)
+	}
+
+	db = db.Where("caddie_code IN ?", caddieCode)
+
+	return db.Updates(CaddieWorkingCalendar{
+		ApproveStatus: constants.CADDIE_WORKING_CALENDAR_APPROVED,
+		ApproveTime:   time.Now().Unix(),
+		UserApprove:   userName,
+	}).Error
 }

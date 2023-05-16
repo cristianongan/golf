@@ -7,6 +7,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_service "start/models/service"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -47,6 +48,14 @@ func (_ *CKiosk) GetListKiosk(c *gin.Context, prof models.CmsUser) {
 		kioskR.Status = form.Status
 	}
 
+	if form.KioskType != "" {
+		kioskR.KioskType = form.KioskType
+	}
+
+	if form.IsColdBox != nil {
+		kioskR.IsColdBox = form.IsColdBox
+	}
+
 	list, _, err := kioskR.FindList(db, page)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -72,6 +81,51 @@ func (_ *CKiosk) GetListKiosk(c *gin.Context, prof models.CmsUser) {
 	okResponse(c, kioskList)
 }
 
+func (_ *CKiosk) GetListKioskForApp(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListKioskForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	kioskR := model_service.Kiosk{
+		PartnerUid: form.PartnerUid,
+		CourseUid:  form.CourseUid,
+	}
+
+	if form.KioskName != "" {
+		kioskR.KioskName = form.KioskName
+	}
+
+	if form.Status != "" {
+		kioskR.Status = form.Status
+	}
+
+	if form.KioskType != "" {
+		kioskR.KioskType = form.KioskType
+	}
+
+	if form.IsColdBox != nil {
+		kioskR.IsColdBox = form.IsColdBox
+	}
+
+	list, _, err := kioskR.FindList(db, page)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	okResponse(c, list)
+}
+
 func (_ *CKiosk) CreateKiosk(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	body := model_service.Kiosk{}
@@ -92,6 +146,7 @@ func (_ *CKiosk) CreateKiosk(c *gin.Context, prof models.CmsUser) {
 	kiosk.ServiceType = body.ServiceType
 	kiosk.KioskType = body.KioskType
 	kiosk.Status = body.Status
+	kiosk.IsColdBox = body.IsColdBox
 
 	errC := kiosk.Create(db)
 
@@ -99,6 +154,25 @@ func (_ *CKiosk) CreateKiosk(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errC.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SETTING_COURSE,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Function:    constants.OP_LOG_FUNCTION_POS_SYSTEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: kiosk},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
 
 	okResponse(c, kiosk)
 }
@@ -122,6 +196,8 @@ func (_ *CKiosk) UpdateKiosk(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	valueOld := kiosk
+
 	body := request.CreateKioskForm{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
@@ -140,12 +216,34 @@ func (_ *CKiosk) UpdateKiosk(c *gin.Context, prof models.CmsUser) {
 	if body.ServiceType != "" {
 		kiosk.ServiceType = body.ServiceType
 	}
+	if body.IsColdBox != nil {
+		kiosk.IsColdBox = body.IsColdBox
+	}
 
 	errUdp := kiosk.Update(db)
 	if errUdp != nil {
 		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SETTING_COURSE,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Function:    constants.OP_LOG_FUNCTION_POS_SYSTEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: valueOld},
+		ValueNew:    models.JsonDataLog{Data: kiosk},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
 
 	okResponse(c, kiosk)
 }
@@ -174,6 +272,25 @@ func (_ *CKiosk) DeleteKiosk(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errDel.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  kiosk.PartnerUid,
+		CourseUid:   kiosk.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SETTING_COURSE,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Function:    constants.OP_LOG_FUNCTION_POS_SYSTEM,
+		Body:        models.JsonDataLog{Data: kioskIdStr},
+		ValueOld:    models.JsonDataLog{Data: kiosk},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
 
 	okRes(c)
 }

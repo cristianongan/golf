@@ -91,7 +91,7 @@ func (_ CRestaurantOrder) CreateRestaurantOrder(c *gin.Context, prof models.CmsU
 	serviceCart.ServiceType = kiosk.KioskType
 	serviceCart.BillCode = constants.BILL_NONE
 	serviceCart.BillStatus = constants.RES_STATUS_ORDER
-	serviceCart.StaffOrder = prof.FullName
+	serviceCart.StaffOrder = prof.UserName
 	serviceCart.PlayerName = booking.CustomerName
 
 	if err := serviceCart.Create(db); err != nil {
@@ -310,6 +310,11 @@ func (_ CRestaurantOrder) DeleteRestaurantOrder(c *gin.Context, prof models.CmsU
 	}
 
 	go createOperationLog(opLog)
+
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
 
 	okRes(c)
 }
@@ -561,14 +566,14 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 		// add item res
 		for _, v := range fbSet.FBList {
 			item := models.RestaurantItem{
-				Type:             v.Type,
-				ItemName:         v.VieName,
-				ItemComboName:    fbSet.VieName,
-				ItemComboCode:    body.ItemCode,
-				ItemCode:         v.FBCode,
-				ItemUnit:         v.Unit,
-				Quantity:         v.Quantity * body.Quantity,
-				QuantityProgress: v.Quantity * body.Quantity,
+				Type:          v.Type,
+				ItemName:      v.VieName,
+				ItemComboName: fbSet.VieName,
+				ItemComboCode: body.ItemCode,
+				ItemCode:      v.FBCode,
+				ItemUnit:      v.Unit,
+				Quantity:      v.Quantity * body.Quantity,
+				QuantityOrder: v.Quantity * body.Quantity,
 			}
 
 			restaurantItems = append(restaurantItems, item)
@@ -601,12 +606,12 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 
 		// add infor res item
 		item := models.RestaurantItem{
-			Type:             fb.Type,
-			ItemName:         fb.VieName,
-			ItemCode:         fb.FBCode,
-			ItemUnit:         fb.Unit,
-			Quantity:         body.Quantity,
-			QuantityProgress: body.Quantity,
+			Type:          fb.Type,
+			ItemName:      fb.VieName,
+			ItemCode:      fb.FBCode,
+			ItemUnit:      fb.Unit,
+			Quantity:      body.Quantity,
+			QuantityOrder: body.Quantity,
 		}
 
 		restaurantItems = append(restaurantItems, item)
@@ -662,6 +667,11 @@ func (_ CRestaurantOrder) AddItemOrder(c *gin.Context, prof models.CmsUser) {
 
 	go createOperationLog(opLog)
 
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
+
 	okRes(c)
 }
 
@@ -692,6 +702,9 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		response_message.BadRequest(c, "Find item"+err.Error())
 		return
 	}
+
+	//
+	dataOld := serviceCartItem
 
 	// validate restaurant order
 	serviceCart := models.ServiceCart{}
@@ -777,10 +790,10 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 			if body.Quantity > 0 {
 				if v.ItemComboCode != "" {
 					v.Quantity = (v.Quantity / serviceCartItem.Quality) * body.Quantity
-					v.QuantityProgress = (v.QuantityProgress / serviceCartItem.Quality) * body.Quantity
+					v.QuantityOrder = (v.QuantityOrder / serviceCartItem.Quality) * body.Quantity
 				} else {
 					v.Quantity = body.Quantity
-					v.QuantityProgress = body.Quantity
+					v.QuantityOrder = body.Quantity
 				}
 			}
 
@@ -824,6 +837,32 @@ func (_ CRestaurantOrder) UpdateItemOrder(c *gin.Context, prof models.CmsUser) {
 		//Update lại giá trong booking
 		updatePriceWithServiceItem(&booking, prof)
 	}
+
+	opLog := models.OperationLog{
+		PartnerUid:  serviceCartItem.PartnerUid,
+		CourseUid:   serviceCartItem.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_POS,
+		Function:    constants.OP_LOG_FUNCTION_RESTAURANT,
+		Action:      constants.OP_LOG_ACTION_UPD_ITEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: dataOld},
+		ValueNew:    models.JsonDataLog{Data: serviceCartItem},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         serviceCartItem.Bag,
+		BookingDate: utils.GetCurrentDay1(),
+		BillCode:    serviceCartItem.BillCode,
+		BookingUid:  serviceCartItem.BookingUid,
+	}
+
+	createOperationLog(opLog)
+
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
 
 	okRes(c)
 }
@@ -946,6 +985,11 @@ func (_ CRestaurantOrder) DeleteItemOrder(c *gin.Context, prof models.CmsUser) {
 		updatePriceWithServiceItem(&booking, prof)
 	}
 
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
+
 	okRes(c)
 }
 
@@ -1035,12 +1079,12 @@ func (_ CRestaurantOrder) UpdateResItem(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// Update trạng thái khi trả hết món
-	if resItem.QuantityProgress-1 == 0 {
+	if resItem.QuantityOrder-1 == 0 {
 		resItem.ItemStatus = constants.RES_STATUS_DONE
 	}
 
 	// Update quantity progress when finish
-	resItem.QuantityProgress -= 1
+	resItem.QuantityOrder -= 1
 
 	// update res item
 	if err := resItem.Update(db); err != nil {
@@ -1094,10 +1138,14 @@ func (_ CRestaurantOrder) GetFoodProcess(c *gin.Context, prof models.CmsUser) {
 	}
 
 	// validate restaurant item
-	resItem := models.RestaurantItem{}
-	resItem.ServiceId = body.ServiceId
-	resItem.Type = body.Type
-	resItem.ItemName = body.Name
+	resItem := models.RestaurantItem{
+		PartnerUid: body.PartnerUid,
+		CourseUid:  body.CourseUid,
+		ServiceId:  body.ServiceId,
+		Type:       body.Type,
+		OrderDate:  body.OrderDate,
+		// ItemStatus: body.Status,
+	}
 
 	list, err := resItem.FindAllGroupBy(db)
 
@@ -1106,7 +1154,11 @@ func (_ CRestaurantOrder) GetFoodProcess(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	c.JSON(200, list)
+	res := map[string]interface{}{
+		"data": list,
+	}
+
+	okResponse(c, res)
 }
 
 // get list theo sản phẩm
@@ -1175,7 +1227,7 @@ func (_ CRestaurantOrder) FinishAllResItem(c *gin.Context, prof models.CmsUser) 
 
 	for _, v := range list {
 		v.ItemStatus = constants.RES_STATUS_DONE
-		v.QuantityProgress = 0
+		v.QuantityOrder = 0
 
 		if err := v.Update(db); err != nil {
 			response_message.BadRequest(c, err.Error())
@@ -1336,7 +1388,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 	serviceCart.TypeCode = body.Table
 	serviceCart.NumberGuest = body.NumberGuest
 	serviceCart.ResFloor = body.Floor
-	serviceCart.StaffOrder = prof.FullName
+	serviceCart.StaffOrder = prof.UserName
 	serviceCart.PlayerName = body.PlayerName
 	serviceCart.Phone = body.Phone
 	serviceCart.OrderTime = body.OrderTime
@@ -1395,7 +1447,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 			// 		ItemCode:         v.FBCode,
 			// 		ItemUnit:         v.Unit,
 			// 		Quantity:         v.Quantity * quantity,
-			// 		QuantityProgress: v.Quantity * quantity,
+			// 		QuantityOrder: v.Quantity * quantity,
 			// 	}
 
 			// 	restaurantItems = append(restaurantItems, item)
@@ -1453,7 +1505,7 @@ func (_ CRestaurantOrder) CreateRestaurantBooking(c *gin.Context, prof models.Cm
 			// 	ItemCode:         item.FBCode,
 			// 	ItemUnit:         item.Unit,
 			// 	Quantity:         quantity,
-			// 	QuantityProgress: quantity,
+			// 	QuantityOrder: quantity,
 			// }
 
 			// restaurantItems = append(restaurantItems, item)
@@ -1765,6 +1817,11 @@ func (_ CRestaurantOrder) UpdateRestaurantBooking(c *gin.Context, prof models.Cm
 		return
 	}
 
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushMessPOSForApp(serviceCart)
+	}()
+
 	okRes(c)
 }
 
@@ -1854,16 +1911,16 @@ func (_ CRestaurantOrder) ConfrimRestaurantBooking(c *gin.Context, prof models.C
 			// add item res
 			for _, v := range fbSet.FBList {
 				item := models.RestaurantItem{
-					Type:             serviceItem.Type,
-					BillId:           serviceCart.Id,
-					ItemId:           serviceItem.Id,
-					ItemName:         v.VieName,
-					ItemComboName:    fbSet.VieName,
-					ItemComboCode:    fbSet.Code,
-					ItemCode:         v.FBCode,
-					ItemUnit:         v.Unit,
-					Quantity:         v.Quantity * serviceItem.Quality,
-					QuantityProgress: v.Quantity * serviceItem.Quality,
+					Type:          serviceItem.Type,
+					BillId:        serviceCart.Id,
+					ItemId:        serviceItem.Id,
+					ItemName:      v.VieName,
+					ItemComboName: fbSet.VieName,
+					ItemComboCode: fbSet.Code,
+					ItemCode:      v.FBCode,
+					ItemUnit:      v.Unit,
+					Quantity:      v.Quantity * serviceItem.Quality,
+					QuantityOrder: v.Quantity * serviceItem.Quality,
 				}
 
 				restaurantItems = append(restaurantItems, item)
@@ -1871,14 +1928,14 @@ func (_ CRestaurantOrder) ConfrimRestaurantBooking(c *gin.Context, prof models.C
 		} else {
 			// add item res
 			item := models.RestaurantItem{
-				Type:             serviceItem.Type,
-				BillId:           serviceCart.Id,
-				ItemId:           serviceItem.Id,
-				ItemName:         serviceItem.Name,
-				ItemCode:         serviceItem.ItemCode,
-				ItemUnit:         serviceItem.Unit,
-				Quantity:         serviceItem.Quality,
-				QuantityProgress: serviceItem.Quality,
+				Type:          serviceItem.Type,
+				BillId:        serviceCart.Id,
+				ItemId:        serviceItem.Id,
+				ItemName:      serviceItem.Name,
+				ItemCode:      serviceItem.ItemCode,
+				ItemUnit:      serviceItem.Unit,
+				Quantity:      serviceItem.Quality,
+				QuantityOrder: serviceItem.Quality,
 			}
 
 			restaurantItems = append(restaurantItems, item)
@@ -1975,6 +2032,9 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//
+	dataOld := sourceServiceCart
+
 	// validate golf bag source
 	bookingS := model_booking.Booking{}
 	bookingS.Uid = sourceServiceCart.BookingUid
@@ -2005,7 +2065,8 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 	targetServiceCart.ServiceType = sourceServiceCart.ServiceType
 	targetServiceCart.BillStatus = sourceServiceCart.BillStatus
 	targetServiceCart.BookingUid = booking.Uid
-	targetServiceCart.StaffOrder = prof.FullName
+	targetServiceCart.PlayerName = booking.CustomerName
+	targetServiceCart.StaffOrder = prof.UserName
 	targetServiceCart.BillCode = constants.BILL_NONE
 
 	// create cart
@@ -2107,6 +2168,166 @@ func (_ CRestaurantOrder) TransferItem(c *gin.Context, prof models.CmsUser) {
 	if err := sourceServiceCart.Update(db); err != nil {
 		response_message.InternalServerError(c, "Update target cart "+err.Error())
 		return
+	}
+
+	opLogSource := models.OperationLog{
+		PartnerUid:  bookingSource.PartnerUid,
+		CourseUid:   bookingSource.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_POS,
+		Function:    constants.OP_LOG_FUNCTION_RESTAURANT,
+		Action:      constants.OP_LOG_ACTION_TRANSFER,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: dataOld},
+		ValueNew:    models.JsonDataLog{Data: sourceServiceCart},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         bookingSource.Bag,
+		BookingDate: bookingSource.BookingDate,
+		BillCode:    bookingSource.BillCode,
+		BookingUid:  bookingSource.Uid,
+	}
+
+	opLogTarget := models.OperationLog{
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_POS,
+		Function:    constants.OP_LOG_FUNCTION_RESTAURANT,
+		Action:      constants.OP_LOG_ACTION_TRANSFER,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: targetServiceCart},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Bag:         booking.Bag,
+		BookingDate: booking.BookingDate,
+		BillCode:    booking.BillCode,
+		BookingUid:  booking.Uid,
+	}
+
+	go createOperationLog(opLogSource)
+	go createOperationLog(opLogTarget)
+
+	okRes(c)
+}
+
+// Action kitchen
+func (_ CRestaurantOrder) ActionKitchenRes(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.ActionKitchenBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	if body.Type == "PROCESS" {
+		if body.Action == "ONLY" {
+			resItem := models.RestaurantItem{}
+
+			resItem.CourseUid = body.CourseUid
+			resItem.PartnerUid = body.PartnerUid
+			resItem.OrderDate = body.OrderDate
+			resItem.ItemCode = body.ItemCode
+			resItem.ServiceId = body.ServiceId
+
+			if err := resItem.FindFirstOrder(db); err != nil {
+				response_message.BadRequest(c, err.Error())
+				return
+			}
+
+			resItem.QuantityOrder -= 1
+			resItem.QuantityProgress += 1
+
+			if err := resItem.Update(db); err != nil {
+				response_message.BadRequest(c, err.Error())
+				return
+			}
+		}
+
+		if body.Action == "ALL" {
+			resItem := models.RestaurantItem{}
+
+			resItem.CourseUid = body.CourseUid
+			resItem.PartnerUid = body.PartnerUid
+			resItem.OrderDate = body.OrderDate
+			resItem.ItemCode = body.ItemCode
+			resItem.ServiceId = body.ServiceId
+
+			list, _ := resItem.FindListWithStatus(db, body.Type)
+
+			for _, item := range list {
+				item.QuantityProgress += item.QuantityOrder
+				item.QuantityOrder = 0
+
+				if err := item.Update(db); err != nil {
+					response_message.BadRequest(c, err.Error())
+					return
+				}
+			}
+		}
+	}
+
+	if body.Type == "DONE" {
+		resItem := models.RestaurantItem{}
+
+		resItem.CourseUid = body.CourseUid
+		resItem.PartnerUid = body.PartnerUid
+		resItem.OrderDate = body.OrderDate
+		resItem.ItemCode = body.ItemCode
+		resItem.ServiceId = body.ServiceId
+
+		typeFilter := ""
+
+		if body.Group == "DRINK" {
+			typeFilter = "PROCESS"
+		} else {
+			typeFilter = body.Type
+		}
+
+		list, _ := resItem.FindListWithStatus(db, typeFilter)
+
+		for _, item := range list {
+			if body.Group == "DRINK" {
+				item.QuantityDone += item.QuantityOrder
+				item.QuantityOrder = 0
+			} else {
+				item.QuantityDone += item.QuantityProgress
+				item.QuantityProgress = 0
+			}
+
+			if err := item.Update(db); err != nil {
+				response_message.BadRequest(c, err.Error())
+				return
+			}
+		}
+	}
+
+	if body.Type == "RETURN" {
+		resItem := models.RestaurantItem{}
+
+		resItem.CourseUid = body.CourseUid
+		resItem.PartnerUid = body.PartnerUid
+		resItem.BillId = body.BillId
+		resItem.ItemCode = body.ItemCode
+
+		if err := resItem.FindFirst(db); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
+
+		resItem.QuantityReturn += body.QuantityReturn
+		// Update status
+		if resItem.Quantity == resItem.QuantityReturn {
+			resItem.ItemStatus = constants.RES_STATUS_DONE
+		}
+
+		if err := resItem.Update(db); err != nil {
+			response_message.BadRequest(c, err.Error())
+			return
+		}
 	}
 
 	okRes(c)

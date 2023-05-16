@@ -40,6 +40,7 @@ type Booking struct {
 	// Thêm customer info
 	CustomerBookingName  string       `json:"customer_booking_name" gorm:"type:varchar(256)"`  // Tên khách hàng đặt booking
 	CustomerBookingPhone string       `json:"customer_booking_phone" gorm:"type:varchar(100)"` // SDT khách hàng đặt booking
+	CustomerBookingEmail string       `json:"customer_booking_email" gorm:"type:varchar(256)"` // Email khách hàng đặt booking
 	CustomerName         string       `json:"customer_name" gorm:"type:varchar(256)"`          // Tên khách hàng
 	CustomerUid          string       `json:"customer_uid" gorm:"type:varchar(256);index"`     // Uid khách hàng
 	CustomerType         string       `json:"customer_type" gorm:"type:varchar(256)"`          // Loai khach hang: Member, Guest, Visitor...
@@ -133,6 +134,10 @@ type Booking struct {
 	//Cho get data
 	MemberCard        *models.MemberCard `json:"member_card_info,omitempty" gorm:"-:migration;foreignKey:MemberCardUid"`
 	MemberCardOfGuest *models.MemberCard `json:"member_card_of_guest,omitempty" gorm:"-:migration;foreignKey:MemberUidOfGuest"`
+
+	//Qr code
+	CheckInCode string `json:"check_in_code" gorm:"type:varchar(50);index"`
+	QrcodeUrl   string `json:"qrcode_url" gorm:"type:varchar(250)"`
 }
 
 type FlyInfoResponse struct {
@@ -577,7 +582,7 @@ func (item *Booking) Create(db *gorm.DB, uid string) error {
 		item.Model.Status = constants.STATUS_ENABLE
 	}
 
-	return db.Omit("ListServiceItems.*").Create(item).Error
+	return db.Omit("ListServiceItems").Create(item).Error
 }
 
 func (item *Booking) Update(db *gorm.DB) error {
@@ -586,7 +591,7 @@ func (item *Booking) Update(db *gorm.DB) error {
 	}
 
 	item.Model.UpdatedAt = utils.GetTimeNow().Unix()
-	errUpdate := db.Omit("ListServiceItems.*").Save(item).Error
+	errUpdate := db.Omit("ListServiceItems").Save(item).Error
 	if errUpdate != nil {
 		return errUpdate
 	}
@@ -1478,7 +1483,7 @@ func (item *Booking) UpdateRoundForBooking(database *gorm.DB) {
 	}
 }
 
-func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]interface{}, error) {
+func (item *Booking) FindReportDetailFBBag(database *gorm.DB, location string) ([]map[string]interface{}, error) {
 	var list []map[string]interface{}
 
 	db := database.Table("booking_service_items as tb1")
@@ -1515,7 +1520,16 @@ func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]inte
 	// 	db = db.Where("tb1.partner_uid = ?", item.PartnerUid)
 	// }
 
-	db = db.Where("tb1.type IN ?", []string{constants.RESTAURANT_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.MINI_R_SETTING})
+	if location != "" {
+		if location == constants.RESTAURANT_SETTING {
+			db = db.Where("tb1.type IN ?", []string{constants.RESTAURANT_SETTING, constants.MINI_R_SETTING})
+		} else {
+			db = db.Where("tb1.type = ?", location)
+		}
+	} else {
+		db = db.Where("tb1.type IN ?", []string{constants.RESTAURANT_SETTING, constants.KIOSK_SETTING, constants.MINI_B_SETTING, constants.MINI_R_SETTING})
+	}
+
 	db = db.Where("tb2.check_in_time > 0")
 	db = db.Where("tb2.bag_status <> 'CANCEL'")
 	db = db.Where("(tb3.bill_status NOT IN ? OR tb3.bill_status IS NULL)", []string{constants.RES_BILL_STATUS_CANCEL, constants.RES_BILL_STATUS_ORDER, constants.RES_BILL_STATUS_BOOKING, constants.POS_BILL_STATUS_PENDING})
@@ -1523,6 +1537,31 @@ func (item *Booking) FindReportDetailFBBag(database *gorm.DB) ([]map[string]inte
 	db.Group("tb1.bag")
 
 	db = db.Find(&list)
+
+	return list, db.Error
+}
+
+/*
+Find booking cua member trong ngay
+*/
+func (item *Booking) FindMemberBooking(database *gorm.DB) ([]Booking, error) {
+	db := database.Table("bookings")
+	list := []Booking{}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.BookingDate != "" {
+		db = db.Where("booking_date = ?", item.BookingDate)
+	}
+	if item.MemberCardUid != "" {
+		db = db.Where("member_card_uid = ?", item.MemberCardUid)
+	}
+
+	db.Find(&list)
 
 	return list, db.Error
 }

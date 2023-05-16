@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
 	model_service "start/models/service"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -103,6 +105,25 @@ func (_ *CProshop) CreateProshop(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Action:      constants.OP_LOG_ACTION_CREATE,
+		Function:    constants.OP_LOG_FUNCTION_PROSHOP_SYSTEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{},
+		ValueNew:    models.JsonDataLog{Data: service},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, service)
 }
 
@@ -162,6 +183,8 @@ func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
+
+	oldProshop := proshop
 
 	body := request.UpdateProshopBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -242,6 +265,25 @@ func (_ *CProshop) UpdateProshop(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  proshop.PartnerUid,
+		CourseUid:   proshop.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Action:      constants.OP_LOG_ACTION_UPDATE,
+		Function:    constants.OP_LOG_FUNCTION_PROSHOP_SYSTEM,
+		Body:        models.JsonDataLog{Data: body},
+		ValueOld:    models.JsonDataLog{Data: oldProshop},
+		ValueNew:    models.JsonDataLog{Data: proshop},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
+
 	okResponse(c, proshop)
 }
 
@@ -254,21 +296,40 @@ func (_ *CProshop) DeleteProshop(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	fbModel := model_service.Proshop{}
-	fbModel.Id = fbId
-	fbModel.PartnerUid = prof.PartnerUid
-	fbModel.CourseUid = prof.CourseUid
-	errF := fbModel.FindFirst(db)
+	proshop := model_service.Proshop{}
+	proshop.Id = fbId
+	proshop.PartnerUid = prof.PartnerUid
+	proshop.CourseUid = prof.CourseUid
+	errF := proshop.FindFirst(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
 		return
 	}
 
-	errDel := fbModel.Delete(db)
+	errDel := proshop.Delete(db)
 	if errDel != nil {
 		response_message.InternalServerError(c, errDel.Error())
 		return
 	}
+
+	//Add log
+	opLog := models.OperationLog{
+		PartnerUid:  proshop.PartnerUid,
+		CourseUid:   proshop.CourseUid,
+		UserName:    prof.UserName,
+		UserUid:     prof.Uid,
+		Module:      constants.OP_LOG_MODULE_SYSTEM_GOLFFEE,
+		Action:      constants.OP_LOG_ACTION_DELETE,
+		Function:    constants.OP_LOG_FUNCTION_PROSHOP_SYSTEM,
+		Body:        models.JsonDataLog{Data: fbIdStr},
+		ValueOld:    models.JsonDataLog{Data: proshop},
+		ValueNew:    models.JsonDataLog{},
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		BookingDate: utils.GetCurrentDay1(),
+	}
+
+	go createOperationLog(opLog)
 
 	okRes(c)
 }

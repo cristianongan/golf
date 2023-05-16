@@ -30,11 +30,11 @@ func (_ *CRevenueReport) GetReportRevenueFoodBeverage(c *gin.Context, prof model
 	page := models.Page{
 		Limit:   form.PageRequest.Limit,
 		Page:    form.PageRequest.Page,
-		SortBy:  form.PageRequest.SortBy,
+		SortBy:  "booking_date",
 		SortDir: form.PageRequest.SortDir,
 	}
 
-	serviceCart := models.ServiceCart{
+	serviceCart := model_booking.BookingServiceItem{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
 	}
@@ -69,7 +69,7 @@ func (_ *CRevenueReport) GetReportRevenueDetailFBBag(c *gin.Context, prof models
 		Bag:         form.Bag,
 	}
 
-	list, err := serviceCart.FindReportDetailFBBag(db)
+	list, err := serviceCart.FindReportDetailFBBag(db, form.Location)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -581,6 +581,9 @@ func (_ *CRevenueReport) GetReportUsingBuggyInGo(c *gin.Context, prof models.Cms
 }
 
 func (_ *CRevenueReport) GetReportRevenuePointOfSale(c *gin.Context, prof models.CmsUser) {
+	//
+	isApp := c.Request.Header.Get("isApp")
+
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.RevenueReportPOSForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
@@ -594,9 +597,10 @@ func (_ *CRevenueReport) GetReportRevenuePointOfSale(c *gin.Context, prof models
 		ServiceId:  form.ServiceId,
 		Type:       form.Type,
 		Name:       form.ItemName,
+		UserAction: form.UserName,
 	}
 
-	list, err := serviceItem.FindReportRevenuePOS(db, form.FromDate, form.ToDate)
+	list, err := serviceItem.FindReportRevenuePOS(db, form.FromDate, form.ToDate, isApp)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

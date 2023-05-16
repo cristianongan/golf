@@ -100,7 +100,7 @@ type MemberCardDetailRes struct {
 }
 
 /*
- Clone object
+Clone object
 */
 func (item *MemberCard) CloneMemberCard() MemberCard {
 	copyMemberCard := MemberCard{}
@@ -467,4 +467,76 @@ func (item *MemberCard) GetGuestStyle(db *gorm.DB) string {
 		return ""
 	}
 	return memberCardType.GuestStyle
+}
+
+func (item *MemberCard) FindListForEkyc(database *gorm.DB) ([]map[string]interface{}, error) {
+	db := database.Table("member_cards")
+	list := []map[string]interface{}{}
+	// total := int64(0)
+
+	db = db.Select("member_cards.uid as uid,member_cards.partner_uid as partner_uid,member_cards.course_uid as course_uid,member_cards.card_id as card_id,member_card_types.name as mc_types_name,member_card_types.guest_style as guest_style,customer_users.name as owner_name,customer_users.email as owner_email,customer_users.phone as owner_phone,customer_users.dob as owner_dob,customer_users.sex as owner_sex,customer_users.avatar as owner_avatar")
+
+	db = db.Joins("LEFT JOIN member_card_types on member_cards.mc_type_id = member_card_types.id")
+
+	db = db.Joins("LEFT JOIN customer_users on member_cards.owner_uid = customer_users.uid")
+
+	if item.CourseUid != "" {
+		db = db.Where("member_cards.course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("member_cards.partner_uid = ?", item.PartnerUid)
+	}
+	if item.OwnerUid != "" {
+		db = db.Where("member_cards.owner_uid = ?", item.OwnerUid)
+	}
+	if item.Status != "" {
+		db = db.Where("member_cards.status = ?", item.Status)
+	}
+
+	// db.Count(&total)
+	db = db.Find(&list)
+
+	return list, db.Error
+}
+
+/*
+list for app thu thap anh
+dùng hàm khác cho ít join cho đỡ tải
+*/
+
+func (item *MemberCard) FindListForEkycAppThuThap(database *gorm.DB, page Page, search string) ([]map[string]interface{}, error) {
+	db := database.Table("member_cards")
+	list := []map[string]interface{}{}
+
+	db = db.Select("member_cards.*, customer_users.name as owner_name,customer_users.email as owner_email,customer_users.address2 as owner_address2,customer_users.phone as owner_phone,customer_users.dob as owner_dob,customer_users.sex as owner_sex,customer_users.job as owner_job,customer_users.position as owner_position,customer_users.identify as owner_identify,customer_users.company_id as owner_company_id,customer_users.company_name as owner_company_name")
+
+	db = db.Joins("LEFT JOIN customer_users on member_cards.owner_uid = customer_users.uid")
+
+	if item.CourseUid != "" {
+		db = db.Where("member_cards.course_uid = ?", item.CourseUid)
+	}
+	if item.OwnerUid != "" {
+		db = db.Where("member_cards.owner_uid = ?", item.OwnerUid)
+	}
+	if item.Status != "" {
+		db = db.Where("member_cards.status = ?", item.Status)
+	}
+	// if item.CardId != "" {
+	// 	db = db.Where("member_cards.card_id LIKE ?", "%"+item.CardId+"%")
+	// }
+
+	if search != "" {
+		db = db.Where("customer_users.name LIKE ? OR member_cards.card_id LIKE ?", "%"+search+"%", "%"+search+"%")
+	}
+
+	total := int64(0)
+
+	// db = db.Find(&list)
+	db.Count(&total)
+
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db).Find(&list)
+	}
+
+	return list, db.Error
 }

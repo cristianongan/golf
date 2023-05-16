@@ -84,6 +84,7 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 
 		listCreate := []models.CaddieWorkingCalendar{}
 		listCaddieCode := []string{}
+		listCodeCI := []string{}
 
 		for _, data := range v.CaddieList {
 			caddieWC := models.CaddieWorkingCalendar{}
@@ -97,6 +98,11 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 			caddieWC.Row = data.Row
 			caddieWC.NumberOrder = data.NumberOrder
 			caddieWC.CaddieIncrease = data.CaddieIncrease
+
+			if data.CaddieIncrease {
+				caddieWC.ApproveStatus = constants.CADDIE_WORKING_CALENDAR_PENDING
+				listCodeCI = append(listCodeCI, caddieWC.CaddieCode)
+			}
 
 			// Check duplicate
 			if errCheck := caddieWC.IsDuplicated(db); errCheck {
@@ -142,6 +148,9 @@ func (_ *CCaddieWorkingCalendar) CreateCaddieWorkingCalendar(c *gin.Context, pro
 			//Update lại ds caddie trong GO
 			go updateCaddieWorkingOnDay(listCaddieCode, body.PartnerUid, body.CourseUid, true)
 		}
+
+		cNotification := CNotification{}
+		go cNotification.CreateCWCNotification(db, prof, v.ApplyDate, listCodeCI)
 	}
 
 	okRes(c)
@@ -518,7 +527,7 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieSlotAuto(c *gin.Context, prof model
 	}
 
 	// data old
-	caddieWSO := caddieWS
+	caddieWSO := utils.CloneObject(caddieWS)
 
 	// Swap slot caddie
 	caddieWS.CaddieSlot = utils.SwapValue(caddieWS.CaddieSlot, body.CaddieCodeOld, body.CaddieCodeNew)
@@ -541,7 +550,7 @@ func (_ *CCaddieWorkingCalendar) UpdateCaddieSlotAuto(c *gin.Context, prof model
 		Function:    constants.OP_LOG_FUNCTION_CADDIE_SLOT,
 		Action:      constants.OP_LOG_ACTION_UPD_CAD_SLOT,
 		Body:        models.JsonDataLog{Data: body},
-		ValueOld:    models.JsonDataLog{Data: caddieWSO.CaddieSlot},
+		ValueOld:    models.JsonDataLog{Data: caddieWSO},
 		ValueNew:    models.JsonDataLog{Data: caddieWS.CaddieSlot},
 		BookingDate: dateAction,
 		Path:        c.Request.URL.Path,
