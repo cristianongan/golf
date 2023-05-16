@@ -122,7 +122,7 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 
 	strPhoneNumber := "+" + fmt.Sprint(num.GetCountryCode()) + fmt.Sprint(num.GetNationalNumber())
 
-	provider, errSend := services.VNPaySendSmsV2(strPhoneNumber, message)
+	provider, errSend := services.SendSmsV2(strPhoneNumber, message)
 
 	log.Println("sendSmsBooking ok", provider)
 
