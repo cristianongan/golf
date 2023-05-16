@@ -24,6 +24,21 @@ type BagAttachCaddie struct {
 }
 
 // ======= CRUD ===========
+func (item *BagAttachCaddie) IsDuplicated(db *gorm.DB) bool {
+	modelCheck := BagAttachCaddie{
+		PartnerUid:  item.PartnerUid,
+		CourseUid:   item.CourseUid,
+		BookingDate: item.BookingDate,
+		Bag:         item.Bag,
+	}
+
+	errFind := modelCheck.FindFirst(db)
+	if errFind == nil || modelCheck.Id > 0 {
+		return true
+	}
+	return false
+}
+
 func (item *BagAttachCaddie) Create(db *gorm.DB) error {
 	now := utils.GetTimeNow()
 	item.CreatedAt = now.Unix()

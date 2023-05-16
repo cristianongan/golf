@@ -125,6 +125,13 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 	caddieAttach.LockerNo = body.LockerNo
 	caddieAttach.CmsUser = prof.UserName
 
+	// Check duplicate
+	isDup := caddieAttach.IsDuplicated(db)
+	if isDup {
+		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+		return
+	}
+
 	// validate booking
 	if body.BookingUid != "" {
 		booking := model_booking.Booking{}
