@@ -314,35 +314,37 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 
 	teeTimeRedisKey := getKeyTeeTimeLockRedis(query.BookingDate, query.CourseUid, query.TeeTime, query.TeeType+query.CourseType)
 
-	//Get Tee time check xem có phải super lock k
-	lockTeeData, errGetCache := datasources.GetCache(teeTimeRedisKey)
-	if errGetCache == nil {
-		byteData := []byte(lockTeeData)
-		teeTime := models.LockTeeTimeWithSlot{}
-		errUnma := json.Unmarshal(byteData, &teeTime)
-		if errUnma == nil {
-			if teeTime.LockLevel != "" {
-				// Get quyền của cms user
-				isHavePermission := false
-				listPermiss := findListPermissionForCmsUser(prof)
-				if len(listPermiss) > 0 {
-					for _, v := range listPermiss {
-						if v == constants.SINGLEBOOK_DOUBLE_LOCK {
-							isHavePermission = true
+	if query.RequestType == "TEE_TIME" {
+		//Get Tee time check xem có phải super lock k
+		lockTeeData, errGetCache := datasources.GetCache(teeTimeRedisKey)
+		if errGetCache == nil {
+			byteData := []byte(lockTeeData)
+			teeTime := models.LockTeeTimeWithSlot{}
+			errUnma := json.Unmarshal(byteData, &teeTime)
+			if errUnma == nil {
+				if teeTime.LockLevel != "" {
+					// Get quyền của cms user
+					isHavePermission := false
+					listPermiss := findListPermissionForCmsUser(prof)
+					if len(listPermiss) > 0 {
+						for _, v := range listPermiss {
+							if v == constants.SINGLEBOOK_DOUBLE_LOCK {
+								isHavePermission = true
+							}
 						}
 					}
-				}
 
-				if !isHavePermission {
-					response_message.ErrorResponse(c, http.StatusMethodNotAllowed, "", "Bạn không có quyền này!", constants.ERROR_DELETE_LOCK_NOT_PERMISS)
-					return
+					if !isHavePermission {
+						response_message.ErrorResponse(c, http.StatusMethodNotAllowed, "", "Bạn không có quyền này!", constants.ERROR_DELETE_LOCK_NOT_PERMISS)
+						return
+					}
 				}
+			} else {
+				log.Println("DeleteLockTeeTime errUnma", errUnma.Error())
 			}
 		} else {
-			log.Println("DeleteLockTeeTime errUnma", errUnma.Error())
+			log.Println("DeleteLockTeeTime errGetCache", errGetCache.Error())
 		}
-	} else {
-		log.Println("DeleteLockTeeTime errGetCache", errGetCache.Error())
 	}
 
 	errDel := datasources.DelCacheByKey(teeTimeRedisKey)
