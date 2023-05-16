@@ -109,7 +109,7 @@ func (item *CaddieVacationCalendar) FindAllWithDate(database *gorm.DB, typeWork 
 
 	db := database.Model(CaddieVacationCalendar{})
 
-	db = db.Select("caddie_vacation_calendars.*, caddie.contract_status")
+	db = db.Select("caddie_vacation_calendars.*, caddies.contract_status")
 
 	if item.CourseUid != "" {
 		db = db.Where("caddie_vacation_calendars.course_uid = ?", item.CourseUid)
