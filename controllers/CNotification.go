@@ -567,11 +567,13 @@ func (_ *CNotification) PushMessBoookingForAppNoCheck(typeMess string, bag *mode
 		"data": bag,
 	}
 
-	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket_room.Hub.Broadcast <- socket_room.Message{
-		Data: newFsConfigBytes,
+	// push mess socket
+	reqSocket := request.MessSocketBody{
+		Data: notiData,
 		Room: constants.NOTIFICATION_CHANNEL_BOOKING_APP,
 	}
+
+	go callservices.PushMessInSocket(reqSocket)
 
 }
 
