@@ -298,5 +298,9 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 	// Send mail
 	errSend := datasources.SendEmail(email, subject, message, sender)
 
+	if errSend != nil {
+		log.Println("sendEmailBooking errSend", errSend.Error())
+	}
+
 	return errSend
 }
