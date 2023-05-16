@@ -254,7 +254,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 
 		cloneBooking := booking
 		cNotification := CNotification{}
-		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &cloneBooking)
+		go cNotification.PushMessBoookingForAppNoCheck(constants.NOTIFICATION_BOOKING_UPD, &cloneBooking)
 	}
 
 	go func() {
