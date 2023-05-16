@@ -192,7 +192,9 @@ func runCreateCaddieWorkingSlot() {
 		err = caddieSlot.FindFirst(db)
 
 		if err != nil {
-			caddiePrioritize = append(caddiePrioritize, caddieCodes...)
+			caddies := MergeCaddieCodeV2(caddieCodes, caddieLeave)
+
+			caddieWorking = append(caddieWorking, caddies...)
 		} else {
 			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieCodes, caddieLeave)
 
@@ -222,7 +224,9 @@ func runCreateCaddieWorkingSlot() {
 		err = caddieSlot.FindFirst(db)
 
 		if err != nil {
-			caddieWorking = append(caddieWorking, caddieCodes...)
+			caddies := MergeCaddieCodeV2(caddieCodes, caddieLeave)
+
+			caddieWorking = append(caddieWorking, caddies...)
 		} else {
 			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieCodes, caddieLeave)
 
@@ -267,7 +271,9 @@ func runCreateCaddieWorkingSlot() {
 		err = caddieSlot.FindFirst(db)
 
 		if err != nil {
-			caddieWorking = append(caddieWorking, caddieSortSlots...)
+			caddies := MergeCaddieCodeV2(caddieSortSlots, caddieLeave)
+
+			caddieWorking = append(caddieWorking, caddies...)
 		} else {
 			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieSortSlots, caddieLeave)
 
@@ -313,7 +319,9 @@ func runCreateCaddieWorkingSlot() {
 		err = caddieSlot.FindFirst(db)
 
 		if err != nil {
-			caddieWorking = append(caddieWorking, caddieSortSlots...)
+			caddies := MergeCaddieCodeV2(caddieSortSlots, caddieLeave)
+
+			caddieWorking = append(caddieWorking, caddies...)
 		} else {
 			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieSortSlots, caddieLeave)
 
@@ -406,6 +414,19 @@ func MergeCaddieCode(x, y, z []string) []string {
 	}
 
 	caddies = append(caddies, caddieNew...)
+
+	return caddies
+}
+
+func MergeCaddieCodeV2(x, y []string) []string {
+	var caddies []string
+
+	// Add caddie new without slot
+	for _, v := range x {
+		if !utils.Contains(y, v) {
+			caddies = append(caddies, v)
+		}
+	}
 
 	return caddies
 }
