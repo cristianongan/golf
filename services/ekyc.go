@@ -30,7 +30,7 @@ type EkycDataModel struct {
 	SelfieCheckSum string `json:"selfieCheckSum"`
 	Timestamp      string `json:"timestamp"`
 	RequestId      string `json:"requestId"`
-	ImgLink        string `json:"imgLink "`
+	ImgLink        string `json:"imgLink"`
 }
 
 func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile *multipart.File) (error, int, []byte) {
