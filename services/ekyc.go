@@ -30,6 +30,7 @@ type EkycDataModel struct {
 	SelfieCheckSum string `json:"selfieCheckSum"`
 	Timestamp      string `json:"timestamp"`
 	RequestId      string `json:"requestId"`
+	ImgLink        string `json:"imgLink "`
 }
 
 func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile *multipart.File) (error, int, []byte) {
@@ -65,10 +66,10 @@ func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile *m
 		return err, 0, nil
 	}
 
-	log.Println("CallEkyc len data", payload.Bytes())
+	// log.Println("CallEkyc len data", payload.Bytes())
 
-	// log.Println("CallEkyc payload", payload)
-	// log.Println("CallEkyc writer", writer)
+	log.Println("CallEkyc payload", payload)
+	log.Println("CallEkyc writer", writer)
 
 	client := &http.Client{
 		Timeout: time.Second * constants.TIMEOUT,

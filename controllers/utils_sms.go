@@ -149,6 +149,7 @@ func ekycUpdateImage(partnerUid, courseUid, sid, memberUid, link string, imgFile
 		CourseUid:  courseUid,
 		Timestamp:  currentTimeStr,
 		RequestId:  requestId,
+		ImgLink:    link,
 	}
 
 	// d = DataModel -> string json
