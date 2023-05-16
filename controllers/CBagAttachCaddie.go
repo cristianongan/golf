@@ -65,22 +65,40 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 		return
 	}
 
-	// validate bag
-	bookingBag := model_booking.Booking{}
+	// Create attach caddie
+	caddieAttach := model_gostarter.BagAttachCaddie{}
 
-	bookingBag.PartnerUid = body.PartnerUid
-	bookingBag.CourseUid = body.CourseUid
-	bookingBag.Bag = body.Bag
-	bookingBag.BookingDate = body.BookingDate
+	caddieAttach.PartnerUid = body.PartnerUid
+	caddieAttach.CourseUid = body.CourseUid
+	caddieAttach.BookingDate = body.BookingDate
 
-	isDuplicated, errDupli := bookingBag.IsDuplicated(db, false, true)
-	if isDuplicated {
-		if errDupli != nil {
-			response_message.InternalServerErrorWithKey(c, errDupli.Error(), "DUPLICATE_BAG")
+	if body.Bag != "" {
+		// validate bag
+		bookingBag := model_booking.Booking{}
+
+		bookingBag.PartnerUid = body.PartnerUid
+		bookingBag.CourseUid = body.CourseUid
+		bookingBag.Bag = body.Bag
+		bookingBag.BookingDate = body.BookingDate
+
+		isDuplicated, errDupli := bookingBag.IsDuplicated(db, false, true)
+		if isDuplicated {
+			if errDupli != nil {
+				response_message.InternalServerErrorWithKey(c, errDupli.Error(), "DUPLICATE_BAG")
+				return
+			}
+			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 			return
 		}
-		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-		return
+
+		caddieAttach.Bag = body.Bag
+
+		// Check duplicate
+		isDup := caddieAttach.IsDuplicated(db)
+		if isDup {
+			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+			return
+		}
 	}
 
 	// validate caddie
@@ -114,23 +132,9 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 		}
 	}
 
-	// Create attach caddie
-	caddieAttach := model_gostarter.BagAttachCaddie{}
-
-	caddieAttach.PartnerUid = body.PartnerUid
-	caddieAttach.CourseUid = body.CourseUid
-	caddieAttach.BookingDate = body.BookingDate
-	caddieAttach.Bag = body.Bag
 	caddieAttach.CaddieCode = body.CaddieCode
 	caddieAttach.LockerNo = body.LockerNo
 	caddieAttach.CmsUser = prof.UserName
-
-	// Check duplicate
-	isDup := caddieAttach.IsDuplicated(db)
-	if isDup {
-		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-		return
-	}
 
 	// validate booking
 	if body.BookingUid != "" {
