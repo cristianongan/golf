@@ -14,14 +14,16 @@ type PlayerScore struct {
 	PartnerUid  string `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng Golf
 	CourseUid   string `json:"course_uid" gorm:"type:varchar(256);index"`  // Sân Golf
 	BookingDate string `json:"booking_date" gorm:"type:varchar(50);index"`
+	FlightId    int64  `json:"flight_id" gorm:"index"` // Id flight
 	Bag         string `json:"bag" gorm:"type:varchar(100);index"`
-	Course      string `json:"course"`            //  Sân
-	Hole        int    `json:"hole" gorm:"index"` // Số hố
-	Par         int    `json:"par"`               // Số lần chạm gậy
-	Shots       int    `json:"shots"`             // Số gậy đánh
-	Index       int    `json:"index"`             // Độ khó
-	TimeStart   int64  `json:"time_start"`        // Thời gian bắt đầu
-	TimeEnd     int64  `json:"time_end"`          // Thời gian end
+	Course      string `json:"course"`                  //  Sân
+	Hole        int    `json:"hole" gorm:"index"`       // Số hố
+	HoleIndex   int    `json:"hole_index" gorm:"index"` // Số thứ tự của hố
+	Par         int    `json:"par"`                     // Số lần chạm gậy
+	Shots       int    `json:"shots"`                   // Số gậy đánh
+	Index       int    `json:"index"`                   // Độ khó
+	TimeStart   int64  `json:"time_start"`              // Thời gian bắt đầu
+	TimeEnd     int64  `json:"time_end"`                // Thời gian end
 }
 
 type ListPlayerScore struct {
@@ -32,12 +34,30 @@ type ListPlayerScore struct {
 	Bag          string `json:"bag"`
 	CustomerName string `json:"customer_name"` // Tên khách hàng
 	Course       string `json:"course"`        //  Sân
-	Hole         int    `json:"hole"`          // Số hố
-	Par          int    `json:"par"`           // Số lần chạm gậy
-	Shots        int    `json:"shots"`         // Số gậy đánh
-	Index        int    `json:"index"`         // Độ khó
-	TimeStart    int64  `json:"time_start"`    // Thời gian bắt đầu
-	TimeEnd      int64  `json:"time_end"`      // Thời gian end
+	FlightId     int64  `json:"flight_id"`
+	Hole         int    `json:"hole"`                    // Số hố
+	HoleIndex    int    `json:"hole_index" gorm:"index"` // Số thứ tự của hố
+	Par          int    `json:"par"`                     // Số lần chạm gậy
+	Shots        int    `json:"shots"`                   // Số gậy đánh
+	Index        int    `json:"index"`                   // Độ khó
+	TimeStart    int64  `json:"time_start"`              // Thời gian bắt đầu
+	TimeEnd      int64  `json:"time_end"`                // Thời gian end
+}
+
+func (item *PlayerScore) IsDuplicated(db *gorm.DB) bool {
+	modelCheck := PlayerScore{
+		PartnerUid: item.PartnerUid,
+		CourseUid:  item.CourseUid,
+		FlightId:   item.FlightId,
+		Bag:        item.Bag,
+		HoleIndex:  item.HoleIndex,
+	}
+
+	errFind := modelCheck.FindFirst(db)
+	if errFind == nil || modelCheck.Id > 0 {
+		return true
+	}
+	return false
 }
 
 func (item *PlayerScore) Create(db *gorm.DB) error {
@@ -89,6 +109,15 @@ func (item *PlayerScore) FindList(database *gorm.DB, page Page) ([]ListPlayerSco
 	}
 	if item.Bag != "" {
 		db = db.Where("player_scores.bag = ?", item.Bag)
+	}
+	if item.Hole != 0 {
+		db = db.Where("player_scores.hole = ?", item.Hole)
+	}
+	if item.FlightId != 0 {
+		db = db.Where("player_scores.flight_id = ?", item.FlightId)
+	}
+	if item.HoleIndex != 0 {
+		db = db.Where("player_scores.hole_index = ?", item.HoleIndex)
 	}
 
 	db.Joins("INNER JOIN bookings on bookings.bag = player_scores.bag and bookings.booking_date = player_scores.booking_date")

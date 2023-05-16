@@ -2022,7 +2022,7 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	if kiosk.KioskType != constants.KIOSK_SETTING && kiosk.KioskType != constants.RESTAURANT_SETTING {
+	if kiosk.KioskType != constants.KIOSK_SETTING && kiosk.KioskType != constants.RESTAURANT_SETTING && kiosk.KioskType != constants.MINI_B_SETTING {
 		response_message.BadRequestFreeMessage(c, "Kiosk type invalid")
 		return
 	}

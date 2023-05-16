@@ -8,6 +8,7 @@ import (
 	"log"
 	"mime/multipart"
 	"start/config"
+	"start/constants"
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
@@ -39,6 +40,14 @@ func genQRCodeListBook(listBooking []model_booking.Booking) {
 	}
 	//disable for prod
 	// sendSmsBooking(listHaveQRURL)
+	// Send socket
+	for _, v := range listHaveQRURL {
+		// push socket
+		cNotification := CNotification{}
+		bookingClone := v
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, &bookingClone)
+	}
+
 }
 
 /*
