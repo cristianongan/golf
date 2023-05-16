@@ -711,3 +711,41 @@ func (_ *CCmsUser) GetPermissionCmsUser(c *gin.Context, prof models.CmsUser) {
 
 	okResponse(c, res)
 }
+
+/*
+Find list permissions
+*/
+func findListPermissionForCmsUser(user models.CmsUser) utils.ListString {
+	listPerMis := utils.ListString{}
+	role := model_role.Role{}
+	if user.RoleId > 0 {
+		role.Id = user.RoleId
+
+		key := user.GetKeyRedisPermission()
+		listPer, _ := datasources.GetCache(key)
+
+		if !config.GetUseRedisPermissionRole() {
+			listPer = ""
+		}
+
+		if len(listPer) > 0 {
+			_ = json.Unmarshal([]byte(listPer), &listPerMis)
+		} else {
+			errFR := role.FindFirst()
+			if errFR == nil {
+				rolePR := model_role.RolePermission{
+					RoleId: role.Id,
+				}
+				listPermission, errRolePR := rolePR.FindAll()
+				if errRolePR == nil {
+					for _, v := range listPermission {
+						listPerMis = append(listPerMis, v.PermissionUid)
+					}
+				}
+			}
+			// Hàm này dùng nhiều nên bỏ đoạn lưu
+			// user.SaveKeyRedisPermission(listPerMis)
+		}
+	}
+	return listPerMis
+}

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -22,6 +23,9 @@ import (
 
 type CLockTeeTime struct{}
 
+/*
+Lock Tee
+*/
 func (_ *CLockTeeTime) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
 	body := request.CreateTeeTimeSettings{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -45,6 +49,7 @@ func (_ *CLockTeeTime) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser
 		Type:           constants.LOCK_CMS,
 		Slot:           4,
 		Note:           body.Note,
+		LockLevel:      body.LockLevel,
 	}
 
 	if errRedis != nil {
@@ -308,8 +313,42 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 	}
 
 	teeTimeRedisKey := getKeyTeeTimeLockRedis(query.BookingDate, query.CourseUid, query.TeeTime, query.TeeType+query.CourseType)
-	err := datasources.DelCacheByKey(teeTimeRedisKey)
-	log.Print(err)
+
+	//Get Tee time check xem có phải super lock k
+	lockTeeData, errGetCache := datasources.GetCache(teeTimeRedisKey)
+	if errGetCache == nil {
+		byteData := []byte(lockTeeData)
+		teeTime := models.LockTeeTimeWithSlot{}
+		errUnma := json.Unmarshal(byteData, &teeTime)
+		if errUnma == nil {
+			if teeTime.LockLevel != "" {
+				// Get quyền của cms user
+				isHavePermission := false
+				listPermiss := findListPermissionForCmsUser(prof)
+				if len(listPermiss) > 0 {
+					for _, v := range listPermiss {
+						if v == constants.SINGLEBOOK_DOUBLE_LOCK {
+							isHavePermission = true
+						}
+					}
+				}
+
+				if !isHavePermission {
+					response_message.ErrorResponse(c, http.StatusMethodNotAllowed, "", "Bạn không có quyền này!", constants.ERROR_DELETE_LOCK_NOT_PERMISS)
+					return
+				}
+			}
+		} else {
+			log.Println("DeleteLockTeeTime errUnma", errUnma.Error())
+		}
+	} else {
+		log.Println("DeleteLockTeeTime errGetCache", errGetCache.Error())
+	}
+
+	errDel := datasources.DelCacheByKey(teeTimeRedisKey)
+	if errDel != nil {
+		log.Println("DeleteLockTeeTime errDel", errDel.Error())
+	}
 
 	opLog := models.OperationLog{
 		PartnerUid:  query.PartnerUid,
