@@ -30,13 +30,17 @@ type EkycDataModel struct {
 	SelfieCheckSum string `json:"selfieCheckSum"`
 	Timestamp      string `json:"timestamp"`
 	RequestId      string `json:"requestId"`
+	ImgLink        string `json:"imgLink"`
 }
 
-func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile multipart.File) (error, int, []byte) {
+func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile *multipart.File) (error, int, []byte) {
 	// req, errNewRequest := http.NewRequest("POST", urlFull, bytes.NewBuffer(bBody))
 	// if errNewRequest != nil {
 	// 	return errNewRequest, 0, nil
 	// }
+	if imgFile == nil {
+		return errors.New("File is nill"), 0, nil
+	}
 
 	payload := &bytes.Buffer{}
 	writer := multipart.NewWriter(payload)
@@ -49,18 +53,23 @@ func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile mu
 	fileName := "ekyc-" + timeUnixStr + ".png"
 	log.Println("CallEkyc fileName", fileName)
 
-	part3,
-		errFile3 := writer.CreateFormFile("selfieImage", filepath.Base(fileName))
-	_, errFile3 = io.Copy(part3, imgFile)
+	part3, errFile3 := writer.CreateFormFile("selfieImage", filepath.Base(fileName))
+	_, errFile3 = io.Copy(part3, *imgFile)
 	if errFile3 != nil {
-		fmt.Println(errFile3)
+		log.Println("CallEkyc errFile3", errFile3.Error())
 		return errFile3, 0, nil
 	}
+
 	err := writer.Close()
 	if err != nil {
-		fmt.Println(err)
+		log.Println("CallEkyc err", err.Error())
 		return err, 0, nil
 	}
+
+	// log.Println("CallEkyc len data", payload.Bytes())
+
+	log.Println("CallEkyc payload", payload)
+	log.Println("CallEkyc writer", writer)
 
 	client := &http.Client{
 		Timeout: time.Second * constants.TIMEOUT,
@@ -97,7 +106,7 @@ func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile mu
 	return nil, resp.StatusCode, byteBody
 }
 
-func EkycUpdateImage(bBody []byte, dataModel EkycUpdateBody, imgFile multipart.File) (error, int) {
+func EkycUpdateImage(bBody []byte, dataModel EkycUpdateBody, imgFile *multipart.File) (error, int) {
 
 	url := config.GetEkycUrl() + config.GetEkycUpdate()
 

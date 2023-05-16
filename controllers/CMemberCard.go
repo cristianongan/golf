@@ -91,9 +91,12 @@ func (_ *CMemberCard) EKycUpdateImageMemberCard(c *gin.Context, prof models.CmsU
 		return
 	}
 
+	link := ""
+	var errUpdload error
+
 	//Upload image to minio
 	if config.GetEnvironmentName() != "local" {
-		link, errUpdload := datasources.UploadFile(&file)
+		link, errUpdload = datasources.UploadFile(&file)
 		if errUpdload != nil {
 			log.Println("error upload")
 			response_message.InternalServerError(c, errUpdload.Error())
@@ -108,6 +111,8 @@ func (_ *CMemberCard) EKycUpdateImageMemberCard(c *gin.Context, prof models.CmsU
 				return
 			}
 		}
+	} else {
+		link = "https://vnticket.vnpaytest.vn/golf-staging/image/da6f64f1-35e0-40d7-8e13-a07a4bfcd44c-1684201249310177427.png"
 	}
 
 	// Cập nhật ảnh sang eKyc server
@@ -120,7 +125,7 @@ func (_ *CMemberCard) EKycUpdateImageMemberCard(c *gin.Context, prof models.CmsU
 	errMember, listMem := memberR.FindAll(db)
 	if errMember == nil && len(listMem) > 0 {
 		for _, v := range listMem {
-			go ekycUpdateImage(partnerUid, courseUid, sid, v.Uid, "", file)
+			go ekycUpdateImage(partnerUid, courseUid, sid, v.Uid, link, &file)
 		}
 	}
 
