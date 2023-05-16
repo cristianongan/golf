@@ -113,6 +113,7 @@ func MigrateDbCms(db *gorm.DB) {
 	db.AutoMigrate(&model_gostarter.Flight{})
 	db.AutoMigrate(&model_gostarter.BagFlight{})
 	db.AutoMigrate(&model_gostarter.CaddieBuggyInOut{})
+	db.AutoMigrate(&model_gostarter.BagAttachCaddie{})
 
 	// ------- Service ------
 	db.AutoMigrate(&model_service.Kiosk{})

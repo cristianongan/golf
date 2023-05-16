@@ -560,6 +560,21 @@ func (_ *CNotification) PushMessBoookingForApp(typeMess string, bag *model_booki
 
 }
 
+func (_ *CNotification) PushMessBoookingForAppNoCheck(typeMess string, bag *model_booking.Booking) {
+	// Data mess
+	notiData := map[string]interface{}{
+		"type": typeMess,
+		"data": bag,
+	}
+
+	newFsConfigBytes, _ := json.Marshal(notiData)
+	socket_room.Hub.Broadcast <- socket_room.Message{
+		Data: newFsConfigBytes,
+		Room: constants.NOTIFICATION_CHANNEL_BOOKING_APP,
+	}
+
+}
+
 func (_ *CNotification) Admin1ApproveCaddieWC(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	idStr := c.Param("id")

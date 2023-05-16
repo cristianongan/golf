@@ -34,9 +34,11 @@ func (_ *CPlayerScore) CreatePlayerScore(c *gin.Context, prof models.CmsUser) {
 			PartnerUid:  body.PartnerUid,
 			CourseUid:   body.CourseUid,
 			BookingDate: body.BookingDate,
+			FlightId:    body.FlightId,
 			Bag:         player.Bag,
 			Course:      body.Course,
 			Hole:        body.Hole,
+			HoleIndex:   body.HoleIndex,
 			Par:         body.Par,
 			Shots:       player.Shots,
 			Index:       player.Index,
@@ -50,6 +52,11 @@ func (_ *CPlayerScore) CreatePlayerScore(c *gin.Context, prof models.CmsUser) {
 			playerScore.ModelId.Status = constants.STATUS_ENABLE
 		}
 
+		if playerScore.IsDuplicated(db) {
+			response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
+			return
+		}
+
 		listPlayer = append(listPlayer, playerScore)
 	}
 
@@ -59,7 +66,11 @@ func (_ *CPlayerScore) CreatePlayerScore(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	okRes(c)
+	res := map[string]interface{}{
+		"data": listPlayer,
+	}
+
+	okResponse(c, res)
 }
 
 func (_ *CPlayerScore) GetListPlayerScore(c *gin.Context, prof models.CmsUser) {
@@ -78,8 +89,13 @@ func (_ *CPlayerScore) GetListPlayerScore(c *gin.Context, prof models.CmsUser) {
 	}
 
 	PlayerScoreR := models.PlayerScore{
-		PartnerUid: form.PartnerUid,
-		CourseUid:  form.CourseUid,
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: form.BookingDate,
+		Bag:         form.Bag,
+		Hole:        form.Hole,
+		HoleIndex:   form.HoleIndex,
+		FlightId:    form.FlightId,
 	}
 	list, total, err := PlayerScoreR.FindList(db, page)
 	if err != nil {
@@ -137,6 +153,41 @@ func (_ *CPlayerScore) UpdatePlayerScore(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, playerScore)
+}
+
+func (_ *CPlayerScore) UpdateListPlayerScore(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	// validate body
+	body := request.UpdateListPSBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	for _, player := range body.ListPlayer {
+		playerScore := models.PlayerScore{}
+		playerScore.Id = player.Id
+		errF := playerScore.FindFirst(db)
+		if errF != nil {
+			response_message.InternalServerError(c, errF.Error())
+			return
+		}
+
+		if player.Course != "" {
+			playerScore.Course = player.Course
+		}
+
+		playerScore.Shots = player.Shots
+		playerScore.TimeEnd = player.TimeEnd
+
+		errUdp := playerScore.Update(db)
+		if errUdp != nil {
+			response_message.InternalServerError(c, errUdp.Error())
+			return
+		}
+	}
+
+	okRes(c)
 }
 
 func (_ *CPlayerScore) DeletePlayerScore(c *gin.Context, prof models.CmsUser) {

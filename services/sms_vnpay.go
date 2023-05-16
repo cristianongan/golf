@@ -65,6 +65,17 @@ type VNPaySmsResponse struct {
 	ProviderIdOrg string `json:"providerIdOrg"`
 }
 
+type SMSBody struct {
+	To   string `json:"to"`   // Phone
+	Text string `json:"text"` // Text
+}
+
+type SmsResponse struct {
+	Status    int    `json:"status"`
+	ErrorCode int    `json:"error_code"`
+	Message   string `json:"message"`
+}
+
 func (item Envelope) HandleCodeResult() error {
 	switch item.Body.SendMTResponse.Return {
 	case "00|Success":
@@ -75,7 +86,7 @@ func (item Envelope) HandleCodeResult() error {
 }
 
 /*
- Send vnpay sms v2
+Send vnpay sms v2
 */
 func VNPaySendSmsV2(phone, message string) (string, error) {
 	phoneSend := strings.ReplaceAll(phone, "+84", "0")
@@ -141,6 +152,61 @@ func VNPaySendSmsV2(phone, message string) (string, error) {
 	return bodyStr, errors.New(string(byteResp))
 }
 
+/*
+Send vnpay sms v2
+*/
+func SendSmsV2(phone, message string) (string, error) {
+	phoneSend := strings.ReplaceAll(phone, "+84", "0")
+	url := config.GetGolfPartnerURL() + "sms/send"
+	body := SMSBody{
+		To:   phoneSend,
+		Text: message,
+	}
+
+	bodyBytes, errB := json.Marshal(body)
+	if errB != nil {
+		return "Marshal object error", errB
+	}
+
+	bodyStr := string(bodyBytes)
+
+	log.Println("body string", bodyStr)
+
+	httpMethod := "POST"
+	req, err := http.NewRequest(httpMethod, url, bytes.NewReader(bodyBytes))
+	if err != nil {
+		log.Println("SendSmsV2 Error on creating request object. ", err.Error())
+		return bodyStr, err
+	}
+	req.Header.Add("Content-Type", "application/json")
+
+	client := &http.Client{
+		Timeout: time.Second * constants.TIMEOUT,
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println("Error on dispatching request. ", err.Error())
+		return bodyStr, err
+	}
+	defer resp.Body.Close()
+
+	byteResp, errForward := ioutil.ReadAll(resp.Body)
+	if errForward != nil {
+		return "error parse sms v2", errForward
+	}
+	resModel := SmsResponse{}
+	_ = json.Unmarshal(byteResp, &resModel)
+
+	log.Println("send sms v2 response", string(byteResp))
+
+	if resModel.Status == 0 {
+		//Success
+		return bodyStr, nil
+	}
+
+	return bodyStr, errors.New(string(byteResp))
+}
+
 func mapStatusToDes(status string) string {
 	statusDesc := ""
 	switch status {
@@ -176,6 +242,62 @@ func mapStatusToDes(status string) string {
 		break
 	default:
 		statusDesc = "Lỗi ngoại lệ"
+		break
+	}
+
+	return statusDesc
+}
+
+func mapStatusToDesV2(status int) string {
+	statusDesc := ""
+	switch status {
+	case 0:
+		statusDesc = "Thành công"
+		break
+	case 40:
+		statusDesc = "Unauthorized"
+		break
+	case 41:
+		statusDesc = "Unauthorized-Invalid Password"
+		break
+	case 42:
+		statusDesc = "Unauthorized-Invalid User"
+		break
+	case 51:
+		statusDesc = "Invalid IP"
+		break
+	case 52:
+		statusDesc = "Invalid input params"
+		break
+	case 53:
+		statusDesc = "Invalid phone number"
+		break
+	case 531:
+		statusDesc = "Invalid phone number: Mobile number portability (subscribers who have switched networks and new networks do not register with ST)"
+		break
+	case 54:
+		statusDesc = "Invalid Sender"
+		break
+	case 55:
+		statusDesc = "Invalid Content"
+		break
+	case 50:
+		statusDesc = "Gateway error"
+		break
+	case 551:
+		statusDesc = "Invalid Content: Invalid Message Length"
+		break
+	case 80:
+		statusDesc = "Type account not allow sending SMS debit via API"
+		break
+	case 81:
+		statusDesc = "Your account not allow sending SMS debit"
+		break
+	case 82:
+		statusDesc = "Account over quota"
+		break
+	default:
+		statusDesc = "Exception error"
 		break
 	}
 

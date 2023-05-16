@@ -13,6 +13,7 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	model_gostarter "start/models/go-starter"
 	model_payment "start/models/payment"
 	model_report "start/models/report"
 	"start/utils"
@@ -77,6 +78,10 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 
 	if body.IsCheckIn {
 		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
+
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
+
 	} else {
 		opLog.Function = constants.OP_LOG_FUNCTION_BOOKING
 
@@ -91,7 +96,7 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	// Bắn socket để client update ui
 	cNotification := CNotification{}
 	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, booking)
-	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
+	// go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
 	okResponse(c, booking)
 }
 
@@ -1344,6 +1349,27 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.Hole = body.Hole
 	}
 
+	if body.Locker != "" {
+		locker := models.Locker{
+			PartnerUid:   booking.PartnerUid,
+			CourseUid:    booking.CourseUid,
+			Locker:       body.Locker,
+			BookingDate:  booking.BookingDate,
+			LockerStatus: constants.LOCKER_STATUS_UNRETURNED,
+		}
+
+		// check tồn tại
+		_ = locker.FindFirst(db)
+
+		if locker.Id > 0 {
+			response_message.BadRequestFreeMessage(c, "Locker đã được mượn.")
+			return
+		}
+
+		booking.LockerNo = body.Locker
+		go createLocker(db, booking)
+	}
+
 	if body.MemberCardUid != nil && *body.MemberCardUid != booking.MemberCardUid ||
 		body.AgencyId != booking.AgencyId {
 		booking.SeparatePrice = false
@@ -1466,11 +1492,6 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 	}
 
-	if body.Locker != "" {
-		booking.LockerNo = body.Locker
-		go createLocker(db, booking)
-	}
-
 	if body.TeeType != "" {
 		booking.TeeType = body.TeeType
 	}
@@ -1527,6 +1548,9 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	go cRound.UpdateBag(booking, db)
 
 	res := getBagDetailFromBooking(db, booking)
+
+	// Update bag attach caddie
+	go cBooking.updateBagAttachCaddie(db, booking.Uid)
 
 	//Add log
 	opLog := models.OperationLog{
@@ -1733,6 +1757,9 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		BookingUid:  booking.Uid,
 	}
 	go createOperationLog(opLog)
+
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
 
 	okResponse(c, booking)
 }
@@ -2010,6 +2037,24 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 
 	}
 
+	if booking.LockerNo != "" {
+		locker := models.Locker{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			Locker:      booking.LockerNo,
+			BookingDate: booking.BookingDate,
+			BookingUid:  booking.Uid,
+		}
+
+		// Find locker
+		_ = locker.FindFirst(db)
+
+		errC := locker.Delete(db)
+		if errC != nil {
+			log.Println("deleteLocker errC", errC.Error())
+		}
+	}
+
 	pUid := booking.PartnerUid
 	cUid := booking.CourseUid
 	billCode := booking.BillCode
@@ -2075,6 +2120,9 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 		BookingUid:  booking.Uid,
 	}
 	go createOperationLog(opLog)
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
 
 	okRes(c)
 }
@@ -2168,6 +2216,10 @@ func (cBooking *CBooking) UndoCheckOut(c *gin.Context, prof models.CmsUser) {
 
 	booking.Update(db)
 
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+
 	//Add log
 	opLog := models.OperationLog{
 		PartnerUid:  booking.PartnerUid,
@@ -2189,4 +2241,15 @@ func (cBooking *CBooking) UndoCheckOut(c *gin.Context, prof models.CmsUser) {
 	}
 	go createOperationLog(opLog)
 	okRes(c)
+}
+
+func (_ CBooking) updateBagAttachCaddie(db *gorm.DB, bookindUid string) {
+	caddieAttach := model_gostarter.BagAttachCaddie{}
+	caddieAttach.BookingUid = bookindUid
+
+	if err := caddieAttach.FindFirst(db); err == nil {
+		caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_WAITING
+
+		_ = caddieAttach.Update(db)
+	}
 }

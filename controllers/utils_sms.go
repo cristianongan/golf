@@ -8,6 +8,7 @@ import (
 	"log"
 	"mime/multipart"
 	"start/config"
+	"start/constants"
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
@@ -39,6 +40,14 @@ func genQRCodeListBook(listBooking []model_booking.Booking) {
 	}
 	//disable for prod
 	// sendSmsBooking(listHaveQRURL)
+	// Send socket
+	for _, v := range listHaveQRURL {
+		// push socket
+		cNotification := CNotification{}
+		bookingClone := v
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, &bookingClone)
+	}
+
 }
 
 /*
@@ -122,7 +131,7 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 
 	strPhoneNumber := "+" + fmt.Sprint(num.GetCountryCode()) + fmt.Sprint(num.GetNationalNumber())
 
-	provider, errSend := services.VNPaySendSmsV2(strPhoneNumber, message)
+	provider, errSend := services.SendSmsV2(strPhoneNumber, message)
 
 	log.Println("sendSmsBooking ok", provider)
 
@@ -132,7 +141,7 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 /*
 Update image to ekyc server
 */
-func ekycUpdateImage(partnerUid, courseUid, sid, memberUid, link string, imgFile multipart.File) {
+func ekycUpdateImage(partnerUid, courseUid, sid, memberUid, link string, imgFile *multipart.File) {
 
 	// Current Time
 	currentTime := time.Now().Unix()
@@ -149,6 +158,7 @@ func ekycUpdateImage(partnerUid, courseUid, sid, memberUid, link string, imgFile
 		CourseUid:  courseUid,
 		Timestamp:  currentTimeStr,
 		RequestId:  requestId,
+		ImgLink:    link,
 	}
 
 	// d = DataModel -> string json
@@ -209,7 +219,12 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 	}
 
 	// Sender
-	sender := "hotro@caro.vn"
+	// sender := "hotro@ caro .vn"
+	sender := course.EmailBooking
+	if sender == "" {
+		log.Println("sendEmailBooking Sender is empty")
+		return errors.New("Sender is empty")
+	}
 
 	// subject
 	subject := "Sân " + course.Name + " xác nhận đặt chỗ ngày " + listBooking[0].BookingDate
