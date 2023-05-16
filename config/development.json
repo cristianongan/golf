@@ -70,5 +70,16 @@
         "keyword": "GOLF_TEST",
         "username": "950811",
         "password": "f3c98dec9f36459c8100478d694af863"
+    },
+    "ekyc": {
+        "url": "https://ekycbe209.vnpaytest.vn/cmsgw/golf/",
+        "update_image": "update_ekyc",
+        "auth_key": "Basic YzRhMTQwMTJiYjMwNDQ4M2I2ZTI4ZjVkMjgxODBjY2U6MjZkZjg0YTNjMWZiNDc1NGFhMDlhNGUxYjhiYTgyYWI="
+    },
+    "ses": {
+        "region": "us-east-1",
+        "bucket": "carotech",
+        "id_key": "AKIAIWT37SN4AZPXSCXQ",
+        "private_key": "twzQiKBSdlGzH9MQ41oFDg81B1YGtdk2qz5Kw+V0"
     }
 }

@@ -2004,6 +2004,11 @@ func (_ CServiceCart) SaveBillPOSInApp(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	if booking.BagStatus != constants.BAG_STATUS_WAITING && booking.BagStatus != constants.BAG_STATUS_IN_COURSE && booking.BagStatus != constants.BAG_STATUS_TIMEOUT {
+		response_message.BadRequestFreeMessage(c, "Bag status invalid")
+		return
+	}
+
 	if *booking.LockBill {
 		response_message.BadRequestDynamicKey(c, "BAG_BE_LOCK", "Bag lock")
 		return

@@ -28,7 +28,10 @@ type RestaurantItem struct {
 	ItemStatus       string `json:"item_status" gorm:"type:varchar(100)"`       // Trạng thái sản phẩm
 	ItemNote         string `json:"item_note" gorm:"type:varchar(200)"`         // Yêu cầu của khách hàng
 	Quantity         int    `json:"quantity"`                                   // Số lượng order
+	QuantityOrder    int    `json:"quantity_order"`                             // Số lương order
 	QuantityProgress int    `json:"quantity_progress"`                          // Số lương đang tiến hành
+	QuantityDone     int    `json:"quantity_done"`                              // Số lương đang hoàn thành
+	QuantityReturn   int    `json:"quantity_return"`                            // Số lương trả khách
 	TotalProcess     int    `json:"total_process"`                              // Tổng số lượng đang làm
 	MoveKitchenTimes int    `json:"move_kitchen_times"`                         // Số lần move kitchen của bill
 }
@@ -45,6 +48,34 @@ func (item *RestaurantItem) Create(db *gorm.DB) error {
 
 func (item *RestaurantItem) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
+}
+
+func (item *RestaurantItem) FindFirstOrder(db *gorm.DB) error {
+	db = db.Model(RestaurantItem{})
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.ItemCode != "" {
+		db = db.Where("item_code = ?", item.ItemCode)
+	}
+
+	if item.ServiceId != 0 {
+		db = db.Where("service_id = ?", item.ServiceId)
+	}
+
+	if item.OrderDate != "" {
+		db = db.Where("order_date = ?", item.OrderDate)
+	}
+
+	db = db.Where("quantity_order > 0")
+
+	return db.First(item).Error
 }
 
 func (item *RestaurantItem) Update(db *gorm.DB) error {
@@ -149,32 +180,89 @@ func (item *RestaurantItem) FindAll(database *gorm.DB) ([]RestaurantItem, error)
 	return list, db.Error
 }
 
-func (item *RestaurantItem) FindAllGroupBy(database *gorm.DB) ([]RestaurantItem, error) {
-	db := database.Model(RestaurantItem{})
-	list := []RestaurantItem{}
+func (item *RestaurantItem) FindAllGroupBy(database *gorm.DB) ([]map[string]interface{}, error) {
+	db := database.Table("restaurant_items")
+	var list []map[string]interface{}
 
-	db.Select("*, sum(quantity_progress) as total_process")
+	db = db.Select("restaurant_items.*", "service_carts.time_process", "service_carts.type as bill_type", "service_carts.type_code", "service_carts.player_name")
+
+	if item.CourseUid != "" {
+		db = db.Where("restaurant_items.course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		db = db.Where("restaurant_items.partner_uid = ?", item.PartnerUid)
+	}
+	if item.ServiceId != 0 {
+		db = db.Where("restaurant_items.service_id = ?", item.ServiceId)
+	}
+	if item.OrderDate != "" {
+		db = db.Where("restaurant_items.order_date = ?", item.OrderDate)
+	}
+
+	db = db.Where("restaurant_items.item_status NOT IN ?", []string{constants.RES_STATUS_ORDER, constants.RES_STATUS_CANCEL, constants.RES_STATUS_BOOKING})
+
+	// SubQuery
+	subQuery := database.Table("group_services")
+
+	if item.CourseUid != "" {
+		subQuery = subQuery.Where("course_uid = ?", item.CourseUid)
+	}
+	if item.PartnerUid != "" {
+		subQuery = subQuery.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.Type != "" {
+		subQuery = subQuery.Where("group_name = ?", item.Type)
+	}
+
+	db = db.Joins("INNER JOIN service_carts on service_carts.id = restaurant_items.bill_id")
+	db = db.Joins("INNER JOIN (?) as tb1 on tb1.group_code = restaurant_items.type", subQuery)
+
+	// db.Group("restaurant_items.item_code")
+	db.Order("service_carts.time_process")
+
+	db.Find(&list)
+
+	return list, db.Error
+}
+
+func (item *RestaurantItem) FindListWithStatus(database *gorm.DB, status string) ([]RestaurantItem, error) {
+	var list []RestaurantItem
+
+	db := database.Model(RestaurantItem{})
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
 
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
-	if item.PartnerUid != "" {
-		db = db.Where("partner_uid = ?", item.PartnerUid)
-	}
+
 	if item.ServiceId != 0 {
 		db = db.Where("service_id = ?", item.ServiceId)
 	}
-	if item.Type != "" {
-		db = db.Where("type = ?", item.Type)
-	}
-	if item.ItemName != "" {
-		db = db.Where("item_name LIKE ?", "%"+item.ItemName+"%")
+
+	if item.ItemCode != "" {
+		db = db.Where("item_code = ?", item.ItemCode)
 	}
 
-	db = db.Where("item_status = ?", constants.RES_STATUS_PROCESS)
-	db.Group("item_code")
+	if item.OrderDate != "" {
+		db = db.Where("order_date = ?", item.OrderDate)
+	}
 
-	db.Find(&list)
+	if status == "PROCESS" {
+		db = db.Where("quantity_order > 0")
+	}
+
+	if status == "DONE" {
+		db = db.Where("quantity_progress > 0")
+	}
+
+	if status == "RETURN" {
+		db = db.Where("quantity_done > 0")
+	}
+
+	db = db.Find(&list)
 
 	return list, db.Error
 }

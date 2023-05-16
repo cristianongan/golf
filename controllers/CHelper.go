@@ -629,7 +629,7 @@ func (_ *CHelper) getIdGroup(s []models.CaddieGroup, e string) int64 {
 	return 0
 }
 
-func GetCaddieCodeFromVacation(s []models.CaddieVacationCalendar) []string {
+func GetCaddieCodeFromVacation(s []models.CaddieVacationCalendarList) []string {
 	var caddies []string
 	for _, v := range s {
 		caddies = append(caddies, v.CaddieCode)

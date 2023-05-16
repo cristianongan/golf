@@ -38,13 +38,38 @@ type CustomerUser struct {
 	AgencyId int64  `json:"agency_id" gorm:"index"`                 // Id Agency
 	GolfBag  string `json:"golf_bag" gorm:"type:varchar(50);index"` // GolfBag cố định đại lý
 
-	Mst      string `json:"mst" gorm:"type:varchar(50)"`      // mã số thuế
-	Identify string `json:"identify" gorm:"type:varchar(50)"` // CMT
-	Note     string `json:"note" gorm:"type:varchar(500)"`    // Ghi chu them
+	Mst        string           `json:"mst" gorm:"type:varchar(50)"`            // mã số thuế
+	Identify   string           `json:"identify" gorm:"type:varchar(50)"`       // CMT
+	Note       string           `json:"note" gorm:"type:varchar(500)"`          // Ghi chu them
+	ListImages utils.ListString `json:"list_images,omitempty" gorm:"type:json"` // List Image
 }
 
 /*
- Clone object
+Update list image ekyc
+*/
+func (item *CustomerUser) UpdateListImages(link string) {
+	if link == "" {
+		return
+	}
+	listTemp := utils.ListString{}
+
+	if item.ListImages == nil || len(item.ListImages) == 0 {
+		listTemp = append(listTemp, link)
+	} else if len(item.ListImages) == 1 {
+		listTemp = append(listTemp, item.ListImages...)
+		listTemp = append(listTemp, link)
+	} else {
+		listTemp = append(listTemp, link)
+		if len(item.ListImages) > 1 {
+			listTemp = append(listTemp, item.ListImages[1])
+		}
+	}
+
+	item.ListImages = listTemp
+}
+
+/*
+Clone object
 */
 func (item *CustomerUser) CloneCustomerUser() CustomerUser {
 	copyCustomerUser := CustomerUser{}
