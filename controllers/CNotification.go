@@ -8,11 +8,8 @@ import (
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
-<<<<<<< HEAD
-=======
 	model_booking "start/models/booking"
 	socket_room "start/socket_room"
->>>>>>> c985ac5e079d44fd8d320ee1fe28c637d0a317c8
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
