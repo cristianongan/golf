@@ -1519,6 +1519,22 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerName = body.CustomerName
 	}
 
+	//Update customer infor
+	if booking.CustomerUid != "" {
+		//check customer
+		customer := models.CustomerUser{}
+		customer.Uid = booking.CustomerUid
+		errFindCus := customer.FindFirst(db)
+		if errFindCus != nil || customer.Uid == "" {
+			log.Print("customer" + errFindCus.Error())
+			// return
+		}
+
+		booking.CustomerName = customer.Name
+		// booking.CustomerType = customer.Type
+		booking.CustomerInfo = cloneToCustomerBooking(customer)
+	}
+
 	booking.CmsUser = prof.UserName
 	booking.CmsUserLog = getBookingCmsUserLog(prof.UserName, utils.GetTimeNow().Unix())
 	booking.CheckInTime = utils.GetTimeNow().Unix()
