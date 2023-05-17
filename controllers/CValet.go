@@ -59,7 +59,7 @@ func (_ *CValet) AddBagCaddieBuggyToBooking(c *gin.Context, prof models.CmsUser)
 
 		if body.CaddieCode != "" {
 			// Update caddie_current_status
-			// caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+			caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
 			if err := caddie.Update(db); err != nil {
 				response_message.InternalServerError(c, err.Error())
 				return
@@ -91,6 +91,9 @@ func (_ *CValet) AddBagCaddieBuggyToBooking(c *gin.Context, prof models.CmsUser)
 			}
 		}
 	}
+
+	cNotification := CNotification{}
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, model_booking.Booking{})
 
 	okRes(c)
 }

@@ -31,6 +31,7 @@ type GetListPlayerScoreForm struct {
 	Hole        int    `form:"hole"`
 	HoleIndex   int    `form:"hole_index"` // Số thứ tự của hố
 	FlightId    int64  `form:"flight_id"`
+	Status      string `form:"status"`
 }
 
 type UpdatePlayerScoreBody struct {

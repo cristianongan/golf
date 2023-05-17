@@ -91,7 +91,7 @@ func (item *PlayerScore) FindFirst(db *gorm.DB) error {
 	return db.Where(item).First(item).Error
 }
 
-func (item *PlayerScore) FindList(database *gorm.DB, page Page) ([]ListPlayerScore, int64, error) {
+func (item *PlayerScore) FindList(database *gorm.DB, page Page, status string) ([]ListPlayerScore, int64, error) {
 	db := database.Model(PlayerScore{})
 	list := []ListPlayerScore{}
 	total := int64(0)
@@ -120,7 +120,11 @@ func (item *PlayerScore) FindList(database *gorm.DB, page Page) ([]ListPlayerSco
 		db = db.Where("player_scores.hole_index = ?", item.HoleIndex)
 	}
 
-	db.Joins("INNER JOIN bookings on bookings.bag = player_scores.bag and bookings.booking_date = player_scores.booking_date")
+	if status != "" {
+		db = db.Where("bookings.bag_status = ?", status)
+	}
+
+	db.Joins("INNER JOIN bookings on bookings.flight_id = player_scores.flight_id")
 
 	db.Count(&total)
 
