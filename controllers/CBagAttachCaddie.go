@@ -9,6 +9,7 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -111,6 +112,13 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 		errFC := caddie.FindFirst(db)
 		if errFC != nil {
 			response_message.BadRequestFreeMessage(c, "Caddie not found")
+			return
+		}
+
+		cCaddie := CCaddie{}
+		listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
+		if utils.ContainString(listCaddieWorkingByBookingDate, body.CaddieCode) == -1 {
+			response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" không có lịch làm việc!")
 			return
 		}
 
@@ -241,6 +249,13 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 		errFC := caddie.FindFirst(db)
 		if errFC != nil {
 			response_message.BadRequestFreeMessage(c, "Caddie not found")
+			return
+		}
+
+		cCaddie := CCaddie{}
+		listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(prof.PartnerUid, prof.CourseUid, body.BookingDate)
+		if utils.ContainString(listCaddieWorkingByBookingDate, body.CaddieCode) == -1 {
+			response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" không có lịch làm việc!")
 			return
 		}
 
