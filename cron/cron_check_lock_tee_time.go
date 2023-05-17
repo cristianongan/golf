@@ -118,7 +118,7 @@ func pushNotificationUnlockTee() {
 	// push mess socket
 	reqSocket := request.MessSocketBody{
 		Data: notiData,
-		Room: "",
+		Room: constants.NOTIFICATION_CHANNEL_BOOKING,
 	}
 
 	go callservices.PushMessInSocket(reqSocket)

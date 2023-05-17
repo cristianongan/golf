@@ -18,7 +18,7 @@ func pushSocketUdpRole(roleId int64) {
 	// push mess socket
 	reqSocket := request.MessSocketBody{
 		Data: notiData,
-		Room: "",
+		Room: constants.NOTIFICATION_CHANNEL_ROLE,
 	}
 
 	go callservices.PushMessInSocket(reqSocket)
