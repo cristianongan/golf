@@ -43,7 +43,7 @@ func (_ *CValet) AddBagCaddieBuggyToBooking(c *gin.Context, prof models.CmsUser)
 		errB, response := AddCaddieBuggyToBooking(db, body.PartnerUid, body.CourseUid, body.BookingUid, body.BookingDate, body.Bag, body.CaddieCode, body.BuggyCode, body.IsPrivateBuggy)
 
 		if errB != nil {
-			response_message.InternalServerError(c, errB.Error())
+			response_message.BadRequestFreeMessage(c, errB.Error())
 			return
 		}
 
