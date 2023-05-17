@@ -842,25 +842,30 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.LockerNo != nil {
-		if booking.LockerNo != "" {
-			locker := models.Locker{
-				PartnerUid:  booking.PartnerUid,
-				CourseUid:   booking.CourseUid,
-				Locker:      booking.LockerNo,
-				BookingDate: booking.BookingDate,
-				BookingUid:  booking.Uid,
-			}
+		if booking.CheckInTime > 0 {
+			if booking.LockerNo != "" {
+				locker := models.Locker{
+					PartnerUid:  booking.PartnerUid,
+					CourseUid:   booking.CourseUid,
+					Locker:      booking.LockerNo,
+					BookingDate: booking.BookingDate,
+					BookingUid:  booking.Uid,
+				}
 
-			// Find locker
-			_ = locker.FindFirst(db)
+				// Find locker
+				_ = locker.FindFirst(db)
 
-			errC := locker.Delete(db)
-			if errC != nil {
-				log.Println("deleteLocker errC", errC.Error())
+				errC := locker.Delete(db)
+				if errC != nil {
+					log.Println("deleteLocker errC", errC.Error())
+				}
 			}
+			booking.LockerNo = *body.LockerNo
+			go createLocker(db, booking)
+		} else {
+			booking.LockerNo = *body.LockerNo
 		}
-		booking.LockerNo = *body.LockerNo
-		go createLocker(db, booking)
+
 	}
 
 	if body.ReportNo != nil {

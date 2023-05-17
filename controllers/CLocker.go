@@ -97,5 +97,5 @@ func (_ *CLocker) ReturnLocker(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	okRes(c)
+	okResponse(c, lockerR)
 }
