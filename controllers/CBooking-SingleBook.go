@@ -107,6 +107,7 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 
 		cNotification := CNotification{}
 		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+		go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, booking)
 	}
 
 	okResponse(c, booking)
@@ -264,6 +265,10 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			// updateSlotTeeTimeWithLock(booking)
 		}
 	}()
+
+	cNotification := CNotification{}
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, model_booking.Booking{})
+
 	okRes(c)
 }
 
@@ -605,6 +610,10 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 			// updateSlotTeeTimeWithLock(booking)
 		}
 	}()
+
+	cNotification := CNotification{}
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, model_booking.Booking{})
+
 	okRes(c)
 }
 

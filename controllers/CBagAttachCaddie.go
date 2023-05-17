@@ -411,7 +411,7 @@ func UpdateNewBooking(db *gorm.DB, booking *model_booking.Booking, caddieAtt mod
 
 	cNotification := CNotification{}
 	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, booking)
-	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, booking)
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, booking)
 }
 
 func UpdateOldBooking(db *gorm.DB, caddieAtt model_gostarter.BagAttachCaddie) {
@@ -435,5 +435,5 @@ func UpdateOldBooking(db *gorm.DB, caddieAtt model_gostarter.BagAttachCaddie) {
 
 	cNotification := CNotification{}
 	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
-	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, booking)
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, booking)
 }
