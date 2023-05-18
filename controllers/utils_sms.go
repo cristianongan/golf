@@ -60,7 +60,7 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 		return errPhone
 	}
 
-	message := "San " + listBooking[0].CourseUid + " xac nhan dat cho ngay " + listBooking[0].BookingDate + ": "
+	message := "San " + getSmsGolfName(listBooking[0].CourseUid) + " xac nhan dat cho ngay " + listBooking[0].BookingDate + ": "
 
 	for i, b := range listBooking {
 		if b.AgencyId > 0 {
@@ -303,4 +303,11 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 	}
 
 	return errSend
+}
+
+func getSmsGolfName(coureUid string) string {
+	if coureUid == "CHI-LINH-01" {
+		return "CHILINH GOLF"
+	}
+	return coureUid
 }
