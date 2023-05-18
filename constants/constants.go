@@ -1,6 +1,16 @@
 package constants
 
 /*
+Các loại bắn email
+*/
+const (
+	TYPE_SEND_INFO_BOOKING_NONE  = "NONE"  // không bắn
+	TYPE_SEND_INFO_BOOKING_ALL   = "BOTH"  // bắn all
+	TYPE_SEND_INFO_BOOKING_SMS   = "SMS"   // chỉ bắn sms
+	TYPE_SEND_INFO_BOOKING_EMAIL = "EMAIL" // chỉ bắn email
+)
+
+/*
 QR Prefix
 */
 const QR_PREFIX_CHECK_IN = "CKI"
