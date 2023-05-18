@@ -1,6 +1,11 @@
 package constants
 
 /*
+ Super lock Tee
+*/
+const SINGLEBOOK_DOUBLE_LOCK = "SINGLEBOOK_DOUBLE_LOCK"
+
+/*
 QR Prefix
 */
 const QR_PREFIX_CHECK_IN = "CKI"
