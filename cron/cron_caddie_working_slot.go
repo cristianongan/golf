@@ -136,16 +136,28 @@ func runCreateCaddieWorkingSlot() {
 	}
 
 	// Caddie nghỉ hôm qua và đi làm hôm nay
+	var caddieWork []string
 	listCVCWork, err := caddieVC.FindAllWithDate(db, "WORK", dateConvert)
 
 	if err != nil {
 		log.Println("Find caddie vacation calendar err", err.Error())
 	}
 
+	// Check trạng thái caddie nghỉ trong tuần
+	if index == -1 && len(dataGroupWorking) > 0 && dayNow != 6 && dayNow != 0 {
+		for _, item := range listCVCWork {
+			if item.ContractStatus == constants.CADDIE_CONTRACT_STATUS_FULLTIME {
+				caddieWork = append(caddieWork, item.CaddieCode)
+			}
+		}
+	} else {
+		caddieWork = GetCaddieCodeFromVacation(listCVCWork)
+	}
+
 	// Get caddie code
 	var caddiePrioritize []string
 	var caddieWorking []string
-	caddieWork := GetCaddieCodeFromVacation(listCVCWork)
+
 	caddieLeave := GetCaddieCodeFromVacation(listCVCLeave)
 
 	caddies := models.Caddie{
@@ -180,7 +192,9 @@ func runCreateCaddieWorkingSlot() {
 		err = caddieSlot.FindFirst(db)
 
 		if err != nil {
-			caddiePrioritize = append(caddiePrioritize, caddieCodes...)
+			caddies := MergeCaddieCodeV2(caddieCodes, caddieLeave)
+
+			caddieWorking = append(caddieWorking, caddies...)
 		} else {
 			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieCodes, caddieLeave)
 
@@ -210,7 +224,9 @@ func runCreateCaddieWorkingSlot() {
 		err = caddieSlot.FindFirst(db)
 
 		if err != nil {
-			caddieWorking = append(caddieWorking, caddieCodes...)
+			caddies := MergeCaddieCodeV2(caddieCodes, caddieLeave)
+
+			caddieWorking = append(caddieWorking, caddies...)
 		} else {
 			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieCodes, caddieLeave)
 
@@ -255,7 +271,9 @@ func runCreateCaddieWorkingSlot() {
 		err = caddieSlot.FindFirst(db)
 
 		if err != nil {
-			caddieWorking = append(caddieWorking, caddieSortSlots...)
+			caddies := MergeCaddieCodeV2(caddieSortSlots, caddieLeave)
+
+			caddieWorking = append(caddieWorking, caddies...)
 		} else {
 			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieSortSlots, caddieLeave)
 
@@ -301,7 +319,9 @@ func runCreateCaddieWorkingSlot() {
 		err = caddieSlot.FindFirst(db)
 
 		if err != nil {
-			caddieWorking = append(caddieWorking, caddieSortSlots...)
+			caddies := MergeCaddieCodeV2(caddieSortSlots, caddieLeave)
+
+			caddieWorking = append(caddieWorking, caddies...)
 		} else {
 			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieSortSlots, caddieLeave)
 
@@ -359,7 +379,7 @@ func getIdGroup(s []models.CaddieGroup, e string) int64 {
 	return 0
 }
 
-func GetCaddieCodeFromVacation(s []models.CaddieVacationCalendar) []string {
+func GetCaddieCodeFromVacation(s []models.CaddieVacationCalendarList) []string {
 	var caddies []string
 	for _, v := range s {
 		caddies = append(caddies, v.CaddieCode)
@@ -394,6 +414,19 @@ func MergeCaddieCode(x, y, z []string) []string {
 	}
 
 	caddies = append(caddies, caddieNew...)
+
+	return caddies
+}
+
+func MergeCaddieCodeV2(x, y []string) []string {
+	var caddies []string
+
+	// Add caddie new without slot
+	for _, v := range x {
+		if !utils.Contains(y, v) {
+			caddies = append(caddies, v)
+		}
+	}
 
 	return caddies
 }

@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 /*
@@ -106,6 +107,7 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 
 		cNotification := CNotification{}
 		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+		go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, booking)
 	}
 
 	okResponse(c, booking)
@@ -254,7 +256,7 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 
 		cloneBooking := booking
 		cNotification := CNotification{}
-		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &cloneBooking)
+		go cNotification.PushMessBoookingForAppNoCheck(constants.NOTIFICATION_BOOKING_UPD, &cloneBooking)
 	}
 
 	go func() {
@@ -263,6 +265,10 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			// updateSlotTeeTimeWithLock(booking)
 		}
 	}()
+
+	cNotification := CNotification{}
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, model_booking.Booking{})
+
 	okRes(c)
 }
 
@@ -310,9 +316,6 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		cNotification := CNotification{}
 		cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, listBooking)
 	}()
-
-	//Send Sms
-	go genQRCodeListBook(listBooking)
 
 	okResponse(c, listBooking)
 }
@@ -607,6 +610,10 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 			// updateSlotTeeTimeWithLock(booking)
 		}
 	}()
+
+	cNotification := CNotification{}
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, model_booking.Booking{})
+
 	okRes(c)
 }
 
@@ -652,6 +659,10 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 		// cNotification := CNotification{}
 		// go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
 	}
+
+	//Send Sms
+	go genQRCodeListBook(list)
+
 	return list, nil
 }
 
@@ -959,3 +970,88 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 
 // 	return &booking, nil
 // }
+
+func (cBooking *CBooking) SendInforGuest(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	body := request.SendInforGuestBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	var listBooking []model_booking.Booking
+
+	for _, item := range body.ListBooking {
+		// Update booking
+		booking := model_booking.Booking{}
+		booking.Uid = item.Uid
+
+		if err := booking.FindFirst(db); err != nil {
+			response_message.BadRequestFreeMessage(c, "Booking not found")
+			return
+		}
+
+		booking.CustomerName = item.CustomerName
+		booking.CustomerBookingEmail = item.CustomerBookingEmail
+		booking.CustomerBookingPhone = item.CustomerBookingPhone
+		booking.CaddieBooking = item.CaddieBooking
+
+		listBooking = append(listBooking, booking)
+	}
+
+	if len(listBooking) > 0 {
+		// Update list booking
+		go updateListBooking(db, listBooking)
+
+		// Send email
+		if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_EMAIL {
+			go sendEmailBooking(listBooking, body.ListBooking[0].CustomerBookingEmail)
+		}
+
+		// Send sms
+		if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_SMS {
+			go sendSmsBooking(listBooking, body.ListBooking[0].CustomerBookingPhone)
+		}
+
+		// Add log
+		go addLogSendInforGuest(db, listBooking, prof, body.SendMethod)
+
+	}
+
+	okRes(c)
+}
+
+func updateListBooking(db *gorm.DB, listBooking []model_booking.Booking) {
+	for _, booking := range listBooking {
+		// Update booking
+		if err := booking.Update(db); err != nil {
+			log.Println("Update list booking err", err.Error())
+		}
+	}
+}
+
+func addLogSendInforGuest(db *gorm.DB, listBooking []model_booking.Booking, prof models.CmsUser, method string) {
+	// Booking Infor
+	bookingInfor := listBooking[0]
+
+	// Add log send infỏ guest
+	logInfor := model_booking.SendInforGuest{
+		PartnerUid:     prof.PartnerUid,
+		CourseUid:      prof.CourseUid,
+		BookingCode:    bookingInfor.BookingCode,
+		BookingDate:    bookingInfor.BookingDate,
+		BookingName:    bookingInfor.CustomerBookingName,
+		GuestStyle:     bookingInfor.GuestStyle,
+		GuestStyleName: bookingInfor.GuestStyleName,
+		NumberPeople:   len(listBooking),
+		SendMethod:     method,
+		PhoneNumber:    bookingInfor.CustomerBookingPhone,
+		Email:          bookingInfor.CustomerBookingEmail,
+		CmsUser:        prof.UserName,
+	}
+
+	if err := logInfor.Create(db); err != nil {
+		log.Println("Create send infor guest err", err.Error())
+	}
+}

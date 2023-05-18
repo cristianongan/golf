@@ -258,21 +258,26 @@ func GetCcuServer() int {
 }
 
 /*
- P: Vnpay@123
+P: Vnpay@123
 */
 func GetResetP() string {
 	return config.GetString("reset_p")
 }
 
 /*
- Set xem có cho phép ghi vào log DB không
+Set xem có cho phép ghi vào log DB không
 */
 func GetIsWriteLogToDB() bool {
 	return config.GetBool("is_write_log_to_db")
 }
 
+// =============== Get URL Golf Socket ========================
+func GetGolfSocketURL() string {
+	return config.GetString("golf_socket.url")
+}
+
 /*
- Bitly config
+Bitly config
 */
 func GetBitlyUrl() string {
 	return config.GetString("bitly.url")
@@ -292,7 +297,7 @@ func GetVNPayUrl() string {
 	return config.GetString("vnpay_sms.url")
 }
 
-/// Same BrandName
+// / Same BrandName
 func GetVNPaySender() string {
 	return config.GetString("vnpay_sms.sender")
 }
@@ -307,4 +312,19 @@ func GetVNPayUserName() string {
 
 func GetVNPayPassword() string {
 	return config.GetString("vnpay_sms.password")
+}
+
+/*
+ekyc config
+*/
+func GetEkycUrl() string {
+	return config.GetString("ekyc.url")
+}
+
+func GetEkycUpdate() string {
+	return config.GetString("ekyc.update_image")
+}
+
+func GetEkycAuthKey() string {
+	return config.GetString("ekyc.auth_key")
 }

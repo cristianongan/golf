@@ -356,7 +356,8 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 
 		// push socket
 		cNotification := CNotification{}
-		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &b)
+		cloneBook := b
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &cloneBook)
 
 		listBookingUpdated = append(listBookingUpdated, b)
 		// Update lại thông tin booking
@@ -952,6 +953,10 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 
 	go createOperationLog(opLog)
 
+	cNotification := CNotification{}
+	cloneBooking := booking
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &cloneBooking)
+
 	okResponse(c, booking)
 }
 
@@ -1233,6 +1238,10 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 	}
 
 	go createOperationLog(opLog)
+
+	cNotification := CNotification{}
+	cloneBooking := booking
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &cloneBooking)
 
 	okResponse(c, booking)
 }

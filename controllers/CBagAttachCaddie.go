@@ -9,6 +9,7 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -65,22 +66,40 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 		return
 	}
 
-	// validate bag
-	bookingBag := model_booking.Booking{}
+	// Create attach caddie
+	caddieAttach := model_gostarter.BagAttachCaddie{}
 
-	bookingBag.PartnerUid = body.PartnerUid
-	bookingBag.CourseUid = body.CourseUid
-	bookingBag.Bag = body.Bag
-	bookingBag.BookingDate = body.BookingDate
+	caddieAttach.PartnerUid = body.PartnerUid
+	caddieAttach.CourseUid = body.CourseUid
+	caddieAttach.BookingDate = body.BookingDate
 
-	isDuplicated, errDupli := bookingBag.IsDuplicated(db, false, true)
-	if isDuplicated {
-		if errDupli != nil {
-			response_message.InternalServerErrorWithKey(c, errDupli.Error(), "DUPLICATE_BAG")
+	if body.Bag != "" {
+		// validate bag
+		bookingBag := model_booking.Booking{}
+
+		bookingBag.PartnerUid = body.PartnerUid
+		bookingBag.CourseUid = body.CourseUid
+		bookingBag.Bag = body.Bag
+		bookingBag.BookingDate = body.BookingDate
+
+		isDuplicated, errDupli := bookingBag.IsDuplicated(db, false, true)
+		if isDuplicated {
+			if errDupli != nil {
+				response_message.InternalServerErrorWithKey(c, errDupli.Error(), "DUPLICATE_BAG")
+				return
+			}
+			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 			return
 		}
-		response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
-		return
+
+		caddieAttach.Bag = body.Bag
+
+		// Check duplicate
+		isDup := caddieAttach.IsDuplicated(db)
+		if isDup {
+			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+			return
+		}
 	}
 
 	// validate caddie
@@ -96,8 +115,15 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 			return
 		}
 
+		cCaddie := CCaddie{}
+		listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
+		if utils.ContainString(listCaddieWorkingByBookingDate, body.CaddieCode) == -1 {
+			response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" không có lịch làm việc!")
+			return
+		}
+
 		if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
-			response_message.BadRequestFreeMessage(c, "Caddie"+caddie.Code+"đang bị LOCK")
+			response_message.BadRequestFreeMessage(c, "Caddie "+caddie.Code+" đã được ghép với bag khác.")
 			return
 		} else {
 			if errCaddie := checkCaddieReadyForApp(caddie); errCaddie != "" {
@@ -114,13 +140,6 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 		}
 	}
 
-	// Create attach caddie
-	caddieAttach := model_gostarter.BagAttachCaddie{}
-
-	caddieAttach.PartnerUid = body.PartnerUid
-	caddieAttach.CourseUid = body.CourseUid
-	caddieAttach.BookingDate = body.BookingDate
-	caddieAttach.Bag = body.Bag
 	caddieAttach.CaddieCode = body.CaddieCode
 	caddieAttach.LockerNo = body.LockerNo
 	caddieAttach.CmsUser = prof.UserName
@@ -233,8 +252,15 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 			return
 		}
 
+		cCaddie := CCaddie{}
+		listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(prof.PartnerUid, prof.CourseUid, body.BookingDate)
+		if utils.ContainString(listCaddieWorkingByBookingDate, body.CaddieCode) == -1 {
+			response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" không có lịch làm việc!")
+			return
+		}
+
 		if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
-			response_message.BadRequestFreeMessage(c, "Caddie"+caddie.Code+"đang bị LOCK")
+			response_message.BadRequestFreeMessage(c, "Caddie "+caddie.Code+" đã được ghép với bag khác.")
 			return
 		} else {
 			if errCaddie := checkCaddieReadyForApp(caddie); errCaddie != "" {
@@ -385,7 +411,7 @@ func UpdateNewBooking(db *gorm.DB, booking *model_booking.Booking, caddieAtt mod
 
 	cNotification := CNotification{}
 	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, booking)
-	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, booking)
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, booking)
 }
 
 func UpdateOldBooking(db *gorm.DB, caddieAtt model_gostarter.BagAttachCaddie) {
@@ -409,5 +435,5 @@ func UpdateOldBooking(db *gorm.DB, caddieAtt model_gostarter.BagAttachCaddie) {
 
 	cNotification := CNotification{}
 	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
-	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, booking)
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, booking)
 }

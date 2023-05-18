@@ -3,12 +3,12 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"start/callservices"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
-	socket_room "start/socket_room"
 	"start/utils"
 	"start/utils/response_message"
 	"strconv"
@@ -157,15 +157,19 @@ func (_ *CNotification) Admin1ApproveCaddieVacation(c *gin.Context, prof models.
 			response_message.InternalServerError(c, errNotification.Error())
 			return
 		}
-		//
 
-		go func() {
-			newFsConfigBytes, _ := json.Marshal(notificationAd2)
-			socket_room.Hub.Broadcast <- socket_room.Message{
-				Data: newFsConfigBytes,
-				Room: constants.NOTIFICATION_CHANNEL_ADMIN_2,
-			}
-		}()
+		// parse
+		var mess map[string]interface{}
+		inrec, _ := json.Marshal(notificationAd2)
+		json.Unmarshal(inrec, &mess)
+
+		// push mess socket
+		reqSocket := request.MessSocketBody{
+			Data: mess,
+			Room: constants.NOTIFICATION_CHANNEL_ADMIN_2,
+		}
+
+		go callservices.PushMessInSocket(reqSocket)
 	} else {
 		notification.NotificationStatus = constants.NOTIFICATION_REJECTED
 		notification.UserApprove = prof.UserName
@@ -200,13 +204,18 @@ func (_ *CNotification) Admin1ApproveCaddieVacation(c *gin.Context, prof models.
 			return
 		}
 
-		go func() {
-			newFsConfigBytes, _ := json.Marshal(newNotification)
-			socket_room.Hub.Broadcast <- socket_room.Message{
-				Data: newFsConfigBytes,
-				Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
-			}
-		}()
+		// parse
+		var mess map[string]interface{}
+		inrec, _ := json.Marshal(newNotification)
+		json.Unmarshal(inrec, &mess)
+
+		// push mess socket
+		reqSocket := request.MessSocketBody{
+			Data: mess,
+			Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
+		}
+
+		go callservices.PushMessInSocket(reqSocket)
 	}
 
 	okRes(c)
@@ -300,17 +309,24 @@ func (_ *CNotification) Admin2ApproveCaddieVacation(c *gin.Context, prof models.
 	cCaddieVacation := CCaddieVacationCalendar{}
 	go cCaddieVacation.UpdateCaddieVacationStatus(notification.Content, *form.IsApprove, notification.PartnerUid, prof)
 
-	go func() {
-		newFsConfigBytes, _ := json.Marshal(newNotification)
-		socket_room.Hub.Broadcast <- socket_room.Message{
-			Data: newFsConfigBytes,
-			Room: constants.NOTIFICATION_CHANNEL_ADMIN_1,
-		}
-		socket_room.Hub.Broadcast <- socket_room.Message{
-			Data: newFsConfigBytes,
-			Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
-		}
-	}()
+	// parse
+	var mess map[string]interface{}
+	inrec, _ := json.Marshal(newNotification)
+	json.Unmarshal(inrec, &mess)
+
+	// push mess socket
+	reqSocket1 := request.MessSocketBody{
+		Data: mess,
+		Room: constants.NOTIFICATION_CHANNEL_ADMIN_1,
+	}
+
+	reqSocket2 := request.MessSocketBody{
+		Data: mess,
+		Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
+	}
+
+	go callservices.PushMessInSocket(reqSocket1)
+	go callservices.PushMessInSocket(reqSocket2)
 	okRes(c)
 }
 
@@ -360,11 +376,18 @@ func (_ *CNotification) CreateCaddieVacationNotification(db *gorm.DB, body reque
 
 	notiData.Create(db)
 
-	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket_room.Hub.Broadcast <- socket_room.Message{
-		Data: newFsConfigBytes,
+	// parse
+	var mess map[string]interface{}
+	inrec, _ := json.Marshal(notiData)
+	json.Unmarshal(inrec, &mess)
+
+	// push mess socket
+	reqSocket := request.MessSocketBody{
+		Data: mess,
 		Room: constants.NOTIFICATION_CHANNEL_ADMIN_1,
 	}
+
+	go callservices.PushMessInSocket(reqSocket)
 }
 
 func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
@@ -373,11 +396,13 @@ func (_ *CNotification) CreateCaddieWorkingStatusNotification(title string) {
 		"title": title,
 	}
 
-	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket_room.Hub.Broadcast <- socket_room.Message{
-		Data: newFsConfigBytes,
+	// push mess socket
+	reqSocket := request.MessSocketBody{
+		Data: notiData,
 		Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
 	}
+
+	go callservices.PushMessInSocket(reqSocket)
 }
 
 func (_ *CNotification) PushNotificationCreateBooking(bookType string, booking any) {
@@ -387,11 +412,13 @@ func (_ *CNotification) PushNotificationCreateBooking(bookType string, booking a
 		// "booking": booking,
 	}
 
-	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket_room.Hub.Broadcast <- socket_room.Message{
-		Data: newFsConfigBytes,
+	// push mess socket
+	reqSocket := request.MessSocketBody{
+		Data: notiData,
 		Room: constants.NOTIFICATION_CHANNEL_BOOKING,
 	}
+
+	go callservices.PushMessInSocket(reqSocket)
 }
 
 func (_ *CNotification) PushNotificationLockTee(lockType string) {
@@ -400,11 +427,13 @@ func (_ *CNotification) PushNotificationLockTee(lockType string) {
 		"title": "",
 	}
 
-	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket_room.Hub.Broadcast <- socket_room.Message{
-		Data: newFsConfigBytes,
+	// push mess socket
+	reqSocket := request.MessSocketBody{
+		Data: notiData,
 		Room: constants.NOTIFICATION_CHANNEL_BOOKING,
 	}
+
+	go callservices.PushMessInSocket(reqSocket)
 }
 
 func (_ *CNotification) CreateCaddieVacation(c *gin.Context, prof models.CmsUser) {
@@ -432,6 +461,8 @@ func (_ *CNotification) CreateCaddieVacation(c *gin.Context, prof models.CmsUser
 }
 
 func (_ *CNotification) PushMessPOSForApp(bill models.ServiceCart) {
+	// Data push
+	reqSocket := request.MessSocketBody{}
 	// Data mess
 	notiData := map[string]interface{}{
 		"bill_id": bill.Id,
@@ -439,23 +470,18 @@ func (_ *CNotification) PushMessPOSForApp(bill models.ServiceCart) {
 
 	if bill.ServiceType == constants.RESTAURANT_SETTING {
 		notiData["type"] = constants.NOTIFICATION_RESTAURANT_BILL_UPDATE
-
-		newFsConfigBytes, _ := json.Marshal(notiData)
-		socket_room.Hub.Broadcast <- socket_room.Message{
-			Data: newFsConfigBytes,
-			Room: constants.NOTIFICATION_CHANNEL_RESTAURANT,
-		}
+		reqSocket.Room = constants.NOTIFICATION_CHANNEL_RESTAURANT
 	}
 
 	if bill.ServiceType == constants.KIOSK_SETTING {
 		notiData["type"] = constants.NOTIFICATION_KIOSK_BILL_UPDATE
-
-		newFsConfigBytes, _ := json.Marshal(notiData)
-		socket_room.Hub.Broadcast <- socket_room.Message{
-			Data: newFsConfigBytes,
-			Room: constants.NOTIFICATION_CHANNEL_KIOSK,
-		}
+		reqSocket.Room = constants.NOTIFICATION_CHANNEL_KIOSK
 	}
+
+	// push mess socket
+	reqSocket.Data = notiData
+
+	go callservices.PushMessInSocket(reqSocket)
 }
 
 func (_ *CNotification) PushMessKIForApp() {
@@ -465,11 +491,13 @@ func (_ *CNotification) PushMessKIForApp() {
 		"title": "",
 	}
 
-	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket_room.Hub.Broadcast <- socket_room.Message{
-		Data: newFsConfigBytes,
+	// push mess socket
+	reqSocket := request.MessSocketBody{
+		Data: notiData,
 		Room: constants.NOTIFICATION_CHANNEL_KIOSK,
 	}
+
+	go callservices.PushMessInSocket(reqSocket)
 }
 
 func (_ *CNotification) CreateCWCNotification(db *gorm.DB, prof models.CmsUser, applayDate string, caddieCode []string) {
@@ -496,11 +524,18 @@ func (_ *CNotification) CreateCWCNotification(db *gorm.DB, prof models.CmsUser, 
 
 	notiData.Create(db)
 
-	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket_room.Hub.Broadcast <- socket_room.Message{
-		Data: newFsConfigBytes,
+	// parse
+	var mess map[string]interface{}
+	inrec, _ := json.Marshal(notiData)
+	json.Unmarshal(inrec, &mess)
+
+	// push mess socket
+	reqSocket := request.MessSocketBody{
+		Data: mess,
 		Room: constants.NOTIFICATION_CHANNEL_ADMIN_1,
 	}
+
+	go callservices.PushMessInSocket(reqSocket)
 }
 
 func (_ *CNotification) PushMessBoookingForApp(typeMess string, bag *model_booking.Booking) {
@@ -514,12 +549,31 @@ func (_ *CNotification) PushMessBoookingForApp(typeMess string, bag *model_booki
 	dateNow, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
 
 	if dateNow == bag.BookingDate {
-		newFsConfigBytes, _ := json.Marshal(notiData)
-		socket_room.Hub.Broadcast <- socket_room.Message{
-			Data: newFsConfigBytes,
+		// push mess socket
+		reqSocket := request.MessSocketBody{
+			Data: notiData,
 			Room: constants.NOTIFICATION_CHANNEL_BOOKING_APP,
 		}
+
+		go callservices.PushMessInSocket(reqSocket)
 	}
+
+}
+
+func (_ *CNotification) PushMessBoookingForAppNoCheck(typeMess string, bag *model_booking.Booking) {
+	// Data mess
+	notiData := map[string]interface{}{
+		"type": typeMess,
+		"data": bag,
+	}
+
+	// push mess socket
+	reqSocket := request.MessSocketBody{
+		Data: notiData,
+		Room: constants.NOTIFICATION_CHANNEL_BOOKING_APP,
+	}
+
+	go callservices.PushMessInSocket(reqSocket)
 
 }
 
@@ -610,13 +664,18 @@ func (_ *CNotification) Admin1ApproveCaddieWC(c *gin.Context, prof models.CmsUse
 		Note:       form.Note,
 	}
 
-	go func() {
-		newFsConfigBytes, _ := json.Marshal(newNotification)
-		socket_room.Hub.Broadcast <- socket_room.Message{
-			Data: newFsConfigBytes,
-			Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
-		}
-	}()
+	// parse
+	var mess map[string]interface{}
+	inrec, _ := json.Marshal(newNotification)
+	json.Unmarshal(inrec, &mess)
+
+	// push mess socket
+	reqSocket := request.MessSocketBody{
+		Data: mess,
+		Room: constants.NOTIFICATION_CHANNEL_CADDIE_MASTER,
+	}
+
+	go callservices.PushMessInSocket(reqSocket)
 
 	okRes(c)
 }

@@ -17,3 +17,10 @@ type ReturnLockerReq struct {
 	BookingDate string `json:"booking_date" binding:"required"`
 	LockerNo    string `json:"locker_no" binding:"required"`
 }
+
+type CheckLockerReq struct {
+	PartnerUid  string `json:"partner_uid" binding:"required"`
+	CourseUid   string `json:"course_uid" binding:"required"`
+	BookingDate string `json:"booking_date" binding:"required"`
+	GolfBag     string `form:"golf_bag"`
+}

@@ -85,7 +85,7 @@ func (_ *CLocker) ReturnLocker(c *gin.Context, prof models.CmsUser) {
 
 	errF := lockerR.FindFirst(db)
 	if errF != nil {
-		response_message.BadRequestFreeMessage(c, "Locker is returned.")
+		response_message.BadRequestDynamicKey(c, "LOCKER_RETURNED", "LOCKER_RETURNED")
 		return
 	}
 
@@ -94,6 +94,31 @@ func (_ *CLocker) ReturnLocker(c *gin.Context, prof models.CmsUser) {
 	errF = lockerR.Update(db)
 	if errF != nil {
 		response_message.InternalServerError(c, errF.Error())
+		return
+	}
+
+	okResponse(c, lockerR)
+}
+
+func (_ *CLocker) CheckLocker(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.CheckLockerReq{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	lockerR := models.Locker{
+		PartnerUid:   body.PartnerUid,
+		CourseUid:    body.CourseUid,
+		GolfBag:      body.GolfBag,
+		BookingDate:  body.BookingDate,
+		LockerStatus: constants.LOCKER_STATUS_UNRETURNED,
+	}
+
+	_ = lockerR.FindFirst(db)
+	if lockerR.Id > 0 {
+		response_message.BadRequestDynamicKey(c, "LOCKER_RETURNED", "LOCKER_RETURNED")
 		return
 	}
 

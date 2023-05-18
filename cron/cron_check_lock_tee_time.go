@@ -3,12 +3,13 @@ package cron
 import (
 	"encoding/json"
 	"log"
+	"start/callservices"
 	"start/config"
 	"start/constants"
+	"start/controllers/request"
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
-	socket_room "start/socket_room"
 	"start/utils"
 )
 
@@ -114,9 +115,17 @@ func pushNotificationUnlockTee() {
 		"title": "",
 	}
 
-	newFsConfigBytes, _ := json.Marshal(notiData)
-	socket_room.Hub.Broadcast <- socket_room.Message{
-		Data: newFsConfigBytes,
+	// push mess socket
+	reqSocket := request.MessSocketBody{
+		Data: notiData,
 		Room: constants.NOTIFICATION_CHANNEL_BOOKING,
 	}
+
+	go callservices.PushMessInSocket(reqSocket)
+
+	// newFsConfigBytes, _ := json.Marshal(notiData)
+	// socket_room.Hub.Broadcast <- socket_room.Message{
+	// 	Data: newFsConfigBytes,
+	// 	Room: constants.NOTIFICATION_CHANNEL_BOOKING,
+	// }
 }

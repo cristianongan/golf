@@ -264,6 +264,10 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		go func() {
 			cNotification := CNotification{}
 			cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_OTA, listBooking)
+
+			// Gen QR
+			// Send sms
+			genQRCodeListBook(listBooking)
 		}()
 	}
 
