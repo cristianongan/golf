@@ -218,7 +218,7 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 	}
 
 	// subject
-	subject := "" + course.Name + " xác nhận đặt chỗ ngày " + listBooking[0].BookingDate
+	subject := getSmsGolfName(course.Uid) + " xác nhận đặt chỗ ngày " + listBooking[0].BookingDate
 
 	// message
 	message := ""
