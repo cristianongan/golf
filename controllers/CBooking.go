@@ -349,6 +349,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	if body.IsCheckIn {
 		// Tạo booking check in luôn
 		booking.BagStatus = constants.BAG_STATUS_WAITING
+		booking.LastBookingStatus = constants.BAG_STATUS_WAITING
 		booking.InitType = constants.BOOKING_INIT_TYPE_CHECKIN
 		booking.CheckInTime = checkInTime
 	} else {
@@ -626,7 +627,7 @@ func (_ CBooking) updateMemberCardToBooking(c *gin.Context,
 	memberCardType := models.MemberCardType{}
 	memberCardType.Id = memberCard.McTypeId
 	errMCTypeFind := memberCardType.FindFirst(db)
-	if errMCTypeFind == nil && memberCardType.AnnualType == constants.ANNUAL_TYPE_LIMITED {
+	if errMCTypeFind == nil && memberCard.AnnualType == constants.ANNUAL_TYPE_LIMITED {
 		// Validate số lượt chơi còn lại của memeber
 		reportCustomer := model_report.ReportCustomerPlay{
 			CustomerUid: owner.Uid,
@@ -1584,7 +1585,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	go func() {
-		if booking.CaddieBooking != "" {
+		if booking.CaddieBooking != "" && booking.CaddieBooking == booking.CaddieInfo.Code {
 			caddieBookingFee := getBookingCadieFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, body.Hole)
 			addCaddieBookingFee(booking, caddieBookingFee.Fee, constants.BOOKING_CADDIE_NAME, body.Hole)
 			updatePriceWithServiceItem(&booking, prof)
