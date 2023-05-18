@@ -204,8 +204,10 @@ func (item *MemberCard) IsValidated() bool {
 
 func (item *MemberCard) IsDuplicated(db *gorm.DB) bool {
 	memberCard := MemberCard{
-		CardId:   item.CardId,
-		McTypeId: item.McTypeId,
+		CardId:     item.CardId,
+		PartnerUid: item.PartnerUid,
+		CourseUid:  item.CourseUid,
+		// McTypeId: item.McTypeId,
 	}
 	//Check Duplicated
 	errFind := memberCard.FindFirst(db)
