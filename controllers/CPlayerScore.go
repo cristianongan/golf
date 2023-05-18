@@ -97,7 +97,7 @@ func (_ *CPlayerScore) GetListPlayerScore(c *gin.Context, prof models.CmsUser) {
 		HoleIndex:   form.HoleIndex,
 		FlightId:    form.FlightId,
 	}
-	list, total, err := PlayerScoreR.FindList(db, page)
+	list, total, err := PlayerScoreR.FindList(db, page, form.Status)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return

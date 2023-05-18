@@ -9,6 +9,7 @@ import (
 	"start/models"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -114,8 +115,15 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 			return
 		}
 
+		cCaddie := CCaddie{}
+		listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
+		if utils.ContainString(listCaddieWorkingByBookingDate, body.CaddieCode) == -1 {
+			response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" không có lịch làm việc!")
+			return
+		}
+
 		if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
-			response_message.BadRequestFreeMessage(c, "Caddie"+caddie.Code+"đang bị LOCK")
+			response_message.BadRequestFreeMessage(c, "Caddie "+caddie.Code+" đã được ghép với bác khác.")
 			return
 		} else {
 			if errCaddie := checkCaddieReadyForApp(caddie); errCaddie != "" {
@@ -244,8 +252,15 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 			return
 		}
 
+		cCaddie := CCaddie{}
+		listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(prof.PartnerUid, prof.CourseUid, body.BookingDate)
+		if utils.ContainString(listCaddieWorkingByBookingDate, body.CaddieCode) == -1 {
+			response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" không có lịch làm việc!")
+			return
+		}
+
 		if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
-			response_message.BadRequestFreeMessage(c, "Caddie"+caddie.Code+"đang bị LOCK")
+			response_message.BadRequestFreeMessage(c, "Caddie "+caddie.Code+" đã được ghép với bác khác.")
 			return
 		} else {
 			if errCaddie := checkCaddieReadyForApp(caddie); errCaddie != "" {
@@ -396,7 +411,7 @@ func UpdateNewBooking(db *gorm.DB, booking *model_booking.Booking, caddieAtt mod
 
 	cNotification := CNotification{}
 	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, booking)
-	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, booking)
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, booking)
 }
 
 func UpdateOldBooking(db *gorm.DB, caddieAtt model_gostarter.BagAttachCaddie) {
@@ -420,5 +435,5 @@ func UpdateOldBooking(db *gorm.DB, caddieAtt model_gostarter.BagAttachCaddie) {
 
 	cNotification := CNotification{}
 	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
-	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, booking)
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, booking)
 }
