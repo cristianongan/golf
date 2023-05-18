@@ -18,6 +18,7 @@ import (
 	model_report "start/models/report"
 	"start/utils"
 	"start/utils/response_message"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -1107,7 +1108,10 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, caddie 
 					}
 				} else {
 					if errCaddie := checkCaddieReady(*booking, caddieNew); errCaddie != nil {
-						return errCaddie
+						if strings.Contains(caddieNew.CurrentStatus, "IN_COURSE") {
+							return errors.New(caddieNew.Code + " đang IN COURSE")
+						}
+						return errors.New(caddieNew.Code + " đang " + caddieNew.CurrentStatus)
 					}
 				}
 
