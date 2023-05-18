@@ -84,12 +84,12 @@ func (item *Buggy) FindList(database *gorm.DB, page Page, isReady string) ([]Bug
 	db := database.Model(Buggy{})
 
 	if item.Code != "" {
-		db = db.Where("code = ?", item.Code)
+		db = db.Where("code LIKE ?", "%"+item.Code+"%")
 	}
 	if item.BuggyStatus != "" {
 		db = db.Where("buggy_status = ?", item.BuggyStatus)
 	}
-	if item.BuggyForVip == true {
+	if item.BuggyForVip {
 		db = db.Where("buggy_for_vip = ?", item.BuggyForVip)
 	}
 	if item.CourseUid != "" {
