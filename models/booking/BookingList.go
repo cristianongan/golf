@@ -671,33 +671,23 @@ func (item *BookingList) FindAllForReportBooking(database *gorm.DB, page models.
 	return list, total, db.Error
 }
 
-// func (item *BookingList) FindAllLastBookingWithPage(database *gorm.DB, page models.Page) ([]Booking, int64, error) {
-// 	db := database.Model(Booking{})
-// 	list := []Booking{}
-// 	total := int64(0)
+func (item *BookingList) FindLastBookingForApp(database *gorm.DB, page models.Page) (*gorm.DB, int64, error) {
+	total := int64(0)
 
-// 	db = addFilter(db, item, false)
-// 	db = db.Where("bookings.bag_status <> 'CANCEL'")
-// 	db = db.Where("bookings.check_in_time > 0")
+	db := database.Model(Booking{})
+	db = addFilter(db, item, false)
+	db = db.Where("bookings.bag_status <> 'CANCEL'")
+	db = db.Where("bookings.added_round = ?", false)
+	db = db.Where("bookings.moved_flight = ?", false)
 
-// 	subQuery := database.Model(Booking{})
-// 	// subQuery = addFilter(subQuery, item, false)
-// 	subQuery = subQuery.Select("MAX(created_at) as created_at")
-// 	// subQuery = subQuery.Where("bookings.check_in_time > 0")
-// 	// subQuery = subQuery.Where("bookings.bag_status <> 'CANCEL'")
-// 	subQuery = subQuery.Group("bag")
+	db.Count(&total)
 
-// 	db.Joins("JOIN (?) q ON bookings.created_at = q.created_at", subQuery)
-// 	db = db.Group("bag")
+	if total > 0 && int64(page.Offset()) < total {
+		db = page.Setup(db)
+	}
 
-// 	db.Count(&total)
-
-// 	if total > 0 && int64(page.Offset()) < total {
-// 		db = page.Setup(db).Debug().Find(&list)
-// 	}
-
-// 	return list, total, db.Error
-// }
+	return db, total, db.Error
+}
 
 func (item *BookingList) FindReportPayment(database *gorm.DB, paymentStatus string) ([]Booking, int64, error) {
 	list := []Booking{}
