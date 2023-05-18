@@ -348,6 +348,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	if body.IsCheckIn {
 		// Tạo booking check in luôn
 		booking.BagStatus = constants.BAG_STATUS_WAITING
+		booking.LastBookingStatus = constants.BAG_STATUS_WAITING
 		booking.InitType = constants.BOOKING_INIT_TYPE_CHECKIN
 		booking.CheckInTime = checkInTime
 	} else {
@@ -625,7 +626,7 @@ func (_ CBooking) updateMemberCardToBooking(c *gin.Context,
 	memberCardType := models.MemberCardType{}
 	memberCardType.Id = memberCard.McTypeId
 	errMCTypeFind := memberCardType.FindFirst(db)
-	if errMCTypeFind == nil && memberCardType.AnnualType == constants.ANNUAL_TYPE_LIMITED {
+	if errMCTypeFind == nil && memberCard.AnnualType == constants.ANNUAL_TYPE_LIMITED {
 		// Validate số lượt chơi còn lại của memeber
 		reportCustomer := model_report.ReportCustomerPlay{
 			CustomerUid: owner.Uid,
@@ -1102,7 +1103,13 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, caddie 
 				}
 
 				if caddieNew.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
-					return errors.New("Caddie " + caddieNew.Code + " đang bị LOCK")
+					if booking.CaddieId != caddieNew.Id {
+						return errors.New(caddieNew.Code + " đang bị LOCK")
+					}
+				} else {
+					if errCaddie := checkCaddieReady(*booking, caddieNew); errCaddie != nil {
+						return errCaddie
+					}
 				}
 
 				if caddieNew.ContractStatus == constants.CADDIE_CONTRACT_STATUS_TERMINATION {
@@ -1122,42 +1129,14 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, caddie 
 				caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
 				_ = caddieNew.Update(db)
 
-				//Update caddie old
-				caddieOld := models.Caddie{
-					PartnerUid: booking.PartnerUid,
-					CourseUid:  booking.CourseUid,
-					Code:       oldCaddie.Code,
-				}
-
-				errFC := caddieOld.FindFirst(db)
-				if errFC != nil {
-					log.Println(c, "Caddie not found")
-				}
-
-				if caddieOld.CurrentRound == 0 {
-					caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
-				} else if caddieOld.CurrentRound == 1 {
-					caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
-				} else if caddieOld.CurrentRound == 2 {
-					caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH_R2
-				} else if caddieOld.CurrentRound == 3 {
-					caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH_R3
-				}
-
-				if err := caddieOld.Update(db); err != nil {
-					log.Println(c, err.Error())
-				}
-
 				// Out Caddie, nếu caddie trong in course
-				// go func() {
-				// 	caddie := models.Caddie{}
-				// 	caddie.Id = oldCaddie.Id
-				// 	if err := caddie.FindFirst(db); err == nil {
-				// 		if strings.Contains(caddie.CurrentStatus, constants.CADDIE_CURRENT_STATUS_IN_COURSE) {
-				// 			udpCaddieOut(db, oldCaddie.Id)
-				// 		}
-				// 	}
-				// }()
+				go func() {
+					caddie := models.Caddie{}
+					caddie.Id = oldCaddie.Id
+					if err := caddie.FindFirst(db); err == nil {
+						udpCaddieOut(db, oldCaddie.Id)
+					}
+				}()
 			}
 		} else {
 			booking.CaddieId = 0
@@ -1602,7 +1581,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	go func() {
-		if booking.CaddieBooking != "" {
+		if booking.CaddieBooking != "" && booking.CaddieBooking == booking.CaddieInfo.Code {
 			caddieBookingFee := getBookingCadieFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, body.Hole)
 			addCaddieBookingFee(booking, caddieBookingFee.Fee, constants.BOOKING_CADDIE_NAME, body.Hole)
 			updatePriceWithServiceItem(&booking, prof)

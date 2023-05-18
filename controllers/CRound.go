@@ -161,6 +161,8 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		BookingUid:  booking.Uid,
 	}
 	go createOperationLog(opLog)
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, &newBooking)
 
 	okResponse(c, res)
 }
