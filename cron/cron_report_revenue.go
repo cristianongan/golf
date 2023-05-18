@@ -265,6 +265,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		PhiPhat:          phiPhat,
 		Transfer:         transferTotal,
 		AgencyInfo:       agencyInfo,
+		HoleBooking:      bookingR.HoleBooking,
 	}
 
 	m.Create(db)

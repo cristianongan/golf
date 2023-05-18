@@ -576,6 +576,7 @@ func updatePriceForRevenue(item model_booking.Booking, billNo string) {
 		Transfer:         transferTotal,
 		AgencyInfo:       agencyInfo,
 		CheckOutTime:     bookingR.CheckOutTime,
+		HoleBooking:      bookingR.HoleBooking,
 	}
 
 	m.Create(db)
