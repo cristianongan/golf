@@ -953,6 +953,10 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 
 	go createOperationLog(opLog)
 
+	cNotification := CNotification{}
+	cloneBooking := booking
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &cloneBooking)
+
 	okResponse(c, booking)
 }
 
