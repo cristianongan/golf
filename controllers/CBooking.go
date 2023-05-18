@@ -1101,6 +1101,10 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, caddie 
 					return errors.New("Caddie Not Found!")
 				}
 
+				if caddieNew.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
+					return errors.New("Caddie " + caddieNew.Code + " đang bị LOCK")
+				}
+
 				if caddieNew.ContractStatus == constants.CADDIE_CONTRACT_STATUS_TERMINATION {
 					return errors.New("Caddie termination!")
 				}

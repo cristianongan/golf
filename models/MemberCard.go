@@ -275,15 +275,15 @@ func (item *MemberCard) FindList(database *gorm.DB, page Page, playerName string
 
 	db = db.Select("member_cards.*, member_card_types.name as mc_types_name,member_card_types.type as base_type,member_card_types.guest_style as guest_style,member_card_types.guest_style_of_guest as guest_style_of_guest,member_card_types.play_time_on_year as play_time_on_year,customer_users.name as owner_name,customer_users.email as owner_email,customer_users.address2 as owner_address2,customer_users.phone as owner_phone,customer_users.dob as owner_dob,customer_users.sex as owner_sex,customer_users.job as owner_job,customer_users.position as owner_position,customer_users.identify as owner_identify,customer_users.company_id as owner_company_id,customer_users.company_name as owner_company_name,member_connect.name as member_connect_name,member_connect.email as member_connect_email,member_connect.address1 as member_connect_address1,member_connect.address2 as member_connect_address2,member_connect.phone as member_connect_phone,report_customer_plays.total_paid as report_total_paid,report_customer_plays.total_play_count as report_total_play_count,report_customer_plays.total_hour_play_count as report_total_hour_play_count,af.annual_quota_amount as annual_quota_amount,af.total_paid as total_paid,af.play_counts_add as play_counts_add")
 
-	db = db.Joins("INNER JOIN member_card_types on member_cards.mc_type_id = member_card_types.id")
+	db = db.Joins("LEFT JOIN member_card_types on member_cards.mc_type_id = member_card_types.id")
 
-	db = db.Joins("INNER JOIN customer_users on member_cards.owner_uid = customer_users.uid")
+	db = db.Joins("LEFT JOIN customer_users on member_cards.owner_uid = customer_users.uid")
 
-	db = db.Joins("INNER JOIN customer_users as member_connect on member_cards.member_connect = member_connect.uid")
+	db = db.Joins("LEFT JOIN customer_users as member_connect on member_cards.member_connect = member_connect.uid")
 
-	db = db.Joins("INNER JOIN report_customer_plays on member_cards.card_id = report_customer_plays.card_id")
+	db = db.Joins("LEFT JOIN report_customer_plays on member_cards.card_id = report_customer_plays.card_id")
 
-	db = db.Joins("INNER JOIN (select * from annual_fees where partner_uid = ? and course_uid = ? and annual_fees.year = ?) af on member_cards.uid = af.member_card_uid", item.PartnerUid, item.CourseUid, currentYear)
+	db = db.Joins("LEFT JOIN (select * from annual_fees where partner_uid = ? and course_uid = ? and annual_fees.year = ?) af on member_cards.uid = af.member_card_uid", item.PartnerUid, item.CourseUid, currentYear)
 
 	if item.CourseUid != "" {
 		db = db.Where("member_cards.course_uid = ?", item.CourseUid)

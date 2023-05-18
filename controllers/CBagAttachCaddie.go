@@ -123,7 +123,7 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 		}
 
 		if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
-			response_message.BadRequestFreeMessage(c, "Caddie"+caddie.Code+"đang bị LOCK")
+			response_message.BadRequestFreeMessage(c, "Caddie "+caddie.Code+" đang bị LOCK")
 			return
 		} else {
 			if errCaddie := checkCaddieReadyForApp(caddie); errCaddie != "" {
