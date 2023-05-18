@@ -948,6 +948,21 @@ func (cBooking *CBooking) SendInforGuest(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// get course info
+	course := models.Course{}
+	course.Uid = prof.CourseUid
+	errFC := course.FindFirst()
+	if errFC != nil {
+		response_message.BadRequest(c, errFC.Error())
+		return
+	}
+
+	if course.TypeSendInfoBooking == constants.TYPE_SEND_INFO_BOOKING_NONE || course.TypeSendInfoBooking == "" {
+		response_message.BadRequest(c, "Kiem tra lai setting san")
+
+		return
+	}
+
 	var listBooking []model_booking.Booking
 
 	for _, item := range body.ListBooking {
@@ -973,13 +988,17 @@ func (cBooking *CBooking) SendInforGuest(c *gin.Context, prof models.CmsUser) {
 		go updateListBooking(db, listBooking)
 
 		// Send email
-		if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_EMAIL {
-			go sendEmailBooking(listBooking, body.ListBooking[0].CustomerBookingEmail)
+		if course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_EMAIL {
+			if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_EMAIL {
+				go sendEmailBooking(listBooking, body.ListBooking[0].CustomerBookingEmail)
+			}
 		}
 
 		// Send sms
-		if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_SMS {
-			go sendSmsBooking(listBooking, body.ListBooking[0].CustomerBookingPhone)
+		if course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_SMS {
+			if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_SMS {
+				go sendSmsBooking(listBooking, body.ListBooking[0].CustomerBookingPhone)
+			}
 		}
 
 		// Add log
