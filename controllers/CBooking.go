@@ -1090,7 +1090,7 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, caddie 
 	if caddie != nil {
 		if *caddie != "" {
 			if *caddie != booking.CaddieInfo.Code {
-				// oldCaddie := booking.CaddieInfo
+				oldCaddie := booking.CaddieInfo
 
 				caddieList := models.CaddieList{}
 				caddieList.CourseUid = booking.CourseUid
@@ -1118,10 +1118,34 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, caddie 
 				booking.CaddieId = caddieNew.Id
 				booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 
-				//Update lại trạng thái caddie
-				// caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
-				if err := caddieNew.Update(db); err != nil {
+				//Update lại trạng thái caddie mới
+				caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+				_ = caddieNew.Update(db)
 
+				//Update caddie old
+				caddieOld := models.Caddie{
+					PartnerUid: booking.PartnerUid,
+					CourseUid:  booking.CourseUid,
+					Code:       oldCaddie.Code,
+				}
+
+				errFC := caddieOld.FindFirst(db)
+				if errFC != nil {
+					log.Println(c, "Caddie not found")
+				}
+
+				if caddieOld.CurrentRound == 0 {
+					caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
+				} else if caddieOld.CurrentRound == 1 {
+					caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
+				} else if caddieOld.CurrentRound == 2 {
+					caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH_R2
+				} else if caddieOld.CurrentRound == 3 {
+					caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH_R3
+				}
+
+				if err := caddieOld.Update(db); err != nil {
+					log.Println(c, err.Error())
 				}
 
 				// Out Caddie, nếu caddie trong in course
