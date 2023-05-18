@@ -47,6 +47,8 @@ var EnLanguage = map[string]string{
 	"INVENTORY_NOT_FOUND":           "Inventory not found",
 	"TEE_TIME_SLOT_FULL":            "Tee Time is full 4 slot",
 	"BAG_BE_LOCK":                   "Bag bị lock",
+	"LOCKER_RETURNED":               "Locker returned",
+	"LOCKER_UNRETURNED":             "Locker unreturned",
 
 	//Agency
 	"AGENCY_DUPLI_CONTRACT_NO": "Bị trùng contract no",
