@@ -663,6 +663,7 @@ func NewRouter() *gin.Engine {
 			cLocker := new(controllers.CLocker)
 			cmsApiAuthorized.GET("/locker/list", middlewares.AuthorizedCmsUserHandler(cLocker.GetListLocker))
 			cmsApiAuthorized.POST("/locker/return", middlewares.AuthorizedCmsUserHandler(cLocker.ReturnLocker))
+			cmsApiAuthorized.POST("/locker/check", middlewares.AuthorizedCmsUserHandler(cLocker.CheckLocker))
 
 			/// =================== Report ===================
 			cReport := new(controllers.CReport)

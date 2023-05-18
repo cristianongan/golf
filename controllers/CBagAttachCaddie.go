@@ -123,7 +123,7 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 		}
 
 		if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
-			response_message.BadRequestFreeMessage(c, "Caddie "+caddie.Code+" đã được ghép với bác khác.")
+			response_message.BadRequestFreeMessage(c, "Caddie "+caddie.Code+" đã được ghép với bag khác.")
 			return
 		} else {
 			if errCaddie := checkCaddieReadyForApp(caddie); errCaddie != "" {
@@ -260,7 +260,7 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 		}
 
 		if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
-			response_message.BadRequestFreeMessage(c, "Caddie "+caddie.Code+" đã được ghép với bác khác.")
+			response_message.BadRequestFreeMessage(c, "Caddie "+caddie.Code+" đã được ghép với bag khác.")
 			return
 		} else {
 			if errCaddie := checkCaddieReadyForApp(caddie); errCaddie != "" {
