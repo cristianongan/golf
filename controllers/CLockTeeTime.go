@@ -71,6 +71,11 @@ func (_ *CLockTeeTime) CreateTeeTimeSettings(c *gin.Context, prof models.CmsUser
 	}
 	go createOperationLog(opLog)
 
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushNotificationLockTee(constants.NOTIFICATION_LOCK_TEE)
+	}()
+
 	okResponse(c, teeTimeRedis)
 }
 func (_ *CLockTeeTime) GetTeeTimeSettings(c *gin.Context, prof models.CmsUser) {
@@ -332,5 +337,11 @@ func (_ *CLockTeeTime) DeleteLockTeeTime(c *gin.Context, prof models.CmsUser) {
 	}
 
 	go createOperationLog(opLog)
+
+	go func() {
+		cNotification := CNotification{}
+		cNotification.PushNotificationLockTee(constants.NOTIFICATION_UNLOCK_TEE)
+	}()
+
 	okRes(c)
 }
