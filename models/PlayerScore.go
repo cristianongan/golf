@@ -116,15 +116,15 @@ func (item *PlayerScore) FindList(database *gorm.DB, page Page, status string) (
 	if item.FlightId != 0 {
 		db = db.Where("player_scores.flight_id = ?", item.FlightId)
 	}
-	if item.HoleIndex != 0 {
-		db = db.Where("player_scores.hole_index = ?", item.HoleIndex)
-	}
+	// if item.HoleIndex != 0 {
+	db = db.Where("player_scores.hole_index = ?", item.HoleIndex)
+	// }
 
 	if status != "" {
 		db = db.Where("bookings.bag_status = ?", status)
 	}
 
-	db.Joins("INNER JOIN bookings on bookings.flight_id = player_scores.flight_id")
+	db.Joins("INNER JOIN bookings on bookings.flight_id = player_scores.flight_id and player_scores.bag = bookings.bag and player_scores.booking_date = bookings.booking_date")
 
 	db.Count(&total)
 

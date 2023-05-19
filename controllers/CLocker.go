@@ -118,7 +118,7 @@ func (_ *CLocker) CheckLocker(c *gin.Context, prof models.CmsUser) {
 
 	_ = lockerR.FindFirst(db)
 	if lockerR.Id > 0 {
-		response_message.BadRequestDynamicKey(c, "LOCKER_RETURNED", "LOCKER_RETURNED")
+		response_message.BadRequestDynamicKey(c, "LOCKER_UNRETURNED", "LOCKER_UNRETURNED")
 		return
 	}
 
