@@ -104,6 +104,10 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 			BookingUid:  booking.Uid,
 		}
 		go createOperationLog(opLog)
+
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+		go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, booking)
 	}
 
 	okResponse(c, booking)
@@ -249,6 +253,10 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		}
 		go createOperationLog(opLog)
 		// go updateSlotTeeTimeWithLock(booking)
+
+		cloneBooking := booking
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForAppNoCheck(constants.NOTIFICATION_BOOKING_UPD, &cloneBooking)
 	}
 
 	go func() {
@@ -257,6 +265,10 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			// updateSlotTeeTimeWithLock(booking)
 		}
 	}()
+
+	cNotification := CNotification{}
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, model_booking.Booking{})
+
 	okRes(c)
 }
 
@@ -510,6 +522,8 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 	// 		go createOperationLog(opLog)
 	// 	}
 	// }()
+	//Send Sms
+	go genQRCodeListBook(listBooking)
 
 	okResponse(c, listBooking)
 }
@@ -583,6 +597,10 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 				BookingUid:  booking.Uid,
 			}
 			go createOperationLog(opLog)
+
+			cNotification := CNotification{}
+			bookingCancel := booking
+			go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &bookingCancel)
 		}
 	}
 
@@ -592,6 +610,10 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 			// updateSlotTeeTimeWithLock(booking)
 		}
 	}()
+
+	cNotification := CNotification{}
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, model_booking.Booking{})
+
 	okRes(c)
 }
 
@@ -634,8 +656,8 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 		}
 		go createOperationLog(opLog)
 		// push socket
-		cNotification := CNotification{}
-		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
+		// cNotification := CNotification{}
+		// go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
 	}
 
 	//Send Sms
@@ -958,6 +980,21 @@ func (cBooking *CBooking) SendInforGuest(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// get course info
+	course := models.Course{}
+	course.Uid = prof.CourseUid
+	errFC := course.FindFirst()
+	if errFC != nil {
+		response_message.BadRequest(c, errFC.Error())
+		return
+	}
+
+	if course.TypeSendInfoBooking == constants.TYPE_SEND_INFO_BOOKING_NONE || course.TypeSendInfoBooking == "" {
+		response_message.BadRequest(c, "Kiem tra lai setting san")
+
+		return
+	}
+
 	var listBooking []model_booking.Booking
 
 	for _, item := range body.ListBooking {
@@ -983,13 +1020,17 @@ func (cBooking *CBooking) SendInforGuest(c *gin.Context, prof models.CmsUser) {
 		go updateListBooking(db, listBooking)
 
 		// Send email
-		if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_EMAIL {
-			go sendEmailBooking(listBooking, body.ListBooking[0].CustomerBookingEmail)
+		if course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_EMAIL {
+			if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_EMAIL {
+				go sendEmailBooking(listBooking, body.ListBooking[0].CustomerBookingEmail)
+			}
 		}
 
 		// Send sms
-		if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_SMS {
-			go sendSmsBooking(listBooking, body.ListBooking[0].CustomerBookingPhone)
+		if course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_SMS {
+			if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_SMS {
+				go sendSmsBooking(listBooking, body.ListBooking[0].CustomerBookingPhone)
+			}
 		}
 
 		// Add log

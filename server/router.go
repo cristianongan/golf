@@ -393,6 +393,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/course-operating/edit-holes-of-caddie", middlewares.AuthorizedCmsUserHandler(cCourseOperating.EditHolesOfCaddie))
 			cmsApiAuthorized.POST("/course-operating/add-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.AddBagToFlight)) // Add bag to flight
 
+			/// =================== Course Operating For App ====================
+			cBagAttachCaddie := new(controllers.CBagAttachCaddie)
+			cmsApiAuthorized.POST("/bag-attach-caddie", middlewares.AuthorizedCmsUserHandler(cBagAttachCaddie.CreateAttachCaddie))
+			cmsApiAuthorized.GET("/bag-attach-caddie/list", middlewares.AuthorizedCmsUserHandler(cBagAttachCaddie.GetListAttachCaddie))
+			cmsApiAuthorized.PUT("/bag-attach-caddie/:id", middlewares.AuthorizedCmsUserHandler(cBagAttachCaddie.UpdateAttachCaddie))
+			cmsApiAuthorized.DELETE("/bag-attach-caddie/:id", middlewares.AuthorizedCmsUserHandler(cBagAttachCaddie.DeleteAttachCaddie))
+
 			/// =================== + More Course Operating ===================
 			cmsApiAuthorized.GET("/course-operating/flight/list", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetFlight))
 			cmsApiAuthorized.POST("/course-operating/move-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.MoveBagToFlight)) // Move flight
@@ -603,6 +610,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.GET("/player-score/list", middlewares.AuthorizedCmsUserHandler(cPlayerScore.GetListPlayerScore))
 			cmsApiAuthorized.PUT("/player-score/:id", middlewares.AuthorizedCmsUserHandler(cPlayerScore.UpdatePlayerScore))
 			cmsApiAuthorized.DELETE("/player-score/:id", middlewares.AuthorizedCmsUserHandler(cPlayerScore.DeletePlayerScore))
+			cmsApiAuthorized.POST("/player-score/update-list", middlewares.AuthorizedCmsUserHandler(cPlayerScore.UpdateListPlayerScore))
 
 			/// =================== Role ===================
 			cRole := new(controllers.CRole)
@@ -654,6 +662,8 @@ func NewRouter() *gin.Engine {
 			/// =================== Locker ===================
 			cLocker := new(controllers.CLocker)
 			cmsApiAuthorized.GET("/locker/list", middlewares.AuthorizedCmsUserHandler(cLocker.GetListLocker))
+			cmsApiAuthorized.POST("/locker/return", middlewares.AuthorizedCmsUserHandler(cLocker.ReturnLocker))
+			cmsApiAuthorized.POST("/locker/check", middlewares.AuthorizedCmsUserHandler(cLocker.CheckLocker))
 
 			/// =================== Report ===================
 			cReport := new(controllers.CReport)

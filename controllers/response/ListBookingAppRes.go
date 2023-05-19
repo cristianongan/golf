@@ -19,6 +19,7 @@ type Booking struct {
 	GuestStyleName      string `json:"guest_style_name"`                               // Guest Style Name
 	CustomerName        string `json:"customer_name"`                                  // Tên khách hàng
 	CustomerBookingName string `json:"customer_booking_name" gorm:"type:varchar(256)"` // Tên khách hàng đặt booking
+	CustomerType        string `json:"customer_type" gorm:"type:varchar(256)"`         // Loai khach hang: Member, Guest, Visitor...
 
 	// MemberCard
 	CardId        string `json:"card_id"`         // MembarCard, Card ID cms user nhập vào
@@ -59,4 +60,6 @@ type Booking struct {
 
 	//Qr code
 	CheckInCode string `json:"check_in_code"`
+	QrcodeUrl   string `json:"qrcode_url"`
+	InitType    string `json:"init_type"`
 }

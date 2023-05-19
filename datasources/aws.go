@@ -62,6 +62,6 @@ func SendEmail(recipient, subject, htmlBody, fromEmail string) error {
 
 	// Attempt to send the email.
 	result, errSendEmail := svc.SendEmail(input)
-	log.Println(result)
+	log.Println("SendEmail", result)
 	return errSendEmail
 }

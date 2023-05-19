@@ -148,6 +148,10 @@ func (_ *CCourseOperating) AddCaddieBuggyToBooking(c *gin.Context, prof models.C
 	}
 	go createOperationLog(opLog)
 
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+
 	okResponse(c, booking)
 }
 
@@ -350,6 +354,11 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 			log.Println("CreateFlight err flight ", errUdp.Error())
 		}
 
+		// push socket
+		cNotification := CNotification{}
+		cloneBook := b
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &cloneBook)
+
 		listBookingUpdated = append(listBookingUpdated, b)
 		// Update lại thông tin booking
 		// if booking := b.GetBooking(); booking != nil && booking.Uid != b.Uid {
@@ -507,6 +516,10 @@ func (_ *CCourseOperating) OutCaddie(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+
 	// Udp Note
 	caddieOutNote := model_gostarter.CaddieBuggyInOut{
 		PartnerUid:  booking.PartnerUid,
@@ -608,6 +621,10 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 			if errUdp != nil {
 				log.Println("OutAllFlight err book udp ", errUdp.Error())
 			}
+
+			// push socket
+			cNotification := CNotification{}
+			go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
 
 			// Update lại giá của Round theo số hố
 			cRound := CRound{}
@@ -936,6 +953,10 @@ func (cCourseOperating *CCourseOperating) NeedMoreCaddie(c *gin.Context, prof mo
 
 	go createOperationLog(opLog)
 
+	cNotification := CNotification{}
+	cloneBooking := booking
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &cloneBooking)
+
 	okResponse(c, booking)
 }
 
@@ -972,6 +993,21 @@ func (cCourseOperating *CCourseOperating) DeleteAttach(c *gin.Context, prof mode
 		booking.CaddieInfo = cloneToCaddieBooking(models.Caddie{})
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
 		booking.CaddieHoles = 0
+
+		//Update status caddie
+		udpCaddieOut(db, caddieId)
+	} else {
+		// Update trạng thái lock
+		caddie := models.Caddie{}
+		caddie.Id = caddieId
+		err := caddie.FindFirst(db)
+
+		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+
+		errUpd := caddie.Update(db)
+		if errUpd != nil {
+			log.Println("udpCaddieOut err", err.Error())
+		}
 	}
 
 	if body.IsOutBuggy != nil && *body.IsOutBuggy == true {
@@ -1003,7 +1039,6 @@ func (cCourseOperating *CCourseOperating) DeleteAttach(c *gin.Context, prof mode
 	// auto delete buggy fee
 	deleteBuggyFee(booking)
 	updatePriceWithServiceItem(&booking, models.CmsUser{})
-	udpCaddieOut(db, caddieId)
 
 	caddie := models.Caddie{}
 	caddie.Id = caddieId
@@ -1217,6 +1252,10 @@ func (cCourseOperating CCourseOperating) ChangeCaddie(c *gin.Context, prof model
 	}
 
 	go createOperationLog(opLog)
+
+	cNotification := CNotification{}
+	cloneBooking := booking
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &cloneBooking)
 
 	okResponse(c, booking)
 }
@@ -1616,6 +1655,11 @@ func (cCourseOperating CCourseOperating) AddBagToFlight(c *gin.Context, prof mod
 		if errUdp != nil {
 			log.Println("AddBagToFlight err flight ", errUdp.Error())
 		}
+
+		// push socket
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &b)
+
 		listBookingUpdated = append(listBookingUpdated, b)
 		// Update lại thông tin booking
 		if booking := b.GetBooking(); booking != nil && booking.Uid != b.Uid {
@@ -1818,6 +1862,10 @@ func (cCourseOperating CCourseOperating) MoveBagToFlight(c *gin.Context, prof mo
 		response_message.InternalServerError(c, errCreateBooking.Error())
 		return
 	}
+
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, &newBooking)
 
 	opLog := models.OperationLog{
 		PartnerUid:  booking.PartnerUid,

@@ -51,6 +51,9 @@
     "golf_partner": {
         "url": "https://vngolf-partner.vnpaytest.vn/golf-partner/"
     },
+    "golf_socket": {
+        "url": "https://vngolf-socket.vnpaytest.vn/golf-socket/"
+    },
     "payment_secret_key": "KedL44Y6EX7rELdDfQUcim6uM6Ni5xNnCUqZ6IG4cXTgm7FIAH",
     "aes_pass_secret_key": "KujEOYTVLtdfNopHmVnuTjEiZyqAmZpV",
     "is_open_socket": true,

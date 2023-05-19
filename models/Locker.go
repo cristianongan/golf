@@ -18,6 +18,8 @@ type Locker struct {
 	CourseUid      string `json:"course_uid" gorm:"type:varchar(256);index"`  // San Golf
 	GolfBag        string `json:"golf_bag" gorm:"type:varchar(200)"`
 	BookingUid     string `json:"booking_uid" gorm:"type:varchar(50);index"`
+	BookingDate    string `json:"booking_date" gorm:"type:varchar(30);index"`
+	LockerStatus   string `json:"locker_status" gorm:"type:varchar(100)"` //Trạng thái locker
 	Locker         string `json:"locker" gorm:"type:varchar(500)"`
 	PlayerName     string `json:"player_name" gorm:"type:varchar(256)"`
 	GuestStyle     string `json:"guest_style" gorm:"type:varchar(256);index"`
@@ -74,6 +76,9 @@ func (item *Locker) FindList(database *gorm.DB, page Page, from, to int64, isFul
 	}
 	if item.Locker != "" {
 		db = db.Where("locker COLLATE utf8mb4_general_ci LIKE ?", "%"+item.Locker+"%")
+	}
+	if item.LockerStatus != "" {
+		db = db.Where("locker_status = ?", item.LockerStatus)
 	}
 	//Search With Time
 	if from > 0 && to > 0 {

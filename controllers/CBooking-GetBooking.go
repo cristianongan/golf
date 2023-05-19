@@ -951,16 +951,9 @@ func (_ *CBooking) GetListBookingWithSelectForApp(c *gin.Context, prof models.Cm
 		return
 	}
 
-	page := models.Page{
-		Limit:   form.PageRequest.Limit,
-		Page:    form.PageRequest.Page,
-		SortBy:  form.PageRequest.SortBy,
-		SortDir: form.PageRequest.SortDir,
-	}
-
 	bookings := SetParamGetBookingRequest(form)
 
-	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
+	db, total, err := bookings.FindAllBookingList(db)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
@@ -968,10 +961,6 @@ func (_ *CBooking) GetListBookingWithSelectForApp(c *gin.Context, prof models.Cm
 	}
 
 	var list []response.Booking
-
-	db = db.Where("bookings.bag_status <> 'CANCEL'")
-	db = db.Where("bookings.added_round = ?", false)
-	db = db.Where("bookings.moved_flight = ?", false)
 	db.Find(&list)
 
 	res := response.PageResponse{

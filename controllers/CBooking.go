@@ -13,10 +13,12 @@ import (
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
+	model_gostarter "start/models/go-starter"
 	model_payment "start/models/payment"
 	model_report "start/models/report"
 	"start/utils"
 	"start/utils/response_message"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -77,6 +79,10 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 
 	if body.IsCheckIn {
 		opLog.Function = constants.OP_LOG_FUNCTION_CHECK_IN
+
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
+
 	} else {
 		opLog.Function = constants.OP_LOG_FUNCTION_BOOKING
 
@@ -91,7 +97,7 @@ func (cBooking *CBooking) CreateBooking(c *gin.Context, prof models.CmsUser) {
 	// Bắn socket để client update ui
 	cNotification := CNotification{}
 	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, booking)
-	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
+	// go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
 	okResponse(c, booking)
 }
 
@@ -343,6 +349,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 	if body.IsCheckIn {
 		// Tạo booking check in luôn
 		booking.BagStatus = constants.BAG_STATUS_WAITING
+		booking.LastBookingStatus = constants.BAG_STATUS_WAITING
 		booking.InitType = constants.BOOKING_INIT_TYPE_CHECKIN
 		booking.CheckInTime = checkInTime
 	} else {
@@ -406,7 +413,9 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	if body.LockerNo != "" {
 		booking.LockerNo = body.LockerNo
-		go createLocker(db, booking)
+		if body.IsCheckIn {
+			go createLocker(db, booking)
+		}
 	}
 
 	if body.ReportNo != "" {
@@ -618,7 +627,7 @@ func (_ CBooking) updateMemberCardToBooking(c *gin.Context,
 	memberCardType := models.MemberCardType{}
 	memberCardType.Id = memberCard.McTypeId
 	errMCTypeFind := memberCardType.FindFirst(db)
-	if errMCTypeFind == nil && memberCardType.AnnualType == constants.ANNUAL_TYPE_LIMITED {
+	if errMCTypeFind == nil && memberCard.AnnualType == constants.ANNUAL_TYPE_LIMITED {
 		// Validate số lượt chơi còn lại của memeber
 		reportCustomer := model_report.ReportCustomerPlay{
 			CustomerUid: owner.Uid,
@@ -835,8 +844,30 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.LockerNo != nil {
-		booking.LockerNo = *body.LockerNo
-		go createLocker(db, booking)
+		if booking.CheckInTime > 0 {
+			if booking.LockerNo != "" {
+				locker := models.Locker{
+					PartnerUid:  booking.PartnerUid,
+					CourseUid:   booking.CourseUid,
+					Locker:      booking.LockerNo,
+					BookingDate: booking.BookingDate,
+					BookingUid:  booking.Uid,
+				}
+
+				// Find locker
+				_ = locker.FindFirst(db)
+
+				errC := locker.Delete(db)
+				if errC != nil {
+					log.Println("deleteLocker errC", errC.Error())
+				}
+			}
+			booking.LockerNo = *body.LockerNo
+			go createLocker(db, booking)
+		} else {
+			booking.LockerNo = *body.LockerNo
+		}
+
 	}
 
 	if body.ReportNo != nil {
@@ -1051,6 +1082,7 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	cNotification := CNotification{}
 	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, model_booking.Booking{})
 
 	okResponse(c, res)
 }
@@ -1058,9 +1090,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, caddie *string) error {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	if caddie != nil {
+		oldCaddie := booking.CaddieInfo
 		if *caddie != "" {
 			if *caddie != booking.CaddieInfo.Code {
-				// oldCaddie := booking.CaddieInfo
 
 				caddieList := models.CaddieList{}
 				caddieList.CourseUid = booking.CourseUid
@@ -1069,6 +1101,19 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, caddie 
 
 				if err != nil {
 					return errors.New("Caddie Not Found!")
+				}
+
+				if caddieNew.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
+					if booking.CaddieId != caddieNew.Id {
+						return errors.New(caddieNew.Code + " đang bị LOCK")
+					}
+				} else {
+					if errCaddie := checkCaddieReady(*booking, caddieNew); errCaddie != nil {
+						if strings.Contains(caddieNew.CurrentStatus, "IN_COURSE") {
+							return errors.New(caddieNew.Code + " đang IN COURSE")
+						}
+						return errors.New(caddieNew.Code + " đang " + caddieNew.CurrentStatus)
+					}
 				}
 
 				if caddieNew.ContractStatus == constants.CADDIE_CONTRACT_STATUS_TERMINATION {
@@ -1084,27 +1129,27 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, caddie 
 				booking.CaddieId = caddieNew.Id
 				booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 
-				//Update lại trạng thái caddie
-				// caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
-				if err := caddieNew.Update(db); err != nil {
+				//Update lại trạng thái caddie mới
+				caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+				_ = caddieNew.Update(db)
 
-				}
-
-				// Out Caddie, nếu caddie trong in course
-				// go func() {
-				// 	caddie := models.Caddie{}
-				// 	caddie.Id = oldCaddie.Id
-				// 	if err := caddie.FindFirst(db); err == nil {
-				// 		if strings.Contains(caddie.CurrentStatus, constants.CADDIE_CURRENT_STATUS_IN_COURSE) {
-				// 			udpCaddieOut(db, oldCaddie.Id)
-				// 		}
-				// 	}
-				// }()
 			}
 		} else {
 			booking.CaddieId = 0
 			booking.CaddieInfo = model_booking.BookingCaddie{}
 		}
+
+		// Out Caddie, nếu caddie trong in course
+		go func() {
+			if oldCaddie.Id > 0 {
+				caddie := models.Caddie{}
+				caddie.Id = oldCaddie.Id
+				if err := caddie.FindFirst(db); err == nil {
+					udpCaddieOut(db, oldCaddie.Id)
+				}
+
+			}
+		}()
 	}
 	return nil
 }
@@ -1344,6 +1389,27 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.Hole = body.Hole
 	}
 
+	if body.Locker != "" {
+		locker := models.Locker{
+			PartnerUid:   booking.PartnerUid,
+			CourseUid:    booking.CourseUid,
+			Locker:       body.Locker,
+			BookingDate:  booking.BookingDate,
+			LockerStatus: constants.LOCKER_STATUS_UNRETURNED,
+		}
+
+		// check tồn tại
+		_ = locker.FindFirst(db)
+
+		if locker.Id > 0 {
+			response_message.BadRequestFreeMessage(c, "Locker đã được mượn.")
+			return
+		}
+
+		booking.LockerNo = body.Locker
+		go createLocker(db, booking)
+	}
+
 	if body.MemberCardUid != nil && *body.MemberCardUid != booking.MemberCardUid ||
 		body.AgencyId != booking.AgencyId {
 		booking.SeparatePrice = false
@@ -1466,17 +1532,28 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 	}
 
-	if body.Locker != "" {
-		booking.LockerNo = body.Locker
-		go createLocker(db, booking)
-	}
-
 	if body.TeeType != "" {
 		booking.TeeType = body.TeeType
 	}
 
 	if body.CustomerName != "" {
 		booking.CustomerName = body.CustomerName
+	}
+
+	//Update customer infor
+	if booking.CustomerUid != "" {
+		//check customer
+		customer := models.CustomerUser{}
+		customer.Uid = booking.CustomerUid
+		errFindCus := customer.FindFirst(db)
+		if errFindCus != nil || customer.Uid == "" {
+			log.Print("customer" + errFindCus.Error())
+			// return
+		}
+
+		booking.CustomerName = customer.Name
+		// booking.CustomerType = customer.Type
+		booking.CustomerInfo = cloneToCustomerBooking(customer)
 	}
 
 	booking.CmsUser = prof.UserName
@@ -1512,7 +1589,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	go func() {
-		if booking.CaddieBooking != "" {
+		if booking.CaddieBooking != "" && booking.CaddieBooking == booking.CaddieInfo.Code {
 			caddieBookingFee := getBookingCadieFeeSetting(booking.PartnerUid, booking.CourseUid, booking.GuestStyle, body.Hole)
 			addCaddieBookingFee(booking, caddieBookingFee.Fee, constants.BOOKING_CADDIE_NAME, body.Hole)
 			updatePriceWithServiceItem(&booking, prof)
@@ -1527,6 +1604,9 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	go cRound.UpdateBag(booking, db)
 
 	res := getBagDetailFromBooking(db, booking)
+
+	// Update bag attach caddie
+	go cBooking.updateBagAttachCaddie(db, booking.Uid)
 
 	//Add log
 	opLog := models.OperationLog{
@@ -1551,6 +1631,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 	cNotification := CNotification{}
 	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, model_booking.Booking{})
 
 	okResponse(c, res)
 }
@@ -1733,6 +1814,9 @@ func (cBooking *CBooking) Checkout(c *gin.Context, prof models.CmsUser) {
 		BookingUid:  booking.Uid,
 	}
 	go createOperationLog(opLog)
+
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
 
 	okResponse(c, booking)
 }
@@ -2010,6 +2094,24 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 
 	}
 
+	if booking.LockerNo != "" {
+		locker := models.Locker{
+			PartnerUid:  booking.PartnerUid,
+			CourseUid:   booking.CourseUid,
+			Locker:      booking.LockerNo,
+			BookingDate: booking.BookingDate,
+			BookingUid:  booking.Uid,
+		}
+
+		// Find locker
+		_ = locker.FindFirst(db)
+
+		errC := locker.Delete(db)
+		if errC != nil {
+			log.Println("deleteLocker errC", errC.Error())
+		}
+	}
+
 	pUid := booking.PartnerUid
 	cUid := booking.CourseUid
 	billCode := booking.BillCode
@@ -2075,6 +2177,10 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 		BookingUid:  booking.Uid,
 	}
 	go createOperationLog(opLog)
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, model_booking.Booking{})
 
 	okRes(c)
 }
@@ -2168,6 +2274,10 @@ func (cBooking *CBooking) UndoCheckOut(c *gin.Context, prof models.CmsUser) {
 
 	booking.Update(db)
 
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+
 	//Add log
 	opLog := models.OperationLog{
 		PartnerUid:  booking.PartnerUid,
@@ -2189,4 +2299,15 @@ func (cBooking *CBooking) UndoCheckOut(c *gin.Context, prof models.CmsUser) {
 	}
 	go createOperationLog(opLog)
 	okRes(c)
+}
+
+func (_ CBooking) updateBagAttachCaddie(db *gorm.DB, bookindUid string) {
+	caddieAttach := model_gostarter.BagAttachCaddie{}
+	caddieAttach.BookingUid = bookindUid
+
+	if err := caddieAttach.FindFirst(db); err == nil {
+		caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_WAITING
+
+		_ = caddieAttach.Update(db)
+	}
 }
