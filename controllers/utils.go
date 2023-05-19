@@ -766,14 +766,14 @@ func createLocker(db *gorm.DB, booking model_booking.Booking) {
 		CourseUid:   booking.CourseUid,
 		Locker:      booking.LockerNo,
 		BookingDate: booking.BookingDate,
-		BookingUid:  booking.Uid,
+		GolfBag:     booking.Bag,
 	}
 
 	// check tồn tại
 	errF := locker.FindFirst(db)
 	if errF != nil || locker.Id <= 0 {
 		// Tạo mới
-		locker.GolfBag = booking.Bag
+		locker.BookingUid = booking.Uid
 		locker.PlayerName = booking.CustomerName
 		locker.LockerStatus = constants.LOCKER_STATUS_UNRETURNED
 		locker.GuestStyle = booking.GuestStyle
