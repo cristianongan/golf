@@ -960,7 +960,7 @@ func (_ *CBooking) GetListBookingWithSelectForApp(c *gin.Context, prof models.Cm
 
 	bookings := SetParamGetBookingRequest(form)
 
-	db, total, err := bookings.FindLastBookingForApp(db, page)
+	db, total, err := bookings.FindBookingListWithSelect(db, page, form.IsGroupBillCode)
 
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
