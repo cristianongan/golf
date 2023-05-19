@@ -1090,9 +1090,9 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, caddie *string) error {
 	db := datasources.GetDatabaseWithPartner(booking.PartnerUid)
 	if caddie != nil {
+		oldCaddie := booking.CaddieInfo
 		if *caddie != "" {
 			if *caddie != booking.CaddieInfo.Code {
-				oldCaddie := booking.CaddieInfo
 
 				caddieList := models.CaddieList{}
 				caddieList.CourseUid = booking.CourseUid
@@ -1133,19 +1133,23 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, caddie 
 				caddieNew.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
 				_ = caddieNew.Update(db)
 
-				// Out Caddie, nếu caddie trong in course
-				go func() {
-					caddie := models.Caddie{}
-					caddie.Id = oldCaddie.Id
-					if err := caddie.FindFirst(db); err == nil {
-						udpCaddieOut(db, oldCaddie.Id)
-					}
-				}()
 			}
 		} else {
 			booking.CaddieId = 0
 			booking.CaddieInfo = model_booking.BookingCaddie{}
 		}
+
+		// Out Caddie, nếu caddie trong in course
+		go func() {
+			if oldCaddie.Id > 0 {
+				caddie := models.Caddie{}
+				caddie.Id = oldCaddie.Id
+				if err := caddie.FindFirst(db); err == nil {
+					udpCaddieOut(db, oldCaddie.Id)
+				}
+
+			}
+		}()
 	}
 	return nil
 }
