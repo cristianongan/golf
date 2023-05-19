@@ -68,6 +68,7 @@ func (_ *CMemberCard) EKycUpdateImageMemberCard(c *gin.Context, prof models.CmsU
 		return
 	}
 	fileSize := file.(Sizer).Size()
+	log.Println("EKycUpdateImageMemberCard fileSize", fileSize)
 	if fileSize > constants.MAX_SIZE_AVATAR_UPLOAD_EKYC {
 		response_message.BadRequest(c, "over limit size")
 		return
