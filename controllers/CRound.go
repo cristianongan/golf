@@ -161,6 +161,9 @@ func (cRound CRound) AddRound(c *gin.Context, prof models.CmsUser) {
 		BookingUid:  booking.Uid,
 	}
 	go createOperationLog(opLog)
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, &newBooking)
+
 	okResponse(c, res)
 }
 func (cRound CRound) GetFeeOfRound(c *gin.Context, db *gorm.DB, booking *model_booking.Booking, guestStyle string, hole int) (int64, int64, int64, error) {
