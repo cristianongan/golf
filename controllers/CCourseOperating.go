@@ -993,6 +993,21 @@ func (cCourseOperating *CCourseOperating) DeleteAttach(c *gin.Context, prof mode
 		booking.CaddieInfo = cloneToCaddieBooking(models.Caddie{})
 		booking.CaddieStatus = constants.BOOKING_CADDIE_STATUS_INIT
 		booking.CaddieHoles = 0
+
+		//Update status caddie
+		udpCaddieOut(db, caddieId)
+	} else {
+		// Update trạng thái lock
+		caddie := models.Caddie{}
+		caddie.Id = caddieId
+		err := caddie.FindFirst(db)
+
+		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+
+		errUpd := caddie.Update(db)
+		if errUpd != nil {
+			log.Println("udpCaddieOut err", err.Error())
+		}
 	}
 
 	if body.IsOutBuggy != nil && *body.IsOutBuggy == true {
@@ -1024,7 +1039,6 @@ func (cCourseOperating *CCourseOperating) DeleteAttach(c *gin.Context, prof mode
 	// auto delete buggy fee
 	deleteBuggyFee(booking)
 	updatePriceWithServiceItem(&booking, models.CmsUser{})
-	udpCaddieOut(db, caddieId)
 
 	caddie := models.Caddie{}
 	caddie.Id = caddieId
