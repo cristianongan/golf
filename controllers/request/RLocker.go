@@ -22,5 +22,5 @@ type CheckLockerReq struct {
 	PartnerUid  string `json:"partner_uid" binding:"required"`
 	CourseUid   string `json:"course_uid" binding:"required"`
 	BookingDate string `json:"booking_date" binding:"required"`
-	GolfBag     string `form:"golf_bag"`
+	GolfBag     string `json:"golf_bag"`
 }
