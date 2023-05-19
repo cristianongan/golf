@@ -51,6 +51,7 @@ type ReportRevenueDetail struct {
 	PhiPhat          int64         `json:"phi_phat"`
 	Total            int64         `json:"total"`
 	CheckOutTime     int64         `json:"check_out_time"` // Time Check Out
+	HoleBooking      int           `json:"hole_booking"`   // Hole booking
 }
 
 type DayEndRevenue struct {
