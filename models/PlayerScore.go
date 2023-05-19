@@ -124,7 +124,7 @@ func (item *PlayerScore) FindList(database *gorm.DB, page Page, status string) (
 		db = db.Where("bookings.bag_status = ?", status)
 	}
 
-	db.Joins("INNER JOIN bookings on bookings.flight_id = player_scores.flight_id")
+	db.Joins("INNER JOIN bookings on bookings.flight_id = player_scores.flight_id and player_scores.bag = bookings.bag")
 
 	db.Count(&total)
 
