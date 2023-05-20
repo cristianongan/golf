@@ -762,19 +762,18 @@ func createLocker(db *gorm.DB, booking model_booking.Booking) {
 	}
 
 	locker := models.Locker{
-		PartnerUid:  booking.PartnerUid,
-		CourseUid:   booking.CourseUid,
-		Locker:      booking.LockerNo,
-		BookingDate: booking.BookingDate,
-		GolfBag:     booking.Bag,
+		BookingUid: booking.Uid,
 	}
 
 	// check tồn tại
 	errF := locker.FindFirst(db)
 	if errF != nil || locker.Id <= 0 {
 		// Tạo mới
-		locker.BookingUid = booking.Uid
+		locker.CourseUid = booking.CourseUid
+		locker.PartnerUid = booking.PartnerUid
+		locker.GolfBag = booking.Bag
 		locker.PlayerName = booking.CustomerName
+		locker.Locker = booking.LockerNo
 		locker.LockerStatus = constants.LOCKER_STATUS_UNRETURNED
 		locker.GuestStyle = booking.GuestStyle
 		locker.GuestStyleName = booking.GuestStyleName
@@ -783,7 +782,32 @@ func createLocker(db *gorm.DB, booking model_booking.Booking) {
 		if errC != nil {
 			log.Println("createLocker errC", errC.Error())
 		}
+		return
 	}
+
+	// locker := models.Locker{
+	// 	PartnerUid:  booking.PartnerUid,
+	// 	CourseUid:   booking.CourseUid,
+	// 	Locker:      booking.LockerNo,
+	// 	BookingDate: booking.BookingDate,
+	// 	GolfBag:     booking.Bag,
+	// }
+
+	// // check tồn tại
+	// errF := locker.FindFirst(db)
+	// if errF != nil || locker.Id <= 0 {
+	// 	// Tạo mới
+	// 	locker.BookingUid = booking.Uid
+	// 	locker.PlayerName = booking.CustomerName
+	// 	locker.LockerStatus = constants.LOCKER_STATUS_UNRETURNED
+	// 	locker.GuestStyle = booking.GuestStyle
+	// 	locker.GuestStyleName = booking.GuestStyleName
+
+	// 	errC := locker.Create(db)
+	// 	if errC != nil {
+	// 		log.Println("createLocker errC", errC.Error())
+	// 	}
+	// }
 
 	if booking.LockerNo != "" {
 		locker.PlayerName = booking.CustomerName
