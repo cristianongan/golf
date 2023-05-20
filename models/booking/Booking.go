@@ -1549,6 +1549,10 @@ func (item *Booking) FindMemberBooking(database *gorm.DB) ([]Booking, error) {
 	db := database.Table("bookings")
 	list := []Booking{}
 
+	if item.CustomerUid == "" {
+		return list, errors.New("Customer uid invalid")
+	}
+
 	if item.PartnerUid != "" {
 		db = db.Where("partner_uid = ?", item.PartnerUid)
 	}
@@ -1560,6 +1564,9 @@ func (item *Booking) FindMemberBooking(database *gorm.DB) ([]Booking, error) {
 	}
 	if item.MemberCardUid != "" {
 		db = db.Where("member_card_uid = ?", item.MemberCardUid)
+	}
+	if item.CustomerUid != "" {
+		db = db.Where("customer_uid = ?", item.CustomerUid)
 	}
 
 	db.Find(&list)
