@@ -413,9 +413,9 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	if body.LockerNo != "" {
 		booking.LockerNo = body.LockerNo
-		if body.IsCheckIn {
-			go createLocker(db, booking)
-		}
+		// if body.IsCheckIn {
+		go createLocker(db, booking)
+		// }
 	}
 
 	if body.ReportNo != "" {
@@ -844,29 +844,31 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.LockerNo != nil {
-		if booking.CheckInTime > 0 {
-			if booking.LockerNo != "" {
-				locker := models.Locker{
-					PartnerUid:  booking.PartnerUid,
-					CourseUid:   booking.CourseUid,
-					Locker:      booking.LockerNo,
-					BookingDate: booking.BookingDate,
-					BookingUid:  booking.Uid,
-				}
+		// if booking.CheckInTime > 0 {
+		// 	if booking.LockerNo != "" {
+		// 		locker := models.Locker{
+		// 			PartnerUid:  booking.PartnerUid,
+		// 			CourseUid:   booking.CourseUid,
+		// 			Locker:      booking.LockerNo,
+		// 			BookingDate: booking.BookingDate,
+		// 			BookingUid:  booking.Uid,
+		// 		}
 
-				// Find locker
-				_ = locker.FindFirst(db)
+		// 		// Find locker
+		// 		_ = locker.FindFirst(db)
 
-				errC := locker.Delete(db)
-				if errC != nil {
-					log.Println("deleteLocker errC", errC.Error())
-				}
-			}
-			booking.LockerNo = *body.LockerNo
-			go createLocker(db, booking)
-		} else {
-			booking.LockerNo = *body.LockerNo
-		}
+		// 		errC := locker.Delete(db)
+		// 		if errC != nil {
+		// 			log.Println("deleteLocker errC", errC.Error())
+		// 		}
+		// 	}
+		// 	booking.LockerNo = *body.LockerNo
+		// 	go createLocker(db, booking)
+		// } else {
+		// 	booking.LockerNo = *body.LockerNo
+		// }
+		booking.LockerNo = *body.LockerNo
+		go createLocker(db, booking)
 
 	}
 
@@ -1390,21 +1392,21 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.Locker != "" {
-		locker := models.Locker{
-			PartnerUid:   booking.PartnerUid,
-			CourseUid:    booking.CourseUid,
-			Locker:       body.Locker,
-			BookingDate:  booking.BookingDate,
-			LockerStatus: constants.LOCKER_STATUS_UNRETURNED,
-		}
+		// locker := models.Locker{
+		// 	PartnerUid:   booking.PartnerUid,
+		// 	CourseUid:    booking.CourseUid,
+		// 	Locker:       body.Locker,
+		// 	BookingDate:  booking.BookingDate,
+		// 	LockerStatus: constants.LOCKER_STATUS_UNRETURNED,
+		// }
 
-		// check tồn tại
-		_ = locker.FindFirst(db)
+		// // check tồn tại
+		// _ = locker.FindFirst(db)
 
-		if locker.Id > 0 {
-			response_message.BadRequestFreeMessage(c, "Locker đã được mượn.")
-			return
-		}
+		// if locker.Id > 0 {
+		// 	response_message.BadRequestFreeMessage(c, "Locker đã được mượn.")
+		// 	return
+		// }
 
 		booking.LockerNo = body.Locker
 		go createLocker(db, booking)
@@ -2094,23 +2096,23 @@ func (cBooking *CBooking) UndoCheckIn(c *gin.Context, prof models.CmsUser) {
 
 	}
 
-	if booking.LockerNo != "" {
-		locker := models.Locker{
-			PartnerUid:  booking.PartnerUid,
-			CourseUid:   booking.CourseUid,
-			Locker:      booking.LockerNo,
-			BookingDate: booking.BookingDate,
-			BookingUid:  booking.Uid,
-		}
+	// if booking.LockerNo != "" {
+	// 	locker := models.Locker{
+	// 		PartnerUid:  booking.PartnerUid,
+	// 		CourseUid:   booking.CourseUid,
+	// 		Locker:      booking.LockerNo,
+	// 		BookingDate: booking.BookingDate,
+	// 		BookingUid:  booking.Uid,
+	// 	}
 
-		// Find locker
-		_ = locker.FindFirst(db)
+	// 	// Find locker
+	// 	_ = locker.FindFirst(db)
 
-		errC := locker.Delete(db)
-		if errC != nil {
-			log.Println("deleteLocker errC", errC.Error())
-		}
-	}
+	// 	errC := locker.Delete(db)
+	// 	if errC != nil {
+	// 		log.Println("deleteLocker errC", errC.Error())
+	// 	}
+	// }
 
 	pUid := booking.PartnerUid
 	cUid := booking.CourseUid
