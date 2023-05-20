@@ -17,7 +17,7 @@
         "password": "(zTUd^6N48f#pd^S",
         "host": "10.20.4.153",
         "port": "3306",
-        "is_migrated": true,
+        "is_migrated": false,
         "debug": true
     },
     "mysql_auth": {
