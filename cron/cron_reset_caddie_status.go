@@ -5,6 +5,9 @@ import (
 	"start/constants"
 	"start/datasources"
 	"start/models"
+	"time"
+
+	"github.com/bsm/redislock"
 )
 
 func runResetCaddieStatusJob() {
@@ -14,6 +17,16 @@ func runResetCaddieStatusJob() {
 	// if !isObtain {
 	// 	return
 	// }
+	redisKey := datasources.GetRedisKeySystemResetCaddieStatus()
+	lock, err := datasources.GetLockerRedis().Obtain(datasources.GetCtxRedis(), redisKey, 60*time.Second, nil)
+	// Ko lấy được lock, return luôn
+	if err == redislock.ErrNotObtained || err != nil {
+		log.Println("[CRON] runResetCaddieStatusJob Could not obtain lock", redisKey)
+		return
+	}
+
+	defer lock.Release(datasources.GetCtxRedis())
+
 	// Logic chạy cron bên dưới
 	runResetCaddieStatus()
 }
