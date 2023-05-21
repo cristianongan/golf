@@ -162,8 +162,8 @@ func (_ *Cekyc) CheckBookingMemberForEkyc(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, responseBaseModel)
 			return
 		}
-		responseBaseModel.Code = "03"
-		responseBaseModel.Desc = "Not find Booking"
+		responseBaseModel.Code = "08"
+		responseBaseModel.Desc = "Bag da check in"
 		c.JSON(http.StatusBadRequest, responseBaseModel)
 		return
 	}
@@ -226,6 +226,13 @@ func (_ *Cekyc) CheckInBookingMemberForEkyc(c *gin.Context) {
 	if errFB != nil {
 		responseBaseModel.Code = "03"
 		responseBaseModel.Desc = "Not find Booking"
+		c.JSON(http.StatusBadRequest, responseBaseModel)
+		return
+	}
+
+	if booking.BagStatus != constants.BAG_STATUS_BOOKING {
+		responseBaseModel.Code = "08"
+		responseBaseModel.Desc = "Bag da check in"
 		c.JSON(http.StatusBadRequest, responseBaseModel)
 		return
 	}
