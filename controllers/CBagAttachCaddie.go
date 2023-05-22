@@ -257,7 +257,7 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 	caddieAttach.LockerNo = body.LockerNo
 
 	// validate caddie
-	if body.CaddieCode != "" && body.CaddieCode != caddieAttach.CaddieCode {
+	if body.CaddieCode != "" && caddieOld != caddieAttach.CaddieCode {
 		caddieAttValid := model_gostarter.BagAttachCaddie{}
 
 		caddieAttValid.PartnerUid = prof.PartnerUid
@@ -329,6 +329,22 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 
 		if caddieAttach.BookingUid != "" && caddieAttach.BookingUid != body.BookingUid {
 			go UpdateOldBooking(db, caddieAttach)
+		}
+
+		if caddieOld == caddieAttach.CaddieCode {
+			caddie := models.Caddie{
+				PartnerUid: prof.PartnerUid,
+				CourseUid:  prof.CourseUid,
+				Code:       body.CaddieCode,
+			}
+			_ = caddie.FindFirst(db)
+
+			// Update caddie_current_status
+			caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+			if err := caddie.Update(db); err != nil {
+				response_message.InternalServerError(c, err.Error())
+				return
+			}
 		}
 
 		go UpdateNewBooking(db, &booking, caddieAttach)
