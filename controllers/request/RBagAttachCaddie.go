@@ -27,4 +27,5 @@ type GetListAttachCaddieForm struct {
 	BookingDate string `form:"booking_date"`
 	Search      string `form:"search"`
 	CmsUser     string `form:"cms_user"`
+	Bag         string `form:"bag"`
 }
