@@ -323,3 +323,18 @@ func GetEkycUpdate() string {
 func GetEkycAuthKey() string {
 	return config.GetString("ekyc.auth_key")
 }
+
+/*
+Short link
+*/
+func GetShortLinkUrlBe() string {
+	return config.GetString("short_link.url_be")
+}
+
+func GetShortLinkFe() string {
+	return config.GetString("short_link.url_fe")
+}
+
+func GetShortLinkSecretKey() string {
+	return config.GetString("short_link.secret_key")
+}

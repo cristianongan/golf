@@ -96,24 +96,30 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 
 			linkQRCodeFull := config.GetPortalCmsUrl() + "qr-ci/" + encodedurlQrCodeChecking
 
-			bodyModel := services.ShortReq{
-				URL:    linkQRCodeFull,
-				Domain: "bit.ly",
+			// bodyModel := services.ShortReq{
+			// 	URL:    linkQRCodeFull,
+			// 	Domain: "bit.ly",
+			// }
+
+			// bodyModelByte, errB := json.Marshal(bodyModel)
+			// if errB != nil {
+			// 	log.Println("sendSmsBooking errB", errB.Error())
+			// }
+
+			// errS, _, resp := services.BitlyShorten(bodyModelByte)
+			// if errS != nil {
+			// 	log.Println("sendSmsBooking errS", errS.Error())
+			// }
+
+			respModel, errResp := services.GenShortLink(linkQRCodeFull)
+			if errResp != nil {
+				log.Println("sendSmsBooking errS", errResp.Error())
 			}
 
-			bodyModelByte, errB := json.Marshal(bodyModel)
-			if errB != nil {
-				log.Println("sendSmsBooking errB", errB.Error())
-			}
-
-			errS, _, resp := services.BitlyShorten(bodyModelByte)
-			if errS != nil {
-				log.Println("sendSmsBooking errS", errS.Error())
-			}
-
-			if resp.URL != "" {
-				log.Println("sendSmsBooking short Link", resp.URL)
-				message += resp.URL
+			if respModel.Short != "" {
+				shortLink := config.GetShortLinkFe() + respModel.Short
+				log.Println("sendSmsBooking short Link", shortLink)
+				message += shortLink
 			} else {
 				message += linkQRCodeFull
 			}
@@ -281,24 +287,30 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 
 		linkQRCodeFull := config.GetPortalCmsUrl() + "qr-ci/" + encodedurlQrCodeChecking
 
-		bodyModel := services.ShortReq{
-			URL:    linkQRCodeFull,
-			Domain: "bit.ly",
+		// bodyModel := services.ShortReq{
+		// 	URL:    linkQRCodeFull,
+		// 	Domain: "bit.ly",
+		// }
+
+		// bodyModelByte, errB := json.Marshal(bodyModel)
+		// if errB != nil {
+		// 	log.Println("sendEmailBooking errB", errB.Error())
+		// }
+
+		// errS, _, resp := services.BitlyShorten(bodyModelByte)
+		// if errS != nil {
+		// 	log.Println("sendEmailBooking errS", errS.Error())
+		// }
+
+		respModel, errResp := services.GenShortLink(linkQRCodeFull)
+		if errResp != nil {
+			log.Println("sendSmsBooking errS", errResp.Error())
 		}
 
-		bodyModelByte, errB := json.Marshal(bodyModel)
-		if errB != nil {
-			log.Println("sendEmailBooking errB", errB.Error())
-		}
-
-		errS, _, resp := services.BitlyShorten(bodyModelByte)
-		if errS != nil {
-			log.Println("sendEmailBooking errS", errS.Error())
-		}
-
-		if resp.URL != "" {
-			log.Println("sendEmailBooking short Link", resp.URL)
-			message += resp.URL + ")</p>"
+		if respModel.Short != "" {
+			shortLink := config.GetShortLinkFe() + respModel.Short
+			log.Println("sendEmailBooking short Link", shortLink)
+			message += shortLink + ")</p>"
 		} else {
 			message += linkQRCodeFull + ")</p>"
 		}
