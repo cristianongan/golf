@@ -38,7 +38,7 @@ type PublicGetBookingResp struct {
 type GetCurrentAppVersionForm struct {
 	OsType     string `form:"os_type" binding:"required"`     // IOS, ANDROID
 	DeviceType string `form:"device_type" binding:"required"` // PHONE, TABLET
-	Key        string `json:"key" binding:"required"`
+	Key        string `form:"key" binding:"required"`
 }
 
 type UpdateCurrentAppVersionBody struct {
