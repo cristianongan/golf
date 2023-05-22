@@ -2,9 +2,11 @@ package controllers
 
 import (
 	"errors"
+	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
 	"start/models"
+	"start/utils"
 	"start/utils/response_message"
 	"strconv"
 
@@ -13,63 +15,63 @@ import (
 
 type CRestaurantSetting struct{}
 
-// func (_ *CRestaurantSetting) CreateRestaurantSetting(c *gin.Context, prof models.CmsUser) {
-// 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-// 	body := request.CreateRestaurantSettingBody{}
-// 	if bindErr := c.ShouldBind(&body); bindErr != nil {
-// 		badRequest(c, bindErr.Error())
-// 		return
-// 	}
-// 	now := utils.GetTimeNow()
+func (_ *CRestaurantSetting) CreateRestaurantSetting(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.CreateRestaurantSettingBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+	now := utils.GetTimeNow()
 
-// 	// Batch insert player score
-// 	RestaurantSetting := models.RestaurantSetting{}
+	// Batch insert player score
+	resSettingR := models.RestaurantSetting{}
 
-// 	var listPlayer []models.RestaurantSetting
+	var listSetting []models.RestaurantSetting
 
-// 	for _, player := range body.Players {
-// 		RestaurantSetting := models.RestaurantSetting{
-// 			PartnerUid:  body.PartnerUid,
-// 			CourseUid:   body.CourseUid,
-// 			BookingDate: body.BookingDate,
-// 			FlightId:    body.FlightId,
-// 			Bag:         player.Bag,
-// 			Course:      body.Course,
-// 			Hole:        body.Hole,
-// 			HoleIndex:   body.HoleIndex,
-// 			Par:         body.Par,
-// 			Shots:       player.Shots,
-// 			Index:       player.Index,
-// 			TimeStart:   body.TimeStart,
-// 			TimeEnd:     body.TimeEnd,
-// 		}
+	for _, id := range body.ServiceIds {
+		restaurantSetting := models.RestaurantSetting{
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+			ServiceId:  id,
+			Name:       body.Name,
+			Type:       body.Type,
+		}
 
-// 		RestaurantSetting.ModelId.CreatedAt = now.Unix()
-// 		RestaurantSetting.ModelId.UpdatedAt = now.Unix()
-// 		if RestaurantSetting.ModelId.Status == "" {
-// 			RestaurantSetting.ModelId.Status = constants.STATUS_ENABLE
-// 		}
+		if body.Status != "" {
+			restaurantSetting.ModelId.Status = body.Status
+		} else {
+			restaurantSetting.ModelId.Status = constants.STATUS_ENABLE
+		}
 
-// 		if RestaurantSetting.IsDuplicated(db) {
-// 			response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
-// 			return
-// 		}
+		if body.Type == constants.RESTAURANT_SETTING_TYPE_MINUTE {
+			restaurantSetting.Time = body.Time
+		} else {
+			restaurantSetting.NumberTables = body.NumberTables
+			restaurantSetting.PeopleInTable = body.PeopleInTable
+			restaurantSetting.Symbol = body.Symbol
+			restaurantSetting.TableFrom = body.TableFrom
+			restaurantSetting.DataTables = body.DataTables
+		}
 
-// 		listPlayer = append(listPlayer, RestaurantSetting)
-// 	}
+		restaurantSetting.ModelId.CreatedAt = now.Unix()
+		restaurantSetting.ModelId.UpdatedAt = now.Unix()
 
-// 	errC := RestaurantSetting.BatchInsert(db, listPlayer)
-// 	if errC != nil {
-// 		response_message.InternalServerError(c, errC.Error())
-// 		return
-// 	}
+		listSetting = append(listSetting, restaurantSetting)
+	}
 
-// 	res := map[string]interface{}{
-// 		"data": listPlayer,
-// 	}
+	errC := resSettingR.BatchInsert(db, listSetting)
+	if errC != nil {
+		response_message.InternalServerError(c, errC.Error())
+		return
+	}
 
-// 	okResponse(c, res)
-// }
+	res := map[string]interface{}{
+		"data": listSetting,
+	}
+
+	okResponse(c, res)
+}
 
 func (_ *CRestaurantSetting) GetListRestaurantSetting(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
@@ -80,10 +82,10 @@ func (_ *CRestaurantSetting) GetListRestaurantSetting(c *gin.Context, prof model
 	}
 
 	page := models.Page{
-		Limit: form.PageRequest.Limit,
-		Page:  form.PageRequest.Page,
-		// SortBy:  form.PageRequest.SortBy,
-		// SortDir: form.PageRequest.SortDir,
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
 	}
 
 	restaurantSettingR := models.RestaurantSetting{
@@ -128,12 +130,23 @@ func (_ *CRestaurantSetting) UpdateRestaurantSetting(c *gin.Context, prof models
 		return
 	}
 
-	// restaurantSetting.Hole = body.Hole
-	// restaurantSetting.Par = body.Par
-	// restaurantSetting.Shots = body.Shots
-	// restaurantSetting.Index = body.Index
-	// restaurantSetting.TimeStart = body.TimeStart
-	// restaurantSetting.TimeEnd = body.TimeEnd
+	if body.Status != "" {
+		restaurantSetting.ModelId.Status = body.Status
+	} else {
+		restaurantSetting.ModelId.Status = constants.STATUS_ENABLE
+	}
+
+	if restaurantSetting.Type == constants.RESTAURANT_SETTING_TYPE_MINUTE {
+		restaurantSetting.Name = body.Name
+		restaurantSetting.Time = body.Time
+	} else {
+		restaurantSetting.Name = body.Name
+		restaurantSetting.NumberTables = body.NumberTables
+		restaurantSetting.PeopleInTable = body.PeopleInTable
+		restaurantSetting.Symbol = body.Symbol
+		restaurantSetting.TableFrom = body.TableFrom
+		restaurantSetting.DataTables = body.DataTables
+	}
 
 	errUdp := restaurantSetting.Update(db)
 	if errUdp != nil {
