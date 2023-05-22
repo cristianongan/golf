@@ -11,17 +11,17 @@ import (
 // Bảng điểm của người chơi
 type RestaurantSetting struct {
 	ModelId
-	PartnerUid    string   `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng Golf
-	CourseUid     string   `json:"course_uid" gorm:"type:varchar(256);index"`  // Sân Golf
-	ServiceId     int64    `json:"service_id" gorm:"index"`                    // Id nhà hàng
-	Name          string   `json:"name" gorm:"type:varchar(256)"`              // Tên setting
-	NumberTables  int      `json:"number_tables"`                              // Số bàn
-	PeopleInTable int      `json:"people_in_table"`                            //  Tổng số người trong 1 bàn
-	Type          string   `json:"type" gorm:"type:varchar(100)"`              // Loại setting
-	Time          int      `json:"time"`                                       // Số phút setting
-	Symbol        string   `json:"symbol" gorm:"type:varchar(100)"`            // Ký hiệu
-	TableFrom     int      `json:"table_from"`                                 //
-	DataTables    []string `json:"data_tables"`                                //
+	PartnerUid    string           `json:"partner_uid" gorm:"type:varchar(100);index"` // Hãng Golf
+	CourseUid     string           `json:"course_uid" gorm:"type:varchar(256);index"`  // Sân Golf
+	ServiceId     int64            `json:"service_id" gorm:"index"`                    // Id nhà hàng
+	Name          string           `json:"name" gorm:"type:varchar(256)"`              // Tên setting
+	NumberTables  int              `json:"number_tables"`                              // Số bàn
+	PeopleInTable int              `json:"people_in_table"`                            //  Tổng số người trong 1 bàn
+	Type          string           `json:"type" gorm:"type:varchar(100)"`              // Loại setting
+	Time          int              `json:"time"`                                       // Số phút setting
+	Symbol        string           `json:"symbol" gorm:"type:varchar(100)"`            // Ký hiệu
+	TableFrom     int              `json:"table_from"`                                 //
+	DataTables    utils.ListString `json:"data_tables,omitempty" gorm:"type:json"`     //
 }
 
 func (item *RestaurantSetting) Create(db *gorm.DB) error {
