@@ -35,11 +35,12 @@ func (_ *CBagAttachCaddie) GetListAttachCaddie(c *gin.Context, prof models.CmsUs
 	}
 
 	caddieAttach := model_gostarter.BagAttachCaddie{
-		PartnerUid:  form.PartnerUid,
-		CourseUid:   form.CourseUid,
-		Bag:         form.Search,
-		BookingDate: form.BookingDate,
-		CmsUser:     form.CmsUser,
+		PartnerUid:   form.PartnerUid,
+		CourseUid:    form.CourseUid,
+		CustomerName: form.Search,
+		Bag:          form.Bag,
+		BookingDate:  form.BookingDate,
+		CmsUser:      form.CmsUser,
 	}
 
 	list, total, err := caddieAttach.FindList(db, page)
