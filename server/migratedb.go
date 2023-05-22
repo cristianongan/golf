@@ -209,5 +209,6 @@ func MigrateDbAuth() {
 		db.AutoMigrate(&models.Course{})
 		db.AutoMigrate(&models.CustomerType{})
 		db.AutoMigrate(&models.OperationLog{})
+		db.AutoMigrate(&models.ForceUpdate{})
 	}
 }
