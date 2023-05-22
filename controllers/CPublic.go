@@ -13,6 +13,8 @@ import (
 
 type CPublic struct{}
 
+const API_KEY_FORCE_UPDATE = "cFrdr1Za6qc9kRaOTYEUi18gE5Qeutd5"
+
 type PublicGetBookingBody struct {
 	CheckSum    string `json:"check_sum" binding:"required"`
 	PartnerUid  string `json:"partner_uid" binding:"required"`
@@ -36,6 +38,7 @@ type PublicGetBookingResp struct {
 type GetCurrentAppVersionForm struct {
 	OsType     string `form:"os_type" binding:"required"`     // IOS, ANDROID
 	DeviceType string `form:"device_type" binding:"required"` // PHONE, TABLET
+	Key        string `json:"key" binding:"required"`
 }
 
 type UpdateCurrentAppVersionBody struct {
@@ -53,6 +56,10 @@ func (_ *CPublic) GetCurrentAppVersion(c *gin.Context) {
 	form := GetCurrentAppVersionForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
 		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+	if form.Key != API_KEY_FORCE_UPDATE {
+		response_message.BadRequest(c, "Key invalid")
 		return
 	}
 	currentVersion := models.ForceUpdate{
@@ -77,7 +84,7 @@ func (_ *CPublic) UpdateCurrentAppVersion(c *gin.Context) {
 		return
 	}
 
-	if body.Key != "cFrdr1Za6qc9kRaOTYEUi18gE5Qeutd5" {
+	if body.Key != API_KEY_FORCE_UPDATE {
 		response_message.BadRequest(c, "Key invalid")
 		return
 	}

@@ -883,6 +883,8 @@ func NewRouter() *gin.Engine {
 		{
 			cPublic := new(controllers.CPublic)
 			publicApi.POST("/booking/info", cPublic.GetBookingInfo)
+			publicApi.GET("/app/version", cPublic.GetCurrentAppVersion)
+			publicApi.POST("/app/version/update", cPublic.UpdateCurrentAppVersion)
 		}
 
 		accountantApi := routerApi.Group("accountant")
