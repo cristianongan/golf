@@ -105,39 +105,54 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 
 	// validate caddie
 	if body.CaddieCode != "" {
-		caddie := models.Caddie{
-			PartnerUid: body.PartnerUid,
-			CourseUid:  body.CourseUid,
-			Code:       body.CaddieCode,
-		}
-		errFC := caddie.FindFirst(db)
-		if errFC != nil {
-			response_message.BadRequestFreeMessage(c, "Caddie not found")
+		caddieAttValid := model_gostarter.BagAttachCaddie{}
+
+		caddieAttValid.PartnerUid = body.PartnerUid
+		caddieAttValid.CourseUid = body.CourseUid
+		caddieAttValid.BookingDate = body.BookingDate
+		caddieAttValid.CaddieCode = body.CaddieCode
+
+		_ = caddieAttValid.FindFirst(db)
+		if caddieAttValid.Id > 0 {
+			response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" đã được ghép với bag khác.")
 			return
 		}
 
-		cCaddie := CCaddie{}
-		listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
-		if utils.ContainString(listCaddieWorkingByBookingDate, body.CaddieCode) == -1 {
-			response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" không có lịch làm việc!")
-			return
-		}
-
-		if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
-			response_message.BadRequestFreeMessage(c, "Caddie "+caddie.Code+" đã được ghép với bag khác.")
-			return
-		} else {
-			if errCaddie := checkCaddieReadyForApp(caddie); errCaddie != "" {
-				response_message.BadRequestFreeMessage(c, errCaddie)
+		if body.BookingUid != "" {
+			caddie := models.Caddie{
+				PartnerUid: body.PartnerUid,
+				CourseUid:  body.CourseUid,
+				Code:       body.CaddieCode,
+			}
+			errFC := caddie.FindFirst(db)
+			if errFC != nil {
+				response_message.BadRequestFreeMessage(c, "Caddie not found")
 				return
 			}
-		}
 
-		// Update caddie_current_status
-		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
-		if err := caddie.Update(db); err != nil {
-			response_message.InternalServerError(c, err.Error())
-			return
+			cCaddie := CCaddie{}
+			listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
+			if utils.ContainString(listCaddieWorkingByBookingDate, body.CaddieCode) == -1 {
+				response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" không có lịch làm việc!")
+				return
+			}
+
+			if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
+				response_message.BadRequestFreeMessage(c, "Caddie "+caddie.Code+" đã được ghép với bag khác.")
+				return
+			} else {
+				if errCaddie := checkCaddieReadyForApp(caddie); errCaddie != "" {
+					response_message.BadRequestFreeMessage(c, errCaddie)
+					return
+				}
+			}
+
+			// Update caddie_current_status
+			caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+			if err := caddie.Update(db); err != nil {
+				response_message.InternalServerError(c, err.Error())
+				return
+			}
 		}
 	}
 
@@ -235,6 +250,7 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 	}
 
 	// Updtae
+	caddieOld := caddieAttach.CaddieCode
 	caddieAttach.Bag = body.Bag
 	caddieAttach.BookingDate = body.BookingDate
 	caddieAttach.CaddieCode = body.CaddieCode
@@ -242,67 +258,56 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 
 	// validate caddie
 	if body.CaddieCode != "" && body.CaddieCode != caddieAttach.CaddieCode {
-		caddie := models.Caddie{
-			PartnerUid: prof.PartnerUid,
-			CourseUid:  prof.CourseUid,
-			Code:       body.CaddieCode,
-		}
-		errFC := caddie.FindFirst(db)
-		if errFC != nil {
-			response_message.BadRequestFreeMessage(c, "Caddie not found")
-			return
-		}
+		caddieAttValid := model_gostarter.BagAttachCaddie{}
 
-		cCaddie := CCaddie{}
-		listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(prof.PartnerUid, prof.CourseUid, body.BookingDate)
-		if utils.ContainString(listCaddieWorkingByBookingDate, body.CaddieCode) == -1 {
-			response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" không có lịch làm việc!")
+		caddieAttValid.PartnerUid = prof.PartnerUid
+		caddieAttValid.CourseUid = prof.CourseUid
+		caddieAttValid.BookingDate = body.BookingDate
+		caddieAttValid.CaddieCode = body.CaddieCode
+
+		_ = caddieAttValid.FindFirst(db)
+		if caddieAttValid.Id > 0 {
+			response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" đã được ghép với bag khác.")
 			return
 		}
-
-		if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
-			response_message.BadRequestFreeMessage(c, "Caddie "+caddie.Code+" đã được ghép với bag khác.")
-			return
-		} else {
-			if errCaddie := checkCaddieReadyForApp(caddie); errCaddie != "" {
-				response_message.BadRequestFreeMessage(c, errCaddie)
+		if body.BookingUid != "" {
+			caddie := models.Caddie{
+				PartnerUid: prof.PartnerUid,
+				CourseUid:  prof.CourseUid,
+				Code:       body.CaddieCode,
+			}
+			errFC := caddie.FindFirst(db)
+			if errFC != nil {
+				response_message.BadRequestFreeMessage(c, "Caddie not found")
 				return
 			}
-		}
 
-		// Update caddie_current_status
-		caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
-		if err := caddie.Update(db); err != nil {
-			response_message.InternalServerError(c, err.Error())
-			return
-		}
+			cCaddie := CCaddie{}
+			listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(prof.PartnerUid, prof.CourseUid, body.BookingDate)
+			if utils.ContainString(listCaddieWorkingByBookingDate, body.CaddieCode) == -1 {
+				response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" không có lịch làm việc!")
+				return
+			}
 
-		//Update caddie old
-		caddieOld := models.Caddie{
-			PartnerUid: prof.PartnerUid,
-			CourseUid:  prof.CourseUid,
-			Code:       caddieAttach.CaddieCode,
-		}
+			if caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
+				response_message.BadRequestFreeMessage(c, "Caddie "+caddie.Code+" đã được ghép với bag khác.")
+				return
+			} else {
+				if errCaddie := checkCaddieReadyForApp(caddie); errCaddie != "" {
+					response_message.BadRequestFreeMessage(c, errCaddie)
+					return
+				}
+			}
 
-		errFC = caddieOld.FindFirst(db)
-		if errFC != nil {
-			response_message.BadRequestFreeMessage(c, "Caddie not found")
-			return
-		}
+			// Update caddie_current_status
+			caddie.CurrentStatus = constants.CADDIE_CURRENT_STATUS_LOCK
+			if err := caddie.Update(db); err != nil {
+				response_message.InternalServerError(c, err.Error())
+				return
+			}
 
-		if caddieOld.CurrentRound == 0 {
-			caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
-		} else if caddieOld.CurrentRound == 1 {
-			caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
-		} else if caddieOld.CurrentRound == 2 {
-			caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH_R2
-		} else if caddieOld.CurrentRound == 3 {
-			caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH_R3
-		}
-
-		if err := caddieOld.Update(db); err != nil {
-			response_message.InternalServerError(c, err.Error())
-			return
+			//Update caddie old
+			udpCaddieStatusOut(db, caddieAttach, caddieOld)
 		}
 	}
 
@@ -338,6 +343,9 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 		caddieAttach.BookingUid = ""
 		caddieAttach.CustomerName = ""
 		caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_READY
+
+		//Update caddie old
+		udpCaddieStatusOut(db, caddieAttach, caddieOld)
 	}
 
 	errC := caddieAttach.Update(db)
@@ -437,4 +445,31 @@ func UpdateOldBooking(db *gorm.DB, caddieAtt model_gostarter.BagAttachCaddie) {
 	cNotification := CNotification{}
 	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
 	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, booking)
+}
+
+func udpCaddieStatusOut(db *gorm.DB, caddieAtt model_gostarter.BagAttachCaddie, caddieCode string) {
+	if caddieCode != "" {
+		//Update caddie old
+		caddieOld := models.Caddie{
+			PartnerUid: caddieAtt.PartnerUid,
+			CourseUid:  caddieAtt.CourseUid,
+			Code:       caddieCode,
+		}
+
+		_ = caddieOld.FindFirst(db)
+
+		if caddieOld.CurrentRound == 0 {
+			caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_READY
+		} else if caddieOld.CurrentRound == 1 {
+			caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH
+		} else if caddieOld.CurrentRound == 2 {
+			caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH_R2
+		} else if caddieOld.CurrentRound == 3 {
+			caddieOld.CurrentStatus = constants.CADDIE_CURRENT_STATUS_FINISH_R3
+		}
+
+		if err := caddieOld.Update(db); err != nil {
+			log.Println(err.Error())
+		}
+	}
 }
