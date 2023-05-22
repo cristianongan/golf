@@ -75,9 +75,12 @@ func (item *BagAttachCaddie) FindList(database *gorm.DB, page models.Page) ([]Ba
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
 	}
-	if item.Bag != "" {
+	if item.CustomerName != "" {
 		db = db.Where("bag COLLATE utf8mb4_general_ci LIKE ? OR customer_name COLLATE utf8mb4_general_ci LIKE ? OR caddie_code COLLATE utf8mb4_general_ci LIKE ?",
-			"%"+item.Bag+"%", "%"+item.Bag+"%", "%"+item.Bag+"%")
+			"%"+item.CustomerName+"%", "%"+item.CustomerName+"%", "%"+item.CustomerName+"%")
+	}
+	if item.Bag != "" {
+		db = db.Where("bag = ?", item.Bag)
 	}
 	if item.BookingDate != "" {
 		db = db.Where("booking_date = ?", item.BookingDate)
