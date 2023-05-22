@@ -1105,14 +1105,14 @@ func updateCaddieCheckIn(c *gin.Context, booking *model_booking.Booking, caddie 
 
 				if caddieNew.CurrentStatus == constants.CADDIE_CURRENT_STATUS_LOCK {
 					if booking.CaddieId != caddieNew.Id {
-						return errors.New(caddieNew.Code + " đang bị LOCK")
+						return errors.New("Caddie " + caddieNew.Code + " đang bị LOCK")
 					}
 				} else {
 					if errCaddie := checkCaddieReady(*booking, caddieNew); errCaddie != nil {
 						if strings.Contains(caddieNew.CurrentStatus, "IN_COURSE") {
-							return errors.New(caddieNew.Code + " đang IN COURSE")
+							return errors.New("Caddie " + caddieNew.Code + " đang IN COURSE")
 						}
-						return errors.New(caddieNew.Code + " đang " + caddieNew.CurrentStatus)
+						return errors.New("Caddie " + caddieNew.Code + " đang " + caddieNew.CurrentStatus)
 					}
 				}
 

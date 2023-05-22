@@ -493,6 +493,21 @@ func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
 	applyDate1 := datatypes.Date(dateConvert)
 	idDayOff1 := false
 
+	// Caddie nghỉ hôm nay
+	caddieVC := models.CaddieVacationCalendar{
+		PartnerUid:    form.PartnerUid,
+		CourseUid:     form.CourseId,
+		ApproveStatus: constants.CADDIE_VACATION_APPROVED,
+	}
+
+	listCVCLeave, err := caddieVC.FindAllWithDate(db, "LEAVE", dateConvert)
+
+	if err != nil {
+		log.Println("Find caddie vacation calendar err", err.Error())
+	}
+
+	caddieLeave := GetCaddieCodeFromVacation(listCVCLeave)
+
 	// get caddie work sechedule
 	caddieWCN := models.CaddieWorkingSchedule{
 		PartnerUid: form.PartnerUid,
@@ -530,7 +545,9 @@ func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
 		listIncrease, _, err := caddieWCI.FindAllByDate(db)
 		if err == nil {
 			for _, item := range listIncrease {
-				listCaddieIncrease = append(listCaddieIncrease, item["caddie_code"].(string))
+				if !utils.Contains(caddieLeave, item["caddie_code"].(string)) {
+					listCaddieIncrease = append(listCaddieIncrease, item["caddie_code"].(string))
+				}
 			}
 		}
 	}
@@ -578,7 +595,9 @@ func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
 
 	var caddies []string
 	for _, v := range list {
-		caddies = append(caddies, v.Code)
+		if !utils.Contains(caddieLeave, v.Code) {
+			caddies = append(caddies, v.Code)
+		}
 	}
 
 	caddies = append(caddies, listCaddieIncrease...)

@@ -26,5 +26,6 @@ type GetListAttachCaddieForm struct {
 	CourseUid   string `form:"course_uid" binding:"required"` // Sân Golf
 	BookingDate string `form:"booking_date"`
 	Search      string `form:"search"`
+	Bag         string `form:"bag"`
 	CmsUser     string `form:"cms_user"`
 }
