@@ -1521,10 +1521,6 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.TeeType = body.TeeType
 	}
 
-	if body.CustomerName != "" {
-		booking.CustomerName = body.CustomerName
-	}
-
 	//Update customer infor
 	if booking.CustomerUid != "" {
 		//check customer
@@ -1539,6 +1535,10 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerName = customer.Name
 		// booking.CustomerType = customer.Type
 		booking.CustomerInfo = cloneToCustomerBooking(customer)
+	}
+
+	if body.CustomerName != "" {
+		booking.CustomerName = body.CustomerName
 	}
 
 	booking.CmsUser = prof.UserName
