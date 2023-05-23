@@ -137,13 +137,14 @@ type SaveBillPOSInAppBody struct {
 }
 
 type Item struct {
-	Action        string `json:"action" binding:"required"`
-	ItemCode      string `json:"item_code" binding:"required"`
-	ItemId        int64  `json:"id"`
-	Type          string `json:"type"`
-	Quantity      int    `json:"quantity"`
-	UnitPrice     int64  `json:"unit_price"`
-	DiscountType  string `json:"discount_type"`
-	DiscountValue int64  `json:"discount_value"`
-	Note          string `json:"note"`
+	Action         string `json:"action" binding:"required"`
+	ItemCode       string `json:"item_code" binding:"required"`
+	ItemId         int64  `json:"id"`
+	Type           string `json:"type"`
+	Quantity       int    `json:"quantity"`
+	UnitPrice      int64  `json:"unit_price"`
+	DiscountType   string `json:"discount_type"`
+	DiscountValue  int64  `json:"discount_value"`
+	DiscountReason string `json:"discount_reason"`
+	Note           string `json:"note"`
 }
