@@ -1471,12 +1471,6 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if guestStyle != "" {
-		//Update Agency
-		if body.AgencyId == 0 {
-			booking.AgencyInfo = model_booking.BookingAgency{}
-			booking.AgencyId = 0
-		}
-
 		// Tính giá
 		//Guest style
 		guestBody := request.UpdateAgencyOrMemberCardToBooking{

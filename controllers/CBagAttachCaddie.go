@@ -221,16 +221,8 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 		return
 	}
 
-	if body.CaddieCode == "" && body.Bag == "" && body.BookingUid == "" {
-		errDel := caddieAttach.Delete(db)
-		if errDel != nil {
-			response_message.InternalServerError(c, errDel.Error())
-			return
-		}
-	}
-
 	// validate bag
-	if body.Bag != caddieAttach.Bag {
+	if body.Bag != "" && body.Bag != caddieAttach.Bag {
 		bookingBag := model_booking.Booking{}
 
 		bookingBag.PartnerUid = prof.PartnerUid
@@ -355,23 +347,35 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 	} else {
 		if caddieAttach.BookingUid != "" {
 			go UpdateOldBooking(db, caddieAttach)
+
+			//Update caddie old
+			udpCaddieStatusOut(db, caddieAttach, caddieOld)
 		}
 		caddieAttach.BookingUid = ""
 		caddieAttach.CustomerName = ""
 		caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_READY
-
-		//Update caddie old
-		udpCaddieStatusOut(db, caddieAttach, caddieOld)
 	}
 
-	errC := caddieAttach.Update(db)
+	// Delete bag attach caddie
+	if body.CaddieCode == "" && body.Bag == "" && body.BookingUid == "" {
+		errDel := caddieAttach.Delete(db)
+		if errDel != nil {
+			response_message.InternalServerError(c, errDel.Error())
+			return
+		}
 
-	if errC != nil {
-		response_message.InternalServerError(c, errC.Error())
-		return
+		okRes(c)
+	} else {
+		errC := caddieAttach.Update(db)
+
+		if errC != nil {
+			response_message.InternalServerError(c, errC.Error())
+			return
+		}
+
+		okResponse(c, caddieAttach)
 	}
 
-	okResponse(c, caddieAttach)
 }
 
 func (_ *CBagAttachCaddie) DeleteAttachCaddie(c *gin.Context, prof models.CmsUser) {
