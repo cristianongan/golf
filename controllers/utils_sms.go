@@ -46,8 +46,10 @@ func genQRCodeListBook(listBooking []model_booking.Booking) {
 		cNotification := CNotification{}
 		bookingClone := v
 		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, &bookingClone)
-		go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, model_booking.Booking{})
 	}
+
+	cNotification := CNotification{}
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, model_booking.Booking{})
 
 }
 
