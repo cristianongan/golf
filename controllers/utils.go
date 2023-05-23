@@ -500,7 +500,8 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 
 	err := booking.FindFirst(db)
 	if err != nil {
-		return err, response.AddCaddieBuggyToBookingRes{}
+		errTitle := fmt.Sprintln("Không tìm thấy bag ", bag)
+		return errors.New(errTitle), response.AddCaddieBuggyToBookingRes{}
 	}
 
 	response := response.AddCaddieBuggyToBookingRes{}
