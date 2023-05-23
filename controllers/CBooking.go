@@ -334,7 +334,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		guestBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   body.PartnerUid,
 			CourseUid:    body.CourseUid,
-			AgencyId:     body.AgencyId,
 			BUid:         bUid,
 			CustomerName: body.CustomerName,
 			Hole:         booking.Hole,
@@ -954,7 +953,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 		guestBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   body.PartnerUid,
 			CourseUid:    body.CourseUid,
-			AgencyId:     body.AgencyId,
 			BUid:         booking.Uid,
 			CustomerName: body.CustomerName,
 			Hole:         body.Hole,
@@ -1470,7 +1468,6 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		guestBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   booking.PartnerUid,
 			CourseUid:    booking.CourseUid,
-			AgencyId:     body.AgencyId,
 			BUid:         booking.Uid,
 			CustomerName: body.CustomerName,
 			Hole:         body.Hole,
