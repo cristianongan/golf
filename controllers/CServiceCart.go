@@ -2645,6 +2645,7 @@ func updItemInApp(c *gin.Context, bill models.ServiceCart, bsItem model_booking.
 
 		bsItem.DiscountType = item.DiscountType
 		bsItem.DiscountValue = item.DiscountValue
+		bsItem.DiscountReason = item.DiscountReason
 	}
 
 	if item.Note != "" {
