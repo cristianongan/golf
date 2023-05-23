@@ -334,7 +334,6 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 		guestBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   body.PartnerUid,
 			CourseUid:    body.CourseUid,
-			AgencyId:     body.AgencyId,
 			BUid:         bUid,
 			CustomerName: body.CustomerName,
 			Hole:         booking.Hole,
@@ -950,17 +949,10 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	// GuestStyle
 	if guestStyle != "" && booking.GuestStyle != guestStyle {
-		//Update Agency
-		if body.AgencyId == 0 {
-			booking.AgencyInfo = model_booking.BookingAgency{}
-			booking.AgencyId = 0
-		}
-
 		//Guest style
 		guestBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   body.PartnerUid,
 			CourseUid:    body.CourseUid,
-			AgencyId:     body.AgencyId,
 			BUid:         booking.Uid,
 			CustomerName: body.CustomerName,
 			Hole:         body.Hole,
@@ -1471,18 +1463,11 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if guestStyle != "" {
-		//Update Agency
-		if body.AgencyId == 0 {
-			booking.AgencyInfo = model_booking.BookingAgency{}
-			booking.AgencyId = 0
-		}
-
 		// Tính giá
 		//Guest style
 		guestBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   booking.PartnerUid,
 			CourseUid:    booking.CourseUid,
-			AgencyId:     body.AgencyId,
 			BUid:         booking.Uid,
 			CustomerName: body.CustomerName,
 			Hole:         body.Hole,
