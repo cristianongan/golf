@@ -815,6 +815,10 @@ func (cCourseOperating *CCourseOperating) SimpleOutFlight(c *gin.Context, prof m
 
 	go createOperationLog(opLog)
 
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+
 	okRes(c)
 }
 
@@ -1068,6 +1072,9 @@ func (cCourseOperating *CCourseOperating) DeleteAttach(c *gin.Context, prof mode
 
 	go createOperationLog(opLog)
 
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
 	okResponse(c, booking)
 }
 
