@@ -134,3 +134,14 @@ func (item *ListBookingAgencyPayForBagData) Scan(v interface{}) error {
 func (item ListBookingAgencyPayForBagData) Value() (driver.Value, error) {
 	return json.Marshal(&item)
 }
+
+// ------- List Interface ---------
+type ListInterface []map[string]interface{}
+
+func (item *ListInterface) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), item)
+}
+
+func (item ListInterface) Value() (driver.Value, error) {
+	return json.Marshal(&item)
+}

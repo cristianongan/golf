@@ -227,6 +227,9 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 			response_message.InternalServerError(c, errDel.Error())
 			return
 		}
+
+		udpCaddieStatusOut(db, caddieAttach, caddieAttach.CaddieCode)
+		okRes(c)
 	}
 
 	// validate bag
