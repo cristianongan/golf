@@ -950,12 +950,6 @@ func (cBooking *CBooking) UpdateBooking(c *gin.Context, prof models.CmsUser) {
 
 	// GuestStyle
 	if guestStyle != "" && booking.GuestStyle != guestStyle {
-		//Update Agency
-		if body.AgencyId == 0 {
-			booking.AgencyInfo = model_booking.BookingAgency{}
-			booking.AgencyId = 0
-		}
-
 		//Guest style
 		guestBody := request.UpdateAgencyOrMemberCardToBooking{
 			PartnerUid:   body.PartnerUid,
