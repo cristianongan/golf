@@ -146,7 +146,7 @@ func runCreateCaddieWorkingSlot() {
 	// Check trạng thái caddie nghỉ trong tuần
 	if index == -1 && len(dataGroupWorking) > 0 && dayNow != 6 && dayNow != 0 {
 		for _, item := range listCVCWork {
-			if item.ContractStatus == constants.CADDIE_CONTRACT_STATUS_FULLTIME {
+			if item.ContractStatus == constants.CADDIE_CONTRACT_STATUS_FULLTIME && utils.Contains(dataGroupWorking, item.GroupId) {
 				caddieWork = append(caddieWork, item.CaddieCode)
 			}
 		}

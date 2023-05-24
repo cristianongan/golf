@@ -46,7 +46,8 @@ type CaddieVacationCalendarList struct {
 	ApproveStatus  string `json:"approve_status"`
 	ApproveTime    int64  `json:"approve_time"`
 	UserApprove    string `json:"user_approve"`
-	ContractStatus string `json:"contract_status" gorm:"type:varchar(128);index"`
+	ContractStatus string `json:"contract_status"`
+	GroupId        int64  `json:"group_id"`
 }
 
 func (item *CaddieVacationCalendar) Create(db *gorm.DB) error {
@@ -109,7 +110,7 @@ func (item *CaddieVacationCalendar) FindAllWithDate(database *gorm.DB, typeWork 
 
 	db := database.Model(CaddieVacationCalendar{})
 
-	db = db.Select("caddie_vacation_calendars.*, caddies.contract_status")
+	db = db.Select("caddie_vacation_calendars.*, caddies.contract_status, caddies.group_id")
 
 	if item.CourseUid != "" {
 		db = db.Where("caddie_vacation_calendars.course_uid = ?", item.CourseUid)
