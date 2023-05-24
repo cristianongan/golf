@@ -32,8 +32,8 @@ type GetListCmsUserForm struct {
 	PageRequest
 	CourseUid  string `form:"course_uid"`
 	PartnerUid string `form:"partner_uid" binding:"required"`
-	Type       string `json:"type"`
-	RoleId     int64  `json:"role_id"`
+	Type       string `form:"type"`
+	RoleId     int64  `form:"role_id"`
 	Search     string `form:"search"`
 }
 
