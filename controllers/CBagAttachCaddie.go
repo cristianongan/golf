@@ -176,6 +176,11 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 			return
 		}
 
+		if booking.CheckInTime > 0 {
+			response_message.BadRequestFreeMessage(c, "Khách đã checkin")
+			return
+		}
+
 		caddieAttach.BookingUid = body.BookingUid
 		caddieAttach.CustomerName = body.CustomerName
 		caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_BOOKING
@@ -319,6 +324,11 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 			return
 		}
 
+		if booking.CheckInTime > 0 {
+			response_message.BadRequestFreeMessage(c, "Khách đã checkin")
+			return
+		}
+
 		if caddieAttach.BookingUid != "" && caddieAttach.BookingUid != body.BookingUid {
 			go UpdateOldBooking(db, caddieAttach)
 		}
@@ -458,13 +468,15 @@ func UpdateOldBooking(db *gorm.DB, caddieAtt model_gostarter.BagAttachCaddie) {
 	booking.LockerNo = ""
 	// booking.LockerStatus = ""
 
-	if err := booking.Update(db); err != nil {
-		log.Println("UpdateBooking err: ", err)
-	}
+	if booking.CheckInTime == 0 {
+		if err := booking.Update(db); err != nil {
+			log.Println("UpdateBooking err: ", err)
+		}
 
-	cNotification := CNotification{}
-	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
-	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, booking)
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+		go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, booking)
+	}
 }
 
 func udpCaddieStatusOut(db *gorm.DB, caddieAtt model_gostarter.BagAttachCaddie, caddieCode string) {
