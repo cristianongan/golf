@@ -288,6 +288,8 @@ func (_ *CCmsUser) GetList(c *gin.Context, prof models.CmsUser) {
 	cmsUserR := models.CmsUser{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
+		Type:       form.Type,
+		RoleId:     form.RoleId,
 	}
 
 	subRoles, err := model_role.GetAllSubRoleUids(int(prof.RoleId))
