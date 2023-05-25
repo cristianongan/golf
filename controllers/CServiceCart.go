@@ -2426,6 +2426,7 @@ func addItemKioskInApp(c *gin.Context, bill models.ServiceCart, booking model_bo
 	serviceCartItem.Amount = int64(item.Quantity) * item.UnitPrice
 	serviceCartItem.DiscountType = item.DiscountType
 	serviceCartItem.DiscountValue = item.DiscountValue
+	serviceCartItem.DiscountReason = item.DiscountReason
 	serviceCartItem.Input = item.Note
 	serviceCartItem.UserAction = prof.UserName
 
@@ -2540,6 +2541,7 @@ func addItemResInApp(c *gin.Context, bill models.ServiceCart, booking model_book
 
 	serviceCartItem.DiscountType = item.DiscountType
 	serviceCartItem.DiscountValue = item.DiscountValue
+	serviceCartItem.DiscountReason = item.DiscountReason
 	serviceCartItem.Input = item.Note
 
 	if item.DiscountType == constants.ITEM_BILL_DISCOUNT_BY_PERCENT {
@@ -2645,6 +2647,7 @@ func updItemInApp(c *gin.Context, bill models.ServiceCart, bsItem model_booking.
 
 		bsItem.DiscountType = item.DiscountType
 		bsItem.DiscountValue = item.DiscountValue
+		bsItem.DiscountReason = item.DiscountReason
 	}
 
 	if item.Note != "" {
