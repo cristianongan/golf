@@ -11,19 +11,20 @@ import (
 // Sân Golf
 type Course struct {
 	Model
-	PartnerUid          string  `json:"partner_uid" gorm:"type:varchar(100);index"`
-	Name                string  `json:"name" gorm:"type:varchar(256)"`
-	Hole                int     `json:"hole"`
-	Address             string  `json:"address" gorm:"type:varchar(500)"`
-	Lat                 float64 `json:"lat"`
-	Lng                 float64 `json:"lng"`
-	Icon                string  `json:"icon" gorm:"type:varchar(256)"`
-	TypeSendInfoBooking string  `json:"type_send_info_booking" gorm:"type:varchar(100)"`
-	EmailBooking        string  `json:"email_booking" gorm:"type:varchar(100)"`
-	RateGolfFee         string  `json:"rate_golf_fee" gorm:"type:varchar(256)"`
-	MaxPeopleInFlight   int     `json:"max_people_in_flight"`                          //số người tối đa trong 1 flight. Mặc định để 4 người.
-	MemberBooking       *bool   `json:"member_booking" gorm:"default:0"`               // yêu cầu nguồn booking phải có tối thiểu 1 member.
-	ApiKey              string  `json:"api_key" gorm:"->;<-:create;type:varchar(100)"` // Api key, chỉ cho phép read và create
+	PartnerUid                string  `json:"partner_uid" gorm:"type:varchar(100);index"`
+	Name                      string  `json:"name" gorm:"type:varchar(256)"`
+	Hole                      int     `json:"hole"`
+	Address                   string  `json:"address" gorm:"type:varchar(500)"`
+	Lat                       float64 `json:"lat"`
+	Lng                       float64 `json:"lng"`
+	Icon                      string  `json:"icon" gorm:"type:varchar(256)"`
+	TypeSendInfoBooking       string  `json:"type_send_info_booking" gorm:"type:varchar(100)"`
+	TypeSendInfoBookingAgency string  `json:"type_send_info_booking_agency" gorm:"type:varchar(100)"`
+	EmailBooking              string  `json:"email_booking" gorm:"type:varchar(100)"`
+	RateGolfFee               string  `json:"rate_golf_fee" gorm:"type:varchar(256)"`
+	MaxPeopleInFlight         int     `json:"max_people_in_flight"`                          //số người tối đa trong 1 flight. Mặc định để 4 người.
+	MemberBooking             *bool   `json:"member_booking" gorm:"default:0"`               // yêu cầu nguồn booking phải có tối thiểu 1 member.
+	ApiKey                    string  `json:"api_key" gorm:"->;<-:create;type:varchar(100)"` // Api key, chỉ cho phép read và create
 }
 
 type CourseRes struct {

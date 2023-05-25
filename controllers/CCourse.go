@@ -56,6 +56,7 @@ func (_ *CCourse) CreateCourse(c *gin.Context, prof models.CmsUser) {
 	course.RateGolfFee = body.RateGolfFee
 	course.MemberBooking = body.MemberBooking
 	course.TypeSendInfoBooking = body.TypeSendInfoBooking
+	course.TypeSendInfoBookingAgency = body.TypeSendInfoBookingAgency
 	if body.MaxPeopleInFlight > 0 {
 		course.MaxPeopleInFlight = body.MaxPeopleInFlight
 	} else {
@@ -163,6 +164,9 @@ func (_ *CCourse) UpdateCourse(c *gin.Context, prof models.CmsUser) {
 	}
 	if body.TypeSendInfoBooking != "" {
 		course.TypeSendInfoBooking = body.TypeSendInfoBooking
+	}
+	if body.TypeSendInfoBookingAgency != "" {
+		course.TypeSendInfoBookingAgency = body.TypeSendInfoBookingAgency
 	}
 	if body.RateGolfFee != "" {
 		course.RateGolfFee = body.RateGolfFee
