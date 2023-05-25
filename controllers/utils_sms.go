@@ -39,7 +39,7 @@ func genQRCodeListBook(listBooking []model_booking.Booking) {
 	}
 
 	// check config
-	courseUid := listBooking[0].Uid
+	courseUid := listBooking[0].CourseUid
 	agencyId := listBooking[0].AgencyId
 	customerBookingEmail := listBooking[0].CustomerBookingEmail
 	customerBookingPhone := listBooking[0].CustomerBookingPhone
