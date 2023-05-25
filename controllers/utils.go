@@ -2196,4 +2196,5 @@ func genQrCodeForBooking(booking *model_booking.Booking) {
 		log.Println("genQrCodeForBooking err, ", err.Error())
 	}
 
+	booking = &bookingR
 }
