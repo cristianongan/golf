@@ -312,12 +312,12 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 	for i, b := range listBooking {
 		iStr := strconv.Itoa(i + 1)
 		message += `<p>` + iStr + ". Player " + b.CustomerName + " "
-		playerName := ""
+		// playerName := ""
 		if b.MemberCard != nil {
-			playerName = b.MemberCard.CardId
+			message += fmt.Sprintf(`(<span style="font-weight: bold;">%s</span>)`, b.MemberCard.CardId)
 		}
 
-		message += fmt.Sprintf(`(<span style="font-weight: bold;">%s</span>) - Mã check-in: <span style="font-weight: bold;">%s</span> - (QR Check-in: "`, playerName, b.CheckInCode)
+		message += fmt.Sprintf(` - Mã check-in: <span style="font-weight: bold;">%s</span> - (QR Check-in: "`, b.CheckInCode)
 
 		// base64 qr image
 		encodeQrUrl := base64.StdEncoding.EncodeToString([]byte(b.QrcodeUrl))
