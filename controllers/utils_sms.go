@@ -8,6 +8,7 @@ import (
 	"log"
 	"mime/multipart"
 	"start/config"
+	"start/constants"
 	"start/datasources"
 	"start/models"
 	model_booking "start/models/booking"
@@ -32,13 +33,65 @@ type QrCodeUrlModel struct {
 Gen QR URL -> send sms
 */
 func genQRCodeListBook(listBooking []model_booking.Booking) {
+	if len(listBooking) < 1 {
+		log.Println("genQRCodeListBook can not find any Booking")
+		return
+	}
+
+	// check config
+	courseUid := listBooking[0].Uid
+	agencyId := listBooking[0].AgencyId
+	customerBookingEmail := listBooking[0].CustomerBookingEmail
+	customerBookingPhone := listBooking[0].CustomerBookingPhone
+
+	course := models.Course{}
+
+	course.Uid = courseUid
+
+	err := course.FindFirst()
+
+	if err != nil {
+		log.Println("genQRCodeListBook - Can not find course with uid: ", courseUid, err)
+	}
+
 	listHaveQRURL := []model_booking.Booking{}
 	for _, v := range listBooking {
 		genQrCodeForBooking(&v)
 		listHaveQRURL = append(listHaveQRURL, v)
 	}
-	//disable for prod
-	// sendSmsBooking(listHaveQRURL)
+
+	// check config accept auto send
+	if !course.AutoSendBooking {
+		log.Println("genQRCodeListBook - config is disabled auto send sms and email ")
+
+		return
+	}
+
+	// bắn theo config angency
+	if agencyId > 0 {
+		// Send email
+		if course.TypeSendInfoBookingAgency == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBookingAgency == constants.SEND_INFOR_GUEST_EMAIL {
+			go sendEmailBooking(listHaveQRURL, customerBookingEmail)
+
+		}
+
+		// Send sms
+		if course.TypeSendInfoBookingAgency == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBookingAgency == constants.SEND_INFOR_GUEST_SMS {
+			go sendSmsBooking(listHaveQRURL, customerBookingPhone)
+		}
+	} else {
+		// Send email
+		if course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_EMAIL {
+			go sendEmailBooking(listHaveQRURL, customerBookingEmail)
+
+		}
+
+		// Send sms
+		if course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_SMS {
+			go sendSmsBooking(listHaveQRURL, customerBookingPhone)
+		}
+	}
+
 }
 
 /*

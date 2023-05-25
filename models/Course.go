@@ -25,6 +25,7 @@ type Course struct {
 	MaxPeopleInFlight         int     `json:"max_people_in_flight"`                          //số người tối đa trong 1 flight. Mặc định để 4 người.
 	MemberBooking             *bool   `json:"member_booking" gorm:"default:0"`               // yêu cầu nguồn booking phải có tối thiểu 1 member.
 	ApiKey                    string  `json:"api_key" gorm:"->;<-:create;type:varchar(100)"` // Api key, chỉ cho phép read và create
+	AutoSendBooking           bool    `json:"auto_send_booking" gorm:"default:0"`
 }
 
 type CourseRes struct {
