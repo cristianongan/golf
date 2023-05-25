@@ -57,6 +57,7 @@ func (_ *CCourse) CreateCourse(c *gin.Context, prof models.CmsUser) {
 	course.MemberBooking = body.MemberBooking
 	course.TypeSendInfoBooking = body.TypeSendInfoBooking
 	course.TypeSendInfoBookingAgency = body.TypeSendInfoBookingAgency
+	course.AutoSendBooking = body.AutoSendBooking
 	if body.MaxPeopleInFlight > 0 {
 		course.MaxPeopleInFlight = body.MaxPeopleInFlight
 	} else {
@@ -177,6 +178,9 @@ func (_ *CCourse) UpdateCourse(c *gin.Context, prof models.CmsUser) {
 	if body.MemberBooking != nil {
 		course.MemberBooking = body.MemberBooking
 	}
+
+	// bool field default false
+	course.AutoSendBooking = body.AutoSendBooking
 
 	errUdp := course.Update()
 	if errUdp != nil {
