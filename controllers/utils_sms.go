@@ -311,7 +311,7 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 
 	for i, b := range listBooking {
 		iStr := strconv.Itoa(i + 1)
-		message += `<p>` + iStr + ". Player " + b.CustomerName + " "
+		message += `<p>` + iStr + ". Player " + b.CustomerName + ""
 		// playerName := ""
 		if b.MemberCard != nil {
 			message += fmt.Sprintf(`(<span style="font-weight: bold;">%s</span>)`, b.MemberCard.CardId)
