@@ -23,6 +23,7 @@ type Flight struct {
 	Bookings    []Booking `json:"bookings"`
 	GroupName   string    `json:"group_name" gorm:"type:varchar(100)"`
 	CourseType  string    `json:"course_type" gorm:"type:varchar(50)"`
+	FlightIndex int       `json:"flight_index" gorm:"index"` // Số thức tự của flight
 }
 
 type Booking BookingForFlight

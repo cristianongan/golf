@@ -337,6 +337,23 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		log.Println("booking date display err ", errDate.Error())
 	}
 
+	// Get key redis to add data flight index
+	key := datasources.GetRedisKeyFlightIndex(body.PartnerUid, body.CourseUid, dateDisplay)
+
+	// check cache
+	data, errCache := datasources.GetCache(key)
+	if errCache != nil {
+		datasources.SetCache(key, "1", 246060)
+		data = "1"
+	}
+	// Add index flight
+	index, _ := strconv.Atoi(data)
+	flight.FlightIndex = index
+
+	//Update data redis
+	index += 1
+	datasources.SetCache(key, strconv.Itoa(index), 246060)
+
 	errCF := flight.Create()
 	if errCF != nil {
 		response_message.InternalServerError(c, errCF.Error())
