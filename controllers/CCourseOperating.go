@@ -1376,6 +1376,9 @@ func (cCourseOperating CCourseOperating) ChangeBuggy(c *gin.Context, prof models
 
 	go createOperationLog(opLog)
 
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+
 	okResponse(c, booking)
 }
 
@@ -1964,6 +1967,9 @@ func (cCourseOperating CCourseOperating) UndoTimeOut(c *gin.Context, prof models
 
 			go createOperationLog(opLog)
 		}
+
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
 
 	}
 
