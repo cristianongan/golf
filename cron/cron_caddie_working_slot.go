@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/bsm/redislock"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -20,11 +21,22 @@ type ModelCourse struct {
 
 func runCreateCaddieWorkingSlotJob() {
 	// Để xử lý cho chạy nhiều instance Server
-	isObtain := datasources.GetLockerRedisObtainWith(datasources.GetRedisKeyLockerCreateCaddieWorkingSlot(), 60)
+	// isObtain := datasources.GetLockerRedisObtainWith(datasources.GetRedisKeyLockerCreateCaddieWorkingSlot(), 60)
+	// // Ko lấy được lock, return luôn
+	// if !isObtain {
+	// 	return
+	// }
+
+	redisKey := datasources.GetRedisKeyLockerCreateCaddieWorkingSlot()
+	lock, err := datasources.GetLockerRedis().Obtain(datasources.GetCtxRedis(), redisKey, 60*time.Second, nil)
 	// Ko lấy được lock, return luôn
-	if !isObtain {
+	if err == redislock.ErrNotObtained || err != nil {
+		log.Println("[CRON] runCreateCaddieWorkingSlotJob Could not obtain lock", redisKey)
 		return
 	}
+
+	defer lock.Release(datasources.GetCtxRedis())
+
 	// Logic chạy cron bên dưới
 	runCreateCaddieWorkingSlot()
 }
@@ -146,7 +158,7 @@ func runCreateCaddieWorkingSlot() {
 	// Check trạng thái caddie nghỉ trong tuần
 	if index == -1 && len(dataGroupWorking) > 0 && dayNow != 6 && dayNow != 0 {
 		for _, item := range listCVCWork {
-			if item.ContractStatus == constants.CADDIE_CONTRACT_STATUS_FULLTIME {
+			if item.ContractStatus == constants.CADDIE_CONTRACT_STATUS_FULLTIME && utils.Contains(dataGroupWorking, item.GroupId) {
 				caddieWork = append(caddieWork, item.CaddieCode)
 			}
 		}

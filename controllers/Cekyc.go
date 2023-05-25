@@ -116,11 +116,22 @@ func (_ *Cekyc) CheckBookingMemberForEkyc(c *gin.Context) {
 
 	db := datasources.GetDatabaseWithPartner(body.PartnerUid)
 
+	//Find card id
+	memberCard := models.MemberCard{}
+	memberCard.Uid = body.MemberUid
+	errFMc := memberCard.FindFirst(db)
+	if errFMc != nil {
+		responseBaseModel.Code = "07"
+		responseBaseModel.Desc = "không tìm thấy thông tin thẻ"
+		c.JSON(http.StatusBadRequest, responseBaseModel)
+		return
+	}
+
 	bookingR := model_booking.Booking{
-		PartnerUid:    body.PartnerUid,
-		CourseUid:     body.CourseUid,
-		BookingDate:   body.BookingDate,
-		MemberCardUid: body.MemberUid,
+		PartnerUid:  body.PartnerUid,
+		CourseUid:   body.CourseUid,
+		BookingDate: body.BookingDate,
+		CustomerUid: memberCard.OwnerUid,
 	}
 
 	listBook, errLb := bookingR.FindMemberBooking(db)
@@ -151,8 +162,8 @@ func (_ *Cekyc) CheckBookingMemberForEkyc(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, responseBaseModel)
 			return
 		}
-		responseBaseModel.Code = "03"
-		responseBaseModel.Desc = "Not find Booking"
+		responseBaseModel.Code = "08"
+		responseBaseModel.Desc = "Bag da check in"
 		c.JSON(http.StatusBadRequest, responseBaseModel)
 		return
 	}
@@ -215,6 +226,13 @@ func (_ *Cekyc) CheckInBookingMemberForEkyc(c *gin.Context) {
 	if errFB != nil {
 		responseBaseModel.Code = "03"
 		responseBaseModel.Desc = "Not find Booking"
+		c.JSON(http.StatusBadRequest, responseBaseModel)
+		return
+	}
+
+	if booking.BagStatus != constants.BAG_STATUS_BOOKING {
+		responseBaseModel.Code = "08"
+		responseBaseModel.Desc = "Bag da check in"
 		c.JSON(http.StatusBadRequest, responseBaseModel)
 		return
 	}

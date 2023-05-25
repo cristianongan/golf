@@ -68,8 +68,8 @@ func CallEkyc(urlFull string, bBody []byte, dataModel EkycUpdateBody, imgFile *m
 
 	// log.Println("CallEkyc len data", payload.Bytes())
 
-	log.Println("CallEkyc payload", payload)
-	log.Println("CallEkyc writer", writer)
+	// log.Println("CallEkyc payload", payload)
+	// log.Println("CallEkyc writer", writer)
 
 	client := &http.Client{
 		Timeout: time.Second * constants.TIMEOUT,

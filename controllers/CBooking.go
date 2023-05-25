@@ -1382,21 +1382,21 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.Locker != "" {
-		locker := models.Locker{
-			PartnerUid:   booking.PartnerUid,
-			CourseUid:    booking.CourseUid,
-			Locker:       body.Locker,
-			BookingDate:  booking.BookingDate,
-			LockerStatus: constants.LOCKER_STATUS_UNRETURNED,
-		}
+		// locker := models.Locker{
+		// 	PartnerUid:   booking.PartnerUid,
+		// 	CourseUid:    booking.CourseUid,
+		// 	Locker:       body.Locker,
+		// 	BookingDate:  booking.BookingDate,
+		// 	LockerStatus: constants.LOCKER_STATUS_UNRETURNED,
+		// }
 
-		// check tồn tại
-		_ = locker.FindFirst(db)
+		// // check tồn tại
+		// _ = locker.FindFirst(db)
 
-		if locker.Id > 0 {
-			response_message.BadRequestFreeMessage(c, "Locker đã được mượn.")
-			return
-		}
+		// if locker.Id > 0 {
+		// 	response_message.BadRequestFreeMessage(c, "Locker đã được mượn.")
+		// 	return
+		// }
 
 		booking.LockerNo = body.Locker
 		go createLocker(db, booking)
@@ -1521,10 +1521,6 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.TeeType = body.TeeType
 	}
 
-	if body.CustomerName != "" {
-		booking.CustomerName = body.CustomerName
-	}
-
 	//Update customer infor
 	if booking.CustomerUid != "" {
 		//check customer
@@ -1539,6 +1535,10 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		booking.CustomerName = customer.Name
 		// booking.CustomerType = customer.Type
 		booking.CustomerInfo = cloneToCustomerBooking(customer)
+	}
+
+	if body.CustomerName != "" {
+		booking.CustomerName = body.CustomerName
 	}
 
 	booking.CmsUser = prof.UserName

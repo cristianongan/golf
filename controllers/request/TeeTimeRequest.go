@@ -8,6 +8,7 @@ type CreateTeeTimeSettings struct {
 	DateTime      string `json:"date_time" binding:"required"`
 	TeeType       string `json:"tee_type" binding:"required"`
 	Note          string `json:"note"`
+	LockLevel     string `json:"lock_level"`
 }
 type GetListTeeTimeSettings struct {
 	PageRequest

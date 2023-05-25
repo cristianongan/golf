@@ -2184,10 +2184,17 @@ func genQrCodeForBooking(booking *model_booking.Booking) {
 	}
 
 	//Update booking
-	booking.CheckInCode = checkinCode
-	booking.QrcodeUrl = link
-	if err := booking.Update(db); err != nil {
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = booking.Uid
+	if err := bookingR.FindFirst(db); err != nil {
 		log.Println("genQrCodeForBooking err, ", err.Error())
 	}
 
+	bookingR.CheckInCode = checkinCode
+	bookingR.QrcodeUrl = link
+	if err := bookingR.Update(db); err != nil {
+		log.Println("genQrCodeForBooking err, ", err.Error())
+	}
+
+	booking = &bookingR
 }

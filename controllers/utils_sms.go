@@ -46,8 +46,10 @@ func genQRCodeListBook(listBooking []model_booking.Booking) {
 		cNotification := CNotification{}
 		bookingClone := v
 		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, &bookingClone)
-		go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, model_booking.Booking{})
 	}
+
+	cNotification := CNotification{}
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, model_booking.Booking{})
 
 }
 
@@ -70,7 +72,7 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 		return errPhone
 	}
 
-	message := "San " + listBooking[0].CourseUid + " xac nhan dat cho ngay " + listBooking[0].BookingDate + ": "
+	message := "San " + getSmsGolfName(listBooking[0].CourseUid) + " xac nhan dat cho ngay " + listBooking[0].BookingDate + ": "
 
 	for i, b := range listBooking {
 		if b.AgencyId > 0 {
@@ -228,32 +230,47 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 	}
 
 	// subject
-	subject := "Sân " + course.Name + " xác nhận đặt chỗ ngày " + listBooking[0].BookingDate
+	subject := getSmsGolfName(course.Uid) + " xác nhận đặt chỗ ngày " + listBooking[0].BookingDate
 
 	// message
-	message := fmt.Sprintf(`
+	message := ""
+
+	if listBooking[0].AgencyId > 0 {
+		message = fmt.Sprintf(`
 		<!DOCTYPE html>
 		<html>
 		</head>
 		<body>
-		<h4 style="margin-bottom:20px;">Dear %s,</h4>
+		<h4 style="margin-bottom:20px;">Kính gửi Quý đối tác %s,</h4>
 		<p>Sân <span style="font-weight: bold;">%s</span> xác nhận đặt chỗ ngày <span style="font-weight: bold;">%s</span> :</p>
 		<p>- Mã đặt chỗ: <span style="font-weight: bold;">%s</span></p>
+		<p>- Người đặt: <span style="font-weight: bold;">%s(%s)</span></p>
+		<p style="margin-bottom:20px;">- Số lượng: <span style="font-weight: bold;">%d</span></p>
+	`, listBooking[0].AgencyInfo.ShortName, course.Name, listBooking[0].BookingDate, listBooking[0].BookingCode,
+			listBooking[0].AgencyInfo.ShortName, listBooking[0].AgencyInfo.AgencyId, len(listBooking))
+	} else {
+		message = fmt.Sprintf(`
+		<!DOCTYPE html>
+		<html>
+		</head>
+		<body>
+		<h4 style="margin-bottom:20px;">Kính gửi anh/chị %s,</h4>
+		<p><span style="font-weight: bold;">%s</span> xin xác nhận đặt chỗ ngày <span style="font-weight: bold;">%s</span> :</p>
 		<p>- Người đặt: <span style="font-weight: bold;">%s</span></p>
 		<p style="margin-bottom:20px;">- Số lượng: <span style="font-weight: bold;">%d</span></p>
-
-	`, listBooking[0].CustomerBookingName, course.Name, listBooking[0].BookingDate, listBooking[0].BookingCode,
-		listBooking[0].CustomerBookingName, len(listBooking))
+	`, listBooking[0].CustomerBookingName, course.Name, listBooking[0].BookingDate,
+			listBooking[0].CustomerBookingName, len(listBooking))
+	}
 
 	for i, b := range listBooking {
 		iStr := strconv.Itoa(i + 1)
-		message += `<p>` + iStr + ". Player " + b.CustomerName + ": "
+		message += `<p>` + iStr + ". Player " + b.CustomerName + " "
 		playerName := ""
 		if b.MemberCard != nil {
 			playerName = b.MemberCard.CardId
 		}
 
-		message += fmt.Sprintf(`<span style="font-weight: bold;">%s</span> Ma check-in: <span style="font-weight: bold;">%s</span> - (QR Check-in: "`, playerName, b.CheckInCode)
+		message += fmt.Sprintf(`(<span style="font-weight: bold;">%s</span>) - Mã check-in: <span style="font-weight: bold;">%s</span> - (QR Check-in: "`, playerName, b.CheckInCode)
 
 		// base64 qr image
 		encodeQrUrl := base64.StdEncoding.EncodeToString([]byte(b.QrcodeUrl))
@@ -308,5 +325,16 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 	// Send mail
 	errSend := datasources.SendEmail(email, subject, message, sender)
 
+	if errSend != nil {
+		log.Println("sendEmailBooking errSend", errSend.Error())
+	}
+
 	return errSend
+}
+
+func getSmsGolfName(coureUid string) string {
+	if coureUid == "CHI-LINH-01" {
+		return "CHILINH GOLF"
+	}
+	return coureUid
 }

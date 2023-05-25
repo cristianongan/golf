@@ -36,6 +36,7 @@ type LockTeeTimeWithSlot struct {
 	Note           string `json:"note"`
 	Slot           int    `json:"slot"`
 	Type           string `json:"type"`
+	LockLevel      string `json:"lock_level"`
 }
 
 func (item *LockTeeTimeWithSlot) Scan(v interface{}) error {
