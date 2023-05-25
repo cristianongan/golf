@@ -349,11 +349,11 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 			}
 		}
 
-		go UpdateNewBooking(db, &booking, caddieAttach)
-
 		caddieAttach.BookingUid = body.BookingUid
 		caddieAttach.CustomerName = body.CustomerName
 		caddieAttach.BagStatus = constants.BAG_ATTACH_CADDIE_BOOKING
+
+		go UpdateNewBooking(db, &booking, caddieAttach)
 	} else {
 		if caddieAttach.BookingUid != "" {
 			go UpdateOldBooking(db, caddieAttach)
@@ -434,6 +434,10 @@ func UpdateNewBooking(db *gorm.DB, booking *model_booking.Booking, caddieAtt mod
 
 	if caddieAtt.Bag != "" {
 		booking.Bag = caddieAtt.Bag
+	}
+
+	if caddieAtt.CustomerName != "" {
+		booking.CustomerName = caddieAtt.CustomerName
 	}
 
 	if caddieAtt.LockerNo != "" {
