@@ -48,22 +48,23 @@ type BookingServiceItem struct {
 
 type ListItemInApp struct {
 	models.ModelId
-	PartnerUid    string `json:"partner_uid"` // Hãng golf
-	CourseUid     string `json:"course_uid"`  // Sân golf
-	ItemId        int64  `json:"item_id"`     // Id item
-	Unit          string `json:"unit"`        // Unit của item
-	ItemCode      string `json:"item_code"`   // Mã code của item
-	ItemType      string `json:"item_type"`   // Phân loại đồ ăn theo COMBO hoặc NORMAL
-	Name          string `json:"name"`
-	Quality       int    `json:"quantity"` // Số lượng
-	UnitPrice     int64  `json:"unit_price"`
-	DiscountType  string `json:"discount_type"`
-	DiscountValue int64  `json:"discount_value"`
-	Amount        int64  `json:"amount"`
-	UserAction    string `json:"user_action"`  // Người tạo
-	Input         string `json:"note"`         // Note
-	ServiceBill   int64  `json:"service_bill"` // id service cart
-	Location      string `json:"location"`     // Dc add từ đâu
+	PartnerUid     string `json:"partner_uid"` // Hãng golf
+	CourseUid      string `json:"course_uid"`  // Sân golf
+	ItemId         int64  `json:"item_id"`     // Id item
+	Unit           string `json:"unit"`        // Unit của item
+	ItemCode       string `json:"item_code"`   // Mã code của item
+	ItemType       string `json:"item_type"`   // Phân loại đồ ăn theo COMBO hoặc NORMAL
+	Name           string `json:"name"`
+	Quality        int    `json:"quantity"` // Số lượng
+	UnitPrice      int64  `json:"unit_price"`
+	DiscountType   string `json:"discount_type"`
+	DiscountValue  int64  `json:"discount_value"`
+	DiscountReason string `json:"discount_reason"` // Lý do giảm giá
+	Amount         int64  `json:"amount"`
+	UserAction     string `json:"user_action"`  // Người tạo
+	Input          string `json:"note"`         // Note
+	ServiceBill    int64  `json:"service_bill"` // id service cart
+	Location       string `json:"location"`     // Dc add từ đâu
 }
 
 // Response cho FE

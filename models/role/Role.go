@@ -73,7 +73,7 @@ func (item *Role) FindList(page models.Page, roleIds []int) ([]Role, int64, erro
 	status := item.Status
 	item.Status = ""
 
-	db = db.Where(item)
+	// db = db.Where(item)
 	db = db.Where("id IN (?)", roleIds)
 
 	if status != "" {
