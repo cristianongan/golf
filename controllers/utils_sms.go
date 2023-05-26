@@ -301,7 +301,7 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 		</head>
 		<body>
 		<h4 style="margin-bottom:20px;">Kính gửi Quý đối tác %s,</h4>
-		<p>Sân <span style="font-weight: bold;">%s</span> xác nhận đặt chỗ ngày <span style="font-weight: bold;">%s</span> :</p>
+		<p><span style="font-weight: bold;">%s</span> xác nhận đặt chỗ ngày <span style="font-weight: bold;">%s</span> :</p>
 		<p>- Mã đặt chỗ: <span style="font-weight: bold;">%s</span></p>
 		<p>- Người đặt: <span style="font-weight: bold;">%s(%s)</span></p>
 		<p style="margin-bottom:20px;">- Số lượng: <span style="font-weight: bold;">%d</span></p>
@@ -314,7 +314,7 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 			</head>
 			<body>
 			<h4 style="margin-bottom:20px;">Kính gửi anh/chị %s,</h4>
-			<p><span style="font-weight: bold;">%s</span> xin xác nhận đặt chỗ ngày <span style="font-weight: bold;">%s</span> :</p>
+			<p><span style="font-weight: bold;">%s</span> xác nhận đặt chỗ ngày <span style="font-weight: bold;">%s</span> :</p>
 		`, listBooking[0].CustomerBookingName, course.Name, listBooking[0].BookingDate)
 
 		if listBooking[0].MemberUidOfGuest != "" {
