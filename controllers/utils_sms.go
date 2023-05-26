@@ -188,6 +188,8 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 			} else {
 				message += linkQRCodeFull
 			}
+
+			message += " "
 		}
 	}
 
