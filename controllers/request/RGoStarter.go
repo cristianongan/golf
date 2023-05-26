@@ -142,6 +142,7 @@ type GetFlightList struct {
 	PlayerName           string `form:"player_name"`
 	CaddieCode           string `form:"caddie_code"`
 	BagStatus            string `form:"bag_status"`
+	FlightIndex          int    `form:"flight_index"`
 }
 
 type MoveBagToFlightBody struct {

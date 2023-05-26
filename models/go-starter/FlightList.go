@@ -16,6 +16,7 @@ type FlightList struct {
 	PlayerName  string
 	CaddieCode  string
 	BagStatus   string
+	FlightIndex int
 }
 
 func (item *FlightList) FindFlightList(database *gorm.DB, page models.Page) ([]Flight, int64, error) {
