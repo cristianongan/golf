@@ -28,5 +28,4 @@ type GetListAttachCaddieForm struct {
 	Search      string `form:"search"`
 	Bag         string `form:"bag"`
 	CmsUser     string `form:"cms_user"`
-	Bag         string `form:"bag"`
 }
