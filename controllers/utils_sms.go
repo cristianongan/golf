@@ -33,10 +33,63 @@ type QrCodeUrlModel struct {
 Gen QR URL -> send sms
 */
 func genQRCodeListBook(listBooking []model_booking.Booking) {
+	if len(listBooking) < 1 {
+		log.Println("genQRCodeListBook can not find any Booking")
+		return
+	}
+
+	// check config
+	courseUid := listBooking[0].CourseUid
+	agencyId := listBooking[0].AgencyId
+	customerBookingEmail := listBooking[0].CustomerBookingEmail
+	customerBookingPhone := listBooking[0].CustomerBookingPhone
+
+	course := models.Course{}
+
+	course.Uid = courseUid
+
+	err := course.FindFirst()
+
+	if err != nil {
+		log.Println("genQRCodeListBook - Can not find course with uid: ", courseUid, err)
+	}
+
 	listHaveQRURL := []model_booking.Booking{}
 	for _, v := range listBooking {
 		genQrCodeForBooking(&v)
 		listHaveQRURL = append(listHaveQRURL, v)
+	}
+
+	// check config accept auto send
+	if !course.AutoSendBooking {
+		log.Println("genQRCodeListBook - config is disabled auto send sms and email ")
+
+		return
+	}
+
+	// bắn theo config angency
+	if agencyId > 0 {
+		// Send email
+		if course.TypeSendInfoBookingAgency == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBookingAgency == constants.SEND_INFOR_GUEST_EMAIL {
+			go sendEmailBooking(listHaveQRURL, customerBookingEmail)
+
+		}
+
+		// Send sms
+		if course.TypeSendInfoBookingAgency == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBookingAgency == constants.SEND_INFOR_GUEST_SMS {
+			go sendSmsBooking(listHaveQRURL, customerBookingPhone)
+		}
+	} else {
+		// Send email
+		if course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_EMAIL {
+			go sendEmailBooking(listHaveQRURL, customerBookingEmail)
+
+		}
+
+		// Send sms
+		if course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_SMS {
+			go sendSmsBooking(listHaveQRURL, customerBookingPhone)
+		}
 	}
 	//disable for prod
 	// sendSmsBooking(listHaveQRURL)
@@ -54,16 +107,43 @@ func genQRCodeListBook(listBooking []model_booking.Booking) {
 }
 
 /*
-Send sms
+Giới hạn độ dài tin nhắn
 */
 func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
-
 	if len(listBooking) == 0 {
 		errEmpty := errors.New("sendSmsBooking Err List Booking Emplty")
 		log.Println("sendSmsBooking errEmpty", errEmpty.Error())
 		return errEmpty
 	}
 
+	part := 10 // tối đa 10 booking 1 tin nhắn
+	count := 0
+	var err error
+
+	if len(listBooking) <= part {
+		err = makeSendSmsBooking(listBooking, phone)
+	} else {
+		for {
+			end := count + part
+			if end > len(listBooking)-1 {
+				end = len(listBooking)
+			}
+
+			err = makeSendSmsBooking(listBooking[count:end], phone)
+			count = end
+			if count >= len(listBooking) || err != nil {
+				break
+			}
+		}
+	}
+
+	return err
+}
+
+/*
+Send sms
+*/
+func makeSendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 	// parse standard phone number
 	num, errPhone := libphonenumber.Parse(phone, "VN")
 	if errPhone != nil {
@@ -72,20 +152,20 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 		return errPhone
 	}
 
-	message := "San " + getSmsGolfName(listBooking[0].CourseUid) + " xac nhan dat cho ngay " + listBooking[0].BookingDate + ": "
+	message := getSmsGolfName(listBooking[0].CourseUid) + " xac nhan dat cho ngay " + listBooking[0].BookingDate + ": "
 
 	for i, b := range listBooking {
 		if b.AgencyId > 0 {
 			log.Println("sendSmsBooking Agency disable send sms")
 		} else {
 			iStr := strconv.Itoa(i + 1)
-			message += iStr + ". Player " + iStr + ": "
+			message += iStr + ". "
 			playerName := ""
 			if b.MemberCard != nil {
 				playerName = b.MemberCard.CardId
 			}
 
-			message += playerName + " - " + "Ma check-in: " + b.CheckInCode + " - QR: "
+			message += playerName + "-" + "Ma check-in: " + b.CheckInCode + " - QR: "
 
 			// base64 qr image
 			encodeQrUrl := base64.StdEncoding.EncodeToString([]byte(b.QrcodeUrl))
@@ -108,27 +188,35 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 
 			linkQRCodeFull := config.GetPortalCmsUrl() + "qr-ci/" + encodedurlQrCodeChecking
 
-			bodyModel := services.ShortReq{
-				URL:    linkQRCodeFull,
-				Domain: "bit.ly",
+			// bodyModel := services.ShortReq{
+			// 	URL:    linkQRCodeFull,
+			// 	Domain: "bit.ly",
+			// }
+
+			// bodyModelByte, errB := json.Marshal(bodyModel)
+			// if errB != nil {
+			// 	log.Println("sendSmsBooking errB", errB.Error())
+			// }
+
+			// errS, _, resp := services.BitlyShorten(bodyModelByte)
+			// if errS != nil {
+			// 	log.Println("sendSmsBooking errS", errS.Error())
+			// }
+
+			respModel, errResp := services.GenShortLink(linkQRCodeFull)
+			if errResp != nil {
+				log.Println("sendSmsBooking errS", errResp.Error())
 			}
 
-			bodyModelByte, errB := json.Marshal(bodyModel)
-			if errB != nil {
-				log.Println("sendSmsBooking errB", errB.Error())
-			}
-
-			errS, _, resp := services.BitlyShorten(bodyModelByte)
-			if errS != nil {
-				log.Println("sendSmsBooking errS", errS.Error())
-			}
-
-			if resp.URL != "" {
-				log.Println("sendSmsBooking short Link", resp.URL)
-				message += resp.URL
+			if respModel.Short != "" {
+				shortLink := config.GetShortLinkFe() + respModel.Short
+				log.Println("sendSmsBooking short Link", shortLink)
+				message += shortLink
 			} else {
 				message += linkQRCodeFull
 			}
+
+			message += " "
 		}
 	}
 
@@ -242,7 +330,7 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 		</head>
 		<body>
 		<h4 style="margin-bottom:20px;">Kính gửi Quý đối tác %s,</h4>
-		<p>Sân <span style="font-weight: bold;">%s</span> xác nhận đặt chỗ ngày <span style="font-weight: bold;">%s</span> :</p>
+		<p><span style="font-weight: bold;">%s</span> xác nhận đặt chỗ ngày <span style="font-weight: bold;">%s</span> :</p>
 		<p>- Mã đặt chỗ: <span style="font-weight: bold;">%s</span></p>
 		<p>- Người đặt: <span style="font-weight: bold;">%s(%s)</span></p>
 		<p style="margin-bottom:20px;">- Số lượng: <span style="font-weight: bold;">%d</span></p>
@@ -250,27 +338,40 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 			listBooking[0].AgencyInfo.ShortName, listBooking[0].AgencyInfo.AgencyId, len(listBooking))
 	} else {
 		message = fmt.Sprintf(`
-		<!DOCTYPE html>
-		<html>
-		</head>
-		<body>
-		<h4 style="margin-bottom:20px;">Kính gửi anh/chị %s,</h4>
-		<p><span style="font-weight: bold;">%s</span> xin xác nhận đặt chỗ ngày <span style="font-weight: bold;">%s</span> :</p>
-		<p>- Người đặt: <span style="font-weight: bold;">%s</span></p>
-		<p style="margin-bottom:20px;">- Số lượng: <span style="font-weight: bold;">%d</span></p>
-	`, listBooking[0].CustomerBookingName, course.Name, listBooking[0].BookingDate,
-			listBooking[0].CustomerBookingName, len(listBooking))
+			<!DOCTYPE html>
+			<html>
+			</head>
+			<body>
+			<h4 style="margin-bottom:20px;">Kính gửi anh/chị %s,</h4>
+			<p><span style="font-weight: bold;">%s</span> xác nhận đặt chỗ ngày <span style="font-weight: bold;">%s</span> :</p>
+		`, listBooking[0].CustomerBookingName, course.Name, listBooking[0].BookingDate)
+
+		if listBooking[0].MemberUidOfGuest != "" {
+			db := datasources.GetDatabaseWithPartner(listBooking[0].PartnerUid)
+
+			memberCard := models.MemberCard{}
+			memberCard.Uid = listBooking[0].MemberUidOfGuest
+			if errFindMB := memberCard.FindFirst(db); errFindMB != nil {
+				message += fmt.Sprintf(`<p>- Người đặt: <span style="font-weight: bold;">%s</span></p>`, listBooking[0].CustomerBookingName)
+			} else {
+				message += fmt.Sprintf(`<p>- Người đặt: <span style="font-weight: bold;">%s(%s)</span></p>`, listBooking[0].CustomerBookingName, memberCard.CardId)
+			}
+		} else {
+			message += fmt.Sprintf(`<p>- Người đặt: <span style="font-weight: bold;">%s</span></p>`, listBooking[0].CustomerBookingName)
+		}
+
+		message += fmt.Sprintf(`<p style="margin-bottom:20px;">- Số lượng: <span style="font-weight: bold;">%d</span></p>`, len(listBooking))
 	}
 
 	for i, b := range listBooking {
 		iStr := strconv.Itoa(i + 1)
-		message += `<p>` + iStr + ". Player " + b.CustomerName + " "
-		playerName := ""
-		if b.MemberCard != nil {
-			playerName = b.MemberCard.CardId
-		}
+		message += `<p>` + iStr + ". Player " + b.CustomerName + ""
+		// playerName := ""
+		// if b.MemberCard != nil {
+		// 	message += fmt.Sprintf(`(<span style="font-weight: bold;">%s</span>)`, b.MemberCard.CardId)
+		// }
 
-		message += fmt.Sprintf(`(<span style="font-weight: bold;">%s</span>) - Mã check-in: <span style="font-weight: bold;">%s</span> - (QR Check-in: "`, playerName, b.CheckInCode)
+		message += fmt.Sprintf(` - Mã check-in: <span style="font-weight: bold;">%s</span> - (QR Check-in: "`, b.CheckInCode)
 
 		// base64 qr image
 		encodeQrUrl := base64.StdEncoding.EncodeToString([]byte(b.QrcodeUrl))
@@ -293,24 +394,30 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 
 		linkQRCodeFull := config.GetPortalCmsUrl() + "qr-ci/" + encodedurlQrCodeChecking
 
-		bodyModel := services.ShortReq{
-			URL:    linkQRCodeFull,
-			Domain: "bit.ly",
+		// bodyModel := services.ShortReq{
+		// 	URL:    linkQRCodeFull,
+		// 	Domain: "bit.ly",
+		// }
+
+		// bodyModelByte, errB := json.Marshal(bodyModel)
+		// if errB != nil {
+		// 	log.Println("sendEmailBooking errB", errB.Error())
+		// }
+
+		// errS, _, resp := services.BitlyShorten(bodyModelByte)
+		// if errS != nil {
+		// 	log.Println("sendEmailBooking errS", errS.Error())
+		// }
+
+		respModel, errResp := services.GenShortLink(linkQRCodeFull)
+		if errResp != nil {
+			log.Println("sendSmsBooking errS", errResp.Error())
 		}
 
-		bodyModelByte, errB := json.Marshal(bodyModel)
-		if errB != nil {
-			log.Println("sendEmailBooking errB", errB.Error())
-		}
-
-		errS, _, resp := services.BitlyShorten(bodyModelByte)
-		if errS != nil {
-			log.Println("sendEmailBooking errS", errS.Error())
-		}
-
-		if resp.URL != "" {
-			log.Println("sendEmailBooking short Link", resp.URL)
-			message += resp.URL + ")</p>"
+		if respModel.Short != "" {
+			shortLink := config.GetShortLinkFe() + respModel.Short
+			log.Println("sendEmailBooking short Link", shortLink)
+			message += shortLink + ")</p>"
 		} else {
 			message += linkQRCodeFull + ")</p>"
 		}

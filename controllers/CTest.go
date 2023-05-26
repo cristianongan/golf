@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"start/callservices"
+	"start/config"
 	"start/constants"
 	"start/controllers/request"
 	"start/datasources"
@@ -34,21 +34,32 @@ func (_ *CTest) TestBitlyShortLink(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
-	bodyModel := services.ShortReq{
-		URL:    body.LongUrl,
-		Domain: "bit.ly",
-	}
+	// bodyModel := services.ShortReq{
+	// 	URL:    body.LongUrl,
+	// 	Domain: "bit.ly",
+	// }
 
-	bodyModelByte, errB := json.Marshal(bodyModel)
-	if errB != nil {
-		response_message.InternalServerError(c, errB.Error())
+	// bodyModelByte, errB := json.Marshal(bodyModel)
+	// if errB != nil {
+	// 	response_message.InternalServerError(c, errB.Error())
+	// 	return
+	// }
+
+	respModel, errResp := services.GenShortLink(body.LongUrl)
+	if errResp != nil {
+		response_message.InternalServerError(c, errResp.Error())
 		return
 	}
 
-	errS, _, resp := services.BitlyShorten(bodyModelByte)
-	if errS != nil {
-		response_message.InternalServerError(c, errS.Error())
+	if respModel.Short == "" {
+		response_message.InternalServerError(c, "Short invalid")
 		return
+	}
+
+	shortLink := config.GetShortLinkFe() + respModel.Short
+
+	resp := map[string]interface{}{
+		"short_link": shortLink,
 	}
 
 	okResponse(c, resp)

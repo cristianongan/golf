@@ -89,6 +89,12 @@ func NewRouter() *gin.Engine {
 		// TODO: Thêm middleware cho group api
 		groupApi := routerApi.Group("api")
 		{
+
+			/// =================== fORCE UPDATE =====================
+			cPublic := new(controllers.CPublic)
+			groupApi.GET("/app/version", cPublic.GetCurrentAppVersion)
+			groupApi.POST("/app/version/update", cPublic.UpdateCurrentAppVersion)
+
 			/// =================== Auth =====================
 			cCmsUser := new(controllers.CCmsUser)
 			groupApi.POST("/user/login", cCmsUser.Login)

@@ -1020,15 +1020,48 @@ func (cBooking *CBooking) SendInforGuest(c *gin.Context, prof models.CmsUser) {
 		go updateListBooking(db, listBooking)
 
 		// Send email
-		if course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_EMAIL {
-			if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_EMAIL {
+		// if course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_EMAIL {
+		// 	if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_EMAIL {
+		// 		go sendEmailBooking(listBooking, body.ListBooking[0].CustomerBookingEmail)
+		// 	}
+		// }
+
+		// // Send sms
+		// if course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_SMS {
+		// 	if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_SMS {
+		// 		go sendSmsBooking(listBooking, body.ListBooking[0].CustomerBookingPhone)
+		// 	}
+		// }
+
+		//check config angency
+		if listBooking[0].AgencyId > 0 {
+			if course.TypeSendInfoBookingAgency == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBookingAgency == constants.SEND_INFOR_GUEST_EMAIL {
+				// if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_EMAIL {
+				// 	go sendEmailBooking(listBooking, body.ListBooking[0].CustomerBookingEmail)
+				// }
 				go sendEmailBooking(listBooking, body.ListBooking[0].CustomerBookingEmail)
 			}
-		}
 
-		// Send sms
-		if course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_SMS {
-			if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_SMS {
+			// Send sms
+			if course.TypeSendInfoBookingAgency == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBookingAgency == constants.SEND_INFOR_GUEST_SMS {
+				// if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_SMS {
+				// 	go sendSmsBooking(listBooking, body.ListBooking[0].CustomerBookingPhone)
+				// }
+				go sendSmsBooking(listBooking, body.ListBooking[0].CustomerBookingPhone)
+			}
+		} else {
+			if course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_EMAIL {
+				// if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_EMAIL {
+				// 	go sendEmailBooking(listBooking, body.ListBooking[0].CustomerBookingEmail)
+				// }
+				go sendEmailBooking(listBooking, body.ListBooking[0].CustomerBookingEmail)
+			}
+
+			// Send sms
+			if course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_BOTH || course.TypeSendInfoBooking == constants.SEND_INFOR_GUEST_SMS {
+				// if body.SendMethod == constants.SEND_INFOR_GUEST_BOTH || body.SendMethod == constants.SEND_INFOR_GUEST_SMS {
+				// 	go sendSmsBooking(listBooking, body.ListBooking[0].CustomerBookingPhone)
+				// }
 				go sendSmsBooking(listBooking, body.ListBooking[0].CustomerBookingPhone)
 			}
 		}
