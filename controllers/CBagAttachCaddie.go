@@ -96,9 +96,10 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 		caddieAttach.Bag = body.Bag
 
 		// Check duplicate
-		isDup := caddieAttach.IsDuplicated(db)
-		if isDup {
-			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
+		_ = caddieAttach.FindFirst(db)
+		if caddieAttach.BagStatus == constants.BAG_ATTACH_CADDIE_READY ||
+			caddieAttach.BagStatus == constants.BAG_ATTACH_CADDIE_BOOKING {
+			response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" đã được ghép với bag khác.")
 			return
 		}
 	}
@@ -113,7 +114,8 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 		caddieAttValid.CaddieCode = body.CaddieCode
 
 		_ = caddieAttValid.FindFirst(db)
-		if caddieAttValid.Id > 0 {
+		if caddieAttach.BagStatus == constants.BAG_ATTACH_CADDIE_READY ||
+			caddieAttach.BagStatus == constants.BAG_ATTACH_CADDIE_BOOKING {
 			response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" đã được ghép với bag khác.")
 			return
 		}
@@ -244,6 +246,21 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 			response_message.DuplicateRecord(c, constants.API_ERR_DUPLICATED_RECORD)
 			return
 		}
+
+		// Check duplicate
+		caddieAttValid := model_gostarter.BagAttachCaddie{}
+
+		caddieAttValid.PartnerUid = prof.PartnerUid
+		caddieAttValid.CourseUid = prof.CourseUid
+		caddieAttValid.BookingDate = body.BookingDate
+		caddieAttValid.CaddieCode = body.Bag
+
+		_ = caddieAttValid.FindFirst(db)
+		if caddieAttValid.BagStatus == constants.BAG_ATTACH_CADDIE_READY ||
+			caddieAttValid.BagStatus == constants.BAG_ATTACH_CADDIE_BOOKING {
+			response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" đã được ghép với bag khác.")
+			return
+		}
 	}
 
 	// Updtae
@@ -263,7 +280,8 @@ func (_ *CBagAttachCaddie) UpdateAttachCaddie(c *gin.Context, prof models.CmsUse
 		caddieAttValid.CaddieCode = body.CaddieCode
 
 		_ = caddieAttValid.FindFirst(db)
-		if caddieAttValid.Id > 0 {
+		if caddieAttValid.BagStatus == constants.BAG_ATTACH_CADDIE_READY ||
+			caddieAttValid.BagStatus == constants.BAG_ATTACH_CADDIE_BOOKING {
 			response_message.BadRequestFreeMessage(c, "Caddie "+body.CaddieCode+" đã được ghép với bag khác.")
 			return
 		}
