@@ -125,20 +125,20 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 		return errPhone
 	}
 
-	message := "San " + getSmsGolfName(listBooking[0].CourseUid) + " xac nhan dat cho ngay " + listBooking[0].BookingDate + ": "
+	message := getSmsGolfName(listBooking[0].CourseUid) + " xac nhan dat cho ngay " + listBooking[0].BookingDate + ": "
 
 	for i, b := range listBooking {
 		if b.AgencyId > 0 {
 			log.Println("sendSmsBooking Agency disable send sms")
 		} else {
 			iStr := strconv.Itoa(i + 1)
-			message += iStr + ". Player " + iStr + ": "
+			message += iStr + ". "
 			playerName := ""
 			if b.MemberCard != nil {
 				playerName = b.MemberCard.CardId
 			}
 
-			message += playerName + " - " + "Ma check-in: " + b.CheckInCode + " - QR: "
+			message += playerName + "-" + "Ma check-in: " + b.CheckInCode + " - QR: "
 
 			// base64 qr image
 			encodeQrUrl := base64.StdEncoding.EncodeToString([]byte(b.QrcodeUrl))
@@ -309,25 +309,38 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 			listBooking[0].AgencyInfo.ShortName, listBooking[0].AgencyInfo.AgencyId, len(listBooking))
 	} else {
 		message = fmt.Sprintf(`
-		<!DOCTYPE html>
-		<html>
-		</head>
-		<body>
-		<h4 style="margin-bottom:20px;">Kính gửi anh/chị %s,</h4>
-		<p><span style="font-weight: bold;">%s</span> xin xác nhận đặt chỗ ngày <span style="font-weight: bold;">%s</span> :</p>
-		<p>- Người đặt: <span style="font-weight: bold;">%s</span></p>
-		<p style="margin-bottom:20px;">- Số lượng: <span style="font-weight: bold;">%d</span></p>
-	`, listBooking[0].CustomerBookingName, course.Name, listBooking[0].BookingDate,
-			listBooking[0].CustomerBookingName, len(listBooking))
+			<!DOCTYPE html>
+			<html>
+			</head>
+			<body>
+			<h4 style="margin-bottom:20px;">Kính gửi anh/chị %s,</h4>
+			<p><span style="font-weight: bold;">%s</span> xin xác nhận đặt chỗ ngày <span style="font-weight: bold;">%s</span> :</p>
+		`, listBooking[0].CustomerBookingName, course.Name, listBooking[0].BookingDate)
+
+		if listBooking[0].MemberUidOfGuest != "" {
+			db := datasources.GetDatabaseWithPartner(listBooking[0].PartnerUid)
+
+			memberCard := models.MemberCard{}
+			memberCard.Uid = listBooking[0].MemberUidOfGuest
+			if errFindMB := memberCard.FindFirst(db); errFindMB != nil {
+				message += fmt.Sprintf(`<p>- Người đặt: <span style="font-weight: bold;">%s</span></p>`, listBooking[0].CustomerBookingName)
+			} else {
+				message += fmt.Sprintf(`<p>- Người đặt: <span style="font-weight: bold;">%s(%s)</span></p>`, listBooking[0].CustomerBookingName, memberCard.CardId)
+			}
+		} else {
+			message += fmt.Sprintf(`<p>- Người đặt: <span style="font-weight: bold;">%s</span></p>`, listBooking[0].CustomerBookingName)
+		}
+
+		message += fmt.Sprintf(`<p style="margin-bottom:20px;">- Số lượng: <span style="font-weight: bold;">%d</span></p>`, len(listBooking))
 	}
 
 	for i, b := range listBooking {
 		iStr := strconv.Itoa(i + 1)
 		message += `<p>` + iStr + ". Player " + b.CustomerName + ""
 		// playerName := ""
-		if b.MemberCard != nil {
-			message += fmt.Sprintf(`(<span style="font-weight: bold;">%s</span>)`, b.MemberCard.CardId)
-		}
+		// if b.MemberCard != nil {
+		// 	message += fmt.Sprintf(`(<span style="font-weight: bold;">%s</span>)`, b.MemberCard.CardId)
+		// }
 
 		message += fmt.Sprintf(` - Mã check-in: <span style="font-weight: bold;">%s</span> - (QR Check-in: "`, b.CheckInCode)
 
