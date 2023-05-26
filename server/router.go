@@ -842,6 +842,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/report/booking/players", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetReportBookingPlayers))
 			cmsApiAuthorized.POST("/report/booking-statistic", middlewares.AuthorizedCmsUserHandler(cRevenueReport.GetStatisticBooking))
 
+			/// =================== Restaurant Setting =====================
+			cRestaurantSetting := new(controllers.CRestaurantSetting)
+			cmsApiAuthorized.POST("/res-setting", middlewares.AuthorizedCmsUserHandler(cRestaurantSetting.CreateRestaurantSetting))
+			cmsApiAuthorized.GET("/res-setting/list", middlewares.AuthorizedCmsUserHandler(cRestaurantSetting.GetListRestaurantSetting))
+			cmsApiAuthorized.PUT("/res-setting/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantSetting.UpdateRestaurantSetting))
+			cmsApiAuthorized.DELETE("/res-setting/:id", middlewares.AuthorizedCmsUserHandler(cRestaurantSetting.DeleteRestaurantSetting))
+
 			/// =================== Golf Log ===================
 			cGolfLog := new(controllers.CGolfLog)
 			cmsApiAuthorized.GET("/op-log/list", middlewares.AuthorizedCmsUserHandler(cGolfLog.GetGolfLogList))
