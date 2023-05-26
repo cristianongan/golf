@@ -9,6 +9,7 @@ type CreateCmsUserBody struct {
 	CourseUid  string `json:"course_uid"`
 	RoleId     int64  `json:"role_id"`
 	Password   string `json:"password" binding:"required"`
+	CaddieId   int64  `json:"caddie_id"`
 }
 
 type UdpCmsUserBody struct {
@@ -17,11 +18,13 @@ type UdpCmsUserBody struct {
 	Phone    string `json:"phone"`
 	RoleId   int64  `json:"role_id"`
 	Status   string `json:"status"`
+	CaddieId int64  `json:"caddie_id"`
 }
 
 type LoginBody struct {
 	UserName string `json:"user_name" binding:"required"`
 	Password string `json:"password" binding:"required"`
+	Type     string `json:"type"`
 	Ttl      int    `json:"ttl"`
 }
 
@@ -29,6 +32,8 @@ type GetListCmsUserForm struct {
 	PageRequest
 	CourseUid  string `form:"course_uid"`
 	PartnerUid string `form:"partner_uid" binding:"required"`
+	Type       string `form:"type"`
+	RoleId     int64  `form:"role_id"`
 	Search     string `form:"search"`
 }
 

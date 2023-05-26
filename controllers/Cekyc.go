@@ -279,6 +279,10 @@ func (_ *Cekyc) CheckInBookingMemberForEkyc(c *gin.Context) {
 	}
 	go createOperationLog(opLog)
 
+	// push socket
+	cNotification := CNotification{}
+	go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+
 	responseBaseModel.Data = res.CloneBookingEkyc()
 
 	c.JSON(http.StatusOK, responseBaseModel)

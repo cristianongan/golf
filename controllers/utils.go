@@ -500,7 +500,8 @@ func addCaddieBuggyToBooking(db *gorm.DB, partnerUid, courseUid, bookingDate, ba
 
 	err := booking.FindFirst(db)
 	if err != nil {
-		return err, response.AddCaddieBuggyToBookingRes{}
+		errTitle := fmt.Sprintln("Không tìm thấy bag ", bag)
+		return errors.New(errTitle), response.AddCaddieBuggyToBookingRes{}
 	}
 
 	response := response.AddCaddieBuggyToBookingRes{}
@@ -762,18 +763,20 @@ func createLocker(db *gorm.DB, booking model_booking.Booking) {
 	}
 
 	locker := models.Locker{
-		BookingUid: booking.Uid,
+		PartnerUid:  booking.PartnerUid,
+		CourseUid:   booking.CourseUid,
+		Locker:      booking.LockerNo,
+		BookingDate: booking.BookingDate,
+		GolfBag:     booking.Bag,
 	}
 
 	// check tồn tại
 	errF := locker.FindFirst(db)
 	if errF != nil || locker.Id <= 0 {
 		// Tạo mới
-		locker.CourseUid = booking.CourseUid
-		locker.PartnerUid = booking.PartnerUid
-		locker.GolfBag = booking.Bag
+		locker.BookingUid = booking.Uid
 		locker.PlayerName = booking.CustomerName
-		locker.Locker = booking.LockerNo
+		locker.LockerStatus = constants.LOCKER_STATUS_UNRETURNED
 		locker.GuestStyle = booking.GuestStyle
 		locker.GuestStyleName = booking.GuestStyleName
 
@@ -781,7 +784,6 @@ func createLocker(db *gorm.DB, booking model_booking.Booking) {
 		if errC != nil {
 			log.Println("createLocker errC", errC.Error())
 		}
-		return
 	}
 
 	if booking.LockerNo != "" {
@@ -1178,6 +1180,16 @@ func checkCaddieReady(booking model_booking.Booking, caddie models.Caddie) error
 		return errors.New("Caddie " + caddie.Code + " chưa sẵn sàng để ghép ")
 	}
 	return nil
+}
+
+func checkCaddieReadyForApp(caddie models.Caddie) string {
+	if !(caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_READY ||
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH ||
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH_R2 ||
+		caddie.CurrentStatus == constants.CADDIE_CURRENT_STATUS_FINISH_R3) {
+		return "Caddie " + caddie.Code + " chưa sẵn sàng để ghép "
+	}
+	return ""
 }
 
 /*
@@ -2069,7 +2081,7 @@ func deleteBuggyFee(booking model_booking.Booking) {
 	name3 := "Thuê riêng xe"
 
 	for _, item := range list {
-		if item.ServiceType == constants.BUGGY_SETTING {
+		if item.ServiceType == constants.BUGGY_SETTING && item.BookingUid == booking.Uid {
 			if item.Name == name1 {
 				item.Delete(db)
 				name1 = ""
@@ -2172,9 +2184,19 @@ func genQrCodeForBooking(booking *model_booking.Booking) {
 	}
 
 	//Update booking
-	booking.CheckInCode = checkinCode
-	booking.QrcodeUrl = link
-	if err := booking.Update(db); err != nil {
+	bookingR := model_booking.Booking{}
+	bookingR.Uid = booking.Uid
+	if err := bookingR.FindFirst(db); err != nil {
 		log.Println("genQrCodeForBooking err, ", err.Error())
 	}
+
+	bookingR.CheckInCode = checkinCode
+	bookingR.QrcodeUrl = link
+	if err := bookingR.Update(db); err != nil {
+		log.Println("genQrCodeForBooking err, ", err.Error())
+	}
+
+	// Update
+	booking.CheckInCode = checkinCode
+	booking.QrcodeUrl = link
 }

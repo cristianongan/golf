@@ -78,6 +78,7 @@ type GetListBookingWithSelectForm struct {
 	CustomerType    string  `form:"customer_type"`
 	BuggyCode       string  `form:"buggy_code"`
 	GuestStyle      string  `form:"guest_style"`
+	GuestType       string  `form:"guest_type"`
 	CheckInCode     string  `form:"check_in_code"`
 }
 
@@ -159,6 +160,7 @@ type CreateBookingBody struct {
 	AgencyId           int64                   `json:"agency_id"`
 	CustomerUid        string                  `json:"customer_uid"`
 	CaddieCode         *string                 `json:"caddie_code"`
+	CaddieCheckIn      *string                 `json:"caddie_checkin"`
 	BookingRestaurant  utils.BookingRestaurant `json:"booking_restaurant"`
 	BookingRetal       utils.BookingRental     `json:"booking_retal"`
 	BookingCode        string                  `json:"booking_code"`
@@ -277,6 +279,8 @@ type CheckInBody struct {
 	MemberUidOfGuest string         `json:"member_uid_of_guest"` // Member của Guest đến chơi cùng
 	FeeInfo          *AgencyFeeInfo `json:"fee_info"`            // Golf Fee cho case agency
 	AgencyPaidAll    *bool          `json:"agency_paid_all"`
+
+	CaddieCode string `json:"caddie_code"`
 }
 
 //type AddRoundBody struct {

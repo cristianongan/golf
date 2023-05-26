@@ -18,6 +18,7 @@ type Role struct {
 	Status      string `json:"status" gorm:"index;type:varchar(50)"`       // ENABLE, DISABLE, TESTING
 	Name        string `json:"name" gorm:"type:varchar(200)"`              // Name Role
 	Description string `json:"description" gorm:"type:varchar(200)"`       // description
+	Type        string `json:"type" gorm:"index;type:varchar(30)"`         // APP, CMS
 }
 
 type RoleDetail struct {
@@ -72,7 +73,7 @@ func (item *Role) FindList(page models.Page, roleIds []int) ([]Role, int64, erro
 	status := item.Status
 	item.Status = ""
 
-	db = db.Where(item)
+	// db = db.Where(item)
 	db = db.Where("id IN (?)", roleIds)
 
 	if status != "" {
@@ -89,6 +90,10 @@ func (item *Role) FindList(page models.Page, roleIds []int) ([]Role, int64, erro
 
 	if item.CourseUid != "" {
 		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+
+	if item.Type != "" {
+		db = db.Where("type = ?", item.Type)
 	}
 
 	if item.Name != "" {

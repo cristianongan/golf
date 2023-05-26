@@ -104,6 +104,10 @@ func (_ *CBooking) CancelBooking(c *gin.Context, prof models.CmsUser) {
 			BookingUid:  booking.Uid,
 		}
 		go createOperationLog(opLog)
+
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+		go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, booking)
 	}
 
 	okResponse(c, booking)
@@ -249,6 +253,10 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 		}
 		go createOperationLog(opLog)
 		// go updateSlotTeeTimeWithLock(booking)
+
+		cloneBooking := booking
+		cNotification := CNotification{}
+		go cNotification.PushMessBoookingForAppNoCheck(constants.NOTIFICATION_BOOKING_UPD, &cloneBooking)
 	}
 
 	go func() {
@@ -257,6 +265,10 @@ func (_ *CBooking) MovingBooking(c *gin.Context, prof models.CmsUser) {
 			// updateSlotTeeTimeWithLock(booking)
 		}
 	}()
+
+	cNotification := CNotification{}
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, model_booking.Booking{})
+
 	okRes(c)
 }
 
@@ -280,7 +292,7 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		}
 	}
 
-	listBooking, err := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	listBooking, err := cBooking.CreateBatch(bodyRequest.BookingList, c, prof, "")
 	if err != nil {
 		return
 	}
@@ -290,7 +302,7 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		item := bodyRequest.BookingList[0]
 		if item.BookingRestaurant.Enable {
 			db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
-			go addServiceCart(db, len(bodyRequest.BookingList), item.PartnerUid, item.CourseUid, item.CustomerBookingName, item.CustomerBookingPhone, item.BookingDate, prof.FullName)
+			go addServiceCart(db, len(bodyRequest.BookingList), item.PartnerUid, item.CourseUid, item.CustomerBookingName, item.CustomerBookingPhone, item.BookingDate, prof.UserName)
 		}
 	}
 
@@ -304,9 +316,6 @@ func (cBooking *CBooking) CreateBookingTee(c *gin.Context, prof models.CmsUser) 
 		cNotification := CNotification{}
 		cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, listBooking)
 	}()
-
-	//Send Sms
-	go genQRCodeListBook(listBooking)
 
 	okResponse(c, listBooking)
 }
@@ -487,7 +496,7 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 			}
 		}
 	}
-	listBooking, _ := cBooking.CreateBatch(bodyRequest.BookingList, c, prof)
+	listBooking, _ := cBooking.CreateBatch(bodyRequest.BookingList, c, prof, "COPY")
 
 	// //Add Log
 	// go func() {
@@ -513,6 +522,8 @@ func (cBooking *CBooking) CreateCopyBooking(c *gin.Context, prof models.CmsUser)
 	// 		go createOperationLog(opLog)
 	// 	}
 	// }()
+	//Send Sms
+	go genQRCodeListBook(listBooking)
 
 	okResponse(c, listBooking)
 }
@@ -586,6 +597,10 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 				BookingUid:  booking.Uid,
 			}
 			go createOperationLog(opLog)
+
+			cNotification := CNotification{}
+			bookingCancel := booking
+			go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &bookingCancel)
 		}
 	}
 
@@ -595,10 +610,14 @@ func (_ *CBooking) CancelAllBooking(c *gin.Context, prof models.CmsUser) {
 			// updateSlotTeeTimeWithLock(booking)
 		}
 	}()
+
+	cNotification := CNotification{}
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, model_booking.Booking{})
+
 	okRes(c)
 }
 
-func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser) ([]model_booking.Booking, error) {
+func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, c *gin.Context, prof models.CmsUser, typeAction string) ([]model_booking.Booking, error) {
 	list := []model_booking.Booking{}
 	for _, body := range bookingList {
 		booking, errCreate := cBooking.CreateBookingCommon(body, c, prof)
@@ -629,8 +648,21 @@ func (cBooking CBooking) CreateBatch(bookingList request.ListCreateBookingBody, 
 			BillCode:    booking.BillCode,
 			BookingUid:  booking.Uid,
 		}
+
+		if typeAction == "COPY" {
+			opLog.Action = constants.OP_LOG_ACTION_COPY
+		} else {
+			opLog.Action = constants.OP_LOG_ACTION_CREATE
+		}
 		go createOperationLog(opLog)
+		// push socket
+		// cNotification := CNotification{}
+		// go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, booking)
 	}
+
+	//Send Sms
+	go genQRCodeListBook(list)
+
 	return list, nil
 }
 

@@ -177,6 +177,41 @@ func (_ *CFoodBeverage) GetListFoodBeverage(c *gin.Context, prof models.CmsUser)
 	okResponse(c, res)
 }
 
+func (_ *CFoodBeverage) GetListFBForApp(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListFoodBeverageForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	page := models.Page{
+		Limit:   form.PageRequest.Limit,
+		Page:    form.PageRequest.Page,
+		SortBy:  form.PageRequest.SortBy,
+		SortDir: form.PageRequest.SortDir,
+	}
+
+	fbR := model_service.FoodBeverageRequest{}
+	fbR.PartnerUid = form.PartnerUid
+	fbR.CourseUid = form.CourseUid
+	fbR.ServiceId = form.ServiceId
+	fbR.CodeOrName = form.CodeOrName
+
+	list, total, err := fbR.FindListForApp(db, page)
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	res := map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
 func (_ *CFoodBeverage) UpdateFoodBeverage(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	rentalIdStr := c.Param("id")

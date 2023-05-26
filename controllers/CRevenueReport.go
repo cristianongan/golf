@@ -69,7 +69,7 @@ func (_ *CRevenueReport) GetReportRevenueDetailFBBag(c *gin.Context, prof models
 		Bag:         form.Bag,
 	}
 
-	list, err := serviceCart.FindReportDetailFBBag(db)
+	list, err := serviceCart.FindReportDetailFBBag(db, form.Location)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -581,6 +581,9 @@ func (_ *CRevenueReport) GetReportUsingBuggyInGo(c *gin.Context, prof models.Cms
 }
 
 func (_ *CRevenueReport) GetReportRevenuePointOfSale(c *gin.Context, prof models.CmsUser) {
+	//
+	isApp := c.Request.Header.Get("isApp")
+
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
 	form := request.RevenueReportPOSForm{}
 	if bindErr := c.ShouldBind(&form); bindErr != nil {
@@ -594,9 +597,10 @@ func (_ *CRevenueReport) GetReportRevenuePointOfSale(c *gin.Context, prof models
 		ServiceId:  form.ServiceId,
 		Type:       form.Type,
 		Name:       form.ItemName,
+		UserAction: form.UserName,
 	}
 
-	list, err := serviceItem.FindReportRevenuePOS(db, form.FromDate, form.ToDate)
+	list, err := serviceItem.FindReportRevenuePOS(db, form.FromDate, form.ToDate, isApp)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
@@ -699,6 +703,7 @@ func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.Cms
 
 	reportPlayers := int64(0)
 	nonPlayers := int64(0)
+	guestNoShow := int64(0)
 
 	bookingDate := ""
 	if form.BookingDate != "" {
@@ -724,6 +729,9 @@ func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.Cms
 	db2.Where("customer_type = ?", constants.CUSTOMER_TYPE_NONE_GOLF)
 	db2.Count(&nonPlayers)
 
+	db3, _ := bookingList.FindAllGuestNoShow(db)
+	db3.Count(&guestNoShow)
+
 	inCompleteTotal := bookingList.CountReportPayment(db, constants.PAYMENT_IN_COMPLETE)
 	completeTotal := bookingList.CountReportPayment(db, constants.PAYMENT_COMPLETE)
 	mushPayTotal := bookingList.CountReportPayment(db, constants.PAYMENT_MUSH_PAY)
@@ -735,6 +743,38 @@ func (_ *CRevenueReport) GetReportBookingPlayers(c *gin.Context, prof models.Cms
 		"payment_complete":    completeTotal,
 		"payment_in_complete": inCompleteTotal,
 		"payment_mushpay":     mushPayTotal,
+		"guest_no_show":       guestNoShow,
+	}
+
+	okResponse(c, res)
+}
+
+func (_ *CRevenueReport) GetStatisticBooking(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.ReportBookingPlayers{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	bookingDate := ""
+	if form.BookingDate != "" {
+		bookingDate = form.BookingDate
+	} else {
+		toDayDate, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().Unix())
+		bookingDate = toDayDate
+	}
+
+	bookingList := model_booking.BookingList{
+		PartnerUid:  form.PartnerUid,
+		CourseUid:   form.CourseUid,
+		BookingDate: bookingDate,
+	}
+
+	report, _ := bookingList.BookingStatisticByDate(db)
+
+	res := map[string]interface{}{
+		"report_detail": report,
 	}
 
 	okResponse(c, res)

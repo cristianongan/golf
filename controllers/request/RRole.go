@@ -8,6 +8,7 @@ type AddRoleBody struct {
 	Name        string           `json:"name" binding:"required"`
 	Description string           `json:"description"`
 	Permissions utils.ListString `json:"permissions"`
+	Type        string           `json:"type"`
 }
 
 type GetListRole struct {
@@ -15,4 +16,5 @@ type GetListRole struct {
 	Search     string `form:"search"`
 	CourseUid  string `form:"course_uid"`
 	PartnerUid string `form:"partner_uid" binding:"required"`
+	Type       string `form:"type"`
 }

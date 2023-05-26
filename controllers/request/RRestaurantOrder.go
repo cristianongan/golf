@@ -95,9 +95,12 @@ type UpdateResItemBody struct {
 }
 
 type GetFoodProcessBody struct {
-	ServiceId int64  `json:"service_id" binding:"required"`
-	Type      string `json:"type"`
-	Name      string `json:"name"`
+	PartnerUid string `json:"partner_uid"`
+	CourseUid  string `json:"course_uid"`
+	ServiceId  int64  `json:"service_id" binding:"required"`
+	OrderDate  string `json:"order_date" binding:"required"`
+	Type       string `json:"type"`
+	Status     string `json:"status"`
 }
 
 type GetDetailFoodProcessBody struct {
@@ -121,4 +124,18 @@ type TransferItemBody struct {
 	ServiceCartId  int64   `json:"service_cart_id" binding:"required"`
 	GolfBag        string  `json:"golf_bag" binding:"required"`
 	CartItemIdList []int64 `json:"cart_item_id_list"`
+}
+
+type ActionKitchenBody struct {
+	PartnerUid string `json:"partner_uid" binding:"required"`
+	CourseUid  string `json:"course_uid" binding:"required"`
+	ItemCode   string `json:"item_code" binding:"required"`
+	OrderDate  string `json:"order_date" binding:"required"`
+	ServiceId  int64  `json:"service_id" binding:"required"`
+	Type       string `json:"type"`
+	Action     string `json:"action"`
+	Group      string `json:"group"`
+	//
+	BillId         int64 `json:"bill_id"`
+	QuantityReturn int   `json:"quantity_return"`
 }

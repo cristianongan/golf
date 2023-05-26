@@ -15,6 +15,7 @@ type FlightList struct {
 	CaddieName  string
 	PlayerName  string
 	CaddieCode  string
+	BagStatus   string
 }
 
 func (item *FlightList) FindFlightList(database *gorm.DB, page models.Page) ([]Flight, int64, error) {
@@ -40,6 +41,10 @@ func (item *FlightList) FindFlightList(database *gorm.DB, page models.Page) ([]F
 		db = db.Where("bookings.caddie_info->'$.code' = ?", item.CaddieCode)
 	}
 
+	if item.BagStatus != "" {
+		db = db.Where("bookings.bag_status = ?", item.BagStatus)
+	}
+
 	if item.BookingDate != "" {
 		db = db.Where("flights.date_display = ?", item.BookingDate)
 	}
@@ -62,7 +67,11 @@ func (item *FlightList) FindFlightList(database *gorm.DB, page models.Page) ([]F
 	}
 
 	db.Count(&total)
-	db = db.Preload("Bookings").Preload("Bookings.CaddieBuggyInOut")
+	if item.BagStatus != "" {
+		db = db.Preload("Bookings", "bag_status = ?", item.BagStatus).Preload("Bookings.CaddieBuggyInOut")
+	} else {
+		db = db.Preload("Bookings").Preload("Bookings.CaddieBuggyInOut")
+	}
 
 	if total > 0 && int64(page.Offset()) < total {
 		db = page.Setup(db).Find(&list)

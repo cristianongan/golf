@@ -31,6 +31,8 @@ type CmsUser struct {
 	Sex        int    `json:"sex"`                                 // gioi tinh
 	Department string `json:"department" gorm:"type:varchar(100)"` // Đơn vị
 	RoleId     int64  `json:"role_id" gorm:"index"`                // Quyền hạn
+	CaddieId   int64  `json:"caddie_id" gorm:"index"`              // Gan voi Caddie (Neu co)
+	Type       string `json:"type" gorm:"index;type:varchar(30)"`  // APP, CMS
 }
 
 type CmsUserDetail struct {
@@ -111,7 +113,9 @@ func (item *CmsUser) FindList(page Page, search string, subRoles []int, isRootUs
 	item.Model.Status = ""
 	db = db.Where(item)
 
-	if !isRootUser {
+	if item.RoleId != 0 {
+		db = db.Where("role_id = ?", item.RoleId)
+	} else if !isRootUser {
 		db = db.Where("role_id IN (?)", subRoles)
 	}
 	if status != "" {
@@ -125,6 +129,9 @@ func (item *CmsUser) FindList(page Page, search string, subRoles []int, isRootUs
 	}
 	if search != "" {
 		db = db.Where("(user_name LIKE ? OR full_name LIKE ?)", "%"+search+"%", "%"+search+"%")
+	}
+	if item.Type != "" {
+		db = db.Where("type = ?", item.Type)
 	}
 
 	db.Count(&total)

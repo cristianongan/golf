@@ -328,6 +328,7 @@ func (_ *CCaddie) GetCaddieReadyOnDay(c *gin.Context, prof models.CmsUser) {
 	caddieWCI.PartnerUid = form.PartnerUid
 	caddieWCI.ApplyDate = toDayDate
 	caddieWCI.CaddieIncrease = true
+	caddieWCI.ApproveStatus = constants.CADDIE_WORKING_CALENDAR_APPROVED
 
 	listIncrease, _, err := caddieWCI.FindAllByDate(db)
 
@@ -459,6 +460,10 @@ func (_ *CCaddie) GetCaddiGroupDayOffByDate(c *gin.Context, prof models.CmsUser)
 		caddie.GroupList = groupDayOff
 	}
 
+	if form.ContractStatus != "" {
+		caddie.ContractStatus = form.ContractStatus
+	}
+
 	list, total, err := caddie.FindList(db, page)
 
 	if err != nil {
@@ -487,6 +492,21 @@ func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
 	dayNow := int(dateConvert.Weekday())
 	applyDate1 := datatypes.Date(dateConvert)
 	idDayOff1 := false
+
+	// Caddie nghỉ hôm nay
+	caddieVC := models.CaddieVacationCalendar{
+		PartnerUid:    form.PartnerUid,
+		CourseUid:     form.CourseId,
+		ApproveStatus: constants.CADDIE_VACATION_APPROVED,
+	}
+
+	listCVCLeave, err := caddieVC.FindAllWithDate(db, "LEAVE", dateConvert)
+
+	if err != nil {
+		log.Println("Find caddie vacation calendar err", err.Error())
+	}
+
+	caddieLeave := GetCaddieCodeFromVacation(listCVCLeave)
 
 	// get caddie work sechedule
 	caddieWCN := models.CaddieWorkingSchedule{
@@ -520,11 +540,14 @@ func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
 		caddieWCI.PartnerUid = form.PartnerUid
 		caddieWCI.ApplyDate = form.Date
 		caddieWCI.CaddieIncrease = true
+		caddieWCI.ApproveStatus = constants.CADDIE_WORKING_CALENDAR_APPROVED
 
 		listIncrease, _, err := caddieWCI.FindAllByDate(db)
 		if err == nil {
 			for _, item := range listIncrease {
-				listCaddieIncrease = append(listCaddieIncrease, item["caddie_code"].(string))
+				if !utils.Contains(caddieLeave, item["caddie_code"].(string)) {
+					listCaddieIncrease = append(listCaddieIncrease, item["caddie_code"].(string))
+				}
 			}
 		}
 	}
@@ -572,7 +595,9 @@ func (_ *CCaddie) GetCaddiGroupWorkByDate(c *gin.Context, prof models.CmsUser) {
 
 	var caddies []string
 	for _, v := range list {
-		caddies = append(caddies, v.Code)
+		if !utils.Contains(caddieLeave, v.Code) {
+			caddies = append(caddies, v.Code)
+		}
 	}
 
 	caddies = append(caddies, listCaddieIncrease...)
@@ -700,6 +725,19 @@ func (_ *CCaddie) UpdateCaddie(c *gin.Context, prof models.CmsUser) {
 
 	caddieOld := caddieRequest
 
+	// group old
+	caddieG := models.CaddieGroup{}
+
+	caddieG.Id = caddieRequest.GroupId
+
+	errCG := caddieG.FindFirst(db)
+	if errF != nil {
+		response_message.BadRequest(c, errCG.Error())
+		return
+	}
+
+	caddieOld.Group = caddieG.Name
+
 	assignCaddieUpdate(&caddieRequest, body)
 
 	err := caddieRequest.Update(db)
@@ -805,6 +843,7 @@ func (_ *CCaddie) GetCaddieWorkingByDate(partnerUid, courseUid, bookingDate stri
 	// Get group caddie work today
 	dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, bookingDate)
 	applyDate1 := datatypes.Date(dateConvert)
+	dayNow := int(dateConvert.Weekday())
 	idDayOff1 := false
 
 	// get caddie work sechedule
@@ -839,6 +878,7 @@ func (_ *CCaddie) GetCaddieWorkingByDate(partnerUid, courseUid, bookingDate stri
 		caddieWCI.PartnerUid = partnerUid
 		caddieWCI.ApplyDate = bookingDate
 		caddieWCI.CaddieIncrease = true
+		caddieWCI.ApproveStatus = constants.CADDIE_WORKING_CALENDAR_APPROVED
 
 		listIncrease, _, err := caddieWCI.FindAllByDate(db)
 		if err == nil {
@@ -861,6 +901,10 @@ func (_ *CCaddie) GetCaddieWorkingByDate(partnerUid, courseUid, bookingDate stri
 
 	caddie.PartnerUid = partnerUid
 	caddie.CourseUid = courseUid
+
+	if dayNow != 6 && dayNow != 0 {
+		caddie.ContractStatus = constants.CADDIE_CONTRACT_STATUS_FULLTIME
+	}
 
 	if len(groupDayOff) > 0 {
 		caddie.GroupList = groupDayOff

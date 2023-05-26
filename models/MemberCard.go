@@ -283,7 +283,7 @@ func (item *MemberCard) FindList(database *gorm.DB, page Page, playerName string
 
 	db = db.Joins("LEFT JOIN customer_users as member_connect on member_cards.member_connect = member_connect.uid")
 
-	db = db.Joins("LEFT JOIN report_customer_plays on member_cards.card_id = report_customer_plays.card_id")
+	db = db.Joins("LEFT JOIN report_customer_plays on member_cards.card_id = report_customer_plays.card_id and member_cards.owner_uid = report_customer_plays.customer_uid")
 
 	db = db.Joins("LEFT JOIN (select * from annual_fees where partner_uid = ? and course_uid = ? and annual_fees.year = ?) af on member_cards.uid = af.member_card_uid", item.PartnerUid, item.CourseUid, currentYear)
 

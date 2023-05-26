@@ -6,11 +6,18 @@ import (
 	"start/datasources"
 	"start/models"
 	"start/utils"
+	"strconv"
 	"time"
 
 	"github.com/bsm/redislock"
 	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
+
+type ModelCourse struct {
+	PartnerUid string
+	CourseUid  string
+}
 
 func runCreateCaddieWorkingSlotJob() {
 	// Để xử lý cho chạy nhiều instance Server
@@ -36,18 +43,26 @@ func runCreateCaddieWorkingSlotJob() {
 
 // Tạo nốt caddie theo ngày
 func runCreateCaddieWorkingSlot() {
-	db := datasources.GetDatabase()
+	course := ModelCourse{
+		PartnerUid: "CHI-LINH",
+		CourseUid:  "CHI-LINH-01",
+	}
+	db := datasources.GetDatabaseWithPartner(course.PartnerUid)
 
 	var dataGroupWorking []int64
 	var slotPrioritize []int64
-
-	// statusFull := []string{constants.CADDIE_CONTRACT_STATUS_FULLTIME}
-	// statusAll := []string{constants.CADDIE_CONTRACT_STATUS_FULLTIME, constants.CADDIE_CONTRACT_STATUS_PARTTIME}
 
 	// Format date
 	dateNow, _ := utils.GetBookingDateFromTimestamp(utils.GetTimeNow().AddDate(0, 0, 1).Unix())
 	dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, dateNow)
 	dayNow := int(dateConvert.Weekday())
+
+	// Lấy danh sách ngày trong tuần
+	yearNow, weekNow := dateConvert.ISOWeek()
+	dateFrist, dateLast := utils.WeekRange(yearNow, weekNow)
+	listDate := rangeDateOnWeek(db, course, dateFrist, dateLast.AddDate(0, 0, -2), strconv.Itoa(yearNow))
+
+	index := utils.IndexOf(listDate, dateNow)
 
 	// Get group caddie work today
 	applyDate1 := datatypes.Date(dateConvert)
@@ -55,8 +70,8 @@ func runCreateCaddieWorkingSlot() {
 
 	// get caddie work sechedule
 	caddieWCN := models.CaddieWorkingSchedule{
-		PartnerUid: "CHI-LINH",
-		CourseUid:  "CHI-LINH-01",
+		PartnerUid: course.PartnerUid,
+		CourseUid:  course.CourseUid,
 		ApplyDate:  &(applyDate1),
 		IsDayOff:   &idDayOff1,
 	}
@@ -68,15 +83,10 @@ func runCreateCaddieWorkingSlot() {
 
 	var listCWSYes []models.CaddieWorkingSchedule
 
-	if dayNow != 6 && dayNow != 0 {
+	if index == -1 && dayNow != 6 && dayNow != 0 {
 		// get group caddie day off yesterday
-		var dateYesterday string
-
-		if dayNow == 1 {
-			dateYesterday, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -3).Unix())
-		} else {
-			dateYesterday, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -1).Unix())
-		}
+		dateValid := checkDateNormal(db, course, dateConvert, strconv.Itoa(yearNow))
+		dateYesterday, _ := utils.GetBookingDateFromTimestamp(dateValid.Unix())
 
 		dateConvert2, _ := time.Parse(constants.DATE_FORMAT_1, dateYesterday)
 		applyDate2 := datatypes.Date(dateConvert2)
@@ -84,8 +94,8 @@ func runCreateCaddieWorkingSlot() {
 
 		// get caddie work sechedule
 		caddieWSY := models.CaddieWorkingSchedule{
-			PartnerUid: "CHI-LINH",
-			CourseUid:  "CHI-LINH-01",
+			PartnerUid: course.PartnerUid,
+			CourseUid:  course.CourseUid,
 			ApplyDate:  &(applyDate2),
 			IsDayOff:   &idDayOff2,
 		}
@@ -98,8 +108,8 @@ func runCreateCaddieWorkingSlot() {
 
 	//get all group
 	caddieGroup := models.CaddieGroup{
-		PartnerUid: "CHI-LINH",
-		CourseUid:  "CHI-LINH-01",
+		PartnerUid: course.PartnerUid,
+		CourseUid:  course.CourseUid,
 	}
 
 	listCaddieGroup, err := caddieGroup.FindListWithoutPage(db)
@@ -125,8 +135,8 @@ func runCreateCaddieWorkingSlot() {
 
 	//Check caddie vacation today
 	caddieVC := models.CaddieVacationCalendar{
-		PartnerUid:    "CHI-LINH",
-		CourseUid:     "CHI-LINH-01",
+		PartnerUid:    course.PartnerUid,
+		CourseUid:     course.CourseUid,
 		ApproveStatus: constants.CADDIE_VACATION_APPROVED,
 	}
 
@@ -138,21 +148,33 @@ func runCreateCaddieWorkingSlot() {
 	}
 
 	// Caddie nghỉ hôm qua và đi làm hôm nay
+	var caddieWork []string
 	listCVCWork, err := caddieVC.FindAllWithDate(db, "WORK", dateConvert)
 
 	if err != nil {
 		log.Println("Find caddie vacation calendar err", err.Error())
 	}
 
+	// Check trạng thái caddie nghỉ trong tuần
+	if index == -1 && len(dataGroupWorking) > 0 && dayNow != 6 && dayNow != 0 {
+		for _, item := range listCVCWork {
+			if item.ContractStatus == constants.CADDIE_CONTRACT_STATUS_FULLTIME && utils.Contains(dataGroupWorking, item.GroupId) {
+				caddieWork = append(caddieWork, item.CaddieCode)
+			}
+		}
+	} else {
+		caddieWork = GetCaddieCodeFromVacation(listCVCWork)
+	}
+
 	// Get caddie code
 	var caddiePrioritize []string
 	var caddieWorking []string
-	caddieWork := GetCaddieCodeFromVacation(listCVCWork)
+
 	caddieLeave := GetCaddieCodeFromVacation(listCVCLeave)
 
 	caddies := models.Caddie{
-		PartnerUid: "CHI-LINH",
-		CourseUid:  "CHI-LINH-01",
+		PartnerUid: course.PartnerUid,
+		CourseUid:  course.CourseUid,
 	}
 
 	if len(slotPrioritize) > 0 {
@@ -174,15 +196,17 @@ func runCreateCaddieWorkingSlot() {
 		}
 
 		caddieSlot := models.CaddieWorkingSlot{
-			PartnerUid: "CHI-LINH",
-			CourseUid:  "CHI-LINH-01",
+			PartnerUid: course.PartnerUid,
+			CourseUid:  course.CourseUid,
 			ApplyDate:  applyDate,
 		}
 
 		err = caddieSlot.FindFirst(db)
 
 		if err != nil {
-			caddiePrioritize = append(caddiePrioritize, caddieCodes...)
+			caddies := MergeCaddieCodeV2(caddieCodes, caddieLeave)
+
+			caddieWorking = append(caddieWorking, caddies...)
 		} else {
 			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieCodes, caddieLeave)
 
@@ -190,7 +214,7 @@ func runCreateCaddieWorkingSlot() {
 		}
 	}
 
-	if len(dataGroupWorking) > 0 && dayNow != 6 && dayNow != 0 {
+	if index == -1 && len(dataGroupWorking) > 0 && dayNow != 6 && dayNow != 0 {
 		listCaddies, err := caddies.FindAllCaddieGroup(db, constants.CADDIE_CONTRACT_STATUS_FULLTIME, dataGroupWorking)
 
 		if err != nil {
@@ -200,26 +224,70 @@ func runCreateCaddieWorkingSlot() {
 		caddieCodes := GetCaddieCode(listCaddies)
 
 		// Lấy data xếp nốt
-		var applyDate string
-
-		if dayNow == 1 {
-			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -3).Unix())
-		} else {
-			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -1).Unix())
-		}
+		dateValid := checkDateNormal(db, course, dateConvert, strconv.Itoa(yearNow))
+		applyDate, _ := utils.GetBookingDateFromTimestamp(dateValid.Unix())
 
 		caddieSlot := models.CaddieWorkingSlot{
-			PartnerUid: "CHI-LINH",
-			CourseUid:  "CHI-LINH-01",
+			PartnerUid: course.PartnerUid,
+			CourseUid:  course.CourseUid,
 			ApplyDate:  applyDate,
 		}
 
 		err = caddieSlot.FindFirst(db)
 
 		if err != nil {
-			caddieWorking = append(caddieWorking, caddieCodes...)
+			caddies := MergeCaddieCodeV2(caddieCodes, caddieLeave)
+
+			caddieWorking = append(caddieWorking, caddies...)
 		} else {
 			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieCodes, caddieLeave)
+
+			caddieWorking = append(caddieWorking, caddieMerge...)
+		}
+	}
+
+	// Xếp slot caddie holiday
+	if index != -1 && len(dataGroupWorking) > 0 && dayNow != 6 && dayNow != 0 {
+		listCaddiesFull, err := caddies.FindAllCaddieGroup(db, constants.CADDIE_CONTRACT_STATUS_FULLTIME, dataGroupWorking)
+
+		if err != nil {
+			log.Println("Find all caddie group err", err.Error())
+		}
+
+		listCaddiesPart, err := caddies.FindAllCaddieGroup(db, constants.CADDIE_CONTRACT_STATUS_PARTTIME, dataGroupWorking)
+
+		if err != nil {
+			log.Println("Find all caddie group err", err.Error())
+		}
+
+		caddieCodes := append(listCaddiesFull, listCaddiesPart...)
+
+		caddieSortSlots := GetCaddieCode(caddieCodes)
+
+		// Lấy data xếp nốt
+		var applyDate string
+
+		if index == 0 {
+			applyDate, _ = utils.GetBookingDateFromTimestamp(dateFrist.AddDate(0, 0, -1).Unix())
+		} else {
+			dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, listDate[index-1])
+			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.Unix())
+		}
+
+		caddieSlot := models.CaddieWorkingSlot{
+			PartnerUid: course.PartnerUid,
+			CourseUid:  course.CourseUid,
+			ApplyDate:  applyDate,
+		}
+
+		err = caddieSlot.FindFirst(db)
+
+		if err != nil {
+			caddies := MergeCaddieCodeV2(caddieSortSlots, caddieLeave)
+
+			caddieWorking = append(caddieWorking, caddies...)
+		} else {
+			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieSortSlots, caddieLeave)
 
 			caddieWorking = append(caddieWorking, caddieMerge...)
 		}
@@ -245,22 +313,27 @@ func runCreateCaddieWorkingSlot() {
 		// Lấy data xếp nốt
 		var applyDate string
 
-		if dayNow == 6 {
+		if len(listDate) > 0 && dayNow == 6 {
+			dateConvert, _ := time.Parse(constants.DATE_FORMAT_1, listDate[len(listDate)-1])
+			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.Unix())
+		} else if dayNow == 6 {
 			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -6).Unix())
 		} else {
 			applyDate, _ = utils.GetBookingDateFromTimestamp(dateConvert.AddDate(0, 0, -1).Unix())
 		}
 
 		caddieSlot := models.CaddieWorkingSlot{
-			PartnerUid: "CHI-LINH",
-			CourseUid:  "CHI-LINH-01",
+			PartnerUid: course.PartnerUid,
+			CourseUid:  course.CourseUid,
 			ApplyDate:  applyDate,
 		}
 
 		err = caddieSlot.FindFirst(db)
 
 		if err != nil {
-			caddieWorking = append(caddieWorking, caddieSortSlots...)
+			caddies := MergeCaddieCodeV2(caddieSortSlots, caddieLeave)
+
+			caddieWorking = append(caddieWorking, caddies...)
 		} else {
 			caddieMerge := MergeCaddieCode(caddieSlot.CaddieSlot, caddieSortSlots, caddieLeave)
 
@@ -271,8 +344,8 @@ func runCreateCaddieWorkingSlot() {
 	slotCaddie := GetListCaddie(caddiePrioritize, caddieWork, caddieWorking)
 
 	caddieSlot := models.CaddieWorkingSlot{
-		PartnerUid: "CHI-LINH",
-		CourseUid:  "CHI-LINH-01",
+		PartnerUid: course.PartnerUid,
+		CourseUid:  course.CourseUid,
 		ApplyDate:  dateNow,
 	}
 
@@ -286,8 +359,8 @@ func runCreateCaddieWorkingSlot() {
 
 		for _, caddieCode := range slotCaddie {
 			caddie := models.Caddie{
-				PartnerUid: "CHI-LINH",
-				CourseUid:  "CHI-LINH-01",
+				PartnerUid: course.PartnerUid,
+				CourseUid:  course.CourseUid,
 				Code:       caddieCode,
 			}
 
@@ -318,7 +391,7 @@ func getIdGroup(s []models.CaddieGroup, e string) int64 {
 	return 0
 }
 
-func GetCaddieCodeFromVacation(s []models.CaddieVacationCalendar) []string {
+func GetCaddieCodeFromVacation(s []models.CaddieVacationCalendarList) []string {
 	var caddies []string
 	for _, v := range s {
 		caddies = append(caddies, v.CaddieCode)
@@ -357,6 +430,19 @@ func MergeCaddieCode(x, y, z []string) []string {
 	return caddies
 }
 
+func MergeCaddieCodeV2(x, y []string) []string {
+	var caddies []string
+
+	// Add caddie new without slot
+	for _, v := range x {
+		if !utils.Contains(y, v) {
+			caddies = append(caddies, v)
+		}
+	}
+
+	return caddies
+}
+
 func GetListCaddie(x, y, z []string) []string {
 	var caddies []string
 
@@ -375,4 +461,63 @@ func GetListCaddie(x, y, z []string) []string {
 	}
 
 	return caddies
+}
+
+func rangeDateOnWeek(database *gorm.DB, course ModelCourse, start, end time.Time, year string) []string {
+	db := datasources.GetDatabase()
+
+	var listDate []string
+	y, m, d := start.Date()
+	start = time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+	y, m, d = end.Date()
+	end = time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+
+	for {
+		if start.After(end) {
+			break
+		}
+		date := start.Format(constants.DATE_FORMAT_1)
+		start = start.AddDate(0, 0, 1)
+
+		holiday := models.Holiday{
+			PartnerUid: course.PartnerUid,
+			CourseUid:  course.CourseUid,
+			Year:       year,
+		}
+
+		_, total, _ := holiday.FindListInRange(db, date)
+		if total > 0 {
+			listDate = append(listDate, date)
+		}
+	}
+
+	return listDate
+}
+
+func checkDateNormal(database *gorm.DB, course ModelCourse, start time.Time, year string) time.Time {
+	db := datasources.GetDatabase()
+
+	var dateValid time.Time
+	y, m, d := start.Date()
+	start = time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+
+	for {
+		start = start.AddDate(0, 0, -1)
+		date := start.Format(constants.DATE_FORMAT_1)
+		day := int(start.Weekday())
+
+		holiday := models.Holiday{
+			PartnerUid: course.PartnerUid,
+			CourseUid:  course.CourseUid,
+			Year:       year,
+		}
+
+		_, total, _ := holiday.FindListInRange(db, date)
+		if total == 0 && day != 6 && day != 0 {
+			dateValid = start
+			break
+		}
+	}
+
+	return dateValid
 }

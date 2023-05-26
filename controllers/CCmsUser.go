@@ -233,8 +233,32 @@ func (_ *CCmsUser) Login(c *gin.Context) {
 		}
 	}
 
+	if user.CaddieId > 0 {
+		caddie := models.Caddie{}
+		caddie.Id = user.CaddieId
+		db := datasources.GetDatabaseWithPartner(user.PartnerUid)
+		errFCd := caddie.FindFirst(db)
+		if errFCd == nil {
+			userDataRes := map[string]interface{}{
+				"user_name":   user.UserName,
+				"phone":       user.Phone,
+				"partner_uid": user.PartnerUid,
+				"course_uid":  user.CourseUid,
+				"course_info": courseInfo,
+				"role_name":   role.Name,
+				"role_id":     user.RoleId,
+				"permissions": listPerMis,
+				"caddie_info": caddie,
+			}
+
+			okResponse(c, gin.H{"token": jwt, "data": userDataRes})
+			return
+		}
+	}
+
 	userDataRes := map[string]interface{}{
 		"user_name":   user.UserName,
+		"full_name":   user.FullName,
 		"phone":       user.Phone,
 		"partner_uid": user.PartnerUid,
 		"course_uid":  user.CourseUid,
@@ -264,6 +288,8 @@ func (_ *CCmsUser) GetList(c *gin.Context, prof models.CmsUser) {
 	cmsUserR := models.CmsUser{
 		PartnerUid: form.PartnerUid,
 		CourseUid:  form.CourseUid,
+		Type:       form.Type,
+		RoleId:     form.RoleId,
 	}
 
 	subRoles, err := model_role.GetAllSubRoleUids(int(prof.RoleId))
@@ -328,12 +354,27 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 	}
 
 	//Find Role
+	roleType := constants.ROLE_TYPE_CMS
 	if body.RoleId > 0 {
 		role := model_role.Role{}
 		role.Id = body.RoleId
 		errFR := role.FindFirst()
 		if errFR != nil {
 			response_message.BadRequest(c, errFR.Error())
+			return
+		} else {
+			roleType = role.Type
+		}
+	}
+
+	//Find Caddie
+	if body.CaddieId > 0 {
+		db := datasources.GetDatabaseWithPartner(body.PartnerUid)
+		caddie := models.Caddie{}
+		caddie.Id = body.CaddieId
+		errFCAD := caddie.FindFirst(db)
+		if errFCAD != nil {
+			response_message.BadRequest(c, errFCAD.Error())
 			return
 		}
 	}
@@ -346,6 +387,8 @@ func (_ *CCmsUser) CreateCmsUser(c *gin.Context, prof models.CmsUser) {
 		PartnerUid: body.PartnerUid,
 		CourseUid:  body.CourseUid,
 		RoleId:     body.RoleId,
+		CaddieId:   body.CaddieId,
+		Type:       roleType,
 	}
 
 	hashPass, errHash := utils.GeneratePassword(passw)
@@ -399,7 +442,21 @@ func (_ *CCmsUser) UpdateCmsUser(c *gin.Context, prof models.CmsUser) {
 		cmsUser.Email = body.Email
 	}
 	if body.RoleId > 0 {
+		//Find Role
+		roleType := constants.ROLE_TYPE_CMS
+		if body.RoleId > 0 {
+			role := model_role.Role{}
+			role.Id = body.RoleId
+			errFR := role.FindFirst()
+			if errFR != nil {
+				response_message.BadRequest(c, errFR.Error())
+				return
+			} else {
+				roleType = role.Type
+			}
+		}
 		cmsUser.RoleId = body.RoleId
+		cmsUser.Type = roleType
 	}
 	if body.Status != "" {
 		cmsUser.Status = body.Status
@@ -655,4 +712,42 @@ func (_ *CCmsUser) GetPermissionCmsUser(c *gin.Context, prof models.CmsUser) {
 	}
 
 	okResponse(c, res)
+}
+
+/*
+Find list permissions
+*/
+func findListPermissionForCmsUser(user models.CmsUser) utils.ListString {
+	listPerMis := utils.ListString{}
+	role := model_role.Role{}
+	if user.RoleId > 0 {
+		role.Id = user.RoleId
+
+		key := user.GetKeyRedisPermission()
+		listPer, _ := datasources.GetCache(key)
+
+		if !config.GetUseRedisPermissionRole() {
+			listPer = ""
+		}
+
+		if len(listPer) > 0 {
+			_ = json.Unmarshal([]byte(listPer), &listPerMis)
+		} else {
+			errFR := role.FindFirst()
+			if errFR == nil {
+				rolePR := model_role.RolePermission{
+					RoleId: role.Id,
+				}
+				listPermission, errRolePR := rolePR.FindAll()
+				if errRolePR == nil {
+					for _, v := range listPermission {
+						listPerMis = append(listPerMis, v.PermissionUid)
+					}
+				}
+			}
+			// Hàm này dùng nhiều nên bỏ đoạn lưu
+			// user.SaveKeyRedisPermission(listPerMis)
+		}
+	}
+	return listPerMis
 }

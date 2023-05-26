@@ -271,6 +271,11 @@ func GetIsWriteLogToDB() bool {
 	return config.GetBool("is_write_log_to_db")
 }
 
+// =============== Get URL Golf Socket ========================
+func GetGolfSocketURL() string {
+	return config.GetString("golf_socket.url")
+}
+
 /*
 Bitly config
 */

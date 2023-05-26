@@ -518,6 +518,7 @@ func SetParamGetBookingRequest(form request.GetListBookingWithSelectForm) model_
 	bookings.BuggyCode = form.BuggyCode
 	bookings.GuestStyle = form.GuestStyle
 	bookings.CaddieName = form.CaddieName
+	bookings.GuestType = form.GuestType
 	bookings.CheckInCode = form.CheckInCode
 
 	return bookings
@@ -934,6 +935,37 @@ func (cBooking *CBooking) GetListCaddieBookingCancel(c *gin.Context, prof models
 	res := map[string]interface{}{
 		"total": total,
 		"data":  list,
+	}
+
+	okResponse(c, res)
+}
+
+/*
+Danh sách booking với select cho app
+*/
+func (_ *CBooking) GetListBookingWithSelectForApp(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	form := request.GetListBookingWithSelectForm{}
+	if bindErr := c.ShouldBind(&form); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	bookings := SetParamGetBookingRequest(form)
+
+	db, total, err := bookings.FindAllBookingList(db)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+		return
+	}
+
+	var list []response.Booking
+	db.Find(&list)
+
+	res := response.PageResponse{
+		Total: total,
+		Data:  list,
 	}
 
 	okResponse(c, res)
