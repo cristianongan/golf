@@ -85,5 +85,10 @@
         "bucket": "carotech",
         "id_key": "AKIAIWT37SN4AZPXSCXQ",
         "private_key": "twzQiKBSdlGzH9MQ41oFDg81B1YGtdk2qz5Kw+V0"
+    },
+    "short_link": {
+        "secret_key": "zlskiwqow0p5lpajdnk5h1fuqtpsuwje",
+        "url_be": "https://sl-api.vngolf.net/golf-sl/short-link/gen",
+        "url_fe": "https://sl.vngolf.net/"
     }
 }
