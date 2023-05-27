@@ -421,7 +421,7 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 	}
 
 	message = message + `
-		<h4 style="color: red; margin-top:20px; font-style: italic;">Lưu ý: Quý khách vui lòng cung cấp mã QR Check-in hoặc đọc Nã check-in để được phục vụ khi đến sân. Xin cảm ơn !</h4>
+		<h4 style="color: red; margin-top:20px; font-style: italic;">Lưu ý: Quý khách vui lòng cung cấp mã QR Check-in hoặc đọc Mã check-in để được phục vụ khi đến sân. Xin cảm ơn !</h4>
 		</body>
 		</html>`
 
