@@ -60,6 +60,19 @@ func genQRCodeListBook(listBooking []model_booking.Booking) {
 		listHaveQRURL = append(listHaveQRURL, v)
 	}
 
+	//disable for prod
+	// sendSmsBooking(listHaveQRURL)
+	// Send socket
+	for _, v := range listHaveQRURL {
+		// push socket
+		cNotification := CNotification{}
+		bookingClone := v
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, &bookingClone)
+	}
+
+	cNotification := CNotification{}
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, model_booking.Booking{})
+
 	// check config accept auto send
 	if !course.AutoSendBooking {
 		log.Println("genQRCodeListBook - config is disabled auto send sms and email ")
@@ -91,18 +104,6 @@ func genQRCodeListBook(listBooking []model_booking.Booking) {
 			go sendSmsBooking(listHaveQRURL, customerBookingPhone)
 		}
 	}
-	//disable for prod
-	// sendSmsBooking(listHaveQRURL)
-	// Send socket
-	for _, v := range listHaveQRURL {
-		// push socket
-		cNotification := CNotification{}
-		bookingClone := v
-		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, &bookingClone)
-	}
-
-	cNotification := CNotification{}
-	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, model_booking.Booking{})
 
 }
 
