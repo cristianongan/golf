@@ -60,6 +60,17 @@ func genQRCodeListBook(listBooking []model_booking.Booking) {
 		listHaveQRURL = append(listHaveQRURL, v)
 	}
 
+	// Send socket
+	for _, v := range listHaveQRURL {
+		// push socket
+		cNotification := CNotification{}
+		bookingClone := v
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, &bookingClone)
+	}
+
+	cNotification := CNotification{}
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, model_booking.Booking{})
+
 	// check config accept auto send
 	if !course.AutoSendBooking {
 		log.Println("genQRCodeListBook - config is disabled auto send sms and email ")
@@ -91,37 +102,18 @@ func genQRCodeListBook(listBooking []model_booking.Booking) {
 			go sendSmsBooking(listHaveQRURL, customerBookingPhone)
 		}
 	}
-	//disable for prod
-	// sendSmsBooking(listHaveQRURL)
-	// Send socket
-	for _, v := range listHaveQRURL {
-		// push socket
-		cNotification := CNotification{}
-		bookingClone := v
-		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, &bookingClone)
-	}
-
-	cNotification := CNotification{}
-	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, model_booking.Booking{})
 
 }
 
 /*
 Giới hạn độ dài tin nhắn
 */
-func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
-	if len(listBooking) == 0 {
-		errEmpty := errors.New("sendSmsBooking Err List Booking Emplty")
-		log.Println("sendSmsBooking errEmpty", errEmpty.Error())
-		return errEmpty
-	}
-
+func sendSmsBooking(listBooking []model_booking.Booking, phone string) {
 	part := 10 // tối đa 10 booking 1 tin nhắn
 	count := 0
-	var err error
 
 	if len(listBooking) <= part {
-		err = makeSendSmsBooking(listBooking, phone)
+		makeSendSmsBooking(listBooking, phone)
 	} else {
 		for {
 			end := count + part
@@ -129,21 +121,25 @@ func sendSmsBooking(listBooking []model_booking.Booking, phone string) error {
 				end = len(listBooking)
 			}
 
-			err = makeSendSmsBooking(listBooking[count:end], phone)
+			makeSendSmsBooking(listBooking[count:end], phone)
 			count = end
-			if count >= len(listBooking) || err != nil {
+			if count >= len(listBooking) {
 				break
 			}
 		}
 	}
-
-	return err
 }
 
 /*
 Send sms
 */
 func makeSendSmsBooking(listBooking []model_booking.Booking, phone string) error {
+	if len(listBooking) == 0 {
+		errEmpty := errors.New("sendSmsBooking Err List Booking Emplty")
+		log.Println("sendSmsBooking errEmpty", errEmpty.Error())
+		return errEmpty
+	}
+
 	// parse standard phone number
 	num, errPhone := libphonenumber.Parse(phone, "VN")
 	if errPhone != nil {
