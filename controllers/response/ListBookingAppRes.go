@@ -62,4 +62,5 @@ type Booking struct {
 	CheckInCode string `json:"check_in_code"`
 	QrcodeUrl   string `json:"qrcode_url"`
 	InitType    string `json:"init_type"`
+	HoleRound   int    `json:"hole_round"`
 }

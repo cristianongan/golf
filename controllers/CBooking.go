@@ -232,6 +232,7 @@ func (cBooking CBooking) CreateBookingCommon(body request.CreateBookingBody, c *
 
 	if body.IsCheckIn {
 		booking.Hole = body.Hole
+		booking.HoleRound = body.Hole
 
 		if body.CaddieCheckIn != nil {
 			if errUpd := updateCaddieCheckIn(c, &booking, body.CaddieCheckIn); errUpd != nil {
@@ -1546,6 +1547,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 	booking.CheckInTime = utils.GetTimeNow().Unix()
 	booking.BagStatus = constants.BAG_STATUS_WAITING
 	booking.CourseType = body.CourseType
+	booking.HoleRound = body.Hole
 
 	errUdp := booking.Update(db)
 	if errUdp != nil {
