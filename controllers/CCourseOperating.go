@@ -471,8 +471,8 @@ func (_ *CCourseOperating) CreateFlight(c *gin.Context, prof models.CmsUser) {
 		}
 	}
 
-	cNotification := CNotification{}
-	go cNotification.PushNotificationCheckHole()
+	// cNotification := CNotification{}
+	// go cNotification.PushNotificationCheckHole()
 
 	okResponse(c, flight)
 }

@@ -577,13 +577,13 @@ func (_ *CNotification) PushMessBoookingForAppNoCheck(typeMess string, bag *mode
 
 }
 
-func (_ *CNotification) PushNotificationCheckHole() {
-	mess := map[string]interface{}{
-		"title": constants.NOTIFICATION_CHECK_HOLE,
-	}
+// func (_ *CNotification) PushNotificationCheckHole() {
+// 	mess := map[string]interface{}{
+// 		"title": constants.NOTIFICATION_CHECK_HOLE,
+// 	}
 
-	callservices.PushMessInSocket(request.MessSocketBody{Data: mess, Room: constants.NOTIFICATION_CHANNEL_CHECK_HOLE})
-}
+// 	callservices.PushMessInSocket(request.MessSocketBody{Data: mess, Room: constants.NOTIFICATION_CHANNEL_CHECK_HOLE})
+// }
 
 func (_ *CNotification) Admin1ApproveCaddieWC(c *gin.Context, prof models.CmsUser) {
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
