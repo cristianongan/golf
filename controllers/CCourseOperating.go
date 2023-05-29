@@ -1987,3 +1987,157 @@ func (cCourseOperating CCourseOperating) UndoTimeOut(c *gin.Context, prof models
 
 	okRes(c)
 }
+
+func (cCourseOperating CCourseOperating) GetFlightMap(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+
+	now := utils.GetTimeNow().Unix()
+	dateNow, _ := utils.GetBookingDateFromTimestamp(now)
+
+	// Get Par of hole
+	parOfHoleR := models.ParOfHole{
+		PartnerUid: prof.PartnerUid,
+		CourseUid:  prof.CourseUid,
+	}
+	listPOH, errPOH := parOfHoleR.FindListAll(db)
+	if errPOH != nil {
+		response_message.InternalServerError(c, errPOH.Error())
+		return
+	}
+
+	listWait := make(map[string][]int64)
+	listPlay := make(map[string][]int64)
+
+	// Get flight
+	flights := model_gostarter.FlightList{}
+
+	flights.CourseUid = prof.CourseUid
+	flights.PartnerUid = prof.PartnerUid
+	flights.BookingDate = dateNow
+	flights.BagStatus = constants.BAG_STATUS_IN_COURSE
+
+	listF, err := flights.FindFlightListMap(db)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+	}
+
+	// Phân loại flight in course
+	for _, flight := range listF {
+		if flight.TimeStart > 0 && flight.TimeEnd > 0 {
+			// Get index
+			index := getHoleWating(flight.Hole, flight.Course, listPOH)
+
+			// Get config hole
+			config := listPOH[index]
+			holeParse := strconv.Itoa(config.Hole)
+
+			listWait[holeParse+config.Course] = append(listWait[holeParse+config.Course], flight.Id)
+		} else if flight.TimeStart > 0 && flight.TimeEnd == 0 {
+			holeParse := strconv.Itoa(flight.Hole)
+
+			listPlay[holeParse+flight.Course] = append(listPlay[holeParse+flight.Course], flight.Id)
+		} else if flight.TimeStart == 0 && flight.TimeEnd == 0 {
+			listWait["1"+flight.CourseType] = append(listWait["1"+flight.CourseType], flight.Id)
+		}
+	}
+
+	var data []response.CourseOperatingResponse
+
+	for _, item := range listPOH {
+		dataRaw := response.CourseOperatingResponse{
+			PartnerUid: item.PartnerUid,
+			CourseUid:  item.CourseUid,
+			Hole:       item.Hole,
+			Course:     item.Course,
+			Minute:     item.Minute,
+		}
+		// Parse hole
+		holeParse := strconv.Itoa(item.Hole)
+
+		// Get flight waiting
+		if len(listWait[holeParse+item.Course]) > 0 {
+			flights := model_gostarter.FlightList{}
+
+			flights.CourseUid = prof.CourseUid
+			flights.PartnerUid = prof.PartnerUid
+			flights.BagStatus = constants.BAG_STATUS_IN_COURSE
+
+			dataWait, _ := flights.FindFlightMapWithIds(db, listWait[holeParse+item.Course])
+			// Add
+			dataRaw.DataWaiting = dataWait
+		}
+
+		// Get flight play
+		if len(listPlay[holeParse+item.Course]) > 0 {
+			var dataR []model_gostarter.Map
+
+			flights := model_gostarter.FlightList{}
+
+			flights.BagStatus = constants.BAG_STATUS_IN_COURSE
+
+			flights.CourseUid = prof.CourseUid
+			flights.PartnerUid = prof.PartnerUid
+			dataPlay, _ := flights.FindFlightMapWithIds(db, listPlay[holeParse+item.Course])
+			// Add
+
+			for _, item := range dataPlay {
+				item.TimeOnHole = now - item.TimeStart
+
+				dataR = append(dataR, item)
+			}
+
+			dataRaw.DataPlayed = dataR
+		}
+
+		data = append(data, dataRaw)
+	}
+
+	res := map[string]interface{}{
+		"data": data,
+	}
+
+	okResponse(c, res)
+}
+
+func (cCourseOperating CCourseOperating) GetDetalListFlight(c *gin.Context, prof models.CmsUser) {
+	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
+	body := request.GetDetalListFlightBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	flights := model_gostarter.FlightList{}
+
+	flights.CourseUid = body.CourseUid
+	flights.PartnerUid = body.PartnerUid
+	flights.BagStatus = constants.BAG_STATUS_IN_COURSE
+
+	list, err := flights.FindFlightWithIds(db, body.Flights)
+
+	if err != nil {
+		response_message.InternalServerError(c, err.Error())
+	}
+
+	res := map[string]interface{}{
+		"data": list,
+	}
+
+	okResponse(c, res)
+}
+
+func getHoleWating(a int, b string, list []models.ParOfHole) int {
+	for index, item := range list {
+		if item.Hole == a && item.Course == b {
+			indexRaw := index + 1
+
+			if index == len(list)-1 {
+				indexRaw = 0
+			}
+
+			return indexRaw
+		}
+	}
+	return -1
+}

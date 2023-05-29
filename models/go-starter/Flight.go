@@ -30,18 +30,18 @@ type Booking BookingForFlight
 
 type BookingForFlight struct {
 	models.Model
-	CourseType       string                      `json:"course_type"`
-	PartnerUid       string                      `json:"partner_uid,omitempty"`
-	CourseUid        string                      `json:"course_uid,omitempty"`
-	BookingDate      string                      `json:"booking_date,omitempty"`
-	Bag              string                      `json:"bag,omitempty"`
-	Hole             int                         `json:"hole"`
-	HoleBooking      int                         `json:"hole_booking"`     // Số hố khi booking
-	HoleTimeOut      int                         `json:"hole_time_out"`    // Số hố khi time out
-	HoleMoveFlight   int                         `json:"hole_move_flight"` // Số hố trong đã chơi của flight khi bag move sang
-	CustomerName     string                      `json:"customer_name,omitempty"`
-	CustomerUid      string                      `json:"customer_uid,omitempty"`
-	CustomerInfo     model_booking.CustomerInfo  `json:"customer_info,omitempty"`
+	CourseType     string `json:"course_type"`
+	PartnerUid     string `json:"partner_uid,omitempty"`
+	CourseUid      string `json:"course_uid,omitempty"`
+	BookingDate    string `json:"booking_date,omitempty"`
+	Bag            string `json:"bag,omitempty"`
+	Hole           int    `json:"hole"`
+	HoleBooking    int    `json:"hole_booking"`     // Số hố khi booking
+	HoleTimeOut    int    `json:"hole_time_out"`    // Số hố khi time out
+	HoleMoveFlight int    `json:"hole_move_flight"` // Số hố trong đã chơi của flight khi bag move sang
+	CustomerName   string `json:"customer_name,omitempty"`
+	CustomerUid    string `json:"customer_uid,omitempty"`
+	// CustomerInfo     model_booking.CustomerInfo  `json:"customer_info,omitempty"`
 	CaddieId         int64                       `json:"caddie_id,omitempty"`
 	CaddieInfo       model_booking.BookingCaddie `json:"caddie_info,omitempty"`
 	BuggyId          int64                       `json:"buggy_id,omitempty"`

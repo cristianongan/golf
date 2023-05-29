@@ -169,3 +169,9 @@ type UndoTimeOutBody struct {
 	FlightId int64  `json:"flight_id" binding:"required"`
 	Bag      string `json:"bag"`
 }
+
+type GetDetalListFlightBody struct {
+	PartnerUid string  `json:"partner_uid"`
+	CourseUid  string  `json:"course_uid"`
+	Flights    []int64 `json:"flights" binding:"required"`
+}

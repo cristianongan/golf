@@ -402,6 +402,8 @@ func NewRouter() *gin.Engine {
 
 			/// =================== + More Course Operating ===================
 			cmsApiAuthorized.GET("/course-operating/flight/list", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetFlight))
+			cmsApiAuthorized.GET("/course-operating/flight-map", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetFlightMap))
+			cmsApiAuthorized.POST("/course-operating/flight-map/detail", middlewares.AuthorizedCmsUserHandler(cCourseOperating.GetDetalListFlight))
 			cmsApiAuthorized.POST("/course-operating/move-bag-to-flight", middlewares.AuthorizedCmsUserHandler(cCourseOperating.MoveBagToFlight)) // Move flight
 
 			/// =================== Golf Bag ===================
