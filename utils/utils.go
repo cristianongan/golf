@@ -191,7 +191,7 @@ func GetDateFromTimestampWithFormat(timeStamp int64, format string) (string, err
 }
 
 // ================================
-func convertUtf8ToUnicode(s string) string {
+func ConvertUtf8ToUnicode(s string) string {
 	myFunc := func(r rune) bool {
 		return unicode.Is(unicode.Mn, r) // Mn: nonspacing marks
 	}
