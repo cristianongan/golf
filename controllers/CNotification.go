@@ -582,7 +582,7 @@ func (_ *CNotification) PushNotificationCheckHole() {
 		"title": constants.NOTIFICATION_CHECK_HOLE,
 	}
 
-	callservices.PushMessInSocket(request.MessSocketBody{Data: mess, Room: constants.NOTIFICATION_CHECK_HOLE})
+	callservices.PushMessInSocket(request.MessSocketBody{Data: mess, Room: constants.NOTIFICATION_CHANNEL_CHECK_HOLE})
 }
 
 func (_ *CNotification) Admin1ApproveCaddieWC(c *gin.Context, prof models.CmsUser) {
