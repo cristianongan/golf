@@ -156,10 +156,10 @@ func makeSendSmsBooking(listBooking []model_booking.Booking, phone string) error
 		} else {
 			iStr := strconv.Itoa(i + 1)
 			message += iStr + ". "
-			playerName := ""
-			if b.MemberCard != nil {
-				playerName = b.MemberCard.CardId
-			}
+			playerName := utils.ConvertUtf8ToUnicode(b.CustomerName)
+			// if b.MemberCard != nil {
+			// 	playerName = b.MemberCard.CardId
+			// }
 
 			message += playerName + "-" + "Ma check-in: " + b.CheckInCode + " - QR: "
 
