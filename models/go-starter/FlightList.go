@@ -73,7 +73,7 @@ func (item *FlightList) FindFlightList(database *gorm.DB, page models.Page) ([]F
 	}
 
 	if item.FlightIndex != 0 {
-		db = db.Where("flights.flight_index = ?", item.PartnerUid)
+		db = db.Where("flights.flight_index = ?", item.FlightIndex)
 	}
 
 	if page.SortDir != "" {
