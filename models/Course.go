@@ -26,7 +26,7 @@ type Course struct {
 	MemberBooking             *bool   `json:"member_booking" gorm:"default:0"`               // yêu cầu nguồn booking phải có tối thiểu 1 member.
 	ApiKey                    string  `json:"api_key" gorm:"->;<-:create;type:varchar(100)"` // Api key, chỉ cho phép read và create
 	AutoSendBooking           bool    `json:"auto_send_booking" gorm:"default:0"`
-	TimeOverLimit             int     `json:"time_over_limit"` // Cấu hình thời cảnh báo quá giờ
+	ConfigTimeNoti            bool    `json:"config_time_noti" gorm:"default:0"` // Cấu hình thời cảnh báo quá giờ (bật/tắt)
 }
 
 type CourseRes struct {

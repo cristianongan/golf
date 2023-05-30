@@ -165,6 +165,7 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/course/:uid", middlewares.AuthorizedCmsUserHandler(cCourse.UpdateCourse))
 			cmsApiAuthorized.DELETE("/course/:uid", middlewares.AuthorizedCmsUserHandler(cCourse.DeleteCourse))
 			cmsApiAuthorized.GET("/course/:uid", middlewares.AuthorizedCmsUserHandler(cCourse.GetCourseDetail))
+			cmsApiAuthorized.PUT("/course/config-time-noti/:uid", middlewares.AuthorizedCmsUserHandler(cCourse.UpdateConfigTimeNoti))
 
 			/// =================== Member Card =====================
 			cMemberCard := new(controllers.CMemberCard)
@@ -881,6 +882,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.POST("/helper/admin/reset-caddie", middlewares.AuthorizedCmsUserHandler(cHelper.ResetCaddie))                  // Reset Caddie -> cho di lam và có thể chọn
 			cmsApiAuthorized.POST("/helper/admin/move-booking-cancel", middlewares.AuthorizedCmsUserHandler(cHelper.MoveBookingCancel))
 
+			/// =================== Config time notification ===================
+			cConfigTimeNoti := new(controllers.CConfigTimeNoti)
+			cmsApiAuthorized.POST("/config-time-noti", middlewares.AuthorizedCmsUserHandler(cConfigTimeNoti.CreateConfig))
+			cmsApiAuthorized.PUT("/config-time-noti", middlewares.AuthorizedCmsUserHandler(cConfigTimeNoti.UpdateConfig))
+			cmsApiAuthorized.DELETE("/config-time-noti/:id", middlewares.AuthorizedCmsUserHandler(cConfigTimeNoti.DeleteConfig))
+			cmsApiAuthorized.GET("/config-time-noti", middlewares.AuthorizedCmsUserHandler(cConfigTimeNoti.GetListConfig))
+			cmsApiAuthorized.GET("/config-time-noti/available", middlewares.AuthorizedCmsUserHandler(cConfigTimeNoti.GetListConfigAvailable))
 		}
 
 		// ----------------------------------------------------------
