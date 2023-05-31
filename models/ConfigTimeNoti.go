@@ -91,6 +91,24 @@ func (item *ConfigTimeNoti) FindAll(db *gorm.DB) ([]ConfigTimeNoti, int64, error
 	return list, total, db.Error
 }
 
+func (item *ConfigTimeNoti) FindAllAvailable(db *gorm.DB) ([]ConfigTimeNoti, int64, error) {
+	list := []ConfigTimeNoti{}
+	total := int64(0)
+
+	subQuery := db.Model(&ConfigTimeNoti{}).
+		Select("MAX(id) AS id").
+		Where("status = (?) AND course_uid = (?) AND partner_uid = (?)", constants.CONFIG_TIME_NOTI_ACTIVE, item.CourseUid, item.PartnerUid).
+		Group("time_interval_type")
+
+	db = db.Table("config_time_notis as a1").Joins(" JOIN (?) AS a2 ON a1.id = a2.id", subQuery)
+
+	db.Count(&total)
+
+	db = db.Find(&list)
+
+	return list, total, db.Error
+}
+
 func (item *ConfigTimeNoti) Delete(db *gorm.DB) error {
 	if item.Id == 0 {
 		return errors.New("Primary key is undefined!")

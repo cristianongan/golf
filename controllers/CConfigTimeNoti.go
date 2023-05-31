@@ -229,13 +229,9 @@ func (_ *CConfigTimeNoti) GetListConfigAvailable(c *gin.Context, prof models.Cms
 
 	model := models.ConfigTimeNoti{}
 	model.PartnerUid = form.PartnerUid
-	model.Status = constants.CONFIG_TIME_NOTI_ACTIVE
+	model.CourseUid = form.CourseUid
 
-	if prof.RoleId != -1 {
-		model.CourseUid = form.CourseUid
-	}
-
-	list, total, err := model.FindAll(db)
+	list, total, err := model.FindAllAvailable(db)
 	if err != nil {
 		response_message.InternalServerError(c, err.Error())
 		return
