@@ -18,7 +18,7 @@ type ConfigTimeNoti struct {
 	ColorCode        string `json:"color_code" grom:"type:varchar(50)"`
 	Description      string `json:"description" grom:"varchar(255)"`
 	FirstMilestone   int    `json:"first_milestone"`
-	SecondMilestone  int    `json:"second_milestone" binding:"required"`
+	SecondMilestone  int    `json:"second_milestone"`
 }
 
 func (item *ConfigTimeNoti) Create(db *gorm.DB) error {

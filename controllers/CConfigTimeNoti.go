@@ -135,18 +135,20 @@ func validateRequest(data models.ConfigTimeNoti, prof models.CmsUser) string {
 		return constants.API_ERR_INVALID_BODY_DATA
 	}
 
-	if !(data.TimeIntervalType == constants.CONFIG_TIME_NOTI_GREATER_THAN || data.TimeIntervalType == constants.CONFIG_TIME_NOTI_RANGE) {
+	if !(data.TimeIntervalType == constants.CONFIG_TIME_NOTI_GREATER_THAN || data.TimeIntervalType == constants.CONFIG_TIME_NOTI_RANGE || data.TimeIntervalType == constants.CONFIG_TIME_NOTI_SMALLER_THAN) {
 		return constants.API_ERR_INVALID_BODY_DATA
 	}
 
 	if data.FirstMilestone < 0 || data.SecondMilestone < 0 {
-		return "MILE_STONE_CAN_NOT_BE_NAGATIVE"
+		return constants.CONFIG_MILE_STONE_CAN_NOT_BE_NAGATIVE
 	}
 
 	if data.TimeIntervalType == constants.CONFIG_TIME_NOTI_GREATER_THAN && data.FirstMilestone != 0 {
-		return "FIRST_MILE_STONE_IS_INVALID"
-	} else if data.FirstMilestone >= data.SecondMilestone {
-		return "FIRST_MILE_STONE_CAN_NOT_GREATER_THAN_SECOND"
+		return constants.CONFIG_FIRST_MILE_STONE_IS_INVALID
+	} else if data.TimeIntervalType == constants.CONFIG_TIME_NOTI_SMALLER_THAN && data.SecondMilestone != 0 {
+		return constants.CONFIG_SECOND_MILE_STONE_IS_INVALID
+	} else if data.TimeIntervalType == constants.CONFIG_TIME_NOTI_RANGE && data.FirstMilestone >= data.SecondMilestone {
+		return constants.CONFIG_FIRST_MILE_STONE_CAN_NOT_GREATER_THAN_SECOND
 	}
 
 	return ""
@@ -230,7 +232,7 @@ func (_ *CConfigTimeNoti) GetListConfigAvailable(c *gin.Context, prof models.Cms
 
 	model := models.ConfigTimeNoti{}
 	model.PartnerUid = form.PartnerUid
-	model.Status = form.Status
+	model.Status = constants.STATUS_ENABLE
 
 	if prof.RoleId != -1 {
 		model.CourseUid = form.CourseUid
