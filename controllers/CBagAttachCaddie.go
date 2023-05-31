@@ -106,6 +106,17 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 
 	// validate caddie
 	if body.CaddieCode != "" {
+		caddie := models.Caddie{
+			PartnerUid: body.PartnerUid,
+			CourseUid:  body.CourseUid,
+			Code:       body.CaddieCode,
+		}
+		errFC := caddie.FindFirst(db)
+		if errFC != nil {
+			response_message.BadRequestFreeMessage(c, "Caddie not found")
+			return
+		}
+
 		caddieAttValid := model_gostarter.BagAttachCaddie{}
 
 		caddieAttValid.PartnerUid = body.PartnerUid
@@ -121,17 +132,6 @@ func (_ *CBagAttachCaddie) CreateAttachCaddie(c *gin.Context, prof models.CmsUse
 		}
 
 		if body.BookingUid != "" {
-			caddie := models.Caddie{
-				PartnerUid: body.PartnerUid,
-				CourseUid:  body.CourseUid,
-				Code:       body.CaddieCode,
-			}
-			errFC := caddie.FindFirst(db)
-			if errFC != nil {
-				response_message.BadRequestFreeMessage(c, "Caddie not found")
-				return
-			}
-
 			cCaddie := CCaddie{}
 			listCaddieWorkingByBookingDate := cCaddie.GetCaddieWorkingByDate(body.PartnerUid, body.CourseUid, body.BookingDate)
 			if utils.ContainString(listCaddieWorkingByBookingDate, body.CaddieCode) == -1 {
