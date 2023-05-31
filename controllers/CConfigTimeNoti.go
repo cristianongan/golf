@@ -48,6 +48,8 @@ func (_ *CConfigTimeNoti) CreateConfig(c *gin.Context, prof models.CmsUser) {
 
 	if body.Status == "" {
 		model.Status = constants.CONFIG_TIME_NOTI_ACTIVE
+	} else {
+		model.Status = body.Status
 	}
 
 	model.ColorCode = body.ColorCode
@@ -105,6 +107,7 @@ func (_ *CConfigTimeNoti) UpdateConfig(c *gin.Context, prof models.CmsUser) {
 	model.Description = body.Description
 	model.PartnerUid = body.PartnerUid
 	model.CourseUid = body.CourseUid
+	model.Status = body.Status
 
 	errC := model.Update(db)
 
