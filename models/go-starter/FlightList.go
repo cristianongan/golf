@@ -104,6 +104,8 @@ func (item *FlightList) FindFlightListMap(database *gorm.DB) ([]Map, error) {
 
 	// Subquery
 	subQuery := database.Table("player_scores")
+
+	subQuery = subQuery.Select("MAX(player_scores.id) as id")
 	if item.CourseUid != "" {
 		subQuery = subQuery.Where("player_scores.course_uid = ?", item.CourseUid)
 	}
@@ -112,14 +114,25 @@ func (item *FlightList) FindFlightListMap(database *gorm.DB) ([]Map, error) {
 		subQuery = subQuery.Where("player_scores.partner_uid = ?", item.PartnerUid)
 	}
 
-	subQuery.Order("player_scores.hole_index desc")
+	if item.BookingDate != "" {
+		subQuery = subQuery.Where("player_scores.booking_date = ?", item.BookingDate)
+	}
+
+	subQuery.Group("player_scores.flight_id")
+
+	// Subquery
+	subQuery1 := database.Table("player_scores as ps")
+
+	subQuery1 = subQuery1.Select("ps.*")
+
+	subQuery1 = subQuery1.Joins("INNER JOIN (?) as ps1 ON ps1.id = ps.id", subQuery)
 
 	db := database.Model(Flight{})
 
 	db = db.Select("flights.*, tb1.course, tb1.hole, tb1.time_start, tb1.time_end")
 
 	db = db.Joins("INNER JOIN bookings ON bookings.flight_id = flights.id")
-	db = db.Joins("LEFT JOIN (?) as tb1 ON tb1.flight_id = flights.id", subQuery)
+	db = db.Joins("LEFT JOIN (?) as tb1 ON tb1.flight_id = flights.id", subQuery1)
 
 	if item.BagStatus != "" {
 		db = db.Where("bookings.bag_status = ?", item.BagStatus)
@@ -149,6 +162,8 @@ func (item *FlightList) FindFlightMapWithIds(database *gorm.DB, ids []int64) ([]
 
 	// Subquery
 	subQuery := database.Table("player_scores")
+
+	subQuery = subQuery.Select("MAX(player_scores.id) as id")
 	if item.CourseUid != "" {
 		subQuery = subQuery.Where("player_scores.course_uid = ?", item.CourseUid)
 	}
@@ -157,13 +172,24 @@ func (item *FlightList) FindFlightMapWithIds(database *gorm.DB, ids []int64) ([]
 		subQuery = subQuery.Where("player_scores.partner_uid = ?", item.PartnerUid)
 	}
 
-	subQuery.Order("player_scores.hole_index desc")
+	if item.BookingDate != "" {
+		subQuery = subQuery.Where("player_scores.booking_date = ?", item.BookingDate)
+	}
+
+	subQuery.Group("player_scores.flight_id")
+
+	// Subquery
+	subQuery1 := database.Table("player_scores as ps")
+
+	subQuery1 = subQuery1.Select("ps.*")
+
+	subQuery1 = subQuery1.Joins("INNER JOIN (?) as ps1 ON ps1.id = ps.id", subQuery)
 
 	db := database.Model(Flight{})
 	db = db.Select("flights.*, tb1.course, tb1.hole, tb1.time_start, tb1.time_end")
 
 	db = db.Joins("INNER JOIN bookings ON bookings.flight_id = flights.id")
-	db = db.Joins("LEFT JOIN (?) as tb1 ON tb1.flight_id = flights.id", subQuery)
+	db = db.Joins("LEFT JOIN (?) as tb1 ON tb1.flight_id = flights.id", subQuery1)
 
 	if item.CourseUid != "" {
 		db = db.Where("flights.course_uid = ?", item.CourseUid)
