@@ -47,11 +47,10 @@ func (_ *CConfigTimeNoti) CreateConfig(c *gin.Context, prof models.CmsUser) {
 	}
 
 	if body.Status == "" {
-		model.Status = constants.STATUS_ENABLE
+		model.Status = constants.CONFIG_TIME_NOTI_ACTIVE
 	}
 
 	model.ColorCode = body.ColorCode
-	model.TimeIntervalName = body.TimeIntervalName
 	model.Description = body.Description
 	model.PartnerUid = body.PartnerUid
 	model.CourseUid = body.CourseUid
@@ -103,7 +102,6 @@ func (_ *CConfigTimeNoti) UpdateConfig(c *gin.Context, prof models.CmsUser) {
 	model.FirstMilestone = body.FirstMilestone
 	model.SecondMilestone = body.SecondMilestone
 	model.ColorCode = body.ColorCode
-	model.TimeIntervalName = body.TimeIntervalName
 	model.Description = body.Description
 	model.PartnerUid = body.PartnerUid
 	model.CourseUid = body.CourseUid
@@ -128,10 +126,6 @@ func validateRequest(data models.ConfigTimeNoti, prof models.CmsUser) string {
 	}
 
 	if len(data.Description) > 255 {
-		return constants.API_ERR_INVALID_BODY_DATA
-	}
-
-	if len(data.TimeIntervalName) > 100 {
 		return constants.API_ERR_INVALID_BODY_DATA
 	}
 
@@ -232,7 +226,7 @@ func (_ *CConfigTimeNoti) GetListConfigAvailable(c *gin.Context, prof models.Cms
 
 	model := models.ConfigTimeNoti{}
 	model.PartnerUid = form.PartnerUid
-	model.Status = constants.STATUS_ENABLE
+	model.Status = constants.CONFIG_TIME_NOTI_ACTIVE
 
 	if prof.RoleId != -1 {
 		model.CourseUid = form.CourseUid

@@ -598,8 +598,10 @@ const (
 	CONFIG_TIME_NOTI_SMALLER_THAN = "SMALLER_THAN"
 )
 
-// message of config time notification
+// config time notification
 const (
+	CONFIG_TIME_NOTI_ACTIVE                             = "ACTIVE"
+	CONFIG_TIME_NOTI_INACTIVE                           = "INACTIVE"
 	CONFIG_MILE_STONE_CAN_NOT_BE_NAGATIVE               = "MILE_STONE_CAN_NOT_BE_NAGATIVE"
 	CONFIG_FIRST_MILE_STONE_IS_INVALID                  = "FIRST_MILE_STONE_IS_INVALID"
 	CONFIG_SECOND_MILE_STONE_IS_INVALID                 = "SECOND_MILE_STONE_IS_INVALID"

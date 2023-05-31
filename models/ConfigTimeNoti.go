@@ -13,7 +13,6 @@ type ConfigTimeNoti struct {
 	ModelId
 	CourseUid        string `json:"course_uid" gorm:"size:256" binding:"required"`
 	PartnerUid       string `json:"partner_uid" gorm:"size:256" binding:"required"`
-	TimeIntervalName string `json:"time_interval_name" binding:"required" grom:"type:varchar(100)"`
 	TimeIntervalType string `json:"time_interval_type" binding:"required"`
 	ColorCode        string `json:"color_code" grom:"type:varchar(50)"`
 	Description      string `json:"description" grom:"varchar(255)"`
