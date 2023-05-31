@@ -2005,6 +2005,11 @@ func (cCourseOperating CCourseOperating) GetFlightMap(c *gin.Context, prof model
 		return
 	}
 
+	if len(listPOH) == 0 {
+		response_message.BadRequestFreeMessage(c, "Par of hole empty!")
+		return
+	}
+
 	listWait := make(map[string][]int64)
 	listPlay := make(map[string][]int64)
 
