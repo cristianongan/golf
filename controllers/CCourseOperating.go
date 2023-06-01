@@ -2087,7 +2087,7 @@ func (cCourseOperating CCourseOperating) GetFlightMap(c *gin.Context, prof model
 			// Add
 
 			for _, item := range dataPlay {
-				item.TimeOnHole = now - item.CreatedAt
+				item.TimeOnHole = now - item.TimeCreate
 
 				dataR = append(dataR, item)
 			}

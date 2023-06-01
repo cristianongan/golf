@@ -30,7 +30,8 @@ type Map struct {
 	Hole        int    `json:"hole"`                      // Số hố
 	TimeStart   int64  `json:"time_start"`                // Thời gian bắt đầu
 	TimeEnd     int64  `json:"time_end"`                  // Thời gian end
-	TimeOnHole  int64  `json:"time_on_hole"`              // Thời gian end
+	TimeCreate  int64  `json:"time_create"`
+	TimeOnHole  int64  `json:"time_on_hole"` // Thời gian end
 }
 
 func (item *FlightList) FindFlightList(database *gorm.DB, page models.Page) ([]Flight, int64, error) {
@@ -129,7 +130,7 @@ func (item *FlightList) FindFlightListMap(database *gorm.DB) ([]Map, error) {
 
 	db := database.Model(Flight{})
 
-	db = db.Select("flights.*, tb1.course, tb1.hole, tb1.time_start, tb1.time_end")
+	db = db.Select("flights.*, tb1.course, tb1.hole, tb1.time_start, tb1.time_end, tb1.created_at as time_create")
 
 	db = db.Joins("INNER JOIN bookings ON bookings.flight_id = flights.id")
 	db = db.Joins("LEFT JOIN (?) as tb1 ON tb1.flight_id = flights.id", subQuery1)
@@ -186,7 +187,7 @@ func (item *FlightList) FindFlightMapWithIds(database *gorm.DB, ids []int64) ([]
 	subQuery1 = subQuery1.Joins("INNER JOIN (?) as ps1 ON ps1.id = ps.id", subQuery)
 
 	db := database.Model(Flight{})
-	db = db.Select("flights.*, tb1.course, tb1.hole, tb1.time_start, tb1.time_end")
+	db = db.Select("flights.*, tb1.course, tb1.hole, tb1.time_start, tb1.time_end, tb1.created_at as time_create")
 
 	db = db.Joins("INNER JOIN bookings ON bookings.flight_id = flights.id")
 	db = db.Joins("LEFT JOIN (?) as tb1 ON tb1.flight_id = flights.id", subQuery1)
