@@ -37,9 +37,9 @@ func (_ *CConfigTimeNoti) CreateConfig(c *gin.Context, prof models.CmsUser) {
 	// create config
 	model := models.ConfigTimeNoti{}
 
+	model.PartnerUid = body.PartnerUid
+	model.CourseUid = body.CourseUid
 	model.TimeIntervalType = body.TimeIntervalType
-	model.FirstMilestone = body.FirstMilestone
-	model.SecondMilestone = body.SecondMilestone
 
 	if model.FindFirst(db) == nil {
 		response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
@@ -52,10 +52,10 @@ func (_ *CConfigTimeNoti) CreateConfig(c *gin.Context, prof models.CmsUser) {
 		model.Status = body.Status
 	}
 
+	model.FirstMilestone = body.FirstMilestone
+	model.SecondMilestone = body.SecondMilestone
 	model.ColorCode = body.ColorCode
 	model.Description = body.Description
-	model.PartnerUid = body.PartnerUid
-	model.CourseUid = body.CourseUid
 
 	errC := model.Create(db)
 
@@ -92,8 +92,8 @@ func (_ *CConfigTimeNoti) UpdateConfig(c *gin.Context, prof models.CmsUser) {
 
 	nonUid := models.ConfigTimeNoti{}
 	nonUid.TimeIntervalType = body.TimeIntervalType
-	nonUid.FirstMilestone = body.FirstMilestone
-	nonUid.SecondMilestone = body.SecondMilestone
+	nonUid.CourseUid = body.CourseUid
+	nonUid.PartnerUid = body.PartnerUid
 
 	if nonUid.FindFirstExclude([]int64{model.Id}, db) == nil {
 		response_message.BadRequest(c, constants.API_ERR_DUPLICATED_RECORD)
