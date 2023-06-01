@@ -624,7 +624,8 @@ func (_ *CCourseOperating) OutAllInFlight(c *gin.Context, prof models.CmsUser) {
 
 			// push socket
 			cNotification := CNotification{}
-			go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &booking)
+			cloneB := booking
+			go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &cloneB)
 
 			// Update lại giá của Round theo số hố
 			cRound := CRound{}
