@@ -60,6 +60,17 @@ func genQRCodeListBook(listBooking []model_booking.Booking) {
 		listHaveQRURL = append(listHaveQRURL, v)
 	}
 
+	// Send socket
+	for _, v := range listHaveQRURL {
+		// push socket
+		cNotification := CNotification{}
+		bookingClone := v
+		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, &bookingClone)
+	}
+
+	cNotification := CNotification{}
+	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, model_booking.Booking{})
+
 	// check config accept auto send
 	if !course.AutoSendBooking {
 		log.Println("genQRCodeListBook - config is disabled auto send sms and email ")
@@ -91,18 +102,6 @@ func genQRCodeListBook(listBooking []model_booking.Booking) {
 			go sendSmsBooking(listHaveQRURL, customerBookingPhone)
 		}
 	}
-	//disable for prod
-	// sendSmsBooking(listHaveQRURL)
-	// Send socket
-	for _, v := range listHaveQRURL {
-		// push socket
-		cNotification := CNotification{}
-		bookingClone := v
-		go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_ADD, &bookingClone)
-	}
-
-	cNotification := CNotification{}
-	go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_BOOKING_CMS, model_booking.Booking{})
 
 }
 
@@ -157,10 +156,10 @@ func makeSendSmsBooking(listBooking []model_booking.Booking, phone string) error
 		} else {
 			iStr := strconv.Itoa(i + 1)
 			message += iStr + ". "
-			playerName := ""
-			if b.MemberCard != nil {
-				playerName = b.MemberCard.CardId
-			}
+			playerName := utils.ConvertUtf8ToUnicode(b.CustomerName)
+			// if b.MemberCard != nil {
+			// 	playerName = b.MemberCard.CardId
+			// }
 
 			message += playerName + "-" + "Ma check-in: " + b.CheckInCode + " - QR: "
 
@@ -422,7 +421,7 @@ func sendEmailBooking(listBooking []model_booking.Booking, email string) error {
 	}
 
 	message = message + `
-		<h4 style="color: red; margin-top:20px; font-style: italic;">Lưu ý: Quý khách vui lòng cung cấp mã QR Check-in hoặc đọc Nã check-in để được phục vụ khi đến sân. Xin cảm ơn !</h4>
+		<h4 style="color: red; margin-top:20px; font-style: italic;">Lưu ý: Quý khách vui lòng cung cấp mã QR Check-in hoặc đọc Mã check-in để được phục vụ khi đến sân. Xin cảm ơn !</h4>
 		</body>
 		</html>`
 
