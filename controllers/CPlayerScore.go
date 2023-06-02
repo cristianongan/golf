@@ -28,6 +28,7 @@ func (_ *CPlayerScore) CreatePlayerScore(c *gin.Context, prof models.CmsUser) {
 	playerScore := models.PlayerScore{}
 
 	var listPlayer []models.PlayerScore
+	var listPlayerRes []models.PlayerScore
 
 	for _, player := range body.Players {
 		playerScore := models.PlayerScore{
@@ -61,20 +62,25 @@ func (_ *CPlayerScore) CreatePlayerScore(c *gin.Context, prof models.CmsUser) {
 				response_message.InternalServerError(c, errC.Error())
 				return
 			}
+
+			listPlayerRes = append(listPlayerRes, ps)
 		} else {
 			listPlayer = append(listPlayer, playerScore)
+			listPlayerRes = append(listPlayerRes, playerScore)
 		}
 
 	}
 
-	errC := playerScore.BatchInsert(db, listPlayer)
-	if errC != nil {
-		response_message.InternalServerError(c, errC.Error())
-		return
+	if listPlayer != nil {
+		errC := playerScore.BatchInsert(db, listPlayer)
+		if errC != nil {
+			response_message.InternalServerError(c, errC.Error())
+			return
+		}
 	}
 
 	res := map[string]interface{}{
-		"data": listPlayer,
+		"data": listPlayerRes,
 	}
 
 	okResponse(c, res)
