@@ -88,6 +88,6 @@
     "short_link": {
         "secret_key": "zlskiwqow0p5lpajdnk5h1fuqtpsuwje",
         "url_be": "https://sl-api.vngolf.net/golf-sl/short-link/gen",
-        "url_fe": "https://sl.clgolf.vn/"
+        "url_fe": "https://clgolf.vn/"
     }
 }
