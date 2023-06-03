@@ -1498,7 +1498,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 
 		booking.CaddieId = caddieNew.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
-	} else if booking.CaddieBooking != "" {
+	} else if booking.CaddieId != 0 && booking.CaddieBooking != "" {
 		caddieList := models.CaddieList{}
 		caddieList.CourseUid = booking.CourseUid
 		caddieList.CaddieCode = booking.CaddieBooking
