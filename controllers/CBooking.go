@@ -1496,6 +1496,20 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 			return
 		}
 
+		// Out Caddie, nếu caddie trong in course
+		if booking.CaddieId != caddieNew.Id {
+			go func() {
+				if booking.CaddieId > 0 {
+					caddie := models.Caddie{}
+					caddie.Id = booking.CaddieId
+					if err := caddie.FindFirst(db); err == nil {
+						udpCaddieOut(db, booking.CaddieId)
+					}
+
+				}
+			}()
+		}
+
 		booking.CaddieId = caddieNew.Id
 		booking.CaddieInfo = cloneToCaddieBooking(caddieNew)
 	} else if booking.CaddieId == 0 && booking.CaddieBooking != "" {
