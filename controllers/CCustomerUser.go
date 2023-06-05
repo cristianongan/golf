@@ -427,13 +427,15 @@ func (_ *CCustomerUser) GetCustomerUserDetail(c *gin.Context, prof models.CmsUse
 	}
 
 	list, _, errFR := reportCus.FindAllList()
-	if errFR != nil || reportCus.Id <= 0 {
-		reportCus.CourseUid = customerUser.CourseUid
-		reportCus.PartnerUid = customerUser.PartnerUid
-		errRC := reportCus.Create()
-		if errRC != nil {
-			log.Println("GetCustomerUserDetail errRC", errRC.Error())
-		}
+	// if errFR != nil || reportCus.Id <= 0 {
+	if errFR != nil || len(list) <= 0 {
+		// reportCus.CourseUid = customerUser.CourseUid
+		// reportCus.PartnerUid = customerUser.PartnerUid
+		// errRC := reportCus.Create()
+		// if errRC != nil {
+		// 	log.Println("GetCustomerUserDetail errRC", errRC.Error())
+		// }
+		log.Println("GetCustomerUserDetail errRC", errFR.Error())
 	}
 
 	totalPaid := int64(0)
