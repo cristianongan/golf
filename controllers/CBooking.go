@@ -1497,7 +1497,7 @@ func (cBooking *CBooking) CheckIn(c *gin.Context, prof models.CmsUser) {
 		}
 
 		// Out Caddie, nếu caddie trong in course
-		if booking.CaddieId != caddieNew.Id {
+		if booking.CaddieInfo.Code != body.CaddieCode {
 			oldCad := booking.CaddieId
 			go func() {
 				if oldCad > 0 {
