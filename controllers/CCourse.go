@@ -58,6 +58,8 @@ func (_ *CCourse) CreateCourse(c *gin.Context, prof models.CmsUser) {
 	course.TypeSendInfoBooking = body.TypeSendInfoBooking
 	course.TypeSendInfoBookingAgency = body.TypeSendInfoBookingAgency
 	course.AutoSendBooking = body.AutoSendBooking
+	course.ConfigTimeNoti = body.ConfigTimeNoti
+
 	if body.MaxPeopleInFlight > 0 {
 		course.MaxPeopleInFlight = body.MaxPeopleInFlight
 	} else {
@@ -181,6 +183,7 @@ func (_ *CCourse) UpdateCourse(c *gin.Context, prof models.CmsUser) {
 
 	// bool field default false
 	course.AutoSendBooking = body.AutoSendBooking
+	course.ConfigTimeNoti = body.ConfigTimeNoti
 
 	errUdp := course.Update()
 	if errUdp != nil {
@@ -233,6 +236,43 @@ func (_ *CCourse) GetCourseDetail(c *gin.Context, prof models.CmsUser) {
 
 	if course.PartnerUid != prof.PartnerUid || course.Uid != prof.CourseUid {
 		response_message.Forbidden(c, "forbidden")
+		return
+	}
+
+	okResponse(c, course)
+}
+
+func (_ *CCourse) UpdateConfigTimeNoti(c *gin.Context, prof models.CmsUser) {
+	courseUidStr := c.Param("uid")
+	if courseUidStr == "" {
+		response_message.BadRequest(c, errors.New("uid not valid").Error())
+		return
+	}
+
+	body := models.Course{}
+
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		response_message.BadRequest(c, bindErr.Error())
+		return
+	}
+
+	course := models.Course{}
+	course.Uid = courseUidStr
+	course.PartnerUid = prof.PartnerUid
+
+	err := course.FindFirst()
+
+	if err != nil {
+		response_message.BadRequest(c, constants.DB_ERR_RECORD_NOT_FOUND)
+		return
+	}
+
+	course.ConfigTimeNoti = body.ConfigTimeNoti
+
+	errUdp := course.Update()
+
+	if err != nil {
+		response_message.InternalServerError(c, errUdp.Error())
 		return
 	}
 

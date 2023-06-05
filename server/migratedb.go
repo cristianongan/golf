@@ -194,6 +194,9 @@ func MigrateDbCms(db *gorm.DB) {
 
 	// TeeTime
 	db.AutoMigrate(&models.TeeTimeList{})
+
+	// Course Time Notification
+	db.AutoMigrate(&models.ConfigTimeNoti{})
 }
 
 func MigrateDbAuth() {
