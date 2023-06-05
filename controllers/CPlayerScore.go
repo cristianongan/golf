@@ -83,6 +83,9 @@ func (_ *CPlayerScore) CreatePlayerScore(c *gin.Context, prof models.CmsUser) {
 		"data": listPlayerRes,
 	}
 
+	// cNotification := CNotification{}
+	// go cNotification.PushNotificationCheckHole()
+
 	okResponse(c, res)
 }
 
@@ -165,6 +168,9 @@ func (_ *CPlayerScore) UpdatePlayerScore(c *gin.Context, prof models.CmsUser) {
 		return
 	}
 
+	// cNotification := CNotification{}
+	// go cNotification.PushNotificationCheckHole()
+
 	okResponse(c, playerScore)
 }
 
@@ -199,6 +205,9 @@ func (_ *CPlayerScore) UpdateListPlayerScore(c *gin.Context, prof models.CmsUser
 			return
 		}
 	}
+
+	// cNotification := CNotification{}
+	// go cNotification.PushNotificationCheckHole()
 
 	okRes(c)
 }
