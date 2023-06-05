@@ -70,6 +70,23 @@ func (item *ParOfHole) FindList(database *gorm.DB, page Page) ([]ParOfHole, int6
 	return list, total, db.Error
 }
 
+func (item *ParOfHole) FindListAll(database *gorm.DB) ([]ParOfHole, error) {
+	db := database.Model(ParOfHole{})
+	list := []ParOfHole{}
+
+	if item.PartnerUid != "" {
+		db = db.Where("partner_uid = ?", item.PartnerUid)
+	}
+	if item.CourseUid != "" {
+		db = db.Where("course_uid = ?", item.CourseUid)
+	}
+	db.Order("course, hole")
+
+	db = db.Find(&list)
+
+	return list, db.Error
+}
+
 func (item *ParOfHole) Delete(db *gorm.DB) error {
 	if item.ModelId.Id <= 0 {
 		return errors.New("Primary key is undefined!")

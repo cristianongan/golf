@@ -142,6 +142,7 @@ type GetFlightList struct {
 	PlayerName           string `form:"player_name"`
 	CaddieCode           string `form:"caddie_code"`
 	BagStatus            string `form:"bag_status"`
+	FlightIndex          int    `form:"flight_index"`
 }
 
 type MoveBagToFlightBody struct {
@@ -167,4 +168,10 @@ type CheckBagCanCheckoutBody struct {
 type UndoTimeOutBody struct {
 	FlightId int64  `json:"flight_id" binding:"required"`
 	Bag      string `json:"bag"`
+}
+
+type GetDetalListFlightBody struct {
+	PartnerUid string  `json:"partner_uid"`
+	CourseUid  string  `json:"course_uid"`
+	Flights    []int64 `json:"flights" binding:"required"`
 }

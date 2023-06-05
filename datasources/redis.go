@@ -198,6 +198,10 @@ func GetPrefixRedisKeyUserRolePermission() string {
 	return config.GetEnvironmentName() + "_" + "permission" + "_"
 }
 
+func GetRedisKeyFlightIndex(partnerUid, courseUid, date string) string {
+	return config.GetEnvironmentName() + "_" + "redis_flight_index" + "_" + partnerUid + "_" + courseUid + "_" + date
+}
+
 func GetRedis() *redis.Client {
 	return redisdb
 }
