@@ -74,37 +74,37 @@ type GetTeeTimeOTAResponse struct {
 }
 
 type TeeTimeOTA struct {
-	TeeOffStr    string      `json:"TeeOffStr"`
-	DateStr      string      `json:"DateStr"`
-	TeeOff       string      `json:"TeeOff"`
-	Part         int64       `json:"Part"`
-	TimeIndex    int64       `json:"TimeIndex"`
-	Tee          int64       `json:"Tee"`
-	NumBook      int64       `json:"NumBook"`
-	IsMainCourse bool        `json:"isMainCourse"`
-	Play1        interface{} `json:"Play1"`
-	Play2        interface{} `json:"Play2"`
-	Play3        interface{} `json:"Play3"`
-	Play4        interface{} `json:"Play4"`
-	Contact1     interface{} `json:"Contact1"`
-	Contact2     interface{} `json:"Contact2"`
-	Contact3     interface{} `json:"Contact3"`
-	Contact4     interface{} `json:"Contact4"`
-	Note1        interface{} `json:"Note1"`
-	Note2        interface{} `json:"Note2"`
-	Note3        interface{} `json:"Note3"`
-	Note4        interface{} `json:"Note4"`
-	Id1          int64       `json:"ID1"`
-	Id2          int64       `json:"ID2"`
-	Id3          int64       `json:"ID3"`
-	Id4          int64       `json:"ID4"`
-	IsWaiting    bool        `json:"IsWaiting"`
-	Islock       bool        `json:"Islock"`
-	LockReson    interface{} `json:"LockReson"`
-	GreenFee     int64       `json:"GreenFee"`
-	CaddieFee    int64       `json:"CaddieFee"`
-	BuggyFee     int64       `json:"BuggyFee"`
-	Holes        int64       `json:"Holes"`
+	TeeOffStr    string `json:"TeeOffStr"`
+	DateStr      string `json:"DateStr"`
+	TeeOff       string `json:"TeeOff"`
+	Part         int64  `json:"Part"`
+	TimeIndex    int64  `json:"TimeIndex"`
+	Tee          int64  `json:"Tee"`
+	NumBook      int64  `json:"NumBook"`
+	IsMainCourse bool   `json:"isMainCourse"`
+	// Play1        interface{} `json:"Play1"`
+	// Play2        interface{} `json:"Play2"`
+	// Play3        interface{} `json:"Play3"`
+	// Play4        interface{} `json:"Play4"`
+	// Contact1     interface{} `json:"Contact1"`
+	// Contact2     interface{} `json:"Contact2"`
+	// Contact3     interface{} `json:"Contact3"`
+	// Contact4     interface{} `json:"Contact4"`
+	// Note1        interface{} `json:"Note1"`
+	// Note2        interface{} `json:"Note2"`
+	// Note3        interface{} `json:"Note3"`
+	// Note4        interface{} `json:"Note4"`
+	// Id1          int64       `json:"ID1"`
+	// Id2          int64       `json:"ID2"`
+	// Id3          int64       `json:"ID3"`
+	// Id4          int64       `json:"ID4"`
+	// IsWaiting    bool        `json:"IsWaiting"`
+	// Islock       bool        `json:"Islock"`
+	// LockReson    interface{} `json:"LockReson"`
+	GreenFee  int64 `json:"GreenFee"`
+	CaddieFee int64 `json:"CaddieFee"`
+	BuggyFee  int64 `json:"BuggyFee"`
+	Holes     int64 `json:"Holes"`
 }
 type TeeTimePartOTA struct {
 	IsHideTeePart bool
