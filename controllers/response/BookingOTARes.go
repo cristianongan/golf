@@ -142,3 +142,15 @@ type LockTeeTimeRes struct {
 	DateStr      string               `json:"DateStr"`
 	TeeTimeOTA
 }
+
+type OtaGeneralRes struct {
+	Result       ResultOTA   `json:"result"`
+	Token        interface{} `json:"Token"`
+	Data         interface{} `json:"data"`
+	IsMainCourse bool        `json:"isMainCourse"`
+	Edit         bool        `json:"Edit"`
+	CreateUser   interface{} `json:"CreateUser"`
+	CourseCode   string      `json:"CourseCode"`
+	Locktime     int64       `json:"Locktime"`
+	DateStr      string      `json:"DateStr"`
+}
