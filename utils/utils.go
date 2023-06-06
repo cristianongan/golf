@@ -262,6 +262,15 @@ func GetStartDayByTimeStamp(timestamp int64, location string) int64 {
 	return rounded.Unix()
 }
 
+func GetEndDayByTimeStamp(timestamp int64, location string) int64 {
+	loc, _ := time.LoadLocation(location)
+	t := time.Unix(timestamp, 0).In(loc)
+	t = t.AddDate(0, 0, 1)
+	year, month, day := t.Date()
+	rounded := time.Date(year, month, day, 0, 0, 0, 0, t.Location())
+	return rounded.Unix() - 1
+}
+
 func UuidElasticSearch() string {
 	return uuid.New().String() + "-" + NumberToString(GetTimeNow().UnixNano())
 }
