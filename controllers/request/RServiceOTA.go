@@ -22,3 +22,16 @@ type GetListFeeServiceOTABody struct {
 	OTACode    string `json:"OTACode"`
 	Hole       int    `json:"Hole"`
 }
+type CheckMemberCardBody struct {
+	Token      string `json:"Token"`
+	CourseCode string `json:"CourseCode"`
+	CardId     string `json:"CardId"`
+	OtaCode    string `json:"OTA_Code"`
+}
+
+type CheckCaddieBody struct {
+	Token      string `json:"Token"`
+	CourseCode string `json:"CourseCode"`
+	CaddieCode string `json:"CaddieCode"`
+	OtaCode    string `json:"OTA_Code"`
+}

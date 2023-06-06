@@ -9,6 +9,7 @@ import (
 	"start/datasources"
 	"start/models"
 	kiosk_inventory "start/models/kiosk-inventory"
+	model_report "start/models/report"
 	model_service "start/models/service"
 	"start/utils"
 	"strconv"
@@ -19,8 +20,163 @@ import (
 
 type CCServiceOTA struct{}
 
+/*
+Check member card avaible
+*/
+func (cServiceOTA *CCServiceOTA) CheckMemberCard(c *gin.Context) {
+	db := datasources.GetDatabase()
+	body := request.CheckMemberCardBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+	// Data res
+	dataRes := response.OtaGeneralRes{
+		CourseCode: body.CourseCode,
+	}
+
+	// Check course code
+	course := models.Course{}
+
+	course.Uid = body.CourseCode
+	errCourse := course.FindFirstHaveKey()
+	if errCourse != nil {
+		dataRes.Result.Status = http.StatusInternalServerError
+		dataRes.Result.Infor = fmt.Sprintf("Course %s %s", body.CourseCode, errCourse.Error())
+
+		okResponse(c, dataRes)
+		return
+	}
+
+	// Check token
+	checkToken := course.ApiKey + body.CourseCode + body.OtaCode + body.CardId
+	token := utils.GetSHA256Hash(checkToken)
+
+	if strings.ToUpper(token) != body.Token {
+		dataRes.Result.Status = http.StatusInternalServerError
+		dataRes.Result.Infor = "token invalid"
+
+		okResponse(c, dataRes)
+		return
+	}
+
+	// Find memberCard
+	memberCard := models.MemberCard{
+		PartnerUid: course.PartnerUid,
+		CourseUid:  course.Uid,
+		CardId:     body.CardId,
+	}
+
+	errF := memberCard.FindFirst(db)
+	if errF != nil {
+		dataRes.Result.Status = 100 // not found member
+		dataRes.Result.Infor = "Khong tim thay member"
+
+		okResponse(c, dataRes)
+		return
+	}
+
+	// Get Owner
+	owner, errOwner := memberCard.GetOwner(db)
+	if errOwner != nil {
+		dataRes.Result.Status = 101 // Not found owner
+		dataRes.Result.Infor = "Khong tim thay thong tin chu the"
+
+		okResponse(c, dataRes)
+		return
+	}
+
+	if memberCard.AnnualType == constants.ANNUAL_TYPE_LIMITED {
+		// Validate số lượt chơi còn lại của memeber
+		reportCustomer := model_report.ReportCustomerPlay{
+			CustomerUid: owner.Uid,
+		}
+
+		if errF := reportCustomer.FindFirst(); errF == nil {
+			playCountRemain := memberCard.AdjustPlayCount - reportCustomer.TotalPlayCount
+			if playCountRemain <= 0 {
+				dataRes.Result.Status = 102 // Thẻ hết lượt chơi
+				dataRes.Result.Infor = "the het lout choi"
+
+				okResponse(c, dataRes)
+				return
+			}
+		}
+	}
+
+	dataRes.Result.Status = 200
+	dataRes.Result.Infor = fmt.Sprintf("card id %s ok", body.CardId)
+	dataRes.Data = memberCard
+	okResponse(c, dataRes)
+}
+
+/*
+Check Caddie avaible
+*/
+func (cServiceOTA *CCServiceOTA) CheckCaddie(c *gin.Context) {
+	db := datasources.GetDatabase()
+	body := request.CheckCaddieBody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+	// Data res
+	dataRes := response.OtaGeneralRes{
+		CourseCode: body.CourseCode,
+	}
+
+	// Check course code
+	course := models.Course{}
+
+	course.Uid = body.CourseCode
+	errCourse := course.FindFirstHaveKey()
+	if errCourse != nil {
+		dataRes.Result.Status = http.StatusInternalServerError
+		dataRes.Result.Infor = fmt.Sprintf("Course %s %s", body.CourseCode, errCourse.Error())
+
+		okResponse(c, dataRes)
+		return
+	}
+
+	// Check token
+	checkToken := course.ApiKey + body.CourseCode + body.OtaCode + body.CaddieCode
+	token := utils.GetSHA256Hash(checkToken)
+
+	if strings.ToUpper(token) != body.Token {
+		dataRes.Result.Status = http.StatusInternalServerError
+		dataRes.Result.Infor = "token invalid"
+
+		okResponse(c, dataRes)
+		return
+	}
+
+	// Find memberCard
+	caddie := models.Caddie{
+		PartnerUid: course.PartnerUid,
+		CourseUid:  course.Uid,
+		Code:       body.CaddieCode,
+	}
+	caddie.Status = constants.STATUS_ENABLE
+
+	errF := caddie.FindFirst(db)
+	if errF != nil {
+		dataRes.Result.Status = 100 // not found caddie
+		dataRes.Result.Infor = "Khong tim thay caddie"
+
+		okResponse(c, dataRes)
+		return
+	}
+
+	//TODO: check caddie avaible ngay book
+
+	dataRes.Result.Status = 200
+	dataRes.Result.Infor = fmt.Sprintf("caddie code %s ok", body.CaddieCode)
+	dataRes.Data = caddie
+	okResponse(c, dataRes)
+}
+
 // Get list course
-func (_ *CCServiceOTA) GetServiceOTA(c *gin.Context) {
+func (cServiceOTA *CCServiceOTA) GetServiceOTA(c *gin.Context) {
 	db := datasources.GetDatabase()
 	body := request.ServiceGolfDataBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
@@ -112,7 +268,7 @@ func (_ *CCServiceOTA) GetServiceOTA(c *gin.Context) {
 }
 
 // Get list course
-func (_ *CCServiceOTA) CheckServiceOTA(c *gin.Context) {
+func (cServiceOTA *CCServiceOTA) CheckServiceOTA(c *gin.Context) {
 	db := datasources.GetDatabase()
 	body := request.CheckServiceGolfBody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {

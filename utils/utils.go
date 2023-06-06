@@ -27,6 +27,34 @@ import (
 )
 
 /*
+Get tee type của sân
+*/
+func GetTeeTypeFromHole(holes int) ListString {
+	listTeeType := ListString{}
+	if holes == 18 {
+		listTeeType = append(listTeeType, constants.TEE_TYPE_1)
+		listTeeType = append(listTeeType, constants.TEE_TYPE_10)
+		return listTeeType
+	}
+	if holes == 27 {
+		listTeeType = append(listTeeType, constants.TEE_TYPE_1A)
+		listTeeType = append(listTeeType, constants.TEE_TYPE_1B)
+		listTeeType = append(listTeeType, constants.TEE_TYPE_1C)
+		return listTeeType
+	}
+
+	if holes == 36 {
+		listTeeType = append(listTeeType, constants.TEE_TYPE_1A)
+		listTeeType = append(listTeeType, constants.TEE_TYPE_1B)
+		listTeeType = append(listTeeType, constants.TEE_TYPE_10A)
+		listTeeType = append(listTeeType, constants.TEE_TYPE_10B)
+		return listTeeType
+	}
+
+	return listTeeType
+}
+
+/*
 Clone object
 */
 func CloneObject(item interface{}) interface{} {
