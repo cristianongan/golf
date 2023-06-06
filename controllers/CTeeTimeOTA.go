@@ -22,6 +22,20 @@ import (
 type CTeeTimeOTA struct{}
 
 /*
+Validate TeeType
+*/
+func validateTeeType(teeType string, listTeeType []models.TeeTypeInfo) bool {
+	isOk := false
+	for _, v := range listTeeType {
+		if v.TeeType == teeType {
+			isOk = true
+		}
+
+	}
+	return isOk
+}
+
+/*
 GetTeeTimeList
 */
 func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
@@ -128,6 +142,22 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 		}
 	}
 
+	// Get list Tee Type info
+	teeTypeR := models.TeeTypeInfo{
+		PartnerUid: course.PartnerUid,
+		CourseUid:  course.Uid,
+	}
+	listTeeType, errLTP := teeTypeR.FindALL()
+	if errLTP != nil || len(listTeeType) == 0 {
+		log.Println("GetTeeTimeList errLTP error or empty")
+		responseOTA.Result.Status = http.StatusInternalServerError
+		responseOTA.Result.Infor = "TeeType Info not yet config"
+
+		okResponse(c, responseOTA)
+		return
+
+	}
+
 	timeParts := []response.TeeTimePartOTA{
 		{
 			IsHideTeePart: bookSetting.IsHideTeePart1,
@@ -146,98 +176,211 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 		},
 	}
 
-	// get các teetime đang bị khóa ở redis
-	listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, bookingDateF, "1A")
+	if body.TeeType != "" && validateTeeType(body.TeeType, listTeeType) {
+		// get các teetime đang bị khóa ở redis
+		listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, bookingDateF, body.TeeType)
 
-	index := 0
-	for partIndex, part := range timeParts {
-		if !part.IsHideTeePart {
-			endTime, _ := utils.ConvertHourToTime(part.EndPart)
-			teeTimeInit, _ := utils.ConvertHourToTime(part.StartPart)
-			for {
-				index += 1
+		index := 0
+		for partIndex, part := range timeParts {
+			if !part.IsHideTeePart {
+				endTime, _ := utils.ConvertHourToTime(part.EndPart)
+				teeTimeInit, _ := utils.ConvertHourToTime(part.StartPart)
+				for {
+					index += 1
 
-				hour := teeTimeInit.Hour()
-				minute := teeTimeInit.Minute()
+					hour := teeTimeInit.Hour()
+					minute := teeTimeInit.Minute()
 
-				hourStr_ := strconv.Itoa(hour)
-				if hour < 10 {
-					hourStr_ = "0" + hourStr_
-				}
-				minuteStr := strconv.Itoa(minute)
-				if minute < 10 {
-					minuteStr = "0" + minuteStr
-				}
+					hourStr_ := strconv.Itoa(hour)
+					if hour < 10 {
+						hourStr_ = "0" + hourStr_
+					}
+					minuteStr := strconv.Itoa(minute)
+					if minute < 10 {
+						minuteStr = "0" + minuteStr
+					}
 
-				hourStr := hourStr_ + ":" + minuteStr
+					hourStr := hourStr_ + ":" + minuteStr
 
-				teeOff, _ := time.Parse(constants.DATE_FORMAT_3, body.Date+" "+hourStr)
-				teeOffStr := teeOff.Format("2006-01-02T15:04:05")
+					teeOff, _ := time.Parse(constants.DATE_FORMAT_3, body.Date+" "+hourStr)
+					teeOffStr := teeOff.Format("2006-01-02T15:04:05")
 
-				teeTime1 := models.LockTeeTime{
-					TeeTime:   hourStr,
-					DateTime:  bookingDateF,
-					CourseUid: body.CourseCode,
-					TeeType:   "1A",
-				}
+					teeTime1 := models.LockTeeTime{
+						TeeTime:   hourStr,
+						DateTime:  bookingDateF,
+						CourseUid: body.CourseCode,
+						TeeType:   body.TeeType,
+					}
 
-				hasTeeTimeLock1AOnRedis := false
+					hasTeeTimeLock1AOnRedis := false
 
-				// Lấy số slot đã book
-				teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(bookingDateF, body.CourseCode, hourStr, "1A")
-				rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
-				rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
-				//
+					// Lấy số slot đã book
+					teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(bookingDateF, body.CourseCode, hourStr, body.TeeType)
+					rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+					rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+					//
 
-				// Get số slot tee time còn trống
-				teeTimeSlotEmptyRedisKey := getKeyTeeTimeSlotRedis(bookingDateF, body.CourseCode, hourStr, "1A")
-				slotStr, _ := datasources.GetCache(teeTimeSlotEmptyRedisKey)
-				slotLock, _ := strconv.Atoi(slotStr)
-				slotEmpty := slotLock + len(rowIndexsRedis)
+					// Get số slot tee time còn trống
+					teeTimeSlotEmptyRedisKey := getKeyTeeTimeSlotRedis(bookingDateF, body.CourseCode, hourStr, body.TeeType)
+					slotStr, _ := datasources.GetCache(teeTimeSlotEmptyRedisKey)
+					slotLock, _ := strconv.Atoi(slotStr)
+					slotEmpty := slotLock + len(rowIndexsRedis)
 
-				if slotEmpty == 0 {
-					// Check tiếp nếu tee time đó đã bị khóa ở CMS
-					for _, teeTimeLockRedis := range listTeeTimeLockRedis {
-						if teeTimeLockRedis.TeeTime == teeTime1.TeeTime && teeTimeLockRedis.DateTime == teeTime1.DateTime &&
-							teeTimeLockRedis.CourseUid == teeTime1.CourseUid && teeTimeLockRedis.TeeType == teeTime1.TeeType {
+					if slotEmpty == 0 {
+						// Check tiếp nếu tee time đó đã bị khóa ở CMS
+						for _, teeTimeLockRedis := range listTeeTimeLockRedis {
+							if teeTimeLockRedis.TeeTime == teeTime1.TeeTime && teeTimeLockRedis.DateTime == teeTime1.DateTime &&
+								teeTimeLockRedis.CourseUid == teeTime1.CourseUid && teeTimeLockRedis.TeeType == teeTime1.TeeType {
+								hasTeeTimeLock1AOnRedis = true
+								break
+							}
+						}
+					} else {
+						if slotEmpty == constants.SLOT_TEE_TIME {
 							hasTeeTimeLock1AOnRedis = true
-							break
 						}
 					}
-				} else {
-					if slotEmpty == constants.SLOT_TEE_TIME {
-						hasTeeTimeLock1AOnRedis = true
+
+					if !hasTeeTimeLock1AOnRedis {
+						teeTime1A := response.TeeTimeOTA{
+							TeeOffStr:    hourStr,
+							DateStr:      body.Date,
+							TeeOff:       teeOffStr,
+							Tee:          1,
+							Part:         int64(partIndex),
+							TimeIndex:    int64(index),
+							NumBook:      int64(constants.SLOT_TEE_TIME - slotEmpty),
+							IsMainCourse: body.IsMainCourse,
+							GreenFee:     GreenFee,
+							CaddieFee:    CaddieFee,
+							BuggyFee:     BuggyFee,
+							Holes:        int64(body.Hole),
+							TeeType:      body.TeeType,
+						}
+						teeTimeList = append(teeTimeList, teeTime1A)
 					}
-				}
 
-				if !hasTeeTimeLock1AOnRedis {
-					teeTime1A := response.TeeTimeOTA{
-						TeeOffStr:    hourStr,
-						DateStr:      body.Date,
-						TeeOff:       teeOffStr,
-						Tee:          1,
-						Part:         int64(partIndex),
-						TimeIndex:    int64(index),
-						NumBook:      int64(constants.SLOT_TEE_TIME - slotEmpty),
-						IsMainCourse: body.IsMainCourse,
-						GreenFee:     GreenFee,
-						CaddieFee:    CaddieFee,
-						BuggyFee:     BuggyFee,
-						Holes:        int64(body.Hole),
+					teeTimeInit = teeTimeInit.Add(time.Minute * time.Duration(bookSetting.TeeMinutes))
+
+					if teeTimeInit.Unix() > endTime.Unix() {
+						break
 					}
-					teeTimeList = append(teeTimeList, teeTime1A)
-				}
-
-				teeTimeInit = teeTimeInit.Add(time.Minute * time.Duration(bookSetting.TeeMinutes))
-
-				if teeTimeInit.Unix() > endTime.Unix() {
-					break
 				}
 			}
 		}
+	} else {
+
+		for _, teeTypeInfo := range listTeeType {
+			teeType := teeTypeInfo.TeeType
+			// get các teetime đang bị khóa ở redis
+			listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, bookingDateF, teeType)
+
+			index := 0
+			for partIndex, part := range timeParts {
+				if !part.IsHideTeePart {
+					endTime, _ := utils.ConvertHourToTime(part.EndPart)
+					teeTimeInit, _ := utils.ConvertHourToTime(part.StartPart)
+					for {
+						index += 1
+
+						hour := teeTimeInit.Hour()
+						minute := teeTimeInit.Minute()
+
+						hourStr_ := strconv.Itoa(hour)
+						if hour < 10 {
+							hourStr_ = "0" + hourStr_
+						}
+						minuteStr := strconv.Itoa(minute)
+						if minute < 10 {
+							minuteStr = "0" + minuteStr
+						}
+
+						hourStr := hourStr_ + ":" + minuteStr
+
+						teeOff, _ := time.Parse(constants.DATE_FORMAT_3, body.Date+" "+hourStr)
+						teeOffStr := teeOff.Format("2006-01-02T15:04:05")
+
+						teeTime1 := models.LockTeeTime{
+							TeeTime:   hourStr,
+							DateTime:  bookingDateF,
+							CourseUid: body.CourseCode,
+							TeeType:   body.TeeType,
+						}
+
+						hasTeeTimeLock1AOnRedis := false
+
+						// Lấy số slot đã book
+						teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(bookingDateF, body.CourseCode, hourStr, teeType)
+						rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
+						rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
+						//
+
+						// Get số slot tee time còn trống
+						teeTimeSlotEmptyRedisKey := getKeyTeeTimeSlotRedis(bookingDateF, body.CourseCode, hourStr, teeType)
+						slotStr, _ := datasources.GetCache(teeTimeSlotEmptyRedisKey)
+						slotLock, _ := strconv.Atoi(slotStr)
+						slotEmpty := slotLock + len(rowIndexsRedis)
+
+						if slotEmpty == 0 {
+							// Check tiếp nếu tee time đó đã bị khóa ở CMS
+							for _, teeTimeLockRedis := range listTeeTimeLockRedis {
+								if teeTimeLockRedis.TeeTime == teeTime1.TeeTime && teeTimeLockRedis.DateTime == teeTime1.DateTime &&
+									teeTimeLockRedis.CourseUid == teeTime1.CourseUid && teeTimeLockRedis.TeeType == teeTime1.TeeType {
+									hasTeeTimeLock1AOnRedis = true
+									break
+								}
+							}
+						} else {
+							if slotEmpty == constants.SLOT_TEE_TIME {
+								hasTeeTimeLock1AOnRedis = true
+							}
+						}
+
+						if !hasTeeTimeLock1AOnRedis {
+							teeTime1A := response.TeeTimeOTA{
+								TeeOffStr:    hourStr,
+								DateStr:      body.Date,
+								TeeOff:       teeOffStr,
+								Tee:          1,
+								Part:         int64(partIndex),
+								TimeIndex:    int64(index),
+								NumBook:      int64(constants.SLOT_TEE_TIME - slotEmpty),
+								IsMainCourse: body.IsMainCourse,
+								GreenFee:     GreenFee,
+								CaddieFee:    CaddieFee,
+								BuggyFee:     BuggyFee,
+								Holes:        int64(body.Hole),
+								TeeType:      teeType,
+							}
+							teeTimeList = append(teeTimeList, teeTime1A)
+						}
+
+						teeTimeInit = teeTimeInit.Add(time.Minute * time.Duration(bookSetting.TeeMinutes))
+
+						if teeTimeInit.Unix() > endTime.Unix() {
+							break
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	//List TeeType Info response
+	listTeeTypeRes := []response.TeeTypeOTARes{}
+	for _, v := range listTeeType {
+		teeTypeRes := response.TeeTypeOTARes{
+			TeeType:   v.TeeType,
+			Name:      v.Name,
+			ImageLink: v.ImageLink,
+			Note:      v.Note,
+		}
+		listTeeTypeRes = append(listTeeTypeRes, teeTypeRes)
 	}
 
 	responseOTA.Data = teeTimeList
+	responseOTA.TeeTypeInfo = listTeeTypeRes
 	responseOTA.NumTeeTime = int64(len(teeTimeList))
 	responseOTA.Result.Status = 200
 	responseOTA.Result.Infor = "Get data OK" + "(" + strconv.Itoa(len(teeTimeList)) + " tee time)" + "-at " + body.Date

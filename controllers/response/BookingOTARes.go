@@ -60,17 +60,24 @@ func (r *TeeTimeOTA) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
+type TeeTypeOTARes struct {
+	TeeType   string `json:"TeeType"`
+	Name      string `json:"Name"`
+	ImageLink string `json:"ImageLink"`
+	Note      string `json:"Note"`
+}
 type GetTeeTimeOTAResponse struct {
-	Result        ResultOTA    `json:"result"`
-	Data          []TeeTimeOTA `json:"data"`
-	IsMainCourse  bool         `json:"isMainCourse"`
-	Token         interface{}  `json:"Token"`
-	CourseCode    string       `json:"CourseCode"`
-	OTACode       string       `json:"OTA_Code"`
-	GuestCode     string       `json:"Guest_Code"`
-	Date          string       `json:"Date"`
-	GolfPriceRate string       `json:"GolfPriceRate"`
-	NumTeeTime    int64        `json:"NumTeeTime"`
+	Result        ResultOTA       `json:"result"`
+	Data          []TeeTimeOTA    `json:"data"`
+	IsMainCourse  bool            `json:"isMainCourse"`
+	Token         interface{}     `json:"Token"`
+	TeeTypeInfo   []TeeTypeOTARes `json:"TeeTypeInfo"`
+	CourseCode    string          `json:"CourseCode"`
+	OTACode       string          `json:"OTA_Code"`
+	GuestCode     string          `json:"Guest_Code"`
+	Date          string          `json:"Date"`
+	GolfPriceRate string          `json:"GolfPriceRate"`
+	NumTeeTime    int64           `json:"NumTeeTime"`
 }
 
 type TeeTimeOTA struct {
@@ -82,6 +89,7 @@ type TeeTimeOTA struct {
 	Tee          int64  `json:"Tee"`
 	NumBook      int64  `json:"NumBook"`
 	IsMainCourse bool   `json:"isMainCourse"`
+	TeeType      string `json:"TeeType"`
 	// Play1        interface{} `json:"Play1"`
 	// Play2        interface{} `json:"Play2"`
 	// Play3        interface{} `json:"Play3"`
