@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"start/controllers/request"
 	"start/controllers/response"
@@ -14,7 +15,52 @@ import (
 type CCourseOTA struct{}
 
 // Get list course
-func (_ *CCourseOTA) GetListCourseOTA(c *gin.Context) {
+func (cCourseOTA *CCourseOTA) GetListTeeTypeInfo(c *gin.Context) {
+	body := request.GetListTeeTypeInfoOTABody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+
+	// Data res
+	dataRes := response.OtaGeneralRes{
+		CourseCode: body.CourseCode,
+	}
+
+	// Find Course
+	course := models.Course{}
+	course.Uid = body.CourseCode
+	if errCourse := course.FindFirstHaveKey(); errCourse != nil {
+		dataRes.Result.Status = 500
+		dataRes.Result.Infor = "Loi he thong"
+		okResponse(c, dataRes)
+		return
+	}
+
+	// Get list Tee Type info
+	teeTypeR := models.TeeTypeInfo{
+		PartnerUid: course.PartnerUid,
+		CourseUid:  course.Uid,
+	}
+	listTeeType, errLTP := teeTypeR.FindALL()
+	if errLTP != nil || len(listTeeType) == 0 {
+		log.Println("GetListTeeTypeInfo errLTP error or empty")
+		dataRes.Result.Status = 500
+		dataRes.Result.Infor = "Loi he thong"
+
+		okResponse(c, dataRes)
+		return
+	}
+
+	// agency paid
+	dataRes.Result.Status = 200
+	dataRes.Result.Infor = "ok"
+	dataRes.Data = listTeeType
+	okResponse(c, dataRes)
+}
+
+// Get list course
+func (cCourseOTA *CCourseOTA) GetListCourseOTA(c *gin.Context) {
 	body := request.GetListCourseOTABody{}
 	if bindErr := c.ShouldBind(&body); bindErr != nil {
 		badRequest(c, bindErr.Error())

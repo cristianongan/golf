@@ -907,6 +907,7 @@ func NewRouter() *gin.Engine {
 				/// =================== Course ===================
 				cCourseOta := new(controllers.CCourseOTA)
 				otaV1Api.POST("/CourseList", cCourseOta.GetListCourseOTA)
+				otaV1Api.POST("/Course/TeeType/List", cCourseOta.GetListTeeTypeInfo)
 
 				/// =================== Service ===================
 				cServiceOta := new(controllers.CCServiceOTA)
