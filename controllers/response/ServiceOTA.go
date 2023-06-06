@@ -34,16 +34,16 @@ type RentalRes struct {
 }
 
 type ServiceFeeRes struct {
-	Result        Result       `json:"result"`
+	Result        Result       `json:"Result"`
 	DateStr       string       `json:"DateStr"`
 	CourseCode    string       `json:"CourseCode"`
-	RentalFee     ServiceInfor `json:"rental_fee"`
-	PrivateCarFee ServiceInfor `json:"private_car_fee"`
-	OddCarFee     ServiceInfor `json:"odd_car_fee"`
-	CaddieFee     ServiceInfor `json:"caddie_fee"`
+	RentalFee     ServiceInfor `json:"RentalFee"`
+	PrivateCarFee ServiceInfor `json:"PrivateCarFee"`
+	OddCarFee     ServiceInfor `json:"OddCarFee"`
+	CaddieFee     ServiceInfor `json:"CaddieFee"`
 }
 
 type ServiceInfor struct {
-	Fee  int64  `json:"fee"`
-	Name string `json:"name"`
+	Fee  int64  `json:"Fee"`
+	Name string `json:"Name"`
 }
