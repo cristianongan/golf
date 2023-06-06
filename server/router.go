@@ -912,6 +912,7 @@ func NewRouter() *gin.Engine {
 				cServiceOta := new(controllers.CCServiceOTA)
 				otaV1Api.POST("/ServiceGolfData", cServiceOta.GetServiceOTA)
 				otaV1Api.POST("/CheckServiceGolf", cServiceOta.CheckServiceOTA)
+				otaV1Api.POST("/ServiceBookingList", cServiceOta.GetListFeeServiceOTA)
 
 				/// =================== TeeTime ===================
 				cTeeTime := new(controllers.CTeeTimeOTA)

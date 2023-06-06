@@ -241,3 +241,131 @@ func (_ *CCServiceOTA) CheckServiceOTA(c *gin.Context) {
 		return
 	}
 }
+
+// Get list fee service booking
+func (_ *CCServiceOTA) GetListFeeServiceOTA(c *gin.Context) {
+	body := request.GetListFeeServiceOTABody{}
+	if bindErr := c.ShouldBind(&body); bindErr != nil {
+		badRequest(c, bindErr.Error())
+		return
+	}
+	// Data res
+	dataRes := response.ServiceFeeRes{
+		DateStr:    body.DateStr,
+		CourseCode: body.CourseCode,
+	}
+
+	// Check course code
+	course := models.Course{}
+	course.Uid = body.CourseCode
+	errCourse := course.FindFirstHaveKey()
+	if errCourse != nil {
+		dataRes.Result.Status = 1000
+		dataRes.Result.Infor = fmt.Sprintf("Course %s %s", body.CourseCode, errCourse.Error())
+
+		okResponse(c, dataRes)
+		return
+	}
+
+	checkToken := course.ApiKey + body.CourseCode + body.OTACode + body.DateStr
+	token := utils.GetSHA256Hash(checkToken)
+
+	if strings.ToUpper(token) != body.Token {
+		dataRes.Result.Status = http.StatusInternalServerError
+		dataRes.Result.Infor = "token invalid"
+		dataRes.CourseCode = body.CourseCode
+
+		okResponse(c, dataRes)
+		return
+	}
+
+	db := datasources.GetDatabaseWithPartner(course.PartnerUid)
+
+	// Validate agency code
+	agencyR := models.Agency{
+		PartnerUid: course.PartnerUid,
+		CourseUid:  body.CourseCode,
+		AgencyId:   body.OTACode,
+	}
+
+	errAF := agencyR.FindFirst(db)
+	if errAF != nil {
+		dataRes.Result.Status = http.StatusInternalServerError
+		dataRes.Result.Infor = errAF.Error()
+
+		okResponse(c, dataRes)
+		return
+	}
+
+	// Get Buggy Fee
+	buggyFeeSettingR := models.BuggyFeeSetting{
+		PartnerUid: course.PartnerUid,
+		CourseUid:  body.CourseCode,
+	}
+
+	listBuggySetting, _, _ := buggyFeeSettingR.FindAll(db)
+	buggyFeeSetting := models.BuggyFeeSetting{}
+	for _, item := range listBuggySetting {
+		if item.Status == constants.STATUS_ENABLE {
+			buggyFeeSetting = item
+			break
+		}
+	}
+
+	buggyFeeItemSettingR := models.BuggyFeeItemSetting{
+		PartnerUid: course.PartnerUid,
+		CourseUid:  body.CourseCode,
+		SettingId:  buggyFeeSetting.Id,
+	}
+	listSetting, _ := buggyFeeItemSettingR.FindBuggyFeeOnDate(db, body.DateStr)
+	buggyFeeItemSetting := models.BuggyFeeItemSetting{}
+	for _, item := range listSetting {
+		if item.GuestStyle != "" {
+			buggyFeeItemSetting = item
+			break
+		} else {
+			buggyFeeItemSetting = item
+		}
+	}
+
+	rentalFee := utils.GetFeeFromListFee(buggyFeeItemSetting.RentalFee, body.Hole)
+	privateCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.PrivateCarFee, body.Hole)
+	oddCarFee := utils.GetFeeFromListFee(buggyFeeItemSetting.OddCarFee, body.Hole)
+
+	// Get Caddie Fee
+	bookingCaddieFeeSettingR := models.BookingCaddyFeeSetting{
+		PartnerUid: course.PartnerUid,
+		CourseUid:  body.CourseCode,
+	}
+
+	listBookingBuggyCaddySetting, _, _ := bookingCaddieFeeSettingR.FindList(db, models.Page{}, false)
+	bookingCaddieFeeSetting := models.BookingCaddyFeeSetting{}
+	for _, item := range listBookingBuggyCaddySetting {
+		if item.Status == constants.STATUS_ENABLE {
+			bookingCaddieFeeSetting = item
+		}
+	}
+
+	//Update data res
+	dataRes.Result.Status = http.StatusOK
+
+	dataRes.RentalFee = response.ServiceInfor{
+		Fee:  rentalFee,
+		Name: "Thuê xe",
+	}
+	dataRes.PrivateCarFee = response.ServiceInfor{
+		Fee:  privateCarFee,
+		Name: "Thuê xe riêng",
+	}
+	dataRes.OddCarFee = response.ServiceInfor{
+		Fee:  oddCarFee,
+		Name: "Thuê lẻ xe",
+	}
+	dataRes.CaddieFee = response.ServiceInfor{
+		Fee:  bookingCaddieFeeSetting.Fee,
+		Name: bookingCaddieFeeSetting.Name,
+	}
+
+	okResponse(c, dataRes)
+
+}

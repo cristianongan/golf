@@ -14,3 +14,11 @@ type CheckServiceGolfBody struct {
 	TeeOffStr  string `json:"TeeOffStr"`
 	Qty        int64  `json:"Qty"`
 }
+
+type GetListFeeServiceOTABody struct {
+	Token      string `json:"Token"`
+	CourseCode string `json:"CourseCode"`
+	DateStr    string `json:"DateStr"`
+	OTACode    string `json:"OTACode"`
+	Hole       int    `json:"Hole"`
+}
