@@ -342,7 +342,7 @@ func (cBooking *CBooking) CancelBookingOTA(c *gin.Context) {
 	}
 
 	// Check token
-	checkToken := course.ApiKey + body.AgentCode + body.BookingCode
+	checkToken := course.ApiKey + body.CourseCode + body.AgentCode + body.BookingCode
 	token := utils.GetSHA256Hash(checkToken)
 
 	if strings.ToUpper(token) != body.Token {
