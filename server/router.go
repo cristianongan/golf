@@ -891,6 +891,13 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.DELETE("/config-time-noti/:id", middlewares.AuthorizedCmsUserHandler(cConfigTimeNoti.DeleteConfig))
 			cmsApiAuthorized.GET("/config-time-noti", middlewares.AuthorizedCmsUserHandler(cConfigTimeNoti.GetListConfig))
 			cmsApiAuthorized.GET("/config-time-noti/available", middlewares.AuthorizedCmsUserHandler(cConfigTimeNoti.GetListConfigAvailable))
+
+			// ====================== Agency =======================
+			cBookingTransaction := new(controllers.CBookingTransaction)
+			cmsApiAuthorized.POST("/agency/transaction", middlewares.AuthorizedCmsUserHandler(cBookingTransaction.CreateBookingTransaction))
+			cmsApiAuthorized.PUT("/agency/transaction/:id", middlewares.AuthorizedCmsUserHandler(cBookingTransaction.UpdateBookingTransaction))
+			cmsApiAuthorized.GET("/agency/transaction", middlewares.AuthorizedCmsUserHandler(cBookingTransaction.FindBookingTransactionList))
+			cmsApiAuthorized.GET("/agency/transaction/:id", middlewares.AuthorizedCmsUserHandler(cBookingTransaction.GetBookingTransaction))
 		}
 
 		// ----------------------------------------------------------

@@ -16,7 +16,7 @@
         "password": "8h^#,IT/vg#!",
         "host": "10.22.19.83",
         "port": "3306",
-        "is_migrated": false,
+        "is_migrated": true,
         "debug": true
     },
     "mysql_auth": {
@@ -29,9 +29,9 @@
         "debug": false
     },
     "redis": {
-        "host": "10.22.18.250",
+        "host": "localhost",
         "port": "6379",
-        "password": "redis@123",
+        "password": "",
         "insecure_skip_verify": false
     },
     "jwt_secret": "5ab3c73ca35c05221c47ac3f047b6b40",

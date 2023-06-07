@@ -15,31 +15,31 @@ import (
 type AgencyBookingTransaction struct {
 	Id                   int64  `gorm:"AUTO_INCREMENT:yes" sql:"bigint;not null;primary_key"  json:"id"`
 	CreatedAt            int64  `json:"created_at" gorm:"index"`
-	CreatedBy            string `json:"created_by"`
+	CreatedBy            string `json:"created_by" gorm:"varchar(255)"`
 	UpdatedAt            int64  `json:"updated_at"`
-	TransactionId        string `json:"transaction_id" gorm:"index"`           // mã giao dịch ~ booking code
-	CourseUid            string `json:"course_id" gorm:"" binding:"required"`  // mã sân
-	PartnerUid           string `json:"partner_id" gorm:"" binding:"required"` //
-	AgencyId             int64  `json:"agency_id"`                             // Mã đại lí
-	PaymentStatus        string `json:"payment_status" gorm:""`                // trạng thái thanh toán
-	TransactionStatus    string `json:"transaction_status" gorm:""`            // trạng thái đơn ~ trạng thái giao dịch
-	BookingRequestStatus string `json:"booking_request_status" gorm:""`        // trạng thái yêu cầu booking với nhà cung cấp
-	CustomerPhoneNumber  string `json:"customer_phone_number" gorm:""`         // điện thoại người đặt
-	CustomerEmail        string `json:"customer_email" gorm:""`                // email người đặt
-	CustomerName         string `json:"customer_name" gorm:""`                 // Tên người đặt
-	BookingAmount        int64  `json:"booking_amount"`                        // giá book
-	ServiceAmount        int64  `json:"service_amount"`                        // giá dịch vụ
-	PaymentDueDate       int64  `json:"payment_due_date"`                      // ngày hết hạn thanh toán
-	PlayerNote           string `json:"player_note" gorm:""`                   // ghi ch ú người chơi
-	AgentNote            string `json:"agent_note" gorm:""`                    // ghi chú tổn đài viên
-	PlayDate             int64  `json:"play_date"`                             // ngày chơi
+	TransactionId        string `json:"transaction_id" gorm:"type:varchar(100);index"`     // mã giao dịch ~ booking code
+	CourseUid            string `json:"course_id" gorm:"varchar(256)" binding:"required"`  // mã sân
+	PartnerUid           string `json:"partner_id" gorm:"varchar(100)" binding:"required"` //
+	AgencyId             int64  `json:"agency_id"`                                         // Mã đại lí
+	PaymentStatus        string `json:"payment_status" gorm:"varchar(100)"`                // trạng thái thanh toán
+	TransactionStatus    string `json:"transaction_status" gorm:"varchar(100)"`            // trạng thái đơn ~ trạng thái giao dịch
+	BookingRequestStatus string `json:"booking_request_status" gorm:"varchar(100)"`        // trạng thái yêu cầu booking với nhà cung cấp
+	CustomerPhoneNumber  string `json:"customer_phone_number" gorm:"type:varchar(10)"`     // điện thoại người đặt
+	CustomerEmail        string `json:"customer_email" gorm:"type:varchar(320)"`           // email người đặt
+	CustomerName         string `json:"customer_name" gorm:"type:varchar(60)"`             // Tên người đặt
+	BookingAmount        int64  `json:"booking_amount"`                                    // giá book
+	ServiceAmount        int64  `json:"service_amount"`                                    // giá dịch vụ
+	PaymentDueDate       int64  `json:"payment_due_date"`                                  // ngày hết hạn thanh toán
+	PlayerNote           string `json:"player_note" gorm:"type:varchar(200)"`              // ghi ch ú người chơi
+	AgentNote            string `json:"agent_note" gorm:"type:varchar(200)"`               // ghi chú tổn đài viên
+	PlayDate             int64  `json:"play_date"`                                         // ngày chơi
 
 	// thông tin hóa đơn
-	PaymentType    string `json:"payment_type" gorm:"" binding:"required"` // loại thanh toán
-	Company        string `json:"company" gorm:""`                         // công ty
-	CompanyAddress string `json:"company_address" gorm:""`                 // địa chỉ công ty
-	CompanyTax     string `json:"company_tax" gorm:""`                     // Mã số thuế
-	ReceiptEmail   string `json:"receipt_email" gorm:""`                   // email nhận hóa đơn
+	PaymentType    string `json:"payment_type" gorm:"type:varchar(100)" binding:"required"` // loại thanh toán
+	Company        string `json:"company" gorm:"type:varchar(200)"`                         // công ty
+	CompanyAddress string `json:"company_address" gorm:"type:varchar(200)"`                 // địa chỉ công ty
+	CompanyTax     string `json:"company_tax" gorm:"type:varchar(13)"`                      // Mã số thuế
+	ReceiptEmail   string `json:"receipt_email" gorm:"type:varchar(320)"`                   // email nhận hóa đơn
 
 }
 

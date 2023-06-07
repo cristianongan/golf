@@ -10,7 +10,10 @@ import (
 	"strconv"
 )
 
-func lockTee(teeType string, numBook int, bookingDate string, teeTime string, courseUid string) error {
+/*
+Param: teeType loại tee time, numBook số lượng book, bookingDate ngày book, teeTime thời gian tee, courseUid mã sân, note ghi chú lock
+*/
+func lockTee(teeType string, numBook int, bookingDate string, teeTime string, courseUid string, note string) error {
 	teeTimeSetting := models.LockTeeTime{
 		DateTime:       bookingDate,
 		CourseUid:      courseUid,
@@ -52,7 +55,7 @@ func lockTee(teeType string, numBook int, bookingDate string, teeTime string, co
 		TeeTimeStatus:  constants.TEE_TIME_LOCKED,
 		Slot:           numBook,
 		Type:           constants.LOCK_OTA,
-		Note:           "Khóa từ Booking OTA",
+		Note:           note,
 		ModelId: models.ModelId{
 			CreatedAt: teeTimeSetting.CreatedAt,
 		},

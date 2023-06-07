@@ -16,6 +16,9 @@ import (
 
 type CBookingTransaction struct{}
 
+/*
+Bắt đầu transaction mới, lock tee và lưu thông tin booking
+*/
 func (_ *CBookingTransaction) CreateBookingTransaction(c *gin.Context, prof models.CmsUser) {
 	body := request.AgencyBookingTransactionDTO{}
 
@@ -37,7 +40,7 @@ func (_ *CBookingTransaction) CreateBookingTransaction(c *gin.Context, prof mode
 		// TransactionId:     transactionId,
 		CourseUid:            prof.CourseUid,
 		PartnerUid:           prof.PartnerUid,
-		AgencyId:             0,
+		AgencyId:             body.AgencyId,
 		PaymentStatus:        "",
 		CustomerPhoneNumber:  body.CustomerPhoneNumber,
 		CustomerEmail:        body.CustomerEmail,
@@ -58,7 +61,11 @@ func (_ *CBookingTransaction) CreateBookingTransaction(c *gin.Context, prof mode
 
 	// lock tee time
 	for _, item := range bookingList {
-		lockTee(item.TeeType, 1, item.BookingDate, item.TeeTime, item.CourseUid)
+		errLock := lockTee(item.TeeType, 1, item.BookingDate, item.TeeTime, item.CourseUid, "lock from agency")
+		if errLock != nil {
+			response_message.BadRequest(c, errLock.Error())
+			return
+		}
 	}
 
 	for _, item := range bookingList {
@@ -82,9 +89,11 @@ func (_ *CBookingTransaction) CreateBookingTransaction(c *gin.Context, prof mode
 	}
 
 	okRes(c)
-
 }
 
+/*
+Cập nhật 1 transaction
+*/
 func (_ *CBookingTransaction) UpdateBookingTransaction(c *gin.Context, prof models.CmsUser) {
 	body := request.AgencyBookingTransactionDTO{}
 
@@ -126,7 +135,7 @@ func (_ *CBookingTransaction) UpdateBookingTransaction(c *gin.Context, prof mode
 		TransactionStatus:   constants.AGENCY_BOOKING_TRANSACTION_INIT,
 		CourseUid:           prof.CourseUid,
 		PartnerUid:          prof.PartnerUid,
-		AgencyId:            0,
+		AgencyId:            body.AgencyId,
 		PaymentStatus:       "",
 		CustomerPhoneNumber: body.CustomerPhoneNumber,
 		CustomerEmail:       body.CustomerEmail,

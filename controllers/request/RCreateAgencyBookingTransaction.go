@@ -15,10 +15,10 @@ type AgencyBookingTransactionDTO struct {
 	CustomerName         string `json:"customer_name"`          // Tên người đặt
 	BookingAmount        int64  `json:"booking_amount"`         // giá book
 	ServiceAmount        int64  `json:"service_amount"`         // giá dịch vụ
-	PaymentDueDate       int64  `json:"payment_due_date"`       // ngày hết hạn thanh toán
+	PaymentDueDate       string `json:"payment_due_date"`       // ngày hết hạn thanh toán
 	PlayerNote           string `json:"player_note"`            // ghi ch ú người chơi
 	AgentNote            string `json:"agent_note"`             // ghi chú tổn đài viên
-	PlayDate             int64  `json:"play_date"`              // ngày chơi
+	PlayDate             string `json:"play_date"`              // ngày chơi
 
 	// thông tin hóa đơn
 	PaymentType    string `json:"payment_type"`    // loại thanh toán

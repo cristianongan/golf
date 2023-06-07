@@ -6,6 +6,7 @@ import (
 	"start/datasources"
 	"start/logger"
 	"start/models"
+	models_agency_booking "start/models/agency-booking"
 	model_booking "start/models/booking"
 	model_gostarter "start/models/go-starter"
 	kiosk_inventory "start/models/kiosk-inventory"
@@ -197,6 +198,11 @@ func MigrateDbCms(db *gorm.DB) {
 
 	// Course Time Notification
 	db.AutoMigrate(&models.ConfigTimeNoti{})
+
+	// Agency
+	db.AutoMigrate(&models_agency_booking.AgencyBookingInfo{})
+	db.AutoMigrate(&models_agency_booking.AgencyBookingTransaction{})
+	db.AutoMigrate(&models_agency_booking.AgencyBookingTransactionHis{})
 }
 
 func MigrateDbAuth() {

@@ -10,19 +10,18 @@ import (
 
 type AgencyBookingInfo struct {
 	models.ModelId
-	TransactionId string `json:"transaction_id"`                 // mã giao dịch
-	BookingDate   string `json:"booking_date"`                   // dd/mm/yyyy
-	CmsUser       string `json:"cms_user"`                       // Acc Operator Tạo (Bỏ lấy theo token)
-	PartnerUid    string `json:"partner_uid" binding:"required"` // Hang Golf
-	CourseUid     string `json:"course_uid" binding:"required"`  // San Golf
-	CourseType    string `json:"course_type"`
-	HoleBooking   int    `json:"hole_booking"` // Số hố
-	Hole          int    `json:"hole"`         // Số hố check
-	TeeType       string `json:"tee_type"`     // 1, 1A, 1B, 1C, 10, 10A, 10B (k required cái này vì có case checking k qua booking)
-	TeePath       string `json:"tee_path"`     // MORNING, NOON, NIGHT (k required cái này vì có case checking k qua booking)
-	TurnTime      string `json:"turn_time"`    // Ex: 16:26 (k required cái này vì có case checking k qua booking)
-	TeeTime       string `json:"tee_time"`     // Ex: 16:26 Tee time là thời gian tee off dự kiến (k required cái này vì có case checking k qua booking)
-	RowIndex      *int   `json:"row_index"`    // index trong Flight
+	TransactionId string `json:"transaction_id" gorm:"type:varchar(100);index"`           // mã giao dịch
+	BookingDate   string `json:"booking_date" gorm:"type:varchar(100)"`                   // dd/mm/yyyy
+	PartnerUid    string `json:"partner_uid" binding:"required" gorm:"type:varchar(100)"` // Hang Golf
+	CourseUid     string `json:"course_uid" binding:"required" gorm:"type:varchar(256)"`  // San Golf
+	CourseType    string `json:"course_type" gorm:"type:varchar(100)"`
+	HoleBooking   int    `json:"hole_booking"`                      // Số hố
+	Hole          int    `json:"hole"`                              // Số hố check
+	TeeType       string `json:"tee_type" gorm:"type:varchar(50)"`  // 1, 1A, 1B, 1C, 10, 10A, 10B (k required cái này vì có case checking k qua booking)
+	TeePath       string `json:"tee_path" gorm:"type:varchar(50)"`  // MORNING, NOON, NIGHT (k required cái này vì có case checking k qua booking)
+	TurnTime      string `json:"turn_time" gorm:"type:varchar(30)"` // Ex: 16:26 (k required cái này vì có case checking k qua booking)
+	TeeTime       string `json:"tee_time" gorm:"type:varchar(30)"`  // Ex: 16:26 Tee time là thời gian tee off dự kiến (k required cái này vì có case checking k qua booking)
+	RowIndex      *int   `json:"row_index"`                         // index trong Flight
 }
 
 func (_ *AgencyBookingInfo) CreateBatch(list []AgencyBookingInfo, db *gorm.DB) error {
