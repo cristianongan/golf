@@ -198,7 +198,7 @@ func (item *BuggyFeeItemSetting) FindBuggyFeeOnDate(database *gorm.DB, time stri
 	}
 
 	db = db.Where("status = ?", constants.STATUS_ENABLE)
-	db.Debug().Find(&list)
+	db.Find(&list)
 	return list, db.Error
 }
 

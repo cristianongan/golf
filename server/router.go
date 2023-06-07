@@ -923,6 +923,8 @@ func NewRouter() *gin.Engine {
 				otaV1Api.POST("/TeeTimeStatus", cTeeTime.TeeTimeStatus)
 				otaV1Api.POST("/LockTeeTime", cTeeTime.LockTeeTime)
 				otaV1Api.POST("/UnlockTeeTime", cTeeTime.UnlockTeeTime)
+
+				// ====================== Book waiting list =======================
 			}
 		}
 
