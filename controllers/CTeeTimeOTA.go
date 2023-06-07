@@ -121,7 +121,7 @@ func (cBooking *CTeeTimeOTA) GetTeeTimeList(c *gin.Context) {
 		// BuggyFee = utils.GetFeeFromListFee(fee.BuggyFee, body.Hole)
 	}
 
-	BuggyFee = utils.GetFeeFromListFee(getBuggyFee(agency.GuestStyle, bookingDateF), 18)
+	BuggyFee = utils.GetFeeFromListFee(getBuggyFee(agency.GuestStyle, bookingDateF, course.PartnerUid, course.Uid), 18)
 
 	// Get Setting để tạo list tee time
 	cBookingSetting := CBookingSetting{}
@@ -446,13 +446,14 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 		},
 	}
 
-	if body.Tee == "1" {
-		teeTimeSetting.TeeType = "1A"
-	}
+	// if body.Tee == "1" {
+	// 	teeTimeSetting.TeeType = "1A"
+	// }
 
-	if body.Tee == "10" {
-		teeTimeSetting.TeeType = "1B"
-	}
+	// if body.Tee == "10" {
+	// 	teeTimeSetting.TeeType = "1B"
+	// }
+	teeTimeSetting.TeeType = body.TeeType
 
 	// Lấy số slot đã book
 	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(teeTimeSetting.DateTime, teeTimeSetting.CourseUid, teeTimeSetting.TeeTime, teeTimeSetting.TeeType)
@@ -475,14 +476,14 @@ func (cBooking *CTeeTimeOTA) LockTeeTime(c *gin.Context) {
 	}
 
 	// Create redis key tee time lock
-	teeTimeRedisKey := ""
-	if body.Tee == "1" {
-		teeTimeRedisKey = getKeyTeeTimeLockRedis(dateFormat, body.CourseCode, body.TeeOffStr, "1A")
-	}
+	teeTimeRedisKey := getKeyTeeTimeLockRedis(dateFormat, body.CourseCode, body.TeeOffStr, body.TeeType)
+	// if body.Tee == "1" {
+	// 	teeTimeRedisKey = getKeyTeeTimeLockRedis(dateFormat, body.CourseCode, body.TeeOffStr, "1A")
+	// }
 
-	if body.Tee == "10" {
-		teeTimeRedisKey = getKeyTeeTimeLockRedis(dateFormat, body.CourseCode, body.TeeOffStr, "1B")
-	}
+	// if body.Tee == "10" {
+	// 	teeTimeRedisKey = getKeyTeeTimeLockRedis(dateFormat, body.CourseCode, body.TeeOffStr, "1B")
+	// }
 
 	key := datasources.GetRedisKeyTeeTimeLock(teeTimeRedisKey)
 	_, errRedis := datasources.GetCache(key)
@@ -647,7 +648,7 @@ func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
 
 	bookingDate, _ := time.Parse("2006-01-02", body.DateStr)
 	dateFormat := bookingDate.Format("02/01/2006")
-	teeTimeRedisKey := getKeyTeeTimeLockRedis(dateFormat, body.CourseCode, body.TeeOffStr, "1A")
+	teeTimeRedisKey := getKeyTeeTimeLockRedis(dateFormat, body.CourseCode, body.TeeOffStr, body.TeeType)
 	lockTeeRedisRaw, errTimelock := datasources.GetCache(teeTimeRedisKey)
 	lockTeeTime := models.LockTeeTimeWithSlot{}
 
@@ -661,7 +662,7 @@ func (cBooking *CTeeTimeOTA) UnlockTeeTime(c *gin.Context) {
 		}
 	}
 
-	teeTimeSlotEmptyRedisKey := getKeyTeeTimeSlotRedis(dateFormat, body.CourseCode, body.TeeOffStr, "1A")
+	teeTimeSlotEmptyRedisKey := getKeyTeeTimeSlotRedis(dateFormat, body.CourseCode, body.TeeOffStr, body.TeeType)
 	slotStr, _ := datasources.GetCache(teeTimeSlotEmptyRedisKey)
 	slotLock, _ := strconv.Atoi(slotStr)
 	slotRemain := slotLock - body.NumBook

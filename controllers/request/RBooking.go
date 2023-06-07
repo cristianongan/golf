@@ -178,6 +178,36 @@ type CreateBookingBody struct {
 	BookingTeeTime     bool
 }
 
+/*
+Update để đồng bộ với cách lưu trong redis và database:
+database mysql đang chia tee_type: 1, 10m, course_type: A,B,C
+redis đang lưu teeType: 1A, 1B, 1C,...
+*/
+func (item *CreateBookingBody) UpdateTeeType(teeType string) {
+	if teeType == "1A" {
+		item.TeeType = "1"
+		item.CourseType = "A"
+	} else if teeType == "1B" {
+		item.TeeType = "1"
+		item.CourseType = "B"
+	} else if teeType == "1C" {
+		item.TeeType = "1"
+		item.CourseType = "C"
+	} else if teeType == "10A" {
+		item.TeeType = "10"
+		item.CourseType = "A"
+	} else if teeType == "10B" {
+		item.TeeType = "10"
+		item.CourseType = "B"
+	} else if teeType == "10c" {
+		item.TeeType = "10"
+		item.CourseType = "C"
+	} else {
+		item.TeeType = teeType
+		item.CourseType = "A"
+	}
+}
+
 type UpdateAgencyOrMemberCardToBooking struct {
 	PartnerUid    string
 	CourseUid     string

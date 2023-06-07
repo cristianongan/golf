@@ -21,6 +21,10 @@ import (
 
 /*
 Booking OTA
+
+Update để đồng bộ với cách lưu trong redis và database:
+database mysql đang chia tee_type: 1, 10m, course_type: A,B,C
+redis đang lưu teeType: 1A, 1B, 1C,...
 */
 func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	dataRes := response.BookingOTARes{}
@@ -62,7 +66,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	}
 
 	prof := models.CmsUser{
-		PartnerUid: "CHI-LINH",
+		PartnerUid: course.PartnerUid,
 		CourseUid:  body.CourseCode,
 		UserName:   "ota",
 	}
@@ -76,8 +80,8 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		return
 	}
 
-	if body.Tee == "" {
-		body.Tee = "1"
+	if body.TeeType == "" {
+		body.TeeType = "1A"
 	}
 
 	db := datasources.GetDatabaseWithPartner(prof.PartnerUid)
@@ -98,7 +102,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 
 	// Check tee time status
 	// Check TeeTime Index
-	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(bookDate, body.CourseCode, dateTeeStrConv, "1A")
+	teeTimeRowIndexRedis := getKeyTeeTimeRowIndex(bookDate, body.CourseCode, dateTeeStrConv, body.TeeType)
 	rowIndexsRedisStr, _ := datasources.GetCache(teeTimeRowIndexRedis)
 	rowIndexsRedis := utils.ConvertStringToIntArray(rowIndexsRedisStr)
 	log.Println("CreateBookingOTA rowIndexsRedis", rowIndexsRedis)
@@ -143,7 +147,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 		NumBook:      body.NumBook,
 		Holes:        body.Holes,
 		IsMainCourse: body.IsMainCourse,
-		Tee:          body.Tee,
+		Tee:          body.TeeType,
 		TeeOffStr:    dateTeeStrConv,
 
 		AgentCode:          body.AgentCode,
@@ -211,15 +215,17 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 			},
 		}
 
-		if body.Tee == "1" {
-			bodyCreate.CourseType = "A"
-			bodyCreate.TeeType = "1"
-		}
+		bodyCreate.UpdateTeeType(body.TeeType)
 
-		if body.Tee == "10" {
-			bodyCreate.CourseType = "B"
-			bodyCreate.TeeType = "1"
-		}
+		// if body.Tee == "1" {
+		// 	bodyCreate.CourseType = "A"
+		// 	bodyCreate.TeeType = "1"
+		// }
+
+		// if body.Tee == "10" {
+		// 	bodyCreate.CourseType = "B"
+		// 	bodyCreate.TeeType = "1"
+		// }
 
 		booking, errBook := cBooking.CreateBookingCommon(bodyCreate, nil, prof)
 		if booking == nil {
@@ -259,7 +265,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 
 	dataRes.BookOtaID = bookingOta.BookingCode
 
-	unlockTee(body)
+	unlockTeeOTA(body)
 	if len(listBooking) > 0 {
 		go func() {
 			cNotification := CNotification{}
@@ -274,7 +280,10 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	okResponse(c, dataRes)
 }
 
-func unlockTee(body request.CreateBookingOTABody) {
+/*
+Theo TeeType format: 1A, 1B,...
+*/
+func unlockTeeOTA(body request.CreateBookingOTABody) {
 	// get các teetime đang bị khóa ở redis
 	bookDate, _ := utils.GetBookingTimeFrom(body.DateStr)
 	lockTeeTime := models.LockTeeTime{
@@ -283,13 +292,13 @@ func unlockTee(body request.CreateBookingOTABody) {
 		DateTime:  bookDate,
 	}
 
-	if body.Tee == "1" {
-		lockTeeTime.TeeType = "1A"
-	}
+	// if body.Tee == "1" {
+	// 	lockTeeTime.TeeType = "1A"
+	// }
 
-	if body.Tee == "10" {
-		lockTeeTime.TeeType = "1B"
-	}
+	// if body.Tee == "10" {
+	// 	lockTeeTime.TeeType = "1B"
+	// }
 
 	listTeeTimeLockRedis := getTeeTimeLockRedis(body.CourseCode, bookDate, lockTeeTime.TeeType)
 	for _, teeTimeLockRedis := range listTeeTimeLockRedis {
@@ -297,16 +306,21 @@ func unlockTee(body request.CreateBookingOTABody) {
 			teeTimeLockRedis.CourseUid == body.CourseCode && teeTimeLockRedis.TeeType == lockTeeTime.TeeType {
 
 			teeTimeRedisKey := ""
-			if body.Tee == "1" {
-				teeTimeRedisKey = getKeyTeeTimeLockRedis(bookDate, body.CourseCode, body.TeeOffStr, "1A")
-			}
+			// if body.Tee == "1" {
+			// 	teeTimeRedisKey = getKeyTeeTimeLockRedis(bookDate, body.CourseCode, body.TeeOffStr, "1A")
+			// }
 
-			if body.Tee == "10" {
-				teeTimeRedisKey = getKeyTeeTimeLockRedis(bookDate, body.CourseCode, body.TeeOffStr, "1B")
-			}
+			// if body.Tee == "10" {
+			// 	teeTimeRedisKey = getKeyTeeTimeLockRedis(bookDate, body.CourseCode, body.TeeOffStr, "1B")
+			// }
+
+			teeTimeRedisKey = getKeyTeeTimeLockRedis(bookDate, body.CourseCode, body.TeeOffStr, body.TeeType)
 
 			err := datasources.DelCacheByKey(teeTimeRedisKey)
-			log.Print(err)
+
+			if err != nil {
+				log.Println("unlockTee err", err.Error())
+			}
 
 			// Bắn socket để client update ui
 			// cNotification := CNotification{}
@@ -354,7 +368,7 @@ func (cBooking *CBooking) CancelBookingOTA(c *gin.Context) {
 	}
 
 	prof := models.CmsUser{
-		PartnerUid: "CHI-LINH",
+		PartnerUid: course.PartnerUid,
 		CourseUid:  body.CourseCode,
 		UserName:   "ota",
 	}
@@ -396,6 +410,8 @@ func (cBooking *CBooking) CancelBookingOTA(c *gin.Context) {
 				errDel := v.Delete(db)
 				if errDel != nil {
 					log.Println("CancelBookingOTA Book errDel", errDel.Error())
+				} else {
+					removeRowIndexRedis(v)
 				}
 			} else {
 				v.BagStatus = constants.BAG_STATUS_CANCEL
@@ -408,6 +424,7 @@ func (cBooking *CBooking) CancelBookingOTA(c *gin.Context) {
 					if errCBC != nil {
 						log.Println("CancelBookingOTA Book errCBC", errCBC.Error())
 					}
+					removeRowIndexRedis(v)
 				}
 			}
 

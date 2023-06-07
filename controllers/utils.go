@@ -1617,20 +1617,17 @@ func removeRowIndexRedis(booking model_booking.Booking) {
 		rowIndexsRaw, _ := newRowIndexsRedis.Value()
 		errRedis := datasources.SetCache(teeTimeRowIndexRedis, rowIndexsRaw, 0)
 		if errRedis != nil {
-			log.Println("CreateBookingCommon errRedis", errRedis)
+			log.Println("removeRowIndexRedis errRedis", errRedis)
 		}
 	} else {
 		errRedis := datasources.DelCacheByKey(teeTimeRowIndexRedis)
 		if errRedis != nil {
-			log.Println("CreateBookingCommon errRedis", errRedis)
+			log.Println("removeRowIndexRedis errRedis", errRedis)
 		}
 	}
 }
 
-func getBuggyFee(gs string, bookingDate string) utils.ListGolfHoleFee {
-
-	partnerUid := "CHI-LINH"
-	courseUid := "CHI-LINH-01"
+func getBuggyFee(gs string, bookingDate string, partnerUid, courseUid string) utils.ListGolfHoleFee {
 
 	db := datasources.GetDatabaseWithPartner(partnerUid)
 	buggyFeeSettingR := models.BuggyFeeSetting{

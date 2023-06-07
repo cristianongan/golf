@@ -19,7 +19,7 @@ type CreateBookingOTABody struct {
 	IsMainCourse bool   `json:"isMainCourse"`               // (true: book vào sân A, false: book vào sân B)
 	DateStr      string `json:"DateStr" binding:"required"` // 1, 1A, 1B, 1C, 10, 10A, 10B (k required cái này vì có case checking k qua booking)
 	TeeOffStr    string `json:"TeeOffStr" binding:"required"`
-	Tee          string `json:"Tee"`
+	TeeType      string `json:"TeeType"`
 	CourseCode   string `json:"CourseCode" binding:"required"` // uid sân
 	// BookAgent    string             `json:"BookAgent"`
 	GuestStyle   string             `json:"GuestStyle"`
@@ -52,16 +52,17 @@ type GetTeeTimeOTAList struct {
 	TeeType      string `json:"TeeType"`
 }
 type RTeeTimeOTA struct {
-	Token        string `json:"Token"`
-	CourseCode   string `json:"CourseCode"`
-	DateStr      string `json:"DateStr"`
+	Token        string `json:"Token" binding:"required"`
+	CourseCode   string `json:"CourseCode" binding:"required"`
+	DateStr      string `json:"DateStr" binding:"required"`
 	Date         string `json:"Date"`
 	IsMainCourse bool   `json:"isMainCourse"`
-	Tee          string `json:"Tee"`
+	Tee          string `json:"Tee" binding:"required"`
 	TeeOffStr    string `json:"TeeOffStr"`
 	Guest_Code   string `json:"Guest_Code"`
 	Locktime     int    `json:"Locktime"`
 	NumBook      int    `json:"NumBook"`
+	TeeType      string `json:"TeeType" binding:"required"`
 }
 
 type CancelBookOTABody struct {
