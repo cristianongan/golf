@@ -49,7 +49,7 @@ func (cBooking *CBooking) CreateBookingOTA(c *gin.Context) {
 	}
 
 	// Check token
-	checkToken := course.ApiKey + body.DateStr + body.TeeOffStr + body.BookingCode
+	checkToken := course.ApiKey + body.CourseCode + body.DateStr + body.TeeOffStr + body.BookingCode
 	token := utils.GetSHA256Hash(checkToken)
 
 	if strings.ToUpper(token) != body.Token {
