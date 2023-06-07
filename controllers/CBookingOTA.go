@@ -410,6 +410,10 @@ func (cBooking *CBooking) CancelBookingOTA(c *gin.Context) {
 					}
 				}
 			}
+
+			cNotification := CNotification{}
+			go cNotification.PushMessBoookingForApp(constants.NOTIFICATION_BOOKING_UPD, &v)
+			go cNotification.PushNotificationCreateBooking(constants.NOTIFICATION_UPD_BOOKING_CMS, v)
 		}
 	}
 
