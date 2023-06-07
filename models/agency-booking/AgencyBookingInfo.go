@@ -23,16 +23,6 @@ type AgencyBookingInfo struct {
 	TurnTime      string `json:"turn_time"`    // Ex: 16:26 (k required cái này vì có case checking k qua booking)
 	TeeTime       string `json:"tee_time"`     // Ex: 16:26 Tee time là thời gian tee off dự kiến (k required cái này vì có case checking k qua booking)
 	RowIndex      *int   `json:"row_index"`    // index trong Flight
-
-	// Guest booking
-	GuestStyle           string  `json:"guest_style"`            // Guest Style
-	GuestStyleName       string  `json:"guest_style_name"`       // Guest Style Name
-	CustomerName         string  `json:"customer_name"`          // Tên khách hàng
-	CustomerBookingEmail *string `json:"customer_booking_email"` // Email khách hàng
-	CustomerBookingName  string  `json:"customer_booking_name"`  // Tên khách hàng đặt booking
-	CustomerBookingPhone string  `json:"customer_booking_phone"` // SDT khách hàng đặt booking
-	CustomerIdentify     string  `json:"customer_identify"`      // passport/cccd
-	Nationality          string  `json:"nationality"`            // Nationality
 }
 
 func (_ *AgencyBookingInfo) CreateBatch(list []AgencyBookingInfo, db *gorm.DB) error {

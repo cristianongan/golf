@@ -35,37 +35,51 @@ func (_ *CBookingTransaction) CreateBookingTransaction(c *gin.Context, prof mode
 
 	transaction := models_agency_booking.AgencyBookingTransaction{
 		// TransactionId:     transactionId,
-		TransactionStatus:   constants.AGENCY_BOOKING_TRANSACTION_INIT,
-		CourseUid:           prof.CourseUid,
-		PartnerUid:          prof.PartnerUid,
-		AgencyId:            0,
-		PaymentStatus:       "",
-		CustomerPhoneNumber: body.CustomerPhoneNumber,
-		CustomerEmail:       body.CustomerEmail,
-		CustomerName:        body.CustomerName,
-		BookingAmount:       body.BookingAmount,
-		ServiceAmount:       body.ServiceAmount,
-		PaymentDueDate:      0,
-		PlayerNote:          body.PlayerNote,
-		AgentNote:           body.PlayerNote,
-		PaymentType:         body.PaymentType,
-		Company:             body.Company,
-		CompanyAddress:      body.CompanyAddress,
-		CompanyTax:          body.CompanyTax,
-		ReceiptEmail:        body.ReceiptEmail,
+		CourseUid:            prof.CourseUid,
+		PartnerUid:           prof.PartnerUid,
+		AgencyId:             0,
+		PaymentStatus:        "",
+		CustomerPhoneNumber:  body.CustomerPhoneNumber,
+		CustomerEmail:        body.CustomerEmail,
+		CustomerName:         body.CustomerName,
+		BookingAmount:        body.BookingAmount,
+		ServiceAmount:        body.ServiceAmount,
+		PaymentDueDate:       0,
+		PlayerNote:           body.PlayerNote,
+		AgentNote:            body.PlayerNote,
+		PaymentType:          body.PaymentType,
+		Company:              body.Company,
+		CompanyAddress:       body.CompanyAddress,
+		CompanyTax:           body.CompanyTax,
+		ReceiptEmail:         body.ReceiptEmail,
+		TransactionStatus:    constants.AGENCY_BOOKING_TRANSACTION_INIT,
+		BookingRequestStatus: constants.AGENCY_REQUEST_BOOKING_LOCK_TEE,
 	}
 
-	// create transaction
-	transaction.Create(db)
+	// lock tee time
+	for _, item := range bookingList {
+		lockTee(item.TeeType, 1, item.BookingDate, item.TeeTime, item.CourseUid)
+	}
 
 	for _, item := range bookingList {
 		item.TransactionId = transaction.TransactionId
 	}
 
 	// create temp
-	bookingList[0].CreateBatch(bookingList, db)
+	errBatch := bookingList[0].CreateBatch(bookingList, db)
 
-	// lock tee time
+	if errBatch != nil {
+		response_message.BadRequest(c, errBatch.Error())
+		return
+	}
+
+	// create transaction
+	errCreate := transaction.Create(db)
+
+	if errCreate != nil {
+		response_message.BadRequest(c, errCreate.Error())
+		return
+	}
 
 	okRes(c)
 
