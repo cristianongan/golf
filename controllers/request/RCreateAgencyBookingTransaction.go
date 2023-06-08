@@ -48,3 +48,14 @@ type GetAgencyTransactionRequest struct {
 	FromDate             string `json:"from_date"`              // từ ngày
 	ToDate               string `json:"to_date"`                // đến ngày
 }
+
+type GetTeeTimeAgencyList struct {
+	Token        string `json:"token"`
+	CourseUid    string `json:"course_uid"`
+	Date         string `json:"date"`
+	IsMainCourse bool   `json:"is_main_course"`
+	AgencyId     string `json:"agency_id"`
+	Hole         int    `json:"hole"`
+	Course       string `json:"course"`
+	TeeType      string `json:"tee_type"`
+}

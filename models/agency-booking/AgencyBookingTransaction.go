@@ -77,7 +77,7 @@ func (item *AgencyBookingTransaction) updateTransactionStatus(oldData AgencyBook
 }
 
 func (item *AgencyBookingTransaction) FindList(from int64, to int64, page models.Page, db *gorm.DB) ([]AgencyBookingTransaction, int64, error) {
-	db.Model(AgencyBookingTransaction{})
+	db = db.Model(&AgencyBookingTransaction{})
 	var total int64
 	list := []AgencyBookingTransaction{}
 

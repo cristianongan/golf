@@ -898,6 +898,9 @@ func NewRouter() *gin.Engine {
 			cmsApiAuthorized.PUT("/agency/transaction/:id", middlewares.AuthorizedCmsUserHandler(cBookingTransaction.UpdateBookingTransaction))
 			cmsApiAuthorized.GET("/agency/transaction", middlewares.AuthorizedCmsUserHandler(cBookingTransaction.FindBookingTransactionList))
 			cmsApiAuthorized.GET("/agency/transaction/:id", middlewares.AuthorizedCmsUserHandler(cBookingTransaction.GetBookingTransaction))
+
+			cTeeTimeAgency := new(controllers.CTeeTimeAgency)
+			cmsApiAuthorized.POST("/agency/tee-time", middlewares.AuthorizedCmsUserHandler(cTeeTimeAgency.FindTeeTimeList))
 		}
 
 		// ----------------------------------------------------------
